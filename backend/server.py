@@ -431,6 +431,185 @@ async def root():
 async def health():
     return {"status": "healthy"}
 
+# ============== RDS / NOW PLAYING (Public Endpoint for MagicRDS) ==============
+
+@api_router.get("/rds/now-playing")
+async def get_now_playing():
+    """
+    Public endpoint for MagicRDS integration.
+    Returns the currently scheduled show and current rundown item.
+    No authentication required.
+    """
+    now = datetime.now(timezone.utc)
+    today = now.strftime('%Y-%m-%d')
+    current_time = now.strftime('%H:%M')
+    
+    # Find scheduled shows for today that are currently running
+    scheduled_shows = await db.shows.find(
+        {
+            "status": "scheduled",
+            "date": today,
+            "start_time": {"$lte": current_time},
+            "end_time": {"$gte": current_time}
+        },
+        {"_id": 0}
+    ).to_list(10)
+    
+    if not scheduled_shows:
+        # No show currently live, check for next scheduled show today
+        next_show = await db.shows.find_one(
+            {
+                "status": "scheduled",
+                "date": today,
+                "start_time": {"$gt": current_time}
+            },
+            {"_id": 0},
+            sort=[("start_time", 1)]
+        )
+        
+        if next_show:
+            return {
+                "status": "off_air",
+                "message": "No show currently live",
+                "next_show": {
+                    "title": next_show["title"],
+                    "start_time": next_show["start_time"],
+                    "end_time": next_show["end_time"]
+                }
+            }
+        
+        return {
+            "status": "off_air",
+            "message": "No scheduled shows for today",
+            "next_show": None
+        }
+    
+    # Get the current show (first one if multiple overlap)
+    current_show = scheduled_shows[0]
+    
+    # Get rundown items for this show
+    rundown_items = await db.rundown_items.find(
+        {"show_id": current_show["id"]},
+        {"_id": 0}
+    ).sort("order", 1).to_list(100)
+    
+    # Build clean RDS output
+    rds_output = {
+        "status": "on_air",
+        "show": {
+            "title": current_show["title"],
+            "description": current_show.get("description", ""),
+            "start_time": current_show["start_time"],
+            "end_time": current_show["end_time"],
+            "date": current_show["date"]
+        },
+        "rundown": [
+            {
+                "order": item["order"] + 1,
+                "type": item["type"],
+                "title": item["title"],
+                "notes": item.get("notes", ""),
+                "duration": item.get("duration", "")
+            }
+            for item in rundown_items
+        ],
+        "item_count": len(rundown_items),
+        "generated_at": now.isoformat()
+    }
+    
+    return rds_output
+
+
+@api_router.get("/rds/schedule")
+async def get_rds_schedule():
+    """
+    Public endpoint returning all scheduled shows.
+    Clean JSON format for external integrations.
+    """
+    # Get all scheduled shows, sorted by date and time
+    scheduled_shows = await db.shows.find(
+        {"status": "scheduled"},
+        {"_id": 0}
+    ).sort([("date", 1), ("start_time", 1)]).to_list(100)
+    
+    result = []
+    for show in scheduled_shows:
+        # Get rundown for each show
+        rundown_items = await db.rundown_items.find(
+            {"show_id": show["id"]},
+            {"_id": 0}
+        ).sort("order", 1).to_list(100)
+        
+        result.append({
+            "show": {
+                "title": show["title"],
+                "description": show.get("description", ""),
+                "date": show["date"],
+                "start_time": show["start_time"],
+                "end_time": show["end_time"]
+            },
+            "rundown": [
+                {
+                    "order": item["order"] + 1,
+                    "type": item["type"],
+                    "title": item["title"],
+                    "notes": item.get("notes", ""),
+                    "duration": item.get("duration", "")
+                }
+                for item in rundown_items
+            ]
+        })
+    
+    return {
+        "scheduled_shows": result,
+        "total_count": len(result),
+        "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
+
+@api_router.get("/rds/export/{show_id}")
+async def export_show_rds(show_id: str):
+    """
+    Export a single show's rundown in clean RDS format.
+    Public endpoint - no authentication required.
+    """
+    show = await db.shows.find_one(
+        {"id": show_id},
+        {"_id": 0}
+    )
+    
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    rundown_items = await db.rundown_items.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(100)
+    
+    # Build clean export format
+    return {
+        "show": {
+            "title": show["title"],
+            "description": show.get("description", ""),
+            "date": show["date"],
+            "start_time": show["start_time"],
+            "end_time": show["end_time"],
+            "status": show["status"]
+        },
+        "rundown": [
+            {
+                "order": item["order"] + 1,
+                "type": item["type"],
+                "title": item["title"],
+                "notes": item.get("notes", ""),
+                "duration": item.get("duration", "")
+            }
+            for item in rundown_items
+        ],
+        "item_count": len(rundown_items),
+        "generated_at": datetime.now(timezone.utc).isoformat()
+    }
+
 # Include routers
 api_router.include_router(auth_router)
 api_router.include_router(shows_router)
