@@ -29,6 +29,18 @@ const typeIcons = {
   ad: Radio,
 };
 
+// Average speaking rate: 150 words per minute
+const WORDS_PER_MINUTE = 150;
+
+const calculateSpeakingDuration = (text) => {
+  if (!text || text.trim() === '') return null;
+  const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const totalMinutes = words / WORDS_PER_MINUTE;
+  const minutes = Math.floor(totalMinutes);
+  const seconds = Math.round((totalMinutes - minutes) * 60);
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
 const RundownEditor = ({ showId }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
