@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
 import ShowsPage from './pages/ShowsPage';
 import ShowDetailPage from './pages/ShowDetailPage';
+import CalendarPage from './pages/CalendarPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -53,6 +54,7 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="/shows" replace />} />
         <Route path="shows" element={<ShowsPage />} />
         <Route path="shows/:showId" element={<ShowDetailPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
