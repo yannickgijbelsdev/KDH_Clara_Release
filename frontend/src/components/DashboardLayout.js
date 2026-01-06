@@ -1,0 +1,105 @@
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { Radio, LayoutList, LogOut, User } from 'lucide-react';
+import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+
+const DashboardLayout = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  return (
+    <div className="min-h-screen bg-[#09090b] flex">
+      {/* Sidebar */}
+      <aside className="w-64 fixed left-0 top-0 h-full glass-sidebar z-50">
+        <div className="p-6">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-10">
+            <div className="p-2.5 bg-rose-500/20 rounded-xl">
+              <Radio className="w-6 h-6 text-rose-500" />
+            </div>
+            <span className="text-xl font-bold text-white">ShowPrep</span>
+          </div>
+
+          {/* Navigation */}
+          <nav className="space-y-2">
+            <NavLink
+              to="/shows"
+              data-testid="nav-shows-link"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-rose-500/20 text-rose-500'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              <LayoutList className="w-5 h-5" />
+              <span className="font-medium">Shows</span>
+            </NavLink>
+          </nav>
+        </div>
+
+        {/* User section at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/10">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                data-testid="user-menu-btn"
+                className="w-full justify-start gap-3 h-auto p-3 hover:bg-white/5"
+              >
+                <div className="w-9 h-9 rounded-full bg-rose-500/20 flex items-center justify-center">
+                  <User className="w-4 h-4 text-rose-500" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-white truncate max-w-[120px]">
+                    {user?.name}
+                  </p>
+                  <p className="text-xs text-zinc-500 truncate max-w-[120px]">
+                    {user?.email}
+                  </p>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 bg-[#18181b] border-zinc-800">
+              <DropdownMenuItem className="text-zinc-400">
+                <User className="w-4 h-4 mr-2" />
+                {user?.email}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-zinc-800" />
+              <DropdownMenuItem
+                data-testid="logout-btn"
+                onClick={handleLogout}
+                className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 ml-64 min-h-screen">
+        <div className="p-8 lg:p-12">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default DashboardLayout;

@@ -1,0 +1,207 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { Plus, Music, Mic, FileText, Radio, ListOrdered } from 'lucide-react';
+import { Button } from './ui/button';
+import { toast } from 'sonner';
+import SortableRundownItem from './SortableRundownItem';
+import RundownItemDialog from './RundownItemDialog';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const typeIcons = {
+  music: Music,
+  talk: Mic,
+  item: FileText,
+  ad: Radio,
+};
+
+const RundownEditor = ({ showId }) => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  useEffect(() => {
+    fetchRundown();
+  }, [showId]);
+
+  const fetchRundown = async () => {
+    try {
+      const response = await axios.get(`${API}/shows/${showId}/rundown`);
+      setItems(response.data);
+    } catch (error) {
+      toast.error('Failed to load rundown');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setItems(newItems);
+
+      try {
+        await axios.put(`${API}/shows/${showId}/rundown/reorder`, {
+          item_ids: newItems.map((item) => item.id),
+        });
+      } catch (error) {
+        toast.error('Failed to reorder items');
+        fetchRundown();
+      }
+    }
+  };
+
+  const handleAddItem = () => {
+    setEditingItem(null);
+    setDialogOpen(true);
+  };
+
+  const handleEditItem = (item) => {
+    setEditingItem(item);
+    setDialogOpen(true);
+  };
+
+  const handleDeleteItem = async (itemId) => {
+    try {
+      await axios.delete(`${API}/shows/${showId}/rundown/${itemId}`);
+      setItems(items.filter((item) => item.id !== itemId));
+      toast.success('Item deleted');
+    } catch (error) {
+      toast.error('Failed to delete item');
+    }
+  };
+
+  const handleItemSaved = (savedItem) => {
+    if (editingItem) {
+      setItems(items.map((item) => (item.id === savedItem.id ? savedItem : item)));
+    } else {
+      setItems([...items, savedItem]);
+    }
+    setDialogOpen(false);
+    setEditingItem(null);
+  };
+
+  const calculateTotalDuration = () => {
+    let totalMinutes = 0;
+    items.forEach((item) => {
+      if (item.duration) {
+        const [mins, secs] = item.duration.split(':').map(Number);
+        totalMinutes += mins + (secs || 0) / 60;
+      }
+    });
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = Math.round(totalMinutes % 60);
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
+  return (
+    <div data-testid="rundown-editor" className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-violet-500/20 rounded-lg">
+            <ListOrdered className="w-5 h-5 text-violet-500" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-white">Rundown</h2>
+            <p className="text-sm text-zinc-500">
+              {items.length} items • {calculateTotalDuration()} total
+            </p>
+          </div>
+        </div>
+        <Button
+          data-testid="add-rundown-item-btn"
+          onClick={handleAddItem}
+          className="gap-2 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
+        >
+          <Plus className="w-4 h-4" />
+          Add Item
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 bg-zinc-800/50 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="text-center py-12 border border-dashed border-zinc-800 rounded-xl">
+          <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3">
+            <ListOrdered className="w-6 h-6 text-zinc-500" />
+          </div>
+          <h3 className="text-white font-medium mb-1">No items yet</h3>
+          <p className="text-zinc-500 text-sm mb-4">Start building your rundown</p>
+          <Button
+            onClick={handleAddItem}
+            variant="outline"
+            className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add First Item
+          </Button>
+        </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {items.map((item, index) => (
+                <SortableRundownItem
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  onEdit={() => handleEditItem(item)}
+                  onDelete={() => handleDeleteItem(item.id)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
+
+      <RundownItemDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        showId={showId}
+        editingItem={editingItem}
+        onSaved={handleItemSaved}
+      />
+    </div>
+  );
+};
+
+export default RundownEditor;
