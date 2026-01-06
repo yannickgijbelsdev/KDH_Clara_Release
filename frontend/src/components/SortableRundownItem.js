@@ -85,14 +85,14 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
 
       {/* Duration */}
       {item.duration && (
-        <div className="flex items-center gap-1 text-zinc-500">
+        <div className="flex items-center gap-1 text-zinc-500 mt-1 shrink-0">
           <Clock className="w-4 h-4" />
           <span className="font-mono text-sm">{item.duration}</span>
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 shrink-0">
         <Button
           variant="ghost"
           size="icon"
