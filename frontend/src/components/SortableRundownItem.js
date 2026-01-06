@@ -46,7 +46,7 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
       ref={setNodeRef}
       style={style}
       data-testid={`rundown-item-${index}`}
-      className={`group flex items-center gap-4 bg-[#27272a] rounded-lg p-4 ${typeColors[item.type]} ${
+      className={`group flex items-start gap-4 bg-[#27272a] rounded-lg p-4 ${typeColors[item.type]} ${
         isDragging ? 'dragging z-50' : ''
       }`}
     >
