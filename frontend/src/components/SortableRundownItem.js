@@ -79,7 +79,7 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
         </div>
         <h4 className="text-white font-medium break-words">{item.title}</h4>
         {item.notes && (
-          <p className="text-zinc-500 text-sm break-words line-clamp-2">{item.notes}</p>
+          <p className="text-zinc-300 text-sm break-words line-clamp-2 mt-1">{item.notes}</p>
         )}
       </div>
 
