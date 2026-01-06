@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Radio, LayoutList, LogOut, User } from 'lucide-react';
+import { Radio, LayoutList, LogOut, User, Calendar } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -47,6 +47,20 @@ const DashboardLayout = () => {
             >
               <LayoutList className="w-5 h-5" />
               <span className="font-medium">Shows</span>
+            </NavLink>
+            <NavLink
+              to="/calendar"
+              data-testid="nav-calendar-link"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-rose-500/20 text-rose-500'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="font-medium">Calendar</span>
             </NavLink>
           </nav>
         </div>
