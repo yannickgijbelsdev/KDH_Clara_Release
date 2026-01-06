@@ -236,7 +236,7 @@ async def create_show(
     }
     
     await db.shows.insert_one(show_doc)
-    del show_doc['_id'] if '_id' in show_doc else None
+    show_doc.pop('_id', None)
     return show_doc
 
 @shows_router.get("/{show_id}", response_model=ShowResponse)
