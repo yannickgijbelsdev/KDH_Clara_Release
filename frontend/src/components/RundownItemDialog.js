@@ -172,15 +172,43 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
           </div>
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Notes (optional)</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-zinc-300">Notes (optional)</Label>
+              {wordCount > 0 && (
+                <span className="text-xs text-zinc-500">
+                  {wordCount} words
+                </span>
+              )}
+            </div>
             <Textarea
               data-testid="item-notes-input"
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Additional notes..."
+              placeholder="Additional notes or script text..."
               className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 resize-none"
-              rows={3}
+              rows={4}
             />
+            {estimatedDuration && (
+              <div className="flex items-center justify-between p-2 bg-violet-500/10 border border-violet-500/30 rounded-lg">
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="w-4 h-4 text-violet-400" />
+                  <span className="text-zinc-300">
+                    Estimated speaking time: <span className="font-mono text-violet-400">{estimatedDuration}</span>
+                  </span>
+                  <span className="text-zinc-500 text-xs">({WORDS_PER_MINUTE} wpm)</span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  data-testid="apply-duration-btn"
+                  onClick={applyEstimatedDuration}
+                  className="h-7 px-2 bg-violet-500 hover:bg-violet-600 text-white text-xs gap-1"
+                >
+                  <Wand2 className="w-3 h-3" />
+                  Apply
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
