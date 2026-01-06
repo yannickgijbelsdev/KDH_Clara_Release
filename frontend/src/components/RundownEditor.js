@@ -161,7 +161,8 @@ const RundownEditor = ({ showId }) => {
           <div>
             <h2 className="text-lg font-semibold text-white">Rundown</h2>
             <p className="text-sm text-zinc-500">
-              {items.length} items • {calculateTotalDuration()} total
+              {items.length} items • {totalDuration} total
+              {hasEstimated && <span className="text-violet-400 ml-1">(incl. estimates)</span>}
             </p>
           </div>
         </div>
