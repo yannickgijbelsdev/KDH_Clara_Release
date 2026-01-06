@@ -55,18 +55,18 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
         {...attributes}
         {...listeners}
         data-testid={`drag-handle-${index}`}
-        className="drag-handle p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+        className="drag-handle p-1 text-zinc-500 hover:text-zinc-300 transition-colors mt-0.5 shrink-0"
       >
         <GripVertical className="w-5 h-5" />
       </button>
 
       {/* Order Number */}
-      <span className="font-mono text-sm text-zinc-500 w-6 text-center">
+      <span className="font-mono text-sm text-zinc-500 w-6 text-center mt-1 shrink-0">
         {index + 1}
       </span>
 
       {/* Type Icon */}
-      <div className="p-2 bg-black/30 rounded-lg">
+      <div className="p-2 bg-black/30 rounded-lg mt-0.5 shrink-0">
         <Icon className="w-4 h-4 text-zinc-400" />
       </div>
 
