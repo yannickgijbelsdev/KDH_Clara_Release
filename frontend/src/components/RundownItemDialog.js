@@ -74,6 +74,26 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
     }
   }, [editingItem, open]);
 
+  // Calculate estimated speaking duration from notes
+  const estimatedDuration = useMemo(() => {
+    // Only calculate for talk, item, or ad types (not music)
+    if (formData.type === 'music') return null;
+    return calculateSpeakingDuration(formData.notes);
+  }, [formData.notes, formData.type]);
+
+  // Word count for display
+  const wordCount = useMemo(() => {
+    if (!formData.notes || formData.notes.trim() === '') return 0;
+    return formData.notes.trim().split(/\s+/).filter(w => w.length > 0).length;
+  }, [formData.notes]);
+
+  const applyEstimatedDuration = () => {
+    if (estimatedDuration) {
+      setFormData({ ...formData, duration: estimatedDuration });
+      toast.success('Duration estimated from text');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
