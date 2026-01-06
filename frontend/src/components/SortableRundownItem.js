@@ -107,10 +107,17 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
       </div>
 
       {/* Duration */}
-      {item.duration && (
-        <div className="flex items-center gap-1 text-zinc-500 mt-1 shrink-0">
-          <Clock className="w-4 h-4" />
-          <span className="font-mono text-sm">{item.duration}</span>
+      {displayDuration && (
+        <div className={`flex items-center gap-1 mt-1 shrink-0 ${isEstimated ? 'text-violet-400' : 'text-zinc-500'}`}>
+          {isEstimated ? (
+            <Wand2 className="w-4 h-4" />
+          ) : (
+            <Clock className="w-4 h-4" />
+          )}
+          <span className="font-mono text-sm">{displayDuration}</span>
+          {isEstimated && (
+            <span className="text-xs text-violet-400/70 ml-1">est.</span>
+          )}
         </div>
       )}
 
