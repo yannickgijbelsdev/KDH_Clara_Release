@@ -1,0 +1,138 @@
+{
+  "identity": {
+    "persona": "E1",
+    "role": "Creative Designer (Top 1%)",
+    "philosophy": "Fusion over Imitation. Emotion First. Content is King.",
+    "anti_patterns": [
+      "Generic 'SaaS Blue'",
+      "Inter font for headings",
+      "Center-everything layouts",
+      "Gradient overload",
+      "Default Vercel/Stripe look"
+    ]
+  },
+  "typography": {
+    "fonts": {
+      "headings": {
+        "family": "Chivo",
+        "weights": ["900", "700"],
+        "usage": "Page titles, Show names, Modal headers",
+        "fallback": "sans-serif"
+      },
+      "body": {
+        "family": "Manrope",
+        "weights": ["400", "500", "600"],
+        "usage": "General UI text, form labels, notes",
+        "fallback": "sans-serif"
+      },
+      "mono": {
+        "family": "JetBrains Mono",
+        "weights": ["400", "500"],
+        "usage": "Timestamps, Durations, IDs, Code snippets",
+        "fallback": "monospace"
+      }
+    },
+    "rules": [
+      "Headings > 32px must use tracking-tight",
+      "Overlines/Labels must be Uppercase + tracking-widest + text-xs",
+      "Line height: tight for headers, relaxed for body"
+    ]
+  },
+  "colors": {
+    "theme": "dark",
+    "palette": {
+      "background": "#09090b",
+      "surface": "#18181b",
+      "surface_highlight": "#27272a",
+      "border": "#27272a",
+      "text_primary": "#fafafa",
+      "text_secondary": "#a1a1aa",
+      "primary": "#e11d48",
+      "primary_foreground": "#ffffff",
+      "secondary": "#22c55e",
+      "accent": "#8b5cf6",
+      "destructive": "#ef4444",
+      "muted": "#71717a"
+    },
+    "usage": {
+      "primary": "Critical actions (Go Live, Delete), Active States",
+      "secondary": "Success states, 'Ready' indicators",
+      "accent": "Selection states, Drag-and-drop active items",
+      "background": "Global app background (Matte Black)",
+      "surface": "Cards, Sidebar, Panels"
+    },
+    "gradients": {
+      "subtle_glow": "radial-gradient(circle at center, rgba(225, 29, 72, 0.15) 0%, transparent 70%)"
+    }
+  },
+  "layout": {
+    "structure": "Sidebar Navigation + Main Content Area",
+    "grid_system": {
+      "dashboard": "Bento Grid (Grid Cols 1 -> 2 -> 3)",
+      "rundown": "Linear List (Flex-col) with Drag Handles"
+    },
+    "spacing": {
+      "container_padding": "p-6 md:p-8 lg:p-12",
+      "item_gap": "gap-4 or gap-6",
+      "section_gap": "gap-8 or gap-12"
+    },
+    "sidebar": {
+      "width": "w-64",
+      "style": "Fixed, Glassmorphism (backdrop-blur-xl), Border-r border-white/10"
+    }
+  },
+  "components": {
+    "buttons": {
+      "style": "Sharp or Pill (consistent), High Contrast",
+      "hover": "Scale 1.02, Brightness 1.1"
+    },
+    "cards": {
+      "style": "Flat, Border-1px (border-white/10), No Shadow (unless hovered)",
+      "hover": "Border-white/20, bg-white/5"
+    },
+    "inputs": {
+      "style": "bg-transparent, border-b (underline style) OR filled surface-highlight",
+      "focus": "ring-1 ring-primary border-primary"
+    },
+    "rundown_item": {
+      "style": "Row layout, Monospace time on left, Content in middle, Actions on right",
+      "interaction": "Draggable (dnd-kit), Scale up slightly on drag start"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-black/40 border-white/10",
+    "textures": "Subtle noise overlay on background (optional)",
+    "motion": {
+      "hover": "transition-all duration-200 ease-out",
+      "enter": "animate-in fade-in slide-in-from-bottom-4 duration-500"
+    }
+  },
+  "assets": {
+    "icons": "Lucide React (default)",
+    "images": {
+      "studio_hero": "https://images.unsplash.com/photo-1561365789-e4cd39d6b21c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHw0fHxyYWRpbyUyMHN0dWRpbyUyMG1pY3JvcGhvbmV8ZW58MHx8fHwxNzY3NzI3OTA1fDA&ixlib=rb-4.1.0&q=85",
+      "microphone_detail": "https://images.unsplash.com/photo-1627667050025-be23c83837e9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwzfHxyYWRpbyUyMHN0dWRpbyUyMG1pY3JvcGhvbmV8ZW58MHx8fHwxNzY3NzI3OTA1fDA&ixlib=rb-4.1.0&q=85",
+      "album_art_placeholder_1": "https://images.unsplash.com/photo-1642444525640-d3eb287ed389?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGFsYnVtJTIwYXJ0fGVufDB8fHx8MTc2NzcyNzkwOHww&ixlib=rb-4.1.0&q=85",
+      "album_art_placeholder_2": "https://images.unsplash.com/photo-1641515860544-483ea99e265d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGFsYnVtJTIwYXJ0fGVufDB8fHx8MTc2NzcyNzkwOHww&ixlib=rb-4.1.0&q=85"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Implement Dark Mode by default. Force 'dark' class on html/body.",
+    "Use 'Chivo' for all Headings (h1-h6). Import from Google Fonts.",
+    "Use 'Manrope' for body text. Import from Google Fonts.",
+    "Use 'JetBrains Mono' for all time-related data (Start Time, Duration).",
+    "Sidebar must be fixed on the left, content scrollable on the right.",
+    "Rundown Editor: Use a table-like structure but with div/flex for better Drag & Drop control.",
+    "Use @dnd-kit/core and @dnd-kit/sortable for the rundown reordering.",
+    "Do NOT use gradients for backgrounds. Use solid matte colors.",
+    "Ensure high contrast for text (APCA standards).",
+    "Add 'data-testid' to all interactive elements."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI Slop' (generic, centered, blue/purple gradients).",
+    "Use 2-3x more spacing than typical.",
+    "Every interaction needs micro-animations.",
+    "Never use transparent backgrounds without blur/scrim.",
+    "Use Sonner for toasts."
+  ]
+}
