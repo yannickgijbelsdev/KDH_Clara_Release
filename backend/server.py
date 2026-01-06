@@ -344,7 +344,7 @@ async def create_rundown_item(
     }
     
     await db.rundown_items.insert_one(item_doc)
-    del item_doc['_id'] if '_id' in item_doc else None
+    item_doc.pop('_id', None)
     return item_doc
 
 @shows_router.put("/{show_id}/rundown/{item_id}", response_model=RundownItemResponse)
