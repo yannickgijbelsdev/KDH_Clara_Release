@@ -71,15 +71,15 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 overflow-hidden">
         <div className="flex items-center gap-2">
           <span className="text-xs uppercase tracking-wider text-zinc-500">
             {typeLabels[item.type]}
           </span>
         </div>
-        <h4 className="text-white font-medium truncate">{item.title}</h4>
+        <h4 className="text-white font-medium break-words">{item.title}</h4>
         {item.notes && (
-          <p className="text-zinc-500 text-sm truncate">{item.notes}</p>
+          <p className="text-zinc-500 text-sm break-words line-clamp-2">{item.notes}</p>
         )}
       </div>
 
