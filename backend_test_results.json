@@ -1,0 +1,94 @@
+{
+  "summary": {
+    "tests_passed": 15,
+    "tests_total": 17,
+    "success_rate": "88.2%"
+  },
+  "results": [
+    {
+      "test": "Root endpoint",
+      "status": "PASS",
+      "details": "Status: 200"
+    },
+    {
+      "test": "Health endpoint",
+      "status": "PASS",
+      "details": "Status: 200"
+    },
+    {
+      "test": "User registration",
+      "status": "FAIL",
+      "details": "Status: 200, Data: {'token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiZDQwMzA0YzgtYTk2Mi00NDM5LTg4MTYtOGIxODRlMWUxNDY2IiwiZXhwIjoxNzY3ODE0ODI1Ljg3NzIxN30.N2rLUCpiznnY-gwPqQ-TkGyZwAOk9poQlQJnMheENgI', 'user': {'id': 'd40304c8-a962-4439-8816-8b184e1e1466', 'email': 'test@radio.com', 'name': 'Test User', 'created_at': '2026-01-06T19:40:25.654022+00:00'}}"
+    },
+    {
+      "test": "User login",
+      "status": "PASS",
+      "details": "Token received"
+    },
+    {
+      "test": "Create show",
+      "status": "PASS",
+      "details": "Show ID: c06d47d6-849d-4dc7-8beb-e6c63899bee4"
+    },
+    {
+      "test": "Get shows",
+      "status": "PASS",
+      "details": "Found 1 shows"
+    },
+    {
+      "test": "Filter shows by status",
+      "status": "PASS",
+      "details": "Found 1 draft shows"
+    },
+    {
+      "test": "Get show detail",
+      "status": "PASS",
+      "details": "Title: Morning Show Test"
+    },
+    {
+      "test": "Update show",
+      "status": "PASS",
+      "details": "Updated title: Updated Morning Show Test"
+    },
+    {
+      "test": "Create rundown item 1",
+      "status": "PASS",
+      "details": "Item: Opening Theme Song"
+    },
+    {
+      "test": "Create rundown item 2",
+      "status": "PASS",
+      "details": "Item: Morning News"
+    },
+    {
+      "test": "Create rundown item 3",
+      "status": "PASS",
+      "details": "Item: Commercial Break 1"
+    },
+    {
+      "test": "Get rundown",
+      "status": "PASS",
+      "details": "Found 3 rundown items"
+    },
+    {
+      "test": "Update rundown item",
+      "status": "PASS",
+      "details": "Updated title: Updated Opening Theme Song"
+    },
+    {
+      "test": "Reorder rundown",
+      "status": "FAIL",
+      "details": "Status: 404, Data: {'detail': 'Item not found'}"
+    },
+    {
+      "test": "Delete rundown item",
+      "status": "PASS",
+      "details": "Deleted item: 0e31d680-11ec-4fa1-9207-c617c53daea9"
+    },
+    {
+      "test": "Delete show",
+      "status": "PASS",
+      "details": "Deleted show: c06d47d6-849d-4dc7-8beb-e6c63899bee4"
+    }
+  ]
+}
