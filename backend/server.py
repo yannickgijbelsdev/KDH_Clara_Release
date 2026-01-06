@@ -437,8 +437,9 @@ async def health():
 @api_router.get("/rds/live")
 async def get_rds_live():
     """
-    Simple clean endpoint for MagicRDS.
-    Returns only the current live show title as plain text.
+    Clean endpoint for MagicRDS.
+    Returns ONLY the current live show title as plain text.
+    No JSON, no brackets, no structure - just the title.
     Auto-updates based on scheduled shows and current time.
     """
     now = datetime.now(timezone.utc)
@@ -457,14 +458,9 @@ async def get_rds_live():
     )
     
     if live_show:
-        return {
-            "title": live_show["title"]
-        }
+        return PlainTextResponse(live_show["title"])
     
-    # No show live right now
-    return {
-        "title": ""
-    }
+    return PlainTextResponse("")
 
 
 @api_router.get("/rds/live.txt")
