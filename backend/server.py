@@ -347,6 +347,34 @@ async def create_rundown_item(
     item_doc.pop('_id', None)
     return item_doc
 
+# IMPORTANT: reorder must come BEFORE /{item_id} routes to avoid path collision
+@shows_router.put("/{show_id}/rundown/reorder", response_model=List[RundownItemResponse])
+async def reorder_rundown(
+    show_id: str,
+    reorder_data: ReorderRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    # Verify show ownership
+    show = await db.shows.find_one(
+        {"id": show_id, "editor_id": current_user['id']}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    # Update order for each item
+    for index, item_id in enumerate(reorder_data.item_ids):
+        await db.rundown_items.update_one(
+            {"id": item_id, "show_id": show_id},
+            {"$set": {"order": index}}
+        )
+    
+    # Return updated list
+    items = await db.rundown_items.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+    return items
+
 @shows_router.put("/{show_id}/rundown/{item_id}", response_model=RundownItemResponse)
 async def update_rundown_item(
     show_id: str,
@@ -392,33 +420,6 @@ async def delete_rundown_item(
     result = await db.rundown_items.delete_one({"id": item_id, "show_id": show_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Item not found")
-
-@shows_router.put("/{show_id}/rundown/reorder", response_model=List[RundownItemResponse])
-async def reorder_rundown(
-    show_id: str,
-    reorder_data: ReorderRequest,
-    current_user: dict = Depends(get_current_user)
-):
-    # Verify show ownership
-    show = await db.shows.find_one(
-        {"id": show_id, "editor_id": current_user['id']}
-    )
-    if not show:
-        raise HTTPException(status_code=404, detail="Show not found")
-    
-    # Update order for each item
-    for index, item_id in enumerate(reorder_data.item_ids):
-        await db.rundown_items.update_one(
-            {"id": item_id, "show_id": show_id},
-            {"$set": {"order": index}}
-        )
-    
-    # Return updated list
-    items = await db.rundown_items.find(
-        {"show_id": show_id},
-        {"_id": 0}
-    ).sort("order", 1).to_list(1000)
-    return items
 
 # ============== HEALTH CHECK ==============
 
