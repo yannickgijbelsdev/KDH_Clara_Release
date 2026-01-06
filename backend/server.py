@@ -433,6 +433,68 @@ async def health():
 
 # ============== RDS / NOW PLAYING (Public Endpoint for MagicRDS) ==============
 
+@api_router.get("/rds/live")
+async def get_rds_live():
+    """
+    Simple clean endpoint for MagicRDS.
+    Returns only the current live show title as plain text.
+    Auto-updates based on scheduled shows and current time.
+    """
+    now = datetime.now(timezone.utc)
+    today = now.strftime('%Y-%m-%d')
+    current_time = now.strftime('%H:%M')
+    
+    # Find the currently live scheduled show
+    live_show = await db.shows.find_one(
+        {
+            "status": "scheduled",
+            "date": today,
+            "start_time": {"$lte": current_time},
+            "end_time": {"$gte": current_time}
+        },
+        {"_id": 0}
+    )
+    
+    if live_show:
+        return {
+            "title": live_show["title"]
+        }
+    
+    # No show live right now
+    return {
+        "title": ""
+    }
+
+
+@api_router.get("/rds/live.txt")
+async def get_rds_live_text():
+    """
+    Plain text endpoint for MagicRDS.
+    Returns ONLY the show title as raw text, nothing else.
+    """
+    from fastapi.responses import PlainTextResponse
+    
+    now = datetime.now(timezone.utc)
+    today = now.strftime('%Y-%m-%d')
+    current_time = now.strftime('%H:%M')
+    
+    # Find the currently live scheduled show
+    live_show = await db.shows.find_one(
+        {
+            "status": "scheduled",
+            "date": today,
+            "start_time": {"$lte": current_time},
+            "end_time": {"$gte": current_time}
+        },
+        {"_id": 0}
+    )
+    
+    if live_show:
+        return PlainTextResponse(live_show["title"])
+    
+    return PlainTextResponse("")
+
+
 @api_router.get("/rds/now-playing")
 async def get_now_playing():
     """
