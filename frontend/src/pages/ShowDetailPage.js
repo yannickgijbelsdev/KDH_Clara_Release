@@ -187,54 +187,6 @@ const ShowDetailPage = () => {
         </span>
       </div>
 
-      {/* RDS Export Section - Only show for scheduled shows */}
-      {show.status === 'scheduled' && (
-        <div className="bg-gradient-to-r from-violet-500/10 to-rose-500/10 border border-violet-500/30 rounded-xl p-4 mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-violet-500/20 rounded-lg">
-                <Radio className="w-5 h-5 text-violet-400" />
-              </div>
-              <div>
-                <h3 className="text-white font-medium">MagicRDS Export</h3>
-                <p className="text-sm text-zinc-400">JSON feed for your RDS system</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                data-testid="copy-json-url-btn"
-                onClick={handleCopyJsonUrl}
-                className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-              >
-                <Copy className="w-4 h-4" />
-                Copy URL
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                data-testid="open-json-btn"
-                onClick={handleOpenJson}
-                className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-              >
-                <ExternalLink className="w-4 h-4" />
-                View JSON
-              </Button>
-              <Button
-                size="sm"
-                data-testid="download-json-btn"
-                onClick={handleDownloadJson}
-                className="gap-2 bg-violet-500 hover:bg-violet-600 text-white"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Show Details Section */}
       <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
