@@ -1,6 +1,7 @@
+import { useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Music, Mic, FileText, Radio, Edit2, Trash2, Clock } from 'lucide-react';
+import { GripVertical, Music, Mic, FileText, Radio, Edit2, Trash2, Clock, Wand2 } from 'lucide-react';
 import { Button } from './ui/button';
 
 const typeIcons = {
@@ -24,6 +25,18 @@ const typeLabels = {
   ad: 'Ad',
 };
 
+// Average speaking rate: 150 words per minute
+const WORDS_PER_MINUTE = 150;
+
+const calculateSpeakingDuration = (text) => {
+  if (!text || text.trim() === '') return null;
+  const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  const totalMinutes = words / WORDS_PER_MINUTE;
+  const minutes = Math.floor(totalMinutes);
+  const seconds = Math.round((totalMinutes - minutes) * 60);
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
 const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
   const {
     attributes,
@@ -40,6 +53,16 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
   };
 
   const Icon = typeIcons[item.type] || FileText;
+
+  // Calculate estimated duration from notes for non-music items
+  const estimatedDuration = useMemo(() => {
+    if (item.type === 'music' || item.duration) return null;
+    return calculateSpeakingDuration(item.notes);
+  }, [item.notes, item.type, item.duration]);
+
+  // Get display duration (actual or estimated)
+  const displayDuration = item.duration || estimatedDuration;
+  const isEstimated = !item.duration && estimatedDuration;
 
   return (
     <div
