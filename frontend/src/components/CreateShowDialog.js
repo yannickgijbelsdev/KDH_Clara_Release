@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -26,7 +26,7 @@ import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const CreateShowDialog = ({ open, onOpenChange, onShowCreated }) => {
+const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) => {
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(null);
   const [formData, setFormData] = useState({
@@ -36,6 +36,13 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated }) => {
     end_time: '10:00',
     status: 'draft',
   });
+
+  // Set default date when dialog opens
+  useEffect(() => {
+    if (open && defaultDate) {
+      setDate(defaultDate);
+    }
+  }, [open, defaultDate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
