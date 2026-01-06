@@ -126,16 +126,30 @@ const RundownEditor = ({ showId }) => {
 
   const calculateTotalDuration = () => {
     let totalMinutes = 0;
+    let hasEstimated = false;
+    
     items.forEach((item) => {
-      if (item.duration) {
-        const [mins, secs] = item.duration.split(':').map(Number);
+      let duration = item.duration;
+      
+      // If no duration set, calculate estimated for non-music items
+      if (!duration && item.type !== 'music' && item.notes) {
+        duration = calculateSpeakingDuration(item.notes);
+        if (duration) hasEstimated = true;
+      }
+      
+      if (duration) {
+        const [mins, secs] = duration.split(':').map(Number);
         totalMinutes += mins + (secs || 0) / 60;
       }
     });
+    
     const hours = Math.floor(totalMinutes / 60);
     const mins = Math.round(totalMinutes % 60);
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+    const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+    return { timeStr, hasEstimated };
   };
+
+  const { timeStr: totalDuration, hasEstimated } = calculateTotalDuration();
 
   return (
     <div data-testid="rundown-editor" className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
