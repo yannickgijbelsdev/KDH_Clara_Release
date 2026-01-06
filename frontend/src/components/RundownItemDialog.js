@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import {
   Dialog,
@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { toast } from 'sonner';
-import { Music, Mic, FileText, Radio } from 'lucide-react';
+import { Music, Mic, FileText, Radio, Clock, Wand2 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -28,6 +28,24 @@ const itemTypes = [
   { value: 'item', label: 'Item', icon: FileText },
   { value: 'ad', label: 'Ad', icon: Radio },
 ];
+
+// Average speaking rate: 150 words per minute
+const WORDS_PER_MINUTE = 150;
+
+const calculateSpeakingDuration = (text) => {
+  if (!text || text.trim() === '') return null;
+  
+  // Count words (split by whitespace)
+  const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+  
+  // Calculate minutes
+  const totalMinutes = words / WORDS_PER_MINUTE;
+  const minutes = Math.floor(totalMinutes);
+  const seconds = Math.round((totalMinutes - minutes) * 60);
+  
+  // Format as MM:SS
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
 
 const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved }) => {
   const [loading, setLoading] = useState(false);
