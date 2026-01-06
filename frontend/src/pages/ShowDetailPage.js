@@ -116,6 +116,35 @@ const ShowDetailPage = () => {
     }
   };
 
+  const handleCopyJsonUrl = () => {
+    const jsonUrl = `${API}/rds/export/${showId}`;
+    navigator.clipboard.writeText(jsonUrl);
+    toast.success('JSON URL copied to clipboard');
+  };
+
+  const handleOpenJson = () => {
+    const jsonUrl = `${API}/rds/export/${showId}`;
+    window.open(jsonUrl, '_blank');
+  };
+
+  const handleDownloadJson = async () => {
+    try {
+      const response = await axios.get(`${API}/rds/export/${showId}`);
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${show.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_rundown.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success('JSON downloaded');
+    } catch (error) {
+      toast.error('Failed to download JSON');
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse">
