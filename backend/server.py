@@ -271,6 +271,29 @@ class PublishResult(BaseModel):
 class PublishResponse(BaseModel):
     results: List[PublishResult]
 
+# Featured Image Model (per content item per WordPress site)
+class FeaturedImageResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    content_item_id: str
+    wordpress_site_id: str
+    wordpress_site_name: Optional[str] = None
+    file_storage_key: str
+    file_name: str
+    mime_type: str
+    size: int
+    wp_media_id: Optional[int] = None
+    wp_media_url: Optional[str] = None
+    sync_status: str = "not_synced"
+    sync_error_message: Optional[str] = None
+    last_synced_at: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+# Extended publish status with featured image info
+class ContentPublishStatusWithImage(ContentPublishStatus):
+    featured_image: Optional[FeaturedImageResponse] = None
+
 # Rundown-Content Link Models
 class AttachContentRequest(BaseModel):
     content_ids: List[str]
