@@ -6,6 +6,7 @@ import DashboardLayout from './components/DashboardLayout';
 import ShowsPage from './pages/ShowsPage';
 import ShowDetailPage from './pages/ShowDetailPage';
 import CalendarPage from './pages/CalendarPage';
+import TeamSettingsPage from './pages/TeamSettingsPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
