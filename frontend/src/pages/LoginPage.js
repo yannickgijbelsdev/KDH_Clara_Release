@@ -11,6 +11,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [teamName, setTeamName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, register } = useAuth();
 
@@ -23,7 +24,7 @@ const LoginPage = () => {
         await login(email, password);
         toast.success('Welcome back!');
       } else {
-        await register(email, password, name);
+        await register(email, password, name, teamName || 'My Radio Station');
         toast.success('Account created successfully!');
       }
     } catch (error) {
