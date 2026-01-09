@@ -41,7 +41,7 @@ const calculateSpeakingDuration = (text) => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-const RundownEditor = ({ showId }) => {
+const RundownEditor = ({ showId, canEdit = true }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
