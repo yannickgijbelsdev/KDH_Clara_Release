@@ -194,28 +194,30 @@ const ShowDetailPage = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Show Details</h2>
           {!isEditing ? (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                data-testid="edit-show-btn"
-                onClick={() => setIsEditing(true)}
-                className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-              >
-                <Edit2 className="w-4 h-4" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                data-testid="delete-show-btn"
-                onClick={() => setDeleteDialogOpen(true)}
-                className="gap-2 bg-transparent border-zinc-700 text-rose-500 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/50"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
-              </Button>
-            </div>
+            isEditor && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  data-testid="edit-show-btn"
+                  onClick={() => setIsEditing(true)}
+                  className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  data-testid="delete-show-btn"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="gap-2 bg-transparent border-zinc-700 text-rose-500 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </Button>
+              </div>
+            )
           ) : (
             <div className="flex gap-2">
               <Button
