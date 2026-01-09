@@ -14,6 +14,8 @@ from datetime import datetime, timezone
 import bcrypt
 import jwt
 import secrets
+import httpx
+import base64
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -37,6 +39,8 @@ auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 shows_router = APIRouter(prefix="/shows", tags=["Shows"])
 teams_router = APIRouter(prefix="/teams", tags=["Teams"])
 users_router = APIRouter(prefix="/users", tags=["Users"])
+content_router = APIRouter(prefix="/content", tags=["Content Library"])
+wordpress_router = APIRouter(prefix="/wordpress", tags=["WordPress"])
 
 security = HTTPBearer()
 
