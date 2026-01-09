@@ -2230,13 +2230,29 @@ async def generate_occurrences(
     ).to_list(1000)
     existing_dates = set(occ.get("date") for occ in existing_occs)
     
-    # Generate dates based on recurrence rule
-    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    dates = parse_rrule(
-        series.get('recurrence_rule', ''),
-        today,
-        gen_data.weeks_ahead
-    )
+    # Check if using new enhanced recurrence fields
+    days_of_week = series.get('days_of_week')
+    start_date = series.get('start_date')
+    recurrence_type = series.get('recurrence_type', 'weekly')
+    
+    if days_of_week and start_date:
+        # Use new enhanced recurrence generation
+        dates = generate_dates_from_recurrence(
+            recurrence_type=recurrence_type,
+            start_date=start_date,
+            end_date=series.get('end_date'),
+            interval_weeks=series.get('interval_weeks', 1),
+            days_of_week=days_of_week,
+            weeks_ahead=gen_data.weeks_ahead
+        )
+    else:
+        # Fall back to legacy RRULE parsing
+        today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        dates = parse_rrule(
+            series.get('recurrence_rule', ''),
+            today,
+            gen_data.weeks_ahead
+        )
     
     created_occurrences = []
     now = datetime.now(timezone.utc).isoformat()
