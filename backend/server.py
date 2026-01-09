@@ -759,6 +759,408 @@ async def delete_rundown_item(
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Item not found")
 
+# ============== RUNDOWN-CONTENT ATTACHMENT ==============
+
+@shows_router.get("/{show_id}/rundown/{item_id}/content", response_model=List[ContentItemResponse])
+async def get_rundown_item_content(
+    show_id: str,
+    item_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get content items attached to a rundown item."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id}, {"_id": 0})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    content_ids = item.get("content_ids", [])
+    if not content_ids:
+        return []
+    
+    content_items = await db.content_items.find(
+        {"id": {"$in": content_ids}, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    ).to_list(100)
+    return content_items
+
+@shows_router.put("/{show_id}/rundown/{item_id}/content")
+async def attach_content_to_rundown(
+    show_id: str,
+    item_id: str,
+    attach_data: AttachContentRequest,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Attach content items to a rundown item."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    # Verify all content items exist and belong to the team
+    for content_id in attach_data.content_ids:
+        content = await db.content_items.find_one(
+            {"id": content_id, "team_id": current_user.get('team_id')}
+        )
+        if not content:
+            raise HTTPException(status_code=404, detail=f"Content item {content_id} not found")
+    
+    await db.rundown_items.update_one(
+        {"id": item_id},
+        {"$set": {"content_ids": attach_data.content_ids}}
+    )
+    
+    updated_item = await db.rundown_items.find_one({"id": item_id}, {"_id": 0})
+    return updated_item
+
+# ============== CONTENT LIBRARY ROUTES ==============
+
+@content_router.get("", response_model=List[ContentItemResponse])
+async def get_content_items(
+    type: Optional[str] = None,
+    status: Optional[str] = None,
+    tag: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all content items for the team."""
+    query = {"team_id": current_user.get('team_id')}
+    
+    if type:
+        query["type"] = type
+    if status:
+        query["status"] = status
+    if tag:
+        query["tags"] = tag
+    if search:
+        query["title"] = {"$regex": search, "$options": "i"}
+    
+    items = await db.content_items.find(query, {"_id": 0}).sort("updated_at", -1).to_list(1000)
+    return items
+
+@content_router.post("", response_model=ContentItemResponse, status_code=status.HTTP_201_CREATED)
+async def create_content_item(
+    content_data: ContentItemCreate,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Create a new content item."""
+    content_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    content_doc = {
+        "id": content_id,
+        "title": content_data.title,
+        "type": content_data.type,
+        "body": content_data.body or "",
+        "excerpt": content_data.excerpt or "",
+        "external_url": content_data.external_url or "",
+        "tags": content_data.tags or [],
+        "status": content_data.status,
+        "team_id": current_user.get('team_id', ''),
+        "created_by": current_user['id'],
+        "created_at": now,
+        "updated_at": now,
+        "wp_post_id": None,
+        "wp_post_type": None,
+        "wp_status": None,
+        "wp_permalink": None,
+        "sync_status": "not_synced",
+        "sync_error_message": None,
+        "last_synced_at": None
+    }
+    
+    await db.content_items.insert_one(content_doc)
+    content_doc.pop('_id', None)
+    return content_doc
+
+@content_router.get("/{content_id}", response_model=ContentItemResponse)
+async def get_content_item(
+    content_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a single content item."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    return content
+
+@content_router.put("/{content_id}", response_model=ContentItemResponse)
+async def update_content_item(
+    content_id: str,
+    content_data: ContentItemUpdate,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Update a content item."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    update_dict = {k: v for k, v in content_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": update_dict}
+    )
+    
+    updated_content = await db.content_items.find_one({"id": content_id}, {"_id": 0})
+    return updated_content
+
+@content_router.delete("/{content_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_content_item(
+    content_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Delete a content item."""
+    result = await db.content_items.delete_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    # Remove content from any rundown items
+    await db.rundown_items.update_many(
+        {"content_ids": content_id},
+        {"$pull": {"content_ids": content_id}}
+    )
+
+# ============== WORDPRESS CONNECTION ROUTES ==============
+
+@wordpress_router.get("/connection", response_model=Optional[WordPressConnectionResponse])
+async def get_wordpress_connection(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get WordPress connection for the team."""
+    connection = await db.wordpress_connections.find_one(
+        {"team_id": current_user.get('team_id')},
+        {"_id": 0, "app_password": 0}  # Don't return password
+    )
+    return connection
+
+@wordpress_router.post("/connection", response_model=WordPressConnectionResponse)
+async def create_wordpress_connection(
+    connection_data: WordPressConnectionCreate,
+    current_user: dict = Depends(require_admin)
+):
+    """Create or update WordPress connection (admin only)."""
+    team_id = current_user.get('team_id')
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Check if connection already exists
+    existing = await db.wordpress_connections.find_one({"team_id": team_id})
+    
+    connection_doc = {
+        "team_id": team_id,
+        "wp_base_url": connection_data.wp_base_url.rstrip('/'),
+        "username": connection_data.username,
+        "app_password": connection_data.app_password,
+        "default_post_type": connection_data.default_post_type,
+        "default_status": connection_data.default_status,
+        "updated_at": now
+    }
+    
+    if existing:
+        await db.wordpress_connections.update_one(
+            {"team_id": team_id},
+            {"$set": connection_doc}
+        )
+        connection_doc["id"] = existing["id"]
+        connection_doc["created_at"] = existing["created_at"]
+    else:
+        connection_doc["id"] = str(uuid.uuid4())
+        connection_doc["created_at"] = now
+        await db.wordpress_connections.insert_one(connection_doc)
+    
+    # Return without password
+    del connection_doc["app_password"]
+    connection_doc.pop("_id", None)
+    return connection_doc
+
+@wordpress_router.delete("/connection", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_wordpress_connection(
+    current_user: dict = Depends(require_admin)
+):
+    """Delete WordPress connection (admin only)."""
+    result = await db.wordpress_connections.delete_one(
+        {"team_id": current_user.get('team_id')}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No WordPress connection found")
+
+@wordpress_router.post("/test-connection")
+async def test_wordpress_connection(
+    current_user: dict = Depends(require_admin)
+):
+    """Test WordPress connection (admin only)."""
+    connection = await db.wordpress_connections.find_one(
+        {"team_id": current_user.get('team_id')}
+    )
+    if not connection:
+        raise HTTPException(status_code=404, detail="No WordPress connection configured")
+    
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Create auth header
+            auth_string = f"{connection['username']}:{connection['app_password']}"
+            auth_bytes = base64.b64encode(auth_string.encode()).decode()
+            headers = {"Authorization": f"Basic {auth_bytes}"}
+            
+            # Test by fetching user info
+            response = await client.get(
+                f"{connection['wp_base_url']}/wp-json/wp/v2/users/me",
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                user_data = response.json()
+                return {
+                    "success": True,
+                    "message": f"Connected as {user_data.get('name', 'Unknown')}",
+                    "wp_user": user_data.get('name')
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Authentication failed: {response.status_code}",
+                    "error": response.text[:200]
+                }
+    except httpx.TimeoutException:
+        return {"success": False, "message": "Connection timed out"}
+    except Exception as e:
+        return {"success": False, "message": f"Connection error: {str(e)}"}
+
+# ============== PUBLISH TO WORDPRESS ==============
+
+@content_router.post("/{content_id}/publish", response_model=ContentItemResponse)
+async def publish_to_wordpress(
+    content_id: str,
+    publish_data: PublishToWordPressRequest,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Publish content item to WordPress."""
+    # Get content item
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    # Get WordPress connection
+    connection = await db.wordpress_connections.find_one(
+        {"team_id": current_user.get('team_id')}
+    )
+    if not connection:
+        raise HTTPException(status_code=400, detail="No WordPress connection configured")
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Create auth header
+            auth_string = f"{connection['username']}:{connection['app_password']}"
+            auth_bytes = base64.b64encode(auth_string.encode()).decode()
+            headers = {
+                "Authorization": f"Basic {auth_bytes}",
+                "Content-Type": "application/json"
+            }
+            
+            # Prepare content body
+            body = content.get('body', '')
+            if content.get('type') == 'link' and content.get('external_url'):
+                body = f'<p><a href="{content["external_url"]}" target="_blank">{content["external_url"]}</a></p>\n\n{body}'
+            
+            # Prepare WP post data
+            wp_data = {
+                "title": content['title'],
+                "content": body,
+                "status": publish_data.wp_status
+            }
+            
+            if content.get('excerpt'):
+                wp_data["excerpt"] = content['excerpt']
+            
+            # Determine endpoint based on post type
+            endpoint = f"{connection['wp_base_url']}/wp-json/wp/v2/{publish_data.post_type}s"
+            
+            # Check if updating existing post or creating new
+            wp_post_id = content.get('wp_post_id')
+            if wp_post_id:
+                # Update existing post
+                response = await client.post(
+                    f"{endpoint}/{wp_post_id}",
+                    headers=headers,
+                    json=wp_data
+                )
+            else:
+                # Create new post
+                response = await client.post(
+                    endpoint,
+                    headers=headers,
+                    json=wp_data
+                )
+            
+            now = datetime.now(timezone.utc).isoformat()
+            
+            if response.status_code in [200, 201]:
+                wp_response = response.json()
+                
+                # Update content item with WP data
+                update_data = {
+                    "wp_post_id": wp_response.get('id'),
+                    "wp_post_type": publish_data.post_type,
+                    "wp_status": wp_response.get('status'),
+                    "wp_permalink": wp_response.get('link'),
+                    "sync_status": "synced",
+                    "sync_error_message": None,
+                    "last_synced_at": now,
+                    "status": "published",
+                    "updated_at": now
+                }
+                
+                await db.content_items.update_one(
+                    {"id": content_id},
+                    {"$set": update_data}
+                )
+            else:
+                # Update with error
+                error_msg = response.text[:500]
+                await db.content_items.update_one(
+                    {"id": content_id},
+                    {"$set": {
+                        "sync_status": "failed",
+                        "sync_error_message": f"HTTP {response.status_code}: {error_msg}",
+                        "last_synced_at": now,
+                        "updated_at": now
+                    }}
+                )
+    except Exception as e:
+        now = datetime.now(timezone.utc).isoformat()
+        await db.content_items.update_one(
+            {"id": content_id},
+            {"$set": {
+                "sync_status": "failed",
+                "sync_error_message": str(e),
+                "last_synced_at": now,
+                "updated_at": now
+            }}
+        )
+    
+    # Return updated content
+    updated_content = await db.content_items.find_one({"id": content_id}, {"_id": 0})
+    return updated_content
+
 # ============== HEALTH CHECK ==============
 
 @api_router.get("/")
