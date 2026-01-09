@@ -220,6 +220,36 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - [x] Live recurrence preview text
 - [x] Backward compatibility with legacy RRULE-based series
 
+### January 9, 2026 - Step 4.2 (Print View)
+- [x] Print-friendly HTML view at GET /api/occurrences/{id}/print?token=<jwt>
+- [x] Print layout includes:
+  - [x] Show title
+  - [x] Date and time
+  - [x] Status badge
+  - [x] Rundown items table (order, type, title, duration, notes)
+  - [x] Media attachments listed
+  - [x] Generated timestamp
+  - [x] Page numbers (@page CSS)
+- [x] Print CSS optimized for A4 paper
+- [x] "Export / Print" button on occurrence detail page
+
+### January 9, 2026 - Step 4.3 (Realtime Collaboration)
+- [x] WebSocket endpoint at /ws/rundown/{id}?token=<jwt>
+- [x] ConnectionManager class for room-based connections
+- [x] Presence tracking (who's viewing):
+  - [x] presence_join/presence_leave events
+  - [x] Presence avatars in UI header
+  - [x] Overflow indicator for 5+ users
+- [x] Live rundown updates (no refresh):
+  - [x] item_created broadcast after POST
+  - [x] item_updated broadcast after PUT
+  - [x] item_deleted broadcast after DELETE
+  - [x] items_reordered broadcast after reorder
+- [x] Frontend WebSocket hook (useRundownWebSocket.js)
+- [x] Connection status indicator (Live/Offline)
+- [x] Toast notifications for remote changes
+- [x] Note: WebSocket requires WSS-capable proxy in production
+
 ## Database Collections
 ### Core Collections
 - **users**: id, email, password_hash, name, role, team_id, created_at, temp_password
