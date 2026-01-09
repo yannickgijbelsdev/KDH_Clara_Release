@@ -64,7 +64,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     name: str
-    team_name: Optional[str] = None  # For first user creating a team
+    team_name: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -159,7 +159,7 @@ class RundownItemResponse(BaseModel):
 class ReorderRequest(BaseModel):
     item_ids: List[str]
 
-# Content Library Models
+# Content Library Models (Updated - removed WP fields from ContentItem)
 class ContentItemCreate(BaseModel):
     title: str
     type: Literal["text", "link", "reference"] = "text"
@@ -167,7 +167,7 @@ class ContentItemCreate(BaseModel):
     excerpt: Optional[str] = ""
     external_url: Optional[str] = ""
     tags: Optional[List[str]] = []
-    status: Literal["draft", "ready", "published"] = "draft"
+    status: Literal["draft", "ready"] = "draft"
 
 class ContentItemUpdate(BaseModel):
     title: Optional[str] = None
@@ -176,7 +176,24 @@ class ContentItemUpdate(BaseModel):
     excerpt: Optional[str] = None
     external_url: Optional[str] = None
     tags: Optional[List[str]] = None
-    status: Optional[Literal["draft", "ready", "published"]] = None
+    status: Optional[Literal["draft", "ready"]] = None
+
+# Per-site publish status model
+class ContentPublishStatus(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    content_item_id: str
+    wordpress_site_id: str
+    wordpress_site_name: str
+    wp_post_id: Optional[int] = None
+    wp_post_type: str = "post"
+    wp_status: str = "draft"
+    wp_permalink: Optional[str] = None
+    sync_status: str = "not_synced"
+    sync_error_message: Optional[str] = None
+    last_synced_at: Optional[str] = None
+    created_at: str
+    updated_at: str
 
 class ContentItemResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -192,44 +209,61 @@ class ContentItemResponse(BaseModel):
     created_by: str
     created_at: str
     updated_at: str
-    # WordPress sync fields
-    wp_post_id: Optional[int] = None
-    wp_post_type: Optional[str] = None
-    wp_status: Optional[str] = None
-    wp_permalink: Optional[str] = None
-    sync_status: str = "not_synced"
-    sync_error_message: Optional[str] = None
-    last_synced_at: Optional[str] = None
+    # Per-site publish statuses
+    publish_statuses: List[ContentPublishStatus] = []
 
-class PublishToWordPressRequest(BaseModel):
-    post_type: Literal["post", "page"] = "post"
-    wp_status: Literal["draft", "publish"] = "draft"
-
-# WordPress Connection Models
-class WordPressConnectionCreate(BaseModel):
+# WordPress Site Models (Multi-site support)
+class WordPressSiteCreate(BaseModel):
+    name: str
     wp_base_url: str
     username: str
     app_password: str
     default_post_type: Literal["post", "page"] = "post"
-    default_status: Literal["draft", "publish"] = "draft"
+    default_publish_status: Literal["draft", "publish"] = "draft"
+    is_active: bool = True
 
-class WordPressConnectionUpdate(BaseModel):
+class WordPressSiteUpdate(BaseModel):
+    name: Optional[str] = None
     wp_base_url: Optional[str] = None
     username: Optional[str] = None
     app_password: Optional[str] = None
     default_post_type: Optional[Literal["post", "page"]] = None
-    default_status: Optional[Literal["draft", "publish"]] = None
+    default_publish_status: Optional[Literal["draft", "publish"]] = None
+    is_active: Optional[bool] = None
 
-class WordPressConnectionResponse(BaseModel):
+class WordPressSiteResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
     team_id: str
+    name: str
     wp_base_url: str
     username: str
     default_post_type: str
-    default_status: str
+    default_publish_status: str
+    is_active: bool
     created_at: str
     updated_at: str
+
+# Multi-site Publish Request
+class PublishTarget(BaseModel):
+    site_id: str
+    post_type: Literal["post", "page"] = "post"
+    wp_status: Literal["draft", "publish"] = "draft"
+
+class PublishToWordPressRequest(BaseModel):
+    targets: List[PublishTarget]
+
+# Single site publish result
+class PublishResult(BaseModel):
+    site_id: str
+    site_name: str
+    success: bool
+    message: str
+    wp_post_id: Optional[int] = None
+    wp_permalink: Optional[str] = None
+
+class PublishResponse(BaseModel):
+    results: List[PublishResult]
 
 # Rundown-Content Link Models
 class AttachContentRequest(BaseModel):
@@ -290,6 +324,29 @@ async def require_editor_or_admin(current_user: dict = Depends(get_current_user)
         raise HTTPException(status_code=403, detail="Editor or admin access required")
     return current_user
 
+async def get_content_with_publish_statuses(content_id: str, team_id: str) -> dict:
+    """Get content item with all publish statuses."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": team_id},
+        {"_id": 0}
+    )
+    if not content:
+        return None
+    
+    # Get all publish statuses for this content
+    publish_statuses = await db.content_item_publishes.find(
+        {"content_item_id": content_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Add site names to publish statuses
+    for ps in publish_statuses:
+        site = await db.wordpress_sites.find_one({"id": ps["wordpress_site_id"]}, {"_id": 0})
+        ps["wordpress_site_name"] = site["name"] if site else "Unknown"
+    
+    content["publish_statuses"] = publish_statuses
+    return content
+
 # ============== AUTH ROUTES ==============
 
 @auth_router.post("/register", response_model=TokenResponse)
@@ -302,12 +359,10 @@ async def register(user_data: UserCreate):
     user_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
-    # Check if this is the first user (create team) or joining existing
     team_id = None
     team_name = user_data.team_name or "My Radio Station"
-    role = "admin"  # First user is always admin
+    role = "admin"
     
-    # Create a new team for this user
     team_id = str(uuid.uuid4())
     team_doc = {
         "id": team_id,
@@ -328,7 +383,6 @@ async def register(user_data: UserCreate):
     
     await db.users.insert_one(user_doc)
     
-    # Migrate any existing shows without team_id to this user's team
     await db.shows.update_many(
         {"team_id": {"$exists": False}},
         {"$set": {"team_id": team_id}}
@@ -353,11 +407,9 @@ async def login(credentials: UserLogin):
     if not user or not verify_password(credentials.password, user['password_hash']):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    # Get team info
     team = await db.teams.find_one({"id": user.get('team_id')}, {"_id": 0})
     team_name = team['name'] if team else "Unknown Team"
     
-    # Handle legacy users without role/team
     role = user.get('role', 'editor')
     team_id = user.get('team_id', '')
     
@@ -444,7 +496,7 @@ async def invite_user(
         "name": invite_data.name,
         "role": invite_data.role,
         "team_id": current_user['team_id'],
-        "temp_password": temp_password,  # Store temporarily for display
+        "temp_password": temp_password,
         "created_at": now
     }
     
@@ -782,10 +834,12 @@ async def get_rundown_item_content(
     if not content_ids:
         return []
     
-    content_items = await db.content_items.find(
-        {"id": {"$in": content_ids}, "team_id": current_user.get('team_id')},
-        {"_id": 0}
-    ).to_list(100)
+    content_items = []
+    for cid in content_ids:
+        content = await get_content_with_publish_statuses(cid, current_user.get('team_id'))
+        if content:
+            content_items.append(content)
+    
     return content_items
 
 @shows_router.put("/{show_id}/rundown/{item_id}/content")
@@ -806,7 +860,6 @@ async def attach_content_to_rundown(
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    # Verify all content items exist and belong to the team
     for content_id in attach_data.content_ids:
         content = await db.content_items.find_one(
             {"id": content_id, "team_id": current_user.get('team_id')}
@@ -845,7 +898,23 @@ async def get_content_items(
         query["title"] = {"$regex": search, "$options": "i"}
     
     items = await db.content_items.find(query, {"_id": 0}).sort("updated_at", -1).to_list(1000)
-    return items
+    
+    # Add publish statuses to each item
+    result = []
+    for item in items:
+        publish_statuses = await db.content_item_publishes.find(
+            {"content_item_id": item["id"]},
+            {"_id": 0}
+        ).to_list(100)
+        
+        for ps in publish_statuses:
+            site = await db.wordpress_sites.find_one({"id": ps["wordpress_site_id"]}, {"_id": 0})
+            ps["wordpress_site_name"] = site["name"] if site else "Unknown"
+        
+        item["publish_statuses"] = publish_statuses
+        result.append(item)
+    
+    return result
 
 @content_router.post("", response_model=ContentItemResponse, status_code=status.HTTP_201_CREATED)
 async def create_content_item(
@@ -868,18 +937,12 @@ async def create_content_item(
         "team_id": current_user.get('team_id', ''),
         "created_by": current_user['id'],
         "created_at": now,
-        "updated_at": now,
-        "wp_post_id": None,
-        "wp_post_type": None,
-        "wp_status": None,
-        "wp_permalink": None,
-        "sync_status": "not_synced",
-        "sync_error_message": None,
-        "last_synced_at": None
+        "updated_at": now
     }
     
     await db.content_items.insert_one(content_doc)
     content_doc.pop('_id', None)
+    content_doc["publish_statuses"] = []
     return content_doc
 
 @content_router.get("/{content_id}", response_model=ContentItemResponse)
@@ -888,10 +951,7 @@ async def get_content_item(
     current_user: dict = Depends(get_current_user)
 ):
     """Get a single content item."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')},
-        {"_id": 0}
-    )
+    content = await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     return content
@@ -917,8 +977,7 @@ async def update_content_item(
         {"$set": update_dict}
     )
     
-    updated_content = await db.content_items.find_one({"id": content_id}, {"_id": 0})
-    return updated_content
+    return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
 
 @content_router.delete("/{content_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_content_item(
@@ -932,96 +991,136 @@ async def delete_content_item(
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Content item not found")
     
+    # Remove publish records
+    await db.content_item_publishes.delete_many({"content_item_id": content_id})
+    
     # Remove content from any rundown items
     await db.rundown_items.update_many(
         {"content_ids": content_id},
         {"$pull": {"content_ids": content_id}}
     )
 
-# ============== WORDPRESS CONNECTION ROUTES ==============
+# ============== WORDPRESS SITES ROUTES (Multi-site) ==============
 
-@wordpress_router.get("/connection", response_model=Optional[WordPressConnectionResponse])
-async def get_wordpress_connection(
+@wordpress_router.get("/sites", response_model=List[WordPressSiteResponse])
+async def get_wordpress_sites(
     current_user: dict = Depends(get_current_user)
 ):
-    """Get WordPress connection for the team."""
-    connection = await db.wordpress_connections.find_one(
+    """Get all WordPress sites for the team."""
+    sites = await db.wordpress_sites.find(
         {"team_id": current_user.get('team_id')},
-        {"_id": 0, "app_password": 0}  # Don't return password
-    )
-    return connection
+        {"_id": 0, "app_password": 0}
+    ).to_list(100)
+    return sites
 
-@wordpress_router.post("/connection", response_model=WordPressConnectionResponse)
-async def create_wordpress_connection(
-    connection_data: WordPressConnectionCreate,
+@wordpress_router.get("/sites/{site_id}", response_model=WordPressSiteResponse)
+async def get_wordpress_site(
+    site_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a single WordPress site."""
+    site = await db.wordpress_sites.find_one(
+        {"id": site_id, "team_id": current_user.get('team_id')},
+        {"_id": 0, "app_password": 0}
+    )
+    if not site:
+        raise HTTPException(status_code=404, detail="WordPress site not found")
+    return site
+
+@wordpress_router.post("/sites", response_model=WordPressSiteResponse, status_code=status.HTTP_201_CREATED)
+async def create_wordpress_site(
+    site_data: WordPressSiteCreate,
     current_user: dict = Depends(require_admin)
 ):
-    """Create or update WordPress connection (admin only)."""
-    team_id = current_user.get('team_id')
+    """Create a new WordPress site connection (admin only)."""
+    site_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
-    # Check if connection already exists
-    existing = await db.wordpress_connections.find_one({"team_id": team_id})
-    
-    connection_doc = {
-        "team_id": team_id,
-        "wp_base_url": connection_data.wp_base_url.rstrip('/'),
-        "username": connection_data.username,
-        "app_password": connection_data.app_password,
-        "default_post_type": connection_data.default_post_type,
-        "default_status": connection_data.default_status,
+    site_doc = {
+        "id": site_id,
+        "team_id": current_user.get('team_id'),
+        "name": site_data.name,
+        "wp_base_url": site_data.wp_base_url.rstrip('/'),
+        "username": site_data.username,
+        "app_password": site_data.app_password,
+        "default_post_type": site_data.default_post_type,
+        "default_publish_status": site_data.default_publish_status,
+        "is_active": site_data.is_active,
+        "created_at": now,
         "updated_at": now
     }
     
-    if existing:
-        await db.wordpress_connections.update_one(
-            {"team_id": team_id},
-            {"$set": connection_doc}
-        )
-        connection_doc["id"] = existing["id"]
-        connection_doc["created_at"] = existing["created_at"]
-    else:
-        connection_doc["id"] = str(uuid.uuid4())
-        connection_doc["created_at"] = now
-        await db.wordpress_connections.insert_one(connection_doc)
+    await db.wordpress_sites.insert_one(site_doc)
     
     # Return without password
-    del connection_doc["app_password"]
-    connection_doc.pop("_id", None)
-    return connection_doc
+    del site_doc["app_password"]
+    site_doc.pop("_id", None)
+    return site_doc
 
-@wordpress_router.delete("/connection", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_wordpress_connection(
+@wordpress_router.put("/sites/{site_id}", response_model=WordPressSiteResponse)
+async def update_wordpress_site(
+    site_id: str,
+    site_data: WordPressSiteUpdate,
     current_user: dict = Depends(require_admin)
 ):
-    """Delete WordPress connection (admin only)."""
-    result = await db.wordpress_connections.delete_one(
-        {"team_id": current_user.get('team_id')}
+    """Update a WordPress site connection (admin only)."""
+    site = await db.wordpress_sites.find_one(
+        {"id": site_id, "team_id": current_user.get('team_id')}
+    )
+    if not site:
+        raise HTTPException(status_code=404, detail="WordPress site not found")
+    
+    update_dict = {k: v for k, v in site_data.model_dump().items() if v is not None}
+    if "wp_base_url" in update_dict:
+        update_dict["wp_base_url"] = update_dict["wp_base_url"].rstrip('/')
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.wordpress_sites.update_one(
+        {"id": site_id},
+        {"$set": update_dict}
+    )
+    
+    updated_site = await db.wordpress_sites.find_one(
+        {"id": site_id},
+        {"_id": 0, "app_password": 0}
+    )
+    return updated_site
+
+@wordpress_router.delete("/sites/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_wordpress_site(
+    site_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Delete a WordPress site connection (admin only)."""
+    result = await db.wordpress_sites.delete_one(
+        {"id": site_id, "team_id": current_user.get('team_id')}
     )
     if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="No WordPress connection found")
+        raise HTTPException(status_code=404, detail="WordPress site not found")
+    
+    # Remove all publish records for this site
+    await db.content_item_publishes.delete_many({"wordpress_site_id": site_id})
 
-@wordpress_router.post("/test-connection")
-async def test_wordpress_connection(
+@wordpress_router.post("/sites/{site_id}/test")
+async def test_wordpress_site(
+    site_id: str,
     current_user: dict = Depends(require_admin)
 ):
-    """Test WordPress connection (admin only)."""
-    connection = await db.wordpress_connections.find_one(
-        {"team_id": current_user.get('team_id')}
+    """Test a WordPress site connection (admin only)."""
+    site = await db.wordpress_sites.find_one(
+        {"id": site_id, "team_id": current_user.get('team_id')}
     )
-    if not connection:
-        raise HTTPException(status_code=404, detail="No WordPress connection configured")
+    if not site:
+        raise HTTPException(status_code=404, detail="WordPress site not found")
     
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            # Create auth header
-            auth_string = f"{connection['username']}:{connection['app_password']}"
+            auth_string = f"{site['username']}:{site['app_password']}"
             auth_bytes = base64.b64encode(auth_string.encode()).decode()
             headers = {"Authorization": f"Basic {auth_bytes}"}
             
-            # Test by fetching user info
             response = await client.get(
-                f"{connection['wp_base_url']}/wp-json/wp/v2/users/me",
+                f"{site['wp_base_url']}/wp-json/wp/v2/users/me",
                 headers=headers
             )
             
@@ -1043,15 +1142,15 @@ async def test_wordpress_connection(
     except Exception as e:
         return {"success": False, "message": f"Connection error: {str(e)}"}
 
-# ============== PUBLISH TO WORDPRESS ==============
+# ============== MULTI-SITE PUBLISH TO WORDPRESS ==============
 
-@content_router.post("/{content_id}/publish", response_model=ContentItemResponse)
+@content_router.post("/{content_id}/publish", response_model=PublishResponse)
 async def publish_to_wordpress(
     content_id: str,
     publish_data: PublishToWordPressRequest,
     current_user: dict = Depends(require_editor_or_admin)
 ):
-    """Publish content item to WordPress."""
+    """Publish content item to one or more WordPress sites."""
     # Get content item
     content = await db.content_items.find_one(
         {"id": content_id, "team_id": current_user.get('team_id')}
@@ -1059,107 +1158,235 @@ async def publish_to_wordpress(
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
-    # Get WordPress connection
-    connection = await db.wordpress_connections.find_one(
-        {"team_id": current_user.get('team_id')}
-    )
-    if not connection:
-        raise HTTPException(status_code=400, detail="No WordPress connection configured")
+    results = []
     
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # Create auth header
-            auth_string = f"{connection['username']}:{connection['app_password']}"
-            auth_bytes = base64.b64encode(auth_string.encode()).decode()
-            headers = {
-                "Authorization": f"Basic {auth_bytes}",
-                "Content-Type": "application/json"
-            }
-            
-            # Prepare content body
-            body = content.get('body', '')
-            if content.get('type') == 'link' and content.get('external_url'):
-                body = f'<p><a href="{content["external_url"]}" target="_blank">{content["external_url"]}</a></p>\n\n{body}'
-            
-            # Prepare WP post data
-            wp_data = {
-                "title": content['title'],
-                "content": body,
-                "status": publish_data.wp_status
-            }
-            
-            if content.get('excerpt'):
-                wp_data["excerpt"] = content['excerpt']
-            
-            # Determine endpoint based on post type
-            endpoint = f"{connection['wp_base_url']}/wp-json/wp/v2/{publish_data.post_type}s"
-            
-            # Check if updating existing post or creating new
-            wp_post_id = content.get('wp_post_id')
-            if wp_post_id:
-                # Update existing post
-                response = await client.post(
-                    f"{endpoint}/{wp_post_id}",
-                    headers=headers,
-                    json=wp_data
-                )
-            else:
-                # Create new post
-                response = await client.post(
-                    endpoint,
-                    headers=headers,
-                    json=wp_data
-                )
-            
-            now = datetime.now(timezone.utc).isoformat()
-            
-            if response.status_code in [200, 201]:
-                wp_response = response.json()
-                
-                # Update content item with WP data
-                update_data = {
-                    "wp_post_id": wp_response.get('id'),
-                    "wp_post_type": publish_data.post_type,
-                    "wp_status": wp_response.get('status'),
-                    "wp_permalink": wp_response.get('link'),
-                    "sync_status": "synced",
-                    "sync_error_message": None,
-                    "last_synced_at": now,
-                    "status": "published",
-                    "updated_at": now
+    for target in publish_data.targets:
+        # Get WordPress site
+        site = await db.wordpress_sites.find_one(
+            {"id": target.site_id, "team_id": current_user.get('team_id')}
+        )
+        if not site:
+            results.append(PublishResult(
+                site_id=target.site_id,
+                site_name="Unknown",
+                success=False,
+                message="WordPress site not found"
+            ))
+            continue
+        
+        if not site.get('is_active', True):
+            results.append(PublishResult(
+                site_id=target.site_id,
+                site_name=site['name'],
+                success=False,
+                message="WordPress site is inactive"
+            ))
+            continue
+        
+        # Get or create publish record for this site
+        publish_record = await db.content_item_publishes.find_one({
+            "content_item_id": content_id,
+            "wordpress_site_id": target.site_id
+        })
+        
+        now = datetime.now(timezone.utc).isoformat()
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                auth_string = f"{site['username']}:{site['app_password']}"
+                auth_bytes = base64.b64encode(auth_string.encode()).decode()
+                headers = {
+                    "Authorization": f"Basic {auth_bytes}",
+                    "Content-Type": "application/json"
                 }
                 
-                await db.content_items.update_one(
-                    {"id": content_id},
-                    {"$set": update_data}
-                )
-            else:
-                # Update with error
-                error_msg = response.text[:500]
-                await db.content_items.update_one(
-                    {"id": content_id},
-                    {"$set": {
+                # Prepare content body
+                body = content.get('body', '')
+                if content.get('type') == 'link' and content.get('external_url'):
+                    body = f'<p><a href="{content["external_url"]}" target="_blank">{content["external_url"]}</a></p>\n\n{body}'
+                
+                # Prepare WP post data
+                wp_data = {
+                    "title": content['title'],
+                    "content": body,
+                    "status": target.wp_status
+                }
+                
+                if content.get('excerpt'):
+                    wp_data["excerpt"] = content['excerpt']
+                
+                endpoint = f"{site['wp_base_url']}/wp-json/wp/v2/{target.post_type}s"
+                
+                # Check if updating existing or creating new
+                wp_post_id = publish_record.get('wp_post_id') if publish_record else None
+                
+                if wp_post_id:
+                    response = await client.post(
+                        f"{endpoint}/{wp_post_id}",
+                        headers=headers,
+                        json=wp_data
+                    )
+                else:
+                    response = await client.post(
+                        endpoint,
+                        headers=headers,
+                        json=wp_data
+                    )
+                
+                if response.status_code in [200, 201]:
+                    wp_response = response.json()
+                    
+                    # Update or create publish record
+                    publish_doc = {
+                        "content_item_id": content_id,
+                        "wordpress_site_id": target.site_id,
+                        "wp_post_id": wp_response.get('id'),
+                        "wp_post_type": target.post_type,
+                        "wp_status": wp_response.get('status'),
+                        "wp_permalink": wp_response.get('link'),
+                        "sync_status": "synced",
+                        "sync_error_message": None,
+                        "last_synced_at": now,
+                        "updated_at": now
+                    }
+                    
+                    if publish_record:
+                        await db.content_item_publishes.update_one(
+                            {"id": publish_record['id']},
+                            {"$set": publish_doc}
+                        )
+                    else:
+                        publish_doc["id"] = str(uuid.uuid4())
+                        publish_doc["created_at"] = now
+                        await db.content_item_publishes.insert_one(publish_doc)
+                    
+                    results.append(PublishResult(
+                        site_id=target.site_id,
+                        site_name=site['name'],
+                        success=True,
+                        message="Published successfully",
+                        wp_post_id=wp_response.get('id'),
+                        wp_permalink=wp_response.get('link')
+                    ))
+                else:
+                    error_msg = response.text[:200]
+                    
+                    # Update publish record with error
+                    publish_doc = {
+                        "content_item_id": content_id,
+                        "wordpress_site_id": target.site_id,
+                        "wp_post_type": target.post_type,
+                        "wp_status": target.wp_status,
                         "sync_status": "failed",
                         "sync_error_message": f"HTTP {response.status_code}: {error_msg}",
                         "last_synced_at": now,
                         "updated_at": now
-                    }}
-                )
-    except Exception as e:
-        now = datetime.now(timezone.utc).isoformat()
-        await db.content_items.update_one(
-            {"id": content_id},
-            {"$set": {
+                    }
+                    
+                    if publish_record:
+                        await db.content_item_publishes.update_one(
+                            {"id": publish_record['id']},
+                            {"$set": publish_doc}
+                        )
+                    else:
+                        publish_doc["id"] = str(uuid.uuid4())
+                        publish_doc["created_at"] = now
+                        publish_doc["wp_post_id"] = None
+                        publish_doc["wp_permalink"] = None
+                        await db.content_item_publishes.insert_one(publish_doc)
+                    
+                    results.append(PublishResult(
+                        site_id=target.site_id,
+                        site_name=site['name'],
+                        success=False,
+                        message=f"HTTP {response.status_code}: {error_msg}"
+                    ))
+                    
+        except Exception as e:
+            # Update publish record with error
+            publish_doc = {
+                "content_item_id": content_id,
+                "wordpress_site_id": target.site_id,
+                "wp_post_type": target.post_type,
+                "wp_status": target.wp_status,
                 "sync_status": "failed",
                 "sync_error_message": str(e),
                 "last_synced_at": now,
                 "updated_at": now
-            }}
-        )
+            }
+            
+            if publish_record:
+                await db.content_item_publishes.update_one(
+                    {"id": publish_record['id']},
+                    {"$set": publish_doc}
+                )
+            else:
+                publish_doc["id"] = str(uuid.uuid4())
+                publish_doc["created_at"] = now
+                publish_doc["wp_post_id"] = None
+                publish_doc["wp_permalink"] = None
+                await db.content_item_publishes.insert_one(publish_doc)
+            
+            results.append(PublishResult(
+                site_id=target.site_id,
+                site_name=site['name'],
+                success=False,
+                message=str(e)
+            ))
     
-    # Return updated content
-    updated_content = await db.content_items.find_one({"id": content_id}, {"_id": 0})
-    return updated_content
+    return PublishResponse(results=results)
+
+# Get publish status for a content item on a specific site
+@content_router.get("/{content_id}/publish/{site_id}")
+async def get_publish_status(
+    content_id: str,
+    site_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get publish status for a content item on a specific site."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    publish_record = await db.content_item_publishes.find_one(
+        {"content_item_id": content_id, "wordpress_site_id": site_id},
+        {"_id": 0}
+    )
+    
+    if not publish_record:
+        return {"sync_status": "not_synced"}
+    
+    site = await db.wordpress_sites.find_one({"id": site_id}, {"_id": 0})
+    publish_record["wordpress_site_name"] = site["name"] if site else "Unknown"
+    
+    return publish_record
+
+# ============== LEGACY MIGRATION ENDPOINT (for backward compatibility) ==============
+
+@wordpress_router.get("/connection")
+async def get_legacy_connection(
+    current_user: dict = Depends(get_current_user)
+):
+    """Legacy endpoint - returns first active site if exists."""
+    site = await db.wordpress_sites.find_one(
+        {"team_id": current_user.get('team_id'), "is_active": True},
+        {"_id": 0, "app_password": 0}
+    )
+    if site:
+        # Transform to old format
+        return {
+            "id": site["id"],
+            "team_id": site["team_id"],
+            "wp_base_url": site["wp_base_url"],
+            "username": site["username"],
+            "default_post_type": site["default_post_type"],
+            "default_status": site["default_publish_status"],
+            "created_at": site["created_at"],
+            "updated_at": site["updated_at"]
+        }
+    return None
 
 # ============== HEALTH CHECK ==============
 
@@ -1247,7 +1474,6 @@ async def startup_db_client():
     # Migrate legacy users without role/team_id
     legacy_users = await db.users.find({"team_id": {"$exists": False}}).to_list(100)
     for user in legacy_users:
-        # Create a team for this legacy user
         team_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
         await db.teams.insert_one({
@@ -1259,12 +1485,36 @@ async def startup_db_client():
             {"id": user["id"]},
             {"$set": {"team_id": team_id, "role": "admin"}}
         )
-        # Assign all shows by this user to their team
         await db.shows.update_many(
             {"editor_id": user["id"]},
             {"$set": {"team_id": team_id}}
         )
         logger.info(f"Migrated user {user['email']} to team {team_id}")
+    
+    # Migrate old wordpress_connections to wordpress_sites
+    old_connections = await db.wordpress_connections.find({}).to_list(100)
+    for conn in old_connections:
+        existing = await db.wordpress_sites.find_one({
+            "team_id": conn.get("team_id"),
+            "wp_base_url": conn.get("wp_base_url")
+        })
+        if not existing:
+            now = datetime.now(timezone.utc).isoformat()
+            site_doc = {
+                "id": str(uuid.uuid4()),
+                "team_id": conn.get("team_id"),
+                "name": "Main Website",
+                "wp_base_url": conn.get("wp_base_url", ""),
+                "username": conn.get("username", ""),
+                "app_password": conn.get("app_password", ""),
+                "default_post_type": conn.get("default_post_type", "post"),
+                "default_publish_status": conn.get("default_status", "draft"),
+                "is_active": True,
+                "created_at": conn.get("created_at", now),
+                "updated_at": now
+            }
+            await db.wordpress_sites.insert_one(site_doc)
+            logger.info(f"Migrated wordpress connection for team {conn.get('team_id')}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
