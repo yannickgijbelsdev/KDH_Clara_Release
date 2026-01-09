@@ -10,8 +10,12 @@ import {
   Loader2,
   Trash2,
   Save,
-  ExternalLink,
+  Plus,
+  Edit2,
+  X,
   Info,
+  Power,
+  PowerOff,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -33,6 +37,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 
@@ -41,18 +52,23 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const WordPressSettingsPage = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [connection, setConnection] = useState(null);
+  const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState(null);
+  const [testingId, setTestingId] = useState(null);
+  const [testResults, setTestResults] = useState({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteSiteId, setDeleteSiteId] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingSite, setEditingSite] = useState(null);
   const [formData, setFormData] = useState({
+    name: '',
     wp_base_url: '',
     username: '',
     app_password: '',
     default_post_type: 'post',
-    default_status: 'draft',
+    default_publish_status: 'draft',
+    is_active: true,
   });
 
   useEffect(() => {
@@ -60,64 +76,93 @@ const WordPressSettingsPage = () => {
       navigate('/shows');
       return;
     }
-    fetchConnection();
-  }, [isAdmin]);
+    fetchSites();
+  }, [isAdmin, navigate]);
 
-  const fetchConnection = async () => {
+  const fetchSites = async () => {
     try {
-      const response = await axios.get(`${API}/wordpress/connection`);
-      if (response.data) {
-        setConnection(response.data);
-        setFormData({
-          wp_base_url: response.data.wp_base_url,
-          username: response.data.username,
-          app_password: '', // Don't show existing password
-          default_post_type: response.data.default_post_type,
-          default_status: response.data.default_status,
-        });
-      }
+      const response = await axios.get(`${API}/wordpress/sites`);
+      setSites(response.data);
     } catch (error) {
-      // No connection exists
+      toast.error('Failed to load WordPress sites');
     } finally {
       setLoading(false);
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      wp_base_url: '',
+      username: '',
+      app_password: '',
+      default_post_type: 'post',
+      default_publish_status: 'draft',
+      is_active: true,
+    });
+    setEditingSite(null);
+  };
+
+  const openAddDialog = () => {
+    resetForm();
+    setEditDialogOpen(true);
+  };
+
+  const openEditDialog = (site) => {
+    setEditingSite(site);
+    setFormData({
+      name: site.name,
+      wp_base_url: site.wp_base_url,
+      username: site.username,
+      app_password: '',
+      default_post_type: site.default_post_type,
+      default_publish_status: site.default_publish_status,
+      is_active: site.is_active,
+    });
+    setEditDialogOpen(true);
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setTestResult(null);
 
     try {
-      // If editing existing and no new password, we need to handle this
-      const data = { ...formData };
-      if (connection && !data.app_password) {
-        toast.error('Please enter the application password');
-        setSaving(false);
-        return;
+      if (editingSite) {
+        // Update existing
+        const updateData = { ...formData };
+        if (!updateData.app_password) {
+          delete updateData.app_password;
+        }
+        const response = await axios.put(`${API}/wordpress/sites/${editingSite.id}`, updateData);
+        setSites(sites.map(s => s.id === editingSite.id ? response.data : s));
+        toast.success('WordPress site updated');
+      } else {
+        // Create new
+        if (!formData.app_password) {
+          toast.error('Application password is required');
+          setSaving(false);
+          return;
+        }
+        const response = await axios.post(`${API}/wordpress/sites`, formData);
+        setSites([...sites, response.data]);
+        toast.success('WordPress site added');
       }
-
-      const response = await axios.post(`${API}/wordpress/connection`, data);
-      setConnection(response.data);
-      setFormData({
-        ...formData,
-        app_password: '', // Clear password field after save
-      });
-      toast.success('WordPress connection saved');
+      setEditDialogOpen(false);
+      resetForm();
     } catch (error) {
-      toast.error('Failed to save connection');
+      toast.error('Failed to save site');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleTest = async () => {
-    setTesting(true);
-    setTestResult(null);
+  const handleTest = async (siteId) => {
+    setTestingId(siteId);
+    setTestResults(prev => ({ ...prev, [siteId]: null }));
 
     try {
-      const response = await axios.post(`${API}/wordpress/test-connection`);
-      setTestResult(response.data);
+      const response = await axios.post(`${API}/wordpress/sites/${siteId}/test`);
+      setTestResults(prev => ({ ...prev, [siteId]: response.data }));
       
       if (response.data.success) {
         toast.success('Connection successful!');
@@ -125,30 +170,28 @@ const WordPressSettingsPage = () => {
         toast.error('Connection failed');
       }
     } catch (error) {
-      setTestResult({ success: false, message: 'Failed to test connection' });
+      setTestResults(prev => ({ ...prev, [siteId]: { success: false, message: 'Failed to test connection' } }));
       toast.error('Failed to test connection');
     } finally {
-      setTesting(false);
+      setTestingId(null);
     }
   };
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`${API}/wordpress/connection`);
-      setConnection(null);
-      setFormData({
-        wp_base_url: '',
-        username: '',
-        app_password: '',
-        default_post_type: 'post',
-        default_status: 'draft',
-      });
-      setTestResult(null);
+      await axios.delete(`${API}/wordpress/sites/${deleteSiteId}`);
+      setSites(sites.filter(s => s.id !== deleteSiteId));
       setDeleteDialogOpen(false);
-      toast.success('WordPress connection removed');
+      setDeleteSiteId(null);
+      toast.success('WordPress site removed');
     } catch (error) {
-      toast.error('Failed to remove connection');
+      toast.error('Failed to remove site');
     }
+  };
+
+  const confirmDelete = (siteId) => {
+    setDeleteSiteId(siteId);
+    setDeleteDialogOpen(true);
   };
 
   if (loading) {
@@ -163,9 +206,19 @@ const WordPressSettingsPage = () => {
   return (
     <div data-testid="wordpress-settings-page">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-white mb-2">WordPress Settings</h1>
-        <p className="text-zinc-400">Connect your WordPress site to publish content</p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-black text-white mb-2">WordPress Sites</h1>
+          <p className="text-zinc-400">Connect multiple WordPress sites to publish content</p>
+        </div>
+        <Button
+          data-testid="add-wp-site-btn"
+          onClick={openAddDialog}
+          className="bg-violet-500 hover:bg-violet-600 text-white gap-2"
+        >
+          <Plus className="w-5 h-5" />
+          Add Site
+        </Button>
       </div>
 
       {/* Info Box */}
@@ -182,198 +235,280 @@ const WordPressSettingsPage = () => {
               <li>Go to Users → Profile</li>
               <li>Scroll down to "Application Passwords"</li>
               <li>Enter a name (e.g., "ShowPrep") and click "Add New"</li>
-              <li>Copy the generated password and paste it below</li>
+              <li>Copy the generated password and paste it when adding a site</li>
             </ol>
           </div>
         </div>
       </div>
 
-      {/* Connection Form */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-violet-500/20 rounded-lg">
-              <Globe className="w-5 h-5 text-violet-500" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-white">WordPress Connection</h2>
-              <p className="text-sm text-zinc-500">
-                {connection ? 'Connected' : 'Not connected'}
-              </p>
-            </div>
+      {/* Sites List */}
+      {sites.length === 0 ? (
+        <div className="text-center py-16 bg-[#18181b] border border-zinc-800 rounded-xl">
+          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Globe className="w-8 h-8 text-zinc-500" />
           </div>
-          {connection && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTest}
-              disabled={testing}
-              className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-            >
-              {testing ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Testing...
-                </>
-              ) : (
-                'Test Connection'
-              )}
-            </Button>
-          )}
+          <h3 className="text-lg font-semibold text-white mb-2">No WordPress sites connected</h3>
+          <p className="text-zinc-400 mb-6">Add your first WordPress site to start publishing content</p>
+          <Button
+            onClick={openAddDialog}
+            className="bg-violet-500 hover:bg-violet-600 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add WordPress Site
+          </Button>
         </div>
+      ) : (
+        <div className="space-y-4">
+          {sites.map((site) => {
+            const testResult = testResults[site.id];
+            return (
+              <div
+                key={site.id}
+                data-testid={`wp-site-${site.id}`}
+                className="bg-[#18181b] border border-zinc-800 rounded-xl p-6"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className={`p-2.5 rounded-lg ${site.is_active ? 'bg-violet-500/20' : 'bg-zinc-800'}`}>
+                      <Globe className={`w-5 h-5 ${site.is_active ? 'text-violet-500' : 'text-zinc-500'}`} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3 mb-1">
+                        <h3 className="text-lg font-semibold text-white">{site.name}</h3>
+                        {site.is_active ? (
+                          <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">
+                            <Power className="w-3 h-3" />
+                            Active
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-500">
+                            <PowerOff className="w-3 h-3" />
+                            Inactive
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-zinc-400 mb-2">{site.wp_base_url}</p>
+                      <div className="flex items-center gap-4 text-xs text-zinc-500">
+                        <span>User: {site.username}</span>
+                        <span>Default: {site.default_post_type} / {site.default_publish_status}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTest(site.id)}
+                      disabled={testingId === site.id}
+                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    >
+                      {testingId === site.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Testing...
+                        </>
+                      ) : (
+                        'Test'
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid={`edit-site-${site.id}`}
+                      onClick={() => openEditDialog(site)}
+                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      data-testid={`delete-site-${site.id}`}
+                      onClick={() => confirmDelete(site.id)}
+                      className="bg-transparent border-zinc-700 text-rose-500 hover:bg-rose-500/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
 
-        {/* Test Result */}
-        {testResult && (
-          <div className={`flex items-center gap-3 p-4 rounded-lg mb-6 ${
-            testResult.success 
-              ? 'bg-green-500/10 border border-green-500/30' 
-              : 'bg-rose-500/10 border border-rose-500/30'
-          }`}>
-            {testResult.success ? (
-              <CheckCircle className="w-5 h-5 text-green-500" />
-            ) : (
-              <AlertCircle className="w-5 h-5 text-rose-500" />
-            )}
-            <div>
-              <p className={testResult.success ? 'text-green-400' : 'text-rose-400'}>
-                {testResult.message}
-              </p>
-              {testResult.wp_user && (
-                <p className="text-sm text-zinc-400">Connected as: {testResult.wp_user}</p>
+                {/* Test Result */}
+                {testResult && (
+                  <div className={`flex items-center gap-3 p-3 rounded-lg mt-4 ${
+                    testResult.success 
+                      ? 'bg-green-500/10 border border-green-500/30' 
+                      : 'bg-rose-500/10 border border-rose-500/30'
+                  }`}>
+                    {testResult.success ? (
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-500" />
+                    )}
+                    <span className={`text-sm ${testResult.success ? 'text-green-400' : 'text-rose-400'}`}>
+                      {testResult.message}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add/Edit Site Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              {editingSite ? 'Edit WordPress Site' : 'Add WordPress Site'}
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              {editingSite 
+                ? 'Update the connection details for this WordPress site.'
+                : 'Enter the details to connect a new WordPress site.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSave} className="space-y-5 mt-4">
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Site Name</Label>
+              <Input
+                data-testid="wp-name-input"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., Station A Website"
+                required
+                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">WordPress Site URL</Label>
+              <div className="relative">
+                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Input
+                  data-testid="wp-url-input"
+                  type="url"
+                  value={formData.wp_base_url}
+                  onChange={(e) => setFormData({ ...formData, wp_base_url: e.target.value })}
+                  placeholder="https://your-site.com"
+                  required
+                  className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Username</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Input
+                  data-testid="wp-username-input"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="admin"
+                  required
+                  className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Application Password</Label>
+              <div className="relative">
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Input
+                  data-testid="wp-password-input"
+                  type="password"
+                  value={formData.app_password}
+                  onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
+                  placeholder={editingSite ? '••••••••••••••••' : 'xxxx xxxx xxxx xxxx xxxx xxxx'}
+                  required={!editingSite}
+                  className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                />
+              </div>
+              {editingSite && (
+                <p className="text-xs text-zinc-500">Leave blank to keep existing password</p>
               )}
             </div>
-          </div>
-        )}
 
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="space-y-2">
-            <Label className="text-zinc-300">WordPress Site URL</Label>
-            <div className="relative">
-              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <Input
-                data-testid="wp-url-input"
-                type="url"
-                value={formData.wp_base_url}
-                onChange={(e) => setFormData({ ...formData, wp_base_url: e.target.value })}
-                placeholder="https://your-site.com"
-                required
-                className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
-              />
-            </div>
-            <p className="text-xs text-zinc-500">The URL of your WordPress site (without trailing slash)</p>
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Default Post Type</Label>
+                <Select
+                  value={formData.default_post_type}
+                  onValueChange={(value) => setFormData({ ...formData, default_post_type: value })}
+                >
+                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#18181b] border-zinc-800">
+                    <SelectItem value="post" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Post</SelectItem>
+                    <SelectItem value="page" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Page</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-2">
-            <Label className="text-zinc-300">Username</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <Input
-                data-testid="wp-username-input"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="admin"
-                required
-                className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-zinc-300">Application Password</Label>
-            <div className="relative">
-              <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <Input
-                data-testid="wp-password-input"
-                type="password"
-                value={formData.app_password}
-                onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
-                placeholder={connection ? '••••••••••••••••' : 'xxxx xxxx xxxx xxxx xxxx xxxx'}
-                required={!connection}
-                className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
-              />
-            </div>
-            {connection && (
-              <p className="text-xs text-zinc-500">Leave blank to keep existing password, or enter new one to update</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-zinc-300">Default Post Type</Label>
-              <Select
-                value={formData.default_post_type}
-                onValueChange={(value) => setFormData({ ...formData, default_post_type: value })}
-              >
-                <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
-                  <SelectItem value="post" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Post</SelectItem>
-                  <SelectItem value="page" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Page</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Default Status</Label>
+                <Select
+                  value={formData.default_publish_status}
+                  onValueChange={(value) => setFormData({ ...formData, default_publish_status: value })}
+                >
+                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#18181b] border-zinc-800">
+                    <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
+                    <SelectItem value="publish" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Published</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-zinc-300">Default Status</Label>
-              <Select
-                value={formData.default_status}
-                onValueChange={(value) => setFormData({ ...formData, default_status: value })}
-              >
-                <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
-                  <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                  <SelectItem value="publish" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Published</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-            {connection ? (
+            <div className="flex gap-3 pt-4">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setDeleteDialogOpen(true)}
-                className="gap-2 bg-transparent border-zinc-700 text-rose-500 hover:bg-rose-500/10"
+                onClick={() => {
+                  setEditDialogOpen(false);
+                  resetForm();
+                }}
+                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
               >
-                <Trash2 className="w-4 h-4" />
-                Remove Connection
+                Cancel
               </Button>
-            ) : (
-              <div />
-            )}
-            <Button
-              type="submit"
-              data-testid="save-wp-btn"
-              disabled={saving}
-              className="gap-2 bg-violet-500 hover:bg-violet-600 text-white"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  {connection ? 'Update Connection' : 'Save Connection'}
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </div>
+              <Button
+                type="submit"
+                data-testid="save-wp-btn"
+                disabled={saving}
+                className="flex-1 bg-violet-500 hover:bg-violet-600 text-white"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    {editingSite ? 'Update Site' : 'Add Site'}
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-[#18181b] border-zinc-800">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Remove WordPress Connection</AlertDialogTitle>
+            <AlertDialogTitle className="text-white">Remove WordPress Site</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
-              Are you sure you want to remove the WordPress connection? You won't be able to publish content until you reconnect.
+              Are you sure you want to remove this WordPress site? All publish history for this site will be lost.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
