@@ -1200,6 +1200,14 @@ async def create_rundown_item(
     
     await db.rundown_items.insert_one(item_doc)
     item_doc.pop('_id', None)
+    
+    # Broadcast WebSocket event for legacy shows
+    await ws_manager.broadcast(f"show_{show_id}", {
+        "type": "item_created",
+        "item": item_doc,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
     return item_doc
 
 @shows_router.put("/{show_id}/rundown/reorder", response_model=List[RundownItemResponse])
