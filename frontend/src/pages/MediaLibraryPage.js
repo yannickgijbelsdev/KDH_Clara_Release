@@ -1,0 +1,397 @@
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
+import { toast } from 'sonner';
+import {
+  FileText,
+  Music,
+  Upload,
+  Search,
+  Trash2,
+  Download,
+  Loader2,
+  File,
+  Filter,
+  MoreVertical,
+  Pencil,
+  X
+} from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+import { cn } from '../lib/utils';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const MediaLibraryPage = () => {
+  const { isEditor, isAdmin } = useAuth();
+  const canEdit = isEditor || isAdmin;
+  
+  const [assets, setAssets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [kindFilter, setKindFilter] = useState('all');
+  const [editingAsset, setEditingAsset] = useState(null);
+  const [newTitle, setNewTitle] = useState('');
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    fetchAssets();
+  }, [kindFilter]);
+
+  const fetchAssets = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (kindFilter && kindFilter !== 'all') {
+        params.append('kind', kindFilter);
+      }
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+      const response = await axios.get(`${API}/media?${params}`);
+      setAssets(response.data);
+    } catch (error) {
+      toast.error('Failed to load media assets');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchAssets();
+  };
+
+  const handleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    let successCount = 0;
+
+    for (const file of files) {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        await axios.post(`${API}/media`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        successCount++;
+      } catch (error) {
+        const errorMsg = error.response?.data?.detail || 'Upload failed';
+        toast.error(`Failed to upload ${file.name}: ${errorMsg}`);
+      }
+    }
+
+    if (successCount > 0) {
+      toast.success(`Uploaded ${successCount} file(s)`);
+      fetchAssets();
+    }
+    
+    setUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteAsset = async (asset) => {
+    if (!confirm(`Delete "${asset.title}"? This will remove it from all attached shows.`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/media/${asset.id}`);
+      toast.success('Asset deleted');
+      setAssets(assets.filter(a => a.id !== asset.id));
+    } catch (error) {
+      toast.error('Failed to delete asset');
+    }
+  };
+
+  const handleEditTitle = async () => {
+    if (!editingAsset || !newTitle.trim()) return;
+
+    try {
+      const response = await axios.put(`${API}/media/${editingAsset.id}`, {
+        title: newTitle.trim()
+      });
+      setAssets(assets.map(a => a.id === editingAsset.id ? response.data : a));
+      toast.success('Title updated');
+      setEditingAsset(null);
+    } catch (error) {
+      toast.error('Failed to update title');
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString();
+  };
+
+  const getFileIcon = (kind, mimeType) => {
+    if (kind === 'audio') return Music;
+    if (mimeType?.includes('pdf')) return FileText;
+    return File;
+  };
+
+  const getFileUrl = (asset) => {
+    return `${API}/uploads/media/${asset.file_storage_key}`;
+  };
+
+  const filteredAssets = assets.filter(asset =>
+    asset.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="media-library-page">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-rose-500/20 rounded-lg">
+            <File className="w-6 h-6 text-rose-500" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Media Library</h1>
+            <p className="text-sm text-zinc-400">Documents and audio files</p>
+          </div>
+        </div>
+
+        {canEdit && (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".pdf,.docx,.txt,.mp3,.wav,.m4a"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <Button
+              data-testid="upload-media-btn"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="bg-rose-500 hover:bg-rose-600"
+            >
+              {uploading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4 mr-2" />
+              )}
+              Upload Files
+            </Button>
+          </>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center gap-4 mb-6">
+        <form onSubmit={handleSearch} className="flex-1 max-w-md">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+            <Input
+              data-testid="media-search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search media..."
+              className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
+            />
+          </div>
+        </form>
+
+        <Select value={kindFilter} onValueChange={setKindFilter}>
+          <SelectTrigger data-testid="kind-filter" className="w-40 bg-white/5 border-white/10 text-white">
+            <Filter className="w-4 h-4 mr-2" />
+            <SelectValue placeholder="All types" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#18181b] border-zinc-800">
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="document">Documents</SelectItem>
+            <SelectItem value="audio">Audio</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Assets Grid */}
+      {filteredAssets.length === 0 ? (
+        <div className="glass-card rounded-xl p-12 text-center">
+          <File className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">No media files</h3>
+          <p className="text-zinc-400 mb-4">
+            {searchQuery || kindFilter !== 'all'
+              ? 'No files match your filters'
+              : 'Upload documents and audio files to get started'}
+          </p>
+          {canEdit && !searchQuery && kindFilter === 'all' && (
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              className="bg-rose-500 hover:bg-rose-600"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Files
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredAssets.map((asset) => {
+            const FileIcon = getFileIcon(asset.kind, asset.mime_type);
+            return (
+              <div
+                key={asset.id}
+                data-testid={`media-asset-${asset.id}`}
+                className="glass-card rounded-xl p-4 hover:border-rose-500/30 transition-all group"
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    'p-3 rounded-lg flex-shrink-0',
+                    asset.kind === 'audio' ? 'bg-amber-500/20' : 'bg-blue-500/20'
+                  )}>
+                    <FileIcon className={cn(
+                      'w-6 h-6',
+                      asset.kind === 'audio' ? 'text-amber-500' : 'text-blue-500'
+                    )} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-white truncate" title={asset.title}>
+                      {asset.title}
+                    </h3>
+                    <p className="text-xs text-zinc-500 truncate">
+                      {asset.original_filename}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1 text-xs text-zinc-400">
+                      <span>{formatFileSize(asset.size)}</span>
+                      <span>•</span>
+                      <span>{formatDate(asset.created_at)}</span>
+                    </div>
+                  </div>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                      <DropdownMenuItem
+                        onClick={() => window.open(getFileUrl(asset), '_blank')}
+                        className="text-zinc-300"
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </DropdownMenuItem>
+                      {canEdit && (
+                        <>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setEditingAsset(asset);
+                              setNewTitle(asset.title);
+                            }}
+                            className="text-zinc-300"
+                          >
+                            <Pencil className="w-4 h-4 mr-2" />
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteAsset(asset)}
+                            className="text-rose-500 focus:text-rose-500"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Audio Player */}
+                {asset.kind === 'audio' && (
+                  <div className="mt-3">
+                    <audio
+                      controls
+                      className="w-full h-8"
+                      src={getFileUrl(asset)}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Edit Title Dialog */}
+      <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
+        <DialogContent className="bg-[#18181b] border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="text-white">Rename File</DialogTitle>
+          </DialogHeader>
+          <Input
+            data-testid="rename-input"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            placeholder="Enter new title"
+            className="bg-white/5 border-white/10 text-white"
+          />
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setEditingAsset(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              data-testid="save-rename-btn"
+              onClick={handleEditTitle}
+              className="bg-rose-500 hover:bg-rose-600"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default MediaLibraryPage;
