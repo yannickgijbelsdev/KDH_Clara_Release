@@ -86,19 +86,33 @@ const LoginPage = () => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-zinc-300">Name</Label>
-                  <Input
-                    id="name"
-                    data-testid="register-name-input"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
-                    required={!isLogin}
-                    className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 h-12"
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-zinc-300">Name</Label>
+                    <Input
+                      id="name"
+                      data-testid="register-name-input"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your name"
+                      required={!isLogin}
+                      className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 h-12"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="teamName" className="text-zinc-300">Team / Station Name</Label>
+                    <Input
+                      id="teamName"
+                      data-testid="register-team-input"
+                      type="text"
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      placeholder="My Radio Station"
+                      className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 h-12"
+                    />
+                  </div>
+                </>
               )}
 
               <div className="space-y-2">
