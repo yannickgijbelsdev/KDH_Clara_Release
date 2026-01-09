@@ -85,22 +85,54 @@ const DashboardLayout = () => {
               <span className="font-medium">Calendar</span>
             </NavLink>
             
+            {/* Content Library */}
+            <NavLink
+              to="/content"
+              data-testid="nav-content-link"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-rose-500/20 text-rose-500'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              <FileText className="w-5 h-5" />
+              <span className="font-medium">Content Library</span>
+            </NavLink>
+            
             {/* Admin only: Team Settings */}
             {isAdmin && (
-              <NavLink
-                to="/team"
-                data-testid="nav-team-link"
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? 'bg-rose-500/20 text-rose-500'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                  }`
-                }
-              >
-                <Settings className="w-5 h-5" />
-                <span className="font-medium">Team Settings</span>
-              </NavLink>
+              <>
+                <NavLink
+                  to="/team"
+                  data-testid="nav-team-link"
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                      isActive
+                        ? 'bg-rose-500/20 text-rose-500'
+                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    }`
+                  }
+                >
+                  <Settings className="w-5 h-5" />
+                  <span className="font-medium">Team Settings</span>
+                </NavLink>
+                <NavLink
+                  to="/wordpress"
+                  data-testid="nav-wordpress-link"
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                      isActive
+                        ? 'bg-rose-500/20 text-rose-500'
+                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    }`
+                  }
+                >
+                  <Globe className="w-5 h-5" />
+                  <span className="font-medium">WordPress</span>
+                </NavLink>
+              </>
             )}
           </nav>
         </div>
