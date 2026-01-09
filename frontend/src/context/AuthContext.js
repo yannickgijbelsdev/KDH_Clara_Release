@@ -65,7 +65,9 @@ export const AuthProvider = ({ children }) => {
 
   const isAdmin = user?.role === 'admin';
   const isEditor = user?.role === 'editor' || user?.role === 'admin';
+  const isPresenter = user?.role === 'presenter';
   const isViewer = user?.role === 'viewer';
+  const canEditContent = isAdmin || isEditor || isPresenter;
 
   return (
     <AuthContext.Provider value={{ 
@@ -77,7 +79,9 @@ export const AuthProvider = ({ children }) => {
       logout,
       isAdmin,
       isEditor,
-      isViewer
+      isPresenter,
+      isViewer,
+      canEditContent
     }}>
       {children}
     </AuthContext.Provider>
