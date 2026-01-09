@@ -8,15 +8,22 @@ class RadioShowAPITester:
         self.base_url = base_url
         self.token = None
         self.user_id = None
+        self.team_id = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
         
-        # Test data
-        self.test_user = {
-            "email": "test@radio.com",
-            "password": "testpass123",
-            "name": "Test User"
+        # Test data for existing admin user
+        self.admin_user = {
+            "email": "demo@radio.com",
+            "password": "password123"
+        }
+        
+        # Test data for new user to invite
+        self.invite_user = {
+            "email": "editor@radio.com",
+            "name": "Test Editor",
+            "role": "editor"
         }
         
         self.test_show = {
