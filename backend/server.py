@@ -354,7 +354,7 @@ async def require_editor_or_admin(current_user: dict = Depends(get_current_user)
     return current_user
 
 async def get_content_with_publish_statuses(content_id: str, team_id: str) -> dict:
-    """Get content item with all publish statuses."""
+    """Get content item with all publish statuses and featured images."""
     content = await db.content_items.find_one(
         {"id": content_id, "team_id": team_id},
         {"_id": 0}
@@ -368,10 +368,19 @@ async def get_content_with_publish_statuses(content_id: str, team_id: str) -> di
         {"_id": 0}
     ).to_list(100)
     
-    # Add site names to publish statuses
+    # Add site names and featured images to publish statuses
     for ps in publish_statuses:
         site = await db.wordpress_sites.find_one({"id": ps["wordpress_site_id"]}, {"_id": 0})
         ps["wordpress_site_name"] = site["name"] if site else "Unknown"
+        
+        # Get featured image for this content + site combination
+        featured_image = await db.content_item_featured_images.find_one(
+            {"content_item_id": content_id, "wordpress_site_id": ps["wordpress_site_id"]},
+            {"_id": 0}
+        )
+        if featured_image:
+            featured_image["wordpress_site_name"] = ps["wordpress_site_name"]
+        ps["featured_image"] = featured_image
     
     content["publish_statuses"] = publish_statuses
     return content
