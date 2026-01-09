@@ -2699,6 +2699,14 @@ async def create_occurrence_rundown_item(
     
     await db.rundown_items_v2.insert_one(item_doc)
     item_doc.pop("_id", None)
+    
+    # Broadcast WebSocket event
+    await ws_manager.broadcast(occurrence_id, {
+        "type": "item_created",
+        "item": item_doc,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
     return item_doc
 
 @occurrences_router.put("/{occurrence_id}/rundown/reorder", response_model=List[RundownItemResponse])
