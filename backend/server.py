@@ -3122,6 +3122,10 @@ api_router.include_router(teams_router)
 api_router.include_router(users_router)
 api_router.include_router(content_router)
 api_router.include_router(wordpress_router)
+api_router.include_router(chat_router)
+api_router.include_router(media_router)
+api_router.include_router(series_router)
+api_router.include_router(occurrences_router)
 app.include_router(api_router)
 
 app.add_middleware(
