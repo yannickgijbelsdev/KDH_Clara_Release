@@ -597,15 +597,27 @@ class RadioShowAPITester:
         # Health checks
         self.test_health_check()
         
-        # Authentication tests
-        if self.test_user_registration():
+        # Team Management Tests
+        if self.test_admin_login():
             self.test_get_user_profile()
+            self.test_get_current_team()
+            self.test_update_team_name()
+            self.test_get_team_users()
+            
+            # User management tests
+            if self.test_invite_user():
+                self.test_get_temp_password()
+                self.test_update_user_role()
+                
+                # Test editor capabilities
+                if self.test_editor_login():
+                    self.test_editor_create_show()
+                    self.test_team_scoped_shows()
+                
+                # Clean up - remove invited user
+                self.test_remove_user()
         
-        # If registration fails, try login
-        if not self.token:
-            self.test_user_login()
-        
-        # Show management tests
+        # Show management tests (with admin token)
         if self.token:
             if self.test_create_show():
                 self.test_get_shows()
