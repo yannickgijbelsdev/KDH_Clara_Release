@@ -1233,6 +1233,15 @@ async def reorder_rundown(
         {"show_id": show_id},
         {"_id": 0}
     ).sort("order", 1).to_list(1000)
+    
+    # Broadcast WebSocket event for legacy shows
+    await ws_manager.broadcast(f"show_{show_id}", {
+        "type": "items_reordered",
+        "item_ids": reorder_data.item_ids,
+        "items": items,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
     return items
 
 @shows_router.put("/{show_id}/rundown/{item_id}", response_model=RundownItemResponse)
@@ -1262,6 +1271,14 @@ async def update_rundown_item(
         )
     
     updated_item = await db.rundown_items.find_one({"id": item_id}, {"_id": 0})
+    
+    # Broadcast WebSocket event for legacy shows
+    await ws_manager.broadcast(f"show_{show_id}", {
+        "type": "item_updated",
+        "item": updated_item,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
     return updated_item
 
 @shows_router.delete("/{show_id}/rundown/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
