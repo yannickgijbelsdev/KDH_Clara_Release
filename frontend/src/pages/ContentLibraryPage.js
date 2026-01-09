@@ -45,25 +45,11 @@ const typeLabels = {
 const statusColors = {
   draft: 'bg-zinc-500/20 text-zinc-400',
   ready: 'bg-violet-500/20 text-violet-400',
-  published: 'bg-green-500/20 text-green-400',
 };
 
 const statusLabels = {
   draft: 'Draft',
   ready: 'Ready',
-  published: 'Published',
-};
-
-const syncStatusIcons = {
-  not_synced: Clock,
-  synced: CheckCircle,
-  failed: AlertCircle,
-};
-
-const syncStatusColors = {
-  not_synced: 'text-zinc-500',
-  synced: 'text-green-500',
-  failed: 'text-rose-500',
 };
 
 const ContentLibraryPage = () => {
@@ -107,6 +93,19 @@ const ContentLibraryPage = () => {
     setContent([newContent, ...content]);
     setIsCreateOpen(false);
     toast.success('Content created');
+  };
+
+  // Calculate publish summary for an item
+  const getPublishSummary = (item) => {
+    if (!item.publish_statuses || item.publish_statuses.length === 0) {
+      return null;
+    }
+    
+    const synced = item.publish_statuses.filter(ps => ps.sync_status === 'synced').length;
+    const failed = item.publish_statuses.filter(ps => ps.sync_status === 'failed').length;
+    const total = item.publish_statuses.length;
+    
+    return { synced, failed, total };
   };
 
   return (
@@ -210,12 +209,6 @@ const ContentLibraryPage = () => {
             >
               Ready
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setStatusFilter('published')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
-            >
-              Published
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -268,7 +261,7 @@ const ContentLibraryPage = () => {
         <div className="space-y-3">
           {content.map((item, index) => {
             const TypeIcon = typeIcons[item.type] || FileText;
-            const SyncIcon = syncStatusIcons[item.sync_status] || Clock;
+            const publishSummary = getPublishSummary(item);
 
             return (
               <div
@@ -327,10 +320,22 @@ const ContentLibraryPage = () => {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    {item.wp_post_id && (
-                      <div className={`flex items-center gap-1 ${syncStatusColors[item.sync_status]}`}>
-                        <SyncIcon className="w-4 h-4" />
-                        <span className="text-xs">WP</span>
+                    {/* WordPress Publish Status Summary */}
+                    {publishSummary && (
+                      <div className="flex items-center gap-2">
+                        {publishSummary.synced > 0 && (
+                          <div className="flex items-center gap-1 text-green-500">
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="text-xs">{publishSummary.synced}</span>
+                          </div>
+                        )}
+                        {publishSummary.failed > 0 && (
+                          <div className="flex items-center gap-1 text-rose-500">
+                            <AlertCircle className="w-4 h-4" />
+                            <span className="text-xs">{publishSummary.failed}</span>
+                          </div>
+                        )}
+                        <span className="text-xs text-zinc-500">WP</span>
                       </div>
                     )}
                     <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-400 transition-colors" />
