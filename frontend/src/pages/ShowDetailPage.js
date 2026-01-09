@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
@@ -10,15 +10,9 @@ import {
   Trash2,
   Save,
   X,
-  Plus,
-  Music,
-  Mic,
-  FileText,
-  Radio,
-  GripVertical,
-  Download,
-  Copy,
-  ExternalLink,
+  Printer,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -41,11 +35,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../components/ui/tooltip';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import RundownEditor from '../components/RundownEditor';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const WS_BASE_URL = process.env.REACT_APP_BACKEND_URL?.replace('https://', 'wss://').replace('http://', 'ws://');
 
 const statusColors = {
   draft: 'status-draft',
@@ -59,20 +60,157 @@ const statusLabels = {
   completed: 'Completed',
 };
 
+// Presence Avatar Component
+const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
+  if (!users || users.length === 0) return null;
+  
+  const displayUsers = users.slice(0, maxDisplay);
+  const overflowCount = users.length - maxDisplay;
+  
+  const getInitials = (name) => {
+    if (!name) return '?';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    return name[0].toUpperCase();
+  };
+  
+  return (
+    <TooltipProvider>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-zinc-500">Viewing:</span>
+        <div className="flex -space-x-2">
+          {displayUsers.map((user, idx) => (
+            <Tooltip key={user.id || idx}>
+              <TooltipTrigger asChild>
+                <div
+                  className="w-7 h-7 rounded-full bg-rose-500/20 border-2 border-[#18181b] flex items-center justify-center cursor-default"
+                  style={{ zIndex: maxDisplay - idx }}
+                >
+                  {user.avatar_url ? (
+                    <img 
+                      src={user.avatar_url} 
+                      alt={user.name} 
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold text-rose-500">
+                      {user.initials || getInitials(user.name)}
+                    </span>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{user.name}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+          {overflowCount > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-7 h-7 rounded-full bg-zinc-700 border-2 border-[#18181b] flex items-center justify-center cursor-default">
+                  <span className="text-xs font-semibold text-white">+{overflowCount}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{overflowCount} more viewer{overflowCount > 1 ? 's' : ''}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+};
+
 const ShowDetailPage = () => {
   const { showId } = useParams();
   const navigate = useNavigate();
-  const { isEditor } = useAuth();
+  const { isEditor, token } = useAuth();
   const [show, setShow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
+  
+  // WebSocket state
+  const [isConnected, setIsConnected] = useState(false);
+  const [presence, setPresence] = useState([]);
+  const [wsRef, setWsRef] = useState(null);
 
   useEffect(() => {
     fetchShow();
   }, [showId]);
+
+  // WebSocket connection
+  useEffect(() => {
+    if (!showId || !token) return;
+
+    const wsUrl = `${WS_BASE_URL}/ws/show/${showId}?token=${token}`;
+    let ws = null;
+    let pingInterval = null;
+    let reconnectTimeout = null;
+
+    const connect = () => {
+      try {
+        ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          setIsConnected(true);
+          pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ type: 'ping' }));
+            }
+          }, 30000);
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'presence') {
+              setPresence(data.users || []);
+            }
+            // Note: rundown item updates are handled in RundownEditor
+          } catch (e) {
+            console.error('Failed to parse WebSocket message:', e);
+          }
+        };
+
+        ws.onclose = (event) => {
+          setIsConnected(false);
+          setPresence([]);
+          if (pingInterval) clearInterval(pingInterval);
+          
+          // Reconnect if not intentionally closed
+          if (event.code !== 1000) {
+            reconnectTimeout = setTimeout(connect, 3000);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+        };
+
+        setWsRef(ws);
+      } catch (error) {
+        console.error('Failed to create WebSocket:', error);
+      }
+    };
+
+    connect();
+
+    return () => {
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (pingInterval) clearInterval(pingInterval);
+      if (ws) {
+        ws.close(1000, 'User navigated away');
+      }
+      setIsConnected(false);
+      setPresence([]);
+    };
+  }, [showId, token]);
 
   const fetchShow = async () => {
     try {
@@ -118,33 +256,8 @@ const ShowDetailPage = () => {
     }
   };
 
-  const handleCopyJsonUrl = () => {
-    const jsonUrl = `${API}/rds/export/${showId}`;
-    navigator.clipboard.writeText(jsonUrl);
-    toast.success('JSON URL copied to clipboard');
-  };
-
-  const handleOpenJson = () => {
-    const jsonUrl = `${API}/rds/export/${showId}`;
-    window.open(jsonUrl, '_blank');
-  };
-
-  const handleDownloadJson = async () => {
-    try {
-      const response = await axios.get(`${API}/rds/export/${showId}`);
-      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${show.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_rundown.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success('JSON downloaded');
-    } catch (error) {
-      toast.error('Failed to download JSON');
-    }
+  const handlePrintView = () => {
+    window.open(`${API}/shows/${showId}/rundown/print?token=${token}`, '_blank');
   };
 
   if (loading) {
@@ -172,7 +285,22 @@ const ShowDetailPage = () => {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-white">{show.title}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-white">{show.title}</h1>
+            {/* Connection status */}
+            <div className="flex items-center gap-1 text-xs">
+              {isConnected ? (
+                <span className="flex items-center gap-1 text-green-500">
+                  <Wifi className="w-3 h-3" />
+                  Live
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-zinc-500">
+                  <WifiOff className="w-3 h-3" />
+                </span>
+              )}
+            </div>
+          </div>
           <div className="flex items-center gap-4 mt-1 text-sm text-zinc-500">
             <span className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
@@ -182,11 +310,28 @@ const ShowDetailPage = () => {
               <Clock className="w-4 h-4" />
               <span className="font-mono">{show.start_time} - {show.end_time}</span>
             </span>
+            {/* Presence avatars */}
+            {presence.length > 0 && (
+              <PresenceAvatars users={presence} />
+            )}
           </div>
         </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${statusColors[show.status]}`}>
-          {statusLabels[show.status]}
-        </span>
+        <div className="flex items-center gap-2">
+          {/* Export/Print Button */}
+          <Button
+            data-testid="print-rundown-btn"
+            onClick={handlePrintView}
+            variant="outline"
+            size="sm"
+            className="gap-2 border-zinc-700 text-zinc-300 hover:bg-white/5"
+          >
+            <Printer className="w-4 h-4" />
+            Export / Print
+          </Button>
+          <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${statusColors[show.status]}`}>
+            {statusLabels[show.status]}
+          </span>
+        </div>
       </div>
 
       {/* Show Details Section */}
