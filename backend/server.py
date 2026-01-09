@@ -2823,6 +2823,386 @@ async def delete_occurrence_rundown_item(
         "user": {"id": current_user['id'], "name": current_user.get('name')}
     })
 
+# ============== WEBSOCKET ENDPOINT FOR RUNDOWN COLLABORATION ==============
+
+@app.websocket("/ws/rundown/{occurrence_id}")
+async def rundown_websocket(
+    websocket: WebSocket,
+    occurrence_id: str
+):
+    """WebSocket endpoint for real-time rundown collaboration."""
+    # Get token from query params
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=4001, reason="Missing authentication token")
+        return
+    
+    # Verify token
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = payload.get("user_id")
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+        if not user:
+            await websocket.close(code=4001, reason="Invalid token")
+            return
+    except jwt.ExpiredSignatureError:
+        await websocket.close(code=4001, reason="Token expired")
+        return
+    except jwt.InvalidTokenError:
+        await websocket.close(code=4001, reason="Invalid token")
+        return
+    
+    # Verify user has access to the occurrence
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": user.get('team_id')}
+    )
+    if not occurrence:
+        await websocket.close(code=4004, reason="Occurrence not found")
+        return
+    
+    # Connect to the room
+    user_info = {
+        "id": user['id'],
+        "name": user.get('name', 'Unknown'),
+        "avatar_url": user.get('avatar_url')
+    }
+    
+    await ws_manager.connect(websocket, occurrence_id, user_info)
+    
+    try:
+        while True:
+            # Keep connection alive and handle client messages
+            data = await websocket.receive_text()
+            try:
+                message = json.loads(data)
+                # Handle ping/pong for keepalive
+                if message.get("type") == "ping":
+                    await websocket.send_json({"type": "pong"})
+            except json.JSONDecodeError:
+                pass
+    except WebSocketDisconnect:
+        await ws_manager.disconnect(websocket, occurrence_id)
+    except Exception:
+        await ws_manager.disconnect(websocket, occurrence_id)
+
+# ============== PRINT VIEW ENDPOINT ==============
+
+@occurrences_router.get("/{occurrence_id}/print", response_class=HTMLResponse)
+async def get_rundown_print_view(
+    occurrence_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get print-friendly HTML view of a rundown."""
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    # Get rundown items
+    items = await db.rundown_items_v2.find(
+        {"occurrence_id": occurrence_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+    
+    # Get media attachments for each item
+    for item in items:
+        media_attachments = await db.rundown_item_media.find(
+            {"rundown_item_id": item["id"]},
+            {"_id": 0}
+        ).to_list(100)
+        
+        item["media"] = []
+        for attachment in media_attachments:
+            asset = await db.media_assets.find_one(
+                {"id": attachment["media_asset_id"]},
+                {"_id": 0}
+            )
+            if asset:
+                item["media"].append(asset)
+    
+    # Get series info if applicable
+    series_title = None
+    if occurrence.get("show_series_id"):
+        series = await db.show_series.find_one(
+            {"id": occurrence["show_series_id"]},
+            {"title": 1}
+        )
+        if series:
+            series_title = series.get("title")
+    
+    # Generate HTML
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    
+    status_labels = {
+        "draft": "Draft",
+        "scheduled": "Scheduled",
+        "completed": "Completed"
+    }
+    
+    items_html = ""
+    for idx, item in enumerate(items, 1):
+        media_html = ""
+        if item.get("media"):
+            media_links = ", ".join([f'{m["title"]} ({m["kind"]})' for m in item["media"]])
+            media_html = f'<div class="media-attachments">📎 {media_links}</div>'
+        
+        notes_html = item.get("notes", "").replace("\n", "<br>") if item.get("notes") else "-"
+        
+        items_html += f'''
+        <tr>
+            <td class="order">{idx}</td>
+            <td class="type"><span class="type-badge">{item.get("type", "-").upper()}</span></td>
+            <td class="title">{item.get("title", "-")}</td>
+            <td class="duration">{item.get("duration") or "-"}</td>
+            <td class="notes">{notes_html}{media_html}</td>
+        </tr>
+        '''
+    
+    html = f'''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rundown - {occurrence.get("title", "Untitled")}</title>
+        <style>
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                font-size: 12pt;
+                line-height: 1.5;
+                color: #1a1a1a;
+                background: white;
+                padding: 20mm;
+            }}
+            
+            .header {{
+                border-bottom: 3px solid #e11d48;
+                padding-bottom: 20px;
+                margin-bottom: 30px;
+            }}
+            
+            .show-title {{
+                font-size: 24pt;
+                font-weight: bold;
+                color: #1a1a1a;
+                margin-bottom: 8px;
+            }}
+            
+            .series-title {{
+                font-size: 14pt;
+                color: #666;
+                margin-bottom: 12px;
+            }}
+            
+            .show-meta {{
+                display: flex;
+                gap: 30px;
+                font-size: 11pt;
+                color: #444;
+            }}
+            
+            .show-meta span {{
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }}
+            
+            .status-badge {{
+                display: inline-block;
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 10pt;
+                font-weight: 600;
+                text-transform: uppercase;
+            }}
+            
+            .status-draft {{ background: #f4f4f5; color: #71717a; }}
+            .status-scheduled {{ background: #fef3c7; color: #d97706; }}
+            .status-completed {{ background: #dcfce7; color: #16a34a; }}
+            
+            .rundown-table {{
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }}
+            
+            .rundown-table th {{
+                background: #f8fafc;
+                padding: 12px 10px;
+                text-align: left;
+                font-weight: 600;
+                font-size: 10pt;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: #64748b;
+                border-bottom: 2px solid #e2e8f0;
+            }}
+            
+            .rundown-table td {{
+                padding: 12px 10px;
+                border-bottom: 1px solid #e2e8f0;
+                vertical-align: top;
+            }}
+            
+            .rundown-table tr:last-child td {{
+                border-bottom: none;
+            }}
+            
+            .order {{
+                width: 40px;
+                text-align: center;
+                font-weight: 600;
+                color: #e11d48;
+            }}
+            
+            .type {{
+                width: 80px;
+            }}
+            
+            .type-badge {{
+                display: inline-block;
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-size: 9pt;
+                font-weight: 600;
+                background: #fce7f3;
+                color: #be185d;
+            }}
+            
+            .title {{
+                width: 180px;
+                font-weight: 500;
+            }}
+            
+            .duration {{
+                width: 80px;
+                text-align: center;
+                color: #64748b;
+            }}
+            
+            .notes {{
+                font-size: 11pt;
+                color: #475569;
+            }}
+            
+            .media-attachments {{
+                margin-top: 8px;
+                font-size: 10pt;
+                color: #0891b2;
+            }}
+            
+            .footer {{
+                margin-top: 40px;
+                padding-top: 20px;
+                border-top: 1px solid #e2e8f0;
+                font-size: 10pt;
+                color: #94a3b8;
+                display: flex;
+                justify-content: space-between;
+            }}
+            
+            @media print {{
+                body {{
+                    padding: 10mm;
+                }}
+                
+                .header {{
+                    page-break-after: avoid;
+                }}
+                
+                .rundown-table {{
+                    page-break-inside: auto;
+                }}
+                
+                .rundown-table tr {{
+                    page-break-inside: avoid;
+                    page-break-after: auto;
+                }}
+                
+                @page {{
+                    size: A4;
+                    margin: 15mm;
+                }}
+                
+                @page :first {{
+                    margin-top: 10mm;
+                }}
+            }}
+            
+            .no-print {{
+                margin-bottom: 20px;
+            }}
+            
+            @media print {{
+                .no-print {{
+                    display: none;
+                }}
+            }}
+            
+            .print-button {{
+                background: #e11d48;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-size: 14px;
+                cursor: pointer;
+                font-weight: 500;
+            }}
+            
+            .print-button:hover {{
+                background: #be123c;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="no-print">
+            <button class="print-button" onclick="window.print()">🖨️ Print Rundown</button>
+        </div>
+        
+        <div class="header">
+            <h1 class="show-title">{occurrence.get("title", "Untitled Show")}</h1>
+            {f'<div class="series-title">{series_title}</div>' if series_title else ''}
+            <div class="show-meta">
+                <span>📅 {occurrence.get("date", "-")}</span>
+                <span>🕐 {occurrence.get("start_time", "-")} - {occurrence.get("end_time", "-")}</span>
+                <span class="status-badge status-{occurrence.get("status", "draft")}">{status_labels.get(occurrence.get("status", "draft"), "Draft")}</span>
+            </div>
+        </div>
+        
+        <table class="rundown-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Duration</th>
+                    <th>Notes / Script</th>
+                </tr>
+            </thead>
+            <tbody>
+                {items_html if items_html else '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:40px;">No rundown items</td></tr>'}
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <span>Generated: {now}</span>
+            <span>Radio Show Planner</span>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    return HTMLResponse(content=html)
+
 # ============== MVP 4: CHAT SYSTEM ==============
 
 @chat_router.get("/threads", response_model=List[ChatThreadResponse])
