@@ -215,8 +215,8 @@ class ContentItemResponse(BaseModel):
     created_by: str
     created_at: str
     updated_at: str
-    # Per-site publish statuses
-    publish_statuses: List[ContentPublishStatus] = []
+    # Per-site publish statuses with featured images
+    publish_statuses: List["ContentPublishStatusWithImage"] = []
 
 # WordPress Site Models (Multi-site support)
 class WordPressSiteCreate(BaseModel):
