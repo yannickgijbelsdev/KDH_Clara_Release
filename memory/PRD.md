@@ -130,6 +130,11 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 ### content_item_publishes
 - id, content_item_id, wordpress_site_id, wp_post_id, wp_post_type, wp_status, wp_permalink, sync_status, sync_error_message, last_synced_at, created_at, updated_at
 
+### content_item_featured_images
+- id, content_item_id, wordpress_site_id, file_storage_key, file_name, mime_type, size
+- wp_media_id (nullable), wp_media_url (nullable), sync_status, sync_error_message
+- last_synced_at, created_at, updated_at
+
 ## API Endpoints
 ### Authentication
 - POST /api/auth/register - Register new user (creates team)
