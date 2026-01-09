@@ -14,6 +14,7 @@ import {
   Copy,
   Check,
   Building2,
+  Mic,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -49,18 +50,21 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const roleIcons = {
   admin: Crown,
   editor: Pencil,
+  presenter: Mic,
   viewer: Eye,
 };
 
 const roleColors = {
   admin: 'bg-rose-500/20 text-rose-400',
   editor: 'bg-violet-500/20 text-violet-400',
+  presenter: 'bg-amber-500/20 text-amber-400',
   viewer: 'bg-zinc-500/20 text-zinc-400',
 };
 
 const roleLabels = {
   admin: 'Admin',
   editor: 'Editor',
+  presenter: 'Presenter',
   viewer: 'Viewer',
 };
 
