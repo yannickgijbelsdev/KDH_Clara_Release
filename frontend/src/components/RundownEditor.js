@@ -166,14 +166,16 @@ const RundownEditor = ({ showId, canEdit = true }) => {
             </p>
           </div>
         </div>
-        <Button
-          data-testid="add-rundown-item-btn"
-          onClick={handleAddItem}
-          className="gap-2 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
-        >
-          <Plus className="w-4 h-4" />
-          Add Item
-        </Button>
+        {canEdit && (
+          <Button
+            data-testid="add-rundown-item-btn"
+            onClick={handleAddItem}
+            className="gap-2 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
+          >
+            <Plus className="w-4 h-4" />
+            Add Item
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -188,15 +190,17 @@ const RundownEditor = ({ showId, canEdit = true }) => {
             <ListOrdered className="w-6 h-6 text-zinc-500" />
           </div>
           <h3 className="text-white font-medium mb-1">No items yet</h3>
-          <p className="text-zinc-500 text-sm mb-4">Start building your rundown</p>
-          <Button
-            onClick={handleAddItem}
-            variant="outline"
-            className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add First Item
-          </Button>
+          <p className="text-zinc-500 text-sm mb-4">{canEdit ? 'Start building your rundown' : 'No rundown items'}</p>
+          {canEdit && (
+            <Button
+              onClick={handleAddItem}
+              variant="outline"
+              className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add First Item
+            </Button>
+          )}
         </div>
       ) : (
         <DndContext
