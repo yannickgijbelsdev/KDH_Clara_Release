@@ -317,6 +317,168 @@ class RundownItemWithContentResponse(BaseModel):
     created_at: str
     content_ids: List[str] = []
 
+# ============== MVP 4 MODELS ==============
+
+# Show Assignment Models (Permissions)
+class ShowAssignmentCreate(BaseModel):
+    show_id: str
+    user_id: str
+    role_on_show: Literal["editor", "presenter"] = "editor"
+
+class ShowAssignmentResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    show_id: str
+    user_id: str
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
+    role_on_show: str
+    created_at: str
+
+# Show Series Models (Recurring Shows)
+class ShowSeriesCreate(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    default_start_time: str
+    default_end_time: str
+    recurrence_rule: Optional[str] = None  # RRULE string or "none" for one-off
+    is_active: bool = True
+
+class ShowSeriesUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    default_start_time: Optional[str] = None
+    default_end_time: Optional[str] = None
+    recurrence_rule: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class ShowSeriesResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    team_id: str
+    title: str
+    description: str
+    default_start_time: str
+    default_end_time: str
+    recurrence_rule: Optional[str] = None
+    is_active: bool
+    created_by: str
+    created_at: str
+    updated_at: str
+
+# Show Occurrence Models
+class ShowOccurrenceCreate(BaseModel):
+    show_series_id: Optional[str] = None  # nullable for one-off shows
+    title: str
+    date: str
+    start_time: str
+    end_time: str
+    status: Literal["draft", "scheduled", "completed"] = "draft"
+
+class ShowOccurrenceUpdate(BaseModel):
+    title: Optional[str] = None
+    date: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    status: Optional[Literal["draft", "scheduled", "completed"]] = None
+
+class ShowOccurrenceResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    team_id: str
+    show_series_id: Optional[str] = None
+    title: str
+    date: str
+    start_time: str
+    end_time: str
+    status: str
+    rundown_id: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+# New Rundown Model (linked to occurrences)
+class RundownResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    occurrence_id: str
+    created_at: str
+    updated_at: str
+
+# Chat Models
+class ChatThreadCreate(BaseModel):
+    type: Literal["team", "show"] = "team"
+    show_id: Optional[str] = None  # Only for show type threads
+
+class ChatThreadResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    team_id: str
+    type: str
+    show_id: Optional[str] = None
+    show_title: Optional[str] = None
+    created_by: str
+    created_at: str
+    updated_at: str
+    last_message: Optional[str] = None
+    last_message_at: Optional[str] = None
+
+class ChatMessageCreate(BaseModel):
+    body: str
+
+class ChatMessageResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    thread_id: str
+    user_id: str
+    user_name: Optional[str] = None
+    body: str
+    created_at: str
+
+# Media Library Models
+class MediaAssetResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    team_id: str
+    uploaded_by: str
+    uploaded_by_name: Optional[str] = None
+    kind: str
+    title: str
+    file_storage_key: str
+    original_filename: str
+    mime_type: str
+    size: int
+    duration_seconds: Optional[float] = None
+    created_at: str
+    updated_at: str
+
+class MediaAssetUpdate(BaseModel):
+    title: Optional[str] = None
+
+# Show Media Attachment Models
+class AttachMediaRequest(BaseModel):
+    media_asset_ids: List[str]
+
+class ShowMediaResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    show_id: Optional[str] = None
+    occurrence_id: Optional[str] = None
+    media_asset_id: str
+    media_asset: Optional[MediaAssetResponse] = None
+    created_at: str
+
+class RundownItemMediaResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    rundown_item_id: str
+    media_asset_id: str
+    media_asset: Optional[MediaAssetResponse] = None
+    created_at: str
+
+# Occurrence Generation Request
+class GenerateOccurrencesRequest(BaseModel):
+    weeks_ahead: int = 8  # Generate occurrences for the next N weeks
+
 # ============== HELPER FUNCTIONS ==============
 
 def hash_password(password: str) -> str:
