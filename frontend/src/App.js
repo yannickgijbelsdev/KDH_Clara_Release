@@ -10,6 +10,11 @@ import TeamSettingsPage from './pages/TeamSettingsPage';
 import ContentLibraryPage from './pages/ContentLibraryPage';
 import ContentDetailPage from './pages/ContentDetailPage';
 import WordPressSettingsPage from './pages/WordPressSettingsPage';
+import ChatPage from './pages/ChatPage';
+import MediaLibraryPage from './pages/MediaLibraryPage';
+import SeriesPage from './pages/SeriesPage';
+import OccurrencesPage from './pages/OccurrencesPage';
+import OccurrenceDetailPage from './pages/OccurrenceDetailPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -61,6 +66,11 @@ const AppRoutes = () => {
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="content" element={<ContentLibraryPage />} />
         <Route path="content/:contentId" element={<ContentDetailPage />} />
+        <Route path="chat" element={<ChatPage />} />
+        <Route path="media" element={<MediaLibraryPage />} />
+        <Route path="series" element={<SeriesPage />} />
+        <Route path="occurrences" element={<OccurrencesPage />} />
+        <Route path="occurrences/:occurrenceId" element={<OccurrenceDetailPage />} />
         <Route path="team" element={<TeamSettingsPage />} />
         <Route path="wordpress" element={<WordPressSettingsPage />} />
       </Route>
