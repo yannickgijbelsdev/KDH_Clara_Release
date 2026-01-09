@@ -395,15 +395,43 @@ class TestFeaturedImageDelete(TestSetup):
 class TestFeaturedImageInPublishStatus(TestSetup):
     """Test featured images appear in content publish statuses"""
     
-    def test_content_detail_includes_featured_images(self, admin_headers):
+    def test_content_detail_includes_featured_images(self, admin_headers, admin_headers_multipart):
         """Test that content detail includes featured images in publish statuses"""
-        content_id = getattr(TestFeaturedImageSetup, 'content_id', None)
-        site_id = getattr(TestFeaturedImageSetup, 'site_id', None)
+        # Create fresh content and site for this test
+        content_data = {
+            "title": f"TEST_FeaturedInStatus {uuid.uuid4().hex[:8]}",
+            "type": "text",
+            "body": "Content for featured image in status test",
+            "status": "ready"
+        }
+        content_response = requests.post(f"{BASE_URL}/api/content", json=content_data, headers=admin_headers)
+        assert content_response.status_code == 201
+        content_id = content_response.json()["id"]
         
-        if not content_id or not site_id:
-            pytest.skip("Missing content or site ID from setup")
+        site_data = {
+            "name": f"TEST_FeaturedInStatus Site {uuid.uuid4().hex[:8]}",
+            "wp_base_url": "https://test-featured-status.example.com",
+            "username": "admin",
+            "app_password": "test pass",
+            "default_post_type": "post",
+            "default_publish_status": "draft",
+            "is_active": True
+        }
+        site_response = requests.post(f"{BASE_URL}/api/wordpress/sites", json=site_data, headers=admin_headers)
+        assert site_response.status_code == 201
+        site_id = site_response.json()["id"]
         
-        # First, publish to the site to create a publish status
+        # Upload featured image
+        with open(TEST_IMAGE_PATH, 'rb') as f:
+            files = {'file': ('test_status.jpg', f, 'image/jpeg')}
+            upload_response = requests.post(
+                f"{BASE_URL}/api/content/{content_id}/featured-images/{site_id}",
+                files=files,
+                headers=admin_headers_multipart
+            )
+        assert upload_response.status_code == 200
+        
+        # Publish to the site to create a publish status
         publish_data = {
             "targets": [
                 {"site_id": site_id, "post_type": "post", "wp_status": "draft"}
@@ -427,14 +455,18 @@ class TestFeaturedImageInPublishStatus(TestSetup):
         
         if site_status:
             # Should have featured_image field
-            assert "featured_image" in site_status
+            assert "featured_image" in site_status, f"featured_image not in publish status: {site_status.keys()}"
             if site_status["featured_image"]:
                 assert "file_storage_key" in site_status["featured_image"]
                 print(f"Content detail includes featured image in publish status")
             else:
-                print("Publish status exists but no featured image attached")
+                print("Publish status exists but featured_image is None (unexpected)")
         else:
             print("No publish status found for site (may have failed due to mock WP)")
+        
+        # Cleanup
+        requests.delete(f"{BASE_URL}/api/content/{content_id}", headers=admin_headers)
+        requests.delete(f"{BASE_URL}/api/wordpress/sites/{site_id}", headers=admin_headers)
 
 
 class TestExistingFunctionality(TestSetup):
