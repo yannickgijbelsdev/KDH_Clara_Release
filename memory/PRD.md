@@ -98,6 +98,16 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Publish status display on content detail page
 - [x] Navigation links for Content Library and WordPress
 
+### January 9, 2026 - MVP 3.1 Extension
+- [x] Featured Image model (ContentItemFeaturedImage) - per content+site
+- [x] Featured image upload API (POST /api/content/{id}/featured-images/{site_id})
+- [x] Featured image delete API (DELETE /api/content/{id}/featured-images/{site_id})
+- [x] Featured image file serving (GET /api/uploads/featured_images/{file_key})
+- [x] Featured image included in content detail API response
+- [x] Publish dialog shows per-site featured image upload area
+- [x] WordPress media upload during publish (sets featured_media)
+- [x] File validation: JPEG, PNG, GIF, WebP only, max 5MB
+
 ## Database Collections
 ### users
 - id, email, password_hash, name, role, team_id, created_at, temp_password
