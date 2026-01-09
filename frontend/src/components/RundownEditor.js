@@ -204,9 +204,9 @@ const RundownEditor = ({ showId, canEdit = true }) => {
         </div>
       ) : (
         <DndContext
-          sensors={sensors}
+          sensors={canEdit ? sensors : []}
           collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
+          onDragEnd={canEdit ? handleDragEnd : undefined}
         >
           <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
@@ -215,8 +215,9 @@ const RundownEditor = ({ showId, canEdit = true }) => {
                   key={item.id}
                   item={item}
                   index={index}
-                  onEdit={() => handleEditItem(item)}
-                  onDelete={() => handleDeleteItem(item.id)}
+                  onEdit={canEdit ? () => handleEditItem(item) : undefined}
+                  onDelete={canEdit ? () => handleDeleteItem(item.id) : undefined}
+                  canEdit={canEdit}
                 />
               ))}
             </div>
@@ -224,13 +225,15 @@ const RundownEditor = ({ showId, canEdit = true }) => {
         </DndContext>
       )}
 
-      <RundownItemDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        showId={showId}
-        editingItem={editingItem}
-        onSaved={handleItemSaved}
-      />
+      {canEdit && (
+        <RundownItemDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          showId={showId}
+          editingItem={editingItem}
+          onSaved={handleItemSaved}
+        />
+      )}
     </div>
   );
 };
