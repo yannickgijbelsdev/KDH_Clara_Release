@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Radio, LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, FileText, Globe } from 'lucide-react';
+import { Radio, LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, FileText, Globe, MessageSquare, File, CalendarClock, Mic } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -13,12 +13,14 @@ import {
 const roleIcons = {
   admin: Crown,
   editor: Pencil,
+  presenter: Mic,
   viewer: Eye,
 };
 
 const roleLabels = {
   admin: 'Admin',
   editor: 'Editor',
+  presenter: 'Presenter',
   viewer: 'Viewer',
 };
 
