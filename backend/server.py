@@ -2814,7 +2814,7 @@ async def upload_media_asset(
     if content_type not in ALLOWED_MEDIA_TYPES:
         raise HTTPException(
             status_code=400,
-            detail=f"Unsupported file type. Allowed: PDF, DOCX, TXT, MP3, WAV, M4A"
+            detail="Unsupported file type. Allowed: PDF, DOCX, TXT, MP3, WAV, M4A"
         )
     
     kind = ALLOWED_MEDIA_TYPES.get(content_type, 'document')
