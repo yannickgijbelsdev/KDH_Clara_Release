@@ -22,6 +22,10 @@ import mimetypes
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Create uploads directory for featured images
+UPLOADS_DIR = ROOT_DIR / 'uploads' / 'featured_images'
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
