@@ -204,6 +204,22 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - [x] OccurrenceDetailPage with rundown editor
   - [x] Drag & drop reordering in occurrence rundowns
 
+### January 9, 2026 - Step 4.1a (Enhanced Recurrence)
+- [x] Extended ShowSeries model with new recurrence fields:
+  - [x] recurrence_type (none/weekly)
+  - [x] start_date (required start boundary)
+  - [x] end_date (optional end boundary)
+  - [x] interval_weeks (1-4)
+  - [x] days_of_week (array 0-6)
+- [x] New generate_dates_from_recurrence() function
+- [x] Updated generate endpoint to use new fields (with RRULE fallback)
+- [x] Enhanced SeriesPage UI:
+  - [x] Day-of-week toggle buttons (Mon-Sun)
+  - [x] Interval dropdown (Every 1/2/3/4 weeks)
+  - [x] End condition radio buttons (No end / Until date)
+  - [x] Live recurrence preview text
+- [x] Backward compatibility with legacy RRULE-based series
+
 ## Database Collections
 ### Core Collections
 - **users**: id, email, password_hash, name, role, team_id, created_at, temp_password
