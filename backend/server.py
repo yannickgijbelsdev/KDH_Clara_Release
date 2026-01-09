@@ -1222,6 +1222,8 @@ api_router.include_router(auth_router)
 api_router.include_router(shows_router)
 api_router.include_router(teams_router)
 api_router.include_router(users_router)
+api_router.include_router(content_router)
+api_router.include_router(wordpress_router)
 app.include_router(api_router)
 
 app.add_middleware(
