@@ -6,6 +6,7 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - MVP 2: Team and user management with roles
 - MVP 3: Content Library and Multi-site WordPress Publishing
 - MVP 4: Collaboration, Media, Permissions, and Recurring Shows
+- Step 4.1a: Enhanced Recurrence Pattern UI + Day Selection
 
 ## Architecture
 - **Frontend**: React 19 with TailwindCSS, Shadcn/UI components
