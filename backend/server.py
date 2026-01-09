@@ -341,8 +341,14 @@ class ShowSeriesCreate(BaseModel):
     description: Optional[str] = ""
     default_start_time: str
     default_end_time: str
-    recurrence_rule: Optional[str] = None  # RRULE string or "none" for one-off
+    recurrence_rule: Optional[str] = None  # RRULE string or "none" for one-off (legacy)
     is_active: bool = True
+    # New fields for enhanced recurrence (Step 4.1a)
+    recurrence_type: Optional[Literal["none", "weekly"]] = "weekly"
+    start_date: Optional[str] = None  # Required in UI for new series
+    end_date: Optional[str] = None  # Optional end date
+    interval_weeks: Optional[int] = 1  # Every N weeks
+    days_of_week: Optional[List[int]] = None  # 0=Mon, 1=Tue, ..., 6=Sun
 
 class ShowSeriesUpdate(BaseModel):
     title: Optional[str] = None
@@ -351,6 +357,12 @@ class ShowSeriesUpdate(BaseModel):
     default_end_time: Optional[str] = None
     recurrence_rule: Optional[str] = None
     is_active: Optional[bool] = None
+    # New fields for enhanced recurrence (Step 4.1a)
+    recurrence_type: Optional[Literal["none", "weekly"]] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    interval_weeks: Optional[int] = None
+    days_of_week: Optional[List[int]] = None
 
 class ShowSeriesResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -365,6 +377,12 @@ class ShowSeriesResponse(BaseModel):
     created_by: str
     created_at: str
     updated_at: str
+    # New fields for enhanced recurrence (Step 4.1a)
+    recurrence_type: Optional[str] = "weekly"
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    interval_weeks: Optional[int] = 1
+    days_of_week: Optional[List[int]] = None
 
 # Show Occurrence Models
 class ShowOccurrenceCreate(BaseModel):
