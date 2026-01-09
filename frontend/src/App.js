@@ -56,6 +56,7 @@ const AppRoutes = () => {
         <Route path="shows" element={<ShowsPage />} />
         <Route path="shows/:showId" element={<ShowDetailPage />} />
         <Route path="calendar" element={<CalendarPage />} />
+        <Route path="team" element={<TeamSettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
