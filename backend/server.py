@@ -2784,6 +2784,14 @@ async def update_occurrence_rundown_item(
     
     updated_item = await db.rundown_items_v2.find_one({"id": item_id}, {"_id": 0})
     updated_item["show_id"] = occurrence_id
+    
+    # Broadcast WebSocket event
+    await ws_manager.broadcast(occurrence_id, {
+        "type": "item_updated",
+        "item": updated_item,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
     return updated_item
 
 @occurrences_router.delete("/{occurrence_id}/rundown/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -2807,6 +2815,13 @@ async def delete_occurrence_rundown_item(
     result = await db.rundown_items_v2.delete_one({"id": item_id, "occurrence_id": occurrence_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Item not found")
+    
+    # Broadcast WebSocket event
+    await ws_manager.broadcast(occurrence_id, {
+        "type": "item_deleted",
+        "item_id": item_id,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
 
 # ============== MVP 4: CHAT SYSTEM ==============
 
