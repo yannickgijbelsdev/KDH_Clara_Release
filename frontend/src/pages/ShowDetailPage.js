@@ -42,6 +42,7 @@ import {
   AlertDialogTitle,
 } from '../components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
 import RundownEditor from '../components/RundownEditor';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
