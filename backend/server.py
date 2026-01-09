@@ -2139,7 +2139,13 @@ async def create_show_series(
         "is_active": series_data.is_active,
         "created_by": current_user['id'],
         "created_at": now,
-        "updated_at": now
+        "updated_at": now,
+        # New fields for enhanced recurrence (Step 4.1a)
+        "recurrence_type": series_data.recurrence_type or "weekly",
+        "start_date": series_data.start_date,
+        "end_date": series_data.end_date,
+        "interval_weeks": series_data.interval_weeks or 1,
+        "days_of_week": series_data.days_of_week
     }
     
     await db.show_series.insert_one(series_doc)
