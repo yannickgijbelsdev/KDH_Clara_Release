@@ -126,26 +126,28 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete, canEdit = true }) 
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          data-testid={`edit-item-${index}`}
-          onClick={onEdit}
-          className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10"
-        >
-          <Edit2 className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          data-testid={`delete-item-${index}`}
-          onClick={onDelete}
-          className="h-8 w-8 text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10"
-        >
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </div>
+      {canEdit && (
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            data-testid={`edit-item-${index}`}
+            onClick={onEdit}
+            className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10"
+          >
+            <Edit2 className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            data-testid={`delete-item-${index}`}
+            onClick={onDelete}
+            className="h-8 w-8 text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
