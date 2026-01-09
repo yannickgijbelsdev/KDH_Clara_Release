@@ -295,8 +295,15 @@ class TestShowSeries:
         )
         assert response.status_code == 200
         data = response.json()
-        assert "occurrences_created" in data
-        print(f"✓ POST /api/series/{series_id}/generate - Created {data['occurrences_created']} occurrences")
+        # API returns list of created occurrences directly
+        assert isinstance(data, list)
+        assert len(data) > 0
+        # Verify each occurrence has required fields
+        for occ in data:
+            assert "id" in occ
+            assert "date" in occ
+            assert occ["show_series_id"] == series_id
+        print(f"✓ POST /api/series/{series_id}/generate - Created {len(data)} occurrences")
     
     def test_update_series(self, auth_headers):
         """PUT /api/series/{id} - Update a series"""
