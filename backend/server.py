@@ -1376,16 +1376,82 @@ async def publish_to_wordpress(
             "wordpress_site_id": target.site_id
         })
         
+        # Get featured image for this content + site
+        featured_image = await db.content_item_featured_images.find_one({
+            "content_item_id": content_id,
+            "wordpress_site_id": target.site_id
+        })
+        
         now = datetime.now(timezone.utc).isoformat()
         
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=60.0) as client:
                 auth_string = f"{site['username']}:{site['app_password']}"
                 auth_bytes = base64.b64encode(auth_string.encode()).decode()
                 headers = {
                     "Authorization": f"Basic {auth_bytes}",
                     "Content-Type": "application/json"
                 }
+                
+                # Upload featured image if exists and needs syncing
+                wp_media_id = None
+                if featured_image:
+                    file_path = UPLOADS_DIR / featured_image.get("file_storage_key", "")
+                    
+                    # Check if we need to upload (not synced or file changed)
+                    needs_upload = (
+                        featured_image.get("sync_status") != "synced" or
+                        not featured_image.get("wp_media_id")
+                    )
+                    
+                    if needs_upload and file_path.exists():
+                        # Upload media to WordPress
+                        async with aiofiles.open(file_path, 'rb') as f:
+                            file_content = await f.read()
+                        
+                        media_headers = {
+                            "Authorization": f"Basic {auth_bytes}",
+                            "Content-Disposition": f'attachment; filename="{featured_image["file_name"]}"',
+                            "Content-Type": featured_image["mime_type"]
+                        }
+                        
+                        media_response = await client.post(
+                            f"{site['wp_base_url']}/wp-json/wp/v2/media",
+                            headers=media_headers,
+                            content=file_content
+                        )
+                        
+                        if media_response.status_code in [200, 201]:
+                            media_data = media_response.json()
+                            wp_media_id = media_data.get('id')
+                            wp_media_url = media_data.get('source_url')
+                            
+                            # Update featured image record
+                            await db.content_item_featured_images.update_one(
+                                {"id": featured_image["id"]},
+                                {"$set": {
+                                    "wp_media_id": wp_media_id,
+                                    "wp_media_url": wp_media_url,
+                                    "sync_status": "synced",
+                                    "sync_error_message": None,
+                                    "last_synced_at": now,
+                                    "updated_at": now
+                                }}
+                            )
+                        else:
+                            # Media upload failed - update record with error
+                            await db.content_item_featured_images.update_one(
+                                {"id": featured_image["id"]},
+                                {"$set": {
+                                    "sync_status": "failed",
+                                    "sync_error_message": f"Media upload failed: {media_response.status_code}",
+                                    "last_synced_at": now,
+                                    "updated_at": now
+                                }}
+                            )
+                    else:
+                        # Use existing wp_media_id
+                        wp_media_id = featured_image.get("wp_media_id")
                 
                 # Prepare content body
                 body = content.get('body', '')
@@ -1401,6 +1467,10 @@ async def publish_to_wordpress(
                 
                 if content.get('excerpt'):
                     wp_data["excerpt"] = content['excerpt']
+                
+                # Add featured image if available
+                if wp_media_id:
+                    wp_data["featured_media"] = wp_media_id
                 
                 endpoint = f"{site['wp_base_url']}/wp-json/wp/v2/{target.post_type}s"
                 
