@@ -124,7 +124,7 @@ class ShowResponse(BaseModel):
     end_time: str
     status: str
     editor_id: str
-    team_id: str
+    team_id: Optional[str] = ""
     created_at: str
     updated_at: str
 
