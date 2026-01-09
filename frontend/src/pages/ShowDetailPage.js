@@ -335,7 +335,7 @@ const ShowDetailPage = () => {
       </div>
 
       {/* Rundown Section */}
-      <RundownEditor showId={showId} />
+      <RundownEditor showId={showId} canEdit={isEditor} />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
