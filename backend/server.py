@@ -159,6 +159,94 @@ class RundownItemResponse(BaseModel):
 class ReorderRequest(BaseModel):
     item_ids: List[str]
 
+# Content Library Models
+class ContentItemCreate(BaseModel):
+    title: str
+    type: Literal["text", "link", "reference"] = "text"
+    body: Optional[str] = ""
+    excerpt: Optional[str] = ""
+    external_url: Optional[str] = ""
+    tags: Optional[List[str]] = []
+    status: Literal["draft", "ready", "published"] = "draft"
+
+class ContentItemUpdate(BaseModel):
+    title: Optional[str] = None
+    type: Optional[Literal["text", "link", "reference"]] = None
+    body: Optional[str] = None
+    excerpt: Optional[str] = None
+    external_url: Optional[str] = None
+    tags: Optional[List[str]] = None
+    status: Optional[Literal["draft", "ready", "published"]] = None
+
+class ContentItemResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    title: str
+    type: str
+    body: str
+    excerpt: str
+    external_url: str
+    tags: List[str]
+    status: str
+    team_id: str
+    created_by: str
+    created_at: str
+    updated_at: str
+    # WordPress sync fields
+    wp_post_id: Optional[int] = None
+    wp_post_type: Optional[str] = None
+    wp_status: Optional[str] = None
+    wp_permalink: Optional[str] = None
+    sync_status: str = "not_synced"
+    sync_error_message: Optional[str] = None
+    last_synced_at: Optional[str] = None
+
+class PublishToWordPressRequest(BaseModel):
+    post_type: Literal["post", "page"] = "post"
+    wp_status: Literal["draft", "publish"] = "draft"
+
+# WordPress Connection Models
+class WordPressConnectionCreate(BaseModel):
+    wp_base_url: str
+    username: str
+    app_password: str
+    default_post_type: Literal["post", "page"] = "post"
+    default_status: Literal["draft", "publish"] = "draft"
+
+class WordPressConnectionUpdate(BaseModel):
+    wp_base_url: Optional[str] = None
+    username: Optional[str] = None
+    app_password: Optional[str] = None
+    default_post_type: Optional[Literal["post", "page"]] = None
+    default_status: Optional[Literal["draft", "publish"]] = None
+
+class WordPressConnectionResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    team_id: str
+    wp_base_url: str
+    username: str
+    default_post_type: str
+    default_status: str
+    created_at: str
+    updated_at: str
+
+# Rundown-Content Link Models
+class AttachContentRequest(BaseModel):
+    content_ids: List[str]
+
+class RundownItemWithContentResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    show_id: str
+    type: str
+    title: str
+    notes: str
+    duration: str
+    order: int
+    created_at: str
+    content_ids: List[str] = []
+
 # ============== HELPER FUNCTIONS ==============
 
 def hash_password(password: str) -> str:
