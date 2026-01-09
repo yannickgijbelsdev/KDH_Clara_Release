@@ -87,6 +87,40 @@ const DashboardLayout = () => {
               <span className="font-medium">Calendar</span>
             </NavLink>
             
+            {/* Show Series (Admin) */}
+            {isAdmin && (
+              <NavLink
+                to="/series"
+                data-testid="nav-series-link"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-rose-500/20 text-rose-500'
+                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                <CalendarClock className="w-5 h-5" />
+                <span className="font-medium">Show Series</span>
+              </NavLink>
+            )}
+            
+            {/* Occurrences */}
+            <NavLink
+              to="/occurrences"
+              data-testid="nav-occurrences-link"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-rose-500/20 text-rose-500'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              <Radio className="w-5 h-5" />
+              <span className="font-medium">Occurrences</span>
+            </NavLink>
+            
             {/* Content Library */}
             <NavLink
               to="/content"
@@ -101,6 +135,38 @@ const DashboardLayout = () => {
             >
               <FileText className="w-5 h-5" />
               <span className="font-medium">Content Library</span>
+            </NavLink>
+            
+            {/* Media Library */}
+            <NavLink
+              to="/media"
+              data-testid="nav-media-link"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-rose-500/20 text-rose-500'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              <File className="w-5 h-5" />
+              <span className="font-medium">Media Library</span>
+            </NavLink>
+            
+            {/* Team Chat */}
+            <NavLink
+              to="/chat"
+              data-testid="nav-chat-link"
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-rose-500/20 text-rose-500'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`
+              }
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span className="font-medium">Team Chat</span>
             </NavLink>
             
             {/* Admin only: Team Settings */}
