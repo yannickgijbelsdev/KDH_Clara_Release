@@ -1946,6 +1946,1175 @@ async def get_rds_live_text():
     
     return PlainTextResponse("")
 
+# ============== MVP 4: SHOW ASSIGNMENTS (Permissions) ==============
+
+@shows_router.get("/{show_id}/assignments", response_model=List[ShowAssignmentResponse])
+async def get_show_assignments(
+    show_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all users assigned to a show."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    assignments = await db.show_assignments.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Add user details
+    for assignment in assignments:
+        user = await db.users.find_one({"id": assignment["user_id"]}, {"_id": 0})
+        if user:
+            assignment["user_name"] = user.get("name")
+            assignment["user_email"] = user.get("email")
+    
+    return assignments
+
+@shows_router.post("/{show_id}/assignments", response_model=ShowAssignmentResponse)
+async def create_show_assignment(
+    show_id: str,
+    assignment_data: ShowAssignmentCreate,
+    current_user: dict = Depends(require_admin)
+):
+    """Assign a user to a show (admin only)."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    # Verify user exists and is in same team
+    user = await db.users.find_one(
+        {"id": assignment_data.user_id, "team_id": current_user.get('team_id')}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if assignment already exists
+    existing = await db.show_assignments.find_one({
+        "show_id": show_id,
+        "user_id": assignment_data.user_id
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="User already assigned to this show")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    assignment_doc = {
+        "id": str(uuid.uuid4()),
+        "show_id": show_id,
+        "user_id": assignment_data.user_id,
+        "role_on_show": assignment_data.role_on_show,
+        "created_at": now
+    }
+    
+    await db.show_assignments.insert_one(assignment_doc)
+    assignment_doc.pop("_id", None)
+    assignment_doc["user_name"] = user.get("name")
+    assignment_doc["user_email"] = user.get("email")
+    
+    return assignment_doc
+
+@shows_router.delete("/{show_id}/assignments/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_show_assignment(
+    show_id: str,
+    user_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Remove a user assignment from a show (admin only)."""
+    result = await db.show_assignments.delete_one({
+        "show_id": show_id,
+        "user_id": user_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
+# ============== MVP 4: SHOW SERIES (Recurring Shows) ==============
+
+@series_router.get("", response_model=List[ShowSeriesResponse])
+async def get_show_series(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all show series for the team."""
+    series_list = await db.show_series.find(
+        {"team_id": current_user.get('team_id')},
+        {"_id": 0}
+    ).sort("title", 1).to_list(1000)
+    return series_list
+
+@series_router.post("", response_model=ShowSeriesResponse, status_code=status.HTTP_201_CREATED)
+async def create_show_series(
+    series_data: ShowSeriesCreate,
+    current_user: dict = Depends(require_admin)
+):
+    """Create a new show series (admin only)."""
+    series_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    series_doc = {
+        "id": series_id,
+        "team_id": current_user.get('team_id'),
+        "title": series_data.title,
+        "description": series_data.description or "",
+        "default_start_time": series_data.default_start_time,
+        "default_end_time": series_data.default_end_time,
+        "recurrence_rule": series_data.recurrence_rule,
+        "is_active": series_data.is_active,
+        "created_by": current_user['id'],
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.show_series.insert_one(series_doc)
+    series_doc.pop("_id", None)
+    return series_doc
+
+@series_router.get("/{series_id}", response_model=ShowSeriesResponse)
+async def get_show_series_detail(
+    series_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a single show series."""
+    series = await db.show_series.find_one(
+        {"id": series_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not series:
+        raise HTTPException(status_code=404, detail="Show series not found")
+    return series
+
+@series_router.put("/{series_id}", response_model=ShowSeriesResponse)
+async def update_show_series(
+    series_id: str,
+    series_data: ShowSeriesUpdate,
+    current_user: dict = Depends(require_admin)
+):
+    """Update a show series (admin only)."""
+    series = await db.show_series.find_one(
+        {"id": series_id, "team_id": current_user.get('team_id')}
+    )
+    if not series:
+        raise HTTPException(status_code=404, detail="Show series not found")
+    
+    update_dict = {k: v for k, v in series_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.show_series.update_one(
+        {"id": series_id},
+        {"$set": update_dict}
+    )
+    
+    updated = await db.show_series.find_one({"id": series_id}, {"_id": 0})
+    return updated
+
+@series_router.delete("/{series_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_show_series(
+    series_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Delete a show series and all its occurrences (admin only)."""
+    result = await db.show_series.delete_one(
+        {"id": series_id, "team_id": current_user.get('team_id')}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Show series not found")
+    
+    # Delete all occurrences and their rundowns
+    occurrences = await db.show_occurrences.find({"show_series_id": series_id}).to_list(1000)
+    for occ in occurrences:
+        await db.rundowns.delete_many({"occurrence_id": occ["id"]})
+        await db.rundown_items_v2.delete_many({"occurrence_id": occ["id"]})
+    await db.show_occurrences.delete_many({"show_series_id": series_id})
+    await db.series_assignments.delete_many({"series_id": series_id})
+
+@series_router.post("/{series_id}/generate", response_model=List[ShowOccurrenceResponse])
+async def generate_occurrences(
+    series_id: str,
+    gen_data: GenerateOccurrencesRequest,
+    current_user: dict = Depends(require_admin)
+):
+    """Generate occurrences for a show series (admin only)."""
+    series = await db.show_series.find_one(
+        {"id": series_id, "team_id": current_user.get('team_id')}
+    )
+    if not series:
+        raise HTTPException(status_code=404, detail="Show series not found")
+    
+    # Get existing occurrences to avoid duplicates
+    existing_occs = await db.show_occurrences.find(
+        {"show_series_id": series_id},
+        {"date": 1}
+    ).to_list(1000)
+    existing_dates = set(occ.get("date") for occ in existing_occs)
+    
+    # Generate dates based on recurrence rule
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    dates = parse_rrule(
+        series.get('recurrence_rule', ''),
+        today,
+        gen_data.weeks_ahead
+    )
+    
+    created_occurrences = []
+    now = datetime.now(timezone.utc).isoformat()
+    
+    for date in dates:
+        if date in existing_dates:
+            continue  # Skip existing dates
+        
+        occ_id = str(uuid.uuid4())
+        rundown_id = str(uuid.uuid4())
+        
+        occ_doc = {
+            "id": occ_id,
+            "team_id": current_user.get('team_id'),
+            "show_series_id": series_id,
+            "title": series['title'],
+            "date": date,
+            "start_time": series['default_start_time'],
+            "end_time": series['default_end_time'],
+            "status": "draft",
+            "rundown_id": rundown_id,
+            "created_at": now,
+            "updated_at": now
+        }
+        
+        # Create empty rundown for this occurrence
+        rundown_doc = {
+            "id": rundown_id,
+            "occurrence_id": occ_id,
+            "created_at": now,
+            "updated_at": now
+        }
+        
+        await db.show_occurrences.insert_one(occ_doc)
+        await db.rundowns.insert_one(rundown_doc)
+        
+        occ_doc.pop("_id", None)
+        created_occurrences.append(occ_doc)
+    
+    return created_occurrences
+
+# Series Assignments
+@series_router.get("/{series_id}/assignments", response_model=List[ShowAssignmentResponse])
+async def get_series_assignments(
+    series_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all users assigned to a series."""
+    series = await db.show_series.find_one(
+        {"id": series_id, "team_id": current_user.get('team_id')}
+    )
+    if not series:
+        raise HTTPException(status_code=404, detail="Show series not found")
+    
+    assignments = await db.series_assignments.find(
+        {"series_id": series_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    for assignment in assignments:
+        user = await db.users.find_one({"id": assignment["user_id"]}, {"_id": 0})
+        if user:
+            assignment["user_name"] = user.get("name")
+            assignment["user_email"] = user.get("email")
+        assignment["show_id"] = series_id  # For compatibility with ShowAssignmentResponse
+    
+    return assignments
+
+@series_router.post("/{series_id}/assignments", response_model=ShowAssignmentResponse)
+async def create_series_assignment(
+    series_id: str,
+    assignment_data: ShowAssignmentCreate,
+    current_user: dict = Depends(require_admin)
+):
+    """Assign a user to a series (admin only)."""
+    series = await db.show_series.find_one(
+        {"id": series_id, "team_id": current_user.get('team_id')}
+    )
+    if not series:
+        raise HTTPException(status_code=404, detail="Show series not found")
+    
+    user = await db.users.find_one(
+        {"id": assignment_data.user_id, "team_id": current_user.get('team_id')}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    existing = await db.series_assignments.find_one({
+        "series_id": series_id,
+        "user_id": assignment_data.user_id
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="User already assigned to this series")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    assignment_doc = {
+        "id": str(uuid.uuid4()),
+        "series_id": series_id,
+        "user_id": assignment_data.user_id,
+        "role_on_show": assignment_data.role_on_show,
+        "created_at": now
+    }
+    
+    await db.series_assignments.insert_one(assignment_doc)
+    assignment_doc.pop("_id", None)
+    assignment_doc["show_id"] = series_id
+    assignment_doc["user_name"] = user.get("name")
+    assignment_doc["user_email"] = user.get("email")
+    
+    return assignment_doc
+
+@series_router.delete("/{series_id}/assignments/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_series_assignment(
+    series_id: str,
+    user_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Remove a user assignment from a series (admin only)."""
+    result = await db.series_assignments.delete_one({
+        "series_id": series_id,
+        "user_id": user_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
+# ============== MVP 4: SHOW OCCURRENCES ==============
+
+@occurrences_router.get("", response_model=List[ShowOccurrenceResponse])
+async def get_occurrences(
+    series_id: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get show occurrences with optional filters."""
+    query = {"team_id": current_user.get('team_id')}
+    
+    if series_id:
+        query["show_series_id"] = series_id
+    if status:
+        query["status"] = status
+    if date_from:
+        query["date"] = {"$gte": date_from}
+    if date_to:
+        if "date" in query:
+            query["date"]["$lte"] = date_to
+        else:
+            query["date"] = {"$lte": date_to}
+    
+    # For non-admins, filter by assignments
+    if current_user.get('role') not in ['admin']:
+        # Get series IDs user is assigned to
+        user_series = await db.series_assignments.find(
+            {"user_id": current_user['id']},
+            {"series_id": 1}
+        ).to_list(100)
+        series_ids = [s['series_id'] for s in user_series]
+        
+        # Get occurrence IDs user is directly assigned to
+        user_occs = await db.occurrence_assignments.find(
+            {"user_id": current_user['id']},
+            {"occurrence_id": 1}
+        ).to_list(100)
+        occ_ids = [o['occurrence_id'] for o in user_occs]
+        
+        query["$or"] = [
+            {"show_series_id": {"$in": series_ids}},
+            {"id": {"$in": occ_ids}}
+        ]
+    
+    occurrences = await db.show_occurrences.find(
+        query,
+        {"_id": 0}
+    ).sort("date", 1).to_list(1000)
+    
+    return occurrences
+
+@occurrences_router.post("", response_model=ShowOccurrenceResponse, status_code=status.HTTP_201_CREATED)
+async def create_occurrence(
+    occ_data: ShowOccurrenceCreate,
+    current_user: dict = Depends(require_admin)
+):
+    """Create a one-off show occurrence (admin only)."""
+    occ_id = str(uuid.uuid4())
+    rundown_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    occ_doc = {
+        "id": occ_id,
+        "team_id": current_user.get('team_id'),
+        "show_series_id": occ_data.show_series_id,
+        "title": occ_data.title,
+        "date": occ_data.date,
+        "start_time": occ_data.start_time,
+        "end_time": occ_data.end_time,
+        "status": occ_data.status,
+        "rundown_id": rundown_id,
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    rundown_doc = {
+        "id": rundown_id,
+        "occurrence_id": occ_id,
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.show_occurrences.insert_one(occ_doc)
+    await db.rundowns.insert_one(rundown_doc)
+    
+    occ_doc.pop("_id", None)
+    return occ_doc
+
+@occurrences_router.get("/{occurrence_id}", response_model=ShowOccurrenceResponse)
+async def get_occurrence(
+    occurrence_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a single occurrence."""
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    return occurrence
+
+@occurrences_router.put("/{occurrence_id}", response_model=ShowOccurrenceResponse)
+async def update_occurrence(
+    occurrence_id: str,
+    occ_data: ShowOccurrenceUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update an occurrence. Admins can edit any, others need assignment."""
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')}
+    )
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    # Check permission
+    if current_user.get('role') != 'admin':
+        has_access = await check_occurrence_assignment(occurrence_id, current_user)
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Not assigned to this occurrence")
+    
+    update_dict = {k: v for k, v in occ_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.show_occurrences.update_one(
+        {"id": occurrence_id},
+        {"$set": update_dict}
+    )
+    
+    updated = await db.show_occurrences.find_one({"id": occurrence_id}, {"_id": 0})
+    return updated
+
+@occurrences_router.delete("/{occurrence_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_occurrence(
+    occurrence_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Delete an occurrence (admin only)."""
+    result = await db.show_occurrences.delete_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    await db.rundowns.delete_many({"occurrence_id": occurrence_id})
+    await db.rundown_items_v2.delete_many({"occurrence_id": occurrence_id})
+    await db.occurrence_assignments.delete_many({"occurrence_id": occurrence_id})
+
+# Occurrence Rundown Items
+@occurrences_router.get("/{occurrence_id}/rundown", response_model=List[RundownItemResponse])
+async def get_occurrence_rundown(
+    occurrence_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get rundown items for an occurrence."""
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')}
+    )
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    items = await db.rundown_items_v2.find(
+        {"occurrence_id": occurrence_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+    
+    # Map to RundownItemResponse format
+    for item in items:
+        item["show_id"] = occurrence_id  # For compatibility
+    
+    return items
+
+@occurrences_router.post("/{occurrence_id}/rundown", response_model=RundownItemResponse, status_code=status.HTTP_201_CREATED)
+async def create_occurrence_rundown_item(
+    occurrence_id: str,
+    item_data: RundownItemCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a rundown item to an occurrence."""
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')}
+    )
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    # Check permission
+    if current_user.get('role') != 'admin':
+        has_access = await check_occurrence_assignment(occurrence_id, current_user)
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Not assigned to this occurrence")
+    
+    last_item = await db.rundown_items_v2.find_one(
+        {"occurrence_id": occurrence_id},
+        sort=[("order", -1)]
+    )
+    next_order = (last_item['order'] + 1) if last_item else 0
+    
+    item_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    item_doc = {
+        "id": item_id,
+        "occurrence_id": occurrence_id,
+        "show_id": occurrence_id,
+        "type": item_data.type,
+        "title": item_data.title,
+        "notes": item_data.notes or "",
+        "duration": item_data.duration or "",
+        "order": next_order,
+        "created_at": now
+    }
+    
+    await db.rundown_items_v2.insert_one(item_doc)
+    item_doc.pop("_id", None)
+    return item_doc
+
+@occurrences_router.put("/{occurrence_id}/rundown/reorder", response_model=List[RundownItemResponse])
+async def reorder_occurrence_rundown(
+    occurrence_id: str,
+    reorder_data: ReorderRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reorder rundown items for an occurrence."""
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')}
+    )
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    if current_user.get('role') != 'admin':
+        has_access = await check_occurrence_assignment(occurrence_id, current_user)
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Not assigned to this occurrence")
+    
+    for index, item_id in enumerate(reorder_data.item_ids):
+        await db.rundown_items_v2.update_one(
+            {"id": item_id, "occurrence_id": occurrence_id},
+            {"$set": {"order": index}}
+        )
+    
+    items = await db.rundown_items_v2.find(
+        {"occurrence_id": occurrence_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+    
+    for item in items:
+        item["show_id"] = occurrence_id
+    
+    return items
+
+@occurrences_router.put("/{occurrence_id}/rundown/{item_id}", response_model=RundownItemResponse)
+async def update_occurrence_rundown_item(
+    occurrence_id: str,
+    item_id: str,
+    item_data: RundownItemUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a rundown item in an occurrence."""
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')}
+    )
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    if current_user.get('role') != 'admin':
+        has_access = await check_occurrence_assignment(occurrence_id, current_user)
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Not assigned to this occurrence")
+    
+    item = await db.rundown_items_v2.find_one({"id": item_id, "occurrence_id": occurrence_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    update_dict = {k: v for k, v in item_data.model_dump().items() if v is not None}
+    
+    if update_dict:
+        await db.rundown_items_v2.update_one(
+            {"id": item_id},
+            {"$set": update_dict}
+        )
+    
+    updated_item = await db.rundown_items_v2.find_one({"id": item_id}, {"_id": 0})
+    updated_item["show_id"] = occurrence_id
+    return updated_item
+
+@occurrences_router.delete("/{occurrence_id}/rundown/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_occurrence_rundown_item(
+    occurrence_id: str,
+    item_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a rundown item from an occurrence."""
+    occurrence = await db.show_occurrences.find_one(
+        {"id": occurrence_id, "team_id": current_user.get('team_id')}
+    )
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    if current_user.get('role') != 'admin':
+        has_access = await check_occurrence_assignment(occurrence_id, current_user)
+        if not has_access:
+            raise HTTPException(status_code=403, detail="Not assigned to this occurrence")
+    
+    result = await db.rundown_items_v2.delete_one({"id": item_id, "occurrence_id": occurrence_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+# ============== MVP 4: CHAT SYSTEM ==============
+
+@chat_router.get("/threads", response_model=List[ChatThreadResponse])
+async def get_chat_threads(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all chat threads for the team."""
+    threads = await db.chat_threads.find(
+        {"team_id": current_user.get('team_id')},
+        {"_id": 0}
+    ).sort("updated_at", -1).to_list(100)
+    
+    # Add show titles and last message info
+    for thread in threads:
+        if thread.get("show_id"):
+            show = await db.shows.find_one({"id": thread["show_id"]}, {"title": 1})
+            thread["show_title"] = show.get("title") if show else None
+        
+        # Get last message
+        last_msg = await db.chat_messages.find_one(
+            {"thread_id": thread["id"]},
+            {"body": 1, "created_at": 1},
+            sort=[("created_at", -1)]
+        )
+        if last_msg:
+            thread["last_message"] = last_msg.get("body", "")[:100]
+            thread["last_message_at"] = last_msg.get("created_at")
+    
+    return threads
+
+@chat_router.get("/threads/team", response_model=ChatThreadResponse)
+async def get_or_create_team_thread(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get or create the default team chat thread."""
+    thread = await db.chat_threads.find_one(
+        {"team_id": current_user.get('team_id'), "type": "team"},
+        {"_id": 0}
+    )
+    
+    if not thread:
+        # Create default team thread
+        now = datetime.now(timezone.utc).isoformat()
+        thread = {
+            "id": str(uuid.uuid4()),
+            "team_id": current_user.get('team_id'),
+            "type": "team",
+            "show_id": None,
+            "created_by": current_user['id'],
+            "created_at": now,
+            "updated_at": now
+        }
+        await db.chat_threads.insert_one(thread)
+        thread.pop("_id", None)
+    
+    return thread
+
+@chat_router.post("/threads", response_model=ChatThreadResponse, status_code=status.HTTP_201_CREATED)
+async def create_chat_thread(
+    thread_data: ChatThreadCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new chat thread (show-specific)."""
+    if thread_data.type == "team":
+        # Team thread - get or create
+        return await get_or_create_team_thread(current_user)
+    
+    # Show thread - verify show exists
+    if thread_data.show_id:
+        show = await db.shows.find_one(
+            {"id": thread_data.show_id, "team_id": current_user.get('team_id')}
+        )
+        if not show:
+            raise HTTPException(status_code=404, detail="Show not found")
+        
+        # Check if thread already exists for this show
+        existing = await db.chat_threads.find_one({
+            "show_id": thread_data.show_id,
+            "type": "show"
+        })
+        if existing:
+            existing.pop("_id", None)
+            existing["show_title"] = show.get("title")
+            return existing
+    
+    now = datetime.now(timezone.utc).isoformat()
+    thread_doc = {
+        "id": str(uuid.uuid4()),
+        "team_id": current_user.get('team_id'),
+        "type": thread_data.type,
+        "show_id": thread_data.show_id,
+        "created_by": current_user['id'],
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.chat_threads.insert_one(thread_doc)
+    thread_doc.pop("_id", None)
+    return thread_doc
+
+@chat_router.get("/threads/{thread_id}/messages", response_model=List[ChatMessageResponse])
+async def get_thread_messages(
+    thread_id: str,
+    limit: int = 50,
+    before: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get messages in a thread."""
+    thread = await db.chat_threads.find_one(
+        {"id": thread_id, "team_id": current_user.get('team_id')}
+    )
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    query = {"thread_id": thread_id}
+    if before:
+        query["created_at"] = {"$lt": before}
+    
+    messages = await db.chat_messages.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    # Add user names
+    for msg in messages:
+        user = await db.users.find_one({"id": msg["user_id"]}, {"name": 1})
+        msg["user_name"] = user.get("name") if user else "Unknown"
+    
+    # Return in chronological order
+    messages.reverse()
+    return messages
+
+@chat_router.post("/threads/{thread_id}/messages", response_model=ChatMessageResponse, status_code=status.HTTP_201_CREATED)
+async def create_message(
+    thread_id: str,
+    message_data: ChatMessageCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Send a message to a thread."""
+    thread = await db.chat_threads.find_one(
+        {"id": thread_id, "team_id": current_user.get('team_id')}
+    )
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    message_doc = {
+        "id": str(uuid.uuid4()),
+        "thread_id": thread_id,
+        "user_id": current_user['id'],
+        "body": message_data.body,
+        "created_at": now
+    }
+    
+    await db.chat_messages.insert_one(message_doc)
+    
+    # Update thread's updated_at
+    await db.chat_threads.update_one(
+        {"id": thread_id},
+        {"$set": {"updated_at": now}}
+    )
+    
+    message_doc.pop("_id", None)
+    message_doc["user_name"] = current_user.get("name")
+    return message_doc
+
+# ============== MVP 4: MEDIA LIBRARY ==============
+
+# Allowed file types
+ALLOWED_DOCUMENT_TYPES = {
+    'application/pdf': 'document',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'document',
+    'text/plain': 'document'
+}
+ALLOWED_AUDIO_TYPES = {
+    'audio/mpeg': 'audio',
+    'audio/mp3': 'audio',
+    'audio/wav': 'audio',
+    'audio/x-wav': 'audio',
+    'audio/x-m4a': 'audio',
+    'audio/m4a': 'audio'
+}
+ALLOWED_MEDIA_TYPES = {**ALLOWED_DOCUMENT_TYPES, **ALLOWED_AUDIO_TYPES}
+MAX_MEDIA_SIZE = 100 * 1024 * 1024  # 100MB
+
+@media_router.get("", response_model=List[MediaAssetResponse])
+async def get_media_assets(
+    kind: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all media assets for the team."""
+    query = {"team_id": current_user.get('team_id')}
+    
+    if kind:
+        query["kind"] = kind
+    if search:
+        query["title"] = {"$regex": search, "$options": "i"}
+    
+    assets = await db.media_assets.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    # Add uploader names
+    for asset in assets:
+        user = await db.users.find_one({"id": asset["uploaded_by"]}, {"name": 1})
+        asset["uploaded_by_name"] = user.get("name") if user else "Unknown"
+    
+    return assets
+
+@media_router.post("", response_model=MediaAssetResponse, status_code=status.HTTP_201_CREATED)
+async def upload_media_asset(
+    file: UploadFile = File(...),
+    title: Optional[str] = None,
+    current_user: dict = Depends(require_can_edit_content)
+):
+    """Upload a new media asset."""
+    content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
+    
+    if content_type not in ALLOWED_MEDIA_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type. Allowed: PDF, DOCX, TXT, MP3, WAV, M4A"
+        )
+    
+    kind = ALLOWED_MEDIA_TYPES.get(content_type, 'document')
+    
+    # Generate storage key
+    file_ext = Path(file.filename).suffix or '.bin'
+    storage_key = f"{current_user.get('team_id')}_{uuid.uuid4().hex[:12]}{file_ext}"
+    file_path = MEDIA_UPLOADS_DIR / storage_key
+    
+    # Save file
+    file_size = 0
+    async with aiofiles.open(file_path, 'wb') as f:
+        while chunk := await file.read(8192):
+            await f.write(chunk)
+            file_size += len(chunk)
+            if file_size > MAX_MEDIA_SIZE:
+                # Clean up and error
+                await f.close()
+                file_path.unlink()
+                raise HTTPException(status_code=400, detail="File too large. Maximum size is 100MB")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    asset_doc = {
+        "id": str(uuid.uuid4()),
+        "team_id": current_user.get('team_id'),
+        "uploaded_by": current_user['id'],
+        "kind": kind,
+        "title": title or file.filename,
+        "file_storage_key": storage_key,
+        "original_filename": file.filename,
+        "mime_type": content_type,
+        "size": file_size,
+        "duration_seconds": None,  # Could be calculated for audio
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.media_assets.insert_one(asset_doc)
+    asset_doc.pop("_id", None)
+    asset_doc["uploaded_by_name"] = current_user.get("name")
+    
+    return asset_doc
+
+@media_router.get("/{asset_id}", response_model=MediaAssetResponse)
+async def get_media_asset(
+    asset_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a single media asset."""
+    asset = await db.media_assets.find_one(
+        {"id": asset_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not asset:
+        raise HTTPException(status_code=404, detail="Media asset not found")
+    
+    user = await db.users.find_one({"id": asset["uploaded_by"]}, {"name": 1})
+    asset["uploaded_by_name"] = user.get("name") if user else "Unknown"
+    
+    return asset
+
+@media_router.put("/{asset_id}", response_model=MediaAssetResponse)
+async def update_media_asset(
+    asset_id: str,
+    update_data: MediaAssetUpdate,
+    current_user: dict = Depends(require_can_edit_content)
+):
+    """Update media asset metadata."""
+    asset = await db.media_assets.find_one(
+        {"id": asset_id, "team_id": current_user.get('team_id')}
+    )
+    if not asset:
+        raise HTTPException(status_code=404, detail="Media asset not found")
+    
+    update_dict = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.media_assets.update_one(
+        {"id": asset_id},
+        {"$set": update_dict}
+    )
+    
+    updated = await db.media_assets.find_one({"id": asset_id}, {"_id": 0})
+    user = await db.users.find_one({"id": updated["uploaded_by"]}, {"name": 1})
+    updated["uploaded_by_name"] = user.get("name") if user else "Unknown"
+    
+    return updated
+
+@media_router.delete("/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_media_asset(
+    asset_id: str,
+    current_user: dict = Depends(require_can_edit_content)
+):
+    """Delete a media asset."""
+    asset = await db.media_assets.find_one(
+        {"id": asset_id, "team_id": current_user.get('team_id')}
+    )
+    if not asset:
+        raise HTTPException(status_code=404, detail="Media asset not found")
+    
+    # Delete file
+    file_path = MEDIA_UPLOADS_DIR / asset.get("file_storage_key", "")
+    if file_path.exists():
+        file_path.unlink()
+    
+    # Delete database record
+    await db.media_assets.delete_one({"id": asset_id})
+    
+    # Remove from show/rundown attachments
+    await db.show_media.delete_many({"media_asset_id": asset_id})
+    await db.rundown_item_media.delete_many({"media_asset_id": asset_id})
+
+@api_router.get("/uploads/media/{file_key}")
+async def get_media_file(file_key: str):
+    """Serve a media file."""
+    file_path = MEDIA_UPLOADS_DIR / file_key
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
+    return FileResponse(file_path, media_type=media_type)
+
+# Show Media Attachments
+@shows_router.get("/{show_id}/media", response_model=List[ShowMediaResponse])
+async def get_show_media(
+    show_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get media attached to a show."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    attachments = await db.show_media.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Add full media asset info
+    for attachment in attachments:
+        asset = await db.media_assets.find_one(
+            {"id": attachment["media_asset_id"]},
+            {"_id": 0}
+        )
+        if asset:
+            user = await db.users.find_one({"id": asset["uploaded_by"]}, {"name": 1})
+            asset["uploaded_by_name"] = user.get("name") if user else "Unknown"
+        attachment["media_asset"] = asset
+    
+    return attachments
+
+@shows_router.post("/{show_id}/media", response_model=List[ShowMediaResponse])
+async def attach_media_to_show(
+    show_id: str,
+    attach_data: AttachMediaRequest,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Attach media assets to a show."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    for asset_id in attach_data.media_asset_ids:
+        # Verify asset exists
+        asset = await db.media_assets.find_one(
+            {"id": asset_id, "team_id": current_user.get('team_id')}
+        )
+        if not asset:
+            continue
+        
+        # Check if already attached
+        existing = await db.show_media.find_one({
+            "show_id": show_id,
+            "media_asset_id": asset_id
+        })
+        if existing:
+            continue
+        
+        await db.show_media.insert_one({
+            "id": str(uuid.uuid4()),
+            "show_id": show_id,
+            "media_asset_id": asset_id,
+            "created_at": now
+        })
+    
+    return await get_show_media(show_id, current_user)
+
+@shows_router.delete("/{show_id}/media/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def detach_media_from_show(
+    show_id: str,
+    asset_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Detach a media asset from a show."""
+    result = await db.show_media.delete_one({
+        "show_id": show_id,
+        "media_asset_id": asset_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+# Rundown Item Media Attachments
+@shows_router.get("/{show_id}/rundown/{item_id}/media", response_model=List[RundownItemMediaResponse])
+async def get_rundown_item_media(
+    show_id: str,
+    item_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get media attached to a rundown item."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Rundown item not found")
+    
+    attachments = await db.rundown_item_media.find(
+        {"rundown_item_id": item_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    for attachment in attachments:
+        asset = await db.media_assets.find_one(
+            {"id": attachment["media_asset_id"]},
+            {"_id": 0}
+        )
+        if asset:
+            user = await db.users.find_one({"id": asset["uploaded_by"]}, {"name": 1})
+            asset["uploaded_by_name"] = user.get("name") if user else "Unknown"
+        attachment["media_asset"] = asset
+    
+    return attachments
+
+@shows_router.post("/{show_id}/rundown/{item_id}/media", response_model=List[RundownItemMediaResponse])
+async def attach_media_to_rundown_item(
+    show_id: str,
+    item_id: str,
+    attach_data: AttachMediaRequest,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Attach media assets to a rundown item."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Rundown item not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    for asset_id in attach_data.media_asset_ids:
+        asset = await db.media_assets.find_one(
+            {"id": asset_id, "team_id": current_user.get('team_id')}
+        )
+        if not asset:
+            continue
+        
+        existing = await db.rundown_item_media.find_one({
+            "rundown_item_id": item_id,
+            "media_asset_id": asset_id
+        })
+        if existing:
+            continue
+        
+        await db.rundown_item_media.insert_one({
+            "id": str(uuid.uuid4()),
+            "rundown_item_id": item_id,
+            "media_asset_id": asset_id,
+            "created_at": now
+        })
+    
+    return await get_rundown_item_media(show_id, item_id, current_user)
+
+@shows_router.delete("/{show_id}/rundown/{item_id}/media/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def detach_media_from_rundown_item(
+    show_id: str,
+    item_id: str,
+    asset_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Detach a media asset from a rundown item."""
+    result = await db.rundown_item_media.delete_one({
+        "rundown_item_id": item_id,
+        "media_asset_id": asset_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
 # Include routers
 api_router.include_router(auth_router)
 api_router.include_router(shows_router)
