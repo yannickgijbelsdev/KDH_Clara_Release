@@ -37,7 +37,7 @@ const calculateSpeakingDuration = (text) => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
+const SortableRundownItem = ({ item, index, onEdit, onDelete, canEdit = true }) => {
   const {
     attributes,
     listeners,
@@ -45,7 +45,7 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id });
+  } = useSortable({ id: item.id, disabled: !canEdit });
 
   const style = {
     transform: CSS.Transform.toString(transform),
