@@ -74,14 +74,18 @@ const SortableRundownItem = ({ item, index, onEdit, onDelete, canEdit = true }) 
       }`}
     >
       {/* Drag Handle */}
-      <button
-        {...attributes}
-        {...listeners}
-        data-testid={`drag-handle-${index}`}
-        className="drag-handle p-1 text-zinc-500 hover:text-zinc-300 transition-colors mt-0.5 shrink-0"
-      >
-        <GripVertical className="w-5 h-5" />
-      </button>
+      {canEdit ? (
+        <button
+          {...attributes}
+          {...listeners}
+          data-testid={`drag-handle-${index}`}
+          className="drag-handle p-1 text-zinc-500 hover:text-zinc-300 transition-colors mt-0.5 shrink-0"
+        >
+          <GripVertical className="w-5 h-5" />
+        </button>
+      ) : (
+        <div className="w-7 shrink-0" />
+      )}
 
       {/* Order Number */}
       <span className="font-mono text-sm text-zinc-500 w-6 text-center mt-1 shrink-0">
