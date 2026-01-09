@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import { Plus, Calendar, Clock, ChevronRight, Filter } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
 import CreateShowDialog from '../components/CreateShowDialog';
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ const statusLabels = {
 };
 
 const ShowsPage = () => {
+  const { isEditor } = useAuth();
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
