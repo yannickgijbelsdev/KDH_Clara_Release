@@ -398,7 +398,7 @@ const OccurrenceDetailPage = () => {
   };
 
   const handlePrintView = () => {
-    window.open(`${API}/occurrences/${occurrenceId}/print`, '_blank');
+    window.open(`${API}/occurrences/${occurrenceId}/print?token=${token}`, '_blank');
   };
 
   const formatDate = (dateStr) => {
