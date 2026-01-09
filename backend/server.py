@@ -745,6 +745,31 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@app.on_event("startup")
+async def startup_db_client():
+    """Migrate legacy data on startup."""
+    # Migrate legacy users without role/team_id
+    legacy_users = await db.users.find({"team_id": {"$exists": False}}).to_list(100)
+    for user in legacy_users:
+        # Create a team for this legacy user
+        team_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc).isoformat()
+        await db.teams.insert_one({
+            "id": team_id,
+            "name": "My Radio Station",
+            "created_at": now
+        })
+        await db.users.update_one(
+            {"id": user["id"]},
+            {"$set": {"team_id": team_id, "role": "admin"}}
+        )
+        # Assign all shows by this user to their team
+        await db.shows.update_many(
+            {"editor_id": user["id"]},
+            {"$set": {"team_id": team_id}}
+        )
+        logger.info(f"Migrated user {user['email']} to team {team_id}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
