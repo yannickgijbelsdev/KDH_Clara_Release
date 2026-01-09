@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -14,9 +14,11 @@ import {
   GripVertical,
   CheckCircle,
   Circle,
-  Users,
   Pencil,
-  MoreVertical
+  MoreVertical,
+  Printer,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -42,10 +44,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../components/ui/tooltip';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '../lib/utils';
+import { useRundownWebSocket } from '../hooks/useRundownWebSocket';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -63,6 +72,61 @@ const SEGMENT_TYPES = [
   { value: 'interview', label: 'Interview' },
   { value: 'outro', label: 'Outro' },
 ];
+
+// Presence Avatar Component
+const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
+  if (!users || users.length === 0) return null;
+  
+  const displayUsers = users.slice(0, maxDisplay);
+  const overflowCount = users.length - maxDisplay;
+  
+  return (
+    <TooltipProvider>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-zinc-500">Currently viewing:</span>
+        <div className="flex -space-x-2">
+          {displayUsers.map((user, idx) => (
+            <Tooltip key={user.id || idx}>
+              <TooltipTrigger asChild>
+                <div
+                  className="w-8 h-8 rounded-full bg-rose-500/20 border-2 border-[#0f0f0f] flex items-center justify-center cursor-default"
+                  style={{ zIndex: maxDisplay - idx }}
+                >
+                  {user.avatar_url ? (
+                    <img 
+                      src={user.avatar_url} 
+                      alt={user.name} 
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold text-rose-500">
+                      {user.initials || user.name?.charAt(0)?.toUpperCase() || '?'}
+                    </span>
+                  )}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{user.name}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+          {overflowCount > 0 && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-8 h-8 rounded-full bg-zinc-700 border-2 border-[#0f0f0f] flex items-center justify-center cursor-default">
+                  <span className="text-xs font-semibold text-white">+{overflowCount}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{overflowCount} more viewer{overflowCount > 1 ? 's' : ''}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+};
 
 // Sortable Rundown Item Component
 const SortableRundownItem = ({ item, onEdit, onDelete, canEdit }) => {
@@ -152,7 +216,7 @@ const SortableRundownItem = ({ item, onEdit, onDelete, canEdit }) => {
 const OccurrenceDetailPage = () => {
   const { occurrenceId } = useParams();
   const navigate = useNavigate();
-  const { isAdmin, user } = useAuth();
+  const { isAdmin, user, token } = useAuth();
   
   const [occurrence, setOccurrence] = useState(null);
   const [rundownItems, setRundownItems] = useState([]);
@@ -174,6 +238,50 @@ const OccurrenceDetailPage = () => {
     })
   );
 
+  // WebSocket message handler
+  const handleWebSocketMessage = useCallback((message) => {
+    switch (message.type) {
+      case 'item_created':
+        setRundownItems(prev => {
+          // Check if item already exists
+          if (prev.some(item => item.id === message.item.id)) {
+            return prev;
+          }
+          const newItems = [...prev, message.item].sort((a, b) => a.order - b.order);
+          toast.info(`${message.user?.name || 'Someone'} added "${message.item.title}"`);
+          return newItems;
+        });
+        break;
+        
+      case 'item_updated':
+        setRundownItems(prev => 
+          prev.map(item => item.id === message.item.id ? message.item : item)
+        );
+        toast.info(`${message.user?.name || 'Someone'} updated "${message.item.title}"`);
+        break;
+        
+      case 'item_deleted':
+        setRundownItems(prev => prev.filter(item => item.id !== message.item_id));
+        toast.info(`${message.user?.name || 'Someone'} removed an item`);
+        break;
+        
+      case 'items_reordered':
+        setRundownItems(message.items);
+        toast.info(`${message.user?.name || 'Someone'} reordered the rundown`);
+        break;
+        
+      default:
+        break;
+    }
+  }, []);
+
+  // Connect to WebSocket
+  const { isConnected, presence } = useRundownWebSocket(
+    occurrenceId,
+    token,
+    handleWebSocketMessage
+  );
+
   useEffect(() => {
     fetchOccurrence();
     fetchRundown();
@@ -183,7 +291,6 @@ const OccurrenceDetailPage = () => {
     try {
       const response = await axios.get(`${API}/occurrences/${occurrenceId}`);
       setOccurrence(response.data);
-      // For now, admins can always edit. Will check assignments in a later iteration.
       setCanEdit(isAdmin || user?.role === 'editor' || user?.role === 'presenter');
     } catch (error) {
       toast.error('Failed to load occurrence');
@@ -290,6 +397,10 @@ const OccurrenceDetailPage = () => {
     setEditingItem(null);
   };
 
+  const handlePrintView = () => {
+    window.open(`${API}/occurrences/${occurrenceId}/print`, '_blank');
+  };
+
   const formatDate = (dateStr) => {
     return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
       weekday: 'long',
@@ -315,15 +426,32 @@ const OccurrenceDetailPage = () => {
     <div data-testid="occurrence-detail-page">
       {/* Header */}
       <div className="mb-8">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/occurrences')}
-          className="text-zinc-400 hover:text-white -ml-2 mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to Occurrences
-        </Button>
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/occurrences')}
+            className="text-zinc-400 hover:text-white -ml-2"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Occurrences
+          </Button>
+          
+          {/* Connection status */}
+          <div className="flex items-center gap-2 text-xs">
+            {isConnected ? (
+              <span className="flex items-center gap-1 text-green-500">
+                <Wifi className="w-3 h-3" />
+                Live
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-zinc-500">
+                <WifiOff className="w-3 h-3" />
+                Offline
+              </span>
+            )}
+          </div>
+        </div>
 
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
@@ -353,7 +481,25 @@ const OccurrenceDetailPage = () => {
               </div>
             </div>
           </div>
+          
+          {/* Export button */}
+          <Button
+            data-testid="print-rundown-btn"
+            onClick={handlePrintView}
+            variant="outline"
+            className="border-zinc-700 text-zinc-300 hover:bg-white/5"
+          >
+            <Printer className="w-4 h-4 mr-2" />
+            Export / Print
+          </Button>
         </div>
+        
+        {/* Presence Avatars */}
+        {presence.length > 0 && (
+          <div className="mt-4">
+            <PresenceAvatars users={presence} />
+          </div>
+        )}
       </div>
 
       {/* Rundown Section */}
