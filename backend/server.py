@@ -2741,6 +2741,14 @@ async def reorder_occurrence_rundown(
     for item in items:
         item["show_id"] = occurrence_id
     
+    # Broadcast WebSocket event
+    await ws_manager.broadcast(occurrence_id, {
+        "type": "items_reordered",
+        "item_ids": reorder_data.item_ids,
+        "items": items,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
     return items
 
 @occurrences_router.put("/{occurrence_id}/rundown/{item_id}", response_model=RundownItemResponse)
