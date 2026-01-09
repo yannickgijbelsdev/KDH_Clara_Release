@@ -522,6 +522,82 @@ async def require_editor_or_admin(current_user: dict = Depends(get_current_user)
         raise HTTPException(status_code=403, detail="Editor or admin access required")
     return current_user
 
+async def require_can_edit_content(current_user: dict = Depends(get_current_user)):
+    """Editors, Presenters, and Admins can manage content/media."""
+    if current_user.get('role') not in ['admin', 'editor', 'presenter']:
+        raise HTTPException(status_code=403, detail="Content editing access required")
+    return current_user
+
+async def check_show_assignment(show_id: str, user: dict) -> bool:
+    """Check if user is assigned to a show (legacy shows model)."""
+    if user.get('role') == 'admin':
+        return True
+    assignment = await db.show_assignments.find_one({
+        "show_id": show_id,
+        "user_id": user['id']
+    })
+    return assignment is not None
+
+async def check_occurrence_assignment(occurrence_id: str, user: dict) -> bool:
+    """Check if user is assigned to an occurrence's series or the occurrence itself."""
+    if user.get('role') == 'admin':
+        return True
+    
+    occurrence = await db.show_occurrences.find_one({"id": occurrence_id})
+    if not occurrence:
+        return False
+    
+    # Check series assignment if occurrence belongs to a series
+    if occurrence.get('show_series_id'):
+        series_assignment = await db.series_assignments.find_one({
+            "series_id": occurrence['show_series_id'],
+            "user_id": user['id']
+        })
+        if series_assignment:
+            return True
+    
+    # Check direct occurrence assignment
+    occ_assignment = await db.occurrence_assignments.find_one({
+        "occurrence_id": occurrence_id,
+        "user_id": user['id']
+    })
+    return occ_assignment is not None
+
+def parse_rrule(rrule_string: str, start_date: str, weeks_ahead: int = 8) -> List[str]:
+    """Parse RRULE string and generate dates for the next N weeks.
+    Supports: FREQ=DAILY, FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR,SA,SU
+    """
+    from datetime import timedelta
+    
+    dates = []
+    start = datetime.strptime(start_date, '%Y-%m-%d')
+    end_date = start + timedelta(weeks=weeks_ahead)
+    
+    if not rrule_string or rrule_string.lower() == 'none':
+        # One-off show - just the start date
+        return [start_date]
+    
+    parts = dict(item.split('=') for item in rrule_string.split(';') if '=' in item)
+    freq = parts.get('FREQ', 'WEEKLY')
+    
+    if freq == 'DAILY':
+        current = start
+        while current <= end_date:
+            dates.append(current.strftime('%Y-%m-%d'))
+            current += timedelta(days=1)
+    elif freq == 'WEEKLY':
+        byday = parts.get('BYDAY', 'MO,TU,WE,TH,FR,SA,SU').split(',')
+        day_map = {'MO': 0, 'TU': 1, 'WE': 2, 'TH': 3, 'FR': 4, 'SA': 5, 'SU': 6}
+        target_days = [day_map.get(d.strip(), 0) for d in byday]
+        
+        current = start
+        while current <= end_date:
+            if current.weekday() in target_days:
+                dates.append(current.strftime('%Y-%m-%d'))
+            current += timedelta(days=1)
+    
+    return dates
+
 async def get_content_with_publish_statuses(content_id: str, team_id: str) -> dict:
     """Get content item with all publish statuses and featured images."""
     content = await db.content_items.find_one(
