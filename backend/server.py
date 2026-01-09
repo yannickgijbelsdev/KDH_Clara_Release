@@ -616,6 +616,62 @@ def parse_rrule(rrule_string: str, start_date: str, weeks_ahead: int = 8) -> Lis
     
     return dates
 
+def generate_dates_from_recurrence(
+    recurrence_type: str,
+    start_date: str,
+    end_date: Optional[str],
+    interval_weeks: int,
+    days_of_week: List[int],
+    weeks_ahead: int = 12
+) -> List[str]:
+    """
+    Generate occurrence dates based on enhanced recurrence settings.
+    
+    Args:
+        recurrence_type: 'none' or 'weekly'
+        start_date: Start date in YYYY-MM-DD format
+        end_date: Optional end date in YYYY-MM-DD format
+        interval_weeks: Generate every N weeks (1, 2, etc.)
+        days_of_week: List of weekday indices (0=Mon, 1=Tue, ..., 6=Sun)
+        weeks_ahead: Default weeks to generate if no end_date
+    
+    Returns:
+        List of date strings in YYYY-MM-DD format
+    """
+    from datetime import timedelta
+    
+    dates = []
+    start = datetime.strptime(start_date, '%Y-%m-%d')
+    
+    if recurrence_type == 'none' or not days_of_week:
+        # One-off show - just the start date
+        return [start_date]
+    
+    # Calculate end boundary
+    if end_date:
+        end = datetime.strptime(end_date, '%Y-%m-%d')
+    else:
+        end = start + timedelta(weeks=weeks_ahead)
+    
+    # Find the week number of start date
+    current = start
+    week_count = 0
+    last_week_start = start - timedelta(days=start.weekday())  # Monday of start week
+    
+    while current <= end:
+        # Check if we're in a valid interval week
+        current_week_start = current - timedelta(days=current.weekday())
+        weeks_since_start = (current_week_start - last_week_start).days // 7
+        
+        # Only include dates in valid interval weeks
+        if weeks_since_start % interval_weeks == 0:
+            if current.weekday() in days_of_week and current >= start:
+                dates.append(current.strftime('%Y-%m-%d'))
+        
+        current += timedelta(days=1)
+    
+    return dates
+
 async def get_content_with_publish_statuses(content_id: str, team_id: str) -> dict:
     """Get content item with all publish statuses and featured images."""
     content = await db.content_items.find_one(
