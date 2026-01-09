@@ -66,14 +66,16 @@ const ShowsPage = () => {
           <h1 className="text-3xl font-black text-white mb-2">Shows</h1>
           <p className="text-zinc-400">Plan and manage your radio shows</p>
         </div>
-        <Button
-          data-testid="create-show-btn"
-          onClick={() => setIsCreateOpen(true)}
-          className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-11 px-5 btn-primary"
-        >
-          <Plus className="w-5 h-5" />
-          New Show
-        </Button>
+        {isEditor && (
+          <Button
+            data-testid="create-show-btn"
+            onClick={() => setIsCreateOpen(true)}
+            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-11 px-5 btn-primary"
+          >
+            <Plus className="w-5 h-5" />
+            New Show
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
