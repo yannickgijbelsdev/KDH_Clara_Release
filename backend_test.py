@@ -350,7 +350,7 @@ class RadioShowAPITester:
         
         success, status, data = self.make_request('GET', 'auth/me', expected_status=200)
         
-        if success and data.get('email') == self.test_user['email']:
+        if success and data.get('email') == self.admin_user['email']:
             self.log_test("Get user profile", True, f"Email: {data['email']}")
         else:
             self.log_test("Get user profile", False, f"Status: {status}, Data: {data}")
