@@ -62,6 +62,7 @@ const statusLabels = {
 const ShowDetailPage = () => {
   const { showId } = useParams();
   const navigate = useNavigate();
+  const { isEditor } = useAuth();
   const [show, setShow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
