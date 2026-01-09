@@ -1,0 +1,145 @@
+<analysis>**original_problem_statement:**
+The user wants to build a web-based dashboard for radio editors to plan shows and prepare rundowns.
+
+**PRODUCT REQUIREMENTS:**
+-   **MVP 1 (Completed):** Core show planning and rundown management with user authentication.
+-   **MVP 2 (Completed):** Team-based system with 'admin', 'editor', and 'viewer' roles.
+-   **MVP 3 & 3.1 (Completed):** A central content library with the ability to publish content to multiple connected WordPress sites, including a per-site featured image.
+-   **MVP 4 (Current Request):** A large extension to add:
+    1.  **Internal Team Chat:** A simple, team-scoped messaging system.
+    2.  **Media Library:** Support for uploading and attaching documents (PDF, DOCX) and audio (MP3, WAV) to shows and rundown items.
+    3.  **Permissions Update:** Only admins can create shows. Editors/Presenters can be assigned to shows to edit their rundowns.
+    4.  **Recurring Shows:** A new system to schedule recurring show series that generate individual show occurrences, each with its own fresh, empty rundown.
+
+**User's preferred language**: English
+
+**what currently exists?**
+The application is a full-stack solution (FastAPI backend, React frontend) that has successfully implemented the first three major feature sets (MVPs 1, 2, and 3/3.1). Core functionalities include authentication, team-based show and rundown management, a content library, and a multi-site WordPress publishing integration with featured image support. The backend data models have been progressively updated to support these features.
+
+**Last working item**:
+-   **Last item agent was working:** The agent successfully completed the implementation of **MVP 3.1 (Multi-WordPress + Featured Image Sync)**. This was an extension to the existing MVP 3. It involved adding a new  model, creating a backend endpoint for file uploads using , updating the publishing logic to handle WordPress media uploads, and enhancing the frontend  to include a per-site file uploader in the publishing dialog.
+-   **Status:** USER VERIFICATION PENDING
+-   **Agent Testing Done:** Y
+-   **Which testing method agent to use?** both
+-   **User Testing Done:** N
+
+**All Pending/In progress Issue list**:
+  - **Issue 1:** The  package was installed for handling featured image uploads, but it was not added to the  file. This will cause the backend to fail on the next startup. (Priority: P0)
+
+  **Issues Detail:**
+  - **Issue 1:**
+     - **Attempted fixes:** None. The agent installed the package but did not persist the change to the requirements file.
+     - **Next debug checklist:**
+        - Run aiofiles==25.1.0 to confirm it's installed in the environment.
+        - Run  to update the dependencies file.
+        - Restart the backend (backend: stopped
+backend: started) to confirm it starts correctly with the updated requirements.
+     - **Why fix this issue and what will be achieved with the fix?** This is a critical fix. Without it, the application environment is not reproducible, and the backend service will fail to start in a new session because the required  dependency is missing from the requirements file.
+     - **Status:** NOT STARTED
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?** backend
+     - **Blocked on other issue:** None
+
+**In progress Task List**:
+  - None.
+
+**Upcoming and Future Tasks**
+**Upcoming Tasks:**
+-   **(P0) Implement MVP 4:** This is a large set of features requested by the user. It should be broken down and implemented systematically.
+    -   **4a. Permissions & Assignments:** Introduce a 'presenter' role and a  model. Refactor API logic so only admins can create shows, while editors/presenters can edit rundowns for shows they are assigned to. Update the UI accordingly.
+    -   **4b. Recurring Shows & Clean Rundowns:** This is a major data model refactor. Implement  and  models. Create a non-destructive migration for existing  data. The goal is to allow scheduling of recurring shows where each instance gets a new, empty rundown.
+    -   **4c. Internal Team Chat:** Implement  and  models on the backend and a corresponding chat interface on the frontend.
+    -   **4d. Media Library (Docs & Audio):** Implement  models to handle uploads of documents and audio files. Integrate this library with shows and rundown items.
+
+**Future Tasks:**
+-   Add a template feature to create new shows from past rundowns.
+-   Allow user customization of Words-Per-Minute (WPM) for speaking time estimates.
+-   Implement password reset.
+-   Enhance the calendar with a detailed daily view and drag-and-drop rescheduling.
+-   Add a show cloning feature.
+
+**Completed work in this session**
+-   **MVP 3 - Multi-site WordPress Publishing:** Refactored the backend to support multiple WordPress connections per team.
+-   **MVP 3.1 - Featured Image Sync:** Added functionality to upload a featured image for each content item on a per-site basis and sync it to the WordPress media library during publishing.
+-   **Dependencies:** Installed  and  on the backend.
+-   **Testing:** Used the testing agent to validate the MVP 3 and 3.1 features, which found and fixed a minor bug in an API response.
+-   **Documentation:** Updated  to reflect the completed work.
+
+**Earlier issues found/mentioned but not fixed**
+   - None.
+
+**Known issue recurrence from previous fork**
+  - None.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Frontend**: React, React Router, Tailwind CSS, Shadcn/UI, axios.
+-   **Backend**: FastAPI, Pydantic, Motor (for async MongoDB),  (for WordPress API calls),  (for async file I/O).
+-   **Database**: MongoDB.
+-   **Authentication**: JWT-based.
+
+**key DB schema**
+-   **users**: User accounts, roles, and team associations.
+-   **teams**: Team information.
+-   **shows**: Legacy show data (to be migrated in Step 4).
+-   **rundown_items**: Legacy rundown item data (to be migrated in Step 4).
+-   **content_items**: Core content library entities.
+-   **wordpress_sites**: Stores connection details for multiple WordPress sites per team.
+-   **content_item_publishes**: Tracks the publishing status of a content item to a specific WordPress site.
+-   **content_item_featured_images**: Tracks the featured image for a content item for a specific WordPress site.
+
+**changes in tech stack**
+-    was installed on the backend to handle asynchronous file uploads.
+
+**All files of reference**
+-   **/app/backend/server.py**: Contains all backend logic, including models and API endpoints. Heavily modified to support MVP 3.1.
+-   **/app/backend/requirements.txt**: Needs to be updated with the  dependency.
+-   **/app/frontend/src/pages/ContentDetailPage.js**: Updated to include the multi-site publishing UI with featured image uploaders.
+-   **/app/memory/PRD.md**: Contains the full product requirements and history.
+
+**Areas that need refactoring**:
+- The upcoming MVP 4 requires a significant but non-destructive refactoring of the  and  data models into a new  ->  ->  structure to support recurring events with clean rundowns.
+
+**key api endpoints**
+-   : Triggers a multi-site sync to WordPress, now includes featured image handling.
+-   : (new) ,  endpoint for uploading and managing featured images.
+-   : CRUD endpoints for managing multiple WordPress site connections.
+
+**Critical Info for New Agent**
+-   **Priority 1 is fixing the missing  dependency in .** The backend will not start without this fix.
+-   The next major task is implementing MVP 4, as detailed in the user's latest message. This is a large feature set and should be planned carefully, starting with the data model changes for recurring shows.
+-   The user has stressed a no-conflicts extension approach. You must add new functionality without breaking existing features. This is especially critical for the upcoming data model refactor for shows.
+-   WordPress integration is mocked for testing; real publishing will fail without valid user-provided credentials.
+
+**documents and test reports created in this job**
+-   /app/memory/PRD.md
+-   /app/test_reports/iteration_3.json
+-   /app/test_reports/iteration_4.json
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User (Msg 131):** Provided detailed requirements for Step 4 (Collaboration, Media, Permissions, Recurring Shows). (NOT STARTED)
+2.  **User (Msg 58):** Provided requirements for Step 3.1 (Multi-WordPress + Featured Image Sync). (COMPLETED)
+3.  **User (Msg 23):** Provided clearer requirements for MVP 3, specifying multi-site WordPress support. (COMPLETED)
+4.  **User (Msg 5):** Replied with 2, interpreted as approval to proceed with the agent's plan. (COMPLETED)
+
+**Project Health Check:**
+-   **Broken**: The backend environment is currently broken because the  dependency is not in .
+-   **Mocked**: The WordPress REST API integration is mocked for testing.
+
+**3rd Party Integrations**
+-   **WordPress REST API**: Used for publishing content and uploading media. Requires user-provided URL, Username, and Application Password per site.
+
+**Testing status**
+-   **Testing agent used after significant changes**: YES
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: []
+-   **Known regressions**: A minor bug in an API response was found and fixed by the testing agent during the last run.
+
+**Credentials to test flow:**
+-   **Email:** 
+-   **Password:** 
+
+**What agent forgot to execute**
+-   The agent installed the  package but forgot to run  to save it as a dependency, which will cause the environment to break in the next session.</analysis>
