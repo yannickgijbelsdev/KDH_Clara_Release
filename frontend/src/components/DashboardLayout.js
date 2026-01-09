@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Radio, LayoutList, LogOut, User, Calendar } from 'lucide-react';
+import { Radio, LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -10,8 +10,20 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
+const roleIcons = {
+  admin: Crown,
+  editor: Pencil,
+  viewer: Eye,
+};
+
+const roleLabels = {
+  admin: 'Admin',
+  editor: 'Editor',
+  viewer: 'Viewer',
+};
+
 const DashboardLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -19,18 +31,28 @@ const DashboardLayout = () => {
     navigate('/login');
   };
 
+  const RoleIcon = roleIcons[user?.role] || User;
+
   return (
     <div className="min-h-screen bg-[#09090b] flex">
       {/* Sidebar */}
       <aside className="w-64 fixed left-0 top-0 h-full glass-sidebar z-50">
         <div className="p-6">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-10">
+          <div className="flex items-center gap-3 mb-3">
             <div className="p-2.5 bg-rose-500/20 rounded-xl">
               <Radio className="w-6 h-6 text-rose-500" />
             </div>
             <span className="text-xl font-bold text-white">ShowPrep</span>
           </div>
+          
+          {/* Team Name */}
+          {user?.team_name && (
+            <div className="mb-8 px-1">
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">Team</p>
+              <p className="text-sm text-zinc-300 font-medium truncate">{user.team_name}</p>
+            </div>
+          )}
 
           {/* Navigation */}
           <nav className="space-y-2">
@@ -62,6 +84,24 @@ const DashboardLayout = () => {
               <Calendar className="w-5 h-5" />
               <span className="font-medium">Calendar</span>
             </NavLink>
+            
+            {/* Admin only: Team Settings */}
+            {isAdmin && (
+              <NavLink
+                to="/team"
+                data-testid="nav-team-link"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'bg-rose-500/20 text-rose-500'
+                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                <Settings className="w-5 h-5" />
+                <span className="font-medium">Team Settings</span>
+              </NavLink>
+            )}
           </nav>
         </div>
 
@@ -77,11 +117,17 @@ const DashboardLayout = () => {
                 <div className="w-9 h-9 rounded-full bg-rose-500/20 flex items-center justify-center">
                   <User className="w-4 h-4 text-rose-500" />
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-medium text-white truncate max-w-[120px]">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs text-zinc-500 truncate max-w-[120px]">
+                <div className="text-left flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-white truncate">
+                      {user?.name}
+                    </p>
+                    <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                      <RoleIcon className="w-3 h-3" />
+                      {roleLabels[user?.role]}
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-500 truncate">
                     {user?.email}
                   </p>
                 </div>
@@ -91,6 +137,10 @@ const DashboardLayout = () => {
               <DropdownMenuItem className="text-zinc-400">
                 <User className="w-4 h-4 mr-2" />
                 {user?.email}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-zinc-400">
+                <RoleIcon className="w-4 h-4 mr-2" />
+                {roleLabels[user?.role]}
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-zinc-800" />
               <DropdownMenuItem
