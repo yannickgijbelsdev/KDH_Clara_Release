@@ -169,10 +169,14 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 ### Content Library
 - GET /api/content - List content items (with filters)
 - POST /api/content - Create content item (editor+)
-- GET /api/content/{id} - Get content with publish statuses
+- GET /api/content/{id} - Get content with publish statuses & featured images
 - PUT /api/content/{id} - Update content (editor+)
 - DELETE /api/content/{id} - Delete content (editor+)
 - POST /api/content/{id}/publish - Publish to WordPress sites (editor+)
+- GET /api/content/{id}/featured-images - List featured images for content
+- POST /api/content/{id}/featured-images/{site_id} - Upload featured image (editor+)
+- DELETE /api/content/{id}/featured-images/{site_id} - Delete featured image (editor+)
+- GET /api/uploads/featured_images/{file_key} - Serve featured image file
 
 ### WordPress Sites (Admin only)
 - GET /api/wordpress/sites - List connected sites
