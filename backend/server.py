@@ -1032,11 +1032,160 @@ async def delete_content_item(
     # Remove publish records
     await db.content_item_publishes.delete_many({"content_item_id": content_id})
     
+    # Remove featured images and their files
+    featured_images = await db.content_item_featured_images.find(
+        {"content_item_id": content_id}
+    ).to_list(100)
+    for img in featured_images:
+        file_path = UPLOADS_DIR / img.get("file_storage_key", "")
+        if file_path.exists():
+            file_path.unlink()
+    await db.content_item_featured_images.delete_many({"content_item_id": content_id})
+    
     # Remove content from any rundown items
     await db.rundown_items.update_many(
         {"content_ids": content_id},
         {"$pull": {"content_ids": content_id}}
     )
+
+# ============== FEATURED IMAGE ROUTES ==============
+
+@content_router.get("/{content_id}/featured-images", response_model=List[FeaturedImageResponse])
+async def get_featured_images(
+    content_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all featured images for a content item."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    images = await db.content_item_featured_images.find(
+        {"content_item_id": content_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Add site names
+    for img in images:
+        site = await db.wordpress_sites.find_one({"id": img["wordpress_site_id"]}, {"_id": 0})
+        img["wordpress_site_name"] = site["name"] if site else "Unknown"
+    
+    return images
+
+@content_router.post("/{content_id}/featured-images/{site_id}", response_model=FeaturedImageResponse)
+async def upload_featured_image(
+    content_id: str,
+    site_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Upload a featured image for a specific WordPress site."""
+    # Verify content exists and belongs to team
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    # Verify site exists and belongs to team
+    site = await db.wordpress_sites.find_one(
+        {"id": site_id, "team_id": current_user.get('team_id')}
+    )
+    if not site:
+        raise HTTPException(status_code=404, detail="WordPress site not found")
+    
+    # Validate file type
+    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
+    if content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}")
+    
+    # Check if image already exists for this content + site - delete old one
+    existing = await db.content_item_featured_images.find_one({
+        "content_item_id": content_id,
+        "wordpress_site_id": site_id
+    })
+    if existing:
+        old_file = UPLOADS_DIR / existing.get("file_storage_key", "")
+        if old_file.exists():
+            old_file.unlink()
+        await db.content_item_featured_images.delete_one({"id": existing["id"]})
+    
+    # Generate unique filename
+    file_ext = Path(file.filename).suffix or '.jpg'
+    storage_key = f"{content_id}_{site_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    file_path = UPLOADS_DIR / storage_key
+    
+    # Save file
+    file_size = 0
+    async with aiofiles.open(file_path, 'wb') as f:
+        while chunk := await file.read(8192):
+            await f.write(chunk)
+            file_size += len(chunk)
+    
+    now = datetime.now(timezone.utc).isoformat()
+    image_doc = {
+        "id": str(uuid.uuid4()),
+        "content_item_id": content_id,
+        "wordpress_site_id": site_id,
+        "file_storage_key": storage_key,
+        "file_name": file.filename,
+        "mime_type": content_type,
+        "size": file_size,
+        "wp_media_id": None,
+        "wp_media_url": None,
+        "sync_status": "not_synced",
+        "sync_error_message": None,
+        "last_synced_at": None,
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.content_item_featured_images.insert_one(image_doc)
+    image_doc.pop("_id", None)
+    image_doc["wordpress_site_name"] = site["name"]
+    
+    return image_doc
+
+@content_router.delete("/{content_id}/featured-images/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_featured_image(
+    content_id: str,
+    site_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Delete a featured image for a specific WordPress site."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    image = await db.content_item_featured_images.find_one({
+        "content_item_id": content_id,
+        "wordpress_site_id": site_id
+    })
+    if not image:
+        raise HTTPException(status_code=404, detail="Featured image not found")
+    
+    # Delete file
+    file_path = UPLOADS_DIR / image.get("file_storage_key", "")
+    if file_path.exists():
+        file_path.unlink()
+    
+    # Delete record
+    await db.content_item_featured_images.delete_one({"id": image["id"]})
+
+@api_router.get("/uploads/featured_images/{file_key}")
+async def get_featured_image_file(file_key: str):
+    """Serve a featured image file."""
+    file_path = UPLOADS_DIR / file_key
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
+    return FileResponse(file_path, media_type=media_type)
 
 # ============== WORDPRESS SITES ROUTES (Multi-site) ==============
 
