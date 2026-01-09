@@ -7,6 +7,9 @@ import ShowsPage from './pages/ShowsPage';
 import ShowDetailPage from './pages/ShowDetailPage';
 import CalendarPage from './pages/CalendarPage';
 import TeamSettingsPage from './pages/TeamSettingsPage';
+import ContentLibraryPage from './pages/ContentLibraryPage';
+import ContentDetailPage from './pages/ContentDetailPage';
+import WordPressSettingsPage from './pages/WordPressSettingsPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -56,7 +59,10 @@ const AppRoutes = () => {
         <Route path="shows" element={<ShowsPage />} />
         <Route path="shows/:showId" element={<ShowDetailPage />} />
         <Route path="calendar" element={<CalendarPage />} />
+        <Route path="content" element={<ContentLibraryPage />} />
+        <Route path="content/:contentId" element={<ContentDetailPage />} />
         <Route path="team" element={<TeamSettingsPage />} />
+        <Route path="wordpress" element={<WordPressSettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
