@@ -19,11 +19,13 @@ import {
   Upload,
   RefreshCw,
   ExternalLink,
+  Check,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
+import { Checkbox } from '../components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -62,19 +64,17 @@ const typeIcons = {
 const statusColors = {
   draft: 'bg-zinc-500/20 text-zinc-400',
   ready: 'bg-violet-500/20 text-violet-400',
-  published: 'bg-green-500/20 text-green-400',
 };
 
 const statusLabels = {
   draft: 'Draft',
   ready: 'Ready',
-  published: 'Published',
 };
 
 const syncStatusConfig = {
-  not_synced: { icon: Clock, color: 'text-zinc-500', label: 'Not synced' },
-  synced: { icon: CheckCircle, color: 'text-green-500', label: 'Synced' },
-  failed: { icon: AlertCircle, color: 'text-rose-500', label: 'Failed' },
+  not_synced: { icon: Clock, color: 'text-zinc-500', bgColor: 'bg-zinc-800', label: 'Not synced' },
+  synced: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10', label: 'Synced' },
+  failed: { icon: AlertCircle, color: 'text-rose-500', bgColor: 'bg-rose-500/10', label: 'Failed' },
 };
 
 const ContentDetailPage = () => {
@@ -82,6 +82,7 @@ const ContentDetailPage = () => {
   const navigate = useNavigate();
   const { isEditor } = useAuth();
   const [content, setContent] = useState(null);
+  const [wpSites, setWpSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -89,15 +90,13 @@ const ContentDetailPage = () => {
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [publishOptions, setPublishOptions] = useState({
-    post_type: 'post',
-    wp_status: 'draft',
-  });
-  const [hasWpConnection, setHasWpConnection] = useState(false);
+  // Multi-site publish state
+  const [selectedSites, setSelectedSites] = useState({});
+  const [publishSettings, setPublishSettings] = useState({});
 
   useEffect(() => {
     fetchContent();
-    checkWpConnection();
+    fetchWpSites();
   }, [contentId]);
 
   const fetchContent = async () => {
@@ -116,12 +115,22 @@ const ContentDetailPage = () => {
     }
   };
 
-  const checkWpConnection = async () => {
+  const fetchWpSites = async () => {
     try {
-      const response = await axios.get(`${API}/wordpress/connection`);
-      setHasWpConnection(!!response.data);
+      const response = await axios.get(`${API}/wordpress/sites`);
+      setWpSites(response.data.filter(s => s.is_active));
+      
+      // Initialize publish settings for each site
+      const settings = {};
+      response.data.forEach(site => {
+        settings[site.id] = {
+          post_type: site.default_post_type || 'post',
+          wp_status: site.default_publish_status || 'draft',
+        };
+      });
+      setPublishSettings(settings);
     } catch {
-      setHasWpConnection(false);
+      setWpSites([]);
     }
   };
 
@@ -157,23 +166,83 @@ const ContentDetailPage = () => {
     }
   };
 
+  const openPublishDialog = () => {
+    // Pre-select sites that already have this content published
+    const preSelected = {};
+    content.publish_statuses?.forEach(ps => {
+      preSelected[ps.wordpress_site_id] = true;
+      // Update settings to match existing publish settings
+      setPublishSettings(prev => ({
+        ...prev,
+        [ps.wordpress_site_id]: {
+          post_type: ps.wp_post_type || 'post',
+          wp_status: ps.wp_status || 'draft',
+        }
+      }));
+    });
+    setSelectedSites(preSelected);
+    setPublishDialogOpen(true);
+  };
+
+  const toggleSiteSelection = (siteId) => {
+    setSelectedSites(prev => ({
+      ...prev,
+      [siteId]: !prev[siteId]
+    }));
+  };
+
+  const updateSiteSettings = (siteId, field, value) => {
+    setPublishSettings(prev => ({
+      ...prev,
+      [siteId]: {
+        ...prev[siteId],
+        [field]: value
+      }
+    }));
+  };
+
   const handlePublish = async () => {
+    const targets = Object.entries(selectedSites)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([siteId]) => ({
+        site_id: siteId,
+        post_type: publishSettings[siteId]?.post_type || 'post',
+        wp_status: publishSettings[siteId]?.wp_status || 'draft',
+      }));
+
+    if (targets.length === 0) {
+      toast.error('Please select at least one site');
+      return;
+    }
+
     setPublishing(true);
     try {
-      const response = await axios.post(`${API}/content/${contentId}/publish`, publishOptions);
-      setContent(response.data);
-      setPublishDialogOpen(false);
+      const response = await axios.post(`${API}/content/${contentId}/publish`, { targets });
       
-      if (response.data.sync_status === 'synced') {
-        toast.success('Published to WordPress!');
+      // Show results
+      const successCount = response.data.results.filter(r => r.success).length;
+      const failCount = response.data.results.filter(r => !r.success).length;
+      
+      if (successCount > 0 && failCount === 0) {
+        toast.success(`Published to ${successCount} site(s) successfully!`);
+      } else if (successCount > 0 && failCount > 0) {
+        toast.warning(`Published to ${successCount} site(s), ${failCount} failed`);
       } else {
-        toast.error(`Publish failed: ${response.data.sync_error_message}`);
+        toast.error('Failed to publish to all selected sites');
       }
+      
+      // Refresh content to get updated publish statuses
+      await fetchContent();
+      setPublishDialogOpen(false);
     } catch (error) {
       toast.error('Failed to publish to WordPress');
     } finally {
       setPublishing(false);
     }
+  };
+
+  const getPublishStatusForSite = (siteId) => {
+    return content?.publish_statuses?.find(ps => ps.wordpress_site_id === siteId);
   };
 
   if (loading) {
@@ -188,8 +257,7 @@ const ContentDetailPage = () => {
   if (!content) return null;
 
   const TypeIcon = typeIcons[content.type] || FileText;
-  const syncConfig = syncStatusConfig[content.sync_status];
-  const SyncIcon = syncConfig?.icon || Clock;
+  const hasPublishedSites = content.publish_statuses?.some(ps => ps.sync_status === 'synced');
 
   return (
     <div data-testid="content-detail-page">
@@ -220,66 +288,79 @@ const ContentDetailPage = () => {
           </div>
         </div>
         
-        {isEditor && hasWpConnection && (
+        {isEditor && wpSites.length > 0 && (
           <Button
             data-testid="publish-wp-btn"
-            onClick={() => setPublishDialogOpen(true)}
+            onClick={openPublishDialog}
             className="gap-2 bg-violet-500 hover:bg-violet-600 text-white"
           >
             <Upload className="w-4 h-4" />
-            {content.wp_post_id ? 'Sync to WordPress' : 'Publish to WordPress'}
+            {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
           </Button>
         )}
       </div>
 
-      {/* WordPress Sync Status */}
-      {content.wp_post_id && (
-        <div className={`flex items-center justify-between p-4 mb-6 rounded-xl border ${
-          content.sync_status === 'synced' 
-            ? 'bg-green-500/10 border-green-500/30' 
-            : content.sync_status === 'failed'
-            ? 'bg-rose-500/10 border-rose-500/30'
-            : 'bg-zinc-800/50 border-zinc-700'
-        }`}>
-          <div className="flex items-center gap-3">
-            <SyncIcon className={`w-5 h-5 ${syncConfig.color}`} />
-            <div>
-              <p className="text-white font-medium">
-                WordPress {content.wp_post_type}: {content.wp_status}
-              </p>
-              <p className="text-sm text-zinc-400">
-                {content.sync_status === 'synced' && content.last_synced_at && (
-                  <>Last synced {format(parseISO(content.last_synced_at), 'MMM d, yyyy HH:mm')}</>
-                )}
-                {content.sync_status === 'failed' && content.sync_error_message && (
-                  <span className="text-rose-400">{content.sync_error_message}</span>
-                )}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {content.wp_permalink && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(content.wp_permalink, '_blank')}
-                className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+      {/* WordPress Publish Statuses */}
+      {content.publish_statuses && content.publish_statuses.length > 0 && (
+        <div className="mb-6 space-y-3">
+          <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wider">WordPress Publishing</h3>
+          {content.publish_statuses.map((ps) => {
+            const config = syncStatusConfig[ps.sync_status] || syncStatusConfig.not_synced;
+            const SyncIcon = config.icon;
+            return (
+              <div
+                key={ps.id}
+                className={`flex items-center justify-between p-4 rounded-xl border ${
+                  ps.sync_status === 'synced' 
+                    ? 'bg-green-500/10 border-green-500/30' 
+                    : ps.sync_status === 'failed'
+                    ? 'bg-rose-500/10 border-rose-500/30'
+                    : 'bg-zinc-800/50 border-zinc-700'
+                }`}
               >
-                <ExternalLink className="w-4 h-4" />
-                View on WP
-              </Button>
-            )}
-            {content.sync_status === 'failed' && isEditor && (
-              <Button
-                size="sm"
-                onClick={() => setPublishDialogOpen(true)}
-                className="gap-2 bg-rose-500 hover:bg-rose-600 text-white"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Retry
-              </Button>
-            )}
-          </div>
+                <div className="flex items-center gap-3">
+                  <SyncIcon className={`w-5 h-5 ${config.color}`} />
+                  <div>
+                    <p className="text-white font-medium">
+                      {ps.wordpress_site_name}
+                    </p>
+                    <p className="text-sm text-zinc-400">
+                      {ps.wp_post_type} / {ps.wp_status}
+                      {ps.sync_status === 'synced' && ps.last_synced_at && (
+                        <> • Synced {format(parseISO(ps.last_synced_at), 'MMM d, yyyy HH:mm')}</>
+                      )}
+                      {ps.sync_status === 'failed' && ps.sync_error_message && (
+                        <span className="text-rose-400 block mt-1">{ps.sync_error_message}</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {ps.wp_permalink && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(ps.wp_permalink, '_blank')}
+                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      View
+                    </Button>
+                  )}
+                  {ps.sync_status === 'failed' && isEditor && (
+                    <Button
+                      size="sm"
+                      onClick={openPublishDialog}
+                      className="gap-2 bg-rose-500 hover:bg-rose-600 text-white"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Retry
+                    </Button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
@@ -382,7 +463,6 @@ const ContentDetailPage = () => {
                   <SelectContent className="bg-[#18181b] border-zinc-800">
                     <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
                     <SelectItem value="ready" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Ready</SelectItem>
-                    <SelectItem value="published" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Published</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -481,56 +561,112 @@ const ContentDetailPage = () => {
         )}
       </div>
 
-      {/* Publish to WordPress Dialog */}
+      {/* Multi-site Publish Dialog */}
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
-              {content.wp_post_id ? 'Sync to WordPress' : 'Publish to WordPress'}
+              Publish to WordPress
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
-              {content.wp_post_id 
-                ? 'Update the existing WordPress post with latest content.'
-                : 'Create a new post on your WordPress site.'}
+              Select one or more WordPress sites and configure publish settings for each.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label className="text-zinc-300">Post Type</Label>
-              <Select
-                value={publishOptions.post_type}
-                onValueChange={(value) => setPublishOptions({ ...publishOptions, post_type: value })}
-                disabled={!!content.wp_post_id}
-              >
-                <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
-                  <SelectItem value="post" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Post</SelectItem>
-                  <SelectItem value="page" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Page</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-zinc-300">WordPress Status</Label>
-              <Select
-                value={publishOptions.wp_status}
-                onValueChange={(value) => setPublishOptions({ ...publishOptions, wp_status: value })}
-              >
-                <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
-                  <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                  <SelectItem value="publish" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Published</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {wpSites.length === 0 ? (
+              <div className="text-center py-8">
+                <Globe className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
+                <p className="text-zinc-400">No WordPress sites configured.</p>
+                <p className="text-sm text-zinc-500">Ask an admin to add a WordPress site.</p>
+              </div>
+            ) : (
+              wpSites.map((site) => {
+                const publishStatus = getPublishStatusForSite(site.id);
+                const isSelected = selectedSites[site.id];
+                const settings = publishSettings[site.id] || {};
+                
+                return (
+                  <div
+                    key={site.id}
+                    className={`p-4 rounded-xl border transition-colors ${
+                      isSelected 
+                        ? 'border-violet-500/50 bg-violet-500/5' 
+                        : 'border-zinc-800 bg-[#27272a]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        id={`site-${site.id}`}
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSiteSelection(site.id)}
+                        className="mt-1 border-zinc-600 data-[state=checked]:bg-violet-500 data-[state=checked]:border-violet-500"
+                      />
+                      <div className="flex-1">
+                        <label 
+                          htmlFor={`site-${site.id}`}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <span className="font-medium text-white">{site.name}</span>
+                          {publishStatus?.sync_status === 'synced' && (
+                            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">
+                              <Check className="w-3 h-3" />
+                              Published
+                            </span>
+                          )}
+                          {publishStatus?.sync_status === 'failed' && (
+                            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">
+                              <AlertCircle className="w-3 h-3" />
+                              Failed
+                            </span>
+                          )}
+                        </label>
+                        <p className="text-sm text-zinc-500 mt-0.5">{site.wp_base_url}</p>
+                        
+                        {isSelected && (
+                          <div className="grid grid-cols-2 gap-3 mt-3">
+                            <div>
+                              <Label className="text-xs text-zinc-400">Post Type</Label>
+                              <Select
+                                value={settings.post_type || 'post'}
+                                onValueChange={(value) => updateSiteSettings(site.id, 'post_type', value)}
+                                disabled={!!publishStatus?.wp_post_id}
+                              >
+                                <SelectTrigger className="h-9 bg-[#18181b] border-zinc-700 text-white mt-1">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#18181b] border-zinc-800">
+                                  <SelectItem value="post" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Post</SelectItem>
+                                  <SelectItem value="page" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Page</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-zinc-400">Status</Label>
+                              <Select
+                                value={settings.wp_status || 'draft'}
+                                onValueChange={(value) => updateSiteSettings(site.id, 'wp_status', value)}
+                              >
+                                <SelectTrigger className="h-9 bg-[#18181b] border-zinc-700 text-white mt-1">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#18181b] border-zinc-800">
+                                  <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
+                                  <SelectItem value="publish" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Published</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 border-t border-zinc-800 mt-4">
             <Button
               variant="outline"
               onClick={() => setPublishDialogOpen(false)}
@@ -541,10 +677,10 @@ const ContentDetailPage = () => {
             <Button
               data-testid="confirm-publish-btn"
               onClick={handlePublish}
-              disabled={publishing}
+              disabled={publishing || Object.values(selectedSites).filter(Boolean).length === 0}
               className="flex-1 bg-violet-500 hover:bg-violet-600 text-white"
             >
-              {publishing ? 'Publishing...' : content.wp_post_id ? 'Sync' : 'Publish'}
+              {publishing ? 'Publishing...' : `Publish to ${Object.values(selectedSites).filter(Boolean).length} Site(s)`}
             </Button>
           </div>
         </DialogContent>
