@@ -115,46 +115,232 @@ class RadioShowAPITester:
         success, status, data = self.make_request('GET', 'health', expected_status=200)
         self.log_test("Health endpoint", success, f"Status: {status}")
 
-    def test_user_registration(self):
-        """Test user registration"""
-        print("\n🔍 Testing User Registration...")
-        
-        success, status, data = self.make_request(
-            'POST', 'auth/register', 
-            data=self.test_user, 
-            expected_status=201
-        )
-        
-        if success and 'token' in data:
-            self.token = data['token']
-            self.user_id = data['user']['id']
-            self.log_test("User registration", True, f"User ID: {self.user_id}")
-        else:
-            self.log_test("User registration", False, f"Status: {status}, Data: {data}")
-        
-        return success
-
-    def test_user_login(self):
-        """Test user login"""
-        print("\n🔍 Testing User Login...")
-        
-        login_data = {
-            "email": self.test_user["email"],
-            "password": self.test_user["password"]
-        }
+    def test_admin_login(self):
+        """Test admin user login"""
+        print("\n🔍 Testing Admin Login...")
         
         success, status, data = self.make_request(
             'POST', 'auth/login', 
-            data=login_data, 
+            data=self.admin_user, 
             expected_status=200
         )
         
         if success and 'token' in data:
             self.token = data['token']
             self.user_id = data['user']['id']
-            self.log_test("User login", True, f"Token received")
+            self.team_id = data['user']['team_id']
+            user_role = data['user']['role']
+            team_name = data['user']['team_name']
+            self.log_test("Admin login", True, f"Role: {user_role}, Team: {team_name}")
+            
+            # Verify admin role
+            if user_role == 'admin':
+                self.log_test("Admin role verification", True, f"User has admin role")
+            else:
+                self.log_test("Admin role verification", False, f"Expected admin, got {user_role}")
         else:
-            self.log_test("User login", False, f"Status: {status}, Data: {data}")
+            self.log_test("Admin login", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_get_current_team(self):
+        """Test getting current team info"""
+        print("\n🔍 Testing Get Current Team...")
+        
+        success, status, data = self.make_request('GET', 'teams/current', expected_status=200)
+        
+        if success and 'id' in data and 'name' in data:
+            self.log_test("Get current team", True, f"Team: {data['name']}")
+        else:
+            self.log_test("Get current team", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_update_team_name(self):
+        """Test updating team name (admin only)"""
+        print("\n🔍 Testing Update Team Name...")
+        
+        new_name = f"Updated Team {datetime.now().strftime('%H%M%S')}"
+        update_data = {"name": new_name}
+        
+        success, status, data = self.make_request(
+            'PUT', 'teams/current', 
+            data=update_data, 
+            expected_status=200
+        )
+        
+        if success and data.get('name') == new_name:
+            self.log_test("Update team name", True, f"Updated to: {new_name}")
+        else:
+            self.log_test("Update team name", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_get_team_users(self):
+        """Test getting team users list"""
+        print("\n🔍 Testing Get Team Users...")
+        
+        success, status, data = self.make_request('GET', 'users', expected_status=200)
+        
+        if success and isinstance(data, list):
+            self.log_test("Get team users", True, f"Found {len(data)} users")
+            # Store current users for later comparison
+            self.initial_user_count = len(data)
+        else:
+            self.log_test("Get team users", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_invite_user(self):
+        """Test inviting a new user (admin only)"""
+        print("\n🔍 Testing Invite User...")
+        
+        success, status, data = self.make_request(
+            'POST', 'users/invite', 
+            data=self.invite_user, 
+            expected_status=200
+        )
+        
+        if success and 'id' in data:
+            self.invited_user_id = data['id']
+            self.log_test("Invite user", True, f"Invited: {data['email']}, Role: {data['role']}")
+        else:
+            self.log_test("Invite user", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_get_temp_password(self):
+        """Test getting temporary password for invited user"""
+        print("\n🔍 Testing Get Temporary Password...")
+        
+        if not hasattr(self, 'invited_user_id'):
+            self.log_test("Get temp password", False, "No invited user ID available")
+            return False
+        
+        success, status, data = self.make_request(
+            'GET', f'users/invite/{self.invited_user_id}/password', 
+            expected_status=200
+        )
+        
+        if success and 'temp_password' in data:
+            self.temp_password = data['temp_password']
+            self.log_test("Get temp password", True, f"Password length: {len(self.temp_password)}")
+        else:
+            self.log_test("Get temp password", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_update_user_role(self):
+        """Test updating user role (admin only)"""
+        print("\n🔍 Testing Update User Role...")
+        
+        if not hasattr(self, 'invited_user_id'):
+            self.log_test("Update user role", False, "No invited user ID available")
+            return False
+        
+        role_update = {"role": "viewer"}
+        
+        success, status, data = self.make_request(
+            'PUT', f'users/{self.invited_user_id}/role', 
+            data=role_update, 
+            expected_status=200
+        )
+        
+        if success and data.get('role') == 'viewer':
+            self.log_test("Update user role", True, f"Changed role to: viewer")
+        else:
+            self.log_test("Update user role", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_editor_login(self):
+        """Test login as invited editor user"""
+        print("\n🔍 Testing Editor Login...")
+        
+        if not hasattr(self, 'temp_password'):
+            self.log_test("Editor login", False, "No temp password available")
+            return False
+        
+        editor_login = {
+            "email": self.invite_user["email"],
+            "password": self.temp_password
+        }
+        
+        success, status, data = self.make_request(
+            'POST', 'auth/login', 
+            data=editor_login, 
+            expected_status=200
+        )
+        
+        if success and 'token' in data:
+            self.editor_token = data['token']
+            editor_role = data['user']['role']
+            self.log_test("Editor login", True, f"Role: {editor_role}")
+            
+            # Store admin token for later use
+            self.admin_token = self.token
+            self.token = self.editor_token
+        else:
+            self.log_test("Editor login", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_editor_create_show(self):
+        """Test editor can create shows"""
+        print("\n🔍 Testing Editor Create Show...")
+        
+        success, status, data = self.make_request(
+            'POST', 'shows', 
+            data=self.test_show, 
+            expected_status=201
+        )
+        
+        if success and 'id' in data:
+            self.editor_show_id = data['id']
+            self.log_test("Editor create show", True, f"Show ID: {self.editor_show_id}")
+        else:
+            self.log_test("Editor create show", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_team_scoped_shows(self):
+        """Test that users only see their team's shows"""
+        print("\n🔍 Testing Team-Scoped Shows...")
+        
+        success, status, data = self.make_request('GET', 'shows', expected_status=200)
+        
+        if success and isinstance(data, list):
+            # All shows should belong to the same team
+            team_ids = set(show.get('team_id') for show in data if show.get('team_id'))
+            if len(team_ids) <= 1:  # Should be 0 or 1 team
+                self.log_test("Team-scoped shows", True, f"Found {len(data)} shows from team")
+            else:
+                self.log_test("Team-scoped shows", False, f"Shows from multiple teams: {team_ids}")
+        else:
+            self.log_test("Team-scoped shows", False, f"Status: {status}, Data: {data}")
+        
+        return success
+
+    def test_remove_user(self):
+        """Test removing user from team (admin only)"""
+        print("\n🔍 Testing Remove User...")
+        
+        # Switch back to admin token
+        self.token = self.admin_token
+        
+        if not hasattr(self, 'invited_user_id'):
+            self.log_test("Remove user", False, "No invited user ID available")
+            return False
+        
+        success, status, data = self.make_request(
+            'DELETE', f'users/{self.invited_user_id}', 
+            expected_status=204
+        )
+        
+        if success:
+            self.log_test("Remove user", True, f"Removed user: {self.invited_user_id}")
+        else:
+            self.log_test("Remove user", False, f"Status: {status}, Data: {data}")
         
         return success
 
