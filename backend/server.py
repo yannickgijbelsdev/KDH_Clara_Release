@@ -2890,9 +2890,24 @@ async def rundown_websocket(
 @occurrences_router.get("/{occurrence_id}/print", response_class=HTMLResponse)
 async def get_rundown_print_view(
     occurrence_id: str,
-    current_user: dict = Depends(get_current_user)
+    token: Optional[str] = None
 ):
-    """Get print-friendly HTML view of a rundown."""
+    """Get print-friendly HTML view of a rundown. Supports token in query param."""
+    # Get user from token (either from header or query param)
+    if token:
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+            current_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Invalid token")
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token expired")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    else:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
     occurrence = await db.show_occurrences.find_one(
         {"id": occurrence_id, "team_id": current_user.get('team_id')},
         {"_id": 0}
