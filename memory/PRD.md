@@ -116,6 +116,20 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
    - Generate occurrences for N weeks ahead
    - Clean rundown every time (no carry-over from previous)
 
+### Step 4.1a (Complete - January 9, 2026)
+1. **Enhanced Recurrence Pattern UI**:
+   - New ShowSeries fields (additive, nullable):
+     - `recurrence_type`: "none" or "weekly"
+     - `start_date`: Required start date for recurrence
+     - `end_date`: Optional end boundary
+     - `interval_weeks`: 1-4 (every N weeks)
+     - `days_of_week`: Array [0-6] where 0=Mon, 6=Sun
+   - Day-of-week toggle buttons in create/edit dialog
+   - Interval dropdown (Every week, Every 2/3/4 weeks)
+   - End condition: "No end date" or "Until date" options
+   - Live preview text showing recurrence pattern
+   - Backward compatible with legacy RRULE-based series
+
 ## What's Been Implemented
 ### January 6, 2026 - MVP 1
 - [x] JWT authentication (register/login/logout)
