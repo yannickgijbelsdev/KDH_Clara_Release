@@ -326,6 +326,12 @@ const TeamSettingsPage = () => {
                               Editor
                             </div>
                           </SelectItem>
+                          <SelectItem value="presenter" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                            <div className="flex items-center gap-2">
+                              <Mic className="w-4 h-4" />
+                              Presenter
+                            </div>
+                          </SelectItem>
                           <SelectItem value="viewer" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
                             <div className="flex items-center gap-2">
                               <Eye className="w-4 h-4" />
