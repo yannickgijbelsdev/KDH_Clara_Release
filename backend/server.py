@@ -22,9 +22,12 @@ import mimetypes
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Create uploads directory for featured images
+# Create uploads directories
 UPLOADS_DIR = ROOT_DIR / 'uploads' / 'featured_images'
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+MEDIA_UPLOADS_DIR = ROOT_DIR / 'uploads' / 'media'
+MEDIA_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -47,11 +50,15 @@ teams_router = APIRouter(prefix="/teams", tags=["Teams"])
 users_router = APIRouter(prefix="/users", tags=["Users"])
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
 wordpress_router = APIRouter(prefix="/wordpress", tags=["WordPress"])
+chat_router = APIRouter(prefix="/chat", tags=["Chat"])
+media_router = APIRouter(prefix="/media", tags=["Media Library"])
+series_router = APIRouter(prefix="/series", tags=["Show Series"])
+occurrences_router = APIRouter(prefix="/occurrences", tags=["Show Occurrences"])
 
 security = HTTPBearer()
 
-# Role definitions
-ROLES = ["admin", "editor", "viewer"]
+# Role definitions - Added 'presenter' role
+ROLES = ["admin", "editor", "presenter", "viewer"]
 
 # ============== MODELS ==============
 
