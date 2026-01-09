@@ -418,7 +418,13 @@ const TeamSettingsPage = () => {
                   <SelectItem value="editor" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
                     <div className="flex items-center gap-2">
                       <Pencil className="w-4 h-4" />
-                      Editor - Create & edit shows
+                      Editor - Create & edit content
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="presenter" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                    <div className="flex items-center gap-2">
+                      <Mic className="w-4 h-4" />
+                      Presenter - Edit assigned shows
                     </div>
                   </SelectItem>
                   <SelectItem value="viewer" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
