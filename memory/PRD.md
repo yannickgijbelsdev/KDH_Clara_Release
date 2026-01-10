@@ -358,11 +358,11 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Team and user management with roles (MVP 2)
 - [x] Content Library and WordPress Publishing (MVP 3)
 - [x] Team Chat, Media Library, Recurring Shows (MVP 4)
+- [x] Backend Refactoring: Modular structure with models/, routers/, services/
 
 ### P1 (Near-term)
 - [ ] Show cloning/templating
 - [ ] Attach content items to rundown items
-- [ ] Print-friendly rundown export (PDF)
 - [ ] Email invitations (currently shows temp password)
 - [ ] Password change after first login prompt
 - [ ] Migrate legacy shows to occurrence model
@@ -376,6 +376,7 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [ ] Customizable WPM setting for speaking time
 - [ ] Real-time WebSocket chat (currently polling)
 - [ ] Recurrence exceptions ("skip this week")
+- [ ] Enhanced calendar with drag-and-drop rescheduling
 
 ## Test Credentials
 - Email: demo@radio.com
