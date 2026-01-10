@@ -250,6 +250,37 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Toast notifications for remote changes
 - [x] Note: WebSocket requires WSS-capable proxy in production
 
+### January 10, 2026 - Backend Refactoring (P1)
+- [x] Refactored monolithic server.py (4234 lines) into modular structure
+- [x] Created `/app/backend/database.py`: MongoDB connection, JWT config, upload directories (29 lines)
+- [x] Created `/app/backend/models/` directory with 9 Pydantic model files:
+  - [x] auth.py - Authentication models (UserCreate, UserLogin, TokenResponse, etc.)
+  - [x] shows.py - Show and rundown item models
+  - [x] content.py - Content library models
+  - [x] wordpress.py - WordPress integration models
+  - [x] series.py - ShowSeries and occurrence models
+  - [x] assignments.py - Show/series assignment models
+  - [x] chat.py - Chat thread and message models
+  - [x] media.py - Media asset models
+- [x] Created `/app/backend/services/` directory with 4 service files:
+  - [x] auth.py - Password hashing, JWT tokens, auth dependencies
+  - [x] websocket.py - WebSocket ConnectionManager for real-time collaboration
+  - [x] helpers.py - RRULE parsing, content helpers
+- [x] Created `/app/backend/routers/` directory with 10 router files:
+  - [x] auth.py - /api/auth/* routes
+  - [x] teams.py - /api/teams/* routes
+  - [x] users.py - /api/users/* routes
+  - [x] shows.py - /api/shows/* routes (including legacy rundown and print)
+  - [x] content.py - /api/content/* routes
+  - [x] wordpress.py - /api/wordpress/* routes
+  - [x] series.py - /api/series/* routes
+  - [x] occurrences.py - /api/occurrences/* routes (including print)
+  - [x] chat.py - /api/chat/* routes
+  - [x] media.py - /api/media/* routes
+- [x] New server.py is 345 lines (main entry point only)
+- [x] All 25 regression tests passed (100% success rate)
+- [x] Full backward compatibility maintained - all APIs work identically
+
 ## Database Collections
 ### Core Collections
 - **users**: id, email, password_hash, name, role, team_id, created_at, temp_password
