@@ -8,9 +8,9 @@ import uuid
 import mimetypes
 import aiofiles
 
-from ..database import db, MEDIA_UPLOADS_DIR
-from ..models.media import MediaAssetResponse, MediaAssetUpdate
-from ..services.auth import get_current_user, require_can_edit_content
+from database import db, MEDIA_UPLOADS_DIR
+from models.media import MediaAssetResponse, MediaAssetUpdate
+from services.auth import get_current_user, require_can_edit_content
 
 media_router = APIRouter(prefix="/media", tags=["Media Library"])
 

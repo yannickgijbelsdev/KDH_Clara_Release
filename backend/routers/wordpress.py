@@ -7,12 +7,12 @@ import httpx
 import base64
 import aiofiles
 
-from ..database import db, UPLOADS_DIR
-from ..models.wordpress import (
+from database import db, UPLOADS_DIR
+from models.wordpress import (
     WordPressSiteCreate, WordPressSiteUpdate, WordPressSiteResponse,
     PublishToWordPressRequest, PublishResponse, PublishResult
 )
-from ..services.auth import get_current_user, require_admin, require_editor_or_admin
+from services.auth import get_current_user, require_admin, require_editor_or_admin
 
 wordpress_router = APIRouter(prefix="/wordpress", tags=["WordPress"])
 

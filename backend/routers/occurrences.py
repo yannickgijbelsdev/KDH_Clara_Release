@@ -6,13 +6,13 @@ from datetime import datetime, timezone
 import uuid
 import jwt
 
-from ..database import db, JWT_SECRET
-from ..models.series import (
+from database import db, JWT_SECRET
+from models.series import (
     ShowOccurrenceCreate, ShowOccurrenceUpdate, ShowOccurrenceResponse
 )
-from ..models.shows import RundownItemCreate, RundownItemUpdate, RundownItemResponse, ReorderRequest
-from ..services.auth import get_current_user, require_admin, check_occurrence_assignment
-from ..services.websocket import ws_manager
+from models.shows import RundownItemCreate, RundownItemUpdate, RundownItemResponse, ReorderRequest
+from services.auth import get_current_user, require_admin, check_occurrence_assignment
+from services.websocket import ws_manager
 
 occurrences_router = APIRouter(prefix="/occurrences", tags=["Show Occurrences"])
 

@@ -3,11 +3,11 @@ from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 import uuid
 
-from ..database import db
-from ..models.auth import (
+from database import db
+from models.auth import (
     UserCreate, UserLogin, TokenResponse, UserWithTeamResponse
 )
-from ..services.auth import (
+from services.auth import (
     hash_password, verify_password, create_token, get_current_user
 )
 

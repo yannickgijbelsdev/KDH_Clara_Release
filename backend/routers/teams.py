@@ -1,9 +1,9 @@
 """Team management routes."""
 from fastapi import APIRouter, HTTPException, Depends
 
-from ..database import db
-from ..models.auth import TeamCreate, TeamResponse
-from ..services.auth import get_current_user, require_admin
+from database import db
+from models.auth import TeamCreate, TeamResponse
+from services.auth import get_current_user, require_admin
 
 teams_router = APIRouter(prefix="/teams", tags=["Teams"])
 

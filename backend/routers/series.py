@@ -4,14 +4,14 @@ from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
 
-from ..database import db
-from ..models.series import (
+from database import db
+from models.series import (
     ShowSeriesCreate, ShowSeriesUpdate, ShowSeriesResponse,
     ShowOccurrenceResponse, GenerateOccurrencesRequest
 )
-from ..models.assignments import ShowAssignmentCreate, ShowAssignmentResponse
-from ..services.auth import get_current_user, require_admin
-from ..services.helpers import parse_rrule, generate_dates_from_recurrence
+from models.assignments import ShowAssignmentCreate, ShowAssignmentResponse
+from services.auth import get_current_user, require_admin
+from services.helpers import parse_rrule, generate_dates_from_recurrence
 
 series_router = APIRouter(prefix="/series", tags=["Show Series"])
 

@@ -4,11 +4,11 @@ from typing import List
 from datetime import datetime, timezone
 import uuid
 
-from ..database import db
-from ..models.auth import (
+from database import db
+from models.auth import (
     UserResponse, InviteUserRequest, UpdateUserRoleRequest
 )
-from ..services.auth import (
+from services.auth import (
     hash_password, generate_temp_password,
     get_current_user, require_admin
 )

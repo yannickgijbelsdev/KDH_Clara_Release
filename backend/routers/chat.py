@@ -4,12 +4,12 @@ from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
 
-from ..database import db
-from ..models.chat import (
+from database import db
+from models.chat import (
     ChatThreadCreate, ChatThreadResponse,
     ChatMessageCreate, ChatMessageResponse
 )
-from ..services.auth import get_current_user
+from services.auth import get_current_user
 
 chat_router = APIRouter(prefix="/chat", tags=["Chat"])
 
