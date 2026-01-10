@@ -305,7 +305,7 @@ class TestContentEndpoints:
         # Create content
         content_data = {
             "title": "TEST_Regression Test Content",
-            "type": "article",
+            "type": "text",
             "body": "Test content body for regression testing",
             "status": "draft"
         }
