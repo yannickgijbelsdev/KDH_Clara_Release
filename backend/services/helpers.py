@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-from ..database import db
+from database import db
 
 
 def parse_rrule(rrule_string: str, start_date: str, weeks_ahead: int = 8) -> List[str]:

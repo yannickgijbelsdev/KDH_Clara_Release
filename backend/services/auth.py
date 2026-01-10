@@ -6,7 +6,7 @@ import bcrypt
 import jwt
 import secrets
 
-from ..database import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
+from database import db, JWT_SECRET, JWT_ALGORITHM, JWT_EXPIRATION_HOURS
 
 security = HTTPBearer()
 
