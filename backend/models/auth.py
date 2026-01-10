@@ -1,0 +1,62 @@
+"""Authentication and user models."""
+from pydantic import BaseModel, EmailStr, ConfigDict
+from typing import Optional, Literal
+
+
+class TeamCreate(BaseModel):
+    name: str
+
+
+class TeamResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    created_at: str
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+    team_name: Optional[str] = None
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class UserResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    email: str
+    name: str
+    role: str
+    team_id: str
+    created_at: str
+
+
+class UserWithTeamResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    email: str
+    name: str
+    role: str
+    team_id: str
+    team_name: str
+    created_at: str
+
+
+class TokenResponse(BaseModel):
+    token: str
+    user: UserWithTeamResponse
+
+
+class InviteUserRequest(BaseModel):
+    email: EmailStr
+    name: str
+    role: Literal["admin", "editor", "presenter", "viewer"] = "editor"
+
+
+class UpdateUserRoleRequest(BaseModel):
+    role: Literal["admin", "editor", "presenter", "viewer"]
