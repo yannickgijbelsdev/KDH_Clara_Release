@@ -288,7 +288,7 @@ class TestContentEndpoints:
         """GET /api/content with type filter should work"""
         response = requests.get(
             f"{BASE_URL}/api/content",
-            params={"type": "article"},
+            params={"type": "text"},
             headers={"Authorization": f"Bearer {auth_token}"}
         )
         assert response.status_code == 200
