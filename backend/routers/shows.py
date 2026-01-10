@@ -1,0 +1,695 @@
+"""Show and rundown management routes."""
+from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.responses import HTMLResponse
+from typing import Optional, List
+from datetime import datetime, timezone
+import uuid
+import jwt
+
+from ..database import db, JWT_SECRET
+from ..models.shows import (
+    ShowCreate, ShowUpdate, ShowResponse,
+    RundownItemCreate, RundownItemUpdate, RundownItemResponse,
+    ReorderRequest, AttachContentRequest
+)
+from ..models.content import ContentItemResponse
+from ..models.media import AttachMediaRequest, RundownItemMediaResponse, MediaAssetResponse
+from ..services.auth import get_current_user, require_editor_or_admin
+from ..services.websocket import ws_manager
+from ..services.helpers import get_content_with_publish_statuses
+
+shows_router = APIRouter(prefix="/shows", tags=["Shows"])
+
+
+# ============== SHOWS CRUD ==============
+
+@shows_router.get("", response_model=List[ShowResponse])
+async def get_shows(
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get shows for the current team."""
+    query = {"team_id": current_user.get('team_id')}
+    if status:
+        query["status"] = status
+    
+    shows = await db.shows.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
+    return shows
+
+
+@shows_router.post("", response_model=ShowResponse, status_code=status.HTTP_201_CREATED)
+async def create_show(
+    show_data: ShowCreate,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Create a new show (editor or admin only)."""
+    show_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    show_doc = {
+        "id": show_id,
+        "title": show_data.title,
+        "description": show_data.description or "",
+        "date": show_data.date,
+        "start_time": show_data.start_time,
+        "end_time": show_data.end_time,
+        "status": show_data.status,
+        "editor_id": current_user['id'],
+        "team_id": current_user.get('team_id', ''),
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.shows.insert_one(show_doc)
+    show_doc.pop('_id', None)
+    return show_doc
+
+
+@shows_router.get("/{show_id}", response_model=ShowResponse)
+async def get_show(
+    show_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a single show (must be in user's team)."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    return show
+
+
+@shows_router.put("/{show_id}", response_model=ShowResponse)
+async def update_show(
+    show_id: str,
+    show_data: ShowUpdate,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Update a show (editor or admin only)."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    update_dict = {k: v for k, v in show_data.model_dump().items() if v is not None}
+    update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.shows.update_one(
+        {"id": show_id},
+        {"$set": update_dict}
+    )
+    
+    updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
+    return updated_show
+
+
+@shows_router.delete("/{show_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_show(
+    show_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Delete a show (editor or admin only)."""
+    result = await db.shows.delete_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    await db.rundown_items.delete_many({"show_id": show_id})
+
+
+# ============== RUNDOWN ROUTES ==============
+
+@shows_router.get("/{show_id}/rundown", response_model=List[RundownItemResponse])
+async def get_rundown(
+    show_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get rundown items for a show."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    items = await db.rundown_items.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+    return items
+
+
+@shows_router.post("/{show_id}/rundown", response_model=RundownItemResponse, status_code=status.HTTP_201_CREATED)
+async def create_rundown_item(
+    show_id: str,
+    item_data: RundownItemCreate,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Add a rundown item (editor or admin only)."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    last_item = await db.rundown_items.find_one(
+        {"show_id": show_id},
+        sort=[("order", -1)]
+    )
+    next_order = (last_item['order'] + 1) if last_item else 0
+    
+    item_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    item_doc = {
+        "id": item_id,
+        "show_id": show_id,
+        "type": item_data.type,
+        "title": item_data.title,
+        "notes": item_data.notes or "",
+        "duration": item_data.duration or "",
+        "order": next_order,
+        "created_at": now
+    }
+    
+    await db.rundown_items.insert_one(item_doc)
+    item_doc.pop('_id', None)
+    
+    # Broadcast WebSocket event for legacy shows
+    await ws_manager.broadcast(f"show_{show_id}", {
+        "type": "item_created",
+        "item": item_doc,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
+    return item_doc
+
+
+@shows_router.put("/{show_id}/rundown/reorder", response_model=List[RundownItemResponse])
+async def reorder_rundown(
+    show_id: str,
+    reorder_data: ReorderRequest,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Reorder rundown items (editor or admin only)."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    for index, item_id in enumerate(reorder_data.item_ids):
+        await db.rundown_items.update_one(
+            {"id": item_id, "show_id": show_id},
+            {"$set": {"order": index}}
+        )
+    
+    items = await db.rundown_items.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+    
+    # Broadcast WebSocket event for legacy shows
+    await ws_manager.broadcast(f"show_{show_id}", {
+        "type": "items_reordered",
+        "item_ids": reorder_data.item_ids,
+        "items": items,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
+    return items
+
+
+@shows_router.put("/{show_id}/rundown/{item_id}", response_model=RundownItemResponse)
+async def update_rundown_item(
+    show_id: str,
+    item_id: str,
+    item_data: RundownItemUpdate,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Update a rundown item (editor or admin only)."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    update_dict = {k: v for k, v in item_data.model_dump().items() if v is not None}
+    
+    if update_dict:
+        await db.rundown_items.update_one(
+            {"id": item_id},
+            {"$set": update_dict}
+        )
+    
+    updated_item = await db.rundown_items.find_one({"id": item_id}, {"_id": 0})
+    
+    # Broadcast WebSocket event for legacy shows
+    await ws_manager.broadcast(f"show_{show_id}", {
+        "type": "item_updated",
+        "item": updated_item,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+    
+    return updated_item
+
+
+@shows_router.delete("/{show_id}/rundown/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rundown_item(
+    show_id: str,
+    item_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Delete a rundown item (editor or admin only)."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    result = await db.rundown_items.delete_one({"id": item_id, "show_id": show_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    # Broadcast WebSocket event for legacy shows
+    await ws_manager.broadcast(f"show_{show_id}", {
+        "type": "item_deleted",
+        "item_id": item_id,
+        "user": {"id": current_user['id'], "name": current_user.get('name')}
+    })
+
+
+# ============== SHOW RUNDOWN PRINT VIEW ==============
+
+@shows_router.get("/{show_id}/rundown/print", response_class=HTMLResponse)
+async def get_show_rundown_print_view(
+    show_id: str,
+    token: Optional[str] = None
+):
+    """Get print-friendly HTML view of a show's rundown. Supports token in query param."""
+    if token:
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+            current_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+            if not current_user:
+                raise HTTPException(status_code=401, detail="Invalid token")
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token expired")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    else:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    items = await db.rundown_items.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+    
+    for item in items:
+        media_attachments = await db.rundown_item_media.find(
+            {"rundown_item_id": item["id"]},
+            {"_id": 0}
+        ).to_list(100)
+        
+        item["media"] = []
+        for attachment in media_attachments:
+            asset = await db.media_assets.find_one(
+                {"id": attachment["media_asset_id"]},
+                {"_id": 0}
+            )
+            if asset:
+                item["media"].append(asset)
+    
+    now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+    
+    status_labels = {
+        "draft": "Draft",
+        "scheduled": "Scheduled",
+        "completed": "Completed"
+    }
+    
+    items_html = ""
+    for idx, item in enumerate(items, 1):
+        media_html = ""
+        if item.get("media"):
+            media_links = ", ".join([f'{m["title"]} ({m["kind"]})' for m in item["media"]])
+            media_html = f'<div class="media-attachments">📎 {media_links}</div>'
+        
+        notes_html = item.get("notes", "").replace("\n", "<br>") if item.get("notes") else "-"
+        
+        items_html += f'''
+        <tr>
+            <td class="order">{idx}</td>
+            <td class="type"><span class="type-badge">{item.get("type", "-").upper()}</span></td>
+            <td class="title">{item.get("title", "-")}</td>
+            <td class="duration">{item.get("duration") or "-"}</td>
+            <td class="notes">{notes_html}{media_html}</td>
+        </tr>
+        '''
+    
+    html = generate_print_html(show, items_html, now, status_labels)
+    return HTMLResponse(content=html)
+
+
+# ============== RUNDOWN-CONTENT ATTACHMENT ==============
+
+@shows_router.get("/{show_id}/rundown/{item_id}/content", response_model=List[ContentItemResponse])
+async def get_rundown_item_content(
+    show_id: str,
+    item_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get content items attached to a rundown item."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id}, {"_id": 0})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    content_ids = item.get("content_ids", [])
+    if not content_ids:
+        return []
+    
+    content_items = []
+    for cid in content_ids:
+        content = await get_content_with_publish_statuses(cid, current_user.get('team_id'))
+        if content:
+            content_items.append(content)
+    
+    return content_items
+
+
+@shows_router.put("/{show_id}/rundown/{item_id}/content")
+async def attach_content_to_rundown(
+    show_id: str,
+    item_id: str,
+    attach_data: AttachContentRequest,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Attach content items to a rundown item."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    
+    for content_id in attach_data.content_ids:
+        content = await db.content_items.find_one(
+            {"id": content_id, "team_id": current_user.get('team_id')}
+        )
+        if not content:
+            raise HTTPException(status_code=404, detail=f"Content item {content_id} not found")
+    
+    await db.rundown_items.update_one(
+        {"id": item_id},
+        {"$set": {"content_ids": attach_data.content_ids}}
+    )
+    
+    updated_item = await db.rundown_items.find_one({"id": item_id}, {"_id": 0})
+    return updated_item
+
+
+# ============== SHOW MEDIA ATTACHMENTS ==============
+
+@shows_router.get("/{show_id}/media", response_model=List[RundownItemMediaResponse])
+async def get_show_media(
+    show_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all media attached to a show."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    attachments = await db.show_media.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    result = []
+    for att in attachments:
+        asset = await db.media_assets.find_one(
+            {"id": att["media_asset_id"]},
+            {"_id": 0}
+        )
+        if asset:
+            uploader = await db.users.find_one({"id": asset.get("uploaded_by")}, {"_id": 0})
+            asset["uploaded_by_name"] = uploader.get("name") if uploader else "Unknown"
+        att["media_asset"] = asset
+        result.append(att)
+    
+    return result
+
+
+@shows_router.post("/{show_id}/media", response_model=List[RundownItemMediaResponse])
+async def attach_media_to_show(
+    show_id: str,
+    attach_data: AttachMediaRequest,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Attach media assets to a show."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    for asset_id in attach_data.media_asset_ids:
+        asset = await db.media_assets.find_one(
+            {"id": asset_id, "team_id": current_user.get('team_id')}
+        )
+        if not asset:
+            continue
+        
+        existing = await db.show_media.find_one({
+            "show_id": show_id,
+            "media_asset_id": asset_id
+        })
+        if existing:
+            continue
+        
+        await db.show_media.insert_one({
+            "id": str(uuid.uuid4()),
+            "show_id": show_id,
+            "media_asset_id": asset_id,
+            "created_at": now
+        })
+    
+    return await get_show_media(show_id, current_user)
+
+
+@shows_router.delete("/{show_id}/media/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def detach_media_from_show(
+    show_id: str,
+    asset_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Detach a media asset from a show."""
+    result = await db.show_media.delete_one({
+        "show_id": show_id,
+        "media_asset_id": asset_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+
+# ============== RUNDOWN ITEM MEDIA ==============
+
+@shows_router.get("/{show_id}/rundown/{item_id}/media", response_model=List[RundownItemMediaResponse])
+async def get_rundown_item_media(
+    show_id: str,
+    item_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get media attached to a rundown item."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Rundown item not found")
+    
+    attachments = await db.rundown_item_media.find(
+        {"rundown_item_id": item_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    result = []
+    for att in attachments:
+        asset = await db.media_assets.find_one(
+            {"id": att["media_asset_id"]},
+            {"_id": 0}
+        )
+        if asset:
+            uploader = await db.users.find_one({"id": asset.get("uploaded_by")}, {"_id": 0})
+            asset["uploaded_by_name"] = uploader.get("name") if uploader else "Unknown"
+        att["media_asset"] = asset
+        result.append(att)
+    
+    return result
+
+
+@shows_router.post("/{show_id}/rundown/{item_id}/media", response_model=List[RundownItemMediaResponse])
+async def attach_media_to_rundown_item(
+    show_id: str,
+    item_id: str,
+    attach_data: AttachMediaRequest,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Attach media assets to a rundown item."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id})
+    if not item:
+        raise HTTPException(status_code=404, detail="Rundown item not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    for asset_id in attach_data.media_asset_ids:
+        asset = await db.media_assets.find_one(
+            {"id": asset_id, "team_id": current_user.get('team_id')}
+        )
+        if not asset:
+            continue
+        
+        existing = await db.rundown_item_media.find_one({
+            "rundown_item_id": item_id,
+            "media_asset_id": asset_id
+        })
+        if existing:
+            continue
+        
+        await db.rundown_item_media.insert_one({
+            "id": str(uuid.uuid4()),
+            "rundown_item_id": item_id,
+            "media_asset_id": asset_id,
+            "created_at": now
+        })
+    
+    return await get_rundown_item_media(show_id, item_id, current_user)
+
+
+@shows_router.delete("/{show_id}/rundown/{item_id}/media/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def detach_media_from_rundown_item(
+    show_id: str,
+    item_id: str,
+    asset_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Detach a media asset from a rundown item."""
+    result = await db.rundown_item_media.delete_one({
+        "rundown_item_id": item_id,
+        "media_asset_id": asset_id
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+
+def generate_print_html(show: dict, items_html: str, now: str, status_labels: dict) -> str:
+    """Generate print-friendly HTML for rundown."""
+    return f'''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rundown - {show.get("title", "Untitled")}</title>
+        <style>
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 12pt; line-height: 1.5; color: #1a1a1a; background: white; padding: 20mm;
+            }}
+            .header {{ border-bottom: 3px solid #e11d48; padding-bottom: 20px; margin-bottom: 30px; }}
+            .show-title {{ font-size: 24pt; font-weight: bold; margin-bottom: 8px; }}
+            .show-meta {{ display: flex; gap: 30px; font-size: 11pt; color: #444; }}
+            .show-meta span {{ display: flex; align-items: center; gap: 6px; }}
+            .status-badge {{ display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 10pt; font-weight: 600; text-transform: uppercase; }}
+            .status-draft {{ background: #f4f4f5; color: #71717a; }}
+            .status-scheduled {{ background: #fef3c7; color: #d97706; }}
+            .status-completed {{ background: #dcfce7; color: #16a34a; }}
+            .rundown-table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
+            .rundown-table th {{ background: #f8fafc; padding: 12px 10px; text-align: left; font-weight: 600; font-size: 10pt; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; border-bottom: 2px solid #e2e8f0; }}
+            .rundown-table td {{ padding: 12px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }}
+            .rundown-table tr:last-child td {{ border-bottom: none; }}
+            .order {{ width: 40px; text-align: center; font-weight: 600; color: #e11d48; }}
+            .type {{ width: 80px; }}
+            .type-badge {{ display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 9pt; font-weight: 600; background: #fce7f3; color: #be185d; }}
+            .title {{ width: 180px; font-weight: 500; }}
+            .duration {{ width: 80px; text-align: center; color: #64748b; }}
+            .notes {{ font-size: 11pt; color: #475569; }}
+            .media-attachments {{ margin-top: 8px; font-size: 10pt; color: #0891b2; }}
+            .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 10pt; color: #94a3b8; display: flex; justify-content: space-between; }}
+            @media print {{
+                body {{ padding: 10mm; }}
+                .header {{ page-break-after: avoid; }}
+                .rundown-table {{ page-break-inside: auto; }}
+                .rundown-table tr {{ page-break-inside: avoid; page-break-after: auto; }}
+                @page {{ size: A4; margin: 15mm; }}
+                .no-print {{ display: none; }}
+            }}
+            .no-print {{ margin-bottom: 20px; }}
+            .print-button {{ background: #e11d48; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500; }}
+            .print-button:hover {{ background: #be123c; }}
+        </style>
+    </head>
+    <body>
+        <div class="no-print">
+            <button class="print-button" onclick="window.print()">🖨️ Print Rundown</button>
+        </div>
+        <div class="header">
+            <h1 class="show-title">{show.get("title", "Untitled Show")}</h1>
+            <div class="show-meta">
+                <span>📅 {show.get("date", "-")}</span>
+                <span>🕐 {show.get("start_time", "-")} - {show.get("end_time", "-")}</span>
+                <span class="status-badge status-{show.get("status", "draft")}">{status_labels.get(show.get("status", "draft"), "Draft")}</span>
+            </div>
+        </div>
+        <table class="rundown-table">
+            <thead>
+                <tr><th>#</th><th>Type</th><th>Title</th><th>Duration</th><th>Notes / Script</th></tr>
+            </thead>
+            <tbody>
+                {items_html if items_html else '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:40px;">No rundown items</td></tr>'}
+            </tbody>
+        </table>
+        <div class="footer">
+            <span>Generated: {now}</span>
+            <span>Radio Show Planner</span>
+        </div>
+    </body>
+    </html>
+    '''
