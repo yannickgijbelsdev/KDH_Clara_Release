@@ -1,4 +1,14 @@
-"""WordPress integration routes."""
+"""WordPress integration routes.
+
+SECURITY REQUIREMENTS:
+- Uses WordPress Application Passwords (NOT normal login passwords)
+- Credentials are never returned via API or UI
+- Each WordPress site should use a dedicated service account (NOT Administrator)
+- Service account minimum capabilities: edit_posts, publish_posts, upload_files
+- 2FA on WordPress human accounts works independently of app passwords
+- Failed authentication attempts are logged for audit
+- Sites can be disabled via is_active toggle without deleting credentials
+"""
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from datetime import datetime, timezone
@@ -6,13 +16,19 @@ import uuid
 import httpx
 import base64
 import aiofiles
+import logging
 
 from database import db, UPLOADS_DIR
 from models.wordpress import (
     WordPressSiteCreate, WordPressSiteUpdate, WordPressSiteResponse,
-    PublishToWordPressRequest, PublishResponse, PublishResult
+    PublishToWordPressRequest, PublishResponse, PublishResult,
+    WordPressConnectionTestResponse
 )
 from services.auth import get_current_user, require_admin, require_editor_or_admin
+
+# Security audit logger for WordPress integration
+wp_audit_logger = logging.getLogger("wordpress.audit")
+wp_audit_logger.setLevel(logging.INFO)
 
 wordpress_router = APIRouter(prefix="/wordpress", tags=["WordPress"])
 
