@@ -514,7 +514,7 @@ const ShowDetailPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Show</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
-              Are you sure you want to delete "{show.title}"? This action cannot be undone and will also delete all rundown items.
+              Are you sure you want to delete &ldquo;{show.title}&rdquo;? This action cannot be undone and will also delete all rundown items.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
