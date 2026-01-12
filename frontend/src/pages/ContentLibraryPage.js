@@ -111,16 +111,16 @@ const ContentLibraryPage = () => {
   return (
     <div data-testid="content-library-page">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-black text-white mb-2">Content Library</h1>
-          <p className="text-zinc-400">Manage reusable content for your shows</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Content Library</h1>
+          <p className="text-sm sm:text-base text-zinc-400">Manage reusable content for your shows</p>
         </div>
         {isEditor && (
           <Button
             data-testid="create-content-btn"
             onClick={() => setIsCreateOpen(true)}
-            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-11 px-5 btn-primary"
+            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             New Content
