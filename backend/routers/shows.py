@@ -1,8 +1,8 @@
 """Show and rundown management routes."""
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Query
 from fastapi.responses import HTMLResponse
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import uuid
 import jwt
 
@@ -10,7 +10,7 @@ from database import db, JWT_SECRET
 from models.shows import (
     ShowCreate, ShowUpdate, ShowResponse,
     RundownItemCreate, RundownItemUpdate, RundownItemResponse,
-    ReorderRequest, AttachContentRequest
+    ReorderRequest, AttachContentRequest, DeleteShowRequest
 )
 from models.content import ContentItemResponse
 from models.media import AttachMediaRequest, RundownItemMediaResponse, MediaAssetResponse
@@ -21,17 +21,45 @@ from services.helpers import get_content_with_publish_statuses
 shows_router = APIRouter(prefix="/shows", tags=["Shows"])
 
 
+def generate_occurrence_dates(start_date: str, interval_weeks: int, end_date: Optional[str], max_occurrences: int = 52) -> List[str]:
+    """Generate dates for recurring shows."""
+    dates = []
+    current = datetime.strptime(start_date, '%Y-%m-%d')
+    
+    if end_date:
+        end = datetime.strptime(end_date, '%Y-%m-%d')
+    else:
+        # Default to 1 year ahead if no end date
+        end = current + timedelta(days=365)
+    
+    while current <= end and len(dates) < max_occurrences:
+        dates.append(current.strftime('%Y-%m-%d'))
+        current += timedelta(weeks=interval_weeks)
+    
+    return dates
+
+
 # ============== SHOWS CRUD ==============
 
 @shows_router.get("", response_model=List[ShowResponse])
 async def get_shows(
     status: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Get shows for the current team."""
     query = {"team_id": current_user.get('team_id')}
     if status:
         query["status"] = status
+    if date_from or date_to:
+        query["date"] = {}
+        if date_from:
+            query["date"]["$gte"] = date_from
+        if date_to:
+            query["date"]["$lte"] = date_to
+        if not query["date"]:
+            del query["date"]
     
     shows = await db.shows.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
     return shows
@@ -42,27 +70,92 @@ async def create_show(
     show_data: ShowCreate,
     current_user: dict = Depends(require_editor_or_admin)
 ):
-    """Create a new show (editor or admin only)."""
-    show_id = str(uuid.uuid4())
+    """Create a new show. If recurring, also creates future occurrences."""
     now = datetime.now(timezone.utc).isoformat()
+    team_id = current_user.get('team_id', '')
     
-    show_doc = {
-        "id": show_id,
-        "title": show_data.title,
-        "description": show_data.description or "",
-        "date": show_data.date,
-        "start_time": show_data.start_time,
-        "end_time": show_data.end_time,
-        "status": show_data.status,
-        "editor_id": current_user['id'],
-        "team_id": current_user.get('team_id', ''),
-        "created_at": now,
-        "updated_at": now
-    }
-    
-    await db.shows.insert_one(show_doc)
-    show_doc.pop('_id', None)
-    return show_doc
+    # For recurring shows, create parent and occurrences
+    if show_data.recurrence_type == "weekly" and show_data.recurrence_interval >= 1:
+        parent_id = str(uuid.uuid4())
+        
+        # Create parent show (first occurrence)
+        parent_doc = {
+            "id": parent_id,
+            "title": show_data.title,
+            "description": show_data.description or "",
+            "date": show_data.date,
+            "start_time": show_data.start_time,
+            "end_time": show_data.end_time,
+            "status": show_data.status,
+            "editor_id": current_user['id'],
+            "team_id": team_id,
+            "created_at": now,
+            "updated_at": now,
+            "recurrence_type": show_data.recurrence_type,
+            "recurrence_interval": show_data.recurrence_interval,
+            "recurrence_end_date": show_data.recurrence_end_date,
+            "parent_show_id": None,  # This is the parent
+            "is_recurring": True
+        }
+        await db.shows.insert_one(parent_doc)
+        
+        # Generate occurrence dates (skip first as it's the parent)
+        occurrence_dates = generate_occurrence_dates(
+            show_data.date,
+            show_data.recurrence_interval,
+            show_data.recurrence_end_date
+        )
+        
+        # Create child occurrences for future dates
+        for occ_date in occurrence_dates[1:]:  # Skip first date (parent)
+            occ_id = str(uuid.uuid4())
+            occ_doc = {
+                "id": occ_id,
+                "title": show_data.title,
+                "description": show_data.description or "",
+                "date": occ_date,
+                "start_time": show_data.start_time,
+                "end_time": show_data.end_time,
+                "status": show_data.status,
+                "editor_id": current_user['id'],
+                "team_id": team_id,
+                "created_at": now,
+                "updated_at": now,
+                "recurrence_type": show_data.recurrence_type,
+                "recurrence_interval": show_data.recurrence_interval,
+                "recurrence_end_date": show_data.recurrence_end_date,
+                "parent_show_id": parent_id,
+                "is_recurring": True
+            }
+            await db.shows.insert_one(occ_doc)
+        
+        parent_doc.pop('_id', None)
+        return parent_doc
+    else:
+        # Non-recurring show
+        show_id = str(uuid.uuid4())
+        show_doc = {
+            "id": show_id,
+            "title": show_data.title,
+            "description": show_data.description or "",
+            "date": show_data.date,
+            "start_time": show_data.start_time,
+            "end_time": show_data.end_time,
+            "status": show_data.status,
+            "editor_id": current_user['id'],
+            "team_id": team_id,
+            "created_at": now,
+            "updated_at": now,
+            "recurrence_type": "none",
+            "recurrence_interval": 1,
+            "recurrence_end_date": None,
+            "parent_show_id": None,
+            "is_recurring": False
+        }
+        
+        await db.shows.insert_one(show_doc)
+        show_doc.pop('_id', None)
+        return show_doc
 
 
 @shows_router.get("/{show_id}", response_model=ShowResponse)
@@ -84,22 +177,44 @@ async def get_show(
 async def update_show(
     show_id: str,
     show_data: ShowUpdate,
+    update_all: bool = Query(default=False, description="Update all occurrences of recurring show"),
     current_user: dict = Depends(require_editor_or_admin)
 ):
-    """Update a show (editor or admin only)."""
+    """Update a show. For recurring shows, can update just this one or all occurrences."""
     show = await db.shows.find_one(
         {"id": show_id, "team_id": current_user.get('team_id')}
     )
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
-    update_dict = {k: v for k, v in show_data.model_dump().items() if v is not None}
+    update_dict = {k: v for k, v in show_data.model_dump().items() if v is not None and k != 'update_all_occurrences'}
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     
-    await db.shows.update_one(
-        {"id": show_id},
-        {"$set": update_dict}
-    )
+    # Remove date from update_dict if updating all (each occurrence has different date)
+    if update_all and 'date' in update_dict:
+        del update_dict['date']
+    
+    if update_all and show.get('is_recurring'):
+        # Update this show and all related occurrences
+        parent_id = show.get('parent_show_id') or show_id
+        
+        # Update parent and all children
+        await db.shows.update_many(
+            {
+                "team_id": current_user.get('team_id'),
+                "$or": [
+                    {"id": parent_id},
+                    {"parent_show_id": parent_id}
+                ]
+            },
+            {"$set": update_dict}
+        )
+    else:
+        # Update only this show
+        await db.shows.update_one(
+            {"id": show_id},
+            {"$set": update_dict}
+        )
     
     updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
     return updated_show
@@ -108,16 +223,51 @@ async def update_show(
 @shows_router.delete("/{show_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_show(
     show_id: str,
+    delete_all: bool = Query(default=False, description="Delete all occurrences of recurring show"),
     current_user: dict = Depends(require_editor_or_admin)
 ):
-    """Delete a show (editor or admin only)."""
-    result = await db.shows.delete_one(
+    """Delete a show. For recurring shows, can delete just this one or all occurrences."""
+    show = await db.shows.find_one(
         {"id": show_id, "team_id": current_user.get('team_id')}
     )
-    if result.deleted_count == 0:
+    if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
-    await db.rundown_items.delete_many({"show_id": show_id})
+    if delete_all and show.get('is_recurring'):
+        # Delete this show and all related occurrences
+        parent_id = show.get('parent_show_id') or show_id
+        
+        # Get all show IDs to delete
+        shows_to_delete = await db.shows.find(
+            {
+                "team_id": current_user.get('team_id'),
+                "$or": [
+                    {"id": parent_id},
+                    {"parent_show_id": parent_id}
+                ]
+            },
+            {"id": 1}
+        ).to_list(1000)
+        
+        show_ids = [s['id'] for s in shows_to_delete]
+        
+        # Delete rundown items for all shows
+        await db.rundown_items.delete_many({"show_id": {"$in": show_ids}})
+        
+        # Delete all shows
+        await db.shows.delete_many(
+            {
+                "team_id": current_user.get('team_id'),
+                "$or": [
+                    {"id": parent_id},
+                    {"parent_show_id": parent_id}
+                ]
+            }
+        )
+    else:
+        # Delete only this show
+        await db.shows.delete_one({"id": show_id})
+        await db.rundown_items.delete_many({"show_id": show_id})
 
 
 # ============== RUNDOWN ROUTES ==============
