@@ -160,6 +160,8 @@ const ShowDetailPage = () => {
   const [recurrenceData, setRecurrenceData] = useState({});
   const [savingRecurrence, setSavingRecurrence] = useState(false);
   const [stopRecurrenceDialogOpen, setStopRecurrenceDialogOpen] = useState(false);
+  const [enableRecurrenceDialogOpen, setEnableRecurrenceDialogOpen] = useState(false);
+  const [enableRecurrenceData, setEnableRecurrenceData] = useState({ interval: 1, endDate: null });
 
   useEffect(() => {
     fetchShow();
