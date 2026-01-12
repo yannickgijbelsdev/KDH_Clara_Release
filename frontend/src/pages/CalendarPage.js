@@ -123,18 +123,18 @@ const CalendarPage = () => {
   const selectedDateShows = selectedDate ? getShowsForDate(selectedDate) : [];
 
   return (
-    <div data-testid="calendar-page" className="flex gap-8">
+    <div data-testid="calendar-page" className="flex flex-col lg:flex-row gap-6 lg:gap-8">
       {/* Calendar Grid */}
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex-1 min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-black text-white mb-1">Schedule</h1>
-            <p className="text-zinc-400">Plan your radio shows calendar</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">Schedule</h1>
+            <p className="text-sm sm:text-base text-zinc-400">Plan your radio shows calendar</p>
           </div>
           <Button
             data-testid="create-show-calendar-btn"
             onClick={() => setIsCreateOpen(true)}
-            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-11 px-5 btn-primary"
+            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             New Show
@@ -142,10 +142,10 @@ const CalendarPage = () => {
         </div>
 
         {/* Calendar Header */}
-        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <h2 className="text-xl font-bold text-white">
+        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <h2 className="text-lg sm:text-xl font-bold text-white">
                 {format(currentMonth, 'MMMM yyyy')}
               </h2>
               <Button
