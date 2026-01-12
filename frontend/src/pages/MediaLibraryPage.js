@@ -181,14 +181,14 @@ const MediaLibraryPage = () => {
   return (
     <div data-testid="media-library-page">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-rose-500/20 rounded-lg">
-            <File className="w-6 h-6 text-rose-500" />
+          <div className="p-2 bg-rose-500/20 rounded-lg flex-shrink-0">
+            <File className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Media Library</h1>
-            <p className="text-sm text-zinc-400">Documents and audio files</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">Media Library</h1>
+            <p className="text-xs sm:text-sm text-zinc-400">Documents and audio files</p>
           </div>
         </div>
 
@@ -206,7 +206,7 @@ const MediaLibraryPage = () => {
               data-testid="upload-media-btn"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="bg-rose-500 hover:bg-rose-600"
+              className="bg-rose-500 hover:bg-rose-600 w-full sm:w-auto"
             >
               {uploading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -220,8 +220,8 @@ const MediaLibraryPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-4 mb-6">
-        <form onSubmit={handleSearch} className="flex-1 max-w-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
+        <form onSubmit={handleSearch} className="flex-1 sm:max-w-md">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
             <Input
@@ -235,7 +235,7 @@ const MediaLibraryPage = () => {
         </form>
 
         <Select value={kindFilter} onValueChange={setKindFilter}>
-          <SelectTrigger data-testid="kind-filter" className="w-40 bg-white/5 border-white/10 text-white">
+          <SelectTrigger data-testid="kind-filter" className="w-full sm:w-40 bg-white/5 border-white/10 text-white">
             <Filter className="w-4 h-4 mr-2" />
             <SelectValue placeholder="All types" />
           </SelectTrigger>
