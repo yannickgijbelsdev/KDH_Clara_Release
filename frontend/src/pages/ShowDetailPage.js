@@ -400,7 +400,7 @@ const ShowDetailPage = () => {
               <Button
                 size="sm"
                 data-testid="save-show-btn"
-                onClick={handleSave}
+                onClick={handleSaveClick}
                 disabled={saving}
                 className="gap-2 bg-rose-500 hover:bg-rose-600 text-white"
               >
