@@ -12,9 +12,6 @@ import ContentDetailPage from './pages/ContentDetailPage';
 import WordPressSettingsPage from './pages/WordPressSettingsPage';
 import ChatPage from './pages/ChatPage';
 import MediaLibraryPage from './pages/MediaLibraryPage';
-import SeriesPage from './pages/SeriesPage';
-import OccurrencesPage from './pages/OccurrencesPage';
-import OccurrenceDetailPage from './pages/OccurrenceDetailPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
