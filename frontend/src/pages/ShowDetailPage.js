@@ -802,9 +802,14 @@ const ShowDetailPage = () => {
               onClick={async () => {
                 try {
                   const response = await axios.post(`${API}/shows/${showId}/stop-recurrence?delete_future=false`);
-                  setShow(response.data);
-                  setStopRecurrenceDialogOpen(false);
-                  toast.success('Recurrence stopped. Future shows kept as one-time shows.');
+                  if (response.data.deleted) {
+                    toast.success('Recurrence stopped.');
+                    navigate('/calendar');
+                  } else {
+                    setShow(response.data);
+                    setStopRecurrenceDialogOpen(false);
+                    toast.success('Recurrence stopped. Future shows kept as one-time shows.');
+                  }
                 } catch (error) {
                   toast.error('Failed to stop recurrence');
                 }
@@ -817,9 +822,14 @@ const ShowDetailPage = () => {
               onClick={async () => {
                 try {
                   const response = await axios.post(`${API}/shows/${showId}/stop-recurrence?delete_future=true`);
-                  setShow(response.data);
-                  setStopRecurrenceDialogOpen(false);
-                  toast.success('Recurrence stopped and future shows deleted.');
+                  if (response.data.deleted) {
+                    toast.success('Recurrence stopped and this show was deleted (it was a future occurrence).');
+                    navigate('/calendar');
+                  } else {
+                    setShow(response.data);
+                    setStopRecurrenceDialogOpen(false);
+                    toast.success('Recurrence stopped and future shows deleted.');
+                  }
                 } catch (error) {
                   toast.error('Failed to stop recurrence');
                 }
