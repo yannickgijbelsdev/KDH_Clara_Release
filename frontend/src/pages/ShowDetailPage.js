@@ -508,7 +508,7 @@ const ShowDetailPage = () => {
       {/* Rundown Section */}
       <RundownEditor showId={showId} canEdit={isEditor} />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog (Non-recurring) */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-[#18181b] border-zinc-800">
           <AlertDialogHeader>
@@ -523,11 +523,79 @@ const ShowDetailPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               data-testid="confirm-delete-btn"
-              onClick={handleDelete}
+              onClick={() => handleDelete(false)}
               className="bg-rose-500 hover:bg-rose-600 text-white"
             >
               Delete
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Recurring Show - Edit Dialog */}
+      <AlertDialog open={recurringEditDialogOpen} onOpenChange={setRecurringEditDialogOpen}>
+        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <Repeat className="w-5 h-5 text-violet-400" />
+              Update Recurring Show
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              This is a recurring show. Would you like to update only this occurrence or all occurrences?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => handleSave(false)}
+              disabled={saving}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              {saving ? 'Saving...' : 'Only This One'}
+            </Button>
+            <Button
+              onClick={() => handleSave(true)}
+              disabled={saving}
+              className="bg-violet-500 hover:bg-violet-600 text-white"
+            >
+              {saving ? 'Saving...' : 'All Occurrences'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Recurring Show - Delete Dialog */}
+      <AlertDialog open={recurringDeleteDialogOpen} onOpenChange={setRecurringDeleteDialogOpen}>
+        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <Repeat className="w-5 h-5 text-violet-400" />
+              Delete Recurring Show
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              This is a recurring show. Would you like to delete only this occurrence or all occurrences?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => handleDelete(false)}
+              className="border-rose-500/50 text-rose-400 hover:bg-rose-500/10"
+            >
+              Only This One
+            </Button>
+            <Button
+              onClick={() => handleDelete(true)}
+              className="bg-rose-500 hover:bg-rose-600 text-white"
+            >
+              All Occurrences
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
