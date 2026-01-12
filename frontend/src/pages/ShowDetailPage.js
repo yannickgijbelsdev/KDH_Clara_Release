@@ -14,6 +14,8 @@ import {
   Wifi,
   WifiOff,
   Repeat,
+  Settings,
+  CalendarOff,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -42,9 +44,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import { Calendar as CalendarPicker } from '../components/ui/calendar';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import RundownEditor from '../components/RundownEditor';
+import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const WS_BASE_URL = process.env.REACT_APP_BACKEND_URL?.replace('https://', 'wss://').replace('http://', 'ws://');
