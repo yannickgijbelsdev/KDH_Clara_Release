@@ -66,6 +66,13 @@ const statusLabels = {
   completed: 'Completed',
 };
 
+const recurrenceIntervalLabels = {
+  1: 'Every week',
+  2: 'Every 2 weeks',
+  3: 'Every 3 weeks',
+  4: 'Every 4 weeks',
+};
+
 // Presence Avatar Component
 const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
   if (!users || users.length === 0) return null;
