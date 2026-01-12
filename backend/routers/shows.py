@@ -270,6 +270,120 @@ async def delete_show(
         await db.rundown_items.delete_many({"show_id": show_id})
 
 
+# ============== RECURRENCE SETTINGS ==============
+
+@shows_router.put("/{show_id}/recurrence", response_model=ShowResponse)
+async def update_recurrence_settings(
+    show_id: str,
+    recurrence_interval: Optional[int] = Query(None, ge=1, le=4, description="Repeat every N weeks"),
+    recurrence_end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD or 'none' to clear"),
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Update recurrence settings for a recurring show (applies to all occurrences)."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    if not show.get('is_recurring'):
+        raise HTTPException(status_code=400, detail="This show is not recurring")
+    
+    parent_id = show.get('parent_show_id') or show_id
+    now = datetime.now(timezone.utc).isoformat()
+    
+    update_dict = {"updated_at": now}
+    
+    if recurrence_interval is not None:
+        update_dict["recurrence_interval"] = recurrence_interval
+    
+    if recurrence_end_date is not None:
+        if recurrence_end_date.lower() == 'none':
+            update_dict["recurrence_end_date"] = None
+        else:
+            update_dict["recurrence_end_date"] = recurrence_end_date
+    
+    # Update all occurrences
+    await db.shows.update_many(
+        {
+            "team_id": current_user.get('team_id'),
+            "$or": [
+                {"id": parent_id},
+                {"parent_show_id": parent_id}
+            ]
+        },
+        {"$set": update_dict}
+    )
+    
+    updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
+    return updated_show
+
+
+@shows_router.post("/{show_id}/stop-recurrence", response_model=ShowResponse)
+async def stop_recurrence(
+    show_id: str,
+    delete_future: bool = Query(default=True, description="Delete future occurrences"),
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Stop a recurring show from repeating. Optionally delete future occurrences."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    if not show.get('is_recurring'):
+        raise HTTPException(status_code=400, detail="This show is not recurring")
+    
+    parent_id = show.get('parent_show_id') or show_id
+    now = datetime.now(timezone.utc).isoformat()
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    if delete_future:
+        # Delete all future occurrences (keep past and today's)
+        future_shows = await db.shows.find(
+            {
+                "team_id": current_user.get('team_id'),
+                "date": {"$gt": today},
+                "$or": [
+                    {"id": parent_id},
+                    {"parent_show_id": parent_id}
+                ]
+            },
+            {"id": 1}
+        ).to_list(1000)
+        
+        future_ids = [s['id'] for s in future_shows]
+        
+        if future_ids:
+            await db.rundown_items.delete_many({"show_id": {"$in": future_ids}})
+            await db.shows.delete_many({"id": {"$in": future_ids}})
+    
+    # Mark all remaining occurrences as non-recurring
+    await db.shows.update_many(
+        {
+            "team_id": current_user.get('team_id'),
+            "$or": [
+                {"id": parent_id},
+                {"parent_show_id": parent_id}
+            ]
+        },
+        {
+            "$set": {
+                "is_recurring": False,
+                "recurrence_type": "none",
+                "recurrence_interval": 1,
+                "recurrence_end_date": None,
+                "parent_show_id": None,
+                "updated_at": now
+            }
+        }
+    )
+    
+    updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
+    return updated_show
+
+
 # ============== RUNDOWN ROUTES ==============
 
 @shows_router.get("/{show_id}/rundown", response_model=List[RundownItemResponse])
