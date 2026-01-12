@@ -398,6 +398,83 @@ async def stop_recurrence(
     return {"deleted": True, "message": "Show not found after update"}
 
 
+@shows_router.post("/{show_id}/enable-recurrence", response_model=ShowResponse)
+async def enable_recurrence(
+    show_id: str,
+    recurrence_interval: int = Query(1, ge=1, le=4, description="Repeat every N weeks"),
+    recurrence_end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD or None for 1 year"),
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Convert a non-recurring show into a recurring show and generate future occurrences."""
+    show = await db.shows.find_one(
+        {"id": show_id, "team_id": current_user.get('team_id')}
+    )
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    if show.get('is_recurring'):
+        raise HTTPException(status_code=400, detail="This show is already recurring")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    team_id = current_user.get('team_id')
+    
+    # This show becomes the parent
+    parent_id = show_id
+    
+    # Update the original show to be the parent of the recurring series
+    await db.shows.update_one(
+        {"id": show_id},
+        {
+            "$set": {
+                "is_recurring": True,
+                "recurrence_type": "weekly",
+                "recurrence_interval": recurrence_interval,
+                "recurrence_end_date": recurrence_end_date,
+                "parent_show_id": None,
+                "updated_at": now
+            }
+        }
+    )
+    
+    # Generate future occurrence dates (skip the first one as it's the original show)
+    all_dates = generate_occurrence_dates(
+        show['date'], 
+        recurrence_interval, 
+        recurrence_end_date
+    )
+    future_dates = all_dates[1:]  # Skip the original show's date
+    
+    # Create future occurrences
+    if future_dates:
+        child_docs = []
+        for date in future_dates:
+            child_doc = {
+                "id": str(uuid.uuid4()),
+                "title": show['title'],
+                "description": show.get('description', ''),
+                "date": date,
+                "start_time": show['start_time'],
+                "end_time": show['end_time'],
+                "status": show.get('status', 'draft'),
+                "editor_id": show.get('editor_id'),
+                "team_id": team_id,
+                "created_at": now,
+                "updated_at": now,
+                "recurrence_type": "weekly",
+                "recurrence_interval": recurrence_interval,
+                "recurrence_end_date": recurrence_end_date,
+                "parent_show_id": parent_id,
+                "is_recurring": True
+            }
+            child_docs.append(child_doc)
+        
+        if child_docs:
+            await db.shows.insert_many(child_docs)
+    
+    updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
+    return updated_show
+
+
 # ============== RUNDOWN ROUTES ==============
 
 @shows_router.get("/{show_id}/rundown", response_model=List[RundownItemResponse])
