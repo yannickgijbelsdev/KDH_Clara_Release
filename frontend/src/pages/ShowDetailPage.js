@@ -523,6 +523,169 @@ const ShowDetailPage = () => {
         )}
       </div>
 
+      {/* Recurrence Settings Section - Only for recurring shows */}
+      {show.is_recurring && (
+        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Repeat className="w-5 h-5 text-violet-400" />
+              <h2 className="text-lg font-semibold text-white">Recurrence Settings</h2>
+            </div>
+            {!isEditingRecurrence ? (
+              isEditor && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setRecurrenceData({
+                        interval: show.recurrence_interval || 1,
+                        endDate: show.recurrence_end_date ? parseISO(show.recurrence_end_date) : null,
+                      });
+                      setIsEditingRecurrence(true);
+                    }}
+                    className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Configure
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setStopRecurrenceDialogOpen(true)}
+                    className="gap-2 bg-transparent border-zinc-700 text-orange-500 hover:bg-orange-500/10 hover:text-orange-400 hover:border-orange-500/50"
+                  >
+                    <CalendarOff className="w-4 h-4" />
+                    Stop Recurring
+                  </Button>
+                </div>
+              )
+            ) : (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditingRecurrence(false)}
+                  className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    setSavingRecurrence(true);
+                    try {
+                      const params = new URLSearchParams();
+                      if (recurrenceData.interval) {
+                        params.append('recurrence_interval', recurrenceData.interval);
+                      }
+                      if (recurrenceData.endDate) {
+                        params.append('recurrence_end_date', format(recurrenceData.endDate, 'yyyy-MM-dd'));
+                      } else {
+                        params.append('recurrence_end_date', 'none');
+                      }
+                      const response = await axios.put(`${API}/shows/${showId}/recurrence?${params.toString()}`);
+                      setShow(response.data);
+                      setIsEditingRecurrence(false);
+                      toast.success('Recurrence settings updated for all occurrences');
+                    } catch (error) {
+                      toast.error('Failed to update recurrence settings');
+                    } finally {
+                      setSavingRecurrence(false);
+                    }
+                  }}
+                  disabled={savingRecurrence}
+                  className="gap-2 bg-violet-500 hover:bg-violet-600 text-white"
+                >
+                  <Save className="w-4 h-4" />
+                  {savingRecurrence ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {isEditingRecurrence ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-zinc-400">Repeat Frequency</Label>
+                <Select
+                  value={String(recurrenceData.interval)}
+                  onValueChange={(value) => setRecurrenceData({ ...recurrenceData, interval: parseInt(value) })}
+                >
+                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#18181b] border-zinc-800">
+                    <SelectItem value="1" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
+                    <SelectItem value="2" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
+                    <SelectItem value="3" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
+                    <SelectItem value="4" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 4 weeks</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-zinc-400">End Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-700 hover:bg-zinc-700',
+                        !recurrenceData.endDate && 'text-zinc-500'
+                      )}
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {recurrenceData.endDate ? format(recurrenceData.endDate, 'PPP') : 'No end date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-[#18181b] border-zinc-800" align="start">
+                    <div className="p-2 border-b border-zinc-800">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setRecurrenceData({ ...recurrenceData, endDate: null })}
+                        className="w-full text-zinc-400 hover:text-white"
+                      >
+                        Clear end date
+                      </Button>
+                    </div>
+                    <CalendarPicker
+                      mode="single"
+                      selected={recurrenceData.endDate}
+                      onSelect={(date) => setRecurrenceData({ ...recurrenceData, endDate: date })}
+                      initialFocus
+                      className="bg-[#18181b]"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-zinc-500 mb-1">Frequency</p>
+                <p className="text-white font-medium">
+                  {recurrenceIntervalLabels[show.recurrence_interval] || 'Every week'}
+                </p>
+              </div>
+              <div>
+                <p className="text-zinc-500 mb-1">End Date</p>
+                <p className="text-white font-medium">
+                  {show.recurrence_end_date 
+                    ? format(parseISO(show.recurrence_end_date), 'PPP')
+                    : 'No end date (repeats indefinitely)'}
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <p className="text-xs text-zinc-500 mt-4">
+            Changes to recurrence settings apply to all occurrences of this show.
+          </p>
+        </div>
+      )}
+
       {/* Rundown Section */}
       <RundownEditor showId={showId} canEdit={isEditor} />
 
