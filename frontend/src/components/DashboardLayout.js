@@ -25,6 +25,18 @@ const roleLabels = {
   viewer: 'Viewer',
 };
 
+const navItems = [
+  { to: '/shows', icon: LayoutList, label: 'Shows', adminOnly: false },
+  { to: '/calendar', icon: Calendar, label: 'Calendar', adminOnly: false },
+  { to: '/series', icon: CalendarClock, label: 'Show Series', adminOnly: true },
+  { to: '/occurrences', icon: Radio, label: 'Occurrences', adminOnly: false },
+  { to: '/content', icon: FileText, label: 'Content Library', adminOnly: false },
+  { to: '/media', icon: File, label: 'Media Library', adminOnly: false },
+  { to: '/chat', icon: MessageSquare, label: 'Team Chat', adminOnly: false },
+  { to: '/team', icon: Settings, label: 'Team Settings', adminOnly: true },
+  { to: '/wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
+];
+
 const DashboardLayout = () => {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -39,206 +51,7 @@ const DashboardLayout = () => {
 
   const RoleIcon = roleIcons[user?.role] || User;
 
-  const NavItems = () => (
-    <nav className="space-y-1">
-      <NavLink
-        to="/shows"
-        data-testid="nav-shows-link"
-        onClick={closeSidebar}
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-            isActive
-              ? 'bg-rose-500/20 text-rose-500'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`
-        }
-      >
-        <LayoutList className="w-5 h-5" />
-        <span className="font-medium">Shows</span>
-      </NavLink>
-      <NavLink
-        to="/calendar"
-        data-testid="nav-calendar-link"
-        onClick={closeSidebar}
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-            isActive
-              ? 'bg-rose-500/20 text-rose-500'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`
-        }
-      >
-        <Calendar className="w-5 h-5" />
-        <span className="font-medium">Calendar</span>
-      </NavLink>
-      
-      {isAdmin && (
-        <NavLink
-          to="/series"
-          data-testid="nav-series-link"
-          onClick={closeSidebar}
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-              isActive
-                ? 'bg-rose-500/20 text-rose-500'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
-            }`
-          }
-        >
-          <CalendarClock className="w-5 h-5" />
-          <span className="font-medium">Show Series</span>
-        </NavLink>
-      )}
-      
-      <NavLink
-        to="/occurrences"
-        data-testid="nav-occurrences-link"
-        onClick={closeSidebar}
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-            isActive
-              ? 'bg-rose-500/20 text-rose-500'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`
-        }
-      >
-        <Radio className="w-5 h-5" />
-        <span className="font-medium">Occurrences</span>
-      </NavLink>
-      
-      <NavLink
-        to="/content"
-        data-testid="nav-content-link"
-        onClick={closeSidebar}
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-            isActive
-              ? 'bg-rose-500/20 text-rose-500'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`
-        }
-      >
-        <FileText className="w-5 h-5" />
-        <span className="font-medium">Content Library</span>
-      </NavLink>
-      
-      <NavLink
-        to="/media"
-        data-testid="nav-media-link"
-        onClick={closeSidebar}
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-            isActive
-              ? 'bg-rose-500/20 text-rose-500'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`
-        }
-      >
-        <File className="w-5 h-5" />
-        <span className="font-medium">Media Library</span>
-      </NavLink>
-      
-      <NavLink
-        to="/chat"
-        data-testid="nav-chat-link"
-        onClick={closeSidebar}
-        className={({ isActive }) =>
-          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-            isActive
-              ? 'bg-rose-500/20 text-rose-500'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`
-        }
-      >
-        <MessageSquare className="w-5 h-5" />
-        <span className="font-medium">Team Chat</span>
-      </NavLink>
-      
-      {isAdmin && (
-        <>
-          <NavLink
-            to="/team"
-            data-testid="nav-team-link"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? 'bg-rose-500/20 text-rose-500'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
-              }`
-            }
-          >
-            <Settings className="w-5 h-5" />
-            <span className="font-medium">Team Settings</span>
-          </NavLink>
-          <NavLink
-            to="/wordpress"
-            data-testid="nav-wordpress-link"
-            onClick={closeSidebar}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                isActive
-                  ? 'bg-rose-500/20 text-rose-500'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
-              }`
-            }
-          >
-            <Globe className="w-5 h-5" />
-            <span className="font-medium">WordPress</span>
-          </NavLink>
-        </>
-      )}
-    </nav>
-  );
-
-  const UserSection = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          data-testid="user-menu-btn"
-          className="w-full justify-start gap-3 h-auto p-3 hover:bg-white/5"
-        >
-          <div className="w-9 h-9 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
-            <User className="w-4 h-4 text-rose-500" />
-          </div>
-          <div className="text-left flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-medium text-white truncate max-w-[100px]">
-                {user?.name}
-              </p>
-              <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                <RoleIcon className="w-3 h-3" />
-                {roleLabels[user?.role]}
-              </span>
-            </div>
-            <p className="text-xs text-zinc-500 truncate">
-              {user?.email}
-            </p>
-          </div>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56 bg-[#18181b] border-zinc-800">
-        <DropdownMenuItem className="text-zinc-400">
-          <User className="w-4 h-4 mr-2" />
-          {user?.email}
-        </DropdownMenuItem>
-        <DropdownMenuItem className="text-zinc-400">
-          <RoleIcon className="w-4 h-4 mr-2" />
-          {roleLabels[user?.role]}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-zinc-800" />
-        <DropdownMenuItem
-          data-testid="logout-btn"
-          onClick={handleLogout}
-          className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
 
   return (
     <div className="min-h-screen bg-[#09090b]">
@@ -271,7 +84,7 @@ const DashboardLayout = () => {
         />
       )}
 
-      {/* Sidebar - Desktop: always visible, Mobile: slide-in */}
+      {/* Sidebar */}
       <aside
         className={`
           fixed top-0 left-0 h-full z-50 glass-sidebar
@@ -311,12 +124,79 @@ const DashboardLayout = () => {
 
           {/* Navigation */}
           <div className="flex-1 overflow-y-auto">
-            <NavItems />
+            <nav className="space-y-1">
+              {filteredNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    data-testid={`nav-${item.to.slice(1)}-link`}
+                    onClick={closeSidebar}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                        isActive
+                          ? 'bg-rose-500/20 text-rose-500'
+                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                      }`
+                    }
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
           </div>
 
           {/* User section at bottom */}
           <div className="pt-4 border-t border-white/10 mt-4">
-            <UserSection />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  data-testid="user-menu-btn"
+                  className="w-full justify-start gap-3 h-auto p-3 hover:bg-white/5"
+                >
+                  <div className="w-9 h-9 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-rose-500" />
+                  </div>
+                  <div className="text-left flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-medium text-white truncate max-w-[100px]">
+                        {user?.name}
+                      </p>
+                      <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                        <RoleIcon className="w-3 h-3" />
+                        {roleLabels[user?.role]}
+                      </span>
+                    </div>
+                    <p className="text-xs text-zinc-500 truncate">
+                      {user?.email}
+                    </p>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 bg-[#18181b] border-zinc-800">
+                <DropdownMenuItem className="text-zinc-400">
+                  <User className="w-4 h-4 mr-2" />
+                  {user?.email}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-zinc-400">
+                  <RoleIcon className="w-4 h-4 mr-2" />
+                  {roleLabels[user?.role]}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuItem
+                  data-testid="logout-btn"
+                  onClick={handleLogout}
+                  className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </aside>
