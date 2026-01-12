@@ -135,17 +135,26 @@ async def delete_wordpress_site(
     await db.content_item_publishes.delete_many({"wordpress_site_id": site_id})
 
 
-@wordpress_router.post("/sites/{site_id}/test")
+@wordpress_router.post("/sites/{site_id}/test", response_model=WordPressConnectionTestResponse)
 async def test_wordpress_site(
     site_id: str,
     current_user: dict = Depends(require_admin)
 ):
-    """Test a WordPress site connection (admin only)."""
+    """Test a WordPress site connection and verify user capabilities (admin only).
+    
+    Security checks performed:
+    - Validates application password authentication
+    - Retrieves connected user info and role
+    - Checks for required capabilities (edit_posts, upload_files)
+    - Warns if connected as Administrator (security risk)
+    """
     site = await db.wordpress_sites.find_one(
         {"id": site_id, "team_id": current_user.get('team_id')}
     )
     if not site:
         raise HTTPException(status_code=404, detail="WordPress site not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
     
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -153,28 +162,87 @@ async def test_wordpress_site(
             auth_bytes = base64.b64encode(auth_string.encode()).decode()
             headers = {"Authorization": f"Basic {auth_bytes}"}
             
+            # Test authentication and get user info
             response = await client.get(
-                f"{site['wp_base_url']}/wp-json/wp/v2/users/me",
+                f"{site['wp_base_url']}/wp-json/wp/v2/users/me?context=edit",
                 headers=headers
             )
             
             if response.status_code == 200:
                 user_data = response.json()
-                return {
-                    "success": True,
-                    "message": f"Connected as {user_data.get('name', 'Unknown')}",
-                    "wp_user": user_data.get('name')
-                }
+                wp_user_name = user_data.get('name', 'Unknown')
+                wp_user_roles = user_data.get('roles', [])
+                wp_capabilities = user_data.get('capabilities', {})
+                
+                # Check for required capabilities
+                has_edit_posts = wp_capabilities.get('edit_posts', False)
+                has_upload_files = wp_capabilities.get('upload_files', False)
+                has_publish_posts = wp_capabilities.get('publish_posts', False)
+                
+                # Security warning if Administrator
+                is_administrator = 'administrator' in wp_user_roles
+                
+                warnings = []
+                if is_administrator:
+                    warnings.append("SECURITY: Connected as Administrator. Recommend using a dedicated service account with limited capabilities.")
+                if not has_edit_posts:
+                    warnings.append("Missing capability: edit_posts (required for publishing)")
+                if not has_upload_files:
+                    warnings.append("Missing capability: upload_files (required for featured images)")
+                
+                # Log successful connection
+                wp_audit_logger.info(
+                    f"WordPress connection test SUCCESS: site={site['name']} ({site_id}), "
+                    f"wp_user={wp_user_name}, roles={wp_user_roles}, "
+                    f"tested_by={current_user['email']} ({current_user['id']})"
+                )
+                
+                return WordPressConnectionTestResponse(
+                    success=True,
+                    message=f"Connected as {wp_user_name}",
+                    wp_user=wp_user_name,
+                    wp_roles=wp_user_roles,
+                    has_edit_posts=has_edit_posts,
+                    has_upload_files=has_upload_files,
+                    has_publish_posts=has_publish_posts,
+                    is_administrator=is_administrator,
+                    warnings=warnings if warnings else None
+                )
             else:
-                return {
-                    "success": False,
-                    "message": f"Authentication failed: {response.status_code}",
-                    "error": response.text[:200]
-                }
+                # Log failed authentication attempt
+                wp_audit_logger.warning(
+                    f"WordPress connection test FAILED: site={site['name']} ({site_id}), "
+                    f"status={response.status_code}, tested_by={current_user['email']} ({current_user['id']})"
+                )
+                
+                # Record failed attempt in database for audit trail
+                await db.wordpress_auth_logs.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "site_id": site_id,
+                    "team_id": current_user.get('team_id'),
+                    "event_type": "auth_failed",
+                    "status_code": response.status_code,
+                    "tested_by": current_user['id'],
+                    "timestamp": now
+                })
+                
+                return WordPressConnectionTestResponse(
+                    success=False,
+                    message=f"Authentication failed: {response.status_code}",
+                    error=response.text[:200]
+                )
     except httpx.TimeoutException:
-        return {"success": False, "message": "Connection timed out"}
+        wp_audit_logger.warning(
+            f"WordPress connection test TIMEOUT: site={site['name']} ({site_id}), "
+            f"tested_by={current_user['email']} ({current_user['id']})"
+        )
+        return WordPressConnectionTestResponse(success=False, message="Connection timed out")
     except Exception as e:
-        return {"success": False, "message": f"Connection error: {str(e)}"}
+        wp_audit_logger.error(
+            f"WordPress connection test ERROR: site={site['name']} ({site_id}), "
+            f"error={str(e)}, tested_by={current_user['email']} ({current_user['id']})"
+        )
+        return WordPressConnectionTestResponse(success=False, message=f"Connection error: {str(e)}")
 
 
 @wordpress_router.get("/connection")
