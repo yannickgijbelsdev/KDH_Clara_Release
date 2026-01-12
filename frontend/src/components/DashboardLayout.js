@@ -28,8 +28,6 @@ const roleLabels = {
 const navItems = [
   { to: '/shows', icon: LayoutList, label: 'Shows', adminOnly: false },
   { to: '/calendar', icon: Calendar, label: 'Calendar', adminOnly: false },
-  { to: '/series', icon: CalendarClock, label: 'Show Series', adminOnly: true },
-  { to: '/occurrences', icon: Radio, label: 'Occurrences', adminOnly: false },
   { to: '/content', icon: FileText, label: 'Content Library', adminOnly: false },
   { to: '/media', icon: File, label: 'Media Library', adminOnly: false },
   { to: '/chat', icon: MessageSquare, label: 'Team Chat', adminOnly: false },
