@@ -871,6 +871,110 @@ const ShowDetailPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Enable Recurrence Dialog */}
+      <AlertDialog open={enableRecurrenceDialogOpen} onOpenChange={setEnableRecurrenceDialogOpen}>
+        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <Repeat className="w-5 h-5 text-violet-400" />
+              Enable Recurrence
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              Make this show repeat on a regular schedule. Future occurrences will be generated automatically.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-zinc-400">Repeat Frequency</Label>
+              <Select
+                value={String(enableRecurrenceData.interval)}
+                onValueChange={(value) => setEnableRecurrenceData({ ...enableRecurrenceData, interval: parseInt(value) })}
+              >
+                <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  <SelectItem value="1" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
+                  <SelectItem value="2" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
+                  <SelectItem value="3" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
+                  <SelectItem value="4" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 4 weeks</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-zinc-400">End Date (Optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-700 hover:bg-zinc-800',
+                      !enableRecurrenceData.endDate && 'text-zinc-500'
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {enableRecurrenceData.endDate ? format(enableRecurrenceData.endDate, 'PPP') : 'No end date (1 year default)'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-[#18181b] border-zinc-800" align="start">
+                  {enableRecurrenceData.endDate && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEnableRecurrenceData({ ...enableRecurrenceData, endDate: null })}
+                      className="w-full text-zinc-400 hover:text-white hover:bg-zinc-800"
+                    >
+                      Clear end date
+                    </Button>
+                  )}
+                  <CalendarPicker
+                    mode="single"
+                    selected={enableRecurrenceData.endDate}
+                    onSelect={(date) => setEnableRecurrenceData({ ...enableRecurrenceData, endDate: date })}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className="bg-[#18181b]"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={async () => {
+                setSavingRecurrence(true);
+                try {
+                  const params = new URLSearchParams();
+                  params.append('recurrence_interval', enableRecurrenceData.interval);
+                  if (enableRecurrenceData.endDate) {
+                    params.append('recurrence_end_date', format(enableRecurrenceData.endDate, 'yyyy-MM-dd'));
+                  }
+                  const response = await axios.post(`${API}/shows/${showId}/enable-recurrence?${params.toString()}`);
+                  setShow(response.data);
+                  setEnableRecurrenceDialogOpen(false);
+                  toast.success('Show is now recurring! Future occurrences have been created.');
+                } catch (error) {
+                  toast.error(error.response?.data?.detail || 'Failed to enable recurrence');
+                } finally {
+                  setSavingRecurrence(false);
+                }
+              }}
+              disabled={savingRecurrence}
+              className="bg-violet-500 hover:bg-violet-600 text-white"
+              data-testid="confirm-enable-recurrence-btn"
+            >
+              {savingRecurrence ? 'Enabling...' : 'Enable Recurrence'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
