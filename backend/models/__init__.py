@@ -16,7 +16,8 @@ from models.content import (
 )
 from models.wordpress import (
     WordPressSiteCreate, WordPressSiteUpdate, WordPressSiteResponse,
-    PublishTarget, PublishToWordPressRequest, PublishResult, PublishResponse
+    PublishTarget, PublishToWordPressRequest, PublishResult, PublishResponse,
+    WordPressConnectionTestResponse
 )
 from models.series import (
     ShowSeriesCreate, ShowSeriesUpdate, ShowSeriesResponse,
