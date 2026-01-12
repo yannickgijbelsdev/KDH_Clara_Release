@@ -203,35 +203,37 @@ const OccurrencesPage = () => {
   return (
     <div data-testid="occurrences-page">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           {seriesId && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/series')}
-              className="text-zinc-400 hover:text-white -ml-2"
+              className="text-zinc-400 hover:text-white -ml-2 w-fit"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
               Back
             </Button>
           )}
-          <div className="p-2 bg-rose-500/20 rounded-lg">
-            <Calendar className="w-6 h-6 text-rose-500" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">
-              {series ? series.title : 'Show Occurrences'}
-            </h1>
-            <p className="text-sm text-zinc-400">
-              {series ? 'Scheduled instances' : 'All upcoming shows'}
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-rose-500/20 rounded-lg flex-shrink-0">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500" />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-white">
+                {series ? series.title : 'Show Occurrences'}
+              </h1>
+              <p className="text-xs sm:text-sm text-zinc-400">
+                {series ? 'Scheduled instances' : 'All upcoming shows'}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger data-testid="status-filter" className="w-36 bg-white/5 border-white/10 text-white">
+            <SelectTrigger data-testid="status-filter" className="w-full sm:w-36 bg-white/5 border-white/10 text-white">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="All" />
             </SelectTrigger>
@@ -247,7 +249,7 @@ const OccurrencesPage = () => {
             <Button
               data-testid="create-occurrence-btn"
               onClick={openCreateDialog}
-              className="bg-rose-500 hover:bg-rose-600"
+              className="bg-rose-500 hover:bg-rose-600 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Occurrence
