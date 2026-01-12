@@ -384,8 +384,18 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## Notes
 - WordPress integration is one-way sync (dashboard → WordPress)
-- WordPress requires Application Password authentication
+- WordPress requires Application Password authentication (NOT normal passwords)
 - WordPress integration is MOCKED for testing - needs real credentials for production
 - Legacy shows model remains for backward compatibility
 - New recurring shows use ShowSeries → ShowOccurrence → Rundown structure
 - Each occurrence gets a fresh, empty rundown (no auto-carryover)
+
+### WordPress Security Requirements (January 10, 2026)
+- **Authentication**: Application Passwords only (not login passwords)
+- **Service Account**: Dedicated non-Administrator account recommended
+- **Minimum Capabilities**: edit_posts, upload_files, publish_posts (optional)
+- **2FA**: Remains enabled for human accounts; app passwords work independently
+- **Credential Storage**: app_password never returned via API
+- **Audit Logging**: Failed auth attempts logged to wordpress_auth_logs collection
+- **Test Connection**: Checks capabilities and warns about security issues
+- **Documentation**: See /app/docs/WORDPRESS_SECURITY.md
