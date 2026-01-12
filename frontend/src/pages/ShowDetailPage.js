@@ -13,6 +13,7 @@ import {
   Printer,
   Wifi,
   WifiOff,
+  Repeat,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
