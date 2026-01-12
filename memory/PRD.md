@@ -269,6 +269,20 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Updated navigation: removed Series and Occurrences links
 - [x] Deleted unused pages: SeriesPage.js, OccurrencesPage.js, OccurrenceDetailPage.js
 - [x] Refactored monolithic server.py (4234 lines) into modular structure
+
+### January 12, 2026 - Enable Recurrence for Existing Shows
+- [x] **Enable Recurrence Feature**: Convert non-recurring shows to recurring
+  - New API endpoint: POST /api/shows/{show_id}/enable-recurrence
+  - Parameters: recurrence_interval (1-4 weeks), recurrence_end_date (optional)
+  - Automatically generates future occurrences based on the original show
+- [x] **Frontend UI** in ShowDetailPage.js:
+  - "Make This a Recurring Show" section for non-recurring shows
+  - "Enable Recurrence" button opens configuration dialog
+  - Frequency dropdown (Every 1/2/3/4 weeks)
+  - Optional end date picker (defaults to 1 year)
+  - Success toast and UI updates after enabling
+- [x] **Test coverage**: 12/12 backend API tests passed
+- [x] **Deleted** server_backup.py cleanup file
 - [x] Created `/app/backend/database.py`: MongoDB connection, JWT config, upload directories (29 lines)
 - [x] Created `/app/backend/models/` directory with 9 Pydantic model files:
   - [x] auth.py - Authentication models (UserCreate, UserLogin, TokenResponse, etc.)
