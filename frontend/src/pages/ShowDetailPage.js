@@ -154,6 +154,12 @@ const ShowDetailPage = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [presence, setPresence] = useState([]);
   const [wsRef, setWsRef] = useState(null);
+  
+  // Recurrence settings state
+  const [isEditingRecurrence, setIsEditingRecurrence] = useState(false);
+  const [recurrenceData, setRecurrenceData] = useState({});
+  const [savingRecurrence, setSavingRecurrence] = useState(false);
+  const [stopRecurrenceDialogOpen, setStopRecurrenceDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchShow();
