@@ -688,6 +688,34 @@ const ShowDetailPage = () => {
         </div>
       )}
 
+      {/* Enable Recurrence Section - Only for non-recurring shows */}
+      {!show.is_recurring && isEditor && (
+        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Repeat className="w-5 h-5 text-zinc-500" />
+              <div>
+                <h2 className="text-lg font-semibold text-white">Make This a Recurring Show</h2>
+                <p className="text-sm text-zinc-500">Convert this show into a repeating series</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setEnableRecurrenceData({ interval: 1, endDate: null });
+                setEnableRecurrenceDialogOpen(true);
+              }}
+              className="gap-2 bg-transparent border-violet-500/50 text-violet-400 hover:bg-violet-500/10 hover:text-violet-300 hover:border-violet-500"
+              data-testid="enable-recurrence-btn"
+            >
+              <Repeat className="w-4 h-4" />
+              Enable Recurrence
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Rundown Section */}
       <RundownEditor showId={showId} canEdit={isEditor} />
 
