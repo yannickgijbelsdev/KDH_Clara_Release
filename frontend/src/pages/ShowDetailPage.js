@@ -307,6 +307,12 @@ const ShowDetailPage = () => {
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-white">{show.title}</h1>
+            {show.is_recurring && (
+              <span className="flex items-center gap-1 px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded-full text-xs font-medium">
+                <Repeat className="w-3 h-3" />
+                Recurring
+              </span>
+            )}
             {/* Connection status */}
             <div className="flex items-center gap-1 text-xs">
               {isConnected ? (
