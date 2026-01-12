@@ -257,7 +257,7 @@ const CalendarPage = () => {
           )}
 
           {/* Legend */}
-          <div className="flex items-center gap-6 mt-6 pt-4 border-t border-zinc-800">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-zinc-800">
             <span className="text-xs text-zinc-500">Status:</span>
             {Object.entries(statusColors).map(([status, color]) => (
               <div key={status} className="flex items-center gap-2">
