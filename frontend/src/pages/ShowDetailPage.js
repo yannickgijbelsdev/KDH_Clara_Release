@@ -780,6 +780,57 @@ const ShowDetailPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Stop Recurrence Dialog */}
+      <AlertDialog open={stopRecurrenceDialogOpen} onOpenChange={setStopRecurrenceDialogOpen}>
+        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              <CalendarOff className="w-5 h-5 text-orange-400" />
+              Stop Recurring Show
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              This will stop the show from repeating. What would you like to do with future scheduled occurrences?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  const response = await axios.post(`${API}/shows/${showId}/stop-recurrence?delete_future=false`);
+                  setShow(response.data);
+                  setStopRecurrenceDialogOpen(false);
+                  toast.success('Recurrence stopped. Future shows kept as one-time shows.');
+                } catch (error) {
+                  toast.error('Failed to stop recurrence');
+                }
+              }}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Keep Future Shows
+            </Button>
+            <Button
+              onClick={async () => {
+                try {
+                  const response = await axios.post(`${API}/shows/${showId}/stop-recurrence?delete_future=true`);
+                  setShow(response.data);
+                  setStopRecurrenceDialogOpen(false);
+                  toast.success('Recurrence stopped and future shows deleted.');
+                } catch (error) {
+                  toast.error('Failed to stop recurrence');
+                }
+              }}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Delete Future Shows
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
