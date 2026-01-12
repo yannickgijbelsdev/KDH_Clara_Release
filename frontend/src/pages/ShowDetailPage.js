@@ -375,7 +375,7 @@ const ShowDetailPage = () => {
                   variant="outline"
                   size="sm"
                   data-testid="delete-show-btn"
-                  onClick={() => setDeleteDialogOpen(true)}
+                  onClick={handleDeleteClick}
                   className="gap-2 bg-transparent border-zinc-700 text-rose-500 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/50"
                 >
                   <Trash2 className="w-4 h-4" />
