@@ -113,9 +113,9 @@ const CalendarPage = () => {
   };
 
   const handleShowCreated = (newShow) => {
-    setShows([newShow, ...shows]);
+    // Refresh all shows to include any recurring occurrences
+    fetchShows();
     setIsCreateOpen(false);
-    toast.success('Show created successfully');
   };
 
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
