@@ -319,7 +319,7 @@ async def update_recurrence_settings(
     return updated_show
 
 
-@shows_router.post("/{show_id}/stop-recurrence", response_model=ShowResponse)
+@shows_router.post("/{show_id}/stop-recurrence")
 async def stop_recurrence(
     show_id: str,
     delete_future: bool = Query(default=True, description="Delete future occurrences"),
@@ -339,6 +339,8 @@ async def stop_recurrence(
     now = datetime.now(timezone.utc).isoformat()
     today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     
+    current_show_deleted = False
+    
     if delete_future:
         # Delete all future occurrences (keep past and today's)
         future_shows = await db.shows.find(
@@ -354,6 +356,10 @@ async def stop_recurrence(
         ).to_list(1000)
         
         future_ids = [s['id'] for s in future_shows]
+        
+        # Check if current show will be deleted
+        if show_id in future_ids:
+            current_show_deleted = True
         
         if future_ids:
             await db.rundown_items.delete_many({"show_id": {"$in": future_ids}})
@@ -380,8 +386,16 @@ async def stop_recurrence(
         }
     )
     
+    if current_show_deleted:
+        # Return a special response indicating the show was deleted
+        return {"deleted": True, "message": "This show was a future occurrence and has been deleted"}
+    
     updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
-    return updated_show
+    if updated_show:
+        updated_show["deleted"] = False
+        return updated_show
+    
+    return {"deleted": True, "message": "Show not found after update"}
 
 
 # ============== RUNDOWN ROUTES ==============
