@@ -315,9 +315,14 @@ const CalendarPage = () => {
                         className="w-full text-left p-3 bg-[#27272a] rounded-lg hover:bg-zinc-700 transition-colors group"
                       >
                         <div className="flex items-start justify-between mb-1">
-                          <h4 className="text-white font-medium group-hover:text-rose-400 transition-colors line-clamp-1">
-                            {show.title}
-                          </h4>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <h4 className="text-white font-medium group-hover:text-rose-400 transition-colors line-clamp-1">
+                              {show.title}
+                            </h4>
+                            {show.is_recurring && (
+                              <Repeat className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" title="Recurring show" />
+                            )}
+                          </div>
                           <span
                             className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${statusColors[show.status]}`}
                           />
