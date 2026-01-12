@@ -228,10 +228,10 @@ const ShowDetailPage = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (updateAll = false) => {
     setSaving(true);
     try {
-      const response = await axios.put(`${API}/shows/${showId}`, {
+      const response = await axios.put(`${API}/shows/${showId}?update_all=${updateAll}`, {
         title: editData.title,
         description: editData.description,
         date: editData.date,
@@ -241,7 +241,8 @@ const ShowDetailPage = () => {
       });
       setShow(response.data);
       setIsEditing(false);
-      toast.success('Show updated successfully');
+      setRecurringEditDialogOpen(false);
+      toast.success(updateAll ? 'All occurrences updated' : 'Show updated');
     } catch (error) {
       toast.error('Failed to update show');
     } finally {
@@ -249,13 +250,29 @@ const ShowDetailPage = () => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleSaveClick = () => {
+    if (show?.is_recurring) {
+      setRecurringEditDialogOpen(true);
+    } else {
+      handleSave(false);
+    }
+  };
+
+  const handleDelete = async (deleteAll = false) => {
     try {
-      await axios.delete(`${API}/shows/${showId}`);
-      toast.success('Show deleted');
+      await axios.delete(`${API}/shows/${showId}?delete_all=${deleteAll}`);
+      toast.success(deleteAll ? 'All occurrences deleted' : 'Show deleted');
       navigate('/shows');
     } catch (error) {
       toast.error('Failed to delete show');
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (show?.is_recurring) {
+      setRecurringDeleteDialogOpen(true);
+    } else {
+      setDeleteDialogOpen(true);
     }
   };
 
