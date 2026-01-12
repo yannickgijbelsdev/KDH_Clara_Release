@@ -1,6 +1,6 @@
 """Show and rundown models."""
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional, List, Literal
 
 
 class ShowCreate(BaseModel):
@@ -10,6 +10,10 @@ class ShowCreate(BaseModel):
     start_time: str
     end_time: str
     status: str = "draft"
+    # Recurrence fields
+    recurrence_type: Literal["none", "weekly"] = "none"
+    recurrence_interval: int = Field(default=1, ge=1, le=4, description="Repeat every N weeks (1-4)")
+    recurrence_end_date: Optional[str] = None  # YYYY-MM-DD or None for no end
 
 
 class ShowUpdate(BaseModel):
@@ -19,6 +23,8 @@ class ShowUpdate(BaseModel):
     start_time: Optional[str] = None
     end_time: Optional[str] = None
     status: Optional[str] = None
+    # For updating single occurrence vs all
+    update_all_occurrences: Optional[bool] = False
 
 
 class ShowResponse(BaseModel):
@@ -34,6 +40,12 @@ class ShowResponse(BaseModel):
     team_id: Optional[str] = ""
     created_at: str
     updated_at: str
+    # Recurrence info
+    recurrence_type: Optional[str] = "none"
+    recurrence_interval: Optional[int] = 1
+    recurrence_end_date: Optional[str] = None
+    parent_show_id: Optional[str] = None  # If this is an occurrence of a recurring show
+    is_recurring: Optional[bool] = False
 
 
 class RundownItemCreate(BaseModel):
@@ -81,3 +93,7 @@ class RundownItemWithContentResponse(BaseModel):
     order: int
     created_at: str
     content_ids: List[str] = []
+
+
+class DeleteShowRequest(BaseModel):
+    delete_all_occurrences: bool = False
