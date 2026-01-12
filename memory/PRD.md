@@ -250,7 +250,24 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Toast notifications for remote changes
 - [x] Note: WebSocket requires WSS-capable proxy in production
 
-### January 10, 2026 - Backend Refactoring (P1)
+### January 12, 2026 - Simplified Recurring Shows in Calendar
+- [x] Removed separate "Show Series" and "Occurrences" pages
+- [x] Consolidated recurring show scheduling into the Calendar page
+- [x] Added recurrence options to show creation:
+  - Does not repeat (one-time)
+  - Every week
+  - Every 2 weeks
+  - Every 3 weeks
+  - Every 4 weeks
+- [x] Optional end date for recurring shows (defaults to 1 year)
+- [x] Recurring shows auto-generate occurrences on creation
+- [x] Each occurrence has its own rundown
+- [x] Edit recurring show dialog: "Only This One" or "All Occurrences"
+- [x] Delete recurring show dialog: "Only This One" or "All Occurrences"
+- [x] "Recurring" badge displayed on show detail page
+- [x] Repeat icon shown in calendar sidebar for recurring shows
+- [x] Updated navigation: removed Series and Occurrences links
+- [x] Deleted unused pages: SeriesPage.js, OccurrencesPage.js, OccurrenceDetailPage.js
 - [x] Refactored monolithic server.py (4234 lines) into modular structure
 - [x] Created `/app/backend/database.py`: MongoDB connection, JWT config, upload directories (29 lines)
 - [x] Created `/app/backend/models/` directory with 9 Pydantic model files:
