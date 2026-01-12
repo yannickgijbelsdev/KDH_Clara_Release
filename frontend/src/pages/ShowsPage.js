@@ -61,16 +61,16 @@ const ShowsPage = () => {
   return (
     <div data-testid="shows-page">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-black text-white mb-2">Shows</h1>
-          <p className="text-zinc-400">Plan and manage your radio shows</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Shows</h1>
+          <p className="text-sm sm:text-base text-zinc-400">Plan and manage your radio shows</p>
         </div>
         {isEditor && (
           <Button
             data-testid="create-show-btn"
             onClick={() => setIsCreateOpen(true)}
-            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-11 px-5 btn-primary"
+            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             New Show
