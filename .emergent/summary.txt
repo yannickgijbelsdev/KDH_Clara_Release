@@ -1,32 +1,41 @@
 <analysis>**original_problem_statement:**
-The user wants to build a web-based dashboard for radio editors to plan shows and prepare rundowns.
+The user wants to build a web-based dashboard for radio editors to plan shows and prepare rundowns. The project has evolved to include authentication, team management, content libraries, real-time collaboration, and a sophisticated recurring show system.
 
-**PRODUCT REQUIREMENTS:**
--   **MVP 1-3.1 (Completed):** Core functionality including authentication, team management, content library, and multi-site WordPress publishing.
--   **MVP 4 (Completed):** A major extension that added:
-    1.  **Internal Team Chat:** A simple, team-scoped messaging system.
-    2.  **Media Library:** Support for uploading and attaching documents (PDF, DOCX) and audio (MP3, WAV).
-    3.  **Permissions Update:** Only admins can create shows; editors/presenters can be assigned to edit rundowns.
-    4.  **Recurring Shows:** A new system (, ) for scheduling recurring shows with fresh, empty rundowns for each instance.
--   **MVP 4.1a (Completed):** Enhanced the recurring shows UI to allow selecting specific days of the week, setting a start date, and defining recurrence intervals.
--   **MVP 4.2 (Completed):** Added a clean, print-friendly HTML export view for rundowns associated with new  instances.
--   **MVP 4.3 (Completed):** Implemented real-time rundown collaboration using WebSockets for live updates (create, edit, delete, reorder) and presence indicators (viewer avatars) on the  rundown page.
--   **MVP 4.2a (Current Request - Completed):** Added feature parity to the original/legacy Show rundown view, ensuring it also has the Export / Print button and real-time collaboration features previously added to the  view.
+Recent user requests have focused on:
+1.  Refactoring the backend from a monolithic file into a modular structure.
+2.  Enhancing the security of the WordPress integration.
+3.  Fixing responsive layout issues on mobile and tablet devices.
+4.  Simplifying the application by removing the separate Series and Occurrences pages and consolidating all scheduling logic into the Calendar view.
+5.  Adding the ability to manage a show's recurrence settings (e.g., end date, disabling recurrence) directly from the show's detail page.
+6.  Investigating a bug where rundown items could not be added.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a feature-rich, full-stack solution with a FastAPI backend and React frontend. It supports user authentication, team management with roles (admin, editor, presenter), a central content library with multi-site WordPress integration, a media library for document/audio uploads, and a team chat. The core scheduling system has been rebuilt to support recurring Show Series that generate individual Show Occurrences, each with a clean rundown. Both new Occurrence rundowns and legacy Show rundowns now feature real-time collaboration via WebSockets and a print-friendly export view.
+The application is a full-stack solution with a FastAPI backend and React frontend. The backend code has been successfully refactored from a single large  file into a clean, modular structure with separate directories for routers, models, and services. The frontend UI is now fully responsive, providing a usable experience on mobile, tablet, and desktop. The core scheduling logic has been simplified: recurring shows are now created and managed directly within the Calendar page, and the old Show Series and Occurrences pages have been removed. The Show Detail page now includes a dedicated section for managing recurrence settings, allowing users to change frequency, set an end date, or stop the recurrence altogether. WordPress integration has been hardened with additional security checks and audit logging.
 
 **Last working item**:
--   **Last item agent was working:** Implementing feature parity for the legacy Show - / Print button and integrated the existing WebSocket hook () to provide the same real-time collaboration and export functionality that was built for the new Occurrence rundowns.
--   **Status:** USER VERIFICATION PENDING
--   **Agent Testing Done:** Y
--   **Which testing method agent to use?** both
+-   **Last item agent was working:** The agent was investigating a bug reported by the user: I also cant add items, what is going on.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** Y (partially)
+    -   The agent confirmed via  that the backend API endpoint for adding rundown items works correctly.
+    -   Screenshots of the UI showed that the Add Rundown Item dialog opens, and a success toast appears after submission. The item count in the UI also updates. This suggests the core logic is functioning. The agent's last step was to check browser console logs for any silent frontend errors.
+-   **Which testing method agent to use?** Frontend testing agent
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-  - None.
+
+-   **Issue 1: (P0) Cannot add items to rundown.**
+    -   **Description:** The user reported being unable to add items to a show's rundown. The agent's initial investigation showed the API and UI flow appear to be working, but the user's experience contradicts this. The problem might be a silent frontend error or an issue under specific conditions not yet tested.
+    -   **Attempted fixes:** None. The agent was still in the debugging phase.
+    -   **Next debug checklist:**
+        1.  Analyze the browser console logs from the last test attempt to identify any JavaScript errors that might be preventing the UI from re-rendering correctly, even if the API call succeeds.
+        2.  Thoroughly review the state management logic within  and . Ensure the component state is correctly updated after a new item is added.
+        3.  Deploy the frontend testing agent to create and run an automated test that simulates the user flow: navigate to a show, open the Add Item dialog, submit the form, and verify the new item appears in the rundown list.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical bug. The primary purpose of a rundown is to contain items; if users cannot add them, a core feature of the application is broken.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Frontend
 
 **In progress Task List**:
   - None.
@@ -34,35 +43,28 @@ The application is a feature-rich, full-stack solution with a FastAPI backend an
 **Upcoming and Future Tasks**
 
 **Upcoming Tasks:**
--   There are no outstanding user requests. The next agent should **propose a plan to the user**, suggesting work on one of the future tasks or asking for new requirements. A good first suggestion would be to refactor the monolithic  file.
+-   Resolve the P0 bug: Cannot add items to rundown.
 
 **Future Tasks:**
--   **(P1) Refactor Backend:** Break down the monolithic  into a more maintainable structure (e.g., , , ).
--   **(P2) Show Templates:** Add a feature to create new shows from past rundowns.
+-   **(P1) Show Templates:** Add a feature to create new shows from past rundowns.
+-   **(P2) Refactor Frontend Components:** Break down the large  component into smaller, more manageable child components (e.g., , , ).
 -   **(P2) Custom WPM:** Allow users to customize their Words-Per-Minute (WPM) setting for speaking time estimates.
 -   **(P2) Password Reset:** Implement a forgot password flow.
--   **(P3) Enhanced Calendar:** Add a detailed daily view and drag-and-drop rescheduling to the calendar.
+-   **(P3) Enhanced Calendar:** Add a detailed daily view and drag-and-drop rescheduling.
 -   **(P3) Show Cloning:** Add a feature to clone an entire show or show series.
 
 **Completed work in this session**
--   **Dependency Fix:** Ensured  and added usage: websockets [--version | <uri>] to .
--   **MVP 4 - Core Features:**
-    -   Implemented backend models and API endpoints for Team Chat, Media Library, Show Assignments, and Recurring Shows (, ).
-    -   Added a 'presenter' role and updated permission logic.
-    -   Built corresponding frontend pages: , , , and .
--   **MVP 4.1a - Enhanced Recurrence:**
-    -   Updated the  model and API to support day-of-week selection, start/end dates, and intervals.
-    -   Enhanced the  frontend with a new UI for configuring these advanced recurrence rules.
--   **MVP 4.2 & 4.3 - Realtime Rundown & Export (for Occurrences):**
-    -   Added a usage: websockets [--version | <uri>] dependency and implemented a WebSocket manager for real-time updates and presence tracking.
-    -   Created a print-friendly HTML export view for rundowns.
-    -   Updated the  to use a  hook for live collaboration and added an Export / Print button.
--   **MVP 4.2a - Feature Parity for Legacy Shows:**
-    -   Added a print endpoint for legacy show rundowns.
-    -   Updated legacy rundown CRUD endpoints to broadcast WebSocket events.
-    -   Updated the  to include the Export / Print button and integrated the  hook.
--   **Testing:** Successfully used the testing agent after each major feature implementation to ensure stability and correctness.
--   **Documentation:** Consistently updated  to reflect all completed work.
+-   **Backend Refactoring:** Successfully broke down the monolithic  into a modular structure located in , , and .
+-   **WordPress Security Enhancements:** Implemented audit logging for failed connection attempts and added user capability checks to the Test Connection feature in . Created .
+-   **Responsive UI Overhaul:** Fixed layout issues across the application, implementing a collapsible sidebar in  and ensuring pages like , , and  are mobile-friendly.
+-   **Simplified Scheduling Flow:**
+    -   Removed the  and  from the application.
+    -   Integrated recurrence logic directly into the  model and the  component.
+    -   Recurring shows are now created and managed entirely within the .
+-   **Recurrence Management Feature:**
+    -   Added a Recurrence Settings section to the  to allow users to modify or stop a show's recurrence.
+    -   Created a backend endpoint () to support these updates.
+-   **Bug Fix:** Fixed a server crash that occurred when stopping a recurring show if Delete Future Shows was selected.
 
 **Earlier issues found/mentioned but not fixed**
    - None.
@@ -75,83 +77,73 @@ The application is a feature-rich, full-stack solution with a FastAPI backend an
 
 **Key Technical Concepts**
 -   **Frontend**: React, React Router, Tailwind CSS, Shadcn/UI, axios, .
--   **Backend**: FastAPI, Pydantic, Motor (for async MongoDB), , usage: websockets [--version | <uri>].
+-   **Backend**: FastAPI, Pydantic, Motor (for async MongoDB), usage: websockets [--version | <uri>]. The backend now follows a modular design pattern with separation of concerns.
 -   **Database**: MongoDB.
 -   **Authentication**: JWT-based.
--   **Realtime**: Python usage: websockets [--version | <uri>] library on the backend to manage connections and broadcast events. A custom React hook on the frontend subscribes to rundown-specific channels for live UI updates and presence.
+-   **Realtime**: Python usage: websockets [--version | <uri>] library.
 
 **key DB schema**
--   **users**: Extended to include  and  for presence.
--   **ChatThread**: (, , )
--   **ChatMessage**: (, , )
--   **MediaAsset**: (, , , )
--   **ShowAssignment**: (, , )
--   **ShowSeries**: (, , , , , )
--   **ShowOccurrence**: (, Fri Jan  9 23:59:06 UTC 2026, )
--   **rundowns_v2**: The collection for rundowns linked to .
--   **rundown_items_v2**: The collection for items within a .
+-   **shows**: Schema updated to include  (boolean),  (string, e.g., weekly),  (string), and  (string).
+-   **show_series**, **show_occurrences**: These collections are now deprecated and no longer in use.
 
 **changes in tech stack**
--   Added usage: websockets [--version | <uri>] library to the backend for real-time features.
+-   No new technologies added, but a significant architectural refactoring of the backend codebase was performed for improved maintainability and scalability.
 
 **All files of reference**
--   **/app/backend/server.py**: Contains all backend logic for all new features (chat, media, series, occurrences, WebSockets, print views). It is now over 3000 lines.
--   **/app/backend/requirements.txt**: Updated to include .
--   **/app/frontend/src/pages/OccurrenceDetailPage.js**: Implements the primary real-time rundown editor and export feature.
--   **/app/frontend/src/pages/ShowDetailPage.js**: Updated to provide feature parity for legacy shows (real-time editing and export).
--   **/app/frontend/src/hooks/useRundownWebSocket.js**: Custom hook for handling WebSocket connection, event listeners, and state updates.
--   **/app/frontend/src/pages/SeriesPage.js**: Contains the UI for creating and managing recurring show series with advanced options.
--   **/app/memory/PRD.md**: Contains the full, updated product requirements.
+-   **/app/backend/**: The entire directory was refactored. Key new files are , and the contents of , , and .
+-   **/app/frontend/src/components/DashboardLayout.js**: Rewritten to support a responsive, collapsible sidebar.
+-   **/app/frontend/src/pages/ShowDetailPage.js**: Heavily modified to add recurrence management settings and dialogs for recurring show edits/deletes.
+-   **/app/frontend/src/pages/CalendarPage.js**: Modified to handle fetching and displaying all shows, including recurring ones.
+-   **/app/frontend/src/components/CreateShowDialog.js**: Updated to include recurrence interval options.
+-   **/app/frontend/src/App.js**: Routes for  and  were removed.
+-   **/app/docs/WORDPRESS_SECURITY.md**: New documentation file.
 
 **Areas that need refactoring**:
--   The  file is now monolithic and urgently needs to be refactored. The logic for models, different routers (shows, series, chat, media), and helper functions should be split into separate files and directories for maintainability.
+-   The  file should be deleted.
+-   The  component has grown very large and complex. It should be broken down into smaller, focused components (e.g., , , ).
 
 **key api endpoints**
--   : WebSocket connection endpoint for real-time rundown collaboration.
--   : Full CRUD for .
--   : Endpoint to create  instances from a series.
--   : Endpoints for managing rundown items for an occurrence.
--   : Renders the print-friendly view for an occurrence rundown.
--   : Renders the print-friendly view for a legacy show rundown.
--   : Endpoints for media file uploads and management.
--   : Endpoints for the internal chat feature.
+-   : **NEW** endpoint to update recurrence settings (frequency, end date) or stop recurrence.
+-   : The Create Show endpoint was updated to handle a  and automatically generate future show instances.
+-   : The Delete Show endpoint was updated to handle  parameter ( or ) for recurring shows.
 
 **Critical Info for New Agent**
--   The WebSocket feature works but shows as Offline in the preview environment because the ingress does not support WebSocket Secure () connections on the backend port. This is an expected environmental limitation and not a bug in the code.
--   All user requests to date have been completed. You must consult the  list and **propose a new plan to the user** before starting any work. Refactoring the backend () is the highest-priority technical task.
--   Authentication for WebSocket connections and the print view (when opened in a new tab) is handled by passing the JWT token as a URL query parameter.
+-   Your immediate priority is to resolve the **P0 bug** where users cannot add items to a rundown. Start by analyzing the browser console logs from the previous agent's test attempt. If that reveals nothing, use the frontend testing agent to build a specific test case for this functionality.
+-   The application's scheduling logic has been significantly simplified. The concepts of Show Series and Occurrences are deprecated. All scheduling is now managed via recurrence rules on the main  object, handled within the . Do not refer to the old  or  pages or APIs.
+-   The backend code is now clean and modular. Familiarize yourself with the new structure in , , and .
 
 **documents and test reports created in this job**
--   /app/memory/PRD.md
--   /app/test_reports/iteration_5.json
--   /app/test_reports/iteration_6.json
--   /app/test_reports/iteration_7.json
--   /app/test_reports/iteration_8.json
+-   /app/memory/PRD.md (updated)
+-   /app/docs/WORDPRESS_SECURITY.md
+-   /app/test_reports/iteration_9.json
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (Msg 233):** Provided requirements for Step 4.2a (Feature Parity: Add Print/Export to legacy Show->Rundown view). (COMPLETED)
-2.  **User (Msg 156):** Provided requirements for Step 4.2 (Rundown Export/Print) and 4.3 (Realtime Rundown Collaboration). (COMPLETED)
-3.  **User (Msg 104):** Provided requirements for Step 4.1a (Enhanced Recurrence UI with day selection). (COMPLETED)
-4.  **User (Msg 5):** Provided detailed requirements for the entire Step 4 feature set (Chat, Media, Permissions, Recurring Shows). (COMPLETED)
-5.  **User (Msg 6):** Approved the agent's high-level implementation plan for Step 4. (COMPLETED)
+1.  **User (Msg 360):** I also cant add items, what is going on - **PENDING INVESTIGATION**
+2.  **User (Msg 343):** I got failed to stop recurrence - **RESOLVED**
+3.  **User (Msg 307):** Where can I disable the recurrent show? - **RESOLVED** (Recurrence settings were added to the Show Detail page).
+4.  **User (Msg 217):** Confirmed choices for simplifying the scheduling flow (e.g., use popups for recurring edits). - **IMPLEMENTED**
+5.  **User (Msg 214):** Requested to merge Series/Occurrences functionality into the Calendar. - **IMPLEMENTED**
+6.  **User (Msg 149):** On smaller screens its not okay. - **RESOLVED** (UI was made responsive).
+7.  **User (Msg 120):** Provided new security requirements for the WordPress integration. - **IMPLEMENTED**
+8.  **User (Msg 5):** Approved the agent's plan to proceed with backend refactoring.
 
 **Project Health Check:**
--   **Broken**: None.
--   **Mocked**: WordPress REST API integration.
+-   **Broken**: The Add Rundown Item feature is potentially broken for the user and is under investigation.
+-   **Mocked**: WordPress REST API integration (requires real site credentials to function).
 
 **3rd Party Integrations**
 -   **WordPress REST API**: For publishing content. Requires user-provided credentials.
 -   **WebSockets**: Natively implemented using the usage: websockets [--version | <uri>] Python library for real-time communication.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES (after each major feature set was completed).
+-   **Testing agent used after significant changes**: YES, a full regression suite (25/25 tests passed) was run successfully after the major backend refactoring.
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: Test scenarios were added by the testing agent in .
--   **Known regressions**: None.
+-   **Test files created**: None.
+-   **Known regressions**: The user-reported bug about adding rundown items could be a regression.
 
 **Credentials to test flow:**
 -   **Email:** 
 -   **Password:** 
 
 **What agent forgot to execute**
--   Nothing. The agent was thorough and systematically implemented all requested features, including running tests and updating documentation at each step.</analysis>
+-   The agent did not delete the backup file  after completing the backend refactoring.</analysis>
