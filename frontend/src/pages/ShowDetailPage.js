@@ -133,6 +133,8 @@ const ShowDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [recurringEditDialogOpen, setRecurringEditDialogOpen] = useState(false);
+  const [recurringDeleteDialogOpen, setRecurringDeleteDialogOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
   
