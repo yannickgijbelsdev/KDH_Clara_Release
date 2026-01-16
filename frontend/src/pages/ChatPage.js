@@ -737,14 +737,14 @@ const ChatPage = () => {
             <>
               {/* Thread Header */}
               <div className="p-3 md:p-4 border-b border-white/10">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="md:hidden"
+                    className="md:hidden flex-shrink-0"
                     onClick={() => setShowSidebar(true)}
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <Menu className="w-5 h-5" />
                   </Button>
                   {getThreadIcon(activeThread)}
                   <div className="flex-1 min-w-0">
