@@ -507,6 +507,41 @@ async def create_message(
     return message_doc
 
 
+@chat_router.delete("/threads/{thread_id}/messages/{message_id}")
+async def delete_message(
+    thread_id: str,
+    message_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a message for everyone. Only the message sender can delete their message."""
+    user_id = current_user.get('id')
+    team_id = current_user.get('team_id')
+    
+    # Verify thread exists and user has access
+    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    # For group/private chats, verify membership
+    if thread.get("type") in ["group", "private"]:
+        if user_id not in thread.get("member_ids", []):
+            raise HTTPException(status_code=403, detail="Not a member of this thread")
+    
+    # Find the message
+    message = await db.chat_messages.find_one({"id": message_id, "thread_id": thread_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Only the sender can delete their own message
+    if message.get("user_id") != user_id:
+        raise HTTPException(status_code=403, detail="You can only delete your own messages")
+    
+    # Delete the message
+    await db.chat_messages.delete_one({"id": message_id})
+    
+    return {"deleted": True, "message_id": message_id}
+
+
 @chat_router.post("/upload")
 async def upload_chat_attachment(
     file: UploadFile = File(...),
