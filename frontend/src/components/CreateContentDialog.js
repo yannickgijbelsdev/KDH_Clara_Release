@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import axios from 'axios';
-import { FileText, Link, BookOpen } from 'lucide-react';
+import { FileText, Link, BookOpen, Image, X, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,11 @@ const contentTypes = [
 
 const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
+  
   const [formData, setFormData] = useState({
     title: '',
     type: 'text',
@@ -41,16 +46,73 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
     status: 'draft',
   });
 
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please use JPEG, PNG, GIF, or WebP.');
+      return;
+    }
+    
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 5MB.');
+      return;
+    }
+    
+    setSelectedFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => setPreviewImage(e.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedFile(null);
+    setPreviewImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // First create the content
       const response = await axios.post(`${API}/content`, {
         ...formData,
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       });
-      onContentCreated(response.data);
+      
+      const contentId = response.data.id;
+      let finalContent = response.data;
+      
+      // If there's a featured image, upload it
+      if (selectedFile) {
+        setUploadingImage(true);
+        const imageFormData = new FormData();
+        imageFormData.append('file', selectedFile);
+        
+        try {
+          const imageResponse = await axios.post(
+            `${API}/content/${contentId}/featured-image`,
+            imageFormData,
+            { headers: { 'Content-Type': 'multipart/form-data' } }
+          );
+          finalContent.featured_image = imageResponse.data.featured_image;
+        } catch (imgError) {
+          toast.error('Content created but failed to upload featured image');
+        }
+        setUploadingImage(false);
+      }
+      
+      onContentCreated(finalContent);
+      
+      // Reset form
       setFormData({
         title: '',
         type: 'text',
@@ -60,10 +122,15 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
         tags: '',
         status: 'draft',
       });
+      setSelectedFile(null);
+      setPreviewImage(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      
     } catch (error) {
       toast.error('Failed to create content');
     } finally {
       setLoading(false);
+      setUploadingImage(false);
     }
   };
 
@@ -134,6 +201,67 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
             </div>
           )}
 
+          {/* Featured Image Upload */}
+          <div className="space-y-2">
+            <Label className="text-zinc-300">Featured Image (optional)</Label>
+            {previewImage ? (
+              <div className="flex items-start gap-4 p-3 bg-[#27272a] rounded-lg border border-zinc-700">
+                <div className="w-24 h-24 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-zinc-300 truncate">{selectedFile?.name}</p>
+                  <p className="text-xs text-zinc-500">
+                    {selectedFile && (selectedFile.size / 1024).toFixed(1)} KB
+                  </p>
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="bg-transparent border-zinc-600 text-zinc-300 hover:bg-zinc-700 text-xs h-7"
+                    >
+                      Replace
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveImage}
+                      className="bg-transparent border-zinc-600 text-rose-400 hover:bg-rose-500/10 text-xs h-7"
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-zinc-700 rounded-lg p-6 text-center cursor-pointer hover:border-rose-500/50 hover:bg-rose-500/5 transition-colors"
+              >
+                <div className="flex flex-col items-center">
+                  <Image className="w-8 h-8 text-zinc-500 mb-2" />
+                  <p className="text-sm text-zinc-400">Click to upload featured image</p>
+                  <p className="text-xs text-zinc-500 mt-1">JPEG, PNG, GIF, WebP • Max 5MB</p>
+                </div>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
+              onChange={handleImageSelect}
+            />
+          </div>
+
           <div className="space-y-2">
             <Label className="text-zinc-300">Body</Label>
             <RichTextEditor
@@ -203,10 +331,17 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
             <Button
               type="submit"
               data-testid="submit-content-btn"
-              disabled={loading}
+              disabled={loading || uploadingImage}
               className="flex-1 bg-rose-500 hover:bg-rose-600 text-white btn-primary"
             >
-              {loading ? 'Creating...' : 'Create Content'}
+              {loading || uploadingImage ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  {uploadingImage ? 'Uploading image...' : 'Creating...'}
+                </>
+              ) : (
+                'Create Content'
+              )}
             </Button>
           </div>
         </form>
