@@ -257,12 +257,19 @@ const ChatPage = () => {
     }
   }, []);
 
-  const fetchThreads = useCallback(async () => {
+  const fetchThreads = useCallback(async (silent = false) => {
     try {
       const response = await axios.get(`${API}/chat/threads`);
       setThreads(response.data);
       
-      if (!activeThread) {
+      // Update active thread with fresh data if it exists
+      if (activeThread) {
+        const updatedActive = response.data.find(t => t.id === activeThread.id);
+        if (updatedActive) {
+          setActiveThread(updatedActive);
+        }
+      } else {
+        // Select team thread by default
         const teamThread = response.data.find(t => t.type === 'team');
         if (teamThread) {
           setActiveThread(teamThread);
@@ -273,7 +280,7 @@ const ChatPage = () => {
         }
       }
     } catch (error) {
-      toast.error('Failed to load chat threads');
+      if (!silent) toast.error('Failed to load chat threads');
     } finally {
       setLoading(false);
     }
