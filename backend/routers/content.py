@@ -154,7 +154,87 @@ async def delete_content_item(
     )
 
 
-# ============== FEATURED IMAGE ROUTES ==============
+# ============== CONTENT FEATURED IMAGE (Not site-specific) ==============
+
+@content_router.post("/{content_id}/featured-image")
+async def upload_content_featured_image(
+    content_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Upload a featured image for the content item (not site-specific)."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
+    if content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}")
+    
+    # Delete old featured image if exists
+    old_image = content.get("featured_image")
+    if old_image:
+        old_file = UPLOADS_DIR / old_image.get("file_storage_key", "")
+        if old_file.exists():
+            old_file.unlink()
+    
+    # Save new image
+    file_ext = Path(file.filename).suffix or '.jpg'
+    storage_key = f"content_{content_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    file_path = UPLOADS_DIR / storage_key
+    
+    file_size = 0
+    async with aiofiles.open(file_path, 'wb') as f:
+        while chunk := await file.read(8192):
+            await f.write(chunk)
+            file_size += len(chunk)
+    
+    now = datetime.now(timezone.utc).isoformat()
+    image_data = {
+        "file_storage_key": storage_key,
+        "file_name": file.filename,
+        "mime_type": content_type,
+        "size": file_size
+    }
+    
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {"featured_image": image_data, "updated_at": now}}
+    )
+    
+    return {"success": True, "featured_image": image_data}
+
+
+@content_router.delete("/{content_id}/featured-image")
+async def delete_content_featured_image(
+    content_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Delete the featured image from a content item."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    featured_image = content.get("featured_image")
+    if featured_image:
+        file_path = UPLOADS_DIR / featured_image.get("file_storage_key", "")
+        if file_path.exists():
+            file_path.unlink()
+    
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {"featured_image": None, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True}
+
+
+# ============== SITE-SPECIFIC FEATURED IMAGE ROUTES ==============
 
 @content_router.get("/{content_id}/featured-images", response_model=List[FeaturedImageResponse])
 async def get_featured_images(
