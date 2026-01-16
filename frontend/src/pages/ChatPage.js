@@ -506,6 +506,27 @@ const ChatPage = () => {
     }
   };
 
+  const handleDeleteGroup = async () => {
+    if (!activeThread) return;
+    
+    setDeleting(true);
+    try {
+      await axios.delete(`${API}/chat/threads/${activeThread.id}`);
+      setThreads(prev => prev.filter(t => t.id !== activeThread.id));
+      
+      // Switch to team chat
+      const teamThread = threads.find(t => t.type === 'team' && t.id !== activeThread.id);
+      setActiveThread(teamThread || null);
+      
+      setShowDeleteDialog(false);
+      toast.success('Group deleted successfully!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete group');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const toggleMemberSelection = (memberId) => {
     if (newChatType === 'private') {
       setSelectedMembers([memberId]);
