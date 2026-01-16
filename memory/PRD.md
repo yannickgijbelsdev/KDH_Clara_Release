@@ -401,6 +401,8 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Content Library and WordPress Publishing (MVP 3)
 - [x] Team Chat, Media Library, Recurring Shows (MVP 4)
 - [x] Backend Refactoring: Modular structure with models/, routers/, services/
+- [x] Chat sidebar preview bug fix (January 16, 2026)
+- [x] Chat real-time polling verification (January 16, 2026)
 
 ### P1 (Near-term)
 - [ ] Show cloning/templating
@@ -408,6 +410,7 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [ ] Email invitations (currently shows temp password)
 - [ ] Password change after first login prompt
 - [ ] Migrate legacy shows to occurrence model
+- [ ] Refactor ChatPage.js (1200+ lines) into smaller components
 
 ### P2 (Future)
 - [ ] Multiple teams per user
@@ -416,9 +419,11 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [ ] Advanced permissions (per-show access levels)
 - [ ] Audit logs
 - [ ] Customizable WPM setting for speaking time
-- [ ] Real-time WebSocket chat (currently polling)
+- [ ] Real-time WebSocket chat (replace polling with WebSockets)
 - [ ] Recurrence exceptions ("skip this week")
 - [ ] Enhanced calendar with drag-and-drop rescheduling
+- [ ] Chat message reactions (👍❤️😂)
+- [ ] GIF support in chat (Giphy/Tenor integration)
 
 ## Test Credentials
 - Email: demo@radio.com
