@@ -667,16 +667,16 @@ const ChatPage = () => {
         </Button>
       </div>
 
-      <div className="flex gap-2 md:gap-4 h-[calc(100%-4rem)]">
+      <div className="flex gap-2 md:gap-4 h-[calc(100%-4rem)] relative">
         {/* Thread List - Responsive Sidebar */}
         <div className={cn(
-          "glass-card rounded-xl p-3 md:p-4 flex flex-col transition-all duration-300 ease-in-out",
-          // Mobile: Slide-in drawer from left
+          "glass-card rounded-xl p-3 md:p-4 flex flex-col transition-transform duration-300 ease-in-out",
+          // Mobile: Slide-in drawer from left - completely off screen when hidden
           "fixed top-0 left-0 h-full z-50 w-[280px] sm:w-[320px]",
           // Desktop: Static sidebar in flex layout
-          "md:relative md:h-auto md:z-auto md:w-72 lg:w-80 md:flex-shrink-0",
-          // Show/hide animation for mobile
-          showSidebar ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0 md:shadow-none"
+          "md:static md:h-auto md:z-auto md:w-72 lg:w-80 md:flex-shrink-0 md:transform-none",
+          // Show/hide animation for mobile only
+          showSidebar ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         )}>
           {/* Mobile header with close button */}
           <div className="flex items-center justify-between mb-4 pt-2 md:hidden">
