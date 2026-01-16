@@ -10,6 +10,16 @@ class ChatThreadCreate(BaseModel):
     member_ids: Optional[List[str]] = None  # For group and private chats
 
 
+class ChatThreadUpdate(BaseModel):
+    name: Optional[str] = None
+
+
+class ChatThreadMemberUpdate(BaseModel):
+    action: Literal["add", "remove", "set_role"]
+    member_id: str
+    role: Optional[Literal["owner", "admin", "member"]] = None
+
+
 class ChatThreadResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
@@ -20,6 +30,7 @@ class ChatThreadResponse(BaseModel):
     show_title: Optional[str] = None
     member_ids: Optional[List[str]] = None
     members: Optional[List[dict]] = None  # Populated with user info
+    member_roles: Optional[dict] = None  # {user_id: role}
     created_by: str
     created_at: str
     updated_at: str
@@ -29,6 +40,9 @@ class ChatThreadResponse(BaseModel):
 
 class ChatMessageCreate(BaseModel):
     body: str
+    attachment_url: Optional[str] = None
+    attachment_type: Optional[Literal["image", "audio", "file"]] = None
+    attachment_name: Optional[str] = None
 
 
 class ChatMessageResponse(BaseModel):
@@ -38,6 +52,9 @@ class ChatMessageResponse(BaseModel):
     user_id: str
     user_name: Optional[str] = None
     body: str
+    attachment_url: Optional[str] = None
+    attachment_type: Optional[str] = None
+    attachment_name: Optional[str] = None
     created_at: str
 
 
