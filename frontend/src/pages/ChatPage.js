@@ -805,6 +805,18 @@ const ChatPage = () => {
                           <UserPlus className="w-4 h-4 mr-2" />
                           Manage Members
                         </DropdownMenuItem>
+                        {getUserRole() === 'owner' && (
+                          <>
+                            <DropdownMenuSeparator className="bg-zinc-800" />
+                            <DropdownMenuItem 
+                              onClick={() => setShowDeleteDialog(true)}
+                              className="text-red-400 focus:text-red-300 focus:bg-red-500/10"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Group
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
