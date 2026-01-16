@@ -668,26 +668,15 @@ const ChatPage = () => {
       </div>
 
       <div className="flex gap-2 md:gap-4 h-[calc(100%-4rem)] relative">
-        {/* Thread List - Responsive Sidebar */}
+        {/* Thread List - Desktop only by default, slides in on mobile when toggled */}
         <div className={cn(
-          "glass-card rounded-xl p-3 md:p-4 flex flex-col transition-transform duration-300 ease-in-out",
-          // Mobile: Slide-in drawer from left - completely off screen when hidden
-          "fixed top-0 left-0 h-full z-50 w-[280px] sm:w-[320px]",
-          // Desktop: Static sidebar in flex layout
-          "md:static md:h-auto md:z-auto md:w-72 lg:w-80 md:flex-shrink-0 md:transform-none",
-          // Show/hide animation for mobile only
-          showSidebar ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+          "glass-card rounded-xl p-3 md:p-4 flex flex-col",
+          // Mobile: Hidden by default, slides in as overlay when showSidebar is true
+          "hidden md:flex",
+          // Desktop: Always visible, static positioning
+          "md:w-72 lg:w-80 md:flex-shrink-0"
         )}>
-          {/* Mobile header with close button */}
-          <div className="flex items-center justify-between mb-4 pt-2 md:hidden">
-            <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
-              Conversations
-            </h2>
-            <Button variant="ghost" size="icon" onClick={() => setShowSidebar(false)}>
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 hidden md:block">
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">
             Conversations
           </h2>
           <ScrollArea className="flex-1">
