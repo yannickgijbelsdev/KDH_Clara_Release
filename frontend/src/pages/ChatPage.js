@@ -533,11 +533,23 @@ const ChatPage = () => {
       setActiveThread(teamThread || null);
       
       setShowDeleteDialog(false);
-      toast.success('Group deleted successfully!');
+      toast.success(activeThread.type === 'private' ? 'Conversation deleted!' : 'Group deleted successfully!');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to delete group');
+      toast.error(error.response?.data?.detail || 'Failed to delete');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId) => {
+    if (!activeThread) return;
+    
+    try {
+      await axios.delete(`${API}/chat/threads/${activeThread.id}/messages/${messageId}`);
+      setMessages(prev => prev.filter(m => m.id !== messageId));
+      toast.success('Message deleted!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete message');
     }
   };
 
