@@ -862,6 +862,19 @@ const ChatPage = () => {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
+                  
+                  {/* Delete option for private chats */}
+                  {activeThread.type === 'private' && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="text-zinc-400 hover:text-red-400 hover:bg-red-500/10"
+                      title="Delete conversation"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </Button>
+                  )}
                 </div>
               </div>
 
