@@ -32,6 +32,7 @@ const RichTextEditor = ({
           height,
           menubar: true,
           placeholder,
+          license_key: 'gpl',
           plugins: [
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
             'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
