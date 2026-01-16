@@ -667,15 +667,18 @@ const ChatPage = () => {
         </Button>
       </div>
 
-      <div className="flex gap-4 h-[calc(100%-4rem)]">
-        {/* Thread List - Responsive */}
+      <div className="flex gap-2 md:gap-4 h-[calc(100%-4rem)]">
+        {/* Thread List - Responsive Sidebar */}
         <div className={cn(
-          "glass-card rounded-xl p-3 md:p-4 flex flex-col transition-all duration-300",
-          "fixed md:relative inset-0 md:inset-auto z-40 md:z-auto",
-          "w-full md:w-80 md:flex-shrink-0",
+          "glass-card rounded-xl p-3 md:p-4 flex flex-col transition-all duration-300 ease-in-out",
+          // Mobile: Full screen overlay
+          "fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[320px]",
+          // Desktop: Static sidebar
+          "md:relative md:inset-auto md:z-auto md:w-72 lg:w-80 md:flex-shrink-0",
+          // Show/hide on mobile
           showSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}>
-          {/* Mobile close button */}
+          {/* Mobile header with close button */}
           <div className="flex items-center justify-between mb-4 md:hidden">
             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
               Conversations
