@@ -12,38 +12,93 @@ import Picker from '@emoji-mart/react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Animated emoji component - renders emojis with continuous animation
+// Convert emoji character to its Unicode codepoint for animated emoji URL
+const emojiToCodepoint = (emoji) => {
+  const codePoints = [];
+  for (const char of emoji) {
+    codePoints.push(char.codePointAt(0).toString(16));
+  }
+  // Filter out variation selectors (fe0f) for cleaner URLs
+  return codePoints.filter(cp => cp !== 'fe0f').join('_');
+};
+
+// Animated emoji component using Google's Noto Animated Emojis
 const AnimatedEmoji = ({ emoji, size = 24 }) => {
+  const [hasError, setHasError] = useState(false);
+  const codepoint = emojiToCodepoint(emoji);
+  
+  // Google's Noto Animated Emoji CDN
+  const animatedUrl = `https://fonts.gstatic.com/s/e/notoemoji/latest/${codepoint}/512.webp`;
+  
+  if (hasError) {
+    // Fallback to native emoji if animated version not available
+    return (
+      <span 
+        className="inline-block align-middle"
+        style={{ fontSize: size }}
+      >
+        {emoji}
+      </span>
+    );
+  }
+  
   return (
-    <span 
-      className="inline-block animated-emoji"
+    <img
+      src={animatedUrl}
+      alt={emoji}
+      className="inline-block align-middle"
       style={{ 
-        fontSize: size,
-        lineHeight: 1,
-        verticalAlign: 'middle'
+        width: size, 
+        height: size,
+        verticalAlign: 'middle',
+        margin: '0 1px'
       }}
-    >
-      {emoji}
-    </span>
+      onError={() => setHasError(true)}
+      loading="lazy"
+    />
   );
 };
 
-// Parse message and render emojis with animation
+// Parse message and render emojis with animations
 const MessageWithEmojis = ({ text }) => {
-  // Regex to match emoji characters (including compound emojis)
-  const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+  // Regex to match emoji characters (including compound emojis and skin tones)
+  const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})(\u{FE0F})?(\u{200D}(\p{Emoji_Presentation}|\p{Extended_Pictographic})(\u{FE0F})?)*/gu;
   
-  const parts = text.split(emojiRegex);
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+  
+  while ((match = emojiRegex.exec(text)) !== null) {
+    // Add text before emoji
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'text',
+        content: text.slice(lastIndex, match.index)
+      });
+    }
+    // Add emoji
+    parts.push({
+      type: 'emoji',
+      content: match[0]
+    });
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push({
+      type: 'text',
+      content: text.slice(lastIndex)
+    });
+  }
   
   return (
     <span>
       {parts.map((part, index) => {
-        if (emojiRegex.test(part)) {
-          // Reset regex lastIndex
-          emojiRegex.lastIndex = 0;
-          return <AnimatedEmoji key={index} emoji={part} size={22} />;
+        if (part.type === 'emoji') {
+          return <AnimatedEmoji key={index} emoji={part.content} size={22} />;
         }
-        return <span key={index}>{part}</span>;
+        return <span key={index}>{part.content}</span>;
       })}
     </span>
   );
@@ -212,44 +267,8 @@ const ChatPage = () => {
 
   return (
     <div className="h-[calc(100vh-8rem)]" data-testid="chat-page">
-      {/* Animated emoji styles */}
+      {/* Emoji picker dark theme styles */}
       <style>{`
-        @keyframes emoji-bounce {
-          0%, 100% { transform: scale(1); }
-          25% { transform: scale(1.2) rotate(-5deg); }
-          50% { transform: scale(1.1) rotate(5deg); }
-          75% { transform: scale(1.15) rotate(-3deg); }
-        }
-        
-        @keyframes emoji-pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.15); opacity: 0.9; }
-        }
-        
-        @keyframes emoji-wiggle {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(-10deg); }
-          75% { transform: rotate(10deg); }
-        }
-        
-        @keyframes emoji-float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
-        }
-        
-        .animated-emoji {
-          display: inline-block;
-          animation: emoji-pulse 2s ease-in-out infinite, emoji-wiggle 3s ease-in-out infinite;
-          cursor: default;
-          transition: transform 0.2s ease;
-        }
-        
-        .animated-emoji:hover {
-          animation: emoji-bounce 0.6s ease-in-out;
-          transform: scale(1.3);
-        }
-        
-        /* Emoji picker dark theme overrides */
         em-emoji-picker {
           --rgb-background: 24, 24, 27;
           --rgb-input: 39, 39, 42;
@@ -453,7 +472,7 @@ const ChatPage = () => {
                     data-testid="message-input"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message... 😊"
+                    placeholder="Type a message..."
                     className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
                     disabled={sending}
                   />
