@@ -288,7 +288,7 @@ async def delete_chat_thread(
     thread_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Delete a chat thread. Only owner can delete group threads."""
+    """Delete a chat thread. Only owner can delete group threads. Either member can delete private chats."""
     user_id = current_user.get('id')
     team_id = current_user.get('team_id')
     
@@ -296,14 +296,21 @@ async def delete_chat_thread(
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     
-    if thread.get("type") == "team":
+    thread_type = thread.get("type")
+    
+    if thread_type == "team":
         raise HTTPException(status_code=400, detail="Cannot delete the team chat")
     
-    if thread.get("type") == "group":
+    if thread_type == "group":
         member_roles = thread.get("member_roles", {})
         user_role = member_roles.get(user_id)
         if user_role != "owner":
             raise HTTPException(status_code=403, detail="Only the owner can delete the group")
+    
+    if thread_type == "private":
+        # Either member of the private chat can delete it
+        if user_id not in thread.get("member_ids", []):
+            raise HTTPException(status_code=403, detail="You are not a member of this chat")
     
     # Delete all messages in the thread
     await db.chat_messages.delete_many({"thread_id": thread_id})
