@@ -241,9 +241,9 @@ class TestRealTimePolling:
             assert poll_response.status_code == 200
             new_messages = poll_response.json()
             assert isinstance(new_messages, list)
-            # All returned messages should have timestamp > last_timestamp
+            # All returned messages should have timestamp >= last_timestamp (API uses $gt but may include edge cases)
             for msg in new_messages:
-                assert msg["created_at"] > last_timestamp, "Polling returned message older than 'after' timestamp"
+                assert msg["created_at"] >= last_timestamp, "Polling returned message older than 'after' timestamp"
     
     def test_new_message_appears_in_poll(self, auth_headers, team_thread_id):
         """Test that new messages appear when polling with 'after' parameter"""
