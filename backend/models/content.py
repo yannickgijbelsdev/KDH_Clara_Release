@@ -63,6 +63,15 @@ class ContentPublishStatusWithImage(ContentPublishStatus):
     featured_image: Optional[FeaturedImageResponse] = None
 
 
+class ContentFeaturedImage(BaseModel):
+    """Featured image attached directly to content item (not site-specific)."""
+    model_config = ConfigDict(extra="ignore")
+    file_storage_key: str
+    file_name: str
+    mime_type: str
+    size: int
+
+
 class ContentItemResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
@@ -77,4 +86,5 @@ class ContentItemResponse(BaseModel):
     created_by: str
     created_at: str
     updated_at: str
+    featured_image: Optional[ContentFeaturedImage] = None
     publish_statuses: List[ContentPublishStatusWithImage] = []
