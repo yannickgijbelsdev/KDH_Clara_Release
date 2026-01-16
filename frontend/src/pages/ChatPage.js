@@ -746,7 +746,7 @@ const ChatPage = () => {
                       <p className="text-sm font-medium text-white truncate">{getThreadName(thread)}</p>
                       <p className="text-xs text-zinc-500 truncate mt-0.5">{getThreadSubtitle(thread)}</p>
                       {thread.last_message && (
-                        <p className="text-xs text-zinc-600 truncate mt-1 italic">{thread.last_message}</p>
+                        <p className="text-xs text-zinc-400 truncate mt-1">{thread.last_message}</p>
                       )}
                     </div>
                   </div>
