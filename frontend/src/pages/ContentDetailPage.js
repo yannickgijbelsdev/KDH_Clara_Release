@@ -631,11 +631,72 @@ const ContentDetailPage = () => {
 
             <div>
               <Label className="text-zinc-500 text-xs uppercase tracking-wider">Body</Label>
-              <div className="mt-2 p-4 bg-[#27272a] rounded-lg">
-                <pre className="text-zinc-300 whitespace-pre-wrap font-sans text-sm">
-                  {content.body || <span className="text-zinc-500 italic">No content</span>}
-                </pre>
+              <div className="mt-2 p-4 bg-[#27272a] rounded-lg prose prose-invert prose-sm max-w-none">
+                {content.body ? (
+                  <div 
+                    className="text-zinc-300 content-body-display"
+                    dangerouslySetInnerHTML={{ __html: content.body }}
+                  />
+                ) : (
+                  <span className="text-zinc-500 italic">No content</span>
+                )}
               </div>
+              <style>{`
+                .content-body-display {
+                  font-size: 14px;
+                  line-height: 1.6;
+                }
+                .content-body-display p { margin: 0 0 1em 0; }
+                .content-body-display h1, 
+                .content-body-display h2, 
+                .content-body-display h3, 
+                .content-body-display h4 { 
+                  color: #ffffff; 
+                  margin-top: 1.5em; 
+                  margin-bottom: 0.5em; 
+                  font-weight: 600;
+                }
+                .content-body-display h1 { font-size: 1.5em; }
+                .content-body-display h2 { font-size: 1.3em; }
+                .content-body-display h3 { font-size: 1.15em; }
+                .content-body-display a { color: #a78bfa; text-decoration: underline; }
+                .content-body-display ul, .content-body-display ol { padding-left: 1.5em; margin: 0.5em 0; }
+                .content-body-display li { margin: 0.25em 0; }
+                .content-body-display blockquote { 
+                  border-left: 3px solid #a78bfa; 
+                  margin: 1em 0;
+                  padding-left: 1em; 
+                  color: #a1a1aa;
+                  font-style: italic;
+                }
+                .content-body-display pre { 
+                  background-color: #18181b; 
+                  padding: 1em; 
+                  border-radius: 6px; 
+                  overflow-x: auto;
+                  margin: 1em 0;
+                }
+                .content-body-display code { 
+                  background-color: #18181b; 
+                  padding: 0.2em 0.4em; 
+                  border-radius: 3px; 
+                  font-size: 0.9em;
+                  font-family: monospace;
+                }
+                .content-body-display table { 
+                  border-collapse: collapse; 
+                  width: 100%; 
+                  margin: 1em 0;
+                }
+                .content-body-display td, .content-body-display th { 
+                  border: 1px solid #3f3f46; 
+                  padding: 8px; 
+                }
+                .content-body-display th { background-color: #18181b; }
+                .content-body-display img { max-width: 100%; height: auto; border-radius: 6px; margin: 1em 0; }
+                .content-body-display strong, .content-body-display b { font-weight: 600; }
+                .content-body-display em, .content-body-display i { font-style: italic; }
+              `}</style>
             </div>
 
             {content.tags && content.tags.length > 0 && (
