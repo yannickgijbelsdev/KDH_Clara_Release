@@ -2,13 +2,52 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { MessageSquare, Send, Users, Radio, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Users, Radio, Loader2, Smile, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { cn } from '../lib/utils';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Animated emoji component - renders emojis with continuous animation
+const AnimatedEmoji = ({ emoji, size = 24 }) => {
+  return (
+    <span 
+      className="inline-block animated-emoji"
+      style={{ 
+        fontSize: size,
+        lineHeight: 1,
+        verticalAlign: 'middle'
+      }}
+    >
+      {emoji}
+    </span>
+  );
+};
+
+// Parse message and render emojis with animation
+const MessageWithEmojis = ({ text }) => {
+  // Regex to match emoji characters (including compound emojis)
+  const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})/gu;
+  
+  const parts = text.split(emojiRegex);
+  
+  return (
+    <span>
+      {parts.map((part, index) => {
+        if (emojiRegex.test(part)) {
+          // Reset regex lastIndex
+          emojiRegex.lastIndex = 0;
+          return <AnimatedEmoji key={index} emoji={part} size={22} />;
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </span>
+  );
+};
 
 const ChatPage = () => {
   const { user } = useAuth();
@@ -18,8 +57,11 @@ const ChatPage = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     fetchThreads();
@@ -48,6 +90,18 @@ const ChatPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -105,6 +159,20 @@ const ChatPage = () => {
     }
   };
 
+  const handleEmojiSelect = (emoji) => {
+    const cursorPos = inputRef.current?.selectionStart || newMessage.length;
+    const textBefore = newMessage.substring(0, cursorPos);
+    const textAfter = newMessage.substring(cursorPos);
+    setNewMessage(textBefore + emoji.native + textAfter);
+    
+    // Focus back on input
+    setTimeout(() => {
+      inputRef.current?.focus();
+      const newPos = cursorPos + emoji.native.length;
+      inputRef.current?.setSelectionRange(newPos, newPos);
+    }, 10);
+  };
+
   const formatTime = (dateStr) => {
     const date = new Date(dateStr);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -144,6 +212,53 @@ const ChatPage = () => {
 
   return (
     <div className="h-[calc(100vh-8rem)]" data-testid="chat-page">
+      {/* Animated emoji styles */}
+      <style>{`
+        @keyframes emoji-bounce {
+          0%, 100% { transform: scale(1); }
+          25% { transform: scale(1.2) rotate(-5deg); }
+          50% { transform: scale(1.1) rotate(5deg); }
+          75% { transform: scale(1.15) rotate(-3deg); }
+        }
+        
+        @keyframes emoji-pulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.15); opacity: 0.9; }
+        }
+        
+        @keyframes emoji-wiggle {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(-10deg); }
+          75% { transform: rotate(10deg); }
+        }
+        
+        @keyframes emoji-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        
+        .animated-emoji {
+          display: inline-block;
+          animation: emoji-pulse 2s ease-in-out infinite, emoji-wiggle 3s ease-in-out infinite;
+          cursor: default;
+          transition: transform 0.2s ease;
+        }
+        
+        .animated-emoji:hover {
+          animation: emoji-bounce 0.6s ease-in-out;
+          transform: scale(1.3);
+        }
+        
+        /* Emoji picker dark theme overrides */
+        em-emoji-picker {
+          --rgb-background: 24, 24, 27;
+          --rgb-input: 39, 39, 42;
+          --rgb-color: 228, 228, 231;
+          --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+          --border-radius: 12px;
+        }
+      `}</style>
+
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-rose-500/20 rounded-lg">
           <MessageSquare className="w-6 h-6 text-rose-500" />
@@ -255,7 +370,7 @@ const ChatPage = () => {
                                 </p>
                               )}
                               <p className="text-sm text-white whitespace-pre-wrap break-words">
-                                {message.body}
+                                <MessageWithEmojis text={message.body} />
                               </p>
                               <p className="text-xs text-zinc-500 mt-1 text-right">
                                 {formatTime(message.created_at)}
@@ -272,12 +387,73 @@ const ChatPage = () => {
 
               {/* Message Input */}
               <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10">
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center relative">
+                  {/* Emoji Picker Popup */}
+                  {showEmojiPicker && (
+                    <div 
+                      ref={emojiPickerRef}
+                      className="absolute bottom-full left-0 mb-2 z-50"
+                    >
+                      <div className="relative">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowEmojiPicker(false)}
+                          className="absolute -top-2 -right-2 z-10 h-6 w-6 p-0 rounded-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-600"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                        <Picker
+                          data={data}
+                          onEmojiSelect={handleEmojiSelect}
+                          theme="dark"
+                          previewPosition="none"
+                          skinTonePosition="search"
+                          maxFrequentRows={2}
+                          perLine={8}
+                          emojiSize={28}
+                          emojiButtonSize={36}
+                          categories={[
+                            'frequent',
+                            'people',
+                            'nature',
+                            'foods',
+                            'activity',
+                            'places',
+                            'objects',
+                            'symbols',
+                            'flags'
+                          ]}
+                          icons="outline"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Emoji Button */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className={cn(
+                      "h-10 w-10 flex-shrink-0 transition-colors",
+                      showEmojiPicker 
+                        ? "bg-rose-500/20 text-rose-400" 
+                        : "hover:bg-white/10 text-zinc-400 hover:text-white"
+                    )}
+                    data-testid="emoji-picker-btn"
+                  >
+                    <Smile className="w-5 h-5" />
+                  </Button>
+                  
                   <Input
+                    ref={inputRef}
                     data-testid="message-input"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
+                    placeholder="Type a message... 😊"
                     className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
                     disabled={sending}
                   />
