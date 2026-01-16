@@ -272,9 +272,20 @@ const ContentLibraryPage = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
-                    <div className="p-2 bg-zinc-800 rounded-lg">
-                      <TypeIcon className="w-5 h-5 text-zinc-400" />
-                    </div>
+                    {/* Featured Image Thumbnail or Type Icon */}
+                    {item.featured_image ? (
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
+                        <img
+                          src={`${API}/uploads/featured_images/${item.featured_image.file_storage_key}`}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="p-2 bg-zinc-800 rounded-lg">
+                        <TypeIcon className="w-5 h-5 text-zinc-400" />
+                      </div>
+                    )}
                     <div>
                       <div className="flex items-center gap-3 mb-1">
                         <h3 className="text-lg font-semibold text-white group-hover:text-rose-400 transition-colors">
