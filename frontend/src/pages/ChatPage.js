@@ -671,15 +671,15 @@ const ChatPage = () => {
         {/* Thread List - Responsive Sidebar */}
         <div className={cn(
           "glass-card rounded-xl p-3 md:p-4 flex flex-col transition-all duration-300 ease-in-out",
-          // Mobile: Full screen overlay
-          "fixed inset-y-0 left-0 z-50 w-[85vw] max-w-[320px]",
-          // Desktop: Static sidebar
-          "md:relative md:inset-auto md:z-auto md:w-72 lg:w-80 md:flex-shrink-0",
-          // Show/hide on mobile
-          showSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          // Mobile: Slide-in drawer from left
+          "fixed top-0 left-0 h-full z-50 w-[280px] sm:w-[320px]",
+          // Desktop: Static sidebar in flex layout
+          "md:relative md:h-auto md:z-auto md:w-72 lg:w-80 md:flex-shrink-0",
+          // Show/hide animation for mobile
+          showSidebar ? "translate-x-0 shadow-2xl" : "-translate-x-full md:translate-x-0 md:shadow-none"
         )}>
           {/* Mobile header with close button */}
-          <div className="flex items-center justify-between mb-4 md:hidden">
+          <div className="flex items-center justify-between mb-4 pt-2 md:hidden">
             <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
               Conversations
             </h2>
