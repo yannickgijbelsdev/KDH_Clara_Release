@@ -283,6 +283,37 @@ async def update_chat_thread(
     return updated_thread
 
 
+@chat_router.delete("/threads/{thread_id}")
+async def delete_chat_thread(
+    thread_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a chat thread. Only owner can delete group threads."""
+    user_id = current_user.get('id')
+    team_id = current_user.get('team_id')
+    
+    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    if thread.get("type") == "team":
+        raise HTTPException(status_code=400, detail="Cannot delete the team chat")
+    
+    if thread.get("type") == "group":
+        member_roles = thread.get("member_roles", {})
+        user_role = member_roles.get(user_id)
+        if user_role != "owner":
+            raise HTTPException(status_code=403, detail="Only the owner can delete the group")
+    
+    # Delete all messages in the thread
+    await db.chat_messages.delete_many({"thread_id": thread_id})
+    
+    # Delete the thread
+    await db.chat_threads.delete_one({"id": thread_id})
+    
+    return {"deleted": True, "message": "Chat deleted successfully"}
+
+
 @chat_router.post("/threads/{thread_id}/members", response_model=ChatThreadResponse)
 async def manage_thread_members(
     thread_id: str,
