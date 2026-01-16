@@ -723,16 +723,16 @@ const ChatPage = () => {
           </ScrollArea>
         </div>
 
-        {/* Overlay for mobile */}
+        {/* Overlay for mobile - closes sidebar when clicked */}
         {showSidebar && (
           <div 
-            className="fixed inset-0 bg-black/50 z-30 md:hidden"
+            className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
             onClick={() => setShowSidebar(false)}
           />
         )}
 
         {/* Messages Area */}
-        <div className="flex-1 glass-card rounded-xl flex flex-col overflow-hidden">
+        <div className="flex-1 glass-card rounded-xl flex flex-col overflow-hidden min-w-0">
           {activeThread ? (
             <>
               {/* Thread Header */}
