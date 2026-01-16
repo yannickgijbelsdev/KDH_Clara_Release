@@ -319,8 +319,15 @@ const ChatPage = () => {
   useEffect(() => {
     fetchThreads();
     fetchTeamMembers();
+    
+    // Poll for thread list updates every 5 seconds (for new chats, last message previews)
+    const threadPollInterval = setInterval(() => {
+      fetchThreads();
+    }, 5000);
+    
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      clearInterval(threadPollInterval);
     };
   }, []);
 
@@ -329,7 +336,7 @@ const ChatPage = () => {
       lastMessageTimeRef.current = null;
       fetchMessages(activeThread.id);
       
-      // Real-time polling every 2 seconds
+      // Real-time polling every 2 seconds for messages
       pollIntervalRef.current = setInterval(() => {
         fetchMessages(activeThread.id, true);
       }, 2000);
