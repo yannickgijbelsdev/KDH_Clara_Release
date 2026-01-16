@@ -312,6 +312,17 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] All 25 regression tests passed (100% success rate)
 - [x] Full backward compatibility maintained - all APIs work identically
 
+### January 16, 2026 - Chat Bug Fixes
+- [x] **Bug Fix: Sidebar Preview Text** - Fixed CSS styling issue where message preview in conversation list showed ":::::" instead of actual text
+  - Changed `text-zinc-600` to `text-zinc-400` for better visibility
+  - Removed `italic` style that caused font rendering issues with repeated characters
+  - Applied to both desktop and mobile sidebar views
+- [x] **Verified: Real-time Polling** - Confirmed polling mechanism works correctly:
+  - Thread list polls every 5 seconds for new conversations and message previews
+  - Active thread messages poll every 2 seconds using `after` parameter
+  - New messages appear without page refresh
+- [x] All 14 chat functionality tests passed (100% success rate)
+
 ## Database Collections
 ### Core Collections
 - **users**: id, email, password_hash, name, role, team_id, created_at, temp_password
