@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { toast } from 'sonner';
+import RichTextEditor from './RichTextEditor';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
