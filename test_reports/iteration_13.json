@@ -1,0 +1,77 @@
+{
+  "summary": "Completed testing of Content-Level Featured Images feature. All 9 backend API tests passed (100%). Frontend UI testing verified: Create Content dialog has featured image upload area, Content Detail page displays featured images, Edit mode shows Replace/Remove buttons for existing images.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/test_content_featured_images.py",
+    "/app/test_reports/pytest/content_featured_images_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "POST /api/content/{id}/featured-image endpoint correctly uploads and stores images in /app/backend/uploads/featured_images/",
+    "DELETE /api/content/{id}/featured-image endpoint correctly removes image from storage and database",
+    "Featured image persists after content updates (title, body, status changes)",
+    "Invalid file types (non-images) are correctly rejected with 400 status",
+    "CreateContentDialog.js includes featured image upload area with proper validation (5MB max, JPEG/PNG/GIF/WebP)",
+    "ContentDetailPage.js displays featured image in view mode and provides Replace/Remove buttons in edit mode",
+    "Image preview shows filename and file size in both create dialog and edit mode"
+  ],
+  "updated_files": [
+    "/app/tests/test_content_featured_images.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% (all featured image UI flows verified)"
+  },
+  "test_credentials": {
+    "email": "demo@radio.com",
+    "password": "password123"
+  },
+  "seed_data_creation": "Test content items created during backend testing with prefix 'TEST_' - automatically cleaned up after tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Content-level featured images fully tested and working. Backend endpoints: POST/DELETE /api/content/{id}/featured-image. Frontend: CreateContentDialog.js has upload area, ContentDetailPage.js shows image in view mode with Replace/Remove in edit mode. Images stored in /app/backend/uploads/featured_images/. WordPress REST API integration remains MOCKED.",
+  "features_tested": {
+    "upload_featured_image_when_creating_content": {
+      "status": "PASS",
+      "details": "CreateContentDialog.js includes 'Featured Image (optional)' section with upload area. Shows 'Click to upload featured image' text and 'JPEG, PNG, GIF, WebP • Max 5MB' hint."
+    },
+    "view_featured_image_in_content_detail": {
+      "status": "PASS",
+      "details": "ContentDetailPage.js displays featured image in view mode with 'FEATURED IMAGE' label and filename. Image is rendered with proper styling."
+    },
+    "edit_replace_featured_image": {
+      "status": "PASS",
+      "details": "Edit mode shows 'Replace' button next to existing featured image. Backend correctly handles replacement by deleting old file and storing new one."
+    },
+    "remove_featured_image": {
+      "status": "PASS",
+      "details": "Edit mode shows 'Remove' button (red text) next to existing featured image. DELETE endpoint removes file from storage and sets featured_image to null."
+    },
+    "featured_image_persists_after_saving": {
+      "status": "PASS",
+      "details": "Backend test verified that updating content (title, body, status) does not affect the featured_image field. Image persists correctly."
+    }
+  },
+  "backend_tests_summary": {
+    "test_upload_featured_image_after_content_creation": "PASS - Create content, upload image, verify response contains featured_image data",
+    "test_view_featured_image_in_content_detail": "PASS - Upload image, GET content, verify featured_image in response",
+    "test_replace_featured_image": "PASS - Upload image, upload replacement, verify storage_key changed",
+    "test_remove_featured_image": "PASS - Upload image, DELETE, verify featured_image is null",
+    "test_featured_image_persists_after_content_update": "PASS - Upload image, PUT content update, verify image still exists",
+    "test_reject_invalid_file_type": "PASS - Upload text file, verify 400 error",
+    "test_upload_to_nonexistent_content": "PASS - Upload to fake ID, verify 404",
+    "test_delete_from_nonexistent_content": "PASS - DELETE from fake ID, verify 404",
+    "test_featured_image_in_content_list": "PASS - Verify content list includes featured_image data"
+  },
+  "mocked_integrations": {
+    "wordpress_rest_api": "MOCKED - No real WordPress site connected"
+  }
+}
