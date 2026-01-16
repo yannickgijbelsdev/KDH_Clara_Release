@@ -577,11 +577,12 @@ const ContentDetailPage = () => {
 
             <div className="space-y-2">
               <Label className="text-zinc-300">Body</Label>
-              <Textarea
+              <RichTextEditor
+                id="edit-content-body"
                 value={editData.body}
-                onChange={(e) => setEditData({ ...editData, body: e.target.value })}
-                className="bg-[#27272a] border-zinc-700 text-white resize-none min-h-[200px]"
-                rows={8}
+                onChange={(content) => setEditData({ ...editData, body: content })}
+                placeholder="Write your content here..."
+                height={350}
               />
             </div>
 
