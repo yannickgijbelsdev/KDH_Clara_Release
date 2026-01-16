@@ -1278,17 +1278,21 @@ const ChatPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Group Confirmation Dialog */}
+      {/* Delete Group/Chat Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="bg-[#18181b] border-zinc-800">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-500" />
-              Delete Group
+              {activeThread?.type === 'private' ? 'Delete Conversation' : 'Delete Group'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
-              Are you sure you want to delete <span className="text-white font-medium">"{activeThread?.name}"</span>? 
-              This will permanently delete all messages and cannot be undone.
+              {activeThread?.type === 'private' ? (
+                <>Are you sure you want to delete this conversation with <span className="text-white font-medium">{getThreadName(activeThread)}</span>?</>
+              ) : (
+                <>Are you sure you want to delete <span className="text-white font-medium">"{activeThread?.name}"</span>?</>
+              )}
+              {' '}This will permanently delete all messages and cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1306,7 +1310,7 @@ const ChatPage = () => {
                   Deleting...
                 </>
               ) : (
-                'Delete Group'
+                activeThread?.type === 'private' ? 'Delete Conversation' : 'Delete Group'
               )}
             </Button>
           </AlertDialogFooter>
