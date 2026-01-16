@@ -238,7 +238,7 @@ const ChatPage = () => {
   const [editingName, setEditingName] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [uploading, setUploading] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSidebar, setShowSidebar] = useState(false); // Start closed on mobile
   const [deleting, setDeleting] = useState(false);
   const messagesEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
