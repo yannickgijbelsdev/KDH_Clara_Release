@@ -246,6 +246,12 @@ const ChatPage = () => {
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
   const lastMessageTimeRef = useRef(null);
+  const activeThreadIdRef = useRef(null);
+
+  // Keep ref in sync with activeThread
+  useEffect(() => {
+    activeThreadIdRef.current = activeThread?.id || null;
+  }, [activeThread?.id]);
 
   // Fetch functions
   const fetchTeamMembers = useCallback(async () => {
