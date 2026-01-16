@@ -334,6 +334,17 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Only the message sender can delete their own messages
 - [x] All 8 chat delete feature tests passed (100% success rate)
 
+### January 16, 2026 - Content Featured Images
+- [x] **Content-Level Featured Image Upload** - Upload featured images when creating or editing content
+  - Featured image upload section added to Create Content dialog
+  - Featured image display in content detail view mode
+  - Replace/Remove buttons in edit mode
+  - Images stored in `/app/backend/uploads/featured_images/`
+- [x] **API Endpoints Added:**
+  - `POST /api/content/{id}/featured-image` - Upload image
+  - `DELETE /api/content/{id}/featured-image` - Remove image
+- [x] All 9 featured image tests passed (100% success rate)
+
 ## Database Collections
 ### Core Collections
 - **users**: id, email, password_hash, name, role, team_id, created_at, temp_password
