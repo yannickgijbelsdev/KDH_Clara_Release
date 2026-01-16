@@ -668,14 +668,58 @@ const ChatPage = () => {
       </div>
 
       <div className="flex gap-2 md:gap-4 h-[calc(100%-4rem)] relative">
-        {/* Thread List - Desktop only by default, slides in on mobile when toggled */}
-        <div className={cn(
-          "glass-card rounded-xl p-3 md:p-4 flex flex-col",
-          // Mobile: Hidden by default, slides in as overlay when showSidebar is true
-          "hidden md:flex",
-          // Desktop: Always visible, static positioning
-          "md:w-72 lg:w-80 md:flex-shrink-0"
-        )}>
+        {/* Mobile Sidebar Overlay */}
+        {showSidebar && (
+          <>
+            <div 
+              className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+              onClick={() => setShowSidebar(false)}
+            />
+            <div className="fixed top-0 left-0 h-full w-[280px] z-50 glass-card rounded-r-xl p-4 flex flex-col md:hidden animate-in slide-in-from-left duration-300">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+                  Conversations
+                </h2>
+                <Button variant="ghost" size="icon" onClick={() => setShowSidebar(false)}>
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              <ScrollArea className="flex-1">
+                <div className="space-y-2 pr-2">
+                  {threads.map((thread) => (
+                    <button
+                      key={thread.id}
+                      onClick={() => {
+                        setActiveThread(thread);
+                        setShowSidebar(false);
+                      }}
+                      className={cn(
+                        'w-full p-3 rounded-lg text-left transition-all',
+                        activeThread?.id === thread.id
+                          ? 'bg-rose-500/20 border border-rose-500/30'
+                          : 'hover:bg-white/5 border border-transparent'
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5">{getThreadIcon(thread)}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{getThreadName(thread)}</p>
+                          <p className="text-xs text-zinc-500 truncate mt-0.5">{getThreadSubtitle(thread)}</p>
+                          {thread.last_message && (
+                            <p className="text-xs text-zinc-600 truncate mt-1 italic">{thread.last_message}</p>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </>
+        )}
+
+        {/* Desktop Sidebar - Always visible */}
+        <div className="hidden md:flex glass-card rounded-xl p-4 flex-col md:w-72 lg:w-80 md:flex-shrink-0">
           <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">
             Conversations
           </h2>
