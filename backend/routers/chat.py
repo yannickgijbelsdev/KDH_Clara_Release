@@ -1,18 +1,23 @@
-"""Team chat routes."""
-from fastapi import APIRouter, HTTPException, Depends, status
+"""Team chat routes with real-time support."""
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
 from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
+import os
+import aiofiles
 
 from database import db
 from models.chat import (
-    ChatThreadCreate, ChatThreadResponse,
+    ChatThreadCreate, ChatThreadResponse, ChatThreadUpdate, ChatThreadMemberUpdate,
     ChatMessageCreate, ChatMessageResponse,
     TeamMemberResponse
 )
 from services.auth import get_current_user
 
 chat_router = APIRouter(prefix="/chat", tags=["Chat"])
+
+UPLOAD_DIR = "/app/backend/uploads/chat"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 async def get_member_info(user_ids: List[str]) -> List[dict]:
@@ -45,10 +50,6 @@ async def get_chat_threads(
     team_id = current_user.get('team_id')
     user_id = current_user.get('id')
     
-    # Get threads where:
-    # - team thread (everyone sees)
-    # - show thread (everyone sees)
-    # - group/private thread where user is a member
     threads = await db.chat_threads.find(
         {
             "team_id": team_id,
@@ -61,16 +62,13 @@ async def get_chat_threads(
     ).sort("updated_at", -1).to_list(100)
     
     for thread in threads:
-        # Add show title if applicable
         if thread.get("show_id"):
             show = await db.shows.find_one({"id": thread["show_id"]}, {"title": 1})
             thread["show_title"] = show.get("title") if show else None
         
-        # Add member info for group/private threads
         if thread.get("member_ids"):
             thread["members"] = await get_member_info(thread["member_ids"])
         
-        # For team threads, add all team members
         if thread.get("type") == "team":
             all_members = await db.users.find(
                 {"team_id": team_id},
@@ -79,7 +77,6 @@ async def get_chat_threads(
             thread["members"] = all_members
             thread["member_ids"] = [m["id"] for m in all_members]
         
-        # Get last message
         last_msg = await db.chat_messages.find_one(
             {"thread_id": thread["id"]},
             {"body": 1, "created_at": 1},
@@ -113,6 +110,7 @@ async def get_or_create_team_thread(
             "name": None,
             "show_id": None,
             "member_ids": [],
+            "member_roles": {},
             "created_by": current_user['id'],
             "created_at": now,
             "updated_at": now
@@ -120,7 +118,6 @@ async def get_or_create_team_thread(
         await db.chat_threads.insert_one(thread)
         thread.pop("_id", None)
     
-    # Add all team members
     all_members = await db.users.find(
         {"team_id": team_id},
         {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
@@ -140,40 +137,29 @@ async def create_chat_thread(
     team_id = current_user.get('team_id')
     user_id = current_user.get('id')
     
-    # Handle team thread
     if thread_data.type == "team":
         return await get_or_create_team_thread(current_user)
     
-    # Handle show thread
     if thread_data.type == "show" and thread_data.show_id:
-        show = await db.shows.find_one(
-            {"id": thread_data.show_id, "team_id": team_id}
-        )
+        show = await db.shows.find_one({"id": thread_data.show_id, "team_id": team_id})
         if not show:
             raise HTTPException(status_code=404, detail="Show not found")
         
-        existing = await db.chat_threads.find_one({
-            "show_id": thread_data.show_id,
-            "type": "show"
-        })
+        existing = await db.chat_threads.find_one({"show_id": thread_data.show_id, "type": "show"})
         if existing:
             existing.pop("_id", None)
             existing["show_title"] = show.get("title")
             return existing
     
-    # Handle private (1-on-1) thread
     if thread_data.type == "private":
         if not thread_data.member_ids or len(thread_data.member_ids) != 1:
             raise HTTPException(status_code=400, detail="Private chat requires exactly one other member")
         
         other_user_id = thread_data.member_ids[0]
-        
-        # Verify the other user exists and is on the same team
         other_user = await db.users.find_one({"id": other_user_id, "team_id": team_id})
         if not other_user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Check if private chat already exists between these two users
         member_ids_sorted = sorted([user_id, other_user_id])
         existing = await db.chat_threads.find_one({
             "team_id": team_id,
@@ -185,7 +171,6 @@ async def create_chat_thread(
             existing["members"] = await get_member_info(member_ids_sorted)
             return existing
         
-        # Create new private thread
         now = datetime.now(timezone.utc).isoformat()
         thread_doc = {
             "id": str(uuid.uuid4()),
@@ -194,6 +179,7 @@ async def create_chat_thread(
             "name": None,
             "show_id": None,
             "member_ids": member_ids_sorted,
+            "member_roles": {user_id: "owner", other_user_id: "owner"},
             "created_by": user_id,
             "created_at": now,
             "updated_at": now
@@ -203,7 +189,6 @@ async def create_chat_thread(
         thread_doc["members"] = await get_member_info(member_ids_sorted)
         return thread_doc
     
-    # Handle group thread
     if thread_data.type == "group":
         if not thread_data.member_ids or len(thread_data.member_ids) < 1:
             raise HTTPException(status_code=400, detail="Group chat requires at least one other member")
@@ -211,14 +196,15 @@ async def create_chat_thread(
         if not thread_data.name:
             raise HTTPException(status_code=400, detail="Group chat requires a name")
         
-        # Verify all members exist and are on the same team
         for member_id in thread_data.member_ids:
             member = await db.users.find_one({"id": member_id, "team_id": team_id})
             if not member:
                 raise HTTPException(status_code=404, detail=f"User {member_id} not found")
         
-        # Include the creator in the members
         all_member_ids = list(set([user_id] + thread_data.member_ids))
+        member_roles = {user_id: "owner"}
+        for mid in thread_data.member_ids:
+            member_roles[mid] = "member"
         
         now = datetime.now(timezone.utc).isoformat()
         thread_doc = {
@@ -228,6 +214,7 @@ async def create_chat_thread(
             "name": thread_data.name,
             "show_id": None,
             "member_ids": all_member_ids,
+            "member_roles": member_roles,
             "created_by": user_id,
             "created_at": now,
             "updated_at": now
@@ -237,7 +224,6 @@ async def create_chat_thread(
         thread_doc["members"] = await get_member_info(all_member_ids)
         return thread_doc
     
-    # Generic thread creation (fallback)
     now = datetime.now(timezone.utc).isoformat()
     thread_doc = {
         "id": str(uuid.uuid4()),
@@ -246,6 +232,7 @@ async def create_chat_thread(
         "name": thread_data.name,
         "show_id": thread_data.show_id,
         "member_ids": thread_data.member_ids or [],
+        "member_roles": {},
         "created_by": user_id,
         "created_at": now,
         "updated_at": now
@@ -256,42 +243,187 @@ async def create_chat_thread(
     return thread_doc
 
 
+@chat_router.patch("/threads/{thread_id}", response_model=ChatThreadResponse)
+async def update_chat_thread(
+    thread_id: str,
+    update_data: ChatThreadUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a chat thread (name, etc). Only owner/admin can update."""
+    user_id = current_user.get('id')
+    team_id = current_user.get('team_id')
+    
+    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    if thread.get("type") not in ["group"]:
+        raise HTTPException(status_code=400, detail="Can only update group threads")
+    
+    member_roles = thread.get("member_roles", {})
+    user_role = member_roles.get(user_id)
+    if user_role not in ["owner", "admin"]:
+        raise HTTPException(status_code=403, detail="Only owner or admin can update the group")
+    
+    update_fields = {}
+    if update_data.name is not None:
+        update_fields["name"] = update_data.name
+    
+    if update_fields:
+        update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.chat_threads.update_one(
+            {"id": thread_id},
+            {"$set": update_fields}
+        )
+    
+    updated_thread = await db.chat_threads.find_one({"id": thread_id}, {"_id": 0})
+    if updated_thread.get("member_ids"):
+        updated_thread["members"] = await get_member_info(updated_thread["member_ids"])
+    
+    return updated_thread
+
+
+@chat_router.post("/threads/{thread_id}/members", response_model=ChatThreadResponse)
+async def manage_thread_members(
+    thread_id: str,
+    member_update: ChatThreadMemberUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add, remove, or change role of thread members. Only owner/admin can manage."""
+    user_id = current_user.get('id')
+    team_id = current_user.get('team_id')
+    
+    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    if thread.get("type") not in ["group"]:
+        raise HTTPException(status_code=400, detail="Can only manage members in group threads")
+    
+    member_roles = thread.get("member_roles", {})
+    user_role = member_roles.get(user_id)
+    if user_role not in ["owner", "admin"]:
+        raise HTTPException(status_code=403, detail="Only owner or admin can manage members")
+    
+    member_ids = thread.get("member_ids", [])
+    target_id = member_update.member_id
+    
+    if member_update.action == "add":
+        # Verify user exists and is on the same team
+        target_user = await db.users.find_one({"id": target_id, "team_id": team_id})
+        if not target_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if target_id not in member_ids:
+            member_ids.append(target_id)
+            member_roles[target_id] = "member"
+    
+    elif member_update.action == "remove":
+        if target_id == thread.get("created_by"):
+            raise HTTPException(status_code=400, detail="Cannot remove the group owner")
+        if target_id in member_ids:
+            member_ids.remove(target_id)
+            member_roles.pop(target_id, None)
+    
+    elif member_update.action == "set_role":
+        if target_id not in member_ids:
+            raise HTTPException(status_code=400, detail="User is not a member of this group")
+        
+        target_role = member_roles.get(target_id)
+        if target_role == "owner" and member_update.role != "owner":
+            # Check if there's at least one other owner
+            owners = [k for k, v in member_roles.items() if v == "owner" and k != target_id]
+            if not owners:
+                raise HTTPException(status_code=400, detail="Group must have at least one owner")
+        
+        # Only owners can make someone else owner or admin
+        if member_update.role in ["owner", "admin"] and user_role != "owner":
+            raise HTTPException(status_code=403, detail="Only owners can grant owner/admin roles")
+        
+        member_roles[target_id] = member_update.role
+    
+    await db.chat_threads.update_one(
+        {"id": thread_id},
+        {
+            "$set": {
+                "member_ids": member_ids,
+                "member_roles": member_roles,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    updated_thread = await db.chat_threads.find_one({"id": thread_id}, {"_id": 0})
+    updated_thread["members"] = await get_member_info(updated_thread.get("member_ids", []))
+    return updated_thread
+
+
+@chat_router.get("/threads/{thread_id}", response_model=ChatThreadResponse)
+async def get_thread(
+    thread_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a single thread with full details."""
+    user_id = current_user.get('id')
+    team_id = current_user.get('team_id')
+    
+    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id}, {"_id": 0})
+    if not thread:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    
+    if thread.get("type") in ["group", "private"]:
+        if user_id not in thread.get("member_ids", []):
+            raise HTTPException(status_code=403, detail="Not a member of this thread")
+    
+    if thread.get("member_ids"):
+        thread["members"] = await get_member_info(thread["member_ids"])
+    
+    if thread.get("type") == "team":
+        all_members = await db.users.find(
+            {"team_id": team_id},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+        ).to_list(100)
+        thread["members"] = all_members
+        thread["member_ids"] = [m["id"] for m in all_members]
+    
+    return thread
+
+
 @chat_router.get("/threads/{thread_id}/messages", response_model=List[ChatMessageResponse])
 async def get_thread_messages(
     thread_id: str,
     limit: int = 50,
-    before: Optional[str] = None,
+    after: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get messages in a thread."""
+    """Get messages in a thread. Supports pagination with 'after' timestamp for real-time."""
     user_id = current_user.get('id')
     team_id = current_user.get('team_id')
     
-    thread = await db.chat_threads.find_one(
-        {"id": thread_id, "team_id": team_id}
-    )
+    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     
-    # Check access for group/private threads
     if thread.get("type") in ["group", "private"]:
         if user_id not in thread.get("member_ids", []):
             raise HTTPException(status_code=403, detail="Not a member of this thread")
     
     query = {"thread_id": thread_id}
-    if before:
-        query["created_at"] = {"$lt": before}
+    if after:
+        query["created_at"] = {"$gt": after}
     
     messages = await db.chat_messages.find(
         query,
         {"_id": 0}
-    ).sort("created_at", -1).limit(limit).to_list(limit)
+    ).sort("created_at", 1 if after else -1).limit(limit).to_list(limit)
     
     for msg in messages:
         user = await db.users.find_one({"id": msg["user_id"]}, {"name": 1})
         msg["user_name"] = user.get("name") if user else "Unknown"
     
-    messages.reverse()
+    if not after:
+        messages.reverse()
+    
     return messages
 
 
@@ -305,13 +437,10 @@ async def create_message(
     user_id = current_user.get('id')
     team_id = current_user.get('team_id')
     
-    thread = await db.chat_threads.find_one(
-        {"id": thread_id, "team_id": team_id}
-    )
+    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     
-    # Check access for group/private threads
     if thread.get("type") in ["group", "private"]:
         if user_id not in thread.get("member_ids", []):
             raise HTTPException(status_code=403, detail="Not a member of this thread")
@@ -322,6 +451,9 @@ async def create_message(
         "thread_id": thread_id,
         "user_id": user_id,
         "body": message_data.body,
+        "attachment_url": message_data.attachment_url,
+        "attachment_type": message_data.attachment_type,
+        "attachment_name": message_data.attachment_name,
         "created_at": now
     }
     
@@ -335,3 +467,57 @@ async def create_message(
     message_doc.pop("_id", None)
     message_doc["user_name"] = current_user.get("name")
     return message_doc
+
+
+@chat_router.post("/upload")
+async def upload_chat_attachment(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload an attachment for chat (image, audio, file)."""
+    allowed_image_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    allowed_audio_types = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/webm"]
+    allowed_file_types = ["application/pdf", "text/plain"]
+    
+    content_type = file.content_type or ""
+    
+    if content_type in allowed_image_types:
+        attachment_type = "image"
+    elif content_type in allowed_audio_types:
+        attachment_type = "audio"
+    elif content_type in allowed_file_types:
+        attachment_type = "file"
+    else:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {content_type}")
+    
+    # Generate unique filename
+    ext = os.path.splitext(file.filename)[1] if file.filename else ""
+    unique_filename = f"{uuid.uuid4()}{ext}"
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+    
+    # Save file
+    async with aiofiles.open(file_path, 'wb') as f:
+        content = await file.read()
+        await f.write(content)
+    
+    # Return URL
+    file_url = f"/api/chat/files/{unique_filename}"
+    
+    return {
+        "url": file_url,
+        "type": attachment_type,
+        "name": file.filename,
+        "size": len(content)
+    }
+
+
+@chat_router.get("/files/{filename}")
+async def get_chat_file(filename: str):
+    """Serve uploaded chat files."""
+    from fastapi.responses import FileResponse
+    
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(file_path)
