@@ -6,7 +6,7 @@ import {
   MessageSquare, Send, Users, Radio, Loader2, Smile, X, 
   Plus, User, UsersRound, Search, Check, Settings, UserPlus,
   UserMinus, Shield, Crown, Paperclip, Image, Music, Play, Pause,
-  Edit2, ChevronLeft, Menu
+  Edit2, ChevronLeft, Menu, Trash2
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -19,6 +19,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '../components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
