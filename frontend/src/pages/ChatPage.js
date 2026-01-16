@@ -229,6 +229,7 @@ const ChatPage = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [showManageDialog, setShowManageDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [newChatType, setNewChatType] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [groupName, setGroupName] = useState('');
@@ -238,6 +239,7 @@ const ChatPage = () => {
   const [editedName, setEditedName] = useState('');
   const [uploading, setUploading] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const messagesEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
   const emojiPickerRef = useRef(null);
