@@ -323,6 +323,17 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - New messages appear without page refresh
 - [x] All 14 chat functionality tests passed (100% success rate)
 
+### January 16, 2026 - Chat Delete Features
+- [x] **Delete Private Chats** - Either member of a private/direct message conversation can now delete it
+  - Trash icon button in private chat header
+  - Confirmation dialog before deletion
+  - All messages in the conversation are deleted
+- [x] **Delete Messages for Everyone** - Users can delete their own messages from any chat
+  - Delete button appears on hover to the left of own messages
+  - Message is removed from the chat for all participants
+  - Only the message sender can delete their own messages
+- [x] All 8 chat delete feature tests passed (100% success rate)
+
 ## Database Collections
 ### Core Collections
 - **users**: id, email, password_hash, name, role, team_id, created_at, temp_password
