@@ -1,16 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { 
   MessageSquare, Send, Users, Radio, Loader2, Smile, X, 
-  Plus, User, UsersRound, Search, Check
+  Plus, User, UsersRound, Search, Check, Settings, UserPlus,
+  UserMinus, Shield, Crown, Paperclip, Image, Music, Play, Pause,
+  Edit2, ChevronLeft, Menu
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { Checkbox } from '../components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -18,13 +19,27 @@ import {
   DialogTitle,
   DialogDescription,
 } from '../components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 import { cn } from '../lib/utils';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Convert emoji character to its Unicode codepoint for animated emoji URL
+// Emoji helpers
 const emojiToCodepoint = (emoji) => {
   const codePoints = [];
   for (const char of emoji) {
@@ -33,18 +48,13 @@ const emojiToCodepoint = (emoji) => {
   return codePoints.filter(cp => cp !== 'fe0f').join('_');
 };
 
-// Animated emoji component using Google's Noto Animated Emojis
 const AnimatedEmoji = ({ emoji, size = 24 }) => {
   const [hasError, setHasError] = useState(false);
   const codepoint = emojiToCodepoint(emoji);
   const animatedUrl = `https://fonts.gstatic.com/s/e/notoemoji/latest/${codepoint}/512.webp`;
   
   if (hasError) {
-    return (
-      <span className="inline-block align-middle" style={{ fontSize: size }}>
-        {emoji}
-      </span>
-    );
+    return <span className="inline-block align-middle" style={{ fontSize: size }}>{emoji}</span>;
   }
   
   return (
@@ -59,7 +69,6 @@ const AnimatedEmoji = ({ emoji, size = 24 }) => {
   );
 };
 
-// Parse message and render emojis with animations
 const MessageWithEmojis = ({ text }) => {
   const emojiRegex = /(\p{Emoji_Presentation}|\p{Extended_Pictographic})(\u{FE0F})?(\u{200D}(\p{Emoji_Presentation}|\p{Extended_Pictographic})(\u{FE0F})?)*/gu;
   
@@ -91,19 +100,110 @@ const MessageWithEmojis = ({ text }) => {
   );
 };
 
-// Format member names for display
+// Audio Player Component
+const AudioPlayer = ({ url, name }) => {
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const formatTime = (time) => {
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="flex items-center gap-3 bg-black/20 rounded-lg p-3 mt-2">
+      <audio
+        ref={audioRef}
+        src={`${process.env.REACT_APP_BACKEND_URL}${url}`}
+        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+        onEnded={() => setIsPlaying(false)}
+      />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={togglePlay}
+        className="h-10 w-10 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-400"
+      >
+        {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+      </Button>
+      <div className="flex-1">
+        <p className="text-xs text-zinc-400 truncate">{name}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-rose-500 transition-all"
+              style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+            />
+          </div>
+          <span className="text-xs text-zinc-500">
+            {formatTime(currentTime)} / {formatTime(duration)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Message Attachment Display
+const MessageAttachment = ({ attachment_url, attachment_type, attachment_name }) => {
+  if (!attachment_url) return null;
+  
+  const fullUrl = attachment_url.startsWith('http') 
+    ? attachment_url 
+    : `${process.env.REACT_APP_BACKEND_URL}${attachment_url}`;
+
+  if (attachment_type === 'image') {
+    return (
+      <div className="mt-2 rounded-lg overflow-hidden max-w-xs">
+        <img 
+          src={fullUrl} 
+          alt={attachment_name || 'Image'} 
+          className="w-full h-auto max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => window.open(fullUrl, '_blank')}
+        />
+      </div>
+    );
+  }
+  
+  if (attachment_type === 'audio') {
+    return <AudioPlayer url={attachment_url} name={attachment_name || 'Audio'} />;
+  }
+  
+  return (
+    <a 
+      href={fullUrl} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="flex items-center gap-2 mt-2 p-2 bg-black/20 rounded-lg hover:bg-black/30 transition-colors"
+    >
+      <Paperclip className="w-4 h-4 text-zinc-400" />
+      <span className="text-sm text-zinc-300 truncate">{attachment_name || 'File'}</span>
+    </a>
+  );
+};
+
 const formatMemberNames = (members, currentUserId, maxShow = 3) => {
   if (!members || members.length === 0) return 'No members';
-  
   const otherMembers = members.filter(m => m.id !== currentUserId);
   const displayMembers = otherMembers.slice(0, maxShow);
   const remaining = otherMembers.length - maxShow;
-  
   const names = displayMembers.map(m => m.name.split(' ')[0]).join(', ');
-  
-  if (remaining > 0) {
-    return `${names} +${remaining} more`;
-  }
+  if (remaining > 0) return `${names} +${remaining} more`;
   return names || 'Just you';
 };
 
@@ -118,15 +218,91 @@ const ChatPage = () => {
   const [sending, setSending] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
-  const [newChatType, setNewChatType] = useState(null); // 'private' or 'group'
+  const [showManageDialog, setShowManageDialog] = useState(false);
+  const [newChatType, setNewChatType] = useState(null);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [groupName, setGroupName] = useState('');
   const [memberSearch, setMemberSearch] = useState('');
   const [creatingChat, setCreatingChat] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [editedName, setEditedName] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
   const messagesEndRef = useRef(null);
   const pollIntervalRef = useRef(null);
   const emojiPickerRef = useRef(null);
   const inputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const lastMessageTimeRef = useRef(null);
+
+  // Fetch functions
+  const fetchTeamMembers = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/chat/members`);
+      setTeamMembers(response.data);
+    } catch (error) {
+      console.error('Failed to fetch team members:', error);
+    }
+  }, []);
+
+  const fetchThreads = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/chat/threads`);
+      setThreads(response.data);
+      
+      if (!activeThread) {
+        const teamThread = response.data.find(t => t.type === 'team');
+        if (teamThread) {
+          setActiveThread(teamThread);
+        } else {
+          const newThread = await axios.get(`${API}/chat/threads/team`);
+          setActiveThread(newThread.data);
+          setThreads([newThread.data, ...response.data]);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to load chat threads');
+    } finally {
+      setLoading(false);
+    }
+  }, [activeThread]);
+
+  const fetchMessages = useCallback(async (threadId, isPolling = false) => {
+    try {
+      let url = `${API}/chat/threads/${threadId}/messages?limit=100`;
+      if (isPolling && lastMessageTimeRef.current) {
+        url += `&after=${encodeURIComponent(lastMessageTimeRef.current)}`;
+      }
+      
+      const response = await axios.get(url);
+      
+      if (isPolling && lastMessageTimeRef.current) {
+        // Append new messages
+        if (response.data.length > 0) {
+          setMessages(prev => [...prev, ...response.data]);
+          lastMessageTimeRef.current = response.data[response.data.length - 1].created_at;
+        }
+      } else {
+        setMessages(response.data);
+        if (response.data.length > 0) {
+          lastMessageTimeRef.current = response.data[response.data.length - 1].created_at;
+        }
+      }
+    } catch (error) {
+      if (!isPolling) toast.error('Failed to load messages');
+    }
+  }, []);
+
+  // Refresh thread data
+  const refreshThread = useCallback(async (threadId) => {
+    try {
+      const response = await axios.get(`${API}/chat/threads/${threadId}`);
+      setActiveThread(response.data);
+      setThreads(prev => prev.map(t => t.id === threadId ? response.data : t));
+    } catch (error) {
+      console.error('Failed to refresh thread:', error);
+    }
+  }, []);
 
   useEffect(() => {
     fetchThreads();
@@ -138,18 +314,21 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (activeThread) {
+      lastMessageTimeRef.current = null;
       fetchMessages(activeThread.id);
+      
+      // Real-time polling every 2 seconds
       pollIntervalRef.current = setInterval(() => {
         fetchMessages(activeThread.id, true);
-      }, 5000);
+      }, 2000);
     }
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     };
-  }, [activeThread?.id]);
+  }, [activeThread?.id, fetchMessages]);
 
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   useEffect(() => {
@@ -162,64 +341,61 @@ const ChatPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const fetchTeamMembers = async () => {
-    try {
-      const response = await axios.get(`${API}/chat/members`);
-      setTeamMembers(response.data);
-    } catch (error) {
-      console.error('Failed to fetch team members:', error);
-    }
-  };
-
-  const fetchThreads = async () => {
-    try {
-      const response = await axios.get(`${API}/chat/threads`);
-      setThreads(response.data);
-      
-      const teamThread = response.data.find(t => t.type === 'team');
-      if (teamThread) {
-        setActiveThread(teamThread);
-      } else {
-        const newThread = await axios.get(`${API}/chat/threads/team`);
-        setActiveThread(newThread.data);
-        setThreads([newThread.data, ...response.data]);
-      }
-    } catch (error) {
-      toast.error('Failed to load chat threads');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMessages = async (threadId, silent = false) => {
-    try {
-      const response = await axios.get(`${API}/chat/threads/${threadId}/messages?limit=100`);
-      setMessages(response.data);
-    } catch (error) {
-      if (!silent) toast.error('Failed to load messages');
-    }
-  };
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !activeThread) return;
+  // Handlers
+  const handleSendMessage = async (e, attachmentData = null) => {
+    e?.preventDefault();
+    if ((!newMessage.trim() && !attachmentData) || !activeThread) return;
 
     setSending(true);
     try {
+      const messagePayload = {
+        body: newMessage.trim() || (attachmentData ? `Sent ${attachmentData.type}` : ''),
+        ...attachmentData && {
+          attachment_url: attachmentData.url,
+          attachment_type: attachmentData.type,
+          attachment_name: attachmentData.name
+        }
+      };
+      
       const response = await axios.post(
         `${API}/chat/threads/${activeThread.id}/messages`,
-        { body: newMessage.trim() }
+        messagePayload
       );
-      setMessages([...messages, response.data]);
+      setMessages(prev => [...prev, response.data]);
+      lastMessageTimeRef.current = response.data.created_at;
       setNewMessage('');
     } catch (error) {
       toast.error('Failed to send message');
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(`${API}/chat/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      await handleSendMessage(null, {
+        url: response.data.url,
+        type: response.data.type,
+        name: response.data.name
+      });
+      
+      toast.success('File uploaded!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload file');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -258,7 +434,6 @@ const ChatPage = () => {
         name: newChatType === 'group' ? groupName.trim() : null
       });
       
-      // Add new thread to list or update existing
       const existingIndex = threads.findIndex(t => t.id === response.data.id);
       if (existingIndex >= 0) {
         setThreads(prev => {
@@ -284,21 +459,57 @@ const ChatPage = () => {
     }
   };
 
+  const handleUpdateGroupName = async () => {
+    if (!editedName.trim() || !activeThread) return;
+    
+    try {
+      const response = await axios.patch(`${API}/chat/threads/${activeThread.id}`, {
+        name: editedName.trim()
+      });
+      setActiveThread(response.data);
+      setThreads(prev => prev.map(t => t.id === activeThread.id ? response.data : t));
+      setEditingName(false);
+      toast.success('Group name updated!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update group name');
+    }
+  };
+
+  const handleManageMember = async (action, memberId, role = null) => {
+    try {
+      const response = await axios.post(`${API}/chat/threads/${activeThread.id}/members`, {
+        action,
+        member_id: memberId,
+        role
+      });
+      setActiveThread(response.data);
+      setThreads(prev => prev.map(t => t.id === activeThread.id ? response.data : t));
+      toast.success(
+        action === 'add' ? 'Member added!' :
+        action === 'remove' ? 'Member removed!' :
+        'Role updated!'
+      );
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to manage member');
+    }
+  };
+
   const toggleMemberSelection = (memberId) => {
     if (newChatType === 'private') {
       setSelectedMembers([memberId]);
     } else {
       setSelectedMembers(prev => 
-        prev.includes(memberId) 
-          ? prev.filter(id => id !== memberId)
-          : [...prev, memberId]
+        prev.includes(memberId) ? prev.filter(id => id !== memberId) : [...prev, memberId]
       );
     }
   };
 
   const filteredMembers = teamMembers.filter(m => 
-    m.id !== user?.id && 
-    m.name.toLowerCase().includes(memberSearch.toLowerCase())
+    m.id !== user?.id && m.name.toLowerCase().includes(memberSearch.toLowerCase())
+  );
+
+  const nonGroupMembers = teamMembers.filter(m => 
+    m.id !== user?.id && !activeThread?.member_ids?.includes(m.id)
   );
 
   const formatTime = (dateStr) => {
@@ -311,7 +522,6 @@ const ChatPage = () => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-
     if (date.toDateString() === today.toDateString()) return 'Today';
     if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
     return date.toLocaleDateString();
@@ -349,18 +559,16 @@ const ChatPage = () => {
 
   const getThreadSubtitle = (thread) => {
     switch (thread.type) {
-      case 'team': 
-        return formatMemberNames(thread.members, user?.id, 4);
-      case 'group':
-        return formatMemberNames(thread.members, user?.id, 3);
-      case 'private':
-        return 'Direct message';
-      case 'show':
-        return 'Show discussion';
-      default:
-        return '';
+      case 'team': return formatMemberNames(thread.members, user?.id, 4);
+      case 'group': return formatMemberNames(thread.members, user?.id, 3);
+      case 'private': return 'Direct message';
+      case 'show': return 'Show discussion';
+      default: return '';
     }
   };
+
+  const getUserRole = () => activeThread?.member_roles?.[user?.id];
+  const isOwnerOrAdmin = () => ['owner', 'admin'].includes(getUserRole());
 
   if (loading) {
     return (
@@ -382,30 +590,54 @@ const ChatPage = () => {
         }
       `}</style>
 
-      <div className="flex items-center justify-between mb-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 md:mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-rose-500/20 rounded-lg">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setShowSidebar(!showSidebar)}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
+          <div className="p-2 bg-rose-500/20 rounded-lg hidden sm:block">
             <MessageSquare className="w-6 h-6 text-rose-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Team Chat</h1>
-            <p className="text-sm text-zinc-400">Communicate with your team</p>
+            <h1 className="text-xl md:text-2xl font-bold text-white">Team Chat</h1>
+            <p className="text-xs md:text-sm text-zinc-400 hidden sm:block">Communicate with your team</p>
           </div>
         </div>
         <Button
           onClick={() => setShowNewChatDialog(true)}
           className="bg-rose-500 hover:bg-rose-600 gap-2"
+          size="sm"
           data-testid="new-chat-btn"
         >
           <Plus className="w-4 h-4" />
-          New Chat
+          <span className="hidden sm:inline">New Chat</span>
         </Button>
       </div>
 
-      <div className="flex gap-4 h-[calc(100%-5rem)]">
-        {/* Thread List */}
-        <div className="w-80 glass-card rounded-xl p-4 flex-shrink-0 flex flex-col">
-          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">
+      <div className="flex gap-4 h-[calc(100%-4rem)]">
+        {/* Thread List - Responsive */}
+        <div className={cn(
+          "glass-card rounded-xl p-3 md:p-4 flex flex-col transition-all duration-300",
+          "fixed md:relative inset-0 md:inset-auto z-40 md:z-auto",
+          "w-full md:w-80 md:flex-shrink-0",
+          showSidebar ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        )}>
+          {/* Mobile close button */}
+          <div className="flex items-center justify-between mb-4 md:hidden">
+            <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
+              Conversations
+            </h2>
+            <Button variant="ghost" size="icon" onClick={() => setShowSidebar(false)}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+          <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4 hidden md:block">
             Conversations
           </h2>
           <ScrollArea className="flex-1">
@@ -414,7 +646,10 @@ const ChatPage = () => {
                 <button
                   key={thread.id}
                   data-testid={`thread-${thread.id}`}
-                  onClick={() => setActiveThread(thread)}
+                  onClick={() => {
+                    setActiveThread(thread);
+                    setShowSidebar(false);
+                  }}
                   className={cn(
                     'w-full p-3 rounded-lg text-left transition-all',
                     activeThread?.id === thread.id
@@ -425,16 +660,10 @@ const ChatPage = () => {
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">{getThreadIcon(thread)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
-                        {getThreadName(thread)}
-                      </p>
-                      <p className="text-xs text-zinc-500 truncate mt-0.5">
-                        {getThreadSubtitle(thread)}
-                      </p>
+                      <p className="text-sm font-medium text-white truncate">{getThreadName(thread)}</p>
+                      <p className="text-xs text-zinc-500 truncate mt-0.5">{getThreadSubtitle(thread)}</p>
                       {thread.last_message && (
-                        <p className="text-xs text-zinc-600 truncate mt-1 italic">
-                          {thread.last_message}
-                        </p>
+                        <p className="text-xs text-zinc-600 truncate mt-1 italic">{thread.last_message}</p>
                       )}
                     </div>
                   </div>
@@ -444,49 +673,113 @@ const ChatPage = () => {
           </ScrollArea>
         </div>
 
+        {/* Overlay for mobile */}
+        {showSidebar && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-30 md:hidden"
+            onClick={() => setShowSidebar(false)}
+          />
+        )}
+
         {/* Messages Area */}
         <div className="flex-1 glass-card rounded-xl flex flex-col overflow-hidden">
           {activeThread ? (
             <>
               {/* Thread Header */}
-              <div className="p-4 border-b border-white/10">
+              <div className="p-3 md:p-4 border-b border-white/10">
                 <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden"
+                    onClick={() => setShowSidebar(true)}
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
                   {getThreadIcon(activeThread)}
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-white">
-                      {getThreadName(activeThread)}
-                    </h3>
-                    <p className="text-xs text-zinc-500">
-                      {getThreadSubtitle(activeThread)}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    {editingName ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={editedName}
+                          onChange={(e) => setEditedName(e.target.value)}
+                          className="h-8 bg-white/5 border-white/20 text-white text-sm"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleUpdateGroupName();
+                            if (e.key === 'Escape') setEditingName(false);
+                          }}
+                        />
+                        <Button size="sm" onClick={handleUpdateGroupName} className="h-8">
+                          <Check className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditingName(false)} className="h-8">
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-white truncate">{getThreadName(activeThread)}</h3>
+                        {activeThread.type === 'group' && isOwnerOrAdmin() && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => {
+                              setEditedName(activeThread.name || '');
+                              setEditingName(true);
+                            }}
+                          >
+                            <Edit2 className="w-3 h-3 text-zinc-400" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    <p className="text-xs text-zinc-500 truncate">{getThreadSubtitle(activeThread)}</p>
                   </div>
-                  {activeThread.members && activeThread.members.length > 0 && (
-                    <div className="flex -space-x-2">
-                      {activeThread.members.slice(0, 5).map((member, idx) => (
-                        <div
-                          key={member.id}
-                          className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500/30 to-violet-500/30 border-2 border-[#18181b] flex items-center justify-center"
-                          title={member.name}
+                  
+                  {/* Member avatars */}
+                  <div className="hidden sm:flex -space-x-2">
+                    {activeThread.members?.slice(0, 4).map((member) => (
+                      <div
+                        key={member.id}
+                        className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500/30 to-violet-500/30 border-2 border-[#18181b] flex items-center justify-center"
+                        title={member.name}
+                      >
+                        <span className="text-xs font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                      </div>
+                    ))}
+                    {activeThread.members?.length > 4 && (
+                      <div className="w-8 h-8 rounded-full bg-zinc-700 border-2 border-[#18181b] flex items-center justify-center">
+                        <span className="text-xs font-semibold text-zinc-300">+{activeThread.members.length - 4}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Settings dropdown for groups */}
+                  {activeThread.type === 'group' && isOwnerOrAdmin() && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Settings className="w-5 h-5 text-zinc-400" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+                        <DropdownMenuItem 
+                          onClick={() => setShowManageDialog(true)}
+                          className="text-zinc-300 focus:text-white focus:bg-zinc-800"
                         >
-                          <span className="text-xs font-semibold text-white">
-                            {member.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      ))}
-                      {activeThread.members.length > 5 && (
-                        <div className="w-8 h-8 rounded-full bg-zinc-700 border-2 border-[#18181b] flex items-center justify-center">
-                          <span className="text-xs font-semibold text-zinc-300">
-                            +{activeThread.members.length - 5}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Manage Members
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </div>
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4">
+              <ScrollArea className="flex-1 p-3 md:p-4">
                 <div className="space-y-6">
                   {Object.entries(groupedMessages).map(([date, msgs]) => (
                     <div key={date}>
@@ -501,34 +794,37 @@ const ChatPage = () => {
                             key={message.id}
                             data-testid={`message-${message.id}`}
                             className={cn(
-                              'flex gap-3',
+                              'flex gap-2 md:gap-3',
                               message.user_id === user?.id ? 'flex-row-reverse' : ''
                             )}
                           >
-                            <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-semibold text-rose-500">
                                 {(message.user_name || 'U').charAt(0).toUpperCase()}
                               </span>
                             </div>
                             <div
                               className={cn(
-                                'max-w-[70%] rounded-2xl px-4 py-2',
+                                'max-w-[80%] md:max-w-[70%] rounded-2xl px-3 md:px-4 py-2',
                                 message.user_id === user?.id
                                   ? 'bg-rose-500/20 rounded-tr-none'
                                   : 'bg-white/5 rounded-tl-none'
                               )}
                             >
                               {message.user_id !== user?.id && (
-                                <p className="text-xs font-medium text-rose-400 mb-1">
-                                  {message.user_name}
+                                <p className="text-xs font-medium text-rose-400 mb-1">{message.user_name}</p>
+                              )}
+                              {message.body && (
+                                <p className="text-sm text-white whitespace-pre-wrap break-words">
+                                  <MessageWithEmojis text={message.body} />
                                 </p>
                               )}
-                              <p className="text-sm text-white whitespace-pre-wrap break-words">
-                                <MessageWithEmojis text={message.body} />
-                              </p>
-                              <p className="text-xs text-zinc-500 mt-1 text-right">
-                                {formatTime(message.created_at)}
-                              </p>
+                              <MessageAttachment
+                                attachment_url={message.attachment_url}
+                                attachment_type={message.attachment_type}
+                                attachment_name={message.attachment_name}
+                              />
+                              <p className="text-xs text-zinc-500 mt-1 text-right">{formatTime(message.created_at)}</p>
                             </div>
                           </div>
                         ))}
@@ -540,7 +836,7 @@ const ChatPage = () => {
               </ScrollArea>
 
               {/* Message Input */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10">
+              <form onSubmit={handleSendMessage} className="p-3 md:p-4 border-t border-white/10">
                 <div className="flex gap-2 items-center relative">
                   {showEmojiPicker && (
                     <div ref={emojiPickerRef} className="absolute bottom-full left-0 mb-2 z-50">
@@ -577,12 +873,32 @@ const ChatPage = () => {
                     size="icon"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     className={cn(
-                      "h-10 w-10 flex-shrink-0 transition-colors",
+                      "h-9 w-9 md:h-10 md:w-10 flex-shrink-0 transition-colors",
                       showEmojiPicker ? "bg-rose-500/20 text-rose-400" : "hover:bg-white/10 text-zinc-400 hover:text-white"
                     )}
                     data-testid="emoji-picker-btn"
                   >
                     <Smile className="w-5 h-5" />
+                  </Button>
+
+                  {/* File upload */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept="image/*,audio/*,.pdf,.txt"
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="h-9 w-9 md:h-10 md:w-10 flex-shrink-0 hover:bg-white/10 text-zinc-400 hover:text-white"
+                    data-testid="attachment-btn"
+                  >
+                    {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
                   </Button>
                   
                   <Input
@@ -591,14 +907,14 @@ const ChatPage = () => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type a message..."
-                    className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
+                    className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 h-9 md:h-10"
                     disabled={sending}
                   />
                   <Button
                     type="submit"
                     data-testid="send-message-btn"
                     disabled={!newMessage.trim() || sending}
-                    className="bg-rose-500 hover:bg-rose-600"
+                    className="bg-rose-500 hover:bg-rose-600 h-9 md:h-10 w-9 md:w-10 p-0"
                   >
                     {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
@@ -692,7 +1008,6 @@ const ChatPage = () => {
                     onChange={(e) => setMemberSearch(e.target.value)}
                     placeholder="Search team members..."
                     className="bg-[#27272a] border-zinc-700 text-white pl-10"
-                    data-testid="member-search-input"
                   />
                 </div>
               </div>
@@ -712,20 +1027,15 @@ const ChatPage = () => {
                             ? 'bg-rose-500/20 border border-rose-500/30'
                             : 'hover:bg-white/5 border border-transparent'
                         )}
-                        data-testid={`member-${member.id}`}
                       >
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500/30 to-violet-500/30 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-white">
-                            {member.name.charAt(0).toUpperCase()}
-                          </span>
+                          <span className="text-sm font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="flex-1 text-left">
                           <p className="text-sm font-medium text-white">{member.name}</p>
                           <p className="text-xs text-zinc-500">{member.role}</p>
                         </div>
-                        {selectedMembers.includes(member.id) && (
-                          <Check className="w-5 h-5 text-rose-500" />
-                        )}
+                        {selectedMembers.includes(member.id) && <Check className="w-5 h-5 text-rose-500" />}
                       </button>
                     ))
                   )}
@@ -748,13 +1058,111 @@ const ChatPage = () => {
                 className="w-full bg-rose-500 hover:bg-rose-600"
                 data-testid="create-chat-btn"
               >
-                {creatingChat ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
+                {creatingChat && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 {newChatType === 'private' ? 'Start Chat' : 'Create Group'}
               </Button>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Members Dialog */}
+      <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Users className="w-5 h-5 text-violet-500" />
+              Manage Members
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Add or remove members, and manage their roles
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            {/* Current Members */}
+            <div>
+              <Label className="text-zinc-400 mb-2 block">Current Members ({activeThread?.members?.length || 0})</Label>
+              <ScrollArea className="h-[200px] rounded-lg border border-zinc-800">
+                <div className="p-2 space-y-1">
+                  {activeThread?.members?.map((member) => {
+                    const memberRole = activeThread.member_roles?.[member.id] || 'member';
+                    const isCreator = member.id === activeThread.created_by;
+                    
+                    return (
+                      <div key={member.id} className="p-3 rounded-lg flex items-center gap-3 bg-white/5">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500/30 to-violet-500/30 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium text-white">{member.name}</p>
+                            {memberRole === 'owner' && <Crown className="w-4 h-4 text-amber-500" />}
+                            {memberRole === 'admin' && <Shield className="w-4 h-4 text-violet-500" />}
+                          </div>
+                          <p className="text-xs text-zinc-500">{member.role} • {memberRole}</p>
+                        </div>
+                        {member.id !== user?.id && !isCreator && (
+                          <div className="flex items-center gap-2">
+                            <Select
+                              value={memberRole}
+                              onValueChange={(value) => handleManageMember('set_role', member.id, value)}
+                            >
+                              <SelectTrigger className="w-24 h-8 bg-zinc-800 border-zinc-700 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-[#18181b] border-zinc-800">
+                                <SelectItem value="member" className="text-zinc-300">Member</SelectItem>
+                                <SelectItem value="admin" className="text-zinc-300">Admin</SelectItem>
+                                {getUserRole() === 'owner' && (
+                                  <SelectItem value="owner" className="text-zinc-300">Owner</SelectItem>
+                                )}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              onClick={() => handleManageMember('remove', member.id)}
+                            >
+                              <UserMinus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Add Members */}
+            {nonGroupMembers.length > 0 && (
+              <div>
+                <Label className="text-zinc-400 mb-2 block">Add Members</Label>
+                <ScrollArea className="h-[150px] rounded-lg border border-zinc-800">
+                  <div className="p-2 space-y-1">
+                    {nonGroupMembers.map((member) => (
+                      <button
+                        key={member.id}
+                        onClick={() => handleManageMember('add', member.id)}
+                        className="w-full p-3 rounded-lg flex items-center gap-3 hover:bg-white/5 transition-all"
+                      >
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-500/30 flex items-center justify-center">
+                          <span className="text-sm font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="text-sm font-medium text-white">{member.name}</p>
+                          <p className="text-xs text-zinc-500">{member.role}</p>
+                        </div>
+                        <UserPlus className="w-5 h-5 text-emerald-500" />
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
