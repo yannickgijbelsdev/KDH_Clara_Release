@@ -30,7 +30,7 @@ class TestContentFeaturedImages:
         })
         assert login_response.status_code == 200, f"Login failed: {login_response.text}"
         
-        token = login_response.json().get("access_token")
+        token = login_response.json().get("token")
         assert token, "No access token received"
         
         self.session.headers.update({"Authorization": f"Bearer {token}"})
