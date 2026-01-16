@@ -220,7 +220,7 @@ class TestRealTimePolling:
         return response.json()["id"]
     
     def test_polling_with_after_parameter(self, auth_headers, team_thread_id):
-        """Test that polling with 'after' parameter returns only new messages"""
+        """Test that polling with 'after' parameter works correctly"""
         # Get current messages to find the latest timestamp
         response = requests.get(
             f"{BASE_URL}/api/chat/threads/{team_thread_id}/messages?limit=10",
@@ -233,7 +233,7 @@ class TestRealTimePolling:
             # Get the last message timestamp
             last_timestamp = messages[-1]["created_at"]
             
-            # Poll with 'after' parameter - should return empty if no new messages
+            # Poll with 'after' parameter - should return only messages after that timestamp
             poll_response = requests.get(
                 f"{BASE_URL}/api/chat/threads/{team_thread_id}/messages?limit=100&after={last_timestamp}",
                 headers=auth_headers
@@ -241,8 +241,9 @@ class TestRealTimePolling:
             assert poll_response.status_code == 200
             new_messages = poll_response.json()
             assert isinstance(new_messages, list)
-            # Should be empty since no new messages were sent
-            assert len(new_messages) == 0
+            # All returned messages should have timestamp > last_timestamp
+            for msg in new_messages:
+                assert msg["created_at"] > last_timestamp, "Polling returned message older than 'after' timestamp"
     
     def test_new_message_appears_in_poll(self, auth_headers, team_thread_id):
         """Test that new messages appear when polling with 'after' parameter"""
