@@ -136,13 +136,12 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
 
           <div className="space-y-2">
             <Label className="text-zinc-300">Body</Label>
-            <Textarea
-              data-testid="content-body-input"
+            <RichTextEditor
+              id="create-content-body"
               value={formData.body}
-              onChange={(e) => setFormData({ ...formData, body: e.target.value })}
-              placeholder="Content body (supports markdown)..."
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 resize-none min-h-[150px]"
-              rows={6}
+              onChange={(content) => setFormData({ ...formData, body: content })}
+              placeholder="Write your content here..."
+              height={300}
             />
           </div>
 
