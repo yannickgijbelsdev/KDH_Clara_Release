@@ -906,7 +906,7 @@ const ChatPage = () => {
                             key={message.id}
                             data-testid={`message-${message.id}`}
                             className={cn(
-                              'flex gap-2 md:gap-3',
+                              'flex gap-2 md:gap-3 group',
                               message.user_id === user?.id ? 'flex-row-reverse' : ''
                             )}
                           >
@@ -915,28 +915,44 @@ const ChatPage = () => {
                                 {(message.user_name || 'U').charAt(0).toUpperCase()}
                               </span>
                             </div>
-                            <div
-                              className={cn(
-                                'max-w-[80%] md:max-w-[70%] rounded-2xl px-3 md:px-4 py-2',
-                                message.user_id === user?.id
-                                  ? 'bg-rose-500/20 rounded-tr-none'
-                                  : 'bg-white/5 rounded-tl-none'
+                            <div className="relative">
+                              <div
+                                className={cn(
+                                  'max-w-[80%] md:max-w-[70%] rounded-2xl px-3 md:px-4 py-2',
+                                  message.user_id === user?.id
+                                    ? 'bg-rose-500/20 rounded-tr-none'
+                                    : 'bg-white/5 rounded-tl-none'
+                                )}
+                              >
+                                {message.user_id !== user?.id && (
+                                  <p className="text-xs font-medium text-rose-400 mb-1">{message.user_name}</p>
+                                )}
+                                {message.body && (
+                                  <p className="text-sm text-white whitespace-pre-wrap break-words">
+                                    <MessageWithEmojis text={message.body} />
+                                  </p>
+                                )}
+                                <MessageAttachment
+                                  attachment_url={message.attachment_url}
+                                  attachment_type={message.attachment_type}
+                                  attachment_name={message.attachment_name}
+                                />
+                                <p className="text-xs text-zinc-500 mt-1 text-right">{formatTime(message.created_at)}</p>
+                              </div>
+                              {/* Delete message button - only for own messages */}
+                              {message.user_id === user?.id && (
+                                <button
+                                  onClick={() => handleDeleteMessage(message.id)}
+                                  className={cn(
+                                    'absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity',
+                                    'p-1 rounded-full bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400',
+                                    message.user_id === user?.id ? 'right-full mr-1' : 'left-full ml-1'
+                                  )}
+                                  title="Delete message"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
                               )}
-                            >
-                              {message.user_id !== user?.id && (
-                                <p className="text-xs font-medium text-rose-400 mb-1">{message.user_name}</p>
-                              )}
-                              {message.body && (
-                                <p className="text-sm text-white whitespace-pre-wrap break-words">
-                                  <MessageWithEmojis text={message.body} />
-                                </p>
-                              )}
-                              <MessageAttachment
-                                attachment_url={message.attachment_url}
-                                attachment_type={message.attachment_type}
-                                attachment_name={message.attachment_name}
-                              />
-                              <p className="text-xs text-zinc-500 mt-1 text-right">{formatTime(message.created_at)}</p>
                             </div>
                           </div>
                         ))}
