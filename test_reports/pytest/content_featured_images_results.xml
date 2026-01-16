@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="9" failures="0" skipped="0" tests="9" time="2.576" timestamp="2026-01-16T12:15:50.630430+00:00" hostname="agent-env-6b083362-72db-4f33-9910-63add10f3bf4"><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_upload_featured_image_after_content_creation" time="0.302"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_view_featured_image_in_content_detail" time="0.263"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_replace_featured_image" time="0.260"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_remove_featured_image" time="0.264"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_featured_image_persists_after_content_update" time="0.265"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_reject_invalid_file_type" time="0.262"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_upload_to_nonexistent_content" time="0.258"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_delete_from_nonexistent_content" time="0.266"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase><testcase classname="tests.test_content_featured_images.TestContentFeaturedImages" name="test_featured_image_in_content_list" time="0.257"><error message="failed on setup with &quot;AssertionError: No access token received&#10;assert None&quot;">tests/test_content_featured_images.py:34: in setup
+    assert token, "No access token received"
+E   AssertionError: No access token received
+E   assert None</error></testcase></testsuite></testsuites>
