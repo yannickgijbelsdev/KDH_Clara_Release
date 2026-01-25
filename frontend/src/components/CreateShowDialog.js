@@ -320,6 +320,35 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
             />
           </div>
 
+          {/* Studio Selection */}
+          {studios.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Studio / Room (optional)</Label>
+              <Select
+                value={formData.studio_id}
+                onValueChange={(value) => setFormData({ ...formData, studio_id: value })}
+              >
+                <SelectTrigger 
+                  data-testid="show-studio-select"
+                  className="bg-[#27272a] border-zinc-700 text-white"
+                >
+                  <SelectValue placeholder="Select a studio..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  {studios.map((studio) => (
+                    <SelectItem 
+                      key={studio.id} 
+                      value={studio.id}
+                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                    >
+                      {studio.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label className="text-zinc-300">Start Date</Label>
             <Popover>
