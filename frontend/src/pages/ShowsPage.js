@@ -82,8 +82,10 @@ const ShowCard = ({ show, index, onClick }) => (
 );
 
 // Recurring series bundle component
-const RecurringSeriesBundle = ({ seriesName, shows, onShowClick }) => {
+const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries, isEditor }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   
   // Sort shows by date (most recent first)
   const sortedShows = [...shows].sort((a, b) => 
