@@ -61,6 +61,7 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="/shows" replace />} />
         <Route path="shows" element={<ShowsPage />} />
         <Route path="shows/:showId" element={<ShowDetailPage />} />
+        <Route path="show-management" element={<ShowManagementPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="content" element={<ContentLibraryPage />} />
         <Route path="content/:contentId" element={<ContentDetailPage />} />
