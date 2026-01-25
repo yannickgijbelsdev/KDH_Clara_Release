@@ -192,6 +192,67 @@ const TeamSettingsPage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Show Title handlers
+  const openCreateTitleDialog = () => {
+    setEditingTitle(null);
+    setTitleFormData({
+      name: '',
+      description: '',
+      default_start_time: '09:00',
+      default_end_time: '10:00',
+    });
+    setShowTitleDialogOpen(true);
+  };
+
+  const openEditTitleDialog = (title) => {
+    setEditingTitle(title);
+    setTitleFormData({
+      name: title.name,
+      description: title.description || '',
+      default_start_time: title.default_start_time || '09:00',
+      default_end_time: title.default_end_time || '10:00',
+    });
+    setShowTitleDialogOpen(true);
+  };
+
+  const handleSaveTitle = async (e) => {
+    e.preventDefault();
+    setSavingTitle(true);
+    
+    try {
+      if (editingTitle) {
+        // Update existing title
+        const response = await axios.put(`${API}/shows/titles/${editingTitle.id}`, titleFormData);
+        setShowTitles(showTitles.map(t => t.id === editingTitle.id ? response.data : t));
+        toast.success('Show title updated');
+      } else {
+        // Create new title
+        const response = await axios.post(`${API}/shows/titles`, titleFormData);
+        setShowTitles([...showTitles, response.data]);
+        toast.success('Show title created');
+      }
+      setShowTitleDialogOpen(false);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save show title');
+    } finally {
+      setSavingTitle(false);
+    }
+  };
+
+  const handleDeleteTitle = async () => {
+    if (!selectedTitle) return;
+    
+    try {
+      await axios.delete(`${API}/shows/titles/${selectedTitle.id}`);
+      setShowTitles(showTitles.filter(t => t.id !== selectedTitle.id));
+      setDeleteTitleDialogOpen(false);
+      setSelectedTitle(null);
+      toast.success('Show title deleted');
+    } catch (error) {
+      toast.error('Failed to delete show title');
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse">
