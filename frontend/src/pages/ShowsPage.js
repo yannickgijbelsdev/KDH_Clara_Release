@@ -83,6 +83,12 @@ const ShowCard = ({ show, index, onClick }) => (
             {show.start_time} - {show.end_time}
           </span>
         </div>
+        {show.studio_name && (
+          <div className="flex items-center gap-1.5">
+            <Radio className="w-4 h-4" />
+            <span>{show.studio_name}</span>
+          </div>
+        )}
       </div>
 
       <span
