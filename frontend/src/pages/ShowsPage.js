@@ -169,6 +169,12 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
                     <Clock className="w-3.5 h-3.5" />
                     {nextShow?.start_time} - {nextShow?.end_time}
                   </span>
+                  {nextShow?.studio_name && (
+                    <span className="flex items-center gap-1">
+                      <Radio className="w-3.5 h-3.5" />
+                      {nextShow.studio_name}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
