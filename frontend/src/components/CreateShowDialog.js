@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format, addWeeks } from 'date-fns';
-import { CalendarIcon, Repeat } from 'lucide-react';
+import { CalendarIcon, Repeat, Plus, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,7 @@ import { Calendar } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
+import { useAuth } from '../context/AuthContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -35,17 +36,44 @@ const recurrenceOptions = [
 ];
 
 const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) => {
+  const { isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [showTitles, setShowTitles] = useState([]);
+  const [loadingTitles, setLoadingTitles] = useState(false);
+  const [isAddingNewTitle, setIsAddingNewTitle] = useState(false);
+  const [newTitleName, setNewTitleName] = useState('');
+  const [creatingTitle, setCreatingTitle] = useState(false);
+  
   const [formData, setFormData] = useState({
     title: '',
+    titleId: '',
     description: '',
     start_time: '09:00',
     end_time: '10:00',
     status: 'draft',
     recurrence: 'none',
   });
+
+  // Fetch show titles when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchShowTitles();
+    }
+  }, [open]);
+
+  const fetchShowTitles = async () => {
+    setLoadingTitles(true);
+    try {
+      const response = await axios.get(`${API}/shows/titles`);
+      setShowTitles(response.data);
+    } catch (error) {
+      console.error('Failed to fetch show titles:', error);
+    } finally {
+      setLoadingTitles(false);
+    }
+  };
 
   // Set default date when dialog opens
   useEffect(() => {
@@ -59,6 +87,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
     if (!open) {
       setFormData({
         title: '',
+        titleId: '',
         description: '',
         start_time: '09:00',
         end_time: '10:00',
@@ -67,11 +96,72 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
       });
       setDate(null);
       setEndDate(null);
+      setIsAddingNewTitle(false);
+      setNewTitleName('');
     }
   }, [open]);
 
+  const handleTitleSelect = (titleId) => {
+    if (titleId === 'add-new') {
+      setIsAddingNewTitle(true);
+      setFormData({ ...formData, titleId: '', title: '' });
+      return;
+    }
+    
+    const selectedTitle = showTitles.find(t => t.id === titleId);
+    if (selectedTitle) {
+      setFormData({
+        ...formData,
+        titleId: titleId,
+        title: selectedTitle.name,
+        description: selectedTitle.description || formData.description,
+        start_time: selectedTitle.default_start_time || formData.start_time,
+        end_time: selectedTitle.default_end_time || formData.end_time,
+      });
+      setIsAddingNewTitle(false);
+    }
+  };
+
+  const handleCreateNewTitle = async () => {
+    if (!newTitleName.trim()) {
+      toast.error('Please enter a title name');
+      return;
+    }
+    
+    setCreatingTitle(true);
+    try {
+      const response = await axios.post(`${API}/shows/titles`, {
+        name: newTitleName.trim(),
+        description: formData.description,
+        default_start_time: formData.start_time,
+        default_end_time: formData.end_time,
+      });
+      
+      // Add to list and select it
+      setShowTitles([...showTitles, response.data]);
+      setFormData({
+        ...formData,
+        titleId: response.data.id,
+        title: response.data.name,
+      });
+      setIsAddingNewTitle(false);
+      setNewTitleName('');
+      toast.success('Show title created');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create show title');
+    } finally {
+      setCreatingTitle(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.title && !formData.titleId) {
+      toast.error('Please select or enter a show title');
+      return;
+    }
+    
     if (!date) {
       toast.error('Please select a date');
       return;
@@ -120,16 +210,88 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+          {/* Show Title Selection */}
           <div className="space-y-2">
-            <Label className="text-zinc-300">Title</Label>
-            <Input
-              data-testid="show-title-input"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="Morning Drive Show"
-              required
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
-            />
+            <Label className="text-zinc-300">Show Title</Label>
+            
+            {loadingTitles ? (
+              <div className="flex items-center gap-2 text-zinc-500 py-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading titles...
+              </div>
+            ) : showTitles.length === 0 && !isAdmin ? (
+              <div className="p-3 bg-zinc-800/50 rounded-lg text-zinc-400 text-sm">
+                No show titles available. Please ask an admin to create show titles.
+              </div>
+            ) : isAddingNewTitle && isAdmin ? (
+              // Admin adding new title
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={newTitleName}
+                    onChange={(e) => setNewTitleName(e.target.value)}
+                    placeholder="Enter new show title..."
+                    className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 flex-1"
+                    autoFocus
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleCreateNewTitle}
+                    disabled={creatingTitle}
+                    className="bg-rose-500 hover:bg-rose-600 text-white"
+                  >
+                    {creatingTitle ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
+                  </Button>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsAddingNewTitle(false)}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              // Dropdown selection
+              <Select
+                value={formData.titleId}
+                onValueChange={handleTitleSelect}
+              >
+                <SelectTrigger 
+                  data-testid="show-title-select"
+                  className="bg-[#27272a] border-zinc-700 text-white"
+                >
+                  <SelectValue placeholder="Select a show title..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  {showTitles.map((title) => (
+                    <SelectItem 
+                      key={title.id} 
+                      value={title.id}
+                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                    >
+                      {title.name}
+                    </SelectItem>
+                  ))}
+                  {isAdmin && (
+                    <>
+                      <div className="border-t border-zinc-800 my-1" />
+                      <SelectItem 
+                        value="add-new"
+                        className="text-rose-400 focus:text-rose-300 focus:bg-rose-500/10"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Plus className="w-4 h-4" />
+                          Add new show title...
+                        </span>
+                      </SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -297,7 +459,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
             <Button
               type="submit"
               data-testid="submit-show-btn"
-              disabled={loading}
+              disabled={loading || (!formData.title && !formData.titleId)}
               className="flex-1 bg-rose-500 hover:bg-rose-600 text-white btn-primary"
             >
               {loading ? 'Creating...' : isRecurring ? 'Create Recurring Show' : 'Create Show'}
