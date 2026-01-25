@@ -103,65 +103,97 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
     return acc;
   }, {});
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      // Use first show's ID to delete all with delete_all=true
+      await onDeleteSeries(shows[0].id);
+      setShowDeleteDialog(false);
+    } catch (error) {
+      // Error handled by parent
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
-    <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
-      {/* Series Header */}
-      <div
-        data-testid={`series-bundle-${seriesName.replace(/\s+/g, '-').toLowerCase()}`}
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="p-5 cursor-pointer hover:bg-zinc-800/50 transition-colors"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-rose-500/20 rounded-lg">
-              <Repeat className="w-5 h-5 text-rose-500" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                {seriesName}
-                <span className="text-sm font-normal text-zinc-500">
-                  ({shows.length} episodes)
-                </span>
-              </h3>
-              <div className="flex items-center gap-3 mt-1 text-sm text-zinc-500">
-                {nextShow && (
+    <>
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
+        {/* Series Header */}
+        <div
+          data-testid={`series-bundle-${seriesName.replace(/\s+/g, '-').toLowerCase()}`}
+          className="p-5 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+        >
+          <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center gap-3 flex-1"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <div className="p-2 bg-rose-500/20 rounded-lg">
+                <Repeat className="w-5 h-5 text-rose-500" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  {seriesName}
+                  <span className="text-sm font-normal text-zinc-500">
+                    ({shows.length} episodes)
+                  </span>
+                </h3>
+                <div className="flex items-center gap-3 mt-1 text-sm text-zinc-500">
+                  {nextShow && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5" />
+                      Next: {format(parseISO(nextShow.date), 'MMM d')}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    Next: {format(parseISO(nextShow.date), 'MMM d')}
+                    <Clock className="w-3.5 h-3.5" />
+                    {nextShow?.start_time} - {nextShow?.end_time}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              {/* Status summary badges */}
+              <div className="hidden sm:flex items-center gap-2">
+                {statusCounts.scheduled > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium status-scheduled">
+                    {statusCounts.scheduled} scheduled
                   </span>
                 )}
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  {nextShow?.start_time} - {nextShow?.end_time}
-                </span>
+                {statusCounts.completed > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium status-completed">
+                    {statusCounts.completed} completed
+                  </span>
+                )}
+                {statusCounts.draft > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium status-draft">
+                    {statusCounts.draft} draft
+                  </span>
+                )}
+              </div>
+              {/* Delete button */}
+              {isEditor && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDeleteDialog(true);
+                  }}
+                  className="h-8 w-8 text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+              <div onClick={() => setIsExpanded(!isExpanded)}>
+                <ChevronDown 
+                  className={`w-5 h-5 text-zinc-500 transition-transform cursor-pointer ${isExpanded ? 'rotate-180' : ''}`} 
+                />
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {/* Status summary badges */}
-            <div className="hidden sm:flex items-center gap-2">
-              {statusCounts.scheduled > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium status-scheduled">
-                  {statusCounts.scheduled} scheduled
-                </span>
-              )}
-              {statusCounts.completed > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium status-completed">
-                  {statusCounts.completed} completed
-                </span>
-              )}
-              {statusCounts.draft > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium status-draft">
-                  {statusCounts.draft} draft
-                </span>
-              )}
-            </div>
-            <ChevronDown 
-              className={`w-5 h-5 text-zinc-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
-            />
-          </div>
         </div>
-      </div>
 
       {/* Expanded Episodes List */}
       {isExpanded && (
