@@ -294,6 +294,17 @@ const ShowsPage = () => {
     toast.success('Show created successfully');
   };
 
+  const handleDeleteSeries = async (showId) => {
+    try {
+      await axios.delete(`${API}/shows/${showId}?delete_all=true`);
+      toast.success('Recurring series deleted successfully');
+      fetchShows(); // Refresh the list
+    } catch (error) {
+      toast.error('Failed to delete series');
+      throw error;
+    }
+  };
+
   // Organize shows into standalone and recurring series
   const organizeShows = () => {
     const standalone = shows.filter(s => !s.parent_show_id);
