@@ -40,6 +40,102 @@ def generate_occurrence_dates(start_date: str, interval_weeks: int, end_date: Op
     return dates
 
 
+# ============== SHOW TITLES (Templates) ==============
+
+@shows_router.get("/titles", response_model=List[ShowTitleResponse])
+async def get_show_titles(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all show titles for the team. Available to all users."""
+    titles = await db.show_titles.find(
+        {"team_id": current_user.get('team_id')},
+        {"_id": 0}
+    ).sort("name", 1).to_list(100)
+    return titles
+
+
+@shows_router.post("/titles", response_model=ShowTitleResponse, status_code=status.HTTP_201_CREATED)
+async def create_show_title(
+    title_data: ShowTitleCreate,
+    current_user: dict = Depends(require_admin)
+):
+    """Create a new show title. Admin only."""
+    title_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Check for duplicate name
+    existing = await db.show_titles.find_one({
+        "team_id": current_user.get('team_id'),
+        "name": {"$regex": f"^{title_data.name}$", "$options": "i"}
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="A show title with this name already exists")
+    
+    title_doc = {
+        "id": title_id,
+        "name": title_data.name,
+        "description": title_data.description or "",
+        "default_start_time": title_data.default_start_time,
+        "default_end_time": title_data.default_end_time,
+        "team_id": current_user.get('team_id'),
+        "created_by": current_user['id'],
+        "created_at": now
+    }
+    
+    await db.show_titles.insert_one(title_doc)
+    title_doc.pop('_id', None)
+    return title_doc
+
+
+@shows_router.put("/titles/{title_id}", response_model=ShowTitleResponse)
+async def update_show_title(
+    title_id: str,
+    title_data: ShowTitleUpdate,
+    current_user: dict = Depends(require_admin)
+):
+    """Update a show title. Admin only."""
+    title = await db.show_titles.find_one({
+        "id": title_id,
+        "team_id": current_user.get('team_id')
+    })
+    if not title:
+        raise HTTPException(status_code=404, detail="Show title not found")
+    
+    update_dict = {k: v for k, v in title_data.model_dump().items() if v is not None}
+    
+    if "name" in update_dict:
+        existing = await db.show_titles.find_one({
+            "team_id": current_user.get('team_id'),
+            "name": {"$regex": f"^{update_dict['name']}$", "$options": "i"},
+            "id": {"$ne": title_id}
+        })
+        if existing:
+            raise HTTPException(status_code=400, detail="A show title with this name already exists")
+    
+    if update_dict:
+        await db.show_titles.update_one(
+            {"id": title_id},
+            {"$set": update_dict}
+        )
+    
+    updated = await db.show_titles.find_one({"id": title_id}, {"_id": 0})
+    return updated
+
+
+@shows_router.delete("/titles/{title_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_show_title(
+    title_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Delete a show title. Admin only."""
+    result = await db.show_titles.delete_one({
+        "id": title_id,
+        "team_id": current_user.get('team_id')
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Show title not found")
+
+
 # ============== SHOWS CRUD ==============
 
 @shows_router.get("", response_model=List[ShowResponse])
