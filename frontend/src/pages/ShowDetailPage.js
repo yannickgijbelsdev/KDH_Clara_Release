@@ -306,6 +306,51 @@ const ShowDetailPage = () => {
     window.open(`${API}/shows/${showId}/rundown/print?token=${token}`, '_blank');
   };
 
+  // Image upload handlers
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+    
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Use JPEG, PNG, GIF, or WebP.');
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 5MB.');
+      return;
+    }
+    
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(
+        `${API}/shows/${showId}/image`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      
+      setShow(prev => ({ ...prev, image: response.data.image }));
+      toast.success('Show image uploaded');
+    } catch (error) {
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    try {
+      await axios.delete(`${API}/shows/${showId}/image`);
+      setShow(prev => ({ ...prev, image: null }));
+      toast.success('Show image removed');
+    } catch (error) {
+      toast.error('Failed to remove image');
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse">
