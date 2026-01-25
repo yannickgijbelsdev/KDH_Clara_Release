@@ -96,6 +96,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick }) => {
     <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
       {/* Series Header */}
       <div
+        data-testid={`series-bundle-${seriesName.replace(/\s+/g, '-').toLowerCase()}`}
         onClick={() => setIsExpanded(!isExpanded)}
         className="p-5 cursor-pointer hover:bg-zinc-800/50 transition-colors"
       >
