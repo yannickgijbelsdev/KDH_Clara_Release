@@ -100,9 +100,6 @@ const ContentDetailPage = () => {
   const [featuredImages, setFeaturedImages] = useState({});
   const [uploadingSiteId, setUploadingSiteId] = useState(null);
   const fileInputRefs = useRef({});
-  // Content-level featured image state
-  const [uploadingContentImage, setUploadingContentImage] = useState(false);
-  const contentImageInputRef = useRef(null);
 
   useEffect(() => {
     fetchContent();
