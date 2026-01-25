@@ -225,6 +225,42 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
         </div>
       )}
     </div>
+
+    {/* Delete Series Confirmation Dialog */}
+    <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-white flex items-center gap-2">
+            <Trash2 className="w-5 h-5 text-rose-500" />
+            Delete Recurring Series
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-zinc-400">
+            Are you sure you want to delete <span className="text-white font-medium">"{seriesName}"</span> and all <span className="text-white font-medium">{shows.length} episodes</span>? 
+            This will permanently delete all rundowns and cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            Cancel
+          </AlertDialogCancel>
+          <Button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="bg-rose-500 hover:bg-rose-600 text-white"
+          >
+            {deleting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Deleting...
+              </>
+            ) : (
+              <>Delete All {shows.length} Episodes</>
+            )}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
