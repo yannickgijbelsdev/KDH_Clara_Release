@@ -349,7 +349,7 @@ const ChatPage = () => {
     
     // Poll for thread list updates every 5 seconds (for new chats, last message previews)
     const threadPollInterval = setInterval(() => {
-      fetchThreads();
+      fetchThreads(true, true); // silent=true, isPolling=true
     }, 5000);
     
     return () => {
