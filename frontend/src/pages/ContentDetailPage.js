@@ -732,21 +732,6 @@ const ContentDetailPage = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Featured Image Display */}
-            {content.featured_image && (
-              <div>
-                <Label className="text-zinc-500 text-xs uppercase tracking-wider">Featured Image</Label>
-                <div className="mt-2 inline-block">
-                  <img
-                    src={getImageUrl(content.featured_image)}
-                    alt="Featured"
-                    className="max-w-[300px] max-h-[200px] rounded-lg object-cover border border-zinc-700"
-                  />
-                  <p className="text-xs text-zinc-500 mt-1">{content.featured_image.file_name}</p>
-                </div>
-              </div>
-            )}
-
             {content.external_url && (
               <div>
                 <Label className="text-zinc-500 text-xs uppercase tracking-wider">External URL</Label>
