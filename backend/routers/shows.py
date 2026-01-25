@@ -254,6 +254,18 @@ async def get_shows(
             del query["date"]
     
     shows = await db.shows.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
+    
+    # Get studio names for shows that have studio_id
+    studio_ids = list(set(s.get('studio_id') for s in shows if s.get('studio_id')))
+    studios_map = {}
+    if studio_ids:
+        studios = await db.studios.find({"id": {"$in": studio_ids}}, {"_id": 0}).to_list(100)
+        studios_map = {s['id']: s['name'] for s in studios}
+    
+    for show in shows:
+        if show.get('studio_id'):
+            show['studio_name'] = studios_map.get(show['studio_id'])
+    
     return shows
 
 
