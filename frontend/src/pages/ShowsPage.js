@@ -451,6 +451,8 @@ const ShowsPage = () => {
                     seriesName={s.name}
                     shows={s.shows}
                     onShowClick={(id) => navigate(`/shows/${id}`)}
+                    onDeleteSeries={handleDeleteSeries}
+                    isEditor={isEditor}
                   />
                 ))}
               </div>
