@@ -37,8 +37,6 @@ const statusLabels = {
   completed: 'Completed',
 };
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
 // Individual show card component
 const ShowCard = ({ show, index, onClick }) => (
   <div
