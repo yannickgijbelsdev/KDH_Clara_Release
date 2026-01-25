@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
-import { Plus, Calendar, Clock, ChevronRight, Filter } from 'lucide-react';
+import { Plus, Calendar, Clock, ChevronRight, ChevronDown, Filter, Repeat, Layers } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
@@ -26,6 +26,162 @@ const statusLabels = {
   draft: 'Draft',
   scheduled: 'Scheduled',
   completed: 'Completed',
+};
+
+// Individual show card component
+const ShowCard = ({ show, index, onClick }) => (
+  <div
+    data-testid={`show-card-${index}`}
+    onClick={onClick}
+    className="show-card bg-[#18181b] rounded-xl p-5 cursor-pointer group"
+    style={{ animationDelay: `${index * 50}ms` }}
+  >
+    <div className="flex items-start justify-between mb-3">
+      <h3 className="text-lg font-semibold text-white group-hover:text-rose-500 transition-colors line-clamp-1">
+        {show.title}
+      </h3>
+      <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-500 transition-all group-hover:translate-x-1 flex-shrink-0" />
+    </div>
+
+    {show.description && (
+      <p className="text-zinc-400 text-sm mb-3 line-clamp-2">
+        {show.description}
+      </p>
+    )}
+
+    <div className="flex items-center gap-4 text-sm text-zinc-500 mb-3">
+      <div className="flex items-center gap-1.5">
+        <Calendar className="w-4 h-4" />
+        <span className="font-mono">
+          {format(parseISO(show.date), 'MMM d, yyyy')}
+        </span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <Clock className="w-4 h-4" />
+        <span className="font-mono">
+          {show.start_time} - {show.end_time}
+        </span>
+      </div>
+    </div>
+
+    <span
+      className={`inline-block px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${statusColors[show.status]}`}
+    >
+      {statusLabels[show.status]}
+    </span>
+  </div>
+);
+
+// Recurring series bundle component
+const RecurringSeriesBundle = ({ seriesName, shows, onShowClick }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Sort shows by date (most recent first)
+  const sortedShows = [...shows].sort((a, b) => 
+    new Date(b.date) - new Date(a.date)
+  );
+  
+  // Get next upcoming show
+  const now = new Date();
+  const upcomingShows = sortedShows.filter(s => new Date(s.date) >= now);
+  const nextShow = upcomingShows.length > 0 ? upcomingShows[upcomingShows.length - 1] : sortedShows[0];
+  
+  // Count statuses
+  const statusCounts = shows.reduce((acc, show) => {
+    acc[show.status] = (acc[show.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  return (
+    <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
+      {/* Series Header */}
+      <div
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="p-5 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-rose-500/20 rounded-lg">
+              <Repeat className="w-5 h-5 text-rose-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                {seriesName}
+                <span className="text-sm font-normal text-zinc-500">
+                  ({shows.length} episodes)
+                </span>
+              </h3>
+              <div className="flex items-center gap-3 mt-1 text-sm text-zinc-500">
+                {nextShow && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5" />
+                    Next: {format(parseISO(nextShow.date), 'MMM d')}
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  {nextShow?.start_time} - {nextShow?.end_time}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Status summary badges */}
+            <div className="hidden sm:flex items-center gap-2">
+              {statusCounts.scheduled > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium status-scheduled">
+                  {statusCounts.scheduled} scheduled
+                </span>
+              )}
+              {statusCounts.completed > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium status-completed">
+                  {statusCounts.completed} completed
+                </span>
+              )}
+              {statusCounts.draft > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-xs font-medium status-draft">
+                  {statusCounts.draft} draft
+                </span>
+              )}
+            </div>
+            <ChevronDown 
+              className={`w-5 h-5 text-zinc-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Expanded Episodes List */}
+      {isExpanded && (
+        <div className="border-t border-zinc-800 bg-zinc-900/50">
+          <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {sortedShows.map((show, idx) => (
+              <div
+                key={show.id}
+                onClick={() => onShowClick(show.id)}
+                className="p-4 bg-[#18181b] rounded-lg cursor-pointer hover:bg-zinc-800 transition-colors group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-white group-hover:text-rose-400">
+                    {format(parseISO(show.date), 'EEEE, MMM d, yyyy')}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-rose-400" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-zinc-500 font-mono">
+                    {show.start_time} - {show.end_time}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[show.status]}`}>
+                    {statusLabels[show.status]}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const ShowsPage = () => {
@@ -57,6 +213,29 @@ const ShowsPage = () => {
     setIsCreateOpen(false);
     toast.success('Show created successfully');
   };
+
+  // Organize shows into standalone and recurring series
+  const organizeShows = () => {
+    const standalone = shows.filter(s => !s.parent_show_id);
+    const recurring = shows.filter(s => s.parent_show_id);
+    
+    // Group recurring shows by parent_show_id
+    const seriesMap = {};
+    recurring.forEach(show => {
+      const parentId = show.parent_show_id;
+      if (!seriesMap[parentId]) {
+        seriesMap[parentId] = {
+          name: show.title,
+          shows: []
+        };
+      }
+      seriesMap[parentId].shows.push(show);
+    });
+    
+    return { standalone, series: Object.values(seriesMap) };
+  };
+
+  const { standalone, series } = organizeShows();
 
   return (
     <div data-testid="shows-page">
@@ -135,9 +314,9 @@ const ShowsPage = () => {
         )}
       </div>
 
-      {/* Shows Grid */}
+      {/* Shows Content */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
@@ -165,50 +344,48 @@ const ShowsPage = () => {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {shows.map((show, index) => (
-            <div
-              key={show.id}
-              data-testid={`show-card-${index}`}
-              onClick={() => navigate(`/shows/${show.id}`)}
-              className="show-card bg-[#18181b] rounded-xl p-6 cursor-pointer group"
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white group-hover:text-rose-500 transition-colors line-clamp-1">
-                  {show.title}
-                </h3>
-                <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-500 transition-all group-hover:translate-x-1" />
+        <div className="space-y-6">
+          {/* Recurring Series Section */}
+          {series.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Layers className="w-5 h-5 text-rose-500" />
+                <h2 className="text-lg font-semibold text-white">Recurring Shows</h2>
+                <span className="text-sm text-zinc-500">({series.length} series)</span>
               </div>
-
-              {show.description && (
-                <p className="text-zinc-400 text-sm mb-4 line-clamp-2">
-                  {show.description}
-                </p>
-              )}
-
-              <div className="flex items-center gap-4 text-sm text-zinc-500 mb-4">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4" />
-                  <span className="font-mono">
-                    {format(parseISO(show.date), 'MMM d, yyyy')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-4 h-4" />
-                  <span className="font-mono">
-                    {show.start_time} - {show.end_time}
-                  </span>
-                </div>
+              <div className="space-y-3">
+                {series.map((s, idx) => (
+                  <RecurringSeriesBundle
+                    key={idx}
+                    seriesName={s.name}
+                    shows={s.shows}
+                    onShowClick={(id) => navigate(`/shows/${id}`)}
+                  />
+                ))}
               </div>
-
-              <span
-                className={`inline-block px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${statusColors[show.status]}`}
-              >
-                {statusLabels[show.status]}
-              </span>
             </div>
-          ))}
+          )}
+
+          {/* Standalone Shows Section */}
+          {standalone.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar className="w-5 h-5 text-violet-500" />
+                <h2 className="text-lg font-semibold text-white">One-time Shows</h2>
+                <span className="text-sm text-zinc-500">({standalone.length} shows)</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {standalone.map((show, index) => (
+                  <ShowCard
+                    key={show.id}
+                    show={show}
+                    index={index}
+                    onClick={() => navigate(`/shows/${show.id}`)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
