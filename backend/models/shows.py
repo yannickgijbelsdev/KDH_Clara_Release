@@ -55,6 +55,14 @@ class StudioResponse(BaseModel):
 
 # ============== SHOWS ==============
 
+class ShowImage(BaseModel):
+    """Image attached to a show."""
+    file_storage_key: str
+    file_name: str
+    mime_type: str
+    size: int
+
+
 class ShowCreate(BaseModel):
     title: str
     description: Optional[str] = ""
@@ -94,6 +102,7 @@ class ShowResponse(BaseModel):
     team_id: Optional[str] = ""
     studio_id: Optional[str] = None
     studio_name: Optional[str] = None
+    image: Optional[ShowImage] = None
     created_at: str
     updated_at: str
     # Recurrence info
