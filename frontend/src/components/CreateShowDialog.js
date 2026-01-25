@@ -105,6 +105,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
         end_time: '10:00',
         status: 'draft',
         recurrence: 'none',
+        studio_id: '',
       });
       setDate(null);
       setEndDate(null);
