@@ -62,6 +62,7 @@ class ShowCreate(BaseModel):
     start_time: str
     end_time: str
     status: str = "draft"
+    studio_id: Optional[str] = None
     # Recurrence fields
     recurrence_type: Literal["none", "weekly"] = "none"
     recurrence_interval: int = Field(default=1, ge=1, le=4, description="Repeat every N weeks (1-4)")
@@ -75,6 +76,7 @@ class ShowUpdate(BaseModel):
     start_time: Optional[str] = None
     end_time: Optional[str] = None
     status: Optional[str] = None
+    studio_id: Optional[str] = None
     # For updating single occurrence vs all
     update_all_occurrences: Optional[bool] = False
 
@@ -90,6 +92,8 @@ class ShowResponse(BaseModel):
     status: str
     editor_id: str
     team_id: Optional[str] = ""
+    studio_id: Optional[str] = None
+    studio_name: Optional[str] = None
     created_at: str
     updated_at: str
     # Recurrence info
