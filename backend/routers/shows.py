@@ -1,12 +1,15 @@
 """Show and rundown management routes."""
-from fastapi import APIRouter, HTTPException, Depends, status, Query
+from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File
 from fastapi.responses import HTMLResponse
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 import uuid
 import jwt
+import aiofiles
+import mimetypes
 
-from database import db, JWT_SECRET
+from database import db, JWT_SECRET, UPLOADS_DIR
 from models.shows import (
     ShowCreate, ShowUpdate, ShowResponse,
     RundownItemCreate, RundownItemUpdate, RundownItemResponse,
@@ -21,6 +24,10 @@ from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
 
 shows_router = APIRouter(prefix="/shows", tags=["Shows"])
+
+# Create show images directory
+SHOW_IMAGES_DIR = UPLOADS_DIR.parent / 'show_images'
+SHOW_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def generate_occurrence_dates(start_date: str, interval_weeks: int, end_date: Optional[str], max_occurrences: int = 52) -> List[str]:
