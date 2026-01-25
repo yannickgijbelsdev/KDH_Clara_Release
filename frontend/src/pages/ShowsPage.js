@@ -91,7 +91,6 @@ const ShowCard = ({ show, index, onClick }) => (
         {statusLabels[show.status]}
       </span>
     </div>
-    </span>
   </div>
 );
 
