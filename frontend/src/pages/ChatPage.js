@@ -263,19 +263,33 @@ const ChatPage = () => {
     }
   }, []);
 
-  const fetchThreads = useCallback(async (silent = false) => {
+  const fetchThreads = useCallback(async (silent = false, isPolling = false) => {
     try {
       const response = await axios.get(`${API}/chat/threads`);
       setThreads(response.data);
       
-      // Update active thread with fresh data if it exists
-      if (activeThread) {
-        const updatedActive = response.data.find(t => t.id === activeThread.id);
+      // When polling, only update the threads list, don't change active thread selection
+      if (isPolling) {
+        // Just update the active thread data if it's in the list
+        const currentActiveId = activeThreadIdRef.current;
+        if (currentActiveId) {
+          const updatedActive = response.data.find(t => t.id === currentActiveId);
+          if (updatedActive) {
+            setActiveThread(updatedActive);
+          }
+        }
+        return;
+      }
+      
+      // Initial load - select team thread by default if no active thread
+      const currentActiveId = activeThreadIdRef.current;
+      if (currentActiveId) {
+        const updatedActive = response.data.find(t => t.id === currentActiveId);
         if (updatedActive) {
           setActiveThread(updatedActive);
         }
       } else {
-        // Select team thread by default
+        // Select team thread by default only on initial load
         const teamThread = response.data.find(t => t.type === 'team');
         if (teamThread) {
           setActiveThread(teamThread);
@@ -290,7 +304,7 @@ const ChatPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeThread]);
+  }, []);
 
   const fetchMessages = useCallback(async (threadId, isPolling = false) => {
     try {
