@@ -88,6 +88,20 @@ const TeamSettingsPage = () => {
   const [tempPassword, setTempPassword] = useState('');
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // Show Titles state
+  const [showTitles, setShowTitles] = useState([]);
+  const [showTitleDialogOpen, setShowTitleDialogOpen] = useState(false);
+  const [editingTitle, setEditingTitle] = useState(null);
+  const [deleteTitleDialogOpen, setDeleteTitleDialogOpen] = useState(false);
+  const [selectedTitle, setSelectedTitle] = useState(null);
+  const [titleFormData, setTitleFormData] = useState({
+    name: '',
+    description: '',
+    default_start_time: '09:00',
+    default_end_time: '10:00',
+  });
+  const [savingTitle, setSavingTitle] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -99,13 +113,15 @@ const TeamSettingsPage = () => {
 
   const fetchData = async () => {
     try {
-      const [teamRes, usersRes] = await Promise.all([
+      const [teamRes, usersRes, titlesRes] = await Promise.all([
         axios.get(`${API}/teams/current`),
         axios.get(`${API}/users`),
+        axios.get(`${API}/shows/titles`),
       ]);
       setTeam(teamRes.data);
       setTeamName(teamRes.data.name);
       setUsers(usersRes.data);
+      setShowTitles(titlesRes.data);
     } catch (error) {
       toast.error('Failed to load team data');
     } finally {
