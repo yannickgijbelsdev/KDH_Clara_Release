@@ -31,6 +31,28 @@ class ShowTitleResponse(BaseModel):
     created_at: str
 
 
+# ============== STUDIOS/ROOMS ==============
+
+class StudioCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+
+
+class StudioUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class StudioResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    description: str
+    team_id: str
+    created_by: str
+    created_at: str
+
+
 # ============== SHOWS ==============
 
 class ShowCreate(BaseModel):
