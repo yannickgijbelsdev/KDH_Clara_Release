@@ -278,59 +278,6 @@ const ContentDetailPage = () => {
     return `${API}/uploads/featured_images/${image.file_storage_key}`;
   };
 
-  // Content-level featured image handlers
-  const handleContentImageSelect = async (file) => {
-    if (!file) return;
-    
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Please use JPEG, PNG, GIF, or WebP.');
-      return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File too large. Maximum size is 5MB.');
-      return;
-    }
-    
-    setUploadingContentImage(true);
-    
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const response = await axios.post(
-        `${API}/content/${contentId}/featured-image`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      );
-      
-      setContent(prev => ({
-        ...prev,
-        featured_image: response.data.featured_image
-      }));
-      
-      toast.success('Featured image uploaded');
-    } catch (error) {
-      toast.error('Failed to upload image');
-    } finally {
-      setUploadingContentImage(false);
-    }
-  };
-
-  const handleRemoveContentImage = async () => {
-    try {
-      await axios.delete(`${API}/content/${contentId}/featured-image`);
-      setContent(prev => ({
-        ...prev,
-        featured_image: null
-      }));
-      toast.success('Featured image removed');
-    } catch (error) {
-      toast.error('Failed to remove image');
-    }
-  };
-
   const handlePublish = async () => {
     const targets = Object.entries(selectedSites)
       .filter(([_, isSelected]) => isSelected)
