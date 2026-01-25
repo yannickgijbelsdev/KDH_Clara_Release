@@ -10,11 +10,12 @@ from database import db, JWT_SECRET
 from models.shows import (
     ShowCreate, ShowUpdate, ShowResponse,
     RundownItemCreate, RundownItemUpdate, RundownItemResponse,
-    ReorderRequest, AttachContentRequest, DeleteShowRequest
+    ReorderRequest, AttachContentRequest, DeleteShowRequest,
+    ShowTitleCreate, ShowTitleUpdate, ShowTitleResponse
 )
 from models.content import ContentItemResponse
 from models.media import AttachMediaRequest, RundownItemMediaResponse, MediaAssetResponse
-from services.auth import get_current_user, require_editor_or_admin
+from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
 
