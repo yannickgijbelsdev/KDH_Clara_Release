@@ -192,6 +192,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
         start_time: formData.start_time,
         end_time: formData.end_time,
         status: formData.status,
+        studio_id: formData.studio_id || null,
         recurrence_type: isRecurring ? 'weekly' : 'none',
         recurrence_interval: recurrenceOption?.interval || 1,
         recurrence_end_date: isRecurring && endDate ? format(endDate, 'yyyy-MM-dd') : null,
