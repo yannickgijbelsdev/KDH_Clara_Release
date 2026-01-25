@@ -41,6 +41,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
   const [date, setDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showTitles, setShowTitles] = useState([]);
+  const [studios, setStudios] = useState([]);
   const [loadingTitles, setLoadingTitles] = useState(false);
   const [isAddingNewTitle, setIsAddingNewTitle] = useState(false);
   const [newTitleName, setNewTitleName] = useState('');
@@ -54,12 +55,14 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
     end_time: '10:00',
     status: 'draft',
     recurrence: 'none',
+    studio_id: '',
   });
 
-  // Fetch show titles when dialog opens
+  // Fetch show titles and studios when dialog opens
   useEffect(() => {
     if (open) {
       fetchShowTitles();
+      fetchStudios();
     }
   }, [open]);
 
@@ -72,6 +75,15 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
       console.error('Failed to fetch show titles:', error);
     } finally {
       setLoadingTitles(false);
+    }
+  };
+
+  const fetchStudios = async () => {
+    try {
+      const response = await axios.get(`${API}/shows/studios`);
+      setStudios(response.data);
+    } catch (error) {
+      console.error('Failed to fetch studios:', error);
     }
   };
 
