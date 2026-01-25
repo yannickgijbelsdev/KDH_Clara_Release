@@ -520,6 +520,13 @@ async def update_show(
         )
     
     updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
+    
+    # Get studio name if exists
+    if updated_show.get('studio_id'):
+        studio = await db.studios.find_one({"id": updated_show['studio_id']}, {"_id": 0})
+        if studio:
+            updated_show['studio_name'] = studio['name']
+    
     return updated_show
 
 
