@@ -152,6 +152,10 @@ const ShowDetailPage = () => {
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
   
+  // Image upload state
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef(null);
+  
   // WebSocket state
   const [isConnected, setIsConnected] = useState(false);
   const [presence, setPresence] = useState([]);
