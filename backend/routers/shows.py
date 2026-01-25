@@ -238,6 +238,88 @@ async def delete_studio(
         raise HTTPException(status_code=404, detail="Studio not found")
 
 
+# ============== SHOW IMAGE UPLOAD ==============
+
+@shows_router.post("/{show_id}/image")
+async def upload_show_image(
+    show_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Upload an image for a show."""
+    show = await db.shows.find_one({
+        "id": show_id,
+        "team_id": current_user.get('team_id')
+    })
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
+    if content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, GIF, WebP")
+    
+    # Delete old image if exists
+    old_image = show.get("image")
+    if old_image:
+        old_file = SHOW_IMAGES_DIR / old_image.get("file_storage_key", "")
+        if old_file.exists():
+            old_file.unlink()
+    
+    # Save new image
+    file_ext = Path(file.filename).suffix or '.jpg'
+    storage_key = f"show_{show_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    file_path = SHOW_IMAGES_DIR / storage_key
+    
+    file_size = 0
+    async with aiofiles.open(file_path, 'wb') as f:
+        while chunk := await file.read(8192):
+            await f.write(chunk)
+            file_size += len(chunk)
+    
+    now = datetime.now(timezone.utc).isoformat()
+    image_data = {
+        "file_storage_key": storage_key,
+        "file_name": file.filename,
+        "mime_type": content_type,
+        "size": file_size
+    }
+    
+    await db.shows.update_one(
+        {"id": show_id},
+        {"$set": {"image": image_data, "updated_at": now}}
+    )
+    
+    return {"success": True, "image": image_data}
+
+
+@shows_router.delete("/{show_id}/image")
+async def delete_show_image(
+    show_id: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Delete the image from a show."""
+    show = await db.shows.find_one({
+        "id": show_id,
+        "team_id": current_user.get('team_id')
+    })
+    if not show:
+        raise HTTPException(status_code=404, detail="Show not found")
+    
+    image = show.get("image")
+    if image:
+        file_path = SHOW_IMAGES_DIR / image.get("file_storage_key", "")
+        if file_path.exists():
+            file_path.unlink()
+    
+    await db.shows.update_one(
+        {"id": show_id},
+        {"$set": {"image": None, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"success": True}
+
+
 # ============== SHOWS CRUD ==============
 
 @shows_router.get("", response_model=List[ShowResponse])
