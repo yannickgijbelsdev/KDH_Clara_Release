@@ -137,6 +137,100 @@ async def delete_show_title(
         raise HTTPException(status_code=404, detail="Show title not found")
 
 
+# ============== STUDIOS/ROOMS ==============
+
+@shows_router.get("/studios", response_model=List[StudioResponse])
+async def get_studios(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all studios for the team. Available to all users."""
+    studios = await db.studios.find(
+        {"team_id": current_user.get('team_id')},
+        {"_id": 0}
+    ).sort("name", 1).to_list(100)
+    return studios
+
+
+@shows_router.post("/studios", response_model=StudioResponse, status_code=status.HTTP_201_CREATED)
+async def create_studio(
+    studio_data: StudioCreate,
+    current_user: dict = Depends(require_admin)
+):
+    """Create a new studio. Admin only."""
+    studio_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Check for duplicate name
+    existing = await db.studios.find_one({
+        "team_id": current_user.get('team_id'),
+        "name": {"$regex": f"^{studio_data.name}$", "$options": "i"}
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="A studio with this name already exists")
+    
+    studio_doc = {
+        "id": studio_id,
+        "name": studio_data.name,
+        "description": studio_data.description or "",
+        "team_id": current_user.get('team_id'),
+        "created_by": current_user['id'],
+        "created_at": now
+    }
+    
+    await db.studios.insert_one(studio_doc)
+    studio_doc.pop('_id', None)
+    return studio_doc
+
+
+@shows_router.put("/studios/{studio_id}", response_model=StudioResponse)
+async def update_studio(
+    studio_id: str,
+    studio_data: StudioUpdate,
+    current_user: dict = Depends(require_admin)
+):
+    """Update a studio. Admin only."""
+    studio = await db.studios.find_one({
+        "id": studio_id,
+        "team_id": current_user.get('team_id')
+    })
+    if not studio:
+        raise HTTPException(status_code=404, detail="Studio not found")
+    
+    update_dict = {k: v for k, v in studio_data.model_dump().items() if v is not None}
+    
+    if "name" in update_dict:
+        existing = await db.studios.find_one({
+            "team_id": current_user.get('team_id'),
+            "name": {"$regex": f"^{update_dict['name']}$", "$options": "i"},
+            "id": {"$ne": studio_id}
+        })
+        if existing:
+            raise HTTPException(status_code=400, detail="A studio with this name already exists")
+    
+    if update_dict:
+        await db.studios.update_one(
+            {"id": studio_id},
+            {"$set": update_dict}
+        )
+    
+    updated = await db.studios.find_one({"id": studio_id}, {"_id": 0})
+    return updated
+
+
+@shows_router.delete("/studios/{studio_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_studio(
+    studio_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Delete a studio. Admin only."""
+    result = await db.studios.delete_one({
+        "id": studio_id,
+        "team_id": current_user.get('team_id')
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Studio not found")
+
+
 # ============== SHOWS CRUD ==============
 
 @shows_router.get("", response_model=List[ShowResponse])
