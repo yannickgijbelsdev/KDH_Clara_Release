@@ -365,8 +365,10 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 ### Core Collections
 - **users**: id, email, password_hash, name, role, team_id, created_at, temp_password
 - **teams**: id, name, created_at
-- **shows**: id, title, description, date, start_time, end_time, status, editor_id, team_id (legacy)
+- **shows**: id, title, description, date, start_time, end_time, status, editor_id, team_id, studio_id, image (file_storage_key, file_name, mime_type, size)
 - **rundown_items**: id, show_id, type, title, notes, duration, order, content_ids (legacy)
+- **show_titles**: id, team_id, name, description, default_start_time, default_end_time
+- **studios**: id, team_id, name, description
 
 ### Content & WordPress
 - **content_items**: id, team_id, title, type, body, excerpt, external_url, tags, status, created_by
