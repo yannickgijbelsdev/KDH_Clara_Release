@@ -3,6 +3,36 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List, Literal
 
 
+# ============== SHOW TITLE TEMPLATES ==============
+
+class ShowTitleCreate(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    default_start_time: Optional[str] = None
+    default_end_time: Optional[str] = None
+
+
+class ShowTitleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    default_start_time: Optional[str] = None
+    default_end_time: Optional[str] = None
+
+
+class ShowTitleResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    description: str
+    default_start_time: Optional[str] = None
+    default_end_time: Optional[str] = None
+    team_id: str
+    created_by: str
+    created_at: str
+
+
+# ============== SHOWS ==============
+
 class ShowCreate(BaseModel):
     title: str
     description: Optional[str] = ""
