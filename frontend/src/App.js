@@ -12,6 +12,7 @@ import ContentDetailPage from './pages/ContentDetailPage';
 import WordPressSettingsPage from './pages/WordPressSettingsPage';
 import ChatPage from './pages/ChatPage';
 import MediaLibraryPage from './pages/MediaLibraryPage';
+import ShowManagementPage from './pages/ShowManagementPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
