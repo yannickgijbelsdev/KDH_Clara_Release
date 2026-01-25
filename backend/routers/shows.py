@@ -11,7 +11,8 @@ from models.shows import (
     ShowCreate, ShowUpdate, ShowResponse,
     RundownItemCreate, RundownItemUpdate, RundownItemResponse,
     ReorderRequest, AttachContentRequest, DeleteShowRequest,
-    ShowTitleCreate, ShowTitleUpdate, ShowTitleResponse
+    ShowTitleCreate, ShowTitleUpdate, ShowTitleResponse,
+    StudioCreate, StudioUpdate, StudioResponse
 )
 from models.content import ContentItemResponse
 from models.media import AttachMediaRequest, RundownItemMediaResponse, MediaAssetResponse
