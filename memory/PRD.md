@@ -345,6 +345,22 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - `DELETE /api/content/{id}/featured-image` - Remove image
 - [x] All 9 featured image tests passed (100% success rate)
 
+### January 25, 2026 - Show Image Uploads & Studio Display
+- [x] **Show Image Upload** - Add, replace, and remove images for shows
+  - Image upload section on ShowDetailPage with drag-to-upload area
+  - Replace and Remove buttons for existing images
+  - Images displayed on show cards in ShowsPage
+  - Images stored in `/app/backend/show_images/`
+- [x] **API Endpoints for Show Images:**
+  - `POST /api/shows/{show_id}/image` - Upload image
+  - `DELETE /api/shows/{show_id}/image` - Remove image
+  - `GET /api/uploads/show_images/{file_key}` - Serve image
+- [x] **Studio Name Display** - Show studio/room name on show cards
+  - Radio icon with studio name displayed next to date/time
+  - Visible on both one-time show cards and recurring series bundles
+  - Fixed `update_show` endpoint to return `studio_name` in response
+- [x] All 9 show image tests passed (100% success rate)
+
 ## Database Collections
 ### Core Collections
 - **users**: id, email, password_hash, name, role, team_id, created_at, temp_password
