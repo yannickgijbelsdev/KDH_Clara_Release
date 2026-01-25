@@ -348,6 +348,7 @@ async def create_show(
             "start_time": show_data.start_time,
             "end_time": show_data.end_time,
             "status": show_data.status,
+            "studio_id": show_data.studio_id,
             "editor_id": current_user['id'],
             "team_id": team_id,
             "created_at": now,
@@ -376,6 +377,13 @@ async def get_show(
     )
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
+    
+    # Get studio name if exists
+    if show.get('studio_id'):
+        studio = await db.studios.find_one({"id": show['studio_id']}, {"_id": 0})
+        if studio:
+            show['studio_name'] = studio['name']
+    
     return show
 
 
