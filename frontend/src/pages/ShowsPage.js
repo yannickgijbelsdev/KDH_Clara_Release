@@ -37,46 +37,62 @@ const statusLabels = {
   completed: 'Completed',
 };
 
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
 // Individual show card component
 const ShowCard = ({ show, index, onClick }) => (
   <div
     data-testid={`show-card-${index}`}
     onClick={onClick}
-    className="show-card bg-[#18181b] rounded-xl p-5 cursor-pointer group"
+    className="show-card bg-[#18181b] rounded-xl overflow-hidden cursor-pointer group"
     style={{ animationDelay: `${index * 50}ms` }}
   >
-    <div className="flex items-start justify-between mb-3">
-      <h3 className="text-lg font-semibold text-white group-hover:text-rose-500 transition-colors line-clamp-1">
-        {show.title}
-      </h3>
-      <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-500 transition-all group-hover:translate-x-1 flex-shrink-0" />
-    </div>
-
-    {show.description && (
-      <p className="text-zinc-400 text-sm mb-3 line-clamp-2">
-        {show.description}
-      </p>
+    {/* Show Image */}
+    {show.image && (
+      <div className="w-full h-32 bg-zinc-800">
+        <img
+          src={`${API}/uploads/show_images/${show.image.file_storage_key}`}
+          alt={show.title}
+          className="w-full h-full object-cover"
+        />
+      </div>
     )}
+    
+    <div className="p-5">
+      <div className="flex items-start justify-between mb-3">
+        <h3 className="text-lg font-semibold text-white group-hover:text-rose-500 transition-colors line-clamp-1">
+          {show.title}
+        </h3>
+        <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-500 transition-all group-hover:translate-x-1 flex-shrink-0" />
+      </div>
 
-    <div className="flex items-center gap-4 text-sm text-zinc-500 mb-3">
-      <div className="flex items-center gap-1.5">
-        <Calendar className="w-4 h-4" />
-        <span className="font-mono">
-          {format(parseISO(show.date), 'MMM d, yyyy')}
-        </span>
+      {show.description && (
+        <p className="text-zinc-400 text-sm mb-3 line-clamp-2">
+          {show.description}
+        </p>
+      )}
+
+      <div className="flex items-center gap-4 text-sm text-zinc-500 mb-3">
+        <div className="flex items-center gap-1.5">
+          <Calendar className="w-4 h-4" />
+          <span className="font-mono">
+            {format(parseISO(show.date), 'MMM d, yyyy')}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-4 h-4" />
+          <span className="font-mono">
+            {show.start_time} - {show.end_time}
+          </span>
+        </div>
       </div>
-      <div className="flex items-center gap-1.5">
-        <Clock className="w-4 h-4" />
-        <span className="font-mono">
-          {show.start_time} - {show.end_time}
-        </span>
-      </div>
+
+      <span
+        className={`inline-block px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${statusColors[show.status]}`}
+      >
+        {statusLabels[show.status]}
+      </span>
     </div>
-
-    <span
-      className={`inline-block px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${statusColors[show.status]}`}
-    >
-      {statusLabels[show.status]}
     </span>
   </div>
 );
