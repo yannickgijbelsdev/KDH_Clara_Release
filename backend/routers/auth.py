@@ -1,5 +1,5 @@
 """Authentication routes."""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from datetime import datetime, timezone
 import uuid
 
@@ -10,12 +10,13 @@ from models.auth import (
 from services.auth import (
     hash_password, verify_password, create_token, get_current_user
 )
+from services.audit import log_action, get_client_ip
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @auth_router.post("/register", response_model=TokenResponse)
-async def register(user_data: UserCreate):
+async def register(user_data: UserCreate, request: Request):
     """Register a new user. First user creates a team and becomes admin."""
     existing = await db.users.find_one({"email": user_data.email})
     if existing:
@@ -52,6 +53,18 @@ async def register(user_data: UserCreate):
         {"$set": {"team_id": team_id}}
     )
     
+    # Log registration
+    await log_action(
+        action="User Registered",
+        category="auth",
+        user_id=user_id,
+        user_name=user_data.name,
+        user_email=user_data.email,
+        team_id=team_id,
+        ip_address=get_client_ip(request),
+        details={"role": role, "team_name": team_name}
+    )
+    
     token = create_token(user_id)
     user_response = UserWithTeamResponse(
         id=user_id,
@@ -67,9 +80,17 @@ async def register(user_data: UserCreate):
 
 
 @auth_router.post("/login", response_model=TokenResponse)
-async def login(credentials: UserLogin):
+async def login(credentials: UserLogin, request: Request):
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not verify_password(credentials.password, user['password_hash']):
+        # Log failed login attempt
+        await log_action(
+            action="Login Failed",
+            category="auth",
+            user_email=credentials.email,
+            ip_address=get_client_ip(request),
+            details={"reason": "Invalid credentials"}
+        )
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     team = await db.teams.find_one({"id": user.get('team_id')}, {"_id": 0})
@@ -77,6 +98,18 @@ async def login(credentials: UserLogin):
     
     role = user.get('role', 'editor')
     team_id = user.get('team_id', '')
+    
+    # Log successful login
+    await log_action(
+        action="Login",
+        category="auth",
+        user_id=user['id'],
+        user_name=user['name'],
+        user_email=user['email'],
+        team_id=team_id,
+        ip_address=get_client_ip(request),
+        details={"role": role}
+    )
     
     token = create_token(user['id'])
     user_response = UserWithTeamResponse(
@@ -92,10 +125,28 @@ async def login(credentials: UserLogin):
     return TokenResponse(token=token, user=user_response)
 
 
+@auth_router.post("/logout")
+async def logout(request: Request, current_user: dict = Depends(get_current_user)):
+    """Log out the current user."""
+    await log_action(
+        action="Logout",
+        category="auth",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        team_id=current_user.get('team_id'),
+        ip_address=get_client_ip(request)
+    )
+    return {"message": "Logged out successfully"}
+
+
 @auth_router.get("/me", response_model=UserWithTeamResponse)
 async def get_me(current_user: dict = Depends(get_current_user)):
     team = await db.teams.find_one({"id": current_user.get('team_id')}, {"_id": 0})
     team_name = team['name'] if team else "Unknown Team"
+    
+    # Include avatar if exists
+    avatar = current_user.get('avatar')
     
     return UserWithTeamResponse(
         id=current_user['id'],
@@ -104,17 +155,21 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         role=current_user.get('role', 'editor'),
         team_id=current_user.get('team_id', ''),
         team_name=team_name,
-        created_at=current_user['created_at']
+        created_at=current_user['created_at'],
+        avatar=avatar
     )
 
 
 @auth_router.put("/change-password")
 async def change_password(
-    old_password: str,
-    new_password: str,
+    password_data: dict,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Change user's password."""
+    old_password = password_data.get('old_password')
+    new_password = password_data.get('new_password')
+    
     user = await db.users.find_one({"id": current_user['id']})
     if not verify_password(old_password, user['password_hash']):
         raise HTTPException(status_code=400, detail="Invalid current password")
@@ -126,4 +181,16 @@ async def change_password(
             "$unset": {"temp_password": ""}
         }
     )
+    
+    # Log password change
+    await log_action(
+        action="Password Changed",
+        category="auth",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        team_id=current_user.get('team_id'),
+        ip_address=get_client_ip(request)
+    )
+    
     return {"message": "Password changed successfully"}
