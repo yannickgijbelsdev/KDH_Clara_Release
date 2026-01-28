@@ -621,6 +621,112 @@ const TeamSettingsPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editUserDialogOpen} onOpenChange={setEditUserDialogOpen}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Edit User</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Update user profile information.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleUpdateUser} className="space-y-5 mt-4">
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Display Name</Label>
+              <Input
+                data-testid="edit-user-name-input"
+                value={editUserData.name}
+                onChange={(e) => setEditUserData({ ...editUserData, name: e.target.value })}
+                placeholder="John Doe"
+                required
+                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Email Address</Label>
+              <Input
+                data-testid="edit-user-email-input"
+                type="email"
+                value={editUserData.email}
+                onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                placeholder="john@example.com"
+                required
+                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+              />
+            </div>
+
+            <DialogFooter className="gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditUserDialogOpen(false)}
+                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                data-testid="save-user-btn"
+                disabled={savingUser}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                {savingUser ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Reset Password</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Set a new password for {editingUser?.name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleResetPassword} className="space-y-5 mt-4">
+            <div className="space-y-2">
+              <Label className="text-zinc-300">New Password</Label>
+              <Input
+                data-testid="reset-password-input"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
+                required
+                minLength={6}
+                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+              />
+              <p className="text-xs text-zinc-500">Minimum 6 characters</p>
+            </div>
+
+            <DialogFooter className="gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setResetPasswordDialogOpen(false)}
+                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                data-testid="confirm-reset-password-btn"
+                disabled={resettingPassword}
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                {resettingPassword ? 'Resetting...' : 'Reset Password'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
