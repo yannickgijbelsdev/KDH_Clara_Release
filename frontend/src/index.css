@@ -103,6 +103,38 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .drag-over {
-  border-color: #8b5cf6 !important;
-  background: rgba(139, 92, 246, 0.1) !important;
+  border-color: #f97316 !important;
+  background: rgba(249, 115, 22, 0.1) !important;
+}
+
+/* Glass morphism utility */
+.glass {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.glass-card {
+  background: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Orange glow effect */
+.glow-orange {
+  box-shadow: 0 0 40px rgba(249, 115, 22, 0.15);
+}
+
+/* Sidebar styles */
+.sidebar-icon {
+  @apply w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-200;
+}
+
+.sidebar-icon:hover {
+  @apply bg-orange-500/10 text-orange-500;
+}
+
+.sidebar-icon.active {
+  @apply bg-orange-500 text-white shadow-lg shadow-orange-500/30;
 }
