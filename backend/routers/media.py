@@ -28,7 +28,13 @@ ALLOWED_AUDIO_TYPES = {
     'audio/x-m4a': 'audio',
     'audio/m4a': 'audio'
 }
-ALLOWED_MEDIA_TYPES = {**ALLOWED_DOCUMENT_TYPES, **ALLOWED_AUDIO_TYPES}
+ALLOWED_IMAGE_TYPES = {
+    'image/jpeg': 'image',
+    'image/png': 'image',
+    'image/gif': 'image',
+    'image/webp': 'image'
+}
+ALLOWED_MEDIA_TYPES = {**ALLOWED_DOCUMENT_TYPES, **ALLOWED_AUDIO_TYPES, **ALLOWED_IMAGE_TYPES}
 MAX_MEDIA_SIZE = 100 * 1024 * 1024  # 100MB
 
 
