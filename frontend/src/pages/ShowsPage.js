@@ -58,10 +58,10 @@ const ShowCard = ({ show, index, onClick }) => (
     
     <div className="p-5">
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-lg font-semibold text-white group-hover:text-rose-500 transition-colors line-clamp-1">
+        <h3 className="text-lg font-semibold text-white group-hover:text-orange-500 transition-colors line-clamp-1">
           {show.title}
         </h3>
-        <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-500 transition-all group-hover:translate-x-1 flex-shrink-0" />
+        <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-orange-500 transition-all group-hover:translate-x-1 flex-shrink-0" />
       </div>
 
       {show.description && (
@@ -148,8 +148,8 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
               className="flex items-center gap-3 flex-1"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              <div className="p-2 bg-rose-500/20 rounded-lg">
-                <Repeat className="w-5 h-5 text-rose-500" />
+              <div className="p-2 bg-orange-500/20 rounded-lg">
+                <Repeat className="w-5 h-5 text-orange-500" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
@@ -206,7 +206,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
                     e.stopPropagation();
                     setShowDeleteDialog(true);
                   }}
-                  className="h-8 w-8 text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10"
+                  className="h-8 w-8 text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
@@ -256,7 +256,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
       <AlertDialogContent className="bg-[#18181b] border-zinc-800">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-rose-500" />
+            <Trash2 className="w-5 h-5 text-orange-500" />
             Delete Recurring Series
           </AlertDialogTitle>
           <AlertDialogDescription className="text-zinc-400">
@@ -271,7 +271,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
           <Button
             onClick={handleDelete}
             disabled={deleting}
-            className="bg-rose-500 hover:bg-rose-600 text-white"
+            className="bg-orange-500 hover:bg-orange-600 text-white"
           >
             {deleting ? (
               <>
@@ -365,7 +365,7 @@ const ShowsPage = () => {
           <Button
             data-testid="create-show-btn"
             onClick={() => setIsCreateOpen(true)}
-            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
+            className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             New Show
@@ -453,7 +453,7 @@ const ShowsPage = () => {
           <p className="text-zinc-400 mb-6">Get started by creating your first show</p>
           <Button
             onClick={() => setIsCreateOpen(true)}
-            className="bg-rose-500 hover:bg-rose-600 text-white"
+            className="bg-orange-500 hover:bg-orange-600 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Show
@@ -465,7 +465,7 @@ const ShowsPage = () => {
           {series.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Layers className="w-5 h-5 text-rose-500" />
+                <Layers className="w-5 h-5 text-orange-500" />
                 <h2 className="text-lg font-semibold text-white">Recurring Shows</h2>
                 <span className="text-sm text-zinc-500">({series.length} series)</span>
               </div>
