@@ -111,6 +111,7 @@ const TeamSettingsPage = () => {
   
   // Avatar upload state
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarTargetUserId, setAvatarTargetUserId] = useState(null);
   const avatarInputRef = useRef(null);
 
   useEffect(() => {
