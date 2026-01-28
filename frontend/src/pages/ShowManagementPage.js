@@ -67,6 +67,11 @@ const ShowManagementPage = () => {
   });
   const [savingTitle, setSavingTitle] = useState(false);
   
+  // Image upload state
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageTargetTitleId, setImageTargetTitleId] = useState(null);
+  const imageInputRef = useRef(null);
+  
   // Studios state
   const [studios, setStudios] = useState([]);
   const [studioDialogOpen, setStudioDialogOpen] = useState(false);
