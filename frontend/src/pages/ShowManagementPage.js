@@ -219,8 +219,7 @@ const ShowManagementPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2 flex items-center gap-3">
-            <Settings className="w-8 h-8 text-orange-500" />
+          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">
             Show Management
           </h1>
           <p className="text-sm sm:text-base text-zinc-400">Manage show titles and studios for your team</p>
