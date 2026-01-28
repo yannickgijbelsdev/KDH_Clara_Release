@@ -410,17 +410,45 @@ const TeamSettingsPage = () => {
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          setSelectedUser(member);
-                          setDeleteDialogOpen(true);
-                        }}
-                        className="text-zinc-400 hover:text-orange-500 hover:bg-orange-500/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-zinc-400 hover:text-white hover:bg-zinc-700"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                          <DropdownMenuItem
+                            onClick={() => openEditUser(member)}
+                            className="text-zinc-300"
+                          >
+                            <User className="w-4 h-4 mr-2" />
+                            Edit Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => openResetPassword(member)}
+                            className="text-zinc-300"
+                          >
+                            <KeyRound className="w-4 h-4 mr-2" />
+                            Reset Password
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-zinc-800" />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedUser(member);
+                              setDeleteDialogOpen(true);
+                            }}
+                            className="text-orange-500 focus:text-orange-500"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Remove User
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </>
                   )}
                 </div>
