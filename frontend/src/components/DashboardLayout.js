@@ -97,7 +97,7 @@ const DashboardLayout = () => {
           {/* Logo */}
           <div className="mb-8">
             <div className="w-11 h-11 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <Radio className="w-6 h-6 text-white" />
+              <span className="text-white font-black text-lg">C</span>
             </div>
           </div>
 
