@@ -271,17 +271,12 @@ const DashboardLayout = () => {
                     <p className="text-sm font-medium text-white">{user.team_name}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-white">{user?.name}</p>
-                    <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
-                      <RoleIcon className="w-3 h-3" />
-                      {roleLabels[user?.role]}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
+                    <RoleIcon className="w-3 h-3" />
+                    {roleLabels[user?.role]}
+                  </p>
                 </div>
               </div>
             </div>
