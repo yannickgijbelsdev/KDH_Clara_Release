@@ -302,16 +302,24 @@ const MediaLibraryPage = () => {
               <div
                 key={asset.id}
                 data-testid={`media-asset-${asset.id}`}
-                className="glass-card rounded-xl p-4 hover:border-rose-500/30 transition-all group"
+                className={cn(
+                  "glass-card rounded-xl p-4 hover:border-rose-500/30 transition-all group",
+                  canPreview(asset) && "cursor-pointer"
+                )}
+                onClick={() => canPreview(asset) && setPreviewAsset(asset)}
               >
                 <div className="flex items-start gap-3">
                   <div className={cn(
                     'p-3 rounded-lg flex-shrink-0',
-                    asset.kind === 'audio' ? 'bg-amber-500/20' : 'bg-blue-500/20'
+                    asset.kind === 'audio' ? 'bg-amber-500/20' : 
+                    asset.mime_type?.startsWith('image/') ? 'bg-green-500/20' :
+                    'bg-blue-500/20'
                   )}>
                     <FileIcon className={cn(
                       'w-6 h-6',
-                      asset.kind === 'audio' ? 'text-amber-500' : 'text-blue-500'
+                      asset.kind === 'audio' ? 'text-amber-500' : 
+                      asset.mime_type?.startsWith('image/') ? 'text-green-500' :
+                      'text-blue-500'
                     )} />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -334,13 +342,29 @@ const MediaLibraryPage = () => {
                         variant="ghost"
                         size="sm"
                         className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                      {canPreview(asset) && (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewAsset(asset);
+                          }}
+                          className="text-zinc-300"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Preview
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
-                        onClick={() => window.open(getFileUrl(asset), '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(getFileUrl(asset), '_blank');
+                        }}
                         className="text-zinc-300"
                       >
                         <Download className="w-4 h-4 mr-2" />
@@ -349,7 +373,8 @@ const MediaLibraryPage = () => {
                       {canEdit && (
                         <>
                           <DropdownMenuItem
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setEditingAsset(asset);
                               setNewTitle(asset.title);
                             }}
@@ -359,7 +384,10 @@ const MediaLibraryPage = () => {
                             Rename
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => handleDeleteAsset(asset)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteAsset(asset);
+                            }}
                             className="text-rose-500 focus:text-rose-500"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
@@ -371,14 +399,33 @@ const MediaLibraryPage = () => {
                   </DropdownMenu>
                 </div>
 
+                {/* Image Thumbnail Preview */}
+                {asset.mime_type?.startsWith('image/') && (
+                  <div className="mt-3 rounded-lg overflow-hidden bg-zinc-800 h-32">
+                    <img
+                      src={getFileUrl(asset)}
+                      alt={asset.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+
                 {/* Audio Player */}
                 {asset.kind === 'audio' && (
-                  <div className="mt-3">
+                  <div className="mt-3" onClick={(e) => e.stopPropagation()}>
                     <audio
                       controls
                       className="w-full h-8"
                       src={getFileUrl(asset)}
                     />
+                  </div>
+                )}
+                
+                {/* Preview hint for PDF/text */}
+                {(asset.mime_type === 'application/pdf' || asset.mime_type === 'text/plain') && (
+                  <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Click to preview</span>
                   </div>
                 )}
               </div>
