@@ -49,10 +49,10 @@ const LoginPage = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-[#09090b] via-transparent to-transparent" />
         <div className="relative z-10 flex flex-col justify-center px-12">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-orange-500/20 rounded-xl shadow-lg shadow-orange-500/20">
-              <Radio className="w-8 h-8 text-orange-500" />
+            <div className="p-3 bg-orange-500 rounded-xl shadow-lg shadow-orange-500/20">
+              <span className="text-white font-black text-2xl">C</span>
             </div>
-            <span className="text-2xl font-bold text-white">ShowPrep</span>
+            <span className="text-2xl font-bold text-white">Clara</span>
           </div>
           <h1 className="text-5xl font-black text-white leading-tight mb-4">
             Plan Your<br />
@@ -70,10 +70,10 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="p-3 bg-orange-500/20 rounded-xl">
-              <Mic2 className="w-6 h-6 text-orange-500" />
+            <div className="p-3 bg-orange-500 rounded-xl">
+              <span className="text-white font-black text-lg">C</span>
             </div>
-            <span className="text-xl font-bold text-white">ShowPrep</span>
+            <span className="text-xl font-bold text-white">Clara</span>
           </div>
 
           <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-8">
