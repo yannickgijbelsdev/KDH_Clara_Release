@@ -194,6 +194,54 @@ const TeamSettingsPage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const openEditUser = (member) => {
+    setEditingUser(member);
+    setEditUserData({ name: member.name, email: member.email });
+    setEditUserDialogOpen(true);
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setSavingUser(true);
+    
+    try {
+      await axios.put(`${API}/users/${editingUser.id}`, editUserData);
+      setUsers(users.map(u => u.id === editingUser.id ? { ...u, ...editUserData } : u));
+      setEditUserDialogOpen(false);
+      setEditingUser(null);
+      toast.success('User updated successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update user');
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
+  const openResetPassword = (member) => {
+    setEditingUser(member);
+    setNewPassword('');
+    setResetPasswordDialogOpen(true);
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setResettingPassword(true);
+    
+    try {
+      await axios.put(`${API}/users/${editingUser.id}/password`, { password: newPassword });
+      setResetPasswordDialogOpen(false);
+      setEditingUser(null);
+      setNewPassword('');
+      toast.success('Password reset successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to reset password');
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse">
