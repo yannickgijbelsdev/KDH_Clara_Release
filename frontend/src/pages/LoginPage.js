@@ -79,23 +79,6 @@ const LoginPage = () => {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="teamName" className="text-zinc-300">Team / Station Name</Label>
-                    <Input
-                      id="teamName"
-                      data-testid="register-team-input"
-                      type="text"
-                      value={teamName}
-                      onChange={(e) => setTeamName(e.target.value)}
-                      placeholder="My Radio Station"
-                      className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 h-12"
-                    />
-                  </div>
-                </>
-              )}
-
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-zinc-300">Email</Label>
                 <Input
@@ -130,22 +113,9 @@ const LoginPage = () => {
                 disabled={isLoading}
                 className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg shadow-orange-500/20"
               >
-                {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
+                {isLoading ? 'Please wait...' : 'Sign In'}
               </Button>
             </form>
-
-            <div className="mt-6 text-center">
-              <button
-                data-testid="toggle-auth-mode-btn"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-zinc-400 hover:text-white transition-colors"
-              >
-                {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <span className="text-orange-500 font-medium">
-                  {isLogin ? 'Sign up' : 'Sign in'}
-                </span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
