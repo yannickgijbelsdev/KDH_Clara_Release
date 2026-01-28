@@ -185,7 +185,7 @@ const TeamSettingsPage = () => {
     <div data-testid="team-settings-page">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-white mb-2">Team Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Team Settings</h1>
         <p className="text-zinc-400">Manage your team and users</p>
       </div>
 
