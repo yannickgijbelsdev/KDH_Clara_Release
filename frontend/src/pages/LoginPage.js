@@ -4,29 +4,20 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import { Radio, Mic2 } from 'lucide-react';
 
 const LoginPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [teamName, setTeamName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, register } = useAuth();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      if (isLogin) {
-        await login(email, password);
-        toast.success('Welcome back!');
-      } else {
-        await register(email, password, name, teamName || 'My Radio Station');
-        toast.success('Account created successfully!');
-      }
+      await login(email, password);
+      toast.success('Welcome back!');
     } catch (error) {
       const message = error.response?.data?.detail || 'Something went wrong';
       toast.error(message);
