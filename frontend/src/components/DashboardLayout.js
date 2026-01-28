@@ -59,12 +59,6 @@ const DashboardLayout = () => {
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
 
-  // Get current page title
-  const getCurrentPageTitle = () => {
-    const currentItem = navItems.find(item => item.to === location.pathname);
-    return currentItem?.label || 'Dashboard';
-  };
-
   return (
     <TooltipProvider delayDuration={0}>
       <div className="min-h-screen bg-[#09090b]">
