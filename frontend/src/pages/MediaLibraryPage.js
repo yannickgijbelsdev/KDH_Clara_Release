@@ -209,14 +209,9 @@ const MediaLibraryPage = () => {
     <div data-testid="media-library-page">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-500/20 rounded-lg flex-shrink-0">
-            <File className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Media Library</h1>
-            <p className="text-xs sm:text-sm text-zinc-400">Documents, audio files, and images</p>
-          </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Media Library</h1>
+          <p className="text-xs sm:text-sm text-zinc-400">Documents, audio files, and images</p>
         </div>
 
         {canEdit && (
