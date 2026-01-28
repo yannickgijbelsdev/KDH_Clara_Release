@@ -667,7 +667,10 @@ const ShowDetailPage = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setMakeRecurringDialogOpen(true)}
+              onClick={() => {
+                setEnableRecurrenceData({ interval: 1, endDate: null });
+                setEnableRecurrenceDialogOpen(true);
+              }}
               className="gap-2 bg-transparent border-zinc-700 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
             >
               <Repeat className="w-4 h-4" />
