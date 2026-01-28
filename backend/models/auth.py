@@ -34,6 +34,7 @@ class UserResponse(BaseModel):
     role: str
     team_id: str
     created_at: str
+    avatar: Optional[dict] = None
 
 
 class UserWithTeamResponse(BaseModel):
@@ -45,6 +46,7 @@ class UserWithTeamResponse(BaseModel):
     team_id: str
     team_name: str
     created_at: str
+    avatar: Optional[dict] = None
 
 
 class TokenResponse(BaseModel):
