@@ -147,7 +147,7 @@ const LoginPage = () => {
                 type="submit"
                 data-testid="login-submit-btn"
                 disabled={isLoading}
-                className="w-full h-12 bg-rose-500 hover:bg-rose-600 text-white font-semibold btn-primary"
+                className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg shadow-orange-500/20"
               >
                 {isLoading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Create Account')}
               </Button>
@@ -160,7 +160,7 @@ const LoginPage = () => {
                 className="text-zinc-400 hover:text-white transition-colors"
               >
                 {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                <span className="text-rose-500 font-medium">
+                <span className="text-orange-500 font-medium">
                   {isLogin ? 'Sign up' : 'Sign in'}
                 </span>
               </button>
