@@ -120,7 +120,7 @@ const ContentLibraryPage = () => {
           <Button
             data-testid="create-content-btn"
             onClick={() => setIsCreateOpen(true)}
-            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
+            className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             New Content
@@ -250,7 +250,7 @@ const ContentLibraryPage = () => {
           {isEditor && (
             <Button
               onClick={() => setIsCreateOpen(true)}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Content
@@ -341,7 +341,7 @@ const ContentLibraryPage = () => {
                           </div>
                         )}
                         {publishSummary.failed > 0 && (
-                          <div className="flex items-center gap-1 text-rose-500">
+                          <div className="flex items-center gap-1 text-orange-500">
                             <AlertCircle className="w-4 h-4" />
                             <span className="text-xs">{publishSummary.failed}</span>
                           </div>
