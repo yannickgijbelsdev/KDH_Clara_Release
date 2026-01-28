@@ -794,6 +794,19 @@ const TeamSettingsPage = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden Avatar File Input */}
+      <input
+        ref={avatarInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.[0] && editingUser) {
+            handleAvatarUpload(e.target.files[0], editingUser.id);
+          }
+        }}
+      />
     </div>
   );
 };
