@@ -151,6 +151,88 @@ async def delete_show_title(
         raise HTTPException(status_code=404, detail="Show title not found")
 
 
+@shows_router.post("/titles/{title_id}/image")
+async def upload_show_title_image(
+    title_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_admin)
+):
+    """Upload an image for a show title. Admin only."""
+    # Verify title exists
+    title = await db.show_titles.find_one({
+        "id": title_id,
+        "team_id": current_user.get('team_id')
+    })
+    if not title:
+        raise HTTPException(status_code=404, detail="Show title not found")
+    
+    # Validate file type
+    content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
+    if content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid image type. Allowed: JPEG, PNG, GIF, WebP")
+    
+    # Read file content
+    content = await file.read()
+    if len(content) > MAX_IMAGE_SIZE:
+        raise HTTPException(status_code=400, detail="File too large. Max 5MB")
+    
+    # Generate storage key
+    file_ext = Path(file.filename).suffix or '.jpg'
+    storage_key = f"{title_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    file_path = SHOW_TITLE_IMAGES_DIR / storage_key
+    
+    # Delete old image if exists
+    if title.get('image'):
+        old_path = SHOW_TITLE_IMAGES_DIR / title['image'].get('file_key', '')
+        if old_path.exists():
+            old_path.unlink()
+    
+    # Save new image
+    async with aiofiles.open(file_path, 'wb') as f:
+        await f.write(content)
+    
+    # Update title record
+    image_data = {
+        "file_key": storage_key,
+        "filename": file.filename,
+        "mime_type": content_type,
+        "size": len(content)
+    }
+    
+    await db.show_titles.update_one(
+        {"id": title_id},
+        {"$set": {"image": image_data}}
+    )
+    
+    return {"image": image_data}
+
+
+@shows_router.delete("/titles/{title_id}/image")
+async def delete_show_title_image(
+    title_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Remove image from a show title. Admin only."""
+    title = await db.show_titles.find_one({
+        "id": title_id,
+        "team_id": current_user.get('team_id')
+    })
+    if not title:
+        raise HTTPException(status_code=404, detail="Show title not found")
+    
+    if title.get('image'):
+        file_path = SHOW_TITLE_IMAGES_DIR / title['image'].get('file_key', '')
+        if file_path.exists():
+            file_path.unlink()
+    
+    await db.show_titles.update_one(
+        {"id": title_id},
+        {"$unset": {"image": ""}}
+    )
+    
+    return {"message": "Image removed"}
+
+
 # ============== STUDIOS/ROOMS ==============
 
 @shows_router.get("/studios", response_model=List[StudioResponse])
