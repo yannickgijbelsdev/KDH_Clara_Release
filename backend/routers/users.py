@@ -122,3 +122,65 @@ async def remove_user(
     )
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
+
+
+@users_router.put("/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: str,
+    user_data: dict,
+    current_user: dict = Depends(require_admin)
+):
+    """Update a user's profile (admin only)."""
+    user = await db.users.find_one(
+        {"id": user_id, "team_id": current_user['team_id']}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Only allow updating name and email
+    update_fields = {}
+    if "name" in user_data and user_data["name"]:
+        update_fields["name"] = user_data["name"]
+    if "email" in user_data and user_data["email"]:
+        # Check if email is already taken by another user
+        existing = await db.users.find_one({"email": user_data["email"], "id": {"$ne": user_id}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already in use")
+        update_fields["email"] = user_data["email"]
+    
+    if update_fields:
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": update_fields}
+        )
+    
+    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    return updated_user
+
+
+@users_router.put("/{user_id}/password")
+async def reset_user_password(
+    user_id: str,
+    password_data: dict,
+    current_user: dict = Depends(require_admin)
+):
+    """Reset a user's password (admin only)."""
+    user = await db.users.find_one(
+        {"id": user_id, "team_id": current_user['team_id']}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    new_password = password_data.get("password")
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {
+            "$set": {"password_hash": hash_password(new_password)},
+            "$unset": {"temp_password": ""}
+        }
+    )
+    
+    return {"message": "Password reset successfully"}
