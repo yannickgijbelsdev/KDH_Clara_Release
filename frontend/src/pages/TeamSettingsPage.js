@@ -248,6 +248,40 @@ const TeamSettingsPage = () => {
     }
   };
 
+  const handleAvatarUpload = async (file, userId) => {
+    if (!file) return;
+    setUploadingAvatar(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(`${API}/users/${userId}/avatar`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setUsers(users.map(u => u.id === userId ? { ...u, avatar: response.data.avatar } : u));
+      toast.success('Avatar uploaded successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload avatar');
+    } finally {
+      setUploadingAvatar(false);
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveAvatar = async (userId) => {
+    try {
+      await axios.delete(`${API}/users/${userId}/avatar`);
+      setUsers(users.map(u => u.id === userId ? { ...u, avatar: null } : u));
+      toast.success('Avatar removed');
+    } catch (error) {
+      toast.error('Failed to remove avatar');
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse">
