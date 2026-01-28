@@ -350,10 +350,18 @@ const TeamSettingsPage = () => {
                 className="flex items-center justify-between p-4 bg-[#27272a] rounded-lg"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center">
-                    <span className="text-white font-medium">
-                      {member.name.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+                    {member.avatar ? (
+                      <img
+                        src={`${API}/uploads/avatars/${member.avatar.file_key}`}
+                        alt={member.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-medium">
+                        {member.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
