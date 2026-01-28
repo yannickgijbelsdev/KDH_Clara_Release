@@ -576,92 +576,17 @@ const ShowDetailPage = () => {
         )}
       </div>
 
-      {/* Show Settings Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Settings className="w-5 h-5 text-orange-400" />
-            <h2 className="text-lg font-semibold text-white">Show Settings</h2>
-          </div>
-        </div>
-        
-        {/* Show Image */}
-        <div className="mb-6">
-          <h3 className="text-sm font-medium text-zinc-300 mb-3">Show Image</h3>
-          {show.image ? (
-            <div className="flex items-start gap-6">
-              <div className="w-48 h-32 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
-                <img
-                  src={`${API}/uploads/show_images/${show.image.file_storage_key}`}
-                  alt={show.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-zinc-400 mb-1">{show.image.file_name}</p>
-                <p className="text-xs text-zinc-500 mb-3">
-                  {(show.image.size / 1024).toFixed(1)} KB
-                </p>
-                {isEditor && (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => imageInputRef.current?.click()}
-                      disabled={uploadingImage}
-                      className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-                    >
-                      {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                      Replace
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRemoveImage}
-                      className="bg-transparent border-zinc-700 text-orange-400 hover:bg-orange-500/10"
-                    >
-                      <X className="w-4 h-4 mr-1" />
-                      Remove
-                    </Button>
-                  </div>
-                )}
-              </div>
+      {/* Show Settings Section - Recurrence Only */}
+      {!show.is_recurring && !show.parent_show_id && isEditor && (
+        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Settings className="w-5 h-5 text-orange-400" />
+              <h2 className="text-lg font-semibold text-white">Show Settings</h2>
             </div>
-          ) : (
-            isEditor ? (
-              <div
-                onClick={() => imageInputRef.current?.click()}
-                className="border-2 border-dashed border-zinc-700 rounded-lg p-8 text-center cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/5 transition-colors"
-              >
-                {uploadingImage ? (
-                  <div className="flex flex-col items-center">
-                    <Loader2 className="w-10 h-10 text-orange-500 animate-spin mb-3" />
-                    <p className="text-sm text-zinc-400">Uploading...</p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center">
-                    <Image className="w-10 h-10 text-zinc-500 mb-3" />
-                    <p className="text-zinc-400">Click to upload show image</p>
-                    <p className="text-xs text-zinc-500 mt-1">JPEG, PNG, GIF, WebP • Max 5MB</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-zinc-500 text-sm">No image uploaded for this show</p>
-            )
-          )}
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            className="hidden"
-            onChange={(e) => handleImageUpload(e.target.files?.[0])}
-          />
-        </div>
-
-        {/* Make Recurring Option (for non-recurring shows) */}
-        {!show.is_recurring && !show.parent_show_id && isEditor && (
-          <div className="pt-6 border-t border-zinc-800">
+          </div>
+          
+          <div>
             <h3 className="text-sm font-medium text-zinc-300 mb-3">Recurrence</h3>
             <p className="text-zinc-500 text-sm mb-3">Make this a recurring show to automatically schedule future episodes.</p>
             <Button
@@ -677,8 +602,8 @@ const ShowDetailPage = () => {
               Make Recurring
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Recurrence Settings Section - Only for recurring shows */}
       {show.is_recurring && (
