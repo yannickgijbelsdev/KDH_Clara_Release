@@ -1,138 +1,109 @@
 {
-  "identity": {
-    "persona": "E1",
-    "role": "Creative Designer (Top 1%)",
-    "philosophy": "Fusion over Imitation. Emotion First. Content is King.",
-    "anti_patterns": [
-      "Generic 'SaaS Blue'",
-      "Inter font for headings",
-      "Center-everything layouts",
-      "Gradient overload",
-      "Default Vercel/Stripe look"
-    ]
-  },
-  "typography": {
-    "fonts": {
-      "headings": {
-        "family": "Chivo",
-        "weights": ["900", "700"],
-        "usage": "Page titles, Show names, Modal headers",
-        "fallback": "sans-serif"
+  "design_system": {
+    "typography": {
+      "font_family": {
+        "heading": "Chivo, sans-serif",
+        "body": "Manrope, sans-serif",
+        "mono": "JetBrains Mono, monospace"
       },
-      "body": {
-        "family": "Manrope",
-        "weights": ["400", "500", "600"],
-        "usage": "General UI text, form labels, notes",
-        "fallback": "sans-serif"
-      },
-      "mono": {
-        "family": "JetBrains Mono",
-        "weights": ["400", "500"],
-        "usage": "Timestamps, Durations, IDs, Code snippets",
-        "fallback": "monospace"
+      "scale": {
+        "h1": "text-4xl font-black tracking-tight lg:text-5xl",
+        "h2": "text-3xl font-bold tracking-tight",
+        "h3": "text-2xl font-bold tracking-tight",
+        "p": "text-base leading-7 text-muted-foreground",
+        "small": "text-sm font-medium leading-none"
       }
     },
-    "rules": [
-      "Headings > 32px must use tracking-tight",
-      "Overlines/Labels must be Uppercase + tracking-widest + text-xs",
-      "Line height: tight for headers, relaxed for body"
-    ]
-  },
-  "colors": {
-    "theme": "dark",
-    "palette": {
-      "background": "#09090b",
-      "surface": "#18181b",
-      "surface_highlight": "#27272a",
-      "border": "#27272a",
-      "text_primary": "#fafafa",
-      "text_secondary": "#a1a1aa",
-      "primary": "#e11d48",
-      "primary_foreground": "#ffffff",
-      "secondary": "#22c55e",
-      "accent": "#8b5cf6",
-      "destructive": "#ef4444",
-      "muted": "#71717a"
+    "colors": {
+      "theme": "dark",
+      "palette": {
+        "background": "hsl(240 10% 3.9%)",
+        "foreground": "hsl(0 0% 98%)",
+        "card": "hsl(240 10% 3.9%)",
+        "card_foreground": "hsl(0 0% 98%)",
+        "popover": "hsl(240 10% 3.9%)",
+        "popover_foreground": "hsl(0 0% 98%)",
+        "primary": "hsl(24.6 95% 53.1%)",
+        "primary_foreground": "hsl(60 9.1% 97.8%)",
+        "secondary": "hsl(240 3.7% 15.9%)",
+        "secondary_foreground": "hsl(0 0% 98%)",
+        "muted": "hsl(240 3.7% 15.9%)",
+        "muted_foreground": "hsl(240 5% 64.9%)",
+        "accent": "hsl(24.6 95% 53.1%)",
+        "accent_foreground": "hsl(60 9.1% 97.8%)",
+        "destructive": "hsl(0 62.8% 30.6%)",
+        "destructive_foreground": "hsl(0 0% 98%)",
+        "border": "hsl(240 3.7% 15.9%)",
+        "input": "hsl(240 3.7% 15.9%)",
+        "ring": "hsl(24.6 95% 53.1%)"
+      },
+      "usage": {
+        "primary": "Main CTA buttons, active states, key highlights",
+        "background": "App background (Zinc 950)",
+        "card": "Component backgrounds (Zinc 950/900)",
+        "text_primary": "Headings, primary content (Zinc 50)",
+        "text_secondary": "Subtitles, metadata (Zinc 400)"
+      }
     },
-    "usage": {
-      "primary": "Critical actions (Go Live, Delete), Active States",
-      "secondary": "Success states, 'Ready' indicators",
-      "accent": "Selection states, Drag-and-drop active items",
-      "background": "Global app background (Matte Black)",
-      "surface": "Cards, Sidebar, Panels"
+    "layout": {
+      "structure": "Sidebar (Left, Fixed, Icon-only/Narrow) + Main Content (Right, Scrollable)",
+      "grid_system": "Responsive grid (1 col mobile, 2 col tablet, 3/4 col desktop)",
+      "spacing": {
+        "container_padding": "p-6 md:p-8 lg:p-10",
+        "component_gap": "gap-6"
+      },
+      "radius": "0.75rem"
     },
-    "gradients": {
-      "subtle_glow": "radial-gradient(circle at center, rgba(225, 29, 72, 0.15) 0%, transparent 70%)"
-    }
-  },
-  "layout": {
-    "structure": "Sidebar Navigation + Main Content Area",
-    "grid_system": {
-      "dashboard": "Bento Grid (Grid Cols 1 -> 2 -> 3)",
-      "rundown": "Linear List (Flex-col) with Drag Handles"
+    "components": {
+      "buttons": {
+        "default": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-orange-500/20",
+        "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        "ghost": "hover:bg-accent/10 hover:text-accent"
+      },
+      "cards": {
+        "style": "bg-card border border-border/50 shadow-sm hover:border-primary/50 transition-colors duration-300",
+        "glass": "bg-black/40 backdrop-blur-xl border-white/10"
+      },
+      "inputs": {
+        "style": "bg-secondary/50 border-border focus:border-primary focus:ring-primary/30"
+      }
     },
-    "spacing": {
-      "container_padding": "p-6 md:p-8 lg:p-12",
-      "item_gap": "gap-4 or gap-6",
-      "section_gap": "gap-8 or gap-12"
-    },
-    "sidebar": {
-      "width": "w-64",
-      "style": "Fixed, Glassmorphism (backdrop-blur-xl), Border-r border-white/10"
-    }
-  },
-  "components": {
-    "buttons": {
-      "style": "Sharp or Pill (consistent), High Contrast",
-      "hover": "Scale 1.02, Brightness 1.1"
-    },
-    "cards": {
-      "style": "Flat, Border-1px (border-white/10), No Shadow (unless hovered)",
-      "hover": "Border-white/20, bg-white/5"
-    },
-    "inputs": {
-      "style": "bg-transparent, border-b (underline style) OR filled surface-highlight",
-      "focus": "ring-1 ring-primary border-primary"
-    },
-    "rundown_item": {
-      "style": "Row layout, Monospace time on left, Content in middle, Actions on right",
-      "interaction": "Draggable (dnd-kit), Scale up slightly on drag start"
-    }
-  },
-  "visual_enhancers": {
-    "glassmorphism": "backdrop-blur-xl bg-black/40 border-white/10",
-    "textures": "Subtle noise overlay on background (optional)",
-    "motion": {
-      "hover": "transition-all duration-200 ease-out",
-      "enter": "animate-in fade-in slide-in-from-bottom-4 duration-500"
+    "visual_enhancers": {
+      "glassmorphism": "Use for Sidebar and Sticky Headers: backdrop-blur-xl bg-background/80 border-r border-border/50",
+      "gradients": "Subtle orange glow gradients behind key elements or in empty states",
+      "shadows": "Colored shadows for primary actions: shadow-orange-500/20"
     }
   },
   "assets": {
-    "icons": "Lucide React (default)",
     "images": {
-      "studio_hero": "https://images.unsplash.com/photo-1561365789-e4cd39d6b21c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHw0fHxyYWRpbyUyMHN0dWRpbyUyMG1pY3JvcGhvbmV8ZW58MHx8fHwxNzY3NzI3OTA1fDA&ixlib=rb-4.1.0&q=85",
-      "microphone_detail": "https://images.unsplash.com/photo-1627667050025-be23c83837e9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwzfHxyYWRpbyUyMHN0dWRpbyUyMG1pY3JvcGhvbmV8ZW58MHx8fHwxNzY3NzI3OTA1fDA&ixlib=rb-4.1.0&q=85",
-      "album_art_placeholder_1": "https://images.unsplash.com/photo-1642444525640-d3eb287ed389?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGFsYnVtJTIwYXJ0fGVufDB8fHx8MTc2NzcyNzkwOHww&ixlib=rb-4.1.0&q=85",
-      "album_art_placeholder_2": "https://images.unsplash.com/photo-1641515860544-483ea99e265d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGFsYnVtJTIwYXJ0fGVufDB8fHx8MTc2NzcyNzkwOHww&ixlib=rb-4.1.0&q=85"
-    }
+      "user_avatar": "https://images.unsplash.com/photo-1648522168784-067e98df88c0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwxfHxyYWRpbyUyMGRqJTIwcG9ydHJhaXQlMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzY5NjM5MzQxfDA&ixlib=rb-4.1.0&q=85",
+      "header_bg": "https://images.unsplash.com/photo-1635630887369-63aa5d1f0568?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwzfHxyYWRpbyUyMGRqJTIwcG9ydHJhaXQlMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzY5NjM5MzQxfDA&ixlib=rb-4.1.0&q=85",
+      "show_covers": [
+        "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80",
+        "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?auto=format&fit=crop&w=800&q=80"
+      ]
+    },
+    "icons": "Lucide React (default)"
   },
   "instructions_to_main_agent": [
-    "Implement Dark Mode by default. Force 'dark' class on html/body.",
-    "Use 'Chivo' for all Headings (h1-h6). Import from Google Fonts.",
-    "Use 'Manrope' for body text. Import from Google Fonts.",
-    "Use 'JetBrains Mono' for all time-related data (Start Time, Duration).",
-    "Sidebar must be fixed on the left, content scrollable on the right.",
-    "Rundown Editor: Use a table-like structure but with div/flex for better Drag & Drop control.",
-    "Use @dnd-kit/core and @dnd-kit/sortable for the rundown reordering.",
-    "Do NOT use gradients for backgrounds. Use solid matte colors.",
-    "Ensure high contrast for text (APCA standards).",
-    "Add 'data-testid' to all interactive elements."
+    "UPDATE /app/frontend/src/index.css with the new color palette variables defined in 'colors.palette'. REPLACE the existing purple/rose colors with the Orange (#f97316) theme.",
+    "ENSURE the Sidebar is implemented as a fixed, narrow component on the left with glassmorphism effect.",
+    "CREATE a 'Welcome Header' component that uses the 'header_bg' image with a dark gradient overlay so text is readable.",
+    "USE 'Manrope' for all body text and 'Chivo' for headings.",
+    "IMPLEMENT the 'Quick Start' section as a grid of cards with icons.",
+    "IMPLEMENT the 'Updates' section as a list of recent activities.",
+    "ENSURE all interactive elements have hover states using the orange accent.",
+    "USE the provided image URLs for avatars and backgrounds.",
+    "DO NOT use gradients for the main background; keep it solid dark (#09090b) or very subtle noise.",
+    "ADD 'data-testid' to all interactive elements."
   ],
   "universal_guidelines": [
-    "Avoid 'AI Slop' (generic, centered, blue/purple gradients).",
-    "Use 2-3x more spacing than typical.",
+    "Avoid generic centered layouts.",
+    "Use 2-3x more spacing than typical designs.",
     "Every interaction needs micro-animations.",
-    "Never use transparent backgrounds without blur/scrim.",
-    "Use Sonner for toasts."
+    "Use glass-morphism effects with backdrop filters.",
+    "Never use 'transition: all'.",
+    "Don't use AI assistant emojis."
   ]
 }
