@@ -366,7 +366,7 @@ const TeamSettingsPage = () => {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Invite User</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Add a new team member. They'll receive a temporary password.
+              Add a new team member. They&apos;ll receive a temporary password.
             </DialogDescription>
           </DialogHeader>
 
