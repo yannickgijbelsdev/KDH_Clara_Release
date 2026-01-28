@@ -70,8 +70,8 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="p-3 bg-rose-500/20 rounded-xl">
-              <Mic2 className="w-6 h-6 text-rose-500" />
+            <div className="p-3 bg-orange-500/20 rounded-xl">
+              <Mic2 className="w-6 h-6 text-orange-500" />
             </div>
             <span className="text-xl font-bold text-white">ShowPrep</span>
           </div>
