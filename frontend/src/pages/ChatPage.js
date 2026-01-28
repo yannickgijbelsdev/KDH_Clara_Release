@@ -684,8 +684,8 @@ const ChatPage = () => {
             <MessageSquare className="w-6 h-6 text-orange-500" />
           </div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white">Team Chat</h1>
-            <p className="text-xs md:text-sm text-zinc-400 hidden sm:block">Communicate with your team</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Team Chat</h1>
+            <p className="text-xs sm:text-sm text-zinc-400 hidden sm:block">Communicate with your team</p>
           </div>
         </div>
         <Button
