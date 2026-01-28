@@ -118,8 +118,19 @@ async def get_media_file(file_key: str):
 @api_router.get("/uploads/show_images/{file_key}")
 async def get_show_image_file(file_key: str):
     """Serve a show image file."""
-    show_images_dir = UPLOADS_DIR.parent / 'show_images'
-    file_path = show_images_dir / file_key
+    file_path = SHOW_IMAGES_DIR / file_key
+    if not file_path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
+    return FileResponse(file_path, media_type=media_type)
+
+
+@api_router.get("/uploads/avatars/{file_key}")
+async def get_avatar_file(file_key: str):
+    """Serve a user avatar file."""
+    file_path = AVATARS_DIR / file_key
     if not file_path.exists():
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="File not found")
