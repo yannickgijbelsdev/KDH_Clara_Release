@@ -330,8 +330,17 @@ const ShowManagementPage = () => {
                     className="flex items-center justify-between p-4 bg-[#27272a] rounded-lg hover:bg-zinc-800/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                        <Radio className="w-6 h-6 text-orange-500" />
+                      {/* Show Image or Icon */}
+                      <div className="w-16 h-16 rounded-lg bg-orange-500/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {title.image ? (
+                          <img
+                            src={`${API}/uploads/show_title_images/${title.image.file_key}`}
+                            alt={title.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Radio className="w-8 h-8 text-orange-500" />
+                        )}
                       </div>
                       <div>
                         <p className="text-white font-medium text-lg">{title.name}</p>
@@ -340,7 +349,7 @@ const ShowManagementPage = () => {
                             <span className="truncate max-w-[300px]">{title.description}</span>
                           )}
                           {title.default_start_time && title.default_end_time && (
-                            <span className="flex items-center gap-1 text-rose-400">
+                            <span className="flex items-center gap-1 text-orange-400">
                               <Clock className="w-3.5 h-3.5" />
                               {title.default_start_time} - {title.default_end_time}
                             </span>
@@ -350,6 +359,40 @@ const ShowManagementPage = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {/* Image Upload Dropdown */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-zinc-400 hover:text-orange-500 hover:bg-orange-500/10"
+                          >
+                            <Image className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setImageTargetTitleId(title.id);
+                              setTimeout(() => imageInputRef.current?.click(), 100);
+                            }}
+                            className="text-zinc-300"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            {title.image ? 'Change Image' : 'Upload Image'}
+                          </DropdownMenuItem>
+                          {title.image && (
+                            <DropdownMenuItem
+                              onClick={() => handleRemoveImage(title.id)}
+                              className="text-orange-500"
+                            >
+                              <X className="w-4 h-4 mr-2" />
+                              Remove Image
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      
                       <Button
                         variant="ghost"
                         size="icon"
