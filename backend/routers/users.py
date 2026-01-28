@@ -1,10 +1,14 @@
 """User management routes."""
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Request
+from fastapi.responses import FileResponse
 from typing import List
 from datetime import datetime, timezone
+from pathlib import Path
 import uuid
+import mimetypes
+import aiofiles
 
-from database import db
+from database import db, AVATARS_DIR
 from models.auth import (
     UserResponse, InviteUserRequest, UpdateUserRoleRequest
 )
@@ -12,8 +16,12 @@ from services.auth import (
     hash_password, generate_temp_password,
     get_current_user, require_admin
 )
+from services.audit import log_action, get_client_ip
 
 users_router = APIRouter(prefix="/users", tags=["Users"])
+
+ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 @users_router.get("", response_model=List[UserResponse])
