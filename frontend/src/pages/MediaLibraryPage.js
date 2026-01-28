@@ -58,7 +58,9 @@ const MediaLibraryPage = () => {
   const [kindFilter, setKindFilter] = useState('all');
   const [editingAsset, setEditingAsset] = useState(null);
   const [newTitle, setNewTitle] = useState('');
+  const [previewAsset, setPreviewAsset] = useState(null);
   const fileInputRef = useRef(null);
+  const audioPreviewRef = useRef(null);
 
   useEffect(() => {
     fetchAssets();
