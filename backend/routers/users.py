@@ -170,6 +170,7 @@ async def update_user(
 async def reset_user_password(
     user_id: str,
     password_data: dict,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Reset a user's password (admin only)."""
@@ -191,4 +192,130 @@ async def reset_user_password(
         }
     )
     
+    # Log the action
+    await log_action(
+        action="Password Reset",
+        category="user",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        team_id=current_user['team_id'],
+        ip_address=get_client_ip(request),
+        target_type="user",
+        target_id=user_id,
+        target_name=user.get('name'),
+        details={"target_email": user.get('email')}
+    )
+    
     return {"message": "Password reset successfully"}
+
+
+@users_router.post("/{user_id}/avatar")
+async def upload_avatar(
+    user_id: str,
+    request: Request,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_admin)
+):
+    """Upload avatar for a user (admin only)."""
+    # Verify user exists and belongs to team
+    user = await db.users.find_one(
+        {"id": user_id, "team_id": current_user['team_id']}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Validate file type
+    content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
+    if content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid image type. Allowed: JPEG, PNG, GIF, WebP")
+    
+    # Read and validate file size
+    content = await file.read()
+    if len(content) > MAX_AVATAR_SIZE:
+        raise HTTPException(status_code=400, detail="File too large. Max 5MB")
+    
+    # Generate storage key
+    file_ext = Path(file.filename).suffix or '.jpg'
+    storage_key = f"{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    file_path = AVATARS_DIR / storage_key
+    
+    # Delete old avatar if exists
+    if user.get('avatar'):
+        old_path = AVATARS_DIR / user['avatar'].get('file_key', '')
+        if old_path.exists():
+            old_path.unlink()
+    
+    # Save new avatar
+    async with aiofiles.open(file_path, 'wb') as f:
+        await f.write(content)
+    
+    # Update user record
+    avatar_data = {
+        "file_key": storage_key,
+        "filename": file.filename,
+        "mime_type": content_type,
+        "size": len(content)
+    }
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"avatar": avatar_data}}
+    )
+    
+    # Log the action
+    await log_action(
+        action="Avatar Uploaded",
+        category="user",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        team_id=current_user['team_id'],
+        ip_address=get_client_ip(request),
+        target_type="user",
+        target_id=user_id,
+        target_name=user.get('name')
+    )
+    
+    return {"avatar": avatar_data}
+
+
+@users_router.delete("/{user_id}/avatar")
+async def delete_avatar(
+    user_id: str,
+    request: Request,
+    current_user: dict = Depends(require_admin)
+):
+    """Delete avatar for a user (admin only)."""
+    user = await db.users.find_one(
+        {"id": user_id, "team_id": current_user['team_id']}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.get('avatar'):
+        file_path = AVATARS_DIR / user['avatar'].get('file_key', '')
+        if file_path.exists():
+            file_path.unlink()
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$unset": {"avatar": ""}}
+    )
+    
+    # Log the action
+    await log_action(
+        action="Avatar Removed",
+        category="user",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        team_id=current_user['team_id'],
+        ip_address=get_client_ip(request),
+        target_type="user",
+        target_id=user_id,
+        target_name=user.get('name')
+    )
+    
+    return {"message": "Avatar removed"}
+
