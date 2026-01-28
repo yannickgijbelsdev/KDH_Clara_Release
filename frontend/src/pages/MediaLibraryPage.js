@@ -165,12 +165,32 @@ const MediaLibraryPage = () => {
 
   const getFileIcon = (kind, mimeType) => {
     if (kind === 'audio') return Music;
+    if (kind === 'image' || mimeType?.startsWith('image/')) return Image;
     if (mimeType?.includes('pdf')) return FileText;
     return File;
   };
 
   const getFileUrl = (asset) => {
     return `${API}/uploads/media/${asset.file_storage_key}`;
+  };
+
+  const canPreview = (asset) => {
+    const mimeType = asset.mime_type?.toLowerCase() || '';
+    return (
+      asset.kind === 'audio' ||
+      mimeType.startsWith('image/') ||
+      mimeType === 'application/pdf' ||
+      mimeType === 'text/plain'
+    );
+  };
+
+  const getPreviewType = (asset) => {
+    const mimeType = asset.mime_type?.toLowerCase() || '';
+    if (asset.kind === 'audio') return 'audio';
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType === 'application/pdf') return 'pdf';
+    if (mimeType === 'text/plain') return 'text';
+    return 'unsupported';
   };
 
   const filteredAssets = assets.filter(asset =>
