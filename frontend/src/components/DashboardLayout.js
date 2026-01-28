@@ -96,8 +96,8 @@ const DashboardLayout = () => {
         <aside className="hidden lg:flex fixed top-0 left-0 h-full z-50 w-[72px] flex-col items-center py-6 glass border-r border-white/10">
           {/* Logo */}
           <div className="mb-8">
-            <div className="w-11 h-11 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <span className="text-white font-black text-lg">C</span>
+            <div className="px-2 py-2 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+              <span className="text-white font-black text-base">Clara</span>
             </div>
           </div>
 
