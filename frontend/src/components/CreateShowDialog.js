@@ -252,7 +252,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                     type="button"
                     onClick={handleCreateNewTitle}
                     disabled={creatingTitle}
-                    className="bg-rose-500 hover:bg-rose-600 text-white"
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
                   >
                     {creatingTitle ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
                   </Button>
@@ -294,7 +294,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                       <div className="border-t border-zinc-800 my-1" />
                       <SelectItem 
                         value="add-new"
-                        className="text-rose-400 focus:text-rose-300 focus:bg-rose-500/10"
+                        className="text-rose-400 focus:text-rose-300 focus:bg-orange-500/10"
                       >
                         <span className="flex items-center gap-2">
                           <Plus className="w-4 h-4" />
@@ -503,7 +503,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
               type="submit"
               data-testid="submit-show-btn"
               disabled={loading || (!formData.title && !formData.titleId)}
-              className="flex-1 bg-rose-500 hover:bg-rose-600 text-white btn-primary"
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white btn-primary"
             >
               {loading ? 'Creating...' : isRecurring ? 'Create Recurring Show' : 'Create Show'}
             </Button>

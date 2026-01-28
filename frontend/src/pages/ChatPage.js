@@ -147,7 +147,7 @@ const AudioPlayer = ({ url, name }) => {
         variant="ghost"
         size="icon"
         onClick={togglePlay}
-        className="h-10 w-10 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-400"
+        className="h-10 w-10 rounded-full bg-orange-500/20 hover:bg-orange-500/30 text-rose-400"
       >
         {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
       </Button>
@@ -156,7 +156,7 @@ const AudioPlayer = ({ url, name }) => {
         <div className="flex items-center gap-2 mt-1">
           <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-rose-500 transition-all"
+              className="h-full bg-orange-500 transition-all"
               style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
             />
           </div>
@@ -615,7 +615,7 @@ const ChatPage = () => {
 
   const getThreadIcon = (thread) => {
     switch (thread.type) {
-      case 'team': return <Users className="w-5 h-5 text-rose-500" />;
+      case 'team': return <Users className="w-5 h-5 text-orange-500" />;
       case 'group': return <UsersRound className="w-5 h-5 text-violet-500" />;
       case 'private': return <User className="w-5 h-5 text-emerald-500" />;
       case 'show': return <Radio className="w-5 h-5 text-amber-500" />;
@@ -652,7 +652,7 @@ const ChatPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
   }
@@ -680,8 +680,8 @@ const ChatPage = () => {
           >
             <Menu className="w-5 h-5" />
           </Button>
-          <div className="p-2 bg-rose-500/20 rounded-lg hidden sm:block">
-            <MessageSquare className="w-6 h-6 text-rose-500" />
+          <div className="p-2 bg-orange-500/20 rounded-lg hidden sm:block">
+            <MessageSquare className="w-6 h-6 text-orange-500" />
           </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-white">Team Chat</h1>
@@ -690,7 +690,7 @@ const ChatPage = () => {
         </div>
         <Button
           onClick={() => setShowNewChatDialog(true)}
-          className="bg-rose-500 hover:bg-rose-600 gap-2"
+          className="bg-orange-500 hover:bg-orange-600 gap-2"
           size="sm"
           data-testid="new-chat-btn"
         >
@@ -728,7 +728,7 @@ const ChatPage = () => {
                       className={cn(
                         'w-full p-3 rounded-lg text-left transition-all',
                         activeThread?.id === thread.id
-                          ? 'bg-rose-500/20 border border-rose-500/30'
+                          ? 'bg-orange-500/20 border border-orange-500/30'
                           : 'hover:bg-white/5 border border-transparent'
                       )}
                     >
@@ -768,7 +768,7 @@ const ChatPage = () => {
                   className={cn(
                     'w-full p-3 rounded-lg text-left transition-all',
                     activeThread?.id === thread.id
-                      ? 'bg-rose-500/20 border border-rose-500/30'
+                      ? 'bg-orange-500/20 border border-orange-500/30'
                       : 'hover:bg-white/5 border border-transparent'
                   )}
                 >
@@ -850,7 +850,7 @@ const ChatPage = () => {
                     {activeThread.members?.slice(0, 4).map((member) => (
                       <div
                         key={member.id}
-                        className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500/30 to-violet-500/30 border-2 border-[#18181b] flex items-center justify-center"
+                        className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500/30 to-violet-500/30 border-2 border-[#18181b] flex items-center justify-center"
                         title={member.name}
                       >
                         <span className="text-xs font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
@@ -930,8 +930,8 @@ const ChatPage = () => {
                               message.user_id === user?.id ? 'flex-row-reverse' : ''
                             )}
                           >
-                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-semibold text-rose-500">
+                            <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-semibold text-orange-500">
                                 {(message.user_name || 'U').charAt(0).toUpperCase()}
                               </span>
                             </div>
@@ -940,7 +940,7 @@ const ChatPage = () => {
                                 className={cn(
                                   'max-w-[80%] md:max-w-[70%] rounded-2xl px-3 md:px-4 py-2',
                                   message.user_id === user?.id
-                                    ? 'bg-rose-500/20 rounded-tr-none'
+                                    ? 'bg-orange-500/20 rounded-tr-none'
                                     : 'bg-white/5 rounded-tl-none'
                                 )}
                               >
@@ -1022,7 +1022,7 @@ const ChatPage = () => {
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     className={cn(
                       "h-9 w-9 md:h-10 md:w-10 flex-shrink-0 transition-colors",
-                      showEmojiPicker ? "bg-rose-500/20 text-rose-400" : "hover:bg-white/10 text-zinc-400 hover:text-white"
+                      showEmojiPicker ? "bg-orange-500/20 text-rose-400" : "hover:bg-white/10 text-zinc-400 hover:text-white"
                     )}
                     data-testid="emoji-picker-btn"
                   >
@@ -1062,7 +1062,7 @@ const ChatPage = () => {
                     type="submit"
                     data-testid="send-message-btn"
                     disabled={!newMessage.trim() || sending}
-                    className="bg-rose-500 hover:bg-rose-600 h-9 md:h-10 w-9 md:w-10 p-0"
+                    className="bg-orange-500 hover:bg-orange-600 h-9 md:h-10 w-9 md:w-10 p-0"
                   >
                     {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
@@ -1082,7 +1082,7 @@ const ChatPage = () => {
         <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
-              <Plus className="w-5 h-5 text-rose-500" />
+              <Plus className="w-5 h-5 text-orange-500" />
               New Chat
             </DialogTitle>
             <DialogDescription className="text-zinc-400">
@@ -1172,18 +1172,18 @@ const ChatPage = () => {
                         className={cn(
                           'w-full p-3 rounded-lg flex items-center gap-3 transition-all',
                           selectedMembers.includes(member.id)
-                            ? 'bg-rose-500/20 border border-rose-500/30'
+                            ? 'bg-orange-500/20 border border-orange-500/30'
                             : 'hover:bg-white/5 border border-transparent'
                         )}
                       >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500/30 to-violet-500/30 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-violet-500/30 flex items-center justify-center">
                           <span className="text-sm font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="flex-1 text-left">
                           <p className="text-sm font-medium text-white">{member.name}</p>
                           <p className="text-xs text-zinc-500">{member.role}</p>
                         </div>
-                        {selectedMembers.includes(member.id) && <Check className="w-5 h-5 text-rose-500" />}
+                        {selectedMembers.includes(member.id) && <Check className="w-5 h-5 text-orange-500" />}
                       </button>
                     ))
                   )}
@@ -1203,7 +1203,7 @@ const ChatPage = () => {
                   (newChatType === 'private' && selectedMembers.length !== 1) ||
                   (newChatType === 'group' && (selectedMembers.length < 1 || !groupName.trim()))
                 }
-                className="w-full bg-rose-500 hover:bg-rose-600"
+                className="w-full bg-orange-500 hover:bg-orange-600"
                 data-testid="create-chat-btn"
               >
                 {creatingChat && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
@@ -1239,7 +1239,7 @@ const ChatPage = () => {
                     
                     return (
                       <div key={member.id} className="p-3 rounded-lg flex items-center gap-3 bg-white/5">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500/30 to-violet-500/30 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-violet-500/30 flex items-center justify-center">
                           <span className="text-sm font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="flex-1">

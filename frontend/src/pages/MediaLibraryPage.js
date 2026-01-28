@@ -200,7 +200,7 @@ const MediaLibraryPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
   }
@@ -210,8 +210,8 @@ const MediaLibraryPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-rose-500/20 rounded-lg flex-shrink-0">
-            <File className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500" />
+          <div className="p-2 bg-orange-500/20 rounded-lg flex-shrink-0">
+            <File className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-white">Media Library</h1>
@@ -233,7 +233,7 @@ const MediaLibraryPage = () => {
               data-testid="upload-media-btn"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="bg-rose-500 hover:bg-rose-600 w-full sm:w-auto"
+              className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
             >
               {uploading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -288,7 +288,7 @@ const MediaLibraryPage = () => {
           {canEdit && !searchQuery && kindFilter === 'all' && (
             <Button
               onClick={() => fileInputRef.current?.click()}
-              className="bg-rose-500 hover:bg-rose-600"
+              className="bg-orange-500 hover:bg-orange-600"
             >
               <Upload className="w-4 h-4 mr-2" />
               Upload Files
@@ -304,7 +304,7 @@ const MediaLibraryPage = () => {
                 key={asset.id}
                 data-testid={`media-asset-${asset.id}`}
                 className={cn(
-                  "glass-card rounded-xl p-4 hover:border-rose-500/30 transition-all group",
+                  "glass-card rounded-xl p-4 hover:border-orange-500/30 transition-all group",
                   canPreview(asset) && "cursor-pointer"
                 )}
                 onClick={() => canPreview(asset) && setPreviewAsset(asset)}
@@ -389,7 +389,7 @@ const MediaLibraryPage = () => {
                               e.stopPropagation();
                               handleDeleteAsset(asset);
                             }}
-                            className="text-rose-500 focus:text-rose-500"
+                            className="text-orange-500 focus:text-orange-500"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete
@@ -458,7 +458,7 @@ const MediaLibraryPage = () => {
             <Button
               data-testid="save-rename-btn"
               onClick={handleEditTitle}
-              className="bg-rose-500 hover:bg-rose-600"
+              className="bg-orange-500 hover:bg-orange-600"
             >
               Save
             </Button>
@@ -475,7 +475,7 @@ const MediaLibraryPage = () => {
                 <>
                   {(() => {
                     const FileIcon = getFileIcon(previewAsset.kind, previewAsset.mime_type);
-                    return <FileIcon className="w-5 h-5 text-rose-500" />;
+                    return <FileIcon className="w-5 h-5 text-orange-500" />;
                   })()}
                   <span className="truncate">{previewAsset?.title}</span>
                 </>
@@ -558,7 +558,7 @@ const MediaLibraryPage = () => {
             </Button>
             <Button
               onClick={() => window.open(getFileUrl(previewAsset), '_blank')}
-              className="bg-rose-500 hover:bg-rose-600"
+              className="bg-orange-500 hover:bg-orange-600"
             >
               <Download className="w-4 h-4 mr-2" />
               Download
@@ -594,7 +594,7 @@ const TextFilePreview = ({ url }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8 bg-zinc-900 rounded-lg">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
   }

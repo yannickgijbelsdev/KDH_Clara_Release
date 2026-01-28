@@ -135,7 +135,7 @@ const CalendarPage = () => {
           <Button
             data-testid="create-show-calendar-btn"
             onClick={() => setIsCreateOpen(true)}
-            className="bg-rose-500 hover:bg-rose-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
+            className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" />
             New Show
@@ -218,7 +218,7 @@ const CalendarPage = () => {
                     className={`
                       aspect-square p-1 rounded-lg transition-all duration-200 relative
                       ${isCurrentMonth ? 'bg-[#27272a]' : 'bg-[#1a1a1c]'}
-                      ${isSelected ? 'ring-2 ring-rose-500 bg-rose-500/10' : ''}
+                      ${isSelected ? 'ring-2 ring-orange-500 bg-orange-500/10' : ''}
                       ${dayIsToday && !isSelected ? 'ring-2 ring-violet-500' : ''}
                       hover:bg-zinc-700
                     `}
@@ -274,8 +274,8 @@ const CalendarPage = () => {
       <div className="w-full lg:w-80 lg:shrink-0">
         <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6 lg:sticky lg:top-8">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-rose-500/20 rounded-lg">
-              <CalendarIcon className="w-5 h-5 text-rose-500" />
+            <div className="p-2 bg-orange-500/20 rounded-lg">
+              <CalendarIcon className="w-5 h-5 text-orange-500" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-white">
@@ -296,7 +296,7 @@ const CalendarPage = () => {
                     <Button
                       size="sm"
                       onClick={() => setIsCreateOpen(true)}
-                      className="bg-rose-500 hover:bg-rose-600 text-white"
+                      className="bg-orange-500 hover:bg-orange-600 text-white"
                     >
                       <Plus className="w-4 h-4 mr-1" />
                       Add Show

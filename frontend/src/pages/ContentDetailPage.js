@@ -77,7 +77,7 @@ const statusLabels = {
 const syncStatusConfig = {
   not_synced: { icon: Clock, color: 'text-zinc-500', bgColor: 'bg-zinc-800', label: 'Not synced' },
   synced: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10', label: 'Synced' },
-  failed: { icon: AlertCircle, color: 'text-rose-500', bgColor: 'bg-rose-500/10', label: 'Failed' },
+  failed: { icon: AlertCircle, color: 'text-orange-500', bgColor: 'bg-orange-500/10', label: 'Failed' },
 };
 
 const ContentDetailPage = () => {
@@ -393,7 +393,7 @@ const ContentDetailPage = () => {
                   ps.sync_status === 'synced' 
                     ? 'bg-green-500/10 border-green-500/30' 
                     : ps.sync_status === 'failed'
-                    ? 'bg-rose-500/10 border-rose-500/30'
+                    ? 'bg-orange-500/10 border-orange-500/30'
                     : 'bg-zinc-800/50 border-zinc-700'
                 }`}
               >
@@ -447,7 +447,7 @@ const ContentDetailPage = () => {
                     <Button
                       size="sm"
                       onClick={openPublishDialog}
-                      className="gap-2 bg-rose-500 hover:bg-rose-600 text-white"
+                      className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
                     >
                       <RefreshCw className="w-4 h-4" />
                       Retry
@@ -482,7 +482,7 @@ const ContentDetailPage = () => {
                   size="sm"
                   data-testid="delete-content-btn"
                   onClick={() => setDeleteDialogOpen(true)}
-                  className="gap-2 bg-transparent border-zinc-700 text-rose-500 hover:bg-rose-500/10 hover:text-rose-400"
+                  className="gap-2 bg-transparent border-zinc-700 text-orange-500 hover:bg-orange-500/10 hover:text-rose-400"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
@@ -508,7 +508,7 @@ const ContentDetailPage = () => {
                 data-testid="save-content-btn"
                 onClick={handleSave}
                 disabled={saving}
-                className="gap-2 bg-rose-500 hover:bg-rose-600 text-white"
+                className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save'}
@@ -775,7 +775,7 @@ const ContentDetailPage = () => {
                             </span>
                           )}
                           {publishStatus?.sync_status === 'failed' && (
-                            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-rose-500/20 text-rose-400">
+                            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-orange-500/20 text-rose-400">
                               <AlertCircle className="w-3 h-3" />
                               Failed
                             </span>
@@ -856,7 +856,7 @@ const ContentDetailPage = () => {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleRemoveImage(site.id)}
-                                        className="bg-transparent border-zinc-700 text-rose-400 hover:bg-rose-500/10 text-xs h-7"
+                                        className="bg-transparent border-zinc-700 text-rose-400 hover:bg-orange-500/10 text-xs h-7"
                                       >
                                         Remove
                                       </Button>
@@ -943,7 +943,7 @@ const ContentDetailPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Delete
             </AlertDialogAction>

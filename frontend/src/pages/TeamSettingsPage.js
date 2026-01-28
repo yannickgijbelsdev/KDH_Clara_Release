@@ -55,7 +55,7 @@ const roleIcons = {
 };
 
 const roleColors = {
-  admin: 'bg-rose-500/20 text-rose-400',
+  admin: 'bg-orange-500/20 text-rose-400',
   editor: 'bg-violet-500/20 text-violet-400',
   presenter: 'bg-amber-500/20 text-amber-400',
   viewer: 'bg-zinc-500/20 text-zinc-400',
@@ -193,8 +193,8 @@ const TeamSettingsPage = () => {
       <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-rose-500/20 rounded-lg">
-              <Building2 className="w-5 h-5 text-rose-500" />
+            <div className="p-2 bg-orange-500/20 rounded-lg">
+              <Building2 className="w-5 h-5 text-orange-500" />
             </div>
             <h2 className="text-lg font-semibold text-white">Team Information</h2>
           </div>
@@ -210,7 +210,7 @@ const TeamSettingsPage = () => {
             />
             <Button
               onClick={handleUpdateTeamName}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Save
             </Button>
@@ -347,7 +347,7 @@ const TeamSettingsPage = () => {
                           setSelectedUser(member);
                           setDeleteDialogOpen(true);
                         }}
-                        className="text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10"
+                        className="text-zinc-400 hover:text-orange-500 hover:bg-orange-500/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -516,7 +516,7 @@ const TeamSettingsPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveUser}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Remove
             </AlertDialogAction>

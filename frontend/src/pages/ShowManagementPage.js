@@ -209,7 +209,7 @@ const ShowManagementPage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
   }
@@ -220,7 +220,7 @@ const ShowManagementPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2 flex items-center gap-3">
-            <Settings className="w-8 h-8 text-rose-500" />
+            <Settings className="w-8 h-8 text-orange-500" />
             Show Management
           </h1>
           <p className="text-sm sm:text-base text-zinc-400">Manage show titles and studios for your team</p>
@@ -231,7 +231,7 @@ const ShowManagementPage = () => {
         <TabsList className="bg-[#18181b] border border-zinc-800 p-1">
           <TabsTrigger 
             value="titles" 
-            className="data-[state=active]:bg-rose-500 data-[state=active]:text-white"
+            className="data-[state=active]:bg-orange-500 data-[state=active]:text-white"
           >
             <Radio className="w-4 h-4 mr-2" />
             Show Titles ({showTitles.length})
@@ -256,7 +256,7 @@ const ShowManagementPage = () => {
               <Button
                 data-testid="add-title-btn"
                 onClick={openCreateTitleDialog}
-                className="gap-2 bg-rose-500 hover:bg-rose-600 text-white"
+                className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <Plus className="w-4 h-4" />
                 Add Title
@@ -268,7 +268,7 @@ const ShowManagementPage = () => {
                 <Radio className="w-16 h-16 mx-auto mb-4 opacity-30" />
                 <p className="text-lg">No show titles yet</p>
                 <p className="text-sm mb-4">Add titles that DJs can select when creating shows</p>
-                <Button onClick={openCreateTitleDialog} className="bg-rose-500 hover:bg-rose-600">
+                <Button onClick={openCreateTitleDialog} className="bg-orange-500 hover:bg-orange-600">
                   <Plus className="w-4 h-4 mr-2" />
                   Add First Title
                 </Button>
@@ -281,8 +281,8 @@ const ShowManagementPage = () => {
                     className="flex items-center justify-between p-4 bg-[#27272a] rounded-lg hover:bg-zinc-800/50 transition-colors"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-rose-500/20 flex items-center justify-center">
-                        <Radio className="w-6 h-6 text-rose-500" />
+                      <div className="w-12 h-12 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                        <Radio className="w-6 h-6 text-orange-500" />
                       </div>
                       <div>
                         <p className="text-white font-medium text-lg">{title.name}</p>
@@ -305,7 +305,7 @@ const ShowManagementPage = () => {
                         variant="ghost"
                         size="icon"
                         onClick={() => openEditTitleDialog(title)}
-                        className="text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10"
+                        className="text-zinc-400 hover:text-orange-500 hover:bg-orange-500/10"
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -474,7 +474,7 @@ const ShowManagementPage = () => {
               <Button
                 type="submit"
                 disabled={savingTitle}
-                className="flex-1 bg-rose-500 hover:bg-rose-600 text-white"
+                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 {savingTitle ? (
                   <>
@@ -571,7 +571,7 @@ const ShowManagementPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteTitle}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Delete
             </AlertDialogAction>
@@ -595,7 +595,7 @@ const ShowManagementPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteStudio}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Delete
             </AlertDialogAction>
