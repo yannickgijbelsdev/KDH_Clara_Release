@@ -88,20 +88,6 @@ const TeamSettingsPage = () => {
   const [tempPassword, setTempPassword] = useState('');
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  
-  // Show Titles state
-  const [showTitles, setShowTitles] = useState([]);
-  const [showTitleDialogOpen, setShowTitleDialogOpen] = useState(false);
-  const [editingTitle, setEditingTitle] = useState(null);
-  const [deleteTitleDialogOpen, setDeleteTitleDialogOpen] = useState(false);
-  const [selectedTitle, setSelectedTitle] = useState(null);
-  const [titleFormData, setTitleFormData] = useState({
-    name: '',
-    description: '',
-    default_start_time: '09:00',
-    default_end_time: '10:00',
-  });
-  const [savingTitle, setSavingTitle] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
