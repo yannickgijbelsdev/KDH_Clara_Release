@@ -100,7 +100,7 @@ const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
             <Tooltip key={user.id || idx}>
               <TooltipTrigger asChild>
                 <div
-                  className="w-7 h-7 rounded-full bg-rose-500/20 border-2 border-[#18181b] flex items-center justify-center cursor-default"
+                  className="w-7 h-7 rounded-full bg-orange-500/20 border-2 border-[#18181b] flex items-center justify-center cursor-default"
                   style={{ zIndex: maxDisplay - idx }}
                 >
                   {user.avatar_url ? (
@@ -110,7 +110,7 @@ const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    <span className="text-xs font-semibold text-rose-500">
+                    <span className="text-xs font-semibold text-orange-500">
                       {user.initials || getInitials(user.name)}
                     </span>
                   )}
@@ -453,7 +453,7 @@ const ShowDetailPage = () => {
                   size="sm"
                   data-testid="delete-show-btn"
                   onClick={handleDeleteClick}
-                  className="gap-2 bg-transparent border-zinc-700 text-rose-500 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/50"
+                  className="gap-2 bg-transparent border-zinc-700 text-orange-500 hover:bg-orange-500/10 hover:text-rose-400 hover:border-orange-500/50"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
@@ -479,7 +479,7 @@ const ShowDetailPage = () => {
                 data-testid="save-show-btn"
                 onClick={handleSaveClick}
                 disabled={saving}
-                className="gap-2 bg-rose-500 hover:bg-rose-600 text-white"
+                className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save'}
@@ -615,7 +615,7 @@ const ShowDetailPage = () => {
                     variant="outline"
                     size="sm"
                     onClick={handleRemoveImage}
-                    className="bg-transparent border-zinc-700 text-rose-400 hover:bg-rose-500/10"
+                    className="bg-transparent border-zinc-700 text-rose-400 hover:bg-orange-500/10"
                   >
                     <X className="w-4 h-4 mr-1" />
                     Remove
@@ -628,11 +628,11 @@ const ShowDetailPage = () => {
           isEditor ? (
             <div
               onClick={() => imageInputRef.current?.click()}
-              className="border-2 border-dashed border-zinc-700 rounded-lg p-8 text-center cursor-pointer hover:border-rose-500/50 hover:bg-rose-500/5 transition-colors"
+              className="border-2 border-dashed border-zinc-700 rounded-lg p-8 text-center cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/5 transition-colors"
             >
               {uploadingImage ? (
                 <div className="flex flex-col items-center">
-                  <Loader2 className="w-10 h-10 text-rose-500 animate-spin mb-3" />
+                  <Loader2 className="w-10 h-10 text-orange-500 animate-spin mb-3" />
                   <p className="text-sm text-zinc-400">Uploading...</p>
                 </div>
               ) : (
@@ -866,7 +866,7 @@ const ShowDetailPage = () => {
             <AlertDialogAction
               data-testid="confirm-delete-btn"
               onClick={() => handleDelete(false)}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               Delete
             </AlertDialogAction>
@@ -928,13 +928,13 @@ const ShowDetailPage = () => {
             <Button
               variant="outline"
               onClick={() => handleDelete(false)}
-              className="border-rose-500/50 text-rose-400 hover:bg-rose-500/10"
+              className="border-orange-500/50 text-rose-400 hover:bg-orange-500/10"
             >
               Only This One
             </Button>
             <Button
               onClick={() => handleDelete(true)}
-              className="bg-rose-500 hover:bg-rose-600 text-white"
+              className="bg-orange-500 hover:bg-orange-600 text-white"
             >
               All Occurrences
             </Button>
