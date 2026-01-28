@@ -273,11 +273,8 @@ const DashboardLayout = () => {
             <div className="px-8 py-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-white tracking-tight">
-                    {getCurrentPageTitle()}
-                  </h1>
                   {user?.team_name && (
-                    <p className="text-sm text-zinc-500 mt-0.5">{user.team_name}</p>
+                    <p className="text-sm font-medium text-white">{user.team_name}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-4">
