@@ -99,15 +99,13 @@ const TeamSettingsPage = () => {
 
   const fetchData = async () => {
     try {
-      const [teamRes, usersRes, titlesRes] = await Promise.all([
+      const [teamRes, usersRes] = await Promise.all([
         axios.get(`${API}/teams/current`),
         axios.get(`${API}/users`),
-        axios.get(`${API}/shows/titles`),
       ]);
       setTeam(teamRes.data);
       setTeamName(teamRes.data.name);
       setUsers(usersRes.data);
-      setShowTitles(titlesRes.data);
     } catch (error) {
       toast.error('Failed to load team data');
     } finally {
