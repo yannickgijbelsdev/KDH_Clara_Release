@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Radio, LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders } from 'lucide-react';
+import { Radio, LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -10,6 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
 
 const roleIcons = {
   admin: Crown,
@@ -39,6 +45,7 @@ const navItems = [
 const DashboardLayout = () => {
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
@@ -52,144 +59,119 @@ const DashboardLayout = () => {
 
   const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
 
+  // Get current page title
+  const getCurrentPageTitle = () => {
+    const currentItem = navItems.find(item => item.to === location.pathname);
+    return currentItem?.label || 'Dashboard';
+  };
+
   return (
-    <div className="min-h-screen bg-[#09090b]">
-      {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#09090b]/95 backdrop-blur-sm border-b border-white/10">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-rose-500/20 rounded-lg">
-              <Radio className="w-5 h-5 text-rose-500" />
+    <TooltipProvider delayDuration={0}>
+      <div className="min-h-screen bg-[#09090b]">
+        {/* Mobile Header */}
+        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-orange-500/20 rounded-lg">
+                <Radio className="w-5 h-5 text-orange-500" />
+              </div>
+              <span className="text-lg font-bold text-white">ShowPrep</span>
             </div>
-            <span className="text-lg font-bold text-white">ShowPrep</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            data-testid="mobile-menu-btn"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-zinc-400 hover:text-white"
-          >
-            {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </Button>
-        </div>
-      </header>
-
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/60 z-40"
-          onClick={closeSidebar}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed top-0 left-0 h-full z-50 glass-sidebar
-          w-64 transform transition-transform duration-300 ease-in-out
-          lg:translate-x-0
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
-      >
-        <div className="p-6 pt-4 lg:pt-6 h-full flex flex-col">
-          {/* Logo - Hidden on mobile (shown in header) */}
-          <div className="hidden lg:flex items-center gap-3 mb-3">
-            <div className="p-2.5 bg-rose-500/20 rounded-xl">
-              <Radio className="w-6 h-6 text-rose-500" />
-            </div>
-            <span className="text-xl font-bold text-white">ShowPrep</span>
-          </div>
-          
-          {/* Mobile: Close button area */}
-          <div className="lg:hidden flex justify-end mb-2">
             <Button
               variant="ghost"
               size="icon"
-              onClick={closeSidebar}
+              data-testid="mobile-menu-btn"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
               className="text-zinc-400 hover:text-white"
             >
-              <X className="w-5 h-5" />
+              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </Button>
           </div>
-          
-          {/* Team Name */}
-          {user?.team_name && (
-            <div className="mb-6 px-1">
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">Team</p>
-              <p className="text-sm text-zinc-300 font-medium truncate">{user.team_name}</p>
-            </div>
-          )}
+        </header>
 
-          {/* Navigation */}
-          <div className="flex-1 overflow-y-auto">
-            <nav className="space-y-1">
-              {filteredNavItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    data-testid={`nav-${item.to.slice(1)}-link`}
-                    onClick={closeSidebar}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                        isActive
-                          ? 'bg-rose-500/20 text-rose-500'
-                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                      }`
-                    }
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </NavLink>
-                );
-              })}
-            </nav>
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div
+            className="lg:hidden fixed inset-0 bg-black/60 z-40"
+            onClick={closeSidebar}
+          />
+        )}
+
+        {/* Desktop Sidebar - Narrow Icon Style */}
+        <aside className="hidden lg:flex fixed top-0 left-0 h-full z-50 w-[72px] flex-col items-center py-6 glass border-r border-white/10">
+          {/* Logo */}
+          <div className="mb-8">
+            <div className="w-11 h-11 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+              <Radio className="w-6 h-6 text-white" />
+            </div>
           </div>
 
-          {/* User section at bottom */}
-          <div className="pt-4 border-t border-white/10 mt-4">
+          {/* Navigation Icons */}
+          <nav className="flex-1 flex flex-col items-center gap-2">
+            {filteredNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.to;
+              return (
+                <Tooltip key={item.to}>
+                  <TooltipTrigger asChild>
+                    <NavLink
+                      to={item.to}
+                      data-testid={`nav-${item.to.slice(1)}-link`}
+                      className={`
+                        w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200
+                        ${isActive 
+                          ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
+                          : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                        }
+                      `}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </nav>
+
+          {/* User Avatar at Bottom */}
+          <div className="mt-auto pt-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
+                  size="icon"
                   data-testid="user-menu-btn"
-                  className="w-full justify-start gap-3 h-auto p-3 hover:bg-white/5"
+                  className="w-11 h-11 rounded-xl hover:bg-orange-500/10"
                 >
-                  <div className="w-9 h-9 rounded-full bg-rose-500/20 flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-rose-500" />
-                  </div>
-                  <div className="text-left flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-white truncate max-w-[100px]">
-                        {user?.name}
-                      </p>
-                      <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                        <RoleIcon className="w-3 h-3" />
-                        {roleLabels[user?.role]}
-                      </span>
-                    </div>
-                    <p className="text-xs text-zinc-500 truncate">
-                      {user?.email}
-                    </p>
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                    {user?.name?.charAt(0).toUpperCase()}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 bg-[#18181b] border-zinc-800">
-                <DropdownMenuItem className="text-zinc-400">
-                  <User className="w-4 h-4 mr-2" />
-                  {user?.email}
-                </DropdownMenuItem>
+              <DropdownMenuContent align="start" side="right" className="w-56 bg-[#18181b] border-zinc-800 ml-2">
+                <div className="px-3 py-2">
+                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-xs text-zinc-500">{user?.email}</p>
+                </div>
+                <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem className="text-zinc-400">
                   <RoleIcon className="w-4 h-4 mr-2" />
                   {roleLabels[user?.role]}
                 </DropdownMenuItem>
+                {user?.team_name && (
+                  <DropdownMenuItem className="text-zinc-400">
+                    <Home className="w-4 h-4 mr-2" />
+                    {user.team_name}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem
                   data-testid="logout-btn"
                   onClick={handleLogout}
-                  className="text-rose-500 focus:text-rose-500 focus:bg-rose-500/10"
+                  className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign out
@@ -197,16 +179,129 @@ const DashboardLayout = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Main content */}
-      <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
-        <div className="p-4 sm:p-6 lg:p-8 xl:p-12">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+        {/* Mobile Sidebar - Full Width */}
+        <aside
+          className={`
+            lg:hidden fixed top-0 left-0 h-full z-50 glass
+            w-64 transform transition-transform duration-300 ease-in-out
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          <div className="p-6 pt-4 h-full flex flex-col">
+            {/* Mobile: Close button area */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-500/20 rounded-lg">
+                  <Radio className="w-5 h-5 text-orange-500" />
+                </div>
+                <span className="text-lg font-bold text-white">ShowPrep</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={closeSidebar}
+                className="text-zinc-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            {/* Team Name */}
+            {user?.team_name && (
+              <div className="mb-6 px-1">
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">Team</p>
+                <p className="text-sm text-zinc-300 font-medium truncate">{user.team_name}</p>
+              </div>
+            )}
+
+            {/* Navigation */}
+            <div className="flex-1 overflow-y-auto">
+              <nav className="space-y-1">
+                {filteredNavItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      data-testid={`mobile-nav-${item.to.slice(1)}-link`}
+                      onClick={closeSidebar}
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                          isActive
+                            ? 'bg-orange-500/20 text-orange-500'
+                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`
+                      }
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{item.label}</span>
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* User section at bottom */}
+            <div className="pt-4 border-t border-white/10 mt-4">
+              <div className="flex items-center gap-3 p-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                  <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign out
+              </Button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="lg:ml-[72px] min-h-screen pt-16 lg:pt-0">
+          {/* Page Header */}
+          <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
+            <div className="px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-white tracking-tight">
+                    {getCurrentPageTitle()}
+                  </h1>
+                  {user?.team_name && (
+                    <p className="text-sm text-zinc-500 mt-0.5">{user.team_name}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-white">{user?.name}</p>
+                    <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
+                      <RoleIcon className="w-3 h-3" />
+                      {roleLabels[user?.role]}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 sm:p-6 lg:p-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </TooltipProvider>
   );
 };
 
