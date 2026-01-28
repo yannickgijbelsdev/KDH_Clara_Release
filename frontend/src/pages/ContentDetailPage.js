@@ -351,7 +351,7 @@ const ContentDetailPage = () => {
         </Button>
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-bold text-white">{content.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-white">{content.title}</h1>
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[content.status]}`}>
               {statusLabels[content.status]}
             </span>
