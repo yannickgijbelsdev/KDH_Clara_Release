@@ -29,6 +29,13 @@ shows_router = APIRouter(prefix="/shows", tags=["Shows"])
 SHOW_IMAGES_DIR = UPLOADS_DIR.parent / 'show_images'
 SHOW_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
+# Create show title images directory
+SHOW_TITLE_IMAGES_DIR = UPLOADS_DIR.parent / 'show_title_images'
+SHOW_TITLE_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+
+ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
+
 
 def generate_occurrence_dates(start_date: str, interval_weeks: int, end_date: Optional[str], max_occurrences: int = 52) -> List[str]:
     """Generate dates for recurring shows."""
