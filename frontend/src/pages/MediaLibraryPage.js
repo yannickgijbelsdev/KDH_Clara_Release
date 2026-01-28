@@ -214,7 +214,7 @@ const MediaLibraryPage = () => {
             <File className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white">Media Library</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Media Library</h1>
             <p className="text-xs sm:text-sm text-zinc-400">Documents, audio files, and images</p>
           </div>
         </div>
