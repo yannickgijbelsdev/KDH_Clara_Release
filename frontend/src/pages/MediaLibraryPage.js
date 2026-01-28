@@ -225,7 +225,7 @@ const MediaLibraryPage = () => {
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".pdf,.docx,.txt,.mp3,.wav,.m4a"
+              accept=".pdf,.docx,.txt,.mp3,.wav,.m4a,.jpg,.jpeg,.png,.gif,.webp"
               onChange={handleFileUpload}
               className="hidden"
             />
