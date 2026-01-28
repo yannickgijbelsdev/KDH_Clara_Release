@@ -166,6 +166,41 @@ const ShowManagementPage = () => {
     }
   };
 
+  const handleImageUpload = async (file, titleId) => {
+    if (!file) return;
+    setUploadingImage(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post(`${API}/shows/titles/${titleId}/image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      setShowTitles(showTitles.map(t => t.id === titleId ? { ...t, image: response.data.image } : t));
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      setImageTargetTitleId(null);
+      if (imageInputRef.current) {
+        imageInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveImage = async (titleId) => {
+    try {
+      await axios.delete(`${API}/shows/titles/${titleId}/image`);
+      setShowTitles(showTitles.map(t => t.id === titleId ? { ...t, image: null } : t));
+      toast.success('Image removed');
+    } catch (error) {
+      toast.error('Failed to remove image');
+    }
+  };
+
   // ========== STUDIOS HANDLERS ==========
   const openCreateStudioDialog = () => {
     setEditingStudio(null);
