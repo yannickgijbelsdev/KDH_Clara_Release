@@ -26,3 +26,9 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 MEDIA_UPLOADS_DIR = ROOT_DIR / 'uploads' / 'media'
 MEDIA_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+AVATARS_DIR = ROOT_DIR / 'uploads' / 'avatars'
+AVATARS_DIR.mkdir(parents=True, exist_ok=True)
+
+SHOW_IMAGES_DIR = ROOT_DIR / 'uploads' / 'show_images'
+SHOW_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
