@@ -464,6 +464,153 @@ const MediaLibraryPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewAsset} onOpenChange={() => setPreviewAsset(null)}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-white flex items-center gap-3">
+              {previewAsset && (
+                <>
+                  {(() => {
+                    const FileIcon = getFileIcon(previewAsset.kind, previewAsset.mime_type);
+                    return <FileIcon className="w-5 h-5 text-rose-500" />;
+                  })()}
+                  <span className="truncate">{previewAsset?.title}</span>
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {previewAsset && (
+            <div className="flex-1 overflow-auto min-h-0">
+              {/* Image Preview */}
+              {getPreviewType(previewAsset) === 'image' && (
+                <div className="flex items-center justify-center p-4 bg-zinc-900 rounded-lg">
+                  <img
+                    src={getFileUrl(previewAsset)}
+                    alt={previewAsset.title}
+                    className="max-w-full max-h-[60vh] object-contain rounded"
+                  />
+                </div>
+              )}
+
+              {/* PDF Preview */}
+              {getPreviewType(previewAsset) === 'pdf' && (
+                <div className="w-full h-[60vh] bg-zinc-900 rounded-lg overflow-hidden">
+                  <iframe
+                    src={`${getFileUrl(previewAsset)}#toolbar=1&navpanes=0`}
+                    className="w-full h-full"
+                    title={previewAsset.title}
+                  />
+                </div>
+              )}
+
+              {/* Audio Preview */}
+              {getPreviewType(previewAsset) === 'audio' && (
+                <div className="p-8 bg-zinc-900 rounded-lg">
+                  <div className="flex flex-col items-center gap-6">
+                    <div className="w-32 h-32 rounded-full bg-amber-500/20 flex items-center justify-center">
+                      <Volume2 className="w-16 h-16 text-amber-500" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-lg font-medium text-white mb-1">{previewAsset.title}</h3>
+                      <p className="text-sm text-zinc-400">{previewAsset.original_filename}</p>
+                      <p className="text-xs text-zinc-500 mt-1">{formatFileSize(previewAsset.size)}</p>
+                    </div>
+                    <audio
+                      ref={audioPreviewRef}
+                      controls
+                      autoPlay
+                      className="w-full max-w-md"
+                      src={getFileUrl(previewAsset)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Text Preview */}
+              {getPreviewType(previewAsset) === 'text' && (
+                <TextFilePreview url={getFileUrl(previewAsset)} />
+              )}
+
+              {/* Unsupported Preview */}
+              {getPreviewType(previewAsset) === 'unsupported' && (
+                <div className="p-8 bg-zinc-900 rounded-lg text-center">
+                  <File className="w-16 h-16 text-zinc-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-white mb-2">Preview not available</h3>
+                  <p className="text-zinc-400 mb-4">
+                    This file type cannot be previewed. You can download it instead.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex-shrink-0 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setPreviewAsset(null)}
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() => window.open(getFileUrl(previewAsset), '_blank')}
+              className="bg-rose-500 hover:bg-rose-600"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+// Text file preview component
+const TextFilePreview = ({ url }) => {
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const fetchText = async () => {
+      try {
+        const response = await fetch(url);
+        const text = await response.text();
+        setContent(text);
+      } catch (err) {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchText();
+  }, [url]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8 bg-zinc-900 rounded-lg">
+        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 bg-zinc-900 rounded-lg text-center">
+        <p className="text-zinc-400">Failed to load file content</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-zinc-900 rounded-lg p-4 max-h-[60vh] overflow-auto">
+      <pre className="text-sm text-zinc-300 whitespace-pre-wrap font-mono">
+        {content}
+      </pre>
     </div>
   );
 };
