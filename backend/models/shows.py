@@ -29,6 +29,7 @@ class ShowTitleResponse(BaseModel):
     team_id: str
     created_by: str
     created_at: str
+    image: Optional[dict] = None
 
 
 # ============== STUDIOS/ROOMS ==============
