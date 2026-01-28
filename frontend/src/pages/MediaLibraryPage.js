@@ -270,6 +270,7 @@ const MediaLibraryPage = () => {
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="document">Documents</SelectItem>
             <SelectItem value="audio">Audio</SelectItem>
+            <SelectItem value="image">Images</SelectItem>
           </SelectContent>
         </Select>
       </div>
