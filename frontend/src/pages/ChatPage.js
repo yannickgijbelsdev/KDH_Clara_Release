@@ -680,9 +680,6 @@ const ChatPage = () => {
           >
             <Menu className="w-5 h-5" />
           </Button>
-          <div className="p-2 bg-orange-500/20 rounded-lg hidden sm:block">
-            <MessageSquare className="w-6 h-6 text-orange-500" />
-          </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Team Chat</h1>
             <p className="text-xs sm:text-sm text-zinc-400 hidden sm:block">Communicate with your team</p>
