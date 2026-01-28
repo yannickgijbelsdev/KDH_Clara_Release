@@ -478,6 +478,25 @@ const TeamSettingsPage = () => {
                             Edit Profile
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            onClick={() => {
+                              setEditingUser(member);
+                              avatarInputRef.current?.click();
+                            }}
+                            className="text-zinc-300"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            {member.avatar ? 'Change Avatar' : 'Upload Avatar'}
+                          </DropdownMenuItem>
+                          {member.avatar && (
+                            <DropdownMenuItem
+                              onClick={() => handleRemoveAvatar(member.id)}
+                              className="text-zinc-300"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Remove Avatar
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
                             onClick={() => openResetPassword(member)}
                             className="text-zinc-300"
                           >
