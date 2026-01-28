@@ -139,6 +139,20 @@ async def get_avatar_file(file_key: str):
     return FileResponse(file_path, media_type=media_type)
 
 
+@api_router.get("/uploads/show_title_images/{file_key}")
+async def get_show_title_image_file(file_key: str):
+    """Serve a show title image file."""
+    from database import UPLOADS_DIR
+    show_title_images_dir = UPLOADS_DIR.parent / 'show_title_images'
+    file_path = show_title_images_dir / file_key
+    if not file_path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
+    return FileResponse(file_path, media_type=media_type)
+
+
 # ============== RDS / NOW PLAYING ==============
 
 @api_router.get("/rds/live")
