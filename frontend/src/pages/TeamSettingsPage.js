@@ -480,8 +480,8 @@ const TeamSettingsPage = () => {
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
-                              setEditingUser(member);
-                              avatarInputRef.current?.click();
+                              setAvatarTargetUserId(member.id);
+                              setTimeout(() => avatarInputRef.current?.click(), 100);
                             }}
                             className="text-zinc-300"
                           >
