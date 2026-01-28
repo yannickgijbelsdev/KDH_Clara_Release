@@ -48,10 +48,7 @@ const LoginPage = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#09090b] via-transparent to-transparent" />
         <div className="relative z-10 flex flex-col justify-center px-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 bg-orange-500 rounded-xl shadow-lg shadow-orange-500/20">
-              <span className="text-white font-black text-2xl">C</span>
-            </div>
+          <div className="mb-6">
             <span className="text-2xl font-bold text-white">Clara</span>
           </div>
           <h1 className="text-5xl font-black text-white leading-tight mb-4">
@@ -70,34 +67,18 @@ const LoginPage = () => {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <div className="p-3 bg-orange-500 rounded-xl">
-              <span className="text-white font-black text-lg">C</span>
-            </div>
             <span className="text-xl font-bold text-white">Clara</span>
           </div>
 
           <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-8">
             <h2 className="text-2xl font-bold text-white mb-2">
-              {isLogin ? 'Welcome back' : 'Create account'}
+              Welcome back
             </h2>
             <p className="text-zinc-400 mb-8">
-              {isLogin ? 'Sign in to access your shows' : 'Start planning your radio shows'}
+              Sign in to access your shows
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {!isLogin && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-zinc-300">Name</Label>
-                    <Input
-                      id="name"
-                      data-testid="register-name-input"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Your name"
-                      required={!isLogin}
-                      className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 h-12"
                     />
                   </div>
                   <div className="space-y-2">
