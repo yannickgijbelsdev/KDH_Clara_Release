@@ -694,6 +694,19 @@ const ShowManagementPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Hidden Image File Input */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/gif,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.[0] && imageTargetTitleId) {
+            handleImageUpload(e.target.files[0], imageTargetTitleId);
+          }
+        }}
+      />
     </div>
   );
 };
