@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
 import {
   FileText,
   Search,
@@ -14,13 +14,19 @@ import {
   UserPlus,
   Pencil,
   Trash2,
-  Calendar,
+  Calendar as CalendarIcon,
   Clock,
   Globe,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
   Activity,
+  Archive,
+  MessageSquare,
+  Radio,
+  Image,
+  FileCheck,
+  Send,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -44,6 +50,16 @@ const actionIcons = {
   'User Invited': UserPlus,
   'Avatar Uploaded': User,
   'Avatar Removed': User,
+  'Sent Chat Message': MessageSquare,
+  'Created Content': FileText,
+  'Updated Content': Pencil,
+  'Deleted Content': Trash2,
+  'Created Show': Radio,
+  'Updated Show': Pencil,
+  'Deleted Show': Trash2,
+  'Uploaded Media': Image,
+  'Approved Content': FileCheck,
+  'Published to WordPress': Send,
   'default': Activity
 };
 
@@ -55,7 +71,9 @@ const categoryColors = {
   content: 'bg-green-500/20 text-green-400',
   media: 'bg-cyan-500/20 text-cyan-400',
   team: 'bg-pink-500/20 text-pink-400',
-  settings: 'bg-indigo-500/20 text-indigo-400'
+  settings: 'bg-indigo-500/20 text-indigo-400',
+  chat: 'bg-emerald-500/20 text-emerald-400',
+  wordpress: 'bg-sky-500/20 text-sky-400'
 };
 
 const LogsPage = () => {
@@ -75,6 +93,14 @@ const LogsPage = () => {
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
+  
+  // Archive mode
+  const [showArchive, setShowArchive] = useState(false);
+  const [archiveDates, setArchiveDates] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [archiveLogs, setArchiveLogs] = useState([]);
+  const [archiveLoading, setArchiveLoading] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -87,13 +113,33 @@ const LogsPage = () => {
   }, [isAdmin]);
 
   useEffect(() => {
-    fetchLogs();
-  }, [page, categoryFilter, userFilter, search]);
+    if (!showArchive) {
+      fetchLogs();
+    }
+  }, [page, categoryFilter, userFilter, search, showArchive]);
+
+  useEffect(() => {
+    if (showArchive) {
+      fetchArchiveDates();
+    }
+  }, [showArchive]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      fetchArchiveLogs(selectedDate);
+    }
+  }, [selectedDate, categoryFilter]);
 
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${API}/logs/categories`);
-      setCategories(response.data.categories);
+      // Add new categories
+      const extendedCategories = [
+        ...response.data.categories,
+        { value: 'chat', label: 'Chat', description: 'Chat messages and threads' },
+        { value: 'wordpress', label: 'WordPress', description: 'WordPress publishing' }
+      ];
+      setCategories(extendedCategories);
     } catch (error) {
       console.error('Failed to fetch categories', error);
     }
@@ -144,6 +190,31 @@ const LogsPage = () => {
     }
   };
 
+  const fetchArchiveDates = async () => {
+    try {
+      const response = await axios.get(`${API}/logs/archive/dates`);
+      setArchiveDates(response.data.dates);
+    } catch (error) {
+      console.error('Failed to fetch archive dates', error);
+    }
+  };
+
+  const fetchArchiveLogs = async (date) => {
+    setArchiveLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (categoryFilter !== 'all') {
+        params.append('category', categoryFilter);
+      }
+      const response = await axios.get(`${API}/logs/archive/${date}?${params.toString()}`);
+      setArchiveLogs(response.data.logs);
+    } catch (error) {
+      console.error('Failed to fetch archive logs', error);
+    } finally {
+      setArchiveLoading(false);
+    }
+  };
+
   const getActionIcon = (action) => {
     return actionIcons[action] || actionIcons.default;
   };
@@ -156,7 +227,86 @@ const LogsPage = () => {
     }
   };
 
+  const formatTime = (timestamp) => {
+    try {
+      return format(parseISO(timestamp), 'HH:mm:ss');
+    } catch {
+      return timestamp;
+    }
+  };
+
   const totalPages = Math.ceil(total / limit);
+
+  // Calendar helpers
+  const getDaysInMonth = () => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    return eachDayOfInterval({ start, end });
+  };
+
+  const getDateCount = (date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const found = archiveDates.find(d => d.date === dateStr);
+    return found ? found.count : 0;
+  };
+
+  const previousMonth = () => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const renderLogRow = (log) => {
+    const ActionIcon = getActionIcon(log.action);
+    return (
+      <tr key={log.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-zinc-800 rounded-lg">
+              <ActionIcon className="w-4 h-4 text-orange-400" />
+            </div>
+            <div>
+              <p className="text-white font-medium">{log.action}</p>
+              {log.target_name && (
+                <p className="text-zinc-500 text-sm truncate max-w-[200px]">{log.target_name}</p>
+              )}
+            </div>
+          </div>
+        </td>
+        <td className="px-4 py-3">
+          <span className={`px-2 py-1 rounded text-xs font-medium ${categoryColors[log.category] || 'bg-zinc-700 text-zinc-300'}`}>
+            {log.category}
+          </span>
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-zinc-500" />
+            <div>
+              <p className="text-zinc-300 text-sm">{log.user_name || 'System'}</p>
+              <p className="text-zinc-500 text-xs">{log.user_email}</p>
+            </div>
+          </div>
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2 text-zinc-400 text-sm">
+            <Clock className="w-4 h-4" />
+            {showArchive ? formatTime(log.timestamp) : formatTimestamp(log.timestamp)}
+          </div>
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-2 text-zinc-500 text-sm">
+            <Globe className="w-3 h-3" />
+            {log.ip_address || '-'}
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
+  // Check if we should show archive mode option (more than 500 logs)
+  const shouldShowArchiveOption = stats && stats.total > 500;
 
   return (
     <div data-testid="logs-page">
@@ -166,14 +316,32 @@ const LogsPage = () => {
           <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Activity Logs</h1>
           <p className="text-sm text-zinc-400">Track all user actions and system events</p>
         </div>
-        <Button
-          onClick={() => { fetchLogs(); fetchStats(); }}
-          variant="outline"
-          className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          {shouldShowArchiveOption && (
+            <Button
+              onClick={() => {
+                setShowArchive(!showArchive);
+                setSelectedDate(null);
+              }}
+              variant={showArchive ? "default" : "outline"}
+              className={showArchive 
+                ? "gap-2 bg-orange-500 hover:bg-orange-600 text-white" 
+                : "gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              }
+            >
+              <Archive className="w-4 h-4" />
+              {showArchive ? 'Exit Archive' : 'View Archive'}
+            </Button>
+          )}
+          <Button
+            onClick={() => { fetchLogs(); fetchStats(); }}
+            variant="outline"
+            className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -188,189 +356,257 @@ const LogsPage = () => {
             <p className="text-2xl font-bold text-orange-500">{stats.recent_24h.toLocaleString()}</p>
           </div>
           <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4">
-            <p className="text-zinc-500 text-sm">Auth Events</p>
-            <p className="text-2xl font-bold text-blue-400">{stats.by_category?.auth || 0}</p>
+            <p className="text-zinc-500 text-sm">Chat Events</p>
+            <p className="text-2xl font-bold text-emerald-400">{stats.by_category?.chat || 0}</p>
           </div>
           <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4">
-            <p className="text-zinc-500 text-sm">User Events</p>
-            <p className="text-2xl font-bold text-violet-400">{stats.by_category?.user || 0}</p>
+            <p className="text-zinc-500 text-sm">Content Events</p>
+            <p className="text-2xl font-bold text-green-400">{stats.by_category?.content || 0}</p>
           </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 mb-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-            <Input
-              data-testid="logs-search"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              placeholder="Search by action, user, email, or IP..."
-              className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
-            />
-          </div>
-          
-          <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(0); }}>
-            <SelectTrigger data-testid="category-filter" className="w-full md:w-48 bg-[#27272a] border-zinc-700 text-white">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#18181b] border-zinc-800">
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={userFilter} onValueChange={(v) => { setUserFilter(v); setPage(0); }}>
-            <SelectTrigger data-testid="user-filter" className="w-full md:w-48 bg-[#27272a] border-zinc-700 text-white">
-              <User className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="All Users" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#18181b] border-zinc-800">
-              <SelectItem value="all">All Users</SelectItem>
-              {users.map((user) => (
-                <SelectItem key={user.id} value={user.id}>
-                  {user.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Logs Table */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center">
-            <RefreshCw className="w-8 h-8 animate-spin text-orange-500 mx-auto mb-2" />
-            <p className="text-zinc-400">Loading logs...</p>
-          </div>
-        ) : logs.length === 0 ? (
-          <div className="p-8 text-center">
-            <FileText className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-            <p className="text-zinc-400">No logs found</p>
-          </div>
-        ) : (
-          <>
-            {/* Table Header */}
-            <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-[#27272a] text-sm font-medium text-zinc-400 border-b border-zinc-800">
-              <div className="col-span-2">Timestamp</div>
-              <div className="col-span-2">User</div>
-              <div className="col-span-3">Action</div>
-              <div className="col-span-2">Category</div>
-              <div className="col-span-2">IP Address</div>
-              <div className="col-span-1">Details</div>
+      {/* Archive Mode - Calendar */}
+      {showArchive && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Calendar */}
+          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Button variant="ghost" size="icon" onClick={previousMonth} className="text-zinc-400 hover:text-white">
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <h3 className="text-lg font-semibold text-white">
+                {format(currentMonth, 'MMMM yyyy')}
+              </h3>
+              <Button variant="ghost" size="icon" onClick={nextMonth} className="text-zinc-400 hover:text-white">
+                <ChevronRight className="w-5 h-5" />
+              </Button>
             </div>
             
-            {/* Table Body */}
-            <div className="divide-y divide-zinc-800">
-              {logs.map((log) => {
-                const ActionIcon = getActionIcon(log.action);
+            {/* Weekday headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                <div key={day} className="text-center text-xs text-zinc-500 font-medium py-2">
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            {/* Calendar days */}
+            <div className="grid grid-cols-7 gap-1">
+              {/* Empty cells for days before the first of the month */}
+              {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square" />
+              ))}
+              
+              {getDaysInMonth().map(day => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                const count = getDateCount(day);
+                const isSelected = selectedDate === dateStr;
+                const hasLogs = count > 0;
+                
                 return (
-                  <div
-                    key={log.id}
-                    data-testid={`log-row-${log.id}`}
-                    className="p-4 hover:bg-[#27272a]/50 transition-colors"
+                  <button
+                    key={dateStr}
+                    onClick={() => hasLogs && setSelectedDate(dateStr)}
+                    disabled={!hasLogs}
+                    className={`
+                      aspect-square rounded-lg text-sm relative transition-colors
+                      ${isSelected 
+                        ? 'bg-orange-500 text-white' 
+                        : hasLogs 
+                          ? 'bg-zinc-800 text-white hover:bg-zinc-700' 
+                          : 'text-zinc-600 cursor-not-allowed'
+                      }
+                      ${isToday(day) && !isSelected ? 'ring-2 ring-orange-500/50' : ''}
+                    `}
                   >
-                    {/* Desktop View */}
-                    <div className="hidden md:grid grid-cols-12 gap-4 items-center">
-                      <div className="col-span-2 text-sm text-zinc-400 font-mono">
-                        {formatTimestamp(log.timestamp)}
-                      </div>
-                      <div className="col-span-2">
-                        <p className="text-white text-sm font-medium truncate">{log.user_name || 'System'}</p>
-                        <p className="text-xs text-zinc-500 truncate">{log.user_email || '-'}</p>
-                      </div>
-                      <div className="col-span-3 flex items-center gap-2">
-                        <ActionIcon className="w-4 h-4 text-zinc-400 flex-shrink-0" />
-                        <div>
-                          <p className="text-white text-sm">{log.action}</p>
-                          {log.target_name && (
-                            <p className="text-xs text-zinc-500 truncate">{log.target_name}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="col-span-2">
-                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${categoryColors[log.category] || 'bg-zinc-500/20 text-zinc-400'}`}>
-                          {log.category}
-                        </span>
-                      </div>
-                      <div className="col-span-2 text-sm text-zinc-400 font-mono">
-                        {log.ip_address || '-'}
-                      </div>
-                      <div className="col-span-1">
-                        {log.details && Object.keys(log.details).length > 0 && (
-                          <span className="text-xs text-zinc-500" title={JSON.stringify(log.details)}>
-                            {Object.keys(log.details).length} fields
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Mobile View */}
-                    <div className="md:hidden space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${categoryColors[log.category] || 'bg-zinc-500/20 text-zinc-400'}`}>
-                          {log.category}
-                        </span>
-                        <span className="text-xs text-zinc-500 font-mono">
-                          {formatTimestamp(log.timestamp)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ActionIcon className="w-4 h-4 text-zinc-400" />
-                        <span className="text-white font-medium">{log.action}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-zinc-400">{log.user_name || 'System'}</span>
-                        <span className="text-zinc-500 font-mono text-xs">{log.ip_address}</span>
-                      </div>
-                    </div>
-                  </div>
+                    {format(day, 'd')}
+                    {hasLogs && (
+                      <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] text-[10px] font-bold rounded-full flex items-center justify-center ${isSelected ? 'bg-white text-orange-500' : 'bg-orange-500 text-white'}`}>
+                        {count > 99 ? '99+' : count}
+                      </span>
+                    )}
+                  </button>
                 );
               })}
             </div>
-          </>
-        )}
-        
-        {/* Pagination */}
-        {total > limit && (
-          <div className="flex items-center justify-between p-4 border-t border-zinc-800">
-            <p className="text-sm text-zinc-400">
-              Showing {page * limit + 1} - {Math.min((page + 1) * limit, total)} of {total}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="border-zinc-700 text-zinc-300"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <span className="text-sm text-zinc-400">
-                Page {page + 1} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="border-zinc-700 text-zinc-300"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+          </div>
+
+          {/* Archive Logs for Selected Date */}
+          <div className="lg:col-span-2">
+            {selectedDate ? (
+              <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">
+                      {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
+                    </h3>
+                    <p className="text-sm text-zinc-400">{archiveLogs.length} events</p>
+                  </div>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-40 bg-[#27272a] border-zinc-700 text-white">
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#18181b] border-zinc-800">
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {archiveLoading ? (
+                  <div className="p-8 text-center">
+                    <RefreshCw className="w-8 h-8 text-zinc-500 animate-spin mx-auto mb-2" />
+                    <p className="text-zinc-400">Loading logs...</p>
+                  </div>
+                ) : archiveLogs.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <Activity className="w-8 h-8 text-zinc-500 mx-auto mb-2" />
+                    <p className="text-zinc-400">No logs for this date</p>
+                  </div>
+                ) : (
+                  <div className="max-h-[500px] overflow-y-auto">
+                    <table className="w-full">
+                      <tbody>
+                        {archiveLogs.map(renderLogRow)}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-8 text-center h-full flex flex-col items-center justify-center">
+                <CalendarIcon className="w-12 h-12 text-zinc-600 mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">Select a Date</h3>
+                <p className="text-zinc-400">Click on a date in the calendar to view logs from that day</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Regular Mode - Filters & Table */}
+      {!showArchive && (
+        <>
+          {/* Filters */}
+          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                <Input
+                  data-testid="logs-search"
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                  placeholder="Search by action, user, email, or IP..."
+                  className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                />
+              </div>
+              
+              <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(0); }}>
+                <SelectTrigger data-testid="category-filter" className="w-full md:w-48 bg-[#27272a] border-zinc-700 text-white">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={userFilter} onValueChange={(v) => { setUserFilter(v); setPage(0); }}>
+                <SelectTrigger data-testid="user-filter" className="w-full md:w-48 bg-[#27272a] border-zinc-700 text-white">
+                  <User className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="All Users" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  <SelectItem value="all">All Users</SelectItem>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Logs Table */}
+          <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
+            {loading ? (
+              <div className="p-8 text-center">
+                <RefreshCw className="w-8 h-8 text-zinc-500 animate-spin mx-auto mb-2" />
+                <p className="text-zinc-400">Loading activity logs...</p>
+              </div>
+            ) : logs.length === 0 ? (
+              <div className="p-8 text-center">
+                <Activity className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-white mb-2">No Activity Logs</h3>
+                <p className="text-zinc-400">No logs match your current filters</p>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-zinc-800 bg-zinc-900/50">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Action</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Category</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">User</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Time</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">IP</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {logs.map(renderLogRow)}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800">
+                    <p className="text-sm text-zinc-400">
+                      Showing {page * limit + 1} to {Math.min((page + 1) * limit, total)} of {total} logs
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(p => Math.max(0, p - 1))}
+                        disabled={page === 0}
+                        className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <span className="flex items-center px-3 text-sm text-zinc-400">
+                        Page {page + 1} of {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                        disabled={page >= totalPages - 1}
+                        className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
