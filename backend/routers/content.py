@@ -1,12 +1,13 @@
 """Content library routes."""
-from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Request
+from fastapi.responses import FileResponse, StreamingResponse
 from typing import Optional, List
 from datetime import datetime, timezone
 from pathlib import Path
 import uuid
 import mimetypes
 import aiofiles
+import io
 
 from database import db, UPLOADS_DIR
 from models.content import (
@@ -14,10 +15,64 @@ from models.content import (
     FeaturedImageResponse, CategoryResponse
 )
 from models.wordpress import PublishToWordPressRequest, PublishResponse, PublishResult
-from services.auth import get_current_user, require_editor_or_admin
+from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.helpers import get_content_with_publish_statuses
 
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
+
+
+# ============== AUDIT LOG HELPERS ==============
+
+def get_field_changes(old_data: dict, new_data: dict) -> List[dict]:
+    """Compare old and new data and return list of changes."""
+    changes = []
+    fields_to_track = ['title', 'body', 'excerpt', 'external_url', 'category_id', 'status', 'type']
+    
+    for field in fields_to_track:
+        old_value = old_data.get(field)
+        new_value = new_data.get(field)
+        
+        if new_value is not None and old_value != new_value:
+            # For body field, truncate for display
+            if field == 'body':
+                old_display = (old_value[:100] + '...') if old_value and len(old_value) > 100 else old_value
+                new_display = (new_value[:100] + '...') if new_value and len(new_value) > 100 else new_value
+            else:
+                old_display = old_value
+                new_display = new_value
+            
+            changes.append({
+                "field": field,
+                "old_value": old_display,
+                "new_value": new_display
+            })
+    
+    return changes
+
+
+async def create_content_audit_log(
+    content_id: str,
+    action: str,
+    user_id: str,
+    user_name: str,
+    changes: List[dict] = None,
+    details: str = None,
+    ip_address: str = None
+):
+    """Create an audit log entry for content changes."""
+    log_entry = {
+        "id": str(uuid.uuid4()),
+        "content_id": content_id,
+        "action": action,
+        "user_id": user_id,
+        "user_name": user_name,
+        "changes": changes or [],
+        "details": details,
+        "ip_address": ip_address,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    await db.content_audit_logs.insert_one(log_entry)
+    return log_entry
 
 
 # ============== CATEGORIES ==============
