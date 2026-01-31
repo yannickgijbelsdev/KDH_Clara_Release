@@ -128,25 +128,33 @@ async def get_menu_counts(current_user: dict = Depends(get_current_user)):
         counts["approvals"] = approval_count
     
     # Team Chat - unread messages
-    # Get last read timestamp for user
-    user_chat_status = await db.chat_read_status.find_one({
-        "user_id": user_id,
-        "team_id": team_id
+    # First get all threads the user is part of
+    team_thread = await db.chat_threads.find_one({
+        "team_id": team_id,
+        "type": "team"
     })
-    last_read = user_chat_status.get("last_read_at") if user_chat_status else None
     
-    if last_read:
-        unread_count = await db.chat_messages.count_documents({
-            "team_id": team_id,
-            "created_at": {"$gt": last_read},
-            "user_id": {"$ne": user_id}  # Don't count own messages
+    unread_count = 0
+    if team_thread:
+        # Get last read timestamp for user
+        user_chat_status = await db.chat_read_status.find_one({
+            "user_id": user_id,
+            "team_id": team_id
         })
-    else:
-        # If never read, count all messages not from self
-        unread_count = await db.chat_messages.count_documents({
-            "team_id": team_id,
-            "user_id": {"$ne": user_id}
-        })
+        last_read = user_chat_status.get("last_read_at") if user_chat_status else None
+        
+        if last_read:
+            unread_count = await db.chat_messages.count_documents({
+                "thread_id": team_thread["id"],
+                "created_at": {"$gt": last_read},
+                "user_id": {"$ne": user_id}  # Don't count own messages
+            })
+        else:
+            # If never read, count all messages not from self
+            unread_count = await db.chat_messages.count_documents({
+                "thread_id": team_thread["id"],
+                "user_id": {"$ne": user_id}
+            })
     counts["chat"] = unread_count
     
     # Activity Logs - unseen logs (admin only)
@@ -158,7 +166,7 @@ async def get_menu_counts(current_user: dict = Depends(get_current_user)):
         last_viewed = user_log_status.get("last_viewed_at") if user_log_status else None
         
         if last_viewed:
-            logs_count = await db.activity_logs.count_documents({
+            logs_count = await db.audit_logs.count_documents({
                 "team_id": team_id,
                 "timestamp": {"$gt": last_viewed}
             })
