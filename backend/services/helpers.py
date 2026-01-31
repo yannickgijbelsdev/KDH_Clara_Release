@@ -96,6 +96,18 @@ async def get_content_with_publish_statuses(content_id: str, team_id: str) -> di
     if not content:
         return None
     
+    # Add category info
+    if content.get("category_id"):
+        category = await db.categories.find_one({"id": content["category_id"]}, {"_id": 0})
+        if category:
+            content["category"] = category
+    
+    # Add creator name
+    if content.get("created_by"):
+        creator = await db.users.find_one({"id": content["created_by"]}, {"_id": 0, "name": 1})
+        if creator:
+            content["created_by_name"] = creator.get("name", "Unknown")
+    
     publish_statuses = await db.content_item_publishes.find(
         {"content_item_id": content_id},
         {"_id": 0}
