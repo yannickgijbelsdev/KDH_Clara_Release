@@ -97,6 +97,13 @@ class ContentItemResponse(BaseModel):
     category_id: Optional[str] = None
     category: Optional[CategoryResponse] = None
     status: str
+    # Approval workflow
+    approval_status: Optional[str] = "pending"  # pending, approved, rejected
+    approval_notes: Optional[str] = None
+    approved_by: Optional[str] = None
+    approved_by_name: Optional[str] = None
+    approved_at: Optional[str] = None
+    # Other fields
     team_id: str
     created_by: str
     created_by_name: Optional[str] = None  # Creator's display name
