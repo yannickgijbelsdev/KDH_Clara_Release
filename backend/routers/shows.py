@@ -1,5 +1,5 @@
 """Show and rundown management routes."""
-from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File, Request
 from fastapi.responses import HTMLResponse
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -22,6 +22,7 @@ from models.media import AttachMediaRequest, RundownItemMediaResponse, MediaAsse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
+from services.audit import log_action, get_client_ip
 
 shows_router = APIRouter(prefix="/shows", tags=["Shows"])
 
