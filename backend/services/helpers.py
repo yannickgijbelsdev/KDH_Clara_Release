@@ -108,6 +108,12 @@ async def get_content_with_publish_statuses(content_id: str, team_id: str) -> di
         if creator:
             content["created_by_name"] = creator.get("name", "Unknown")
     
+    # Add approver name
+    if content.get("approved_by"):
+        approver = await db.users.find_one({"id": content["approved_by"]}, {"_id": 0, "name": 1})
+        if approver:
+            content["approved_by_name"] = approver.get("name", "Unknown")
+    
     publish_statuses = await db.content_item_publishes.find(
         {"content_item_id": content_id},
         {"_id": 0}
