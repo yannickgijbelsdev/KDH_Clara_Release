@@ -171,7 +171,7 @@ async def get_menu_counts(current_user: dict = Depends(get_current_user)):
                 "timestamp": {"$gt": last_viewed}
             })
         else:
-            logs_count = await db.activity_logs.count_documents({"team_id": team_id})
+            logs_count = await db.audit_logs.count_documents({"team_id": team_id})
         counts["logs"] = logs_count
     
     return counts
