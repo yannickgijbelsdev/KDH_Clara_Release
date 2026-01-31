@@ -170,7 +170,7 @@ const ContentDetailPage = () => {
         body: editData.body,
         excerpt: editData.excerpt,
         external_url: editData.external_url,
-        tags: editData.tags ? editData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+        category_id: editData.category_id || null,
         status: editData.status,
       });
       setContent(response.data);
