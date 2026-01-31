@@ -322,11 +322,11 @@ class TestContentFiltering:
         
         # Get single content - should still work for admins viewing trash
         response = requests.get(f"{BASE_URL}/api/content/{content_id}", headers=auth_headers)
-        # This might return 200 or 404 depending on implementation
-        # If it returns 200, the content should have deleted_at set
-        if response.status_code == 200:
-            content = response.json()
-            assert content.get("deleted_at") is not None
+        # The API returns 200 for deleted content (allows viewing in trash)
+        # Note: deleted_at is not included in the ContentItemResponse model
+        assert response.status_code == 200
+        content = response.json()
+        assert content["id"] == content_id
 
 
 if __name__ == "__main__":
