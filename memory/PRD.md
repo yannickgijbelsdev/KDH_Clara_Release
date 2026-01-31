@@ -553,3 +553,33 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 ### P3 - Low Priority
 - [ ] Chat enhancements (reactions, GIFs)
 - [ ] Advanced scheduling (drag-and-drop calendar)
+
+### January 31, 2026 - Menu Groups & Admin User Switching
+- [x] **Grouped Navigation Menu**:
+  - Shows group: Shows List, Calendar, Show Management
+  - Content group: Content Library, Media Library, Content Approval, Trash  
+  - Communication group: Team Chat
+  - Administration group: Team Settings, WordPress, Activity Logs (admin only)
+  - Collapsible/expandable groups with chevron indicators
+  - Active group/item highlighting
+
+- [x] **Personal Settings Page** (/settings):
+  - Profile section with user avatar, name, email, role
+  - Navigation Display section with toggle
+  - "Group Menu Items" toggle to switch between grouped and flat menu
+  - Visual preview of both menu styles
+  - Preferences saved to database
+
+- [x] **User Preferences System**:
+  - Backend: PUT /api/users/me/preferences saves preferences
+  - Backend: GET /api/auth/me returns preferences field
+  - Frontend: AuthContext includes updateUserPreferences
+  - Preferences persist across sessions
+
+- [x] **Admin User Switching (Impersonation)**:
+  - Backend: POST /api/admin/switch-user/{user_id} creates token for target user
+  - Backend: POST /api/admin/exit-impersonation returns to admin account
+  - Frontend: "Login as User" option in TeamSettingsPage dropdown
+  - Orange impersonation banner at top when viewing as another user
+  - "Return to [admin]" button to exit impersonation
+  - Non-admins blocked with 403 error
