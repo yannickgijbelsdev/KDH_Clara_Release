@@ -55,22 +55,19 @@ const statusLabels = {
 const ContentLibraryPage = () => {
   const { isEditor } = useAuth();
   const navigate = useNavigate();
-  const [content, setContent] = useState([]);
+  const [allContent, setAllContent] = useState([]);
+  const [filteredContent, setFilteredContent] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const fetchContent = async () => {
     try {
-      const params = new URLSearchParams();
-      if (searchQuery) params.append('search', searchQuery);
-      if (typeFilter) params.append('type', typeFilter);
-      if (statusFilter) params.append('status', statusFilter);
-      
-      const response = await axios.get(`${API}/content?${params.toString()}`);
-      setContent(response.data);
+      const response = await axios.get(`${API}/content`);
+      setAllContent(response.data);
     } catch (error) {
       toast.error('Failed to load content');
     } finally {
@@ -80,20 +77,48 @@ const ContentLibraryPage = () => {
 
   useEffect(() => {
     fetchContent();
-  }, [typeFilter, statusFilter]);
+  }, []);
 
+  // Client-side instant filtering
   useEffect(() => {
-    const debounce = setTimeout(() => {
-      fetchContent();
-    }, 300);
-    return () => clearTimeout(debounce);
-  }, [searchQuery]);
+    let result = allContent;
+    
+    // Search filter (instant, case-insensitive)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(item => 
+        item.title?.toLowerCase().includes(query) ||
+        item.excerpt?.toLowerCase().includes(query) ||
+        item.body?.toLowerCase().includes(query)
+      );
+    }
+    
+    // Type filter
+    if (typeFilter) {
+      result = result.filter(item => item.type === typeFilter);
+    }
+    
+    // Status filter
+    if (statusFilter) {
+      result = result.filter(item => item.status === statusFilter);
+    }
+    
+    // Source filter (MFY, GRK, etc.)
+    if (sourceFilter) {
+      result = result.filter(item => item.source === sourceFilter);
+    }
+    
+    setFilteredContent(result);
+  }, [allContent, searchQuery, typeFilter, statusFilter, sourceFilter]);
 
   const handleContentCreated = (newContent) => {
-    setContent([newContent, ...content]);
+    setAllContent([newContent, ...allContent]);
     setIsCreateOpen(false);
     toast.success('Content created');
   };
+
+  // Get unique sources for filter dropdown
+  const availableSources = [...new Set(allContent.filter(item => item.source).map(item => item.source))];
 
   // Calculate publish summary for an item
   const getPublishSummary = (item) => {
