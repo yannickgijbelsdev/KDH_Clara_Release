@@ -11,7 +11,7 @@ import aiofiles
 from database import db, UPLOADS_DIR
 from models.content import (
     ContentItemCreate, ContentItemUpdate, ContentItemResponse,
-    FeaturedImageResponse
+    FeaturedImageResponse, CategoryResponse
 )
 from models.wordpress import PublishToWordPressRequest, PublishResponse, PublishResult
 from services.auth import get_current_user, require_editor_or_admin
@@ -20,11 +20,64 @@ from services.helpers import get_content_with_publish_statuses
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
 
 
+# ============== CATEGORIES ==============
+
+@content_router.get("/categories", response_model=List[CategoryResponse])
+async def get_categories(current_user: dict = Depends(get_current_user)):
+    """Get all categories for the team."""
+    categories = await db.categories.find(
+        {"team_id": current_user.get('team_id')},
+        {"_id": 0}
+    ).sort("name", 1).to_list(100)
+    return categories
+
+
+@content_router.post("/categories", response_model=CategoryResponse)
+async def create_category(
+    name: str,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Create a new category."""
+    slug = name.lower().replace(" ", "-")
+    cat_id = str(uuid.uuid4())[:8]
+    
+    cat_doc = {
+        "id": f"cat_{cat_id}",
+        "team_id": current_user.get('team_id'),
+        "name": name,
+        "slug": slug,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.categories.insert_one(cat_doc)
+    cat_doc.pop('_id', None)
+    return cat_doc
+
+
+# ============== CONTENT ITEMS ==============
+
+async def enrich_content_item(item: dict) -> dict:
+    """Add category and creator info to content item."""
+    # Add category info
+    if item.get("category_id"):
+        category = await db.categories.find_one({"id": item["category_id"]}, {"_id": 0})
+        if category:
+            item["category"] = category
+    
+    # Add creator name
+    if item.get("created_by"):
+        creator = await db.users.find_one({"id": item["created_by"]}, {"_id": 0, "name": 1})
+        if creator:
+            item["created_by_name"] = creator.get("name", "Unknown")
+    
+    return item
+
+
 @content_router.get("", response_model=List[ContentItemResponse])
 async def get_content_items(
     type: Optional[str] = None,
     status: Optional[str] = None,
-    tag: Optional[str] = None,
+    category_id: Optional[str] = None,
     search: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
@@ -35,8 +88,8 @@ async def get_content_items(
         query["type"] = type
     if status:
         query["status"] = status
-    if tag:
-        query["tags"] = tag
+    if category_id:
+        query["category_id"] = category_id
     if search:
         query["title"] = {"$regex": search, "$options": "i"}
     
@@ -44,6 +97,10 @@ async def get_content_items(
     
     result = []
     for item in items:
+        # Enrich with category and creator info
+        item = await enrich_content_item(item)
+        
+        # Add publish statuses
         publish_statuses = await db.content_item_publishes.find(
             {"content_item_id": item["id"]},
             {"_id": 0}
