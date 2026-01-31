@@ -496,3 +496,60 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - **Audit Logging**: Failed auth attempts logged to wordpress_auth_logs collection
 - **Test Connection**: Checks capabilities and warns about security issues
 - **Documentation**: See /app/docs/WORDPRESS_SECURITY.md
+
+### January 31, 2026 - Soft-Delete & Restore System
+- [x] **Soft-Delete Endpoint** (DELETE /api/content/{id}):
+  - Sets `deleted_at` and `deleted_by` fields instead of removing
+  - Automatically deletes posts from linked WordPress sites
+  - Returns WordPress deletion results
+- [x] **Admin Deleted Items Endpoint** (GET /api/content/admin/deleted):
+  - Returns all soft-deleted content for the team
+  - Includes `deleted_by_name` field
+  - Admin-only access
+- [x] **Restore Endpoint** (POST /api/content/{id}/restore):
+  - Removes `deleted_at` and `deleted_by` fields
+  - Returns restored content
+  - Admin-only access
+- [x] **Permanent Delete Endpoint** (DELETE /api/content/{id}/permanent):
+  - Completely removes content from database
+  - Deletes associated files and records
+  - Admin-only access
+- [x] **Content Filtering**:
+  - GET /api/content excludes soft-deleted items for non-admins
+  - Admins can use `include_deleted=true` parameter
+- [x] **Trash Page** (TrashPage.js at /trash):
+  - Admin-only page accessible from sidebar
+  - Lists deleted content with metadata
+  - View, Restore, and Delete Forever buttons
+  - Search functionality
+- [x] **Improved Delete Dialog**:
+  - Shows "Move to Trash" message
+  - Warns about WordPress post deletion
+  - Informs admins can restore
+
+### January 31, 2026 - WordPress Scheduler Worker
+- [x] **Background Scheduler Service** (services/wp_scheduler.py):
+  - Checks for scheduled posts every 60 seconds
+  - Automatically publishes posts when schedule time arrives
+  - Changes WordPress status from 'future' to 'publish'
+  - Updates sync_status from 'scheduled' to 'synced'
+  - Error handling with status updates
+- [x] **Server Integration**:
+  - Scheduler starts on application startup
+  - Graceful shutdown on application stop
+
+## Prioritized Backlog
+
+### P1 - High Priority
+- [ ] Microsoft SSO Integration (user requested)
+- [ ] Chat: WebSocket upgrade for real-time messaging
+
+### P2 - Medium Priority  
+- [ ] Frontend refactoring (decompose ContentDetailPage.js)
+- [ ] Show Templates from past rundowns
+- [ ] Custom WPM setting for script timing
+- [ ] Public password reset flow
+
+### P3 - Low Priority
+- [ ] Chat enhancements (reactions, GIFs)
+- [ ] Advanced scheduling (drag-and-drop calendar)
