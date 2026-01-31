@@ -139,7 +139,15 @@ const ContentLibraryPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Content Library</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Manage reusable content for your shows</p>
+          <p className="text-sm sm:text-base text-zinc-400">
+            {loading ? 'Loading...' : (
+              <>
+                {filteredContent.length === allContent.length 
+                  ? `${allContent.length} items` 
+                  : `${filteredContent.length} of ${allContent.length} items`}
+              </>
+            )}
+          </p>
         </div>
         {isEditor && (
           <Button
@@ -154,8 +162,8 @@ const ContentLibraryPage = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <Input
             data-testid="content-search-input"
