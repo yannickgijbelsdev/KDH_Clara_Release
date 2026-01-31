@@ -433,7 +433,8 @@ async def publish_content_to_wordpress(
                         "wp_post_type": target.post_type,
                         "wp_status": wp_response.get('status'),
                         "wp_permalink": wp_response.get('link'),
-                        "sync_status": "synced",
+                        "wp_scheduled_date": scheduled_date,
+                        "sync_status": "scheduled" if is_scheduled else "synced",
                         "sync_error_message": None,
                         "last_synced_at": now,
                         "updated_at": now
@@ -449,13 +450,20 @@ async def publish_content_to_wordpress(
                         publish_doc["created_at"] = now
                         await db.content_item_publishes.insert_one(publish_doc)
                     
+                    # Create message based on status
+                    if is_scheduled:
+                        message = f"Scheduled for {scheduled_date}"
+                    else:
+                        message = "Published successfully"
+                    
                     results.append(PublishResult(
                         site_id=target.site_id,
                         site_name=site['name'],
                         success=True,
-                        message="Published successfully",
+                        message=message,
                         wp_post_id=wp_response.get('id'),
-                        wp_permalink=wp_response.get('link')
+                        wp_permalink=wp_response.get('link'),
+                        scheduled_date=scheduled_date
                     ))
                 else:
                     error_msg = response.text[:200]
