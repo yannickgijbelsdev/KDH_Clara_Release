@@ -145,8 +145,9 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     team = await db.teams.find_one({"id": current_user.get('team_id')}, {"_id": 0})
     team_name = team['name'] if team else "Unknown Team"
     
-    # Include avatar if exists
+    # Include avatar and preferences if exist
     avatar = current_user.get('avatar')
+    preferences = current_user.get('preferences', {})
     
     return UserWithTeamResponse(
         id=current_user['id'],
@@ -156,7 +157,8 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         team_id=current_user.get('team_id', ''),
         team_name=team_name,
         created_at=current_user['created_at'],
-        avatar=avatar
+        avatar=avatar,
+        preferences=preferences
     )
 
 
