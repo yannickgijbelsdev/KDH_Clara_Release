@@ -818,6 +818,127 @@ const ContentDetailPage = () => {
         )}
       </div>
 
+      {/* Audit Log Section - Admin Only */}
+      {isAdmin && (
+        <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
+          <button
+            onClick={toggleAuditLogs}
+            className="w-full flex items-center justify-between p-4 hover:bg-zinc-800/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <History className="w-5 h-5 text-orange-400" />
+              <span className="font-semibold text-white">Edit History</span>
+              {auditLogs.length > 0 && (
+                <span className="px-2 py-0.5 bg-zinc-700 rounded-full text-xs text-zinc-300">
+                  {auditLogs.length} entries
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {auditLogsExpanded && auditLogs.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleExportPdf();
+                  }}
+                  disabled={exportingPdf}
+                  className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-700 gap-2"
+                >
+                  {exportingPdf ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  Export PDF
+                </Button>
+              )}
+              {auditLogsExpanded ? (
+                <ChevronUp className="w-5 h-5 text-zinc-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-zinc-400" />
+              )}
+            </div>
+          </button>
+          
+          {auditLogsExpanded && (
+            <div className="border-t border-zinc-800">
+              {loadingAuditLogs ? (
+                <div className="p-8 text-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-orange-400 mx-auto" />
+                  <p className="text-zinc-400 mt-2">Loading history...</p>
+                </div>
+              ) : auditLogs.length === 0 ? (
+                <div className="p-8 text-center">
+                  <History className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+                  <p className="text-zinc-400">No edit history yet</p>
+                  <p className="text-zinc-500 text-sm">Changes will be logged when content is edited</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-zinc-800 max-h-[400px] overflow-y-auto">
+                  {auditLogs.map((log, index) => (
+                    <div key={log.id || index} className="p-4 hover:bg-zinc-800/30">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            log.action === 'updated' ? 'bg-blue-500/20 text-blue-400' :
+                            log.action === 'deleted' ? 'bg-red-500/20 text-red-400' :
+                            log.action === 'created' ? 'bg-green-500/20 text-green-400' :
+                            'bg-zinc-500/20 text-zinc-400'
+                          }`}>
+                            {log.action?.toUpperCase()}
+                          </span>
+                          <span className="text-zinc-300 font-medium">{log.user_name}</span>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-zinc-400 text-sm">
+                            {format(parseISO(log.timestamp), 'MMM d, yyyy HH:mm')}
+                          </p>
+                          {log.ip_address && (
+                            <p className="text-zinc-500 text-xs">IP: {log.ip_address}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {log.changes && log.changes.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {log.changes.map((change, changeIdx) => (
+                            <div key={changeIdx} className="bg-zinc-800/50 rounded-lg p-3">
+                              <p className="text-orange-400 text-xs font-medium uppercase mb-1">
+                                {change.field}
+                              </p>
+                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div>
+                                  <p className="text-zinc-500 text-xs mb-1">Before:</p>
+                                  <p className="text-zinc-400 break-words">
+                                    {change.old_value || <span className="italic text-zinc-600">(empty)</span>}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-zinc-500 text-xs mb-1">After:</p>
+                                  <p className="text-zinc-300 break-words">
+                                    {change.new_value || <span className="italic text-zinc-600">(empty)</span>}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {log.details && (
+                        <p className="text-zinc-400 text-sm mt-2 italic">{log.details}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Multi-site Publish Dialog with Featured Images */}
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
         <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
