@@ -1,9 +1,12 @@
 import { useRef } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
+import axios from 'axios';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 /**
  * Rich Text Editor component using TinyMCE (self-hosted)
- * Full toolbar with all formatting options
+ * Full toolbar with file uploads and link insertion
  */
 const RichTextEditor = ({ 
   value, 
@@ -17,6 +20,91 @@ const RichTextEditor = ({
 
   const handleEditorChange = (content) => {
     onChange(content);
+  };
+
+  // File upload handler for images
+  const handleImageUpload = (blobInfo, progress) => new Promise(async (resolve, reject) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', blobInfo.blob(), blobInfo.filename());
+      
+      const response = await axios.post(`${API}/uploads/editor-files`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e) => {
+          if (e.total) {
+            progress(Math.round((e.loaded / e.total) * 100));
+          }
+        }
+      });
+      
+      if (response.data && response.data.url) {
+        resolve(response.data.url);
+      } else {
+        // Fallback to base64 if server upload fails
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject('Failed to read file');
+        reader.readAsDataURL(blobInfo.blob());
+      }
+    } catch (error) {
+      // Fallback to base64 encoding
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject('Failed to read file');
+      reader.readAsDataURL(blobInfo.blob());
+    }
+  });
+
+  // File picker callback for inserting files/images
+  const handleFilePicker = (callback, value, meta) => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    
+    if (meta.filetype === 'image') {
+      input.setAttribute('accept', 'image/*');
+    } else if (meta.filetype === 'media') {
+      input.setAttribute('accept', 'video/*,audio/*');
+    } else {
+      input.setAttribute('accept', '*/*');
+    }
+
+    input.onchange = async function() {
+      const file = this.files[0];
+      if (!file) return;
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await axios.post(`${API}/uploads/editor-files`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        if (response.data && response.data.url) {
+          callback(response.data.url, { title: file.name });
+        } else {
+          // Fallback to base64 for images
+          if (meta.filetype === 'image') {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              callback(e.target.result, { title: file.name });
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      } catch (error) {
+        // Fallback to base64 for images
+        if (meta.filetype === 'image') {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            callback(e.target.result, { title: file.name });
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    };
+
+    input.click();
   };
 
   return (
@@ -48,9 +136,33 @@ const RichTextEditor = ({
             'blockquote codesample emoticons charmap | ' +
             'removeformat | fullscreen preview code help',
           toolbar_mode: 'sliding',
+          
+          // Link settings - enable advanced link options
+          link_default_target: '_blank',
+          link_assume_external_targets: true,
+          link_context_toolbar: true,
+          link_title: true,
+          
+          // Image settings
+          image_advtab: true,
+          image_caption: true,
+          image_title: true,
+          
+          // File picker for uploads
+          file_picker_types: 'image media file',
+          file_picker_callback: handleFilePicker,
+          
+          // Quick toolbars
           quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
           quickbars_insert_toolbar: 'quickimage quicktable',
           contextmenu: 'link image table',
+          
+          // Paste settings
+          paste_data_images: true,
+          automatic_uploads: true,
+          images_upload_handler: handleImageUpload,
+          
+          // Content styling
           content_style: `
             body { 
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -61,15 +173,17 @@ const RichTextEditor = ({
               line-height: 1.6;
             }
             p { margin: 0 0 1em 0; }
-            a { color: #a78bfa; }
+            a { color: #f97316; text-decoration: underline; cursor: pointer; }
+            a:hover { color: #fb923c; }
             h1, h2, h3, h4, h5, h6 { color: #ffffff; margin-top: 1.5em; margin-bottom: 0.5em; }
             pre { background-color: #18181b; padding: 1em; border-radius: 6px; overflow-x: auto; }
             code { background-color: #18181b; padding: 0.2em 0.4em; border-radius: 3px; font-size: 0.9em; }
-            blockquote { border-left: 3px solid #a78bfa; margin-left: 0; padding-left: 1em; color: #a1a1aa; }
+            blockquote { border-left: 3px solid #f97316; margin-left: 0; padding-left: 1em; color: #a1a1aa; }
             table { border-collapse: collapse; width: 100%; }
             table td, table th { border: 1px solid #3f3f46; padding: 8px; }
             table th { background-color: #18181b; }
-            img { max-width: 100%; height: auto; }
+            img { max-width: 100%; height: auto; border-radius: 4px; }
+            hr { border: none; border-top: 1px solid #3f3f46; margin: 1.5em 0; }
           `,
           skin: 'oxide-dark',
           content_css: 'dark',
@@ -78,18 +192,10 @@ const RichTextEditor = ({
           resize: true,
           statusbar: true,
           elementpath: false,
-          paste_data_images: true,
-          automatic_uploads: false,
-          images_upload_handler: (blobInfo, progress) => new Promise((resolve, reject) => {
-            // For now, convert to base64 - can be enhanced to upload to server
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => reject('Failed to read file');
-            reader.readAsDataURL(blobInfo.blob());
-          }),
+          
+          // Setup callback
           setup: (editor) => {
             editor.on('init', () => {
-              // Apply dark theme to editor container
               const container = editor.getContainer();
               if (container) {
                 container.style.borderRadius = '8px';
@@ -123,6 +229,44 @@ const RichTextEditor = ({
         }
         .rich-text-editor-wrapper .tox .tox-statusbar__text-container {
           color: #71717a !important;
+        }
+        /* Style the link dialog */
+        .tox .tox-dialog {
+          background-color: #18181b !important;
+          border: 1px solid #3f3f46 !important;
+        }
+        .tox .tox-dialog__header {
+          background-color: #18181b !important;
+          border-bottom: 1px solid #3f3f46 !important;
+        }
+        .tox .tox-dialog__body {
+          background-color: #18181b !important;
+        }
+        .tox .tox-dialog__footer {
+          background-color: #18181b !important;
+          border-top: 1px solid #3f3f46 !important;
+        }
+        .tox .tox-textfield, .tox .tox-listboxfield .tox-listbox--select {
+          background-color: #27272a !important;
+          border-color: #3f3f46 !important;
+          color: #e4e4e7 !important;
+        }
+        .tox .tox-label {
+          color: #a1a1aa !important;
+        }
+        .tox .tox-button--secondary {
+          background-color: #27272a !important;
+          border-color: #3f3f46 !important;
+          color: #e4e4e7 !important;
+        }
+        .tox .tox-button {
+          background-color: #f97316 !important;
+          border-color: #f97316 !important;
+          color: white !important;
+        }
+        .tox .tox-button:hover {
+          background-color: #ea580c !important;
+          border-color: #ea580c !important;
         }
       `}</style>
     </div>
