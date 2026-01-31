@@ -323,7 +323,7 @@ const TrashPage = () => {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               <p className="mb-3">
-                Are you sure you want to permanently delete "{permanentDeleteItem?.title}"?
+                Are you sure you want to permanently delete &quot;{permanentDeleteItem?.title}&quot;?
               </p>
               <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                 <p className="text-sm text-red-400">
