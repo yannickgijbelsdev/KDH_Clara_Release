@@ -309,7 +309,7 @@ const DashboardLayout = () => {
           </nav>
 
           {/* User Avatar at Bottom */}
-          <div className={`mt-auto pt-4 ${useGroupedMenu ? 'px-3' : ''}`}>
+          <div className={`mt-auto pt-4 ${useGroupedMenu ? 'px-3' : 'flex justify-center'}`}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
