@@ -608,12 +608,32 @@ const ContentDetailPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Tags (comma-separated)</Label>
-              <Input
-                value={editData.tags}
-                onChange={(e) => setEditData({ ...editData, tags: e.target.value })}
-                className="bg-[#27272a] border-zinc-700 text-white"
-              />
+              <Label className="text-zinc-300">Category</Label>
+              <Select
+                value={editData.category_id || "none"}
+                onValueChange={(value) => setEditData({ ...editData, category_id: value === "none" ? "" : value })}
+              >
+                <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                  <SelectValue placeholder="Select category..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  <SelectItem value="none" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
+                    No category
+                  </SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem
+                      key={cat.id}
+                      value={cat.id}
+                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Folder className="w-4 h-4 text-orange-400" />
+                        <span>{cat.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         ) : (
