@@ -71,6 +71,7 @@ const AppRoutes = () => {
         <Route path="content/:contentId" element={<ContentDetailPage />} />
         <Route path="approvals" element={<AdminApprovalPage />} />
         <Route path="trash" element={<TrashPage />} />
+        <Route path="settings" element={<PersonalSettingsPage />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="media" element={<MediaLibraryPage />} />
         <Route path="team" element={<TeamSettingsPage />} />
