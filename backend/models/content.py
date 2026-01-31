@@ -23,6 +23,12 @@ class ContentItemUpdate(BaseModel):
     status: Optional[Literal["draft", "ready"]] = None
 
 
+class ContentApprovalUpdate(BaseModel):
+    """Admin approval for content publishing."""
+    approval_status: Literal["pending", "approved", "rejected"]
+    approval_notes: Optional[str] = None
+
+
 class CategoryResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
