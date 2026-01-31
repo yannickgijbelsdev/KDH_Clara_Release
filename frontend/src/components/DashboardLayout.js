@@ -109,9 +109,47 @@ const DashboardLayout = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(['shows', 'content']);
+  const [menuCounts, setMenuCounts] = useState({});
 
   // Get menu preference (default to grouped)
   const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
+
+  // Fetch menu counts
+  const fetchMenuCounts = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/menu/counts`);
+      setMenuCounts(response.data);
+    } catch (error) {
+      console.error('Failed to fetch menu counts:', error);
+    }
+  }, []);
+
+  // Fetch counts on mount and periodically
+  useEffect(() => {
+    if (user) {
+      fetchMenuCounts();
+      const interval = setInterval(fetchMenuCounts, 30000); // Refresh every 30 seconds
+      return () => clearInterval(interval);
+    }
+  }, [user, fetchMenuCounts]);
+
+  // Mark chat as read when visiting chat page
+  useEffect(() => {
+    if (location.pathname === '/chat' && menuCounts.chat > 0) {
+      axios.post(`${API}/chat/mark-read`).then(() => {
+        setMenuCounts(prev => ({ ...prev, chat: 0 }));
+      });
+    }
+  }, [location.pathname, menuCounts.chat]);
+
+  // Mark logs as viewed when visiting logs page
+  useEffect(() => {
+    if (location.pathname === '/logs' && menuCounts.logs > 0) {
+      axios.post(`${API}/logs/mark-viewed`).then(() => {
+        setMenuCounts(prev => ({ ...prev, logs: 0 }));
+      });
+    }
+  }, [location.pathname, menuCounts.logs]);
 
   // Set browser tab title dynamically
   useEffect(() => {
