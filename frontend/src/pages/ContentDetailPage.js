@@ -472,7 +472,8 @@ const ContentDetailPage = () => {
           </div>
         </div>
         
-        {isEditor && wpSites.length > 0 && (
+        {/* WordPress Publish Button - Only show when status is "ready" */}
+        {isEditor && wpSites.length > 0 && content.status === 'ready' && (
           <div className="flex flex-col items-end gap-1">
             <Button
               data-testid="publish-wp-btn"
