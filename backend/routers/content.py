@@ -484,18 +484,6 @@ async def get_deleted_content(
 # ============== CONTENT AUDIT LOGS ==============
 
 @content_router.get("/{content_id}/audit-logs")
-            file_path.unlink()
-    await db.content_item_featured_images.delete_many({"content_item_id": content_id})
-    
-    await db.rundown_items.update_many(
-        {"content_ids": content_id},
-        {"$pull": {"content_ids": content_id}}
-    )
-
-
-# ============== CONTENT AUDIT LOGS ==============
-
-@content_router.get("/{content_id}/audit-logs")
 async def get_content_audit_logs(
     content_id: str,
     current_user: dict = Depends(get_current_user)
