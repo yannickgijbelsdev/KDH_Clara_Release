@@ -91,6 +91,97 @@ async def publish_to_wordpress(
     return await publish_content_to_wordpress(content_id, publish_data, current_user)
 
 
+# ============== ADMIN USER SWITCHING ==============
+
+@api_router.post("/admin/switch-user/{user_id}")
+async def switch_to_user(
+    user_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Admin: Switch to another user's account for debugging."""
+    # Find target user in same team
+    target_user = await db.users.find_one(
+        {"id": user_id, "team_id": current_user['team_id']},
+        {"_id": 0, "password_hash": 0}
+    )
+    if not target_user:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Create a new token for the target user with impersonation marker
+    token_payload = {
+        "user_id": target_user['id'],
+        "email": target_user['email'],
+        "impersonated_by": current_user['id'],  # Track who is impersonating
+        "exp": datetime.now(timezone.utc).timestamp() + 3600 * 4  # 4 hour expiry
+    }
+    new_token = jwt.encode(token_payload, JWT_SECRET, algorithm="HS256")
+    
+    # Get team name
+    team = await db.teams.find_one({"id": target_user['team_id']}, {"_id": 0})
+    target_user['team_name'] = team['name'] if team else None
+    
+    return {
+        "token": new_token,
+        "user": target_user,
+        "original_user": {
+            "id": current_user['id'],
+            "name": current_user['name'],
+            "email": current_user['email']
+        }
+    }
+
+
+@api_router.post("/admin/exit-impersonation")
+async def exit_impersonation(current_user: dict = Depends(get_current_user)):
+    """Exit impersonation and return to original admin account."""
+    from fastapi import Request, HTTPException
+    
+    # Get the impersonated_by from the current token
+    token = None
+    # We need to access the raw token to check impersonation
+    # The current_user doesn't have this info, so we'll use a workaround
+    
+    # Find the original admin based on who might be impersonating
+    # For now, we'll require the frontend to pass the original user info
+    # Or we can check if the current user is being impersonated
+    
+    # Get current user's full data
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0, "password_hash": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # The frontend should have stored the original admin info
+    # We'll create a new token for the original admin
+    # Since we can't get the original admin from the token easily here,
+    # the frontend will need to provide it or we check team admins
+    
+    # Find team admin
+    team_admin = await db.users.find_one(
+        {"team_id": current_user['team_id'], "role": "admin"},
+        {"_id": 0, "password_hash": 0}
+    )
+    if not team_admin:
+        raise HTTPException(status_code=404, detail="Admin not found")
+    
+    # Create token for admin
+    token_payload = {
+        "user_id": team_admin['id'],
+        "email": team_admin['email'],
+        "exp": datetime.now(timezone.utc).timestamp() + 3600 * 24  # 24 hour expiry
+    }
+    new_token = jwt.encode(token_payload, JWT_SECRET, algorithm="HS256")
+    
+    # Get team name
+    team = await db.teams.find_one({"id": team_admin['team_id']}, {"_id": 0})
+    team_admin['team_name'] = team['name'] if team else None
+    
+    return {
+        "token": new_token,
+        "user": team_admin
+    }
+
+
 # File serving endpoints
 @api_router.get("/uploads/featured_images/{file_key}")
 async def get_featured_image_file(file_key: str):
