@@ -1117,8 +1117,10 @@ const ContentDetailPage = () => {
                                       className="w-full h-full object-cover"
                                     />
                                   </div>
-                                  <div className="flex-1">
-                                    <p className="text-sm text-zinc-300 truncate">{image.file_name}</p>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-zinc-300 truncate max-w-[200px]" title={image.file_name}>
+                                      {image.file_name}
+                                    </p>
                                     <p className="text-xs text-zinc-500">
                                       {(image.size / 1024).toFixed(1)} KB
                                       {image.wp_media_id && (
