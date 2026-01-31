@@ -236,6 +236,13 @@ async def update_content_item(
     
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     
+    # If status is changing to "ready", reset approval status to pending
+    if update_dict.get('status') == 'ready' and content.get('status') != 'ready':
+        update_dict["approval_status"] = "pending"
+        update_dict["approved_by"] = None
+        update_dict["approved_at"] = None
+        update_dict["approval_notes"] = None
+    
     await db.content_items.update_one(
         {"id": content_id},
         {"$set": update_dict}
