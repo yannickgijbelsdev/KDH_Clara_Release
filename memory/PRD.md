@@ -7,6 +7,7 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - MVP 3: Content Library and Multi-site WordPress Publishing
 - MVP 4: Collaboration, Media, Permissions, and Recurring Shows
 - Step 4.1a: Enhanced Recurrence Pattern UI + Day Selection
+- Content Approval Workflow and Soft-Delete System
 
 ## Architecture
 - **Frontend**: React 19 with TailwindCSS, Shadcn/UI components
@@ -15,6 +16,7 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - **Authentication**: JWT-based email/password login with role-based access
 - **Drag & Drop**: @dnd-kit/core and @dnd-kit/sortable
 - **WordPress Integration**: httpx for REST API calls (one-way sync)
+- **Background Tasks**: Custom async scheduler for WordPress post publishing
 
 ## User Personas
 ### Admin
