@@ -470,6 +470,7 @@ async def get_thread_messages(
 async def create_message(
     thread_id: str,
     message_data: ChatMessageCreate,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Send a message to a thread."""
@@ -501,6 +502,26 @@ async def create_message(
     await db.chat_threads.update_one(
         {"id": thread_id},
         {"$set": {"updated_at": now}}
+    )
+    
+    # Log the chat message
+    thread_name = thread.get("name") or ("Team Chat" if thread.get("type") == "team" else "Private Chat")
+    await log_action(
+        action="Sent Chat Message",
+        category="chat",
+        user_id=user_id,
+        user_name=current_user.get("name"),
+        user_email=current_user.get("email"),
+        team_id=team_id,
+        ip_address=get_client_ip(request),
+        target_type="chat_thread",
+        target_id=thread_id,
+        target_name=thread_name,
+        details={
+            "thread_type": thread.get("type"),
+            "has_attachment": bool(message_data.attachment_url),
+            "message_preview": message_data.body[:50] if message_data.body else None
+        }
     )
     
     message_doc.pop("_id", None)
