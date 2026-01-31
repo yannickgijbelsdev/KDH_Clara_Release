@@ -426,6 +426,9 @@ const ContentDetailPage = () => {
   const isApproved = content.approval_status === 'approved';
   const isPendingApproval = !content.approval_status || content.approval_status === 'pending';
   const isRejected = content.approval_status === 'rejected';
+  
+  // Publishing is blocked only for "ready" content that hasn't been approved
+  const isPublishBlocked = content.status === 'ready' && !isApproved;
 
   return (
     <div data-testid="content-detail-page">
@@ -473,18 +476,18 @@ const ContentDetailPage = () => {
           <div className="flex flex-col items-end gap-1">
             <Button
               data-testid="publish-wp-btn"
-              onClick={openPublishDialog}
-              disabled={!isApproved && content.status === 'ready'}
+              onClick={() => !isPublishBlocked && openPublishDialog()}
+              disabled={isPublishBlocked}
               className={`gap-2 ${
-                isApproved 
-                  ? 'bg-violet-500 hover:bg-violet-600 text-white' 
-                  : 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                isPublishBlocked 
+                  ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed opacity-60' 
+                  : 'bg-violet-500 hover:bg-violet-600 text-white'
               }`}
             >
               <Upload className="w-4 h-4" />
               {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
             </Button>
-            {!isApproved && content.status === 'ready' && (
+            {isPublishBlocked && (
               <span className="text-xs text-yellow-400">
                 Requires admin approval
               </span>
