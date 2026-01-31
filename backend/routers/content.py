@@ -132,7 +132,7 @@ async def create_content_item(
         "body": content_data.body or "",
         "excerpt": content_data.excerpt or "",
         "external_url": content_data.external_url or "",
-        "tags": content_data.tags or [],
+        "category_id": content_data.category_id,
         "status": content_data.status,
         "team_id": current_user.get('team_id', ''),
         "created_by": current_user['id'],
@@ -142,6 +142,9 @@ async def create_content_item(
     
     await db.content_items.insert_one(content_doc)
     content_doc.pop('_id', None)
+    
+    # Enrich with category and creator info
+    content_doc = await enrich_content_item(content_doc)
     content_doc["publish_statuses"] = []
     return content_doc
 
