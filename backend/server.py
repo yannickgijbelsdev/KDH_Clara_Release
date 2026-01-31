@@ -153,6 +153,64 @@ async def get_show_title_image_file(file_key: str):
     return FileResponse(file_path, media_type=media_type)
 
 
+# Editor file upload endpoint
+from fastapi import UploadFile, File
+import aiofiles
+
+EDITOR_UPLOADS_DIR = UPLOADS_DIR.parent / 'editor_files'
+EDITOR_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+@api_router.post("/uploads/editor-files")
+async def upload_editor_file(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Upload a file from the TinyMCE editor."""
+    from fastapi import HTTPException
+    
+    # Validate file type
+    allowed_types = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+        'video/mp4', 'video/webm', 'audio/mpeg', 'audio/wav', 'audio/ogg',
+        'application/pdf'
+    ]
+    
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"File type {file.content_type} not allowed")
+    
+    # Validate file size (10MB max)
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size is 10MB")
+    
+    # Generate unique filename
+    ext = file.filename.split('.')[-1] if '.' in file.filename else ''
+    file_key = f"{uuid.uuid4()}.{ext}" if ext else str(uuid.uuid4())
+    file_path = EDITOR_UPLOADS_DIR / file_key
+    
+    # Save file
+    async with aiofiles.open(file_path, 'wb') as f:
+        await f.write(contents)
+    
+    # Return URL
+    base_url = os.environ.get('REACT_APP_BACKEND_URL', '')
+    url = f"{base_url}/api/uploads/editor-files/{file_key}"
+    
+    return {"url": url, "filename": file.filename, "size": len(contents)}
+
+
+@api_router.get("/uploads/editor-files/{file_key}")
+async def get_editor_file(file_key: str):
+    """Serve an editor uploaded file."""
+    file_path = EDITOR_UPLOADS_DIR / file_key
+    if not file_path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
+    return FileResponse(file_path, media_type=media_type)
+
+
 # ============== RDS / NOW PLAYING ==============
 
 @api_router.get("/rds/live")
