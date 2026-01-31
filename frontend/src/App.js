@@ -16,6 +16,7 @@ import ShowManagementPage from './pages/ShowManagementPage';
 import LogsPage from './pages/LogsPage';
 import AdminApprovalPage from './pages/AdminApprovalPage';
 import TrashPage from './pages/TrashPage';
+import PersonalSettingsPage from './pages/PersonalSettingsPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
