@@ -487,6 +487,48 @@ async def get_deleted_content(
     return result
 
 
+@content_router.delete("/{content_id}/permanent")
+async def permanent_delete_content_item(
+    content_id: str,
+    request: Request,
+    current_user: dict = Depends(require_admin)
+):
+    """Admin: Permanently delete a soft-deleted content item."""
+    content = await db.content_items.find_one({
+        "id": content_id, 
+        "team_id": current_user.get('team_id'),
+        "deleted_at": {"$exists": True}
+    })
+    if not content:
+        raise HTTPException(status_code=404, detail="Deleted content item not found")
+    
+    # Delete associated data
+    await db.content_item_publishes.delete_many({"content_item_id": content_id})
+    await db.content_item_featured_images.delete_many({"content_item_id": content_id})
+    await db.content_audit_logs.delete_many({"content_id": content_id})
+    
+    # Delete any uploaded files
+    featured_image = content.get("featured_image")
+    if featured_image:
+        file_path = UPLOADS_DIR / featured_image.get("file_storage_key", "")
+        if file_path.exists():
+            file_path.unlink()
+    
+    # Delete site-specific featured images
+    site_images = await db.content_item_featured_images.find(
+        {"content_item_id": content_id}
+    ).to_list(100)
+    for img in site_images:
+        img_path = UPLOADS_DIR / img.get("file_storage_key", "")
+        if img_path.exists():
+            img_path.unlink()
+    
+    # Finally, delete the content item
+    await db.content_items.delete_one({"id": content_id})
+    
+    return {"message": "Content permanently deleted"}
+
+
 # ============== CONTENT AUDIT LOGS ==============
 
 @content_router.get("/{content_id}/audit-logs")
