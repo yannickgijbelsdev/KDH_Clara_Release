@@ -505,6 +505,21 @@ const TeamSettingsPage = () => {
                             <KeyRound className="w-4 h-4 mr-2" />
                             Reset Password
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              try {
+                                await switchToUser(member.id);
+                                toast.success(`Switched to ${member.name}'s account`);
+                                navigate('/shows');
+                              } catch (error) {
+                                toast.error('Failed to switch user');
+                              }
+                            }}
+                            className="text-blue-400"
+                          >
+                            <ArrowLeftRight className="w-4 h-4 mr-2" />
+                            Login as User
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-zinc-800" />
                           <DropdownMenuItem
                             onClick={() => {
