@@ -88,7 +88,7 @@ const syncStatusConfig = {
 const ContentDetailPage = () => {
   const { contentId } = useParams();
   const navigate = useNavigate();
-  const { isEditor } = useAuth();
+  const { isEditor, isAdmin } = useAuth();
   const [content, setContent] = useState(null);
   const [wpSites, setWpSites] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -106,6 +106,11 @@ const ContentDetailPage = () => {
   const [featuredImages, setFeaturedImages] = useState({});
   const [uploadingSiteId, setUploadingSiteId] = useState(null);
   const fileInputRefs = useRef({});
+  // Audit log state
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLogsExpanded, setAuditLogsExpanded] = useState(false);
+  const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   useEffect(() => {
     fetchContent();
@@ -120,6 +125,49 @@ const ContentDetailPage = () => {
     } catch {
       setCategories([]);
     }
+  };
+
+  const fetchAuditLogs = async () => {
+    setLoadingAuditLogs(true);
+    try {
+      const response = await axios.get(`${API}/content/${contentId}/audit-logs`);
+      setAuditLogs(response.data);
+    } catch (error) {
+      toast.error('Failed to load audit logs');
+    } finally {
+      setLoadingAuditLogs(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setExportingPdf(true);
+    try {
+      const response = await axios.get(`${API}/content/${contentId}/audit-logs/export-pdf`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `audit_log_${contentId.slice(0, 8)}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('PDF exported successfully');
+    } catch (error) {
+      toast.error('Failed to export PDF');
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const toggleAuditLogs = () => {
+    if (!auditLogsExpanded && auditLogs.length === 0) {
+      fetchAuditLogs();
+    }
+    setAuditLogsExpanded(!auditLogsExpanded);
   };
 
   const fetchContent = async () => {
