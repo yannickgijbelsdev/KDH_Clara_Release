@@ -322,7 +322,7 @@ const ContentLibraryPage = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {content.map((item, index) => {
+          {filteredContent.map((item, index) => {
             const TypeIcon = typeIcons[item.type] || FileText;
             const publishSummary = getPublishSummary(item);
 
