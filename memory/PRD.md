@@ -448,6 +448,8 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] External Featured Images Display (January 31, 2026): Added support for displaying WordPress featured images in Content Library with source labels
 - [x] Categories System (January 31, 2026): Replaced tags with WordPress categories, added creator display, imported 5 categories from WordPress
 - [x] Content Audit Logs (January 31, 2026): Per-post edit history tracking with detailed change diffs and PDF export (admin only)
+- [x] WordPress Scheduled Publishing (January 31, 2026): Added ability to schedule posts for future publication with date/time picker
+- [x] Enhanced TinyMCE Editor (January 31, 2026): Improved link insertion, file uploads, full menu bar with Insert/Format/Tools menus
 
 ### P1 (Near-term)
 - [ ] Show cloning/templating
