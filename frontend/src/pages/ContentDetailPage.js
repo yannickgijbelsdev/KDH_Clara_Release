@@ -1028,7 +1028,13 @@ const ContentDetailPage = () => {
                                 <Label className="text-xs text-zinc-400">Status</Label>
                                 <Select
                                   value={settings.wp_status || 'draft'}
-                                  onValueChange={(value) => updateSiteSettings(site.id, 'wp_status', value)}
+                                  onValueChange={(value) => {
+                                    updateSiteSettings(site.id, 'wp_status', value);
+                                    // Clear scheduled date if not scheduling
+                                    if (value !== 'future') {
+                                      updateSiteSettings(site.id, 'scheduled_date', null);
+                                    }
+                                  }}
                                 >
                                   <SelectTrigger className="h-9 bg-[#18181b] border-zinc-700 text-white mt-1">
                                     <SelectValue />
@@ -1036,10 +1042,36 @@ const ContentDetailPage = () => {
                                   <SelectContent className="bg-[#18181b] border-zinc-800">
                                     <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
                                     <SelectItem value="publish" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Published</SelectItem>
+                                    <SelectItem value="future" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                                      <div className="flex items-center gap-2">
+                                        <Calendar className="w-3 h-3" />
+                                        Schedule
+                                      </div>
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
                             </div>
+
+                            {/* Scheduled Date Picker */}
+                            {settings.wp_status === 'future' && (
+                              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+                                <Label className="text-xs text-orange-400 mb-2 block flex items-center gap-2">
+                                  <Calendar className="w-3 h-3" />
+                                  Schedule Publication
+                                </Label>
+                                <Input
+                                  type="datetime-local"
+                                  value={settings.scheduled_date || ''}
+                                  onChange={(e) => updateSiteSettings(site.id, 'scheduled_date', e.target.value)}
+                                  min={new Date().toISOString().slice(0, 16)}
+                                  className="bg-[#18181b] border-zinc-700 text-white h-9"
+                                />
+                                <p className="text-xs text-zinc-500 mt-2">
+                                  Post will be automatically published at the scheduled time
+                                </p>
+                              </div>
+                            )}
 
                             {/* Featured Image Section */}
                             <div className="border-t border-zinc-700 pt-4">
