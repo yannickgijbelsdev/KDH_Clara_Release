@@ -146,8 +146,8 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
             <div className="space-y-2">
               <Label className="text-zinc-300">Category</Label>
               <Select
-                value={formData.category_id}
-                onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+                value={formData.category_id || "none"}
+                onValueChange={(value) => setFormData({ ...formData, category_id: value === "none" ? "" : value })}
               >
                 <SelectTrigger
                   data-testid="content-category-select"
@@ -156,7 +156,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
                 <SelectContent className="bg-[#18181b] border-zinc-800">
-                  <SelectItem value="" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
+                  <SelectItem value="none" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
                     No category
                   </SelectItem>
                   {categories.map((cat) => (
