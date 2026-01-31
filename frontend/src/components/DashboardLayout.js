@@ -457,22 +457,6 @@ const DashboardLayout = () => {
                   })}
                 </nav>
               )}
-
-              {/* Personal Settings Link */}
-              <NavLink
-                to="/settings"
-                onClick={closeSidebar}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 ${
-                    isActive
-                      ? 'bg-orange-500/20 text-orange-500'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                  }`
-                }
-              >
-                <UserCog className="w-5 h-5" />
-                <span className="font-medium">Personal Settings</span>
-              </NavLink>
             </div>
 
             {/* User section at bottom */}
