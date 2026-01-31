@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FileText, Link, BookOpen, Loader2 } from 'lucide-react';
+import { FileText, Link, BookOpen, Loader2, Folder } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,7 @@ const contentTypes = [
 
 const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -38,19 +39,36 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
     body: '',
     excerpt: '',
     external_url: '',
-    tags: '',
+    category_id: '',
     status: 'draft',
   });
+
+  useEffect(() => {
+    if (open) {
+      fetchCategories();
+    }
+  }, [open]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${API}/content/categories`);
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Failed to fetch categories');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API}/content`, {
+      const submitData = {
         ...formData,
-        tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
-      });
+        category_id: formData.category_id || null,
+      };
+      
+      const response = await axios.post(`${API}/content`, submitData);
       
       onContentCreated(response.data);
       
@@ -61,7 +79,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
         body: '',
         excerpt: '',
         external_url: '',
-        tags: '',
+        category_id: '',
         status: 'draft',
       });
       
@@ -92,37 +110,70 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-zinc-300">Type</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) => setFormData({ ...formData, type: value })}
-            >
-              <SelectTrigger
-                data-testid="content-type-select"
-                className="bg-[#27272a] border-zinc-700 text-white"
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Type</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => setFormData({ ...formData, type: value })}
               >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-[#18181b] border-zinc-800">
-                {contentTypes.map((type) => {
-                  const Icon = type.icon;
-                  return (
+                <SelectTrigger
+                  data-testid="content-type-select"
+                  className="bg-[#27272a] border-zinc-700 text-white"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  {contentTypes.map((type) => {
+                    const Icon = type.icon;
+                    return (
+                      <SelectItem
+                        key={type.value}
+                        value={type.value}
+                        className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-4 h-4" />
+                          <span>{type.label}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Category</Label>
+              <Select
+                value={formData.category_id}
+                onValueChange={(value) => setFormData({ ...formData, category_id: value })}
+              >
+                <SelectTrigger
+                  data-testid="content-category-select"
+                  className="bg-[#27272a] border-zinc-700 text-white"
+                >
+                  <SelectValue placeholder="Select category..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  <SelectItem value="" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
+                    No category
+                  </SelectItem>
+                  {categories.map((cat) => (
                     <SelectItem
-                      key={type.value}
-                      value={type.value}
+                      key={cat.id}
+                      value={cat.id}
                       className="text-zinc-300 focus:text-white focus:bg-zinc-800"
                     >
                       <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4" />
-                        <span>{type.label}</span>
-                        <span className="text-zinc-500 text-xs">- {type.description}</span>
+                        <Folder className="w-4 h-4 text-orange-400" />
+                        <span>{cat.name}</span>
                       </div>
                     </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {formData.type === 'link' && (
@@ -159,17 +210,6 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
               placeholder="Brief summary..."
               className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 resize-none"
               rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-zinc-300">Tags (comma-separated)</Label>
-            <Input
-              data-testid="content-tags-input"
-              value={formData.tags}
-              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-              placeholder="news, music, interview"
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
             />
           </div>
 
