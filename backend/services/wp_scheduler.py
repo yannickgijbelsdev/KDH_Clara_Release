@@ -55,7 +55,6 @@ class WordPressScheduler:
     async def _check_and_publish_scheduled(self):
         """Check for scheduled posts that need to be published now."""
         now = datetime.now(timezone.utc)
-        now_iso = now.isoformat()
         
         # Find all scheduled publish records where the scheduled time has passed
         # and the post hasn't been published yet
