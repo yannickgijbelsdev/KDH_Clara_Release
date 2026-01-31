@@ -282,6 +282,13 @@ async def publish_content_to_wordpress(
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
+    # Check approval status - content with status "ready" must be approved
+    if content.get('status') == 'ready' and content.get('approval_status') != 'approved':
+        raise HTTPException(
+            status_code=403, 
+            detail="Content must be approved by an admin before publishing to WordPress"
+        )
+    
     results = []
     
     for target in publish_data.targets:
