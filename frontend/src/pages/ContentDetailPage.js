@@ -83,7 +83,8 @@ const statusLabels = {
 const syncStatusConfig = {
   not_synced: { icon: Clock, color: 'text-zinc-500', bgColor: 'bg-zinc-800', label: 'Not synced' },
   synced: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10', label: 'Synced' },
-  failed: { icon: AlertCircle, color: 'text-orange-500', bgColor: 'bg-orange-500/10', label: 'Failed' },
+  scheduled: { icon: Calendar, color: 'text-orange-500', bgColor: 'bg-orange-500/10', label: 'Scheduled' },
+  failed: { icon: AlertCircle, color: 'text-red-500', bgColor: 'bg-red-500/10', label: 'Failed' },
 };
 
 const ContentDetailPage = () => {
