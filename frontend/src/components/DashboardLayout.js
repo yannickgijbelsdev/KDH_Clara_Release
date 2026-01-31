@@ -327,6 +327,8 @@ const DashboardLayout = () => {
                           {group.items.map((item) => {
                             const Icon = item.icon;
                             const isActive = location.pathname === item.to;
+                            const badgeCount = getBadgeCount(item.to);
+                            const isHighlight = ['/chat', '/approvals'].includes(item.to);
                             return (
                               <NavLink
                                 key={item.to}
@@ -340,6 +342,7 @@ const DashboardLayout = () => {
                               >
                                 <Icon className="w-4 h-4" />
                                 <span>{item.label}</span>
+                                <Badge count={badgeCount} isActive={isActive} highlight={isHighlight && badgeCount > 0} />
                               </NavLink>
                             );
                           })}
