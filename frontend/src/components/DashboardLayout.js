@@ -301,22 +301,6 @@ const DashboardLayout = () => {
 
           {/* User Avatar at Bottom */}
           <div className={`mt-auto pt-4 ${useGroupedMenu ? 'px-3' : ''}`}>
-            {/* Personal Settings Link */}
-            {useGroupedMenu && (
-              <NavLink
-                to="/settings"
-                data-testid="nav-settings-link"
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm mb-2 transition-all duration-200 ${
-                  location.pathname === '/settings'
-                    ? 'bg-orange-500/20 text-orange-400'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <UserCog className="w-4 h-4" />
-                <span>Personal Settings</span>
-              </NavLink>
-            )}
-            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
