@@ -507,7 +507,7 @@ const ContentDetailPage = () => {
                 size="sm"
                 onClick={() => {
                   setIsEditing(false);
-                  setEditData({ ...content, tags: content.tags?.join(', ') || '' });
+                  setEditData({ ...content });
                 }}
                 className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
               >
