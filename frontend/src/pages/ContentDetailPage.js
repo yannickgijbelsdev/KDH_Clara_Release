@@ -1268,7 +1268,19 @@ const ContentDetailPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Content</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
-              Are you sure you want to delete "{content.title}"? This action cannot be undone.
+              <p className="mb-3">Are you sure you want to delete "{content.title}"?</p>
+              <div className="p-3 bg-zinc-800/50 rounded-lg space-y-2 text-sm">
+                <p className="text-zinc-300">This will:</p>
+                <ul className="list-disc list-inside space-y-1 text-zinc-400">
+                  <li>Move the content to Trash</li>
+                  {hasPublishedSites && (
+                    <li className="text-orange-400">Delete the post from all linked WordPress sites</li>
+                  )}
+                </ul>
+                <p className="text-zinc-500 text-xs mt-2 pt-2 border-t border-zinc-700">
+                  Admins can restore deleted content from the Trash.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
