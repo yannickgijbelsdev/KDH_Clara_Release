@@ -259,9 +259,26 @@ async def update_content_item(
 @content_router.delete("/{content_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_content_item(
     content_id: str,
+    request: Request,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Delete a content item."""
+    # Get content title for logging before deletion
+    content = await db.content_items.find_one({"id": content_id, "team_id": current_user.get('team_id')})
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    # Log the deletion
+    ip_address = request.client.host if request.client else None
+    await create_content_audit_log(
+        content_id=content_id,
+        action="deleted",
+        user_id=current_user['id'],
+        user_name=current_user.get('name', 'Unknown'),
+        details=f"Deleted content: {content.get('title', 'Unknown')}",
+        ip_address=ip_address
+    )
+    
     result = await db.content_items.delete_one(
         {"id": content_id, "team_id": current_user.get('team_id')}
     )
@@ -282,6 +299,136 @@ async def delete_content_item(
     await db.rundown_items.update_many(
         {"content_ids": content_id},
         {"$pull": {"content_ids": content_id}}
+    )
+
+
+# ============== CONTENT AUDIT LOGS ==============
+
+@content_router.get("/{content_id}/audit-logs")
+async def get_content_audit_logs(
+    content_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get audit logs for a specific content item."""
+    # Verify content exists and user has access
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    logs = await db.content_audit_logs.find(
+        {"content_id": content_id},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(500)
+    
+    return logs
+
+
+@content_router.get("/{content_id}/audit-logs/export-pdf")
+async def export_content_audit_logs_pdf(
+    content_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Export audit logs for a content item as PDF."""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.units import inch
+    
+    # Verify content exists and user has access
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    logs = await db.content_audit_logs.find(
+        {"content_id": content_id},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(500)
+    
+    # Create PDF in memory
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        spaceAfter=20
+    )
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=colors.grey,
+        spaceAfter=20
+    )
+    
+    elements = []
+    
+    # Title
+    elements.append(Paragraph(f"Audit Log: {content.get('title', 'Unknown')[:60]}", title_style))
+    elements.append(Paragraph(
+        f"Generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')} • {len(logs)} entries",
+        subtitle_style
+    ))
+    
+    if not logs:
+        elements.append(Paragraph("No audit log entries found.", styles['Normal']))
+    else:
+        for log in logs:
+            # Log header
+            timestamp = log.get('timestamp', '')[:19].replace('T', ' ')
+            action = log.get('action', 'unknown').upper()
+            user_name = log.get('user_name', 'Unknown')
+            ip = log.get('ip_address', 'N/A')
+            
+            header_text = f"<b>{timestamp}</b> - {action} by <b>{user_name}</b> (IP: {ip})"
+            elements.append(Paragraph(header_text, styles['Normal']))
+            
+            # Changes table
+            changes = log.get('changes', [])
+            if changes:
+                table_data = [['Field', 'Old Value', 'New Value']]
+                for change in changes:
+                    field = change.get('field', '')
+                    old_val = str(change.get('old_value', ''))[:50] or '(empty)'
+                    new_val = str(change.get('new_value', ''))[:50] or '(empty)'
+                    table_data.append([field, old_val, new_val])
+                
+                table = Table(table_data, colWidths=[1.2*inch, 2.5*inch, 2.5*inch])
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#27272a')),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                    ('TOPPADDING', (0, 0), (-1, 0), 8),
+                    ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ]))
+                elements.append(Spacer(1, 5))
+                elements.append(table)
+            
+            # Details if present
+            if log.get('details'):
+                elements.append(Paragraph(f"<i>Details: {log['details']}</i>", styles['Normal']))
+            
+            elements.append(Spacer(1, 15))
+    
+    doc.build(elements)
+    buffer.seek(0)
+    
+    filename = f"audit_log_{content_id[:8]}_{datetime.now().strftime('%Y%m%d')}.pdf"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 
