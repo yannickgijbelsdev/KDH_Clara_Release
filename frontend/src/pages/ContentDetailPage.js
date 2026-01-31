@@ -479,8 +479,10 @@ const ContentDetailPage = () => {
                 className={`flex items-start justify-between p-4 rounded-xl border ${
                   ps.sync_status === 'synced' 
                     ? 'bg-green-500/10 border-green-500/30' 
-                    : ps.sync_status === 'failed'
+                    : ps.sync_status === 'scheduled'
                     ? 'bg-orange-500/10 border-orange-500/30'
+                    : ps.sync_status === 'failed'
+                    ? 'bg-red-500/10 border-red-500/30'
                     : 'bg-zinc-800/50 border-zinc-700'
                 }`}
               >
@@ -503,6 +505,11 @@ const ContentDetailPage = () => {
                       </p>
                       <p className="text-sm text-zinc-400">
                         {ps.wp_post_type} / {ps.wp_status}
+                        {ps.wp_scheduled_date && (
+                          <span className="ml-2 text-orange-400">
+                            • Scheduled: {format(parseISO(ps.wp_scheduled_date), 'MMM d, yyyy HH:mm')}
+                          </span>
+                        )}
                         {image && (
                           <span className="ml-2 text-violet-400">
                             • Featured image {image.sync_status === 'synced' ? '✓' : image.sync_status === 'failed' ? '✗' : '...'}
