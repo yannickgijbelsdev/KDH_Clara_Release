@@ -320,7 +320,14 @@ const ContentLibraryPage = () => {
                           {typeLabels[item.type]}
                         </span>
                         
-                        {item.external_url && (
+                        {item.source && (
+                          <span className="flex items-center gap-1 text-orange-400">
+                            <Globe className="w-3 h-3" />
+                            {item.source}
+                          </span>
+                        )}
+                        
+                        {item.external_url && !item.source && (
                           <span className="flex items-center gap-1">
                             <Globe className="w-3 h-3" />
                             External link
