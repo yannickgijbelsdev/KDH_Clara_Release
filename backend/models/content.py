@@ -87,10 +87,12 @@ class ContentItemResponse(BaseModel):
     body: Optional[str] = ""
     excerpt: Optional[str] = ""
     external_url: Optional[str] = ""
-    tags: List[str] = []
+    category_id: Optional[str] = None
+    category: Optional[CategoryResponse] = None
     status: str
     team_id: str
     created_by: str
+    created_by_name: Optional[str] = None  # Creator's display name
     created_at: str
     updated_at: str
     featured_image: Optional[ContentFeaturedImage] = None
