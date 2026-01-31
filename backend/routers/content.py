@@ -17,6 +17,7 @@ from models.content import (
 from models.wordpress import PublishToWordPressRequest, PublishResponse, PublishResult
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.helpers import get_content_with_publish_statuses
+from services.audit import log_action, get_client_ip
 
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
 
