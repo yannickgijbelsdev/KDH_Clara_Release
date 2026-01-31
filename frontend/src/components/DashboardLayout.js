@@ -370,9 +370,10 @@ const DashboardLayout = () => {
             {/* Mobile: Close button area */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-500 rounded-lg">
+                  <span className="text-white font-black text-sm">C</span>
+                </div>
                 <span className="text-lg font-bold text-white">Clara</span>
-                <span className="text-zinc-600">|</span>
-                <span className="text-zinc-400 text-sm font-medium truncate max-w-[120px]">{user?.team_name}</span>
               </div>
               <Button
                 variant="ghost"
@@ -383,6 +384,14 @@ const DashboardLayout = () => {
                 <X className="w-5 h-5" />
               </Button>
             </div>
+            
+            {/* Team Name */}
+            {user?.team_name && (
+              <div className="mb-6 px-1">
+                <p className="text-xs text-zinc-500 uppercase tracking-wider">Team</p>
+                <p className="text-sm text-zinc-300 font-medium truncate">{user.team_name}</p>
+              </div>
+            )}
 
             {/* Mobile Navigation */}
             <div className="flex-1 overflow-y-auto">
