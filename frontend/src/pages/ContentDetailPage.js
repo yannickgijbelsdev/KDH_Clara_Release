@@ -345,14 +345,32 @@ const ContentDetailPage = () => {
   const handlePublish = async () => {
     const targets = Object.entries(selectedSites)
       .filter(([_, isSelected]) => isSelected)
-      .map(([siteId]) => ({
-        site_id: siteId,
-        post_type: publishSettings[siteId]?.post_type || 'post',
-        wp_status: publishSettings[siteId]?.wp_status || 'draft',
-      }));
+      .map(([siteId]) => {
+        const settings = publishSettings[siteId] || {};
+        const target = {
+          site_id: siteId,
+          post_type: settings.post_type || 'post',
+          wp_status: settings.wp_status || 'draft',
+        };
+        
+        // Add scheduled date if scheduling
+        if (settings.wp_status === 'future' && settings.scheduled_date) {
+          // Convert local datetime to ISO format
+          target.scheduled_date = new Date(settings.scheduled_date).toISOString();
+        }
+        
+        return target;
+      });
 
     if (targets.length === 0) {
       toast.error('Please select at least one site');
+      return;
+    }
+
+    // Validate scheduled posts have dates
+    const scheduledWithoutDate = targets.filter(t => t.wp_status === 'future' && !t.scheduled_date);
+    if (scheduledWithoutDate.length > 0) {
+      toast.error('Please select a date and time for scheduled posts');
       return;
     }
 
@@ -363,9 +381,14 @@ const ContentDetailPage = () => {
       // Show results
       const successCount = response.data.results.filter(r => r.success).length;
       const failCount = response.data.results.filter(r => !r.success).length;
+      const scheduledCount = response.data.results.filter(r => r.success && r.scheduled_date).length;
       
       if (successCount > 0 && failCount === 0) {
-        toast.success(`Published to ${successCount} site(s) successfully!`);
+        if (scheduledCount > 0) {
+          toast.success(`Scheduled ${scheduledCount} post(s), published ${successCount - scheduledCount} successfully!`);
+        } else {
+          toast.success(`Published to ${successCount} site(s) successfully!`);
+        }
       } else if (successCount > 0 && failCount > 0) {
         toast.warning(`Published to ${successCount} site(s), ${failCount} failed`);
       } else {
