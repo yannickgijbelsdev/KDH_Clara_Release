@@ -445,6 +445,7 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Chat real-time polling verification (January 16, 2026)
 - [x] WordPress Article Import (January 31, 2026): Imported 132 articles from mfy.be and grk.fm
 - [x] Content Library bug fix (January 31, 2026): Fixed ValidationError by making external_url, body, excerpt optional in ContentItemResponse
+- [x] External Featured Images Display (January 31, 2026): Added support for displaying WordPress featured images in Content Library with source labels
 
 ### P1 (Near-term)
 - [ ] Show cloning/templating
