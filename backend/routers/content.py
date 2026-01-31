@@ -220,6 +220,7 @@ async def get_content_item(
 async def update_content_item(
     content_id: str,
     content_data: ContentItemUpdate,
+    request: Request,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Update a content item."""
@@ -229,13 +230,28 @@ async def update_content_item(
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
+    # Track changes before update
     update_dict = {k: v for k, v in content_data.model_dump().items() if v is not None}
+    changes = get_field_changes(content, update_dict)
+    
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     
     await db.content_items.update_one(
         {"id": content_id},
         {"$set": update_dict}
     )
+    
+    # Create audit log if there were changes
+    if changes:
+        ip_address = request.client.host if request.client else None
+        await create_content_audit_log(
+            content_id=content_id,
+            action="updated",
+            user_id=current_user['id'],
+            user_name=current_user.get('name', 'Unknown'),
+            changes=changes,
+            ip_address=ip_address
+        )
     
     return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
 
