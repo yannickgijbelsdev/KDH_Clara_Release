@@ -181,6 +181,7 @@ async def get_content_items(
 @content_router.post("", response_model=ContentItemResponse, status_code=status.HTTP_201_CREATED)
 async def create_content_item(
     content_data: ContentItemCreate,
+    request: Request,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Create a new content item."""
@@ -204,6 +205,24 @@ async def create_content_item(
     
     await db.content_items.insert_one(content_doc)
     content_doc.pop('_id', None)
+    
+    # Log content creation
+    await log_action(
+        action="Created Content",
+        category="content",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user.get('team_id'),
+        ip_address=get_client_ip(request),
+        target_type="content_item",
+        target_id=content_id,
+        target_name=content_data.title,
+        details={
+            "type": content_data.type,
+            "status": content_data.status
+        }
+    )
     
     # Enrich with category and creator info
     content_doc = await enrich_content_item(content_doc)
