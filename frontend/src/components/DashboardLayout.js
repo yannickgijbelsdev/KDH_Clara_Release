@@ -536,6 +536,8 @@ const DashboardLayout = () => {
                 <nav className="space-y-1">
                   {filteredFlatItems.map((item) => {
                     const Icon = item.icon;
+                    const badgeCount = getBadgeCount(item.to);
+                    const isHighlight = ['/chat', '/approvals'].includes(item.to);
                     return (
                       <NavLink
                         key={item.to}
@@ -550,8 +552,13 @@ const DashboardLayout = () => {
                           }`
                         }
                       >
-                        <Icon className="w-5 h-5" />
-                        <span className="font-medium">{item.label}</span>
+                        {({ isActive }) => (
+                          <>
+                            <Icon className="w-5 h-5" />
+                            <span className="font-medium">{item.label}</span>
+                            <Badge count={badgeCount} isActive={isActive} highlight={isHighlight && badgeCount > 0} />
+                          </>
+                        )}
                       </NavLink>
                     );
                   })}
