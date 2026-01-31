@@ -134,10 +134,16 @@ async def get_content_items(
     status: Optional[str] = None,
     category_id: Optional[str] = None,
     search: Optional[str] = None,
+    include_deleted: bool = False,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all content items for the team."""
+    """Get all content items for the team. Deleted items only visible to admins."""
     query = {"team_id": current_user.get('team_id')}
+    
+    # Filter out deleted items for non-admins
+    is_admin = current_user.get('role') == 'admin'
+    if not is_admin or not include_deleted:
+        query["deleted_at"] = {"$exists": False}
     
     if type:
         query["type"] = type
