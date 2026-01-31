@@ -91,6 +91,108 @@ async def publish_to_wordpress(
     return await publish_content_to_wordpress(content_id, publish_data, current_user)
 
 
+# ============== MENU BADGE COUNTS ==============
+
+@api_router.get("/menu/counts")
+async def get_menu_counts(current_user: dict = Depends(get_current_user)):
+    """Get counts for menu badges."""
+    team_id = current_user.get('team_id')
+    user_id = current_user.get('id')
+    is_admin = current_user.get('role') == 'admin'
+    
+    counts = {}
+    
+    # Content Library - total active content
+    content_count = await db.content_items.count_documents({
+        "team_id": team_id,
+        "deleted_at": {"$exists": False}
+    })
+    counts["content"] = content_count
+    
+    # Trash - deleted items (admin only)
+    if is_admin:
+        trash_count = await db.content_items.count_documents({
+            "team_id": team_id,
+            "deleted_at": {"$exists": True}
+        })
+        counts["trash"] = trash_count
+    
+    # Content Approval - pending approvals (admin only)
+    if is_admin:
+        approval_count = await db.content_items.count_documents({
+            "team_id": team_id,
+            "status": "ready",
+            "approval_status": "pending",
+            "deleted_at": {"$exists": False}
+        })
+        counts["approvals"] = approval_count
+    
+    # Team Chat - unread messages
+    # Get last read timestamp for user
+    user_chat_status = await db.chat_read_status.find_one({
+        "user_id": user_id,
+        "team_id": team_id
+    })
+    last_read = user_chat_status.get("last_read_at") if user_chat_status else None
+    
+    if last_read:
+        unread_count = await db.chat_messages.count_documents({
+            "team_id": team_id,
+            "created_at": {"$gt": last_read},
+            "user_id": {"$ne": user_id}  # Don't count own messages
+        })
+    else:
+        # If never read, count all messages not from self
+        unread_count = await db.chat_messages.count_documents({
+            "team_id": team_id,
+            "user_id": {"$ne": user_id}
+        })
+    counts["chat"] = unread_count
+    
+    # Activity Logs - unseen logs (admin only)
+    if is_admin:
+        user_log_status = await db.log_read_status.find_one({
+            "user_id": user_id,
+            "team_id": team_id
+        })
+        last_viewed = user_log_status.get("last_viewed_at") if user_log_status else None
+        
+        if last_viewed:
+            logs_count = await db.activity_logs.count_documents({
+                "team_id": team_id,
+                "timestamp": {"$gt": last_viewed}
+            })
+        else:
+            logs_count = await db.activity_logs.count_documents({"team_id": team_id})
+        counts["logs"] = logs_count
+    
+    return counts
+
+
+@api_router.post("/chat/mark-read")
+async def mark_chat_read(current_user: dict = Depends(get_current_user)):
+    """Mark chat as read for current user."""
+    now = datetime.now(timezone.utc).isoformat()
+    await db.chat_read_status.update_one(
+        {"user_id": current_user['id'], "team_id": current_user.get('team_id')},
+        {"$set": {"last_read_at": now, "updated_at": now}},
+        upsert=True
+    )
+    return {"message": "Chat marked as read"}
+
+
+@api_router.post("/logs/mark-viewed")
+async def mark_logs_viewed(current_user: dict = Depends(require_admin)):
+    """Mark activity logs as viewed for current user."""
+    now = datetime.now(timezone.utc).isoformat()
+    await db.log_read_status.update_one(
+        {"user_id": current_user['id'], "team_id": current_user.get('team_id')},
+        {"$set": {"last_viewed_at": now, "updated_at": now}},
+        upsert=True
+    )
+    return {"message": "Logs marked as viewed"}
+
+
 # ============== ADMIN USER SWITCHING ==============
 
 @api_router.post("/admin/switch-user/{user_id}")
