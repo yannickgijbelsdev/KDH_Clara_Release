@@ -237,13 +237,47 @@ const ContentLibraryPage = () => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {(typeFilter || statusFilter) && (
+        {/* Source Filter */}
+        {availableSources.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                data-testid="source-filter-btn"
+                className="bg-[#18181b] border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
+              >
+                <Globe className="w-4 h-4" />
+                {sourceFilter || 'All Sources'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+              <DropdownMenuItem
+                onClick={() => setSourceFilter('')}
+                className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              >
+                All Sources
+              </DropdownMenuItem>
+              {availableSources.map(source => (
+                <DropdownMenuItem
+                  key={source}
+                  onClick={() => setSourceFilter(source)}
+                  className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                >
+                  {source}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        {(typeFilter || statusFilter || sourceFilter) && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => {
               setTypeFilter('');
               setStatusFilter('');
+              setSourceFilter('');
             }}
             className="text-zinc-400 hover:text-white"
           >
