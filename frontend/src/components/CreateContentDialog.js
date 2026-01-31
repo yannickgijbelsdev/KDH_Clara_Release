@@ -208,13 +208,13 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
             <Button
               type="submit"
               data-testid="submit-content-btn"
-              disabled={loading || uploadingImage}
-              className="flex-1 bg-rose-500 hover:bg-rose-600 text-white btn-primary"
+              disabled={loading}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white btn-primary"
             >
-              {loading || uploadingImage ? (
+              {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {uploadingImage ? 'Uploading image...' : 'Creating...'}
+                  Creating...
                 </>
               ) : (
                 'Create Content'
