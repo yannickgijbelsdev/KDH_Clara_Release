@@ -12,7 +12,7 @@ import {
   Link,
   BookOpen,
   Globe,
-  Tag,
+  Folder,
   CheckCircle,
   AlertCircle,
   Clock,
@@ -22,6 +22,7 @@ import {
   Check,
   Image,
   Loader2,
+  User,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
