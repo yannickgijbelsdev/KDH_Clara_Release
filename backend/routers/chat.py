@@ -1,5 +1,5 @@
 """Team chat routes with real-time support."""
-from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Request
 from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
@@ -13,6 +13,7 @@ from models.chat import (
     TeamMemberResponse
 )
 from services.auth import get_current_user
+from services.audit import log_action, get_client_ip
 
 chat_router = APIRouter(prefix="/chat", tags=["Chat"])
 
