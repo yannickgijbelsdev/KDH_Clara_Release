@@ -423,6 +423,9 @@ const ContentDetailPage = () => {
 
   const TypeIcon = typeIcons[content.type] || FileText;
   const hasPublishedSites = content.publish_statuses?.some(ps => ps.sync_status === 'synced');
+  const isApproved = content.approval_status === 'approved';
+  const isPendingApproval = !content.approval_status || content.approval_status === 'pending';
+  const isRejected = content.approval_status === 'rejected';
 
   return (
     <div data-testid="content-detail-page">
@@ -443,6 +446,16 @@ const ContentDetailPage = () => {
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[content.status]}`}>
               {statusLabels[content.status]}
             </span>
+            {/* Approval Status Badge */}
+            {content.status === 'ready' && (
+              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                isApproved ? 'bg-green-500/20 text-green-400' :
+                isRejected ? 'bg-red-500/20 text-red-400' :
+                'bg-yellow-500/20 text-yellow-400'
+              }`}>
+                {isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending Approval'}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-4 text-sm text-zinc-500">
             <span className="flex items-center gap-1">
@@ -450,20 +463,51 @@ const ContentDetailPage = () => {
               {content.type.charAt(0).toUpperCase() + content.type.slice(1)}
             </span>
             <span>Updated {format(parseISO(content.updated_at), 'MMM d, yyyy')}</span>
+            {content.approved_by_name && (
+              <span className="text-green-400">Approved by {content.approved_by_name}</span>
+            )}
           </div>
         </div>
         
         {isEditor && wpSites.length > 0 && (
-          <Button
-            data-testid="publish-wp-btn"
-            onClick={openPublishDialog}
-            className="gap-2 bg-violet-500 hover:bg-violet-600 text-white"
-          >
-            <Upload className="w-4 h-4" />
-            {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
-          </Button>
+          <div className="flex flex-col items-end gap-1">
+            <Button
+              data-testid="publish-wp-btn"
+              onClick={openPublishDialog}
+              disabled={!isApproved && content.status === 'ready'}
+              className={`gap-2 ${
+                isApproved 
+                  ? 'bg-violet-500 hover:bg-violet-600 text-white' 
+                  : 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+              }`}
+            >
+              <Upload className="w-4 h-4" />
+              {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
+            </Button>
+            {!isApproved && content.status === 'ready' && (
+              <span className="text-xs text-yellow-400">
+                Requires admin approval
+              </span>
+            )}
+          </div>
         )}
       </div>
+
+      {/* Rejection Notice */}
+      {isRejected && content.approval_notes && (
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-red-400 font-medium">Content Rejected</p>
+              <p className="text-sm text-zinc-400 mt-1">{content.approval_notes}</p>
+              {content.approved_by_name && (
+                <p className="text-xs text-zinc-500 mt-2">By {content.approved_by_name}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* WordPress Publish Statuses */}
       {content.publish_statuses && content.publish_statuses.length > 0 && (
