@@ -9,7 +9,7 @@ class ContentItemCreate(BaseModel):
     body: Optional[str] = ""
     excerpt: Optional[str] = ""
     external_url: Optional[str] = ""
-    tags: Optional[List[str]] = []
+    category_id: Optional[str] = None
     status: Literal["draft", "ready"] = "draft"
 
 
@@ -19,8 +19,15 @@ class ContentItemUpdate(BaseModel):
     body: Optional[str] = None
     excerpt: Optional[str] = None
     external_url: Optional[str] = None
-    tags: Optional[List[str]] = None
+    category_id: Optional[str] = None
     status: Optional[Literal["draft", "ready"]] = None
+
+
+class CategoryResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    slug: str
 
 
 class FeaturedImageResponse(BaseModel):
