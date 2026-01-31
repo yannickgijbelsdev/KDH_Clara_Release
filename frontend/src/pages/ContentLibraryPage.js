@@ -391,25 +391,24 @@ const ContentLibraryPage = () => {
                           {typeLabels[item.type]}
                         </span>
                         
-                        {item.source && (
+                        {item.category && (
                           <span className="flex items-center gap-1 text-orange-400">
+                            <Folder className="w-3 h-3" />
+                            {item.category.name}
+                          </span>
+                        )}
+                        
+                        {item.source && (
+                          <span className="flex items-center gap-1 text-blue-400">
                             <Globe className="w-3 h-3" />
                             {item.source}
                           </span>
                         )}
                         
-                        {item.external_url && !item.source && (
+                        {item.created_by_name && (
                           <span className="flex items-center gap-1">
-                            <Globe className="w-3 h-3" />
-                            External link
-                          </span>
-                        )}
-                        
-                        {item.tags && item.tags.length > 0 && (
-                          <span className="flex items-center gap-1">
-                            <Tag className="w-3 h-3" />
-                            {item.tags.slice(0, 2).join(', ')}
-                            {item.tags.length > 2 && ` +${item.tags.length - 2}`}
+                            <User className="w-3 h-3" />
+                            {item.created_by_name}
                           </span>
                         )}
                         
