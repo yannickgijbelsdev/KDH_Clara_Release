@@ -27,6 +27,7 @@ import mimetypes
 # Local imports
 from database import db, client, JWT_SECRET, UPLOADS_DIR, MEDIA_UPLOADS_DIR, AVATARS_DIR, SHOW_IMAGES_DIR
 from services.websocket import ws_manager
+from services.wp_scheduler import wp_scheduler
 from routers import (
     auth_router, teams_router, users_router, shows_router,
     content_router, wordpress_router, series_router,
