@@ -437,8 +437,15 @@ async def startup_db_client():
             }
             await db.wordpress_sites.insert_one(site_doc)
             logger.info(f"Migrated wordpress connection for team {conn.get('team_id')}")
+    
+    # Start the WordPress scheduler for automatic publishing of scheduled posts
+    await wp_scheduler.start()
+    logger.info("WordPress scheduler started")
 
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    # Stop the WordPress scheduler
+    await wp_scheduler.stop()
+    logger.info("WordPress scheduler stopped")
     client.close()
