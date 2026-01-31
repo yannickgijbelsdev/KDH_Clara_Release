@@ -110,6 +110,15 @@ const DashboardLayout = () => {
   // Get menu preference (default to grouped)
   const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
 
+  // Set browser tab title dynamically
+  useEffect(() => {
+    if (user?.team_name) {
+      document.title = `Clara | ${user.team_name}`;
+    } else {
+      document.title = 'Clara';
+    }
+  }, [user?.team_name]);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
