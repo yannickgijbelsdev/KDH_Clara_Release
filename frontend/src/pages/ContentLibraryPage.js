@@ -57,17 +57,23 @@ const ContentLibraryPage = () => {
   const navigate = useNavigate();
   const [allContent, setAllContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sourceFilter, setSourceFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const fetchContent = async () => {
     try {
-      const response = await axios.get(`${API}/content`);
-      setAllContent(response.data);
+      const [contentRes, categoriesRes] = await Promise.all([
+        axios.get(`${API}/content`),
+        axios.get(`${API}/content/categories`)
+      ]);
+      setAllContent(contentRes.data);
+      setCategories(categoriesRes.data);
     } catch (error) {
       toast.error('Failed to load content');
     } finally {
@@ -89,7 +95,8 @@ const ContentLibraryPage = () => {
       result = result.filter(item => 
         item.title?.toLowerCase().includes(query) ||
         item.excerpt?.toLowerCase().includes(query) ||
-        item.body?.toLowerCase().includes(query)
+        item.body?.toLowerCase().includes(query) ||
+        item.created_by_name?.toLowerCase().includes(query)
       );
     }
     
@@ -108,8 +115,13 @@ const ContentLibraryPage = () => {
       result = result.filter(item => item.source === sourceFilter);
     }
     
+    // Category filter
+    if (categoryFilter) {
+      result = result.filter(item => item.category_id === categoryFilter);
+    }
+    
     setFilteredContent(result);
-  }, [allContent, searchQuery, typeFilter, statusFilter, sourceFilter]);
+  }, [allContent, searchQuery, typeFilter, statusFilter, sourceFilter, categoryFilter]);
 
   const handleContentCreated = (newContent) => {
     setAllContent([newContent, ...allContent]);
