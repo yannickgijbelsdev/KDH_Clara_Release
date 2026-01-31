@@ -341,17 +341,64 @@ async def get_pending_approval_content(
     return result
 
 
-@content_router.delete("/{content_id}", status_code=status.HTTP_204_NO_CONTENT)
+@content_router.delete("/{content_id}")
 async def delete_content_item(
     content_id: str,
     request: Request,
     current_user: dict = Depends(require_editor_or_admin)
 ):
-    """Delete a content item."""
-    # Get content title for logging before deletion
+    """Soft delete a content item and remove from WordPress."""
+    import httpx
+    import base64
+    
     content = await db.content_items.find_one({"id": content_id, "team_id": current_user.get('team_id')})
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
+    
+    # Get all WordPress publish records
+    publish_records = await db.content_item_publishes.find(
+        {"content_item_id": content_id}
+    ).to_list(100)
+    
+    wp_deletion_results = []
+    
+    # Delete from WordPress for each published site
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        for record in publish_records:
+            if record.get('wp_post_id'):
+                site = await db.wordpress_sites.find_one({"id": record['wordpress_site_id']})
+                if site and site.get('is_active'):
+                    try:
+                        credentials = f"{site['username']}:{site['app_password']}"
+                        auth_header = base64.b64encode(credentials.encode()).decode()
+                        headers = {"Authorization": f"Basic {auth_header}"}
+                        
+                        # Delete (trash) the WordPress post
+                        endpoint = f"{site['wp_base_url']}/wp-json/wp/v2/{record.get('wp_post_type', 'post')}s/{record['wp_post_id']}"
+                        response = await client.delete(endpoint, headers=headers)
+                        
+                        wp_deletion_results.append({
+                            "site": site['name'],
+                            "success": response.status_code in [200, 201],
+                            "wp_post_id": record['wp_post_id']
+                        })
+                    except Exception as e:
+                        wp_deletion_results.append({
+                            "site": site.get('name', 'Unknown'),
+                            "success": False,
+                            "error": str(e)
+                        })
+    
+    # Soft delete - mark as deleted instead of removing
+    now = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {
+            "deleted_at": now,
+            "deleted_by": current_user['id'],
+            "updated_at": now
+        }}
+    )
     
     # Log the deletion
     ip_address = request.client.host if request.client else None
@@ -360,24 +407,83 @@ async def delete_content_item(
         action="deleted",
         user_id=current_user['id'],
         user_name=current_user.get('name', 'Unknown'),
-        details=f"Deleted content: {content.get('title', 'Unknown')}",
+        details=f"Deleted content: {content.get('title', 'Unknown')}. WordPress deletions: {len([r for r in wp_deletion_results if r.get('success')])} successful",
         ip_address=ip_address
     )
     
-    result = await db.content_items.delete_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
+    return {
+        "message": "Content deleted",
+        "wordpress_deletions": wp_deletion_results
+    }
+
+
+@content_router.post("/{content_id}/restore")
+async def restore_content_item(
+    content_id: str,
+    request: Request,
+    current_user: dict = Depends(require_admin)
+):
+    """Admin: Restore a soft-deleted content item."""
+    content = await db.content_items.find_one({
+        "id": content_id, 
+        "team_id": current_user.get('team_id'),
+        "deleted_at": {"$exists": True}
+    })
+    if not content:
+        raise HTTPException(status_code=404, detail="Deleted content item not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_one(
+        {"id": content_id},
+        {
+            "$unset": {"deleted_at": "", "deleted_by": ""},
+            "$set": {"updated_at": now}
+        }
     )
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Content item not found")
     
-    await db.content_item_publishes.delete_many({"content_item_id": content_id})
+    # Log the restoration
+    ip_address = request.client.host if request.client else None
+    await create_content_audit_log(
+        content_id=content_id,
+        action="restored",
+        user_id=current_user['id'],
+        user_name=current_user.get('name', 'Unknown'),
+        details=f"Restored content: {content.get('title', 'Unknown')}",
+        ip_address=ip_address
+    )
     
-    featured_images = await db.content_item_featured_images.find(
-        {"content_item_id": content_id}
-    ).to_list(100)
-    for img in featured_images:
-        file_path = UPLOADS_DIR / img.get("file_storage_key", "")
-        if file_path.exists():
+    return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
+
+
+@content_router.get("/admin/deleted")
+async def get_deleted_content(
+    current_user: dict = Depends(require_admin)
+):
+    """Admin: Get all soft-deleted content items."""
+    items = await db.content_items.find(
+        {
+            "team_id": current_user.get('team_id'),
+            "deleted_at": {"$exists": True}
+        },
+        {"_id": 0}
+    ).sort("deleted_at", -1).to_list(500)
+    
+    result = []
+    for item in items:
+        item = await enrich_content_item(item)
+        # Add deleted_by_name
+        if item.get("deleted_by"):
+            deleter = await db.users.find_one({"id": item["deleted_by"]}, {"_id": 0, "name": 1})
+            if deleter:
+                item["deleted_by_name"] = deleter.get("name", "Unknown")
+        result.append(item)
+    
+    return result
+
+
+# ============== CONTENT AUDIT LOGS ==============
+
+@content_router.get("/{content_id}/audit-logs")
             file_path.unlink()
     await db.content_item_featured_images.delete_many({"content_item_id": content_id})
     
