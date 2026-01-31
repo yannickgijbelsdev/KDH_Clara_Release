@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Radio, LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, ScrollText, ClipboardCheck, Trash2 } from 'lucide-react';
+import { 
+  LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
+  FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
+  ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
+  UserCog, ArrowLeftRight
+} from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -16,6 +21,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from './ui/collapsible';
 
 const roleIcons = {
   admin: Crown,
@@ -31,7 +41,52 @@ const roleLabels = {
   viewer: 'Viewer',
 };
 
-const navItems = [
+// Grouped navigation structure
+const navGroups = [
+  {
+    id: 'shows',
+    label: 'Shows',
+    icon: LayoutList,
+    items: [
+      { to: '/shows', icon: LayoutList, label: 'Shows', adminOnly: false },
+      { to: '/calendar', icon: Calendar, label: 'Calendar', adminOnly: false },
+      { to: '/show-management', icon: Sliders, label: 'Show Management', adminOnly: true },
+    ]
+  },
+  {
+    id: 'content',
+    label: 'Content',
+    icon: FileText,
+    items: [
+      { to: '/content', icon: FileText, label: 'Content Library', adminOnly: false },
+      { to: '/media', icon: File, label: 'Media Library', adminOnly: false },
+      { to: '/approvals', icon: ClipboardCheck, label: 'Content Approval', adminOnly: true },
+      { to: '/trash', icon: Trash2, label: 'Trash', adminOnly: true },
+    ]
+  },
+  {
+    id: 'communication',
+    label: 'Communication',
+    icon: MessageSquare,
+    items: [
+      { to: '/chat', icon: MessageSquare, label: 'Team Chat', adminOnly: false },
+    ]
+  },
+  {
+    id: 'admin',
+    label: 'Administration',
+    icon: Settings,
+    adminOnly: true,
+    items: [
+      { to: '/team', icon: Users, label: 'Team Settings', adminOnly: true },
+      { to: '/wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
+      { to: '/logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
+    ]
+  },
+];
+
+// Flat navigation (original structure)
+const flatNavItems = [
   { to: '/shows', icon: LayoutList, label: 'Shows', adminOnly: false },
   { to: '/calendar', icon: Calendar, label: 'Calendar', adminOnly: false },
   { to: '/content', icon: FileText, label: 'Content Library', adminOnly: false },
@@ -40,33 +95,89 @@ const navItems = [
   { to: '/approvals', icon: ClipboardCheck, label: 'Content Approval', adminOnly: true },
   { to: '/trash', icon: Trash2, label: 'Trash', adminOnly: true },
   { to: '/show-management', icon: Sliders, label: 'Show Management', adminOnly: true },
-  { to: '/team', icon: Settings, label: 'Team Settings', adminOnly: true },
+  { to: '/team', icon: Users, label: 'Team Settings', adminOnly: true },
   { to: '/logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
   { to: '/wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
 ];
 
 const DashboardLayout = () => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, impersonating, exitImpersonation } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState(['shows', 'content']);
+
+  // Get menu preference (default to grouped)
+  const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const handleExitImpersonation = async () => {
+    try {
+      await exitImpersonation();
+      navigate('/team');
+    } catch (error) {
+      console.error('Failed to exit impersonation:', error);
+    }
+  };
+
   const closeSidebar = () => setSidebarOpen(false);
+
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => 
+      prev.includes(groupId) 
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
 
   const RoleIcon = roleIcons[user?.role] || User;
 
-  const filteredNavItems = navItems.filter(item => !item.adminOnly || isAdmin);
+  // Filter items based on role
+  const getFilteredItems = (items) => items.filter(item => !item.adminOnly || isAdmin);
+  const filteredFlatItems = flatNavItems.filter(item => !item.adminOnly || isAdmin);
+  const filteredGroups = navGroups
+    .filter(group => !group.adminOnly || isAdmin)
+    .map(group => ({
+      ...group,
+      items: getFilteredItems(group.items)
+    }))
+    .filter(group => group.items.length > 0);
+
+  // Check if any item in a group is active
+  const isGroupActive = (group) => group.items.some(item => location.pathname === item.to);
 
   return (
     <TooltipProvider delayDuration={0}>
       <div className="min-h-screen bg-[#09090b]">
+        {/* Impersonation Banner */}
+        {impersonating && (
+          <div className="fixed top-0 left-0 right-0 z-[60] bg-orange-500 text-white px-4 py-2">
+            <div className="flex items-center justify-between max-w-screen-xl mx-auto">
+              <div className="flex items-center gap-2 text-sm">
+                <ArrowLeftRight className="w-4 h-4" />
+                <span>
+                  Viewing as <strong>{user?.name}</strong> ({user?.email})
+                </span>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleExitImpersonation}
+                className="text-white hover:bg-orange-600 gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Return to {impersonating.name}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Mobile Header */}
-        <header className="lg:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+        <header className={`lg:hidden fixed ${impersonating ? 'top-10' : 'top-0'} left-0 right-0 z-50 glass border-b border-white/10`}>
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-orange-500 rounded-lg">
@@ -94,59 +205,138 @@ const DashboardLayout = () => {
           />
         )}
 
-        {/* Desktop Sidebar - Narrow Icon Style */}
-        <aside className="hidden lg:flex fixed top-0 left-0 h-full z-50 w-[72px] flex-col items-center py-6 glass border-r border-white/10">
+        {/* Desktop Sidebar */}
+        <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
-          <div className="mb-8">
+          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'text-center'}`}>
             <span className="text-white font-black text-base">Clara</span>
           </div>
 
-          {/* Navigation Icons */}
-          <nav className="flex-1 flex flex-col items-center gap-2">
-            {filteredNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.to;
-              return (
-                <Tooltip key={item.to}>
-                  <TooltipTrigger asChild>
-                    <NavLink
-                      to={item.to}
-                      data-testid={`nav-${item.to.slice(1)}-link`}
-                      className={`
-                        w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200
-                        ${isActive 
-                          ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
-                          : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
-                        }
-                      `}
+          {/* Navigation */}
+          <nav className={`flex-1 overflow-y-auto ${useGroupedMenu ? 'px-3' : 'flex flex-col items-center gap-2'}`}>
+            {useGroupedMenu ? (
+              // Grouped Navigation
+              <div className="space-y-4">
+                {filteredGroups.map((group) => {
+                  const GroupIcon = group.icon;
+                  const isExpanded = expandedGroups.includes(group.id);
+                  const groupActive = isGroupActive(group);
+
+                  return (
+                    <Collapsible
+                      key={group.id}
+                      open={isExpanded}
+                      onOpenChange={() => toggleGroup(group.id)}
                     >
-                      <Icon className="w-5 h-5" />
-                    </NavLink>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
-                    {item.label}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
+                      <CollapsibleTrigger className="w-full">
+                        <div className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${groupActive ? 'text-orange-400' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}>
+                          <div className="flex items-center gap-2">
+                            <GroupIcon className="w-4 h-4" />
+                            <span className="text-sm font-medium">{group.label}</span>
+                          </div>
+                          {isExpanded ? (
+                            <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="ml-2 mt-1 space-y-1 border-l border-zinc-800 pl-3">
+                          {group.items.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = location.pathname === item.to;
+                            return (
+                              <NavLink
+                                key={item.to}
+                                to={item.to}
+                                data-testid={`nav-${item.to.slice(1)}-link`}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                                  isActive
+                                    ? 'bg-orange-500/20 text-orange-400'
+                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                }`}
+                              >
+                                <Icon className="w-4 h-4" />
+                                <span>{item.label}</span>
+                              </NavLink>
+                            );
+                          })}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
+              </div>
+            ) : (
+              // Flat Icon Navigation (original)
+              filteredFlatItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.to;
+                return (
+                  <Tooltip key={item.to}>
+                    <TooltipTrigger asChild>
+                      <NavLink
+                        to={item.to}
+                        data-testid={`nav-${item.to.slice(1)}-link`}
+                        className={`
+                          w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200
+                          ${isActive 
+                            ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
+                            : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                          }
+                        `}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </NavLink>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                      {item.label}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })
+            )}
           </nav>
 
           {/* User Avatar at Bottom */}
-          <div className="mt-auto pt-4">
+          <div className={`mt-auto pt-4 ${useGroupedMenu ? 'px-3' : ''}`}>
+            {/* Personal Settings Link */}
+            {useGroupedMenu && (
+              <NavLink
+                to="/settings"
+                data-testid="nav-settings-link"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm mb-2 transition-all duration-200 ${
+                  location.pathname === '/settings'
+                    ? 'bg-orange-500/20 text-orange-400'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <UserCog className="w-4 h-4" />
+                <span>Personal Settings</span>
+              </NavLink>
+            )}
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   data-testid="user-menu-btn"
-                  className="w-11 h-11 rounded-xl hover:bg-orange-500/10"
+                  className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-orange-500/10`}
                 >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
+                  {useGroupedMenu && (
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                      <p className="text-xs text-zinc-500 truncate">{roleLabels[user?.role]}</p>
+                    </div>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" side="right" className="w-56 bg-[#18181b] border-zinc-800 ml-2">
+              <DropdownMenuContent align={useGroupedMenu ? "end" : "start"} side={useGroupedMenu ? "top" : "right"} className="w-56 bg-[#18181b] border-zinc-800 ml-2">
                 <div className="px-3 py-2">
                   <p className="text-sm font-medium text-white">{user?.name}</p>
                   <p className="text-xs text-zinc-500">{user?.email}</p>
@@ -164,6 +354,14 @@ const DashboardLayout = () => {
                 )}
                 <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem
+                  onClick={() => navigate('/settings')}
+                  className="text-zinc-400 focus:text-white focus:bg-zinc-800"
+                >
+                  <UserCog className="w-4 h-4 mr-2" />
+                  Personal Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuItem
                   data-testid="logout-btn"
                   onClick={handleLogout}
                   className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10"
@@ -176,10 +374,10 @@ const DashboardLayout = () => {
           </div>
         </aside>
 
-        {/* Mobile Sidebar - Full Width */}
+        {/* Mobile Sidebar */}
         <aside
           className={`
-            lg:hidden fixed top-0 left-0 h-full z-50 glass
+            lg:hidden fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 glass
             w-64 transform transition-transform duration-300 ease-in-out
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           `}
@@ -211,31 +409,88 @@ const DashboardLayout = () => {
               </div>
             )}
 
-            {/* Navigation */}
+            {/* Mobile Navigation */}
             <div className="flex-1 overflow-y-auto">
-              <nav className="space-y-1">
-                {filteredNavItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      data-testid={`mobile-nav-${item.to.slice(1)}-link`}
-                      onClick={closeSidebar}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                          isActive
-                            ? 'bg-orange-500/20 text-orange-500'
-                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                        }`
-                      }
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                    </NavLink>
-                  );
-                })}
-              </nav>
+              {useGroupedMenu ? (
+                // Grouped Mobile Navigation
+                <div className="space-y-4">
+                  {filteredGroups.map((group) => {
+                    const GroupIcon = group.icon;
+                    return (
+                      <div key={group.id}>
+                        <div className="flex items-center gap-2 px-2 py-1 text-zinc-500 text-xs uppercase tracking-wider">
+                          <GroupIcon className="w-3 h-3" />
+                          {group.label}
+                        </div>
+                        <nav className="space-y-1 mt-1">
+                          {group.items.map((item) => {
+                            const Icon = item.icon;
+                            return (
+                              <NavLink
+                                key={item.to}
+                                to={item.to}
+                                data-testid={`mobile-nav-${item.to.slice(1)}-link`}
+                                onClick={closeSidebar}
+                                className={({ isActive }) =>
+                                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                                    isActive
+                                      ? 'bg-orange-500/20 text-orange-500'
+                                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                  }`
+                                }
+                              >
+                                <Icon className="w-5 h-5" />
+                                <span className="font-medium">{item.label}</span>
+                              </NavLink>
+                            );
+                          })}
+                        </nav>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                // Flat Mobile Navigation
+                <nav className="space-y-1">
+                  {filteredFlatItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        data-testid={`mobile-nav-${item.to.slice(1)}-link`}
+                        onClick={closeSidebar}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                            isActive
+                              ? 'bg-orange-500/20 text-orange-500'
+                              : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                          }`
+                        }
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="font-medium">{item.label}</span>
+                      </NavLink>
+                    );
+                  })}
+                </nav>
+              )}
+
+              {/* Personal Settings Link */}
+              <NavLink
+                to="/settings"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 ${
+                    isActive
+                      ? 'bg-orange-500/20 text-orange-500'
+                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  }`
+                }
+              >
+                <UserCog className="w-5 h-5" />
+                <span className="font-medium">Personal Settings</span>
+              </NavLink>
             </div>
 
             {/* User section at bottom */}
@@ -262,7 +517,7 @@ const DashboardLayout = () => {
         </aside>
 
         {/* Main content */}
-        <main className="lg:ml-[72px] min-h-screen pt-16 lg:pt-0">
+        <main className={`${useGroupedMenu ? 'lg:ml-56' : 'lg:ml-[72px]'} min-h-screen ${impersonating ? 'pt-26 lg:pt-10' : 'pt-16 lg:pt-0'} transition-all duration-300`}>
           {/* Page Header */}
           <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
             <div className="px-8 py-4">
