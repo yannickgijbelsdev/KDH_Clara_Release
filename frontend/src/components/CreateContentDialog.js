@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
-import { FileText, Link, BookOpen, Image, X, Loader2 } from 'lucide-react';
+import { FileText, Link, BookOpen, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,10 +31,6 @@ const contentTypes = [
 
 const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   const [loading, setLoading] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const fileInputRef = useRef(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -46,71 +42,17 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
     status: 'draft',
   });
 
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Invalid file type. Please use JPEG, PNG, GIF, or WebP.');
-      return;
-    }
-    
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File too large. Maximum size is 5MB.');
-      return;
-    }
-    
-    setSelectedFile(file);
-    
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => setPreviewImage(e.target.result);
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveImage = () => {
-    setSelectedFile(null);
-    setPreviewImage(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // First create the content
       const response = await axios.post(`${API}/content`, {
         ...formData,
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
       });
       
-      const contentId = response.data.id;
-      let finalContent = response.data;
-      
-      // If there's a featured image, upload it
-      if (selectedFile) {
-        setUploadingImage(true);
-        const imageFormData = new FormData();
-        imageFormData.append('file', selectedFile);
-        
-        try {
-          const imageResponse = await axios.post(
-            `${API}/content/${contentId}/featured-image`,
-            imageFormData,
-            { headers: { 'Content-Type': 'multipart/form-data' } }
-          );
-          finalContent.featured_image = imageResponse.data.featured_image;
-        } catch (imgError) {
-          toast.error('Content created but failed to upload featured image');
-        }
-        setUploadingImage(false);
-      }
-      
-      onContentCreated(finalContent);
+      onContentCreated(response.data);
       
       // Reset form
       setFormData({
@@ -122,15 +64,11 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
         tags: '',
         status: 'draft',
       });
-      setSelectedFile(null);
-      setPreviewImage(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
       
     } catch (error) {
       toast.error('Failed to create content');
     } finally {
       setLoading(false);
-      setUploadingImage(false);
     }
   };
 
