@@ -87,6 +87,7 @@ const ContentDetailPage = () => {
   const { isEditor } = useAuth();
   const [content, setContent] = useState(null);
   const [wpSites, setWpSites] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -105,7 +106,17 @@ const ContentDetailPage = () => {
   useEffect(() => {
     fetchContent();
     fetchWpSites();
+    fetchCategories();
   }, [contentId]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${API}/content/categories`);
+      setCategories(response.data);
+    } catch {
+      setCategories([]);
+    }
+  };
 
   const fetchContent = async () => {
     try {
@@ -113,7 +124,6 @@ const ContentDetailPage = () => {
       setContent(response.data);
       setEditData({
         ...response.data,
-        tags: response.data.tags?.join(', ') || '',
       });
       
       // Initialize featured images from publish statuses
