@@ -139,67 +139,6 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
             </div>
           )}
 
-          {/* Featured Image Upload */}
-          <div className="space-y-2">
-            <Label className="text-zinc-300">Featured Image (optional)</Label>
-            {previewImage ? (
-              <div className="flex items-start gap-4 p-3 bg-[#27272a] rounded-lg border border-zinc-700">
-                <div className="w-24 h-24 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
-                  <img
-                    src={previewImage}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-zinc-300 truncate">{selectedFile?.name}</p>
-                  <p className="text-xs text-zinc-500">
-                    {selectedFile && (selectedFile.size / 1024).toFixed(1)} KB
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-transparent border-zinc-600 text-zinc-300 hover:bg-zinc-700 text-xs h-7"
-                    >
-                      Replace
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleRemoveImage}
-                      className="bg-transparent border-zinc-600 text-rose-400 hover:bg-rose-500/10 text-xs h-7"
-                    >
-                      <X className="w-3 h-3 mr-1" />
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-zinc-700 rounded-lg p-6 text-center cursor-pointer hover:border-rose-500/50 hover:bg-rose-500/5 transition-colors"
-              >
-                <div className="flex flex-col items-center">
-                  <Image className="w-8 h-8 text-zinc-500 mb-2" />
-                  <p className="text-sm text-zinc-400">Click to upload featured image</p>
-                  <p className="text-xs text-zinc-500 mt-1">JPEG, PNG, GIF, WebP • Max 5MB</p>
-                </div>
-              </div>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              className="hidden"
-              onChange={handleImageSelect}
-            />
-          </div>
-
           <div className="space-y-2">
             <Label className="text-zinc-300">Body</Label>
             <RichTextEditor
