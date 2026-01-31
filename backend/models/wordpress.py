@@ -64,7 +64,8 @@ class WordPressConnectionTestResponse(BaseModel):
 class PublishTarget(BaseModel):
     site_id: str
     post_type: Literal["post", "page"] = "post"
-    wp_status: Literal["draft", "publish"] = "draft"
+    wp_status: Literal["draft", "publish", "future"] = "draft"
+    scheduled_date: Optional[str] = None  # ISO format datetime for scheduled publishing
 
 
 class PublishToWordPressRequest(BaseModel):
@@ -78,7 +79,24 @@ class PublishResult(BaseModel):
     message: str
     wp_post_id: Optional[int] = None
     wp_permalink: Optional[str] = None
+    scheduled_date: Optional[str] = None
 
 
 class PublishResponse(BaseModel):
     results: List[PublishResult]
+
+
+class ScheduledPublishResponse(BaseModel):
+    """Response for scheduled publish operations."""
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    content_id: str
+    content_title: str
+    site_id: str
+    site_name: str
+    scheduled_date: str
+    post_type: str
+    status: Literal["pending", "published", "failed", "cancelled"]
+    created_at: str
+    published_at: Optional[str] = None
+    error_message: Optional[str] = None
