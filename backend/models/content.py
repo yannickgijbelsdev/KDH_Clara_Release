@@ -59,6 +59,7 @@ class ContentPublishStatus(BaseModel):
     wp_post_type: str = "post"
     wp_status: str = "draft"
     wp_permalink: Optional[str] = None
+    wp_scheduled_date: Optional[str] = None  # Scheduled publication date
     sync_status: str = "not_synced"
     sync_error_message: Optional[str] = None
     last_synced_at: Optional[str] = None
