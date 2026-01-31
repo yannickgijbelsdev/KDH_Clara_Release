@@ -319,3 +319,35 @@ async def delete_avatar(
     
     return {"message": "Avatar removed"}
 
+
+# ============== USER PREFERENCES ==============
+
+@users_router.put("/me/preferences")
+async def update_user_preferences(
+    preferences: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update current user's preferences."""
+    allowed_prefs = ['grouped_menu']  # Whitelist of allowed preference keys
+    
+    # Filter to only allowed preferences
+    filtered_prefs = {k: v for k, v in preferences.items() if k in allowed_prefs}
+    
+    if not filtered_prefs:
+        raise HTTPException(status_code=400, detail="No valid preferences provided")
+    
+    # Update nested preferences object
+    await db.users.update_one(
+        {"id": current_user['id']},
+        {"$set": {f"preferences.{k}": v for k, v in filtered_prefs.items()}}
+    )
+    
+    return {"message": "Preferences updated", "preferences": filtered_prefs}
+
+
+@users_router.get("/me/preferences")
+async def get_user_preferences(current_user: dict = Depends(get_current_user)):
+    """Get current user's preferences."""
+    user = await db.users.find_one({"id": current_user['id']}, {"_id": 0, "preferences": 1})
+    return user.get("preferences", {})
+
