@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
@@ -26,6 +27,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const roleIcons = {
   admin: Crown,
