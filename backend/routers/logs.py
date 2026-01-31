@@ -1,7 +1,7 @@
 """Audit logs routes."""
 from fastapi import APIRouter, Depends, Query
 from typing import Optional, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from database import db
 from services.auth import require_admin
@@ -60,6 +60,71 @@ async def get_audit_logs(
     total = await db.audit_logs.count_documents(query)
     
     return {
+        "logs": logs,
+        "total": total,
+        "limit": limit,
+        "skip": skip
+    }
+
+
+@logs_router.get("/archive/dates")
+async def get_archive_dates(current_user: dict = Depends(require_admin)):
+    """Get dates that have activity logs for archive calendar."""
+    team_id = current_user.get("team_id")
+    
+    # Aggregate logs by date
+    pipeline = [
+        {"$match": {"team_id": team_id}},
+        {"$project": {
+            "date": {"$substr": ["$timestamp", 0, 10]}  # Extract YYYY-MM-DD
+        }},
+        {"$group": {
+            "_id": "$date",
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"_id": -1}},
+        {"$limit": 365}  # Last year of dates
+    ]
+    
+    dates = await db.audit_logs.aggregate(pipeline).to_list(365)
+    
+    return {
+        "dates": [{"date": d["_id"], "count": d["count"]} for d in dates]
+    }
+
+
+@logs_router.get("/archive/{date}")
+async def get_logs_by_date(
+    date: str,
+    category: Optional[str] = Query(None),
+    limit: int = Query(500),
+    skip: int = Query(0),
+    current_user: dict = Depends(require_admin)
+):
+    """Get logs for a specific date (archive view)."""
+    team_id = current_user.get("team_id")
+    
+    # Build query for the specific date
+    start_of_day = f"{date}T00:00:00"
+    end_of_day = f"{date}T23:59:59"
+    
+    query = {
+        "team_id": team_id,
+        "timestamp": {"$gte": start_of_day, "$lte": end_of_day}
+    }
+    
+    if category:
+        query["category"] = category
+    
+    logs = await db.audit_logs.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).skip(skip).limit(limit).to_list(limit)
+    
+    total = await db.audit_logs.count_documents(query)
+    
+    return {
+        "date": date,
         "logs": logs,
         "total": total,
         "limit": limit,
