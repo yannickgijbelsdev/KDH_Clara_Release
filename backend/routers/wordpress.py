@@ -391,6 +391,11 @@ async def publish_content_to_wordpress(
                     "status": target.wp_status
                 }
                 
+                # Handle scheduled publishing
+                if target.wp_status == "future" and target.scheduled_date:
+                    wp_data["status"] = "future"
+                    wp_data["date"] = target.scheduled_date
+                
                 if content.get('excerpt'):
                     wp_data["excerpt"] = content['excerpt']
                 
@@ -416,6 +421,10 @@ async def publish_content_to_wordpress(
                 
                 if response.status_code in [200, 201]:
                     wp_response = response.json()
+                    
+                    # Determine if it's scheduled
+                    is_scheduled = wp_response.get('status') == 'future'
+                    scheduled_date = wp_response.get('date') if is_scheduled else None
                     
                     publish_doc = {
                         "content_item_id": content_id,
