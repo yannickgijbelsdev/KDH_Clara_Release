@@ -299,14 +299,18 @@ const ContentLibraryPage = () => {
             </div>
           ))}
         </div>
-      ) : content.length === 0 ? (
+      ) : filteredContent.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
             <FileText className="w-8 h-8 text-zinc-500" />
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">No content yet</h3>
-          <p className="text-zinc-400 mb-6">Start building your content library</p>
-          {isEditor && (
+          <h3 className="text-lg font-semibold text-white mb-2">
+            {allContent.length === 0 ? 'No content yet' : 'No matching content'}
+          </h3>
+          <p className="text-zinc-400 mb-6">
+            {allContent.length === 0 ? 'Start building your content library' : 'Try adjusting your filters'}
+          </p>
+          {allContent.length === 0 && isEditor && (
             <Button
               onClick={() => setIsCreateOpen(true)}
               className="bg-orange-500 hover:bg-orange-600 text-white"
