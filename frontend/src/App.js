@@ -14,6 +14,7 @@ import ChatPage from './pages/ChatPage';
 import MediaLibraryPage from './pages/MediaLibraryPage';
 import ShowManagementPage from './pages/ShowManagementPage';
 import LogsPage from './pages/LogsPage';
+import AdminApprovalPage from './pages/AdminApprovalPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
