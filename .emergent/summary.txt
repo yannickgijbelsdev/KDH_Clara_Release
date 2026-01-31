@@ -1,164 +1,170 @@
 <analysis>**original_problem_statement:**
-The user's initial request was to build a web-based dashboard for radio editors. This has evolved into a comprehensive application named Clara with features including a team chat, a content library, and a show scheduling system.
+The user's initial request was to build a web-based dashboard for radio editors, which has evolved into a comprehensive application named Clara. The core features include a team chat, a content library, and a show scheduling system.
 
-Recent user requests have focused heavily on UI/UX improvements, new features, and bug fixes:
-1.  **UI/Branding:** A complete redesign of the application to a dark theme with an orange accent, and rebranding to Clara. This included updating the logo, layout, and removing visual clutter like redundant titles and icons.
-2.  **User Management:** Implement avatar uploads for users and add functionality for admins to edit user profiles (name, email) and reset passwords from the Team Settings page.
-3.  **Show Management:** Move the show image upload functionality from the individual show's rundown page to the central Show Management page, associating images with pre-defined Show Titles.
-4.  **Audit Logging:** Create a comprehensive audit log page to track all significant user actions (logins, logouts, content changes, password resets) with IP address and user details.
-5.  **Media Library:** Add a preview modal for various file types (documents, PDFs, images, audio).
-6.  **Data Import:** Perform a one-time import of all articles from two of the user's WordPress sites ( and ) into the content library.
+Recent user requests have focused on evolving the content management workflow:
+1.  **Data Import & Display:** Import articles from WordPress sites (, ) and fix all related display issues, including showing featured images.
+2.  **Content Filtering:** Implement instant client-side search and filtering by source (MFY/GRK) and category in the Content Library.
+3.  **Content Creation/Editing:**
+    -   Replace the 'tags' system with 'categories' imported from WordPress.
+    -   Display the name of the Clara user who created or last edited a post.
+    -   Remove the manual 'featured image' upload from the creation dialog.
+    -   Enhance the TinyMCE rich text editor with full controls, including link and media uploads.
+4.  **Admin Approval Workflow:**
+    -   Create a new Content Approval dashboard for admins.
+    -   Enforce a rule where content must be in Ready status and approved by an admin before it can be published to WordPress.
+    -   The UI must disable the Publish to WordPress button for unapproved content and hide it entirely for Draft content.
+5.  **Audit & Scheduling:**
+    -   Implement a per-post Edit History log with details of all changes and a PDF export option.
+    -   Add a feature to schedule posts for future publication on WordPress.
+6.  **Soft Delete & Restore:**
+    -   When a post is deleted in Clara, it must also be deleted from the linked WordPress site.
+    -   Deleted posts should be hidden from regular editors but remain visible to admins with an option to restore them.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack solution using FastAPI, React, and MongoDB. It has been completely redesigned with a Clara brand identity, featuring a dark mode UI and orange accents.
+The Clara application is a full-stack solution (FastAPI, React, MongoDB) with a dark theme and orange accents. It features robust user management, show scheduling, a team chat, and a sophisticated content library.
 
-Key functionalities include:
--   **Show Scheduling:** Admins manage Show Titles and Studios on a dedicated page. DJs create shows by selecting from these predefined options. Recurring shows are grouped into collapsible bundles for better organization.
--   **Content Library:** A central repository for articles and media. It supports featured images and now has a file preview modal. It recently imported 132 articles from the user's WordPress sites.
--   **Team Chat:** A comprehensive chat system supporting private and group conversations.
--   **User Management:** Admins can manage team members, edit profiles, reset passwords, and users can upload their own avatars via the Team Settings page.
--   **Audit Logging:** A dedicated Activity Logs page exists, tracking all major user actions with filters for easy review.
+-   **Content Library:** Displays 132 imported WordPress articles with their featured images. It supports instant client-side search and filtering by status, type, source, and category.
+-   **Content Workflow:** A full approval system is in place. Content can be created as a Draft. When moved to Ready, it enters a Pending Approval state. An admin must approve it via a dedicated Content Approval page before the Publish to WordPress button becomes active. The backend and frontend both enforce this rule.
+-   **WordPress Integration:** Users can publish content to linked WordPress sites. A scheduling feature allows setting a future publication date/time. The TinyMCE editor is fully featured, with image uploads enabled.
+-   **Audit System:** A detailed Edit History log is available on each content item's detail page, tracking all changes with user info, IP address, and timestamps. This log can be exported as a PDF.
 
 **Last working item**:
--   **Last item agent was working:** The agent was fixing a critical bug that prevented the 132 newly imported WordPress articles from displaying in the Content Library. The agent correctly identified that the backend was throwing a validation error because the  field was missing in the imported data, but the response model required it. The agent was in the process of making this field optional in the model.
+-   **Last item agent was working:** Implementing a soft-delete feature for content items. The user requested that deleting a post should hide it from editors, keep it visible to admins for restoration, and also delete the corresponding post from WordPress. The agent started the backend implementation by modifying the delete endpoint in  to mark items as deleted rather than removing them from the database.
 -   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** Manual testing by screenshot tool
+-   **Which testing method agent to use?** both
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: (P0) Imported content not displaying in the Content Library**
-    -   **Attempted fixes:** The agent confirmed the articles were imported into the correct database collection (). Backend logs revealed a  because the  model requires an , which is absent in the imported data.
+-   **Issue 1: (P0) Complete the soft-delete and restore functionality.**
+    -   **Description:** The user wants deleted posts to be hidden from editors but visible to admins, with an ability to restore them. Deleting a post in Clara should also trigger its deletion on the linked WordPress site. The agent has only started the backend changes.
+    -   **Attempted fixes:** The  function in  was modified to perform a soft delete by setting a  flag.
     -   **Next debug checklist:**
-        1.  Open .
-        2.  Locate the  Pydantic model.
-        3.  Modify the  field definition to make it optional: .
-        4.  Restart the backend service using backend: stopped
-backend: started.
-        5.  Navigate to the Content Library page and take a screenshot to confirm the articles are now visible.
-    -   **Why fix this issue and what will be achieved with the fix?** This will resolve the bug and make the 132 imported articles accessible to the user, completing the data import task.
+        1.  Finalize the soft-delete endpoint in  to ensure it also triggers deletion on any linked WordPress sites.
+        2.  Update the main  endpoint to filter out soft-deleted items for users without admin privileges.
+        3.  Create a new UI view for admins (e.g., a Trash or Deleted Items tab on the  or ) to list soft-deleted content.
+        4.  Implement a Restore endpoint on the backend and connect it to a Restore button in the new admin UI.
+        5.  Implement a Permanent Delete endpoint and UI button.
+        6.  Update the  so the delete button calls the new soft-delete endpoint.
+    -   **Why fix this issue and what will be achieved with the fix?** This provides a critical safety net against accidental deletions and gives administrators full control over the content lifecycle, fulfilling a key user requirement.
     -   **Status:** IN PROGRESS
     -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Should Test frontend/backend/both after fix?** Both
 
 **In progress Task List**:
--   None.
+-   **Task 1: (P0) Soft-delete and Restore Workflow**
+    -   **Where to resume:** The agent has modified  to initiate the soft-delete logic. The next steps are to complete the backend work (WordPress deletion, restore endpoint) and then build the entire frontend experience for admins to manage deleted content.
+    -   **What will be achieved with this?** A complete, user-requested workflow for safely deleting and restoring content.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Both
 
 **Upcoming and Future Tasks**
 
 **Upcoming Tasks:**
--   **(P1) Microsoft SSO Integration:** The user expressed interest in adding Microsoft single sign-on but deferred it. This should be revisited as the next major feature.
+-   **(P1) Implement WordPress Scheduler Worker:** The UI for scheduling posts is complete, but there is no backend background process to automatically publish the posts at the scheduled time. This needs to be implemented (e.g., using APScheduler).
+-   **(P1) Microsoft SSO Integration:** The user has previously expressed interest in this as the next major feature.
 
 **Future Tasks:**
--   **(P1) Chat: Real-Time with WebSockets:** Upgrade the chat from inefficient polling to WebSockets for a true real-time experience.
+-   **(P1) Chat: Real-Time with WebSockets:** Upgrade the chat from polling to WebSockets.
 -   **(P1) Show Templates:** Allow users to create new shows using past rundowns as a template.
--   **(P2) Frontend Refactoring:** Decompose large components like  and  into smaller, more manageable ones.
--   **(P2) Custom WPM Setting:** Allow users to set a custom Words-Per-Minute rate for script timing calculations.
--   **(P2) Public Password Reset:** Implement a self-service Forgot Password flow using email verification.
--   **(P3) Chat Enhancements:** Add message reactions (emojis) and GIF support.
+-   **(P2) Frontend Refactoring:** Decompose large components like .
+-   **(P2) Custom WPM Setting:** Allow users to set a custom Words-Per-Minute rate for script timing.
+-   **(P2) Public Password Reset:** Implement a self-service Forgot Password flow.
+-   **(P3) Chat Enhancements:** Add message reactions and GIF support.
 -   **(P3) Advanced Scheduling:** Enhance the calendar with a daily view and drag-and-drop rescheduling.
--   **(P3) Show Cloning:** Add a feature to easily clone an existing show or recurring series.
 
 **Completed work in this session**
--   **UI/UX Redesign:** Completed a full visual overhaul of the application, implementing a dark theme with orange accents and establishing the Clara brand identity.
--   **Header & Title Cleanup:** Standardized page headers, removed redundant avatars and titles, and removed icons from page titles for a cleaner look.
--   **Feature: User Avatar Uploads:** Implemented the full flow for users to upload and manage their profile avatars.
--   **Feature: Comprehensive Audit Logs:** Built and deployed a new Activity Logs page with a backend service to track user actions, including IP addresses.
--   **Feature: Media Library Previews:** Added a modal to preview images, documents, and other files directly within the Media Library.
--   **Refactor: Show Image Management:** Relocated the show image upload functionality from the  to the  to be managed at the Show Title level.
--   **Feature: User Profile Management:** Added admin capabilities to edit user details (name, email) and reset passwords on the .
--   **Data: WordPress Article Import:** Successfully executed a script to import 132 articles from  and  into the database.
--   **Bugfix: Login Page Cleanup:** Removed the unused sign-up toggle and cleaned up the branding on the .
+-   **Bugfix:** Fixed the Content Library bug preventing imported WordPress articles from being displayed.
+-   **Feature:** Enabled display of featured images from external WordPress URLs.
+-   **Feature:** Implemented instant search and source/category filtering in the Content Library.
+-   **Feature:** Replaced the tags system with a categories system, including data import and UI updates.
+-   **Feature:** Added display of the content creator's name.
+-   **Feature:** Implemented a per-post Edit History audit log with PDF export.
+-   **Feature:** Built the UI and data model for scheduling WordPress posts.
+-   **Improvement:** Upgraded the TinyMCE editor with a full toolbar and file upload capabilities.
+-   **Bugfix:** Fixed UI layout for long filenames and ensured scheduled dates display correctly after page refresh.
+-   **Feature:** Implemented a complete Admin Approval workflow with a dedicated admin page and frontend/backend rule enforcement.
+-   **Bugfix:** Ensured the Publish to WordPress button is correctly hidden for Draft posts and disabled for unapproved Ready posts.
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+-   **WordPress Scheduler Worker:** The backend mechanism to automatically publish scheduled posts is missing. While the user hasn't reported it as a bug yet, the schedule feature is not fully functional without it.
 
 **Known issue recurrence from previous fork**
 -   None.
 
 **Code Architecture**
-external_url
+
 
 **Key Technical Concepts**
--   **Audit Logging:** Implemented a new backend service () and router () to create and display a comprehensive log of user activities, which is now integrated across various endpoints.
--   **UI/UX Redesign & Branding:** Executed a major frontend overhaul by modifying global CSS, redesigning the main , and updating numerous pages to align with a new Clara brand identity and dark theme.
--   **External Data Ingestion:** Wrote and ran a Python script using  to fetch posts from external WordPress REST APIs and import them into the application's MongoDB, which required subsequent debugging of data models.
--   **Decoupled Feature Management:** Refactored the application to move Show Image management from individual show instances to the Show Title templates on the , promoting better data structure.
+-   **Soft Deletes:** Using  and  fields in the database to hide records from regular users while allowing admins to view/restore them.
+-   **State-Based Access Control:** A content approval workflow managed by  (, ) and  (, , ) fields, which control UI element visibility/state and backend API access.
+-   **Client-Side Filtering:** The Content Library now performs instant search and filtering on the client-side for a faster user experience.
+-   **PDF Generation:** Using the  library on the backend to generate PDF documents for audit logs.
 
 **key DB schema**
--   **:** Modified to include an optional  field.
--   **:** Modified to include an optional  field.
--   **:** No schema change, but populated with documents that are missing the  field.
--   ** (New Collection):** 
+-   **:** Fields added: , , , , , , .
+-   ** (New):** 
+-   ** (New):** 
 
 **changes in tech stack**
--   **aiohttp:** Added to the backend to handle asynchronous API calls for the WordPress import script.
+-   **reportlab:** Added for backend PDF generation.
 
 **All files of reference**
--   **/app/backend/models/content.py**: This is the file that must be fixed to resolve the current P0 bug.
--   **/app/frontend/src/pages/LogsPage.js**: The newly created page for viewing audit logs.
--   **/app/frontend/src/pages/TeamSettingsPage.js**: The central hub for user management features.
--   **/app/frontend/src/pages/ShowManagementPage.js**: The page for managing show titles and their associated images.
--   **/app/frontend/src/components/DashboardLayout.js**: The core layout file defining the application's new look and feel.
--   **/app/backend/services/audit.py**: The new backend service for creating audit log entries.
+-   **/app/backend/routers/content.py**: Contains the primary logic for the in-progress soft-delete task.
+-   **/app/frontend/src/pages/ContentLibraryPage.js**: Will need to be updated to show/hide deleted items based on user role.
+-   **/app/frontend/src/pages/ContentDetailPage.js**: The delete button needs to be wired to the new soft-delete functionality.
+-   **/app/backend/routers/wordpress.py**: The  functionality needs to be integrated here to remove posts from WordPress.
 
 **Areas that need refactoring**:
--   **Chat Real-Time Mechanism:** The current polling system is a prime candidate for an upgrade to WebSockets to improve efficiency and user experience.
--   **Large Frontend Components:**  and  are still large and would benefit from being broken down into smaller, reusable components.
--   **Data Import Logic:** The one-time WordPress import was done via a command-line script. This logic could be integrated into an admin-facing UI for future use.
+-   **:** This component has become very large and complex due to the addition of edit mode, publishing controls, scheduling UI, and the audit log section. It should be broken down into smaller, more focused components.
 
 **key api endpoints**
--   **Logs (New):** 
--   **User Avatar (New):** , 
--   **Show Title Image (New):** , 
--   **User Management (New):** , 
--   **Content (Modified):**  (Currently broken due to the model validation error).
+-    (Modified): Now performs a soft delete.
+-   : Approves content for publishing.
+-   : Rejects content.
+-   : Retrieves the edit history for a post.
+-   : Exports the audit log as a PDF.
+-   : Handles file uploads from the TinyMCE editor.
 
 **Critical Info for New Agent**
--   Your immediate priority is to fix the bug preventing the imported content from displaying. The fix is to make the  field optional in  and restart the backend.
--   The user has a strong focus on UI/UX consistency. Ensure any new changes adhere to the established Clara dark theme with orange accents.
--   Be aware of the recent architectural changes: show images are now tied to Show Titles (managed in ), not individual shows in the rundown.
--   When adding or modifying features that change data, remember to integrate with the new audit log service () to ensure all actions are tracked.
+-   Your highest priority (P0) is to complete the soft-delete feature. This requires finishing the backend logic (including syncing deletions to WordPress) and building the frontend UI for admins to view and restore deleted items.
+-   The WordPress scheduling feature is functionally incomplete. While users can set a schedule, no backend process exists to execute the publication at the scheduled time. This is a critical gap that needs to be addressed soon.
+-   All new workflows must be strictly enforced on both the frontend (e.g., disabling buttons) and the backend (e.g., API authorization checks) to ensure security and data integrity.
 
 **documents and test reports created in this job**
--   /app/test_reports/iteration_14.json
--   /app/design_guidelines.json
--   /app/memory/PRD.md
+-    was frequently updated.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Requested to import all articles from  and . **Status: In Progress** (Data imported, but a bug is preventing display).
-2.  **User:** Requested to clean up the login page by removing the C icon and the sign-up toggle. **Status: Completed**.
-3.  **User:** Requested to remove the orange background from the Clara text logo. **Status: Completed**.
-4.  **User:** Pointed out the logo was just a C and should be the full word Clara. **Status: Completed**.
-5.  **User:** Requested to replace the icon logo with the text Clara. **Status: Completed**.
-6.  **User:** Reported that avatar uploads were not working and requested show image uploads be moved to , with only recurrence settings on . **Status: Completed**.
-7.  **User:** Requested user avatar uploads, moving the show image feature, and adding a comprehensive audit log page. **Status: Completed**.
-8.  **User:** Requested the removal of icons before page titles and the addition of user editing/password reset features to . **Status: Completed**.
-9.  **User:** Requested to remove the avatar from the main header and make all page titles consistent. **Status: Completed**.
-10. **User:** Requested to remove the redundant page title from the main header. **Status: Completed**.
+1.  **User:** Requested a per-post audit log with PDF export. **Status: Completed**.
+2.  **User:** Requested scheduled WordPress publishing and a more powerful TinyMCE editor. **Status: Completed**.
+3.  **User:** Reported that long filenames were breaking the UI. **Status: Completed**.
+4.  **User:** Reported that the scheduled date was not visible after setting it. **Status: Completed**.
+5.  **User:** Requested an admin approval workflow before posts can be published to WordPress. **Status: Completed**.
+6.  **User:** Reported a bug where the publish button was still clickable without approval. **Status: Completed**.
+7.  **User:** Requested that the publish button be hidden completely for Draft posts. **Status: Completed**.
+8.  **User:** Requested a soft-delete system where deleted posts are hidden from editors but viewable/restorable by admins, and are also deleted from WordPress. **Status: In Progress**.
 
 **Project Health Check:**
--   **Broken**: The Content Library page is non-functional due to a backend validation error on the  endpoint.
+-   **Broken**: The WordPress scheduling feature is incomplete, as it lacks a backend worker to process the scheduled posts. The soft-delete feature is half-implemented.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
--   **WordPress REST API**: Used for a one-time data import.
--   **WebSockets**: Infrastructure exists but is not yet utilized for real-time chat.
--   **TinyMCE**: Integrated for the rich text editor.
--   **Emoji-Picker-React**: Integrated for emoji UI in the chat.
--   **Microsoft SSO**: A potential future integration requested by the user.
+-   **WordPress REST API**: Used for data import and content publishing.
+-   **TinyMCE**: Rich text editor.
+-   **reportlab**: PDF generation.
+-   **Microsoft SSO**: A potential future integration.
 
 **Testing status**
--   **Testing agent used after significant changes**: Yes
--   **Troubleshoot agent used after agent stuck in loop**: No
+-   **Testing agent used after significant changes**: NO
+-   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: None
--   **Known regressions**: The  endpoint is currently failing, which breaks the Content Library page.
+-   **Known regressions**: None.
 
 **Credentials to test flow:**
 -   **Email:** 
 -   **Password:** 
 
 **What agent forgot to execute**
--   The agent correctly diagnosed the validation error ( field) causing the Content Library to fail but did not apply the final fix in  before the session ended.</analysis>
+-   The agent did not implement the backend worker (e.g., a cron job or scheduler) required to make the WordPress scheduling feature functional. Posts can be scheduled, but they will not be automatically published.</analysis>
