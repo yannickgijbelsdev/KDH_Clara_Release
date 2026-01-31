@@ -77,10 +77,10 @@ class ContentItemResponse(BaseModel):
     id: str
     title: str
     type: str
-    body: str
-    excerpt: str
-    external_url: str
-    tags: List[str]
+    body: Optional[str] = ""
+    excerpt: Optional[str] = ""
+    external_url: Optional[str] = ""
+    tags: List[str] = []
     status: str
     team_id: str
     created_by: str
