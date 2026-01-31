@@ -730,22 +730,38 @@ const ContentDetailPage = () => {
               `}</style>
             </div>
 
-            {content.tags && content.tags.length > 0 && (
-              <div>
-                <Label className="text-zinc-500 text-xs uppercase tracking-wider">Tags</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {content.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-zinc-800 text-zinc-300 rounded text-sm flex items-center gap-1"
-                    >
-                      <Tag className="w-3 h-3" />
-                      {tag}
-                    </span>
-                  ))}
+            {/* Category and Creator Info */}
+            <div className="flex flex-wrap gap-4">
+              {content.category && (
+                <div>
+                  <Label className="text-zinc-500 text-xs uppercase tracking-wider">Category</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Folder className="w-4 h-4 text-orange-400" />
+                    <span className="text-zinc-300">{content.category.name}</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+              
+              {content.created_by_name && (
+                <div>
+                  <Label className="text-zinc-500 text-xs uppercase tracking-wider">Created By</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <User className="w-4 h-4 text-zinc-400" />
+                    <span className="text-zinc-300">{content.created_by_name}</span>
+                  </div>
+                </div>
+              )}
+              
+              {content.source && (
+                <div>
+                  <Label className="text-zinc-500 text-xs uppercase tracking-wider">Source</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Globe className="w-4 h-4 text-blue-400" />
+                    <span className="text-zinc-300">{content.source}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
