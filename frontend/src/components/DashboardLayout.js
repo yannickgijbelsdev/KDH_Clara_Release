@@ -357,6 +357,8 @@ const DashboardLayout = () => {
               filteredFlatItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.to;
+                const badgeCount = getBadgeCount(item.to);
+                const isHighlight = ['/chat', '/approvals'].includes(item.to);
                 return (
                   <Tooltip key={item.to}>
                     <TooltipTrigger asChild>
@@ -364,7 +366,7 @@ const DashboardLayout = () => {
                         to={item.to}
                         data-testid={`nav-${item.to.slice(1)}-link`}
                         className={`
-                          w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200
+                          w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
                           ${isActive 
                             ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
                             : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
@@ -372,10 +374,15 @@ const DashboardLayout = () => {
                         `}
                       >
                         <Icon className="w-5 h-5" />
+                        {badgeCount > 0 && (
+                          <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full ${isHighlight ? 'bg-orange-500 text-white' : 'bg-zinc-600 text-white'}`}>
+                            {badgeCount > 99 ? '99+' : badgeCount}
+                          </span>
+                        )}
                       </NavLink>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
-                      {item.label}
+                      {item.label} {badgeCount > 0 && `(${badgeCount})`}
                     </TooltipContent>
                   </Tooltip>
                 );
