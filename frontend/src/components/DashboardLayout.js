@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Radio, LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, ScrollText } from 'lucide-react';
+import { Radio, LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, ScrollText, ClipboardCheck } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ const navItems = [
   { to: '/content', icon: FileText, label: 'Content Library', adminOnly: false },
   { to: '/media', icon: File, label: 'Media Library', adminOnly: false },
   { to: '/chat', icon: MessageSquare, label: 'Team Chat', adminOnly: false },
+  { to: '/approvals', icon: ClipboardCheck, label: 'Content Approval', adminOnly: true },
   { to: '/show-management', icon: Sliders, label: 'Show Management', adminOnly: true },
   { to: '/team', icon: Settings, label: 'Team Settings', adminOnly: true },
   { to: '/logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
