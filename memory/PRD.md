@@ -443,6 +443,8 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Backend Refactoring: Modular structure with models/, routers/, services/
 - [x] Chat sidebar preview bug fix (January 16, 2026)
 - [x] Chat real-time polling verification (January 16, 2026)
+- [x] WordPress Article Import (January 31, 2026): Imported 132 articles from mfy.be and grk.fm
+- [x] Content Library bug fix (January 31, 2026): Fixed ValidationError by making external_url, body, excerpt optional in ContentItemResponse
 
 ### P1 (Near-term)
 - [ ] Show cloning/templating
