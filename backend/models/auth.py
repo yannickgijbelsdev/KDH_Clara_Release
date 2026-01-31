@@ -47,6 +47,7 @@ class UserWithTeamResponse(BaseModel):
     team_name: str
     created_at: str
     avatar: Optional[dict] = None
+    preferences: Optional[dict] = None
 
 
 class TokenResponse(BaseModel):
