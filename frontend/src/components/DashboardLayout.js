@@ -180,10 +180,9 @@ const DashboardLayout = () => {
         <header className={`lg:hidden fixed ${impersonating ? 'top-10' : 'top-0'} left-0 right-0 z-50 glass border-b border-white/10`}>
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-orange-500 rounded-lg">
-                <span className="text-white font-black text-sm">C</span>
-              </div>
               <span className="text-lg font-bold text-white">Clara</span>
+              <span className="text-zinc-600">|</span>
+              <span className="text-zinc-400 text-sm font-medium truncate max-w-[150px]">{user?.team_name}</span>
             </div>
             <Button
               variant="ghost"
