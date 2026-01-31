@@ -256,6 +256,84 @@ async def update_content_item(
     return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
 
 
+# ============== ADMIN APPROVAL ==============
+
+@content_router.put("/{content_id}/approval", response_model=ContentItemResponse)
+async def update_content_approval(
+    content_id: str,
+    approval_data: ContentApprovalUpdate,
+    request: Request,
+    current_user: dict = Depends(require_admin)
+):
+    """Admin: Approve or reject content for WordPress publishing."""
+    content = await db.content_items.find_one(
+        {"id": content_id, "team_id": current_user.get('team_id')}
+    )
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    update_doc = {
+        "approval_status": approval_data.approval_status,
+        "approval_notes": approval_data.approval_notes,
+        "updated_at": now
+    }
+    
+    if approval_data.approval_status == "approved":
+        update_doc["approved_by"] = current_user['id']
+        update_doc["approved_at"] = now
+    elif approval_data.approval_status == "rejected":
+        update_doc["approved_by"] = current_user['id']
+        update_doc["approved_at"] = now
+    else:  # pending
+        update_doc["approved_by"] = None
+        update_doc["approved_at"] = None
+    
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": update_doc}
+    )
+    
+    # Create audit log
+    ip_address = request.client.host if request.client else None
+    await create_content_audit_log(
+        content_id=content_id,
+        action=f"approval_{approval_data.approval_status}",
+        user_id=current_user['id'],
+        user_name=current_user.get('name', 'Unknown'),
+        details=approval_data.approval_notes or f"Content {approval_data.approval_status}",
+        ip_address=ip_address
+    )
+    
+    return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
+
+
+@content_router.get("/admin/pending-approval")
+async def get_pending_approval_content(
+    current_user: dict = Depends(require_admin)
+):
+    """Admin: Get all content pending approval."""
+    items = await db.content_items.find(
+        {
+            "team_id": current_user.get('team_id'),
+            "status": "ready",
+            "$or": [
+                {"approval_status": {"$exists": False}},
+                {"approval_status": "pending"}
+            ]
+        },
+        {"_id": 0}
+    ).sort("updated_at", -1).to_list(500)
+    
+    result = []
+    for item in items:
+        item = await enrich_content_item(item)
+        result.append(item)
+    
+    return result
+
+
 @content_router.delete("/{content_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_content_item(
     content_id: str,
