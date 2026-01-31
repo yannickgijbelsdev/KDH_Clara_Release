@@ -49,7 +49,7 @@ def test_content(auth_headers):
             "status": "draft"
         }
     )
-    assert response.status_code == 200, f"Failed to create test content: {response.text}"
+    assert response.status_code in [200, 201], f"Failed to create test content: {response.text}"
     content = response.json()
     content_id = content["id"]
     
