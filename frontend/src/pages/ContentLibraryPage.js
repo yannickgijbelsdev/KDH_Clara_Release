@@ -290,7 +290,40 @@ const ContentLibraryPage = () => {
           </DropdownMenu>
         )}
 
-        {(typeFilter || statusFilter || sourceFilter) && (
+        {/* Category Filter */}
+        {categories.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                data-testid="category-filter-btn"
+                className="bg-[#18181b] border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
+              >
+                <Folder className="w-4 h-4" />
+                {categoryFilter ? categories.find(c => c.id === categoryFilter)?.name : 'All Categories'}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+              <DropdownMenuItem
+                onClick={() => setCategoryFilter('')}
+                className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              >
+                All Categories
+              </DropdownMenuItem>
+              {categories.map(cat => (
+                <DropdownMenuItem
+                  key={cat.id}
+                  onClick={() => setCategoryFilter(cat.id)}
+                  className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                >
+                  {cat.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        {(typeFilter || statusFilter || sourceFilter || categoryFilter) && (
           <Button
             variant="ghost"
             size="sm"
@@ -298,6 +331,7 @@ const ContentLibraryPage = () => {
               setTypeFilter('');
               setStatusFilter('');
               setSourceFilter('');
+              setCategoryFilter('');
             }}
             className="text-zinc-400 hover:text-white"
           >
