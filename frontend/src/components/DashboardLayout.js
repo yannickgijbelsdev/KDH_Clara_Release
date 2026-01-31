@@ -186,6 +186,37 @@ const DashboardLayout = () => {
 
   const RoleIcon = roleIcons[user?.role] || User;
 
+  // Get badge count for a route
+  const getBadgeCount = (route) => {
+    const countMap = {
+      '/content': menuCounts.content,
+      '/trash': menuCounts.trash,
+      '/approvals': menuCounts.approvals,
+      '/chat': menuCounts.chat,
+      '/logs': menuCounts.logs,
+    };
+    return countMap[route] || 0;
+  };
+
+  // Badge component
+  const Badge = ({ count, isActive, highlight = false }) => {
+    if (!count || count === 0) return null;
+    const displayCount = count > 99 ? '99+' : count;
+    return (
+      <span className={`
+        ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center
+        ${highlight 
+          ? 'bg-orange-500 text-white' 
+          : isActive 
+            ? 'bg-orange-500/30 text-orange-300' 
+            : 'bg-zinc-700 text-zinc-300'
+        }
+      `}>
+        {displayCount}
+      </span>
+    );
+  };
+
   // Filter items based on role
   const getFilteredItems = (items) => items.filter(item => !item.adminOnly || isAdmin);
   const filteredFlatItems = flatNavItems.filter(item => !item.adminOnly || isAdmin);
