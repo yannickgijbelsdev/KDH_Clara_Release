@@ -12,7 +12,7 @@ import io
 from database import db, UPLOADS_DIR
 from models.content import (
     ContentItemCreate, ContentItemUpdate, ContentItemResponse,
-    FeaturedImageResponse, CategoryResponse
+    FeaturedImageResponse, CategoryResponse, ContentApprovalUpdate
 )
 from models.wordpress import PublishToWordPressRequest, PublishResponse, PublishResult
 from services.auth import get_current_user, require_editor_or_admin, require_admin
