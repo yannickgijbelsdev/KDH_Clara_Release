@@ -103,24 +103,38 @@ def presenter_token(admin_headers):
     if response.status_code == 200:
         return response.json()["token"]
     
-    # Create presenter user if doesn't exist
-    response = requests.post(f"{BASE_URL}/api/users", headers=admin_headers, json={
+    # Create presenter user via invite endpoint
+    invite_response = requests.post(f"{BASE_URL}/api/users/invite", headers=admin_headers, json={
         "email": PRESENTER_EMAIL,
         "name": "Test Presenter",
-        "role": "presenter",
-        "password": PRESENTER_PASSWORD
+        "role": "presenter"
     })
     
-    if response.status_code in [200, 201]:
-        # Login with new user
-        login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
-            "email": PRESENTER_EMAIL,
-            "password": PRESENTER_PASSWORD
-        })
-        if login_response.status_code == 200:
-            return login_response.json()["token"]
+    if invite_response.status_code in [200, 201]:
+        user_id = invite_response.json()["id"]
+        
+        # Get temp password
+        temp_pwd_response = requests.get(f"{BASE_URL}/api/users/invite/{user_id}/password", headers=admin_headers)
+        if temp_pwd_response.status_code == 200:
+            temp_password = temp_pwd_response.json()["temp_password"]
+            
+            # Reset password to our known password
+            reset_response = requests.put(
+                f"{BASE_URL}/api/users/{user_id}/password",
+                headers=admin_headers,
+                json={"password": PRESENTER_PASSWORD}
+            )
+            
+            if reset_response.status_code == 200:
+                # Login with new user
+                login_response = requests.post(f"{BASE_URL}/api/auth/login", json={
+                    "email": PRESENTER_EMAIL,
+                    "password": PRESENTER_PASSWORD
+                })
+                if login_response.status_code == 200:
+                    return login_response.json()["token"]
     
-    pytest.skip(f"Could not create/login presenter user: {response.text}")
+    pytest.skip(f"Could not create/login presenter user")
 
 
 @pytest.fixture(scope="class")
