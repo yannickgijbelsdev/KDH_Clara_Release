@@ -159,17 +159,43 @@ async def update_user_role(
 @users_router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_user(
     user_id: str,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Remove a user from the team (admin only)."""
     if user_id == current_user['id']:
         raise HTTPException(status_code=400, detail="Cannot remove yourself")
     
+    # Get user info before deletion for logging
+    user = await db.users.find_one(
+        {"id": user_id, "team_id": current_user['team_id']}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
     result = await db.users.delete_one(
         {"id": user_id, "team_id": current_user['team_id']}
     )
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Log user removal
+    await log_action(
+        action="Removed User",
+        category="user",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user['team_id'],
+        ip_address=get_client_ip(request),
+        target_type="user",
+        target_id=user_id,
+        target_name=user.get('name'),
+        details={
+            "removed_email": user.get('email'),
+            "removed_role": user.get('role')
+        }
+    )
 
 
 @users_router.put("/{user_id}", response_model=UserResponse)
