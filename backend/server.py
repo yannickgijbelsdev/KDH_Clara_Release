@@ -276,11 +276,12 @@ async def exit_impersonation(current_user: dict = Depends(get_current_user)):
     if not team_admin:
         raise HTTPException(status_code=404, detail="Admin not found")
     
-    # Create token for admin
+    # Create token for admin with 4 hour expiry
+    exp_timestamp = datetime.now(timezone.utc).timestamp() + 3600 * 4
     token_payload = {
         "user_id": team_admin['id'],
         "email": team_admin['email'],
-        "exp": datetime.now(timezone.utc).timestamp() + 3600 * 24  # 24 hour expiry
+        "exp": exp_timestamp
     }
     new_token = jwt.encode(token_payload, JWT_SECRET, algorithm="HS256")
     
@@ -290,7 +291,8 @@ async def exit_impersonation(current_user: dict = Depends(get_current_user)):
     
     return {
         "token": new_token,
-        "user": team_admin
+        "user": team_admin,
+        "expires_at": exp_timestamp
     }
 
 
