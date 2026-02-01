@@ -161,6 +161,76 @@ const MediaLibraryPage = () => {
     }
   };
 
+  const handleOpenShareDialog = async (asset) => {
+    setShareAsset(asset);
+    setShareLoading(true);
+    setShareInfo(null);
+    setCopied(false);
+    
+    try {
+      // Check if share link already exists
+      const response = await axios.get(`${API}/media/${asset.id}/share`);
+      setShareInfo(response.data);
+    } catch (error) {
+      // No existing share link is fine
+      setShareInfo({ has_share_link: false });
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleCreateShareLink = async () => {
+    if (!shareAsset) return;
+    setShareLoading(true);
+    
+    try {
+      const response = await axios.post(`${API}/media/${shareAsset.id}/share`);
+      setShareInfo({
+        has_share_link: true,
+        share_token: response.data.share_token,
+        created_at: response.data.created_at
+      });
+      toast.success('Share link created');
+    } catch (error) {
+      toast.error('Failed to create share link');
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleRevokeShareLink = async () => {
+    if (!shareAsset) return;
+    setShareLoading(true);
+    
+    try {
+      await axios.delete(`${API}/media/${shareAsset.id}/share`);
+      setShareInfo({ has_share_link: false });
+      toast.success('Share link revoked');
+    } catch (error) {
+      toast.error('Failed to revoke share link');
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const getShareUrl = (token) => {
+    const baseUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+    return `${baseUrl}/api/share/${token}`;
+  };
+
+  const handleCopyShareLink = async () => {
+    if (!shareInfo?.share_token) return;
+    
+    try {
+      await navigator.clipboard.writeText(getShareUrl(shareInfo.share_token));
+      setCopied(true);
+      toast.success('Link copied to clipboard');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      toast.error('Failed to copy link');
+    }
+  };
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 B';
     const k = 1024;
