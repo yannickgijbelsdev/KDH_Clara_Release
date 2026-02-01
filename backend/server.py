@@ -341,6 +341,35 @@ async def get_avatar_file(file_key: str):
     return FileResponse(file_path, media_type=media_type)
 
 
+@api_router.get("/share/{share_token}")
+async def get_shared_file(share_token: str):
+    """Serve a publicly shared media file (no authentication required)."""
+    from fastapi import HTTPException
+    
+    # Find the share link
+    share = await db.media_share_links.find_one({"share_token": share_token})
+    if not share:
+        raise HTTPException(status_code=404, detail="Share link not found or expired")
+    
+    # Find the media asset
+    asset = await db.media_assets.find_one({"id": share["asset_id"]})
+    if not asset:
+        raise HTTPException(status_code=404, detail="Media file not found")
+    
+    file_path = MEDIA_UPLOADS_DIR / asset.get("file_storage_key", "")
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    media_type = asset.get("mime_type") or mimetypes.guess_type(str(file_path))[0] or 'application/octet-stream'
+    
+    # Return file with original filename for download
+    return FileResponse(
+        file_path, 
+        media_type=media_type,
+        filename=asset.get("original_filename", asset.get("title", "download"))
+    )
+
+
 @api_router.get("/uploads/show_title_images/{file_key}")
 async def get_show_title_image_file(file_key: str):
     """Serve a show title image file."""
