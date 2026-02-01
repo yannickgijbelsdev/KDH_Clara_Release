@@ -286,3 +286,148 @@ async def delete_series_assignment(
     })
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Assignment not found")
+
+
+
+# ============== BULK ASSIGNMENT CHANGES ==============
+
+from pydantic import BaseModel
+from typing import Literal
+
+class BulkAssignmentRequest(BaseModel):
+    user_id: str
+    role_on_show: str = "presenter"
+    apply_to: Literal["this_only", "all_future", "all"] = "this_only"
+
+
+@series_router.post("/{series_id}/assignments/bulk", response_model=dict)
+async def bulk_assign_to_series(
+    series_id: str,
+    assignment_data: BulkAssignmentRequest,
+    current_user: dict = Depends(require_admin)
+):
+    """
+    Assign a user to a series with options for how to apply.
+    - this_only: Only add to series assignment (new occurrences will inherit)
+    - all_future: Add to series + all future occurrence assignments  
+    - all: Add to series + all occurrence assignments (past & future)
+    """
+    series = await db.show_series.find_one(
+        {"id": series_id, "team_id": current_user.get('team_id')}
+    )
+    if not series:
+        raise HTTPException(status_code=404, detail="Show series not found")
+    
+    user = await db.users.find_one(
+        {"id": assignment_data.user_id, "team_id": current_user.get('team_id')}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    # Always create/update series assignment
+    existing_series = await db.series_assignments.find_one({
+        "series_id": series_id,
+        "user_id": assignment_data.user_id
+    })
+    
+    if not existing_series:
+        series_assignment_doc = {
+            "id": str(uuid.uuid4()),
+            "series_id": series_id,
+            "user_id": assignment_data.user_id,
+            "role_on_show": assignment_data.role_on_show,
+            "created_at": now
+        }
+        await db.series_assignments.insert_one(series_assignment_doc)
+    
+    occurrences_updated = 0
+    
+    if assignment_data.apply_to in ["all_future", "all"]:
+        # Get occurrences to update
+        occ_query = {"show_series_id": series_id}
+        
+        if assignment_data.apply_to == "all_future":
+            occ_query["date"] = {"$gte": today}
+        
+        occurrences = await db.show_occurrences.find(
+            occ_query,
+            {"id": 1}
+        ).to_list(1000)
+        
+        for occ in occurrences:
+            # Check if assignment already exists
+            existing_occ = await db.occurrence_assignments.find_one({
+                "occurrence_id": occ["id"],
+                "user_id": assignment_data.user_id
+            })
+            
+            if not existing_occ:
+                occ_assignment_doc = {
+                    "id": str(uuid.uuid4()),
+                    "occurrence_id": occ["id"],
+                    "user_id": assignment_data.user_id,
+                    "role_on_show": assignment_data.role_on_show,
+                    "created_at": now
+                }
+                await db.occurrence_assignments.insert_one(occ_assignment_doc)
+                occurrences_updated += 1
+    
+    return {
+        "message": "Assignment created",
+        "series_assigned": not existing_series,
+        "occurrences_updated": occurrences_updated
+    }
+
+
+@series_router.delete("/{series_id}/assignments/{user_id}/bulk")
+async def bulk_remove_assignment(
+    series_id: str,
+    user_id: str,
+    apply_to: Literal["this_only", "all_future", "all"] = "this_only",
+    current_user: dict = Depends(require_admin)
+):
+    """
+    Remove a user assignment from a series with options.
+    - this_only: Only remove from series (occurrences keep their assignments)
+    - all_future: Remove from series + all future occurrences
+    - all: Remove from series + all occurrences
+    """
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    
+    # Remove series assignment
+    series_result = await db.series_assignments.delete_one({
+        "series_id": series_id,
+        "user_id": user_id
+    })
+    
+    occurrences_updated = 0
+    
+    if apply_to in ["all_future", "all"]:
+        # Get occurrences
+        occ_query = {"show_series_id": series_id}
+        
+        if apply_to == "all_future":
+            occ_query["date"] = {"$gte": today}
+        
+        occurrences = await db.show_occurrences.find(
+            occ_query,
+            {"id": 1}
+        ).to_list(1000)
+        
+        occ_ids = [occ["id"] for occ in occurrences]
+        
+        if occ_ids:
+            result = await db.occurrence_assignments.delete_many({
+                "occurrence_id": {"$in": occ_ids},
+                "user_id": user_id
+            })
+            occurrences_updated = result.deleted_count
+    
+    return {
+        "message": "Assignment removed",
+        "series_removed": series_result.deleted_count > 0,
+        "occurrences_updated": occurrences_updated
+    }
