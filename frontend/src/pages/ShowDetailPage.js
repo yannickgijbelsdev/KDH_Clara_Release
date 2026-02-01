@@ -18,6 +18,12 @@ import {
   CalendarOff,
   Image,
   Loader2,
+  Folder,
+  FolderOpen,
+  FileText,
+  Music,
+  ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
