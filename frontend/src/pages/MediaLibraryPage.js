@@ -96,7 +96,8 @@ const MediaLibraryPage = () => {
   useEffect(() => {
     fetchAssets();
     fetchConfig();
-  }, [kindFilter]);
+    fetchFolders();
+  }, [kindFilter, currentFolder]);
 
   const fetchConfig = async () => {
     try {
@@ -108,6 +109,15 @@ const MediaLibraryPage = () => {
     }
   };
 
+  const fetchFolders = async () => {
+    try {
+      const response = await axios.get(`${API}/media/folders/tree`);
+      setFolders(response.data);
+    } catch (error) {
+      console.error('Failed to load folders');
+    }
+  };
+
   const fetchAssets = async () => {
     try {
       const params = new URLSearchParams();
@@ -116,6 +126,9 @@ const MediaLibraryPage = () => {
       }
       if (searchQuery) {
         params.append('search', searchQuery);
+      }
+      if (currentFolder) {
+        params.append('folder_id', currentFolder);
       }
       const response = await axios.get(`${API}/media?${params}`);
       setAssets(response.data);
