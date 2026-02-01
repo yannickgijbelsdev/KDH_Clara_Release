@@ -77,6 +77,19 @@ const MediaLibraryPage = () => {
   const [shareInfo, setShareInfo] = useState(null);
   const [copied, setCopied] = useState(false);
   const [shareBaseUrl, setShareBaseUrl] = useState('');
+  
+  // Folder state
+  const [folders, setFolders] = useState([]);
+  const [currentFolder, setCurrentFolder] = useState(null);
+  const [expandedFolders, setExpandedFolders] = useState(new Set());
+  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderParent, setNewFolderParent] = useState(null);
+  const [folderLoading, setFolderLoading] = useState(false);
+  const [editingFolder, setEditingFolder] = useState(null);
+  const [showShareFolderDialog, setShowShareFolderDialog] = useState(false);
+  const [sharingFolder, setSharingFolder] = useState(null);
+  
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
 
