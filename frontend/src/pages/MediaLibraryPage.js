@@ -24,7 +24,14 @@ import {
   Link,
   Copy,
   Check,
-  ExternalLink
+  ExternalLink,
+  Folder,
+  FolderPlus,
+  FolderOpen,
+  ChevronRight,
+  ChevronDown,
+  Users,
+  Tv
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
