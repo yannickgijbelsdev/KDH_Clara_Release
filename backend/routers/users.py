@@ -114,6 +114,7 @@ async def get_temp_password(
 async def update_user_role(
     user_id: str,
     role_data: UpdateUserRoleRequest,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Update a user's role (admin only)."""
@@ -126,9 +127,29 @@ async def update_user_role(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    old_role = user.get('role')
+    
     await db.users.update_one(
         {"id": user_id},
         {"$set": {"role": role_data.role}}
+    )
+    
+    # Log role change
+    await log_action(
+        action="Changed User Role",
+        category="user",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user['team_id'],
+        ip_address=get_client_ip(request),
+        target_type="user",
+        target_id=user_id,
+        target_name=user.get('name'),
+        details={
+            "old_role": old_role,
+            "new_role": role_data.role
+        }
     )
     
     updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
