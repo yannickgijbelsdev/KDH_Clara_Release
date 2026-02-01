@@ -53,6 +53,7 @@ class UserWithTeamResponse(BaseModel):
 class TokenResponse(BaseModel):
     token: str
     user: UserWithTeamResponse
+    expires_at: Optional[float] = None  # Unix timestamp when session expires
 
 
 class InviteUserRequest(BaseModel):
