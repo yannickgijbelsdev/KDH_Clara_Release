@@ -182,6 +182,7 @@ const ShowDetailPage = () => {
 
   useEffect(() => {
     fetchShow();
+    fetchLinkedFolders();
   }, [showId]);
 
   // WebSocket connection
