@@ -308,6 +308,17 @@ async def share_folder(
                 "series_id": series_id
             })
             if not existing:
+                share_doc = {
+                    "id": str(uuid.uuid4()),
+                    "folder_id": folder_id,
+                    "series_id": series_id,
+                    "created_by": current_user['id'],
+                    "created_at": now
+                }
+                await db.folder_shares.insert_one(share_doc)
+                shares_created.append({"type": "series", "id": series_id})
+    
+    return {"message": "Folder shared", "shares_created": shares_created}
 
 
 # ============== FOLDERS LINKED TO SHOWS ==============
