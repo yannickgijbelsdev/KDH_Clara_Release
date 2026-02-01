@@ -402,6 +402,27 @@ const MediaLibraryPage = () => {
     }
   };
 
+  const handleLinkFolderToShows = async () => {
+    if (!sharingFolder || selectedShowsToShare.length === 0) return;
+    setSharingLoading(true);
+    
+    try {
+      await axios.post(`${API}/media/folders/${sharingFolder.id}/shares`, {
+        show_ids: selectedShowsToShare
+      });
+      toast.success('Folder linked to shows');
+      
+      // Refresh shares
+      const sharesRes = await axios.get(`${API}/media/folders/${sharingFolder.id}/shares`);
+      setFolderShares(sharesRes.data);
+      setSelectedShowsToShare([]);
+    } catch (error) {
+      toast.error('Failed to link folder');
+    } finally {
+      setSharingLoading(false);
+    }
+  };
+
   const handleRemoveFolderShare = async (shareId) => {
     if (!sharingFolder) return;
     
