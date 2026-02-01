@@ -80,6 +80,15 @@ async def health():
     return {"status": "healthy"}
 
 
+@api_router.get("/config")
+async def get_config():
+    """Get public configuration for the frontend."""
+    from database import SHARE_BASE_URL
+    return {
+        "share_base_url": SHARE_BASE_URL
+    }
+
+
 # Content publish endpoint (needs both content and wordpress routers)
 @api_router.post("/content/{content_id}/publish", response_model=PublishResponse)
 async def publish_to_wordpress(
