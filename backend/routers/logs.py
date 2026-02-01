@@ -154,6 +154,9 @@ async def get_logs_by_date(
         {"_id": 0}
     ).sort("timestamp", -1).skip(skip).limit(limit).to_list(limit)
     
+    # Enrich logs with current user names
+    logs = await enrich_logs_with_current_usernames(logs)
+    
     total = await db.audit_logs.count_documents(query)
     
     return {
