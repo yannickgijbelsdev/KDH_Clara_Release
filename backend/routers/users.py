@@ -202,6 +202,7 @@ async def remove_user(
 async def update_user(
     user_id: str,
     user_data: dict,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Update a user's profile (admin only)."""
@@ -213,13 +214,18 @@ async def update_user(
     
     # Only allow updating name and email
     update_fields = {}
+    changes = {}
     if "name" in user_data and user_data["name"]:
+        if user_data["name"] != user.get("name"):
+            changes["name"] = {"old": user.get("name"), "new": user_data["name"]}
         update_fields["name"] = user_data["name"]
     if "email" in user_data and user_data["email"]:
         # Check if email is already taken by another user
         existing = await db.users.find_one({"email": user_data["email"], "id": {"$ne": user_id}})
         if existing:
             raise HTTPException(status_code=400, detail="Email already in use")
+        if user_data["email"] != user.get("email"):
+            changes["email"] = {"old": user.get("email"), "new": user_data["email"]}
         update_fields["email"] = user_data["email"]
     
     if update_fields:
@@ -227,6 +233,22 @@ async def update_user(
             {"id": user_id},
             {"$set": update_fields}
         )
+        
+        # Log profile update
+        if changes:
+            await log_action(
+                action="Updated User Profile",
+                category="user",
+                user_id=current_user['id'],
+                user_name=current_user.get('name'),
+                user_email=current_user.get('email'),
+                team_id=current_user['team_id'],
+                ip_address=get_client_ip(request),
+                target_type="user",
+                target_id=user_id,
+                target_name=update_fields.get("name", user.get("name")),
+                details={"changes": changes}
+            )
     
     updated_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
     return updated_user
