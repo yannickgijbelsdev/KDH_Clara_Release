@@ -1019,9 +1019,9 @@ async def update_rundown_item(
 async def delete_rundown_item(
     show_id: str,
     item_id: str,
-    current_user: dict = Depends(require_editor_or_admin)
+    current_user: dict = Depends(require_admin)
 ):
-    """Delete a rundown item (editor or admin only)."""
+    """Delete a rundown item. Admin only."""
     show = await db.shows.find_one(
         {"id": show_id, "team_id": current_user.get('team_id')}
     )
