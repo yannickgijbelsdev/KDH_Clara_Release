@@ -89,6 +89,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppRoutes />
+        <SessionWarningModal />
         <Toaster position="bottom-right" richColors />
       </AuthProvider>
     </BrowserRouter>
