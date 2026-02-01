@@ -1022,6 +1022,161 @@ const MediaLibraryPage = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Share Folder Dialog */}
+      <Dialog open={showShareFolderDialog} onOpenChange={(open) => {
+        if (!open) {
+          setShowShareFolderDialog(false);
+          setSharingFolder(null);
+          setSelectedUsersToShare([]);
+          setSelectedSeriesToShare([]);
+        }
+      }}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-orange-500" />
+              Share &ldquo;{sharingFolder?.name}&rdquo;
+            </DialogTitle>
+          </DialogHeader>
+          
+          {sharingLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+            </div>
+          ) : (
+            <div className="flex-1 overflow-y-auto space-y-6 py-2">
+              {/* Current Shares */}
+              {folderShares.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-zinc-400 mb-2">Current Shares</h4>
+                  <div className="space-y-2">
+                    {folderShares.map(share => (
+                      <div key={share.id} className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          {share.user_id ? (
+                            <>
+                              <Users className="w-4 h-4 text-blue-400" />
+                              <span className="text-sm text-zinc-300">{share.user_name}</span>
+                            </>
+                          ) : share.series_id ? (
+                            <>
+                              <Tv className="w-4 h-4 text-green-400" />
+                              <span className="text-sm text-zinc-300">{share.series_title}</span>
+                            </>
+                          ) : (
+                            <span className="text-sm text-zinc-400">Unknown</span>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveFolderShare(share.id)}
+                          className="h-7 w-7 p-0 text-zinc-500 hover:text-red-400"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Share with Users */}
+              <div>
+                <h4 className="text-sm font-medium text-zinc-400 mb-2 flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Share with Team Members
+                </h4>
+                <div className="max-h-40 overflow-y-auto bg-white/5 rounded-lg p-2 space-y-1">
+                  {teamUsers
+                    .filter(user => !folderShares.some(s => s.user_id === user.id))
+                    .map(user => (
+                      <label
+                        key={user.id}
+                        className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUsersToShare.includes(user.id)}
+                          onChange={() => toggleUserSelection(user.id)}
+                          className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                        />
+                        <span className="text-sm text-zinc-300">{user.name}</span>
+                        <span className="text-xs text-zinc-500">{user.role}</span>
+                      </label>
+                    ))}
+                  {teamUsers.filter(u => !folderShares.some(s => s.user_id === u.id)).length === 0 && (
+                    <p className="text-sm text-zinc-500 text-center py-2">All team members already have access</p>
+                  )}
+                </div>
+                {selectedUsersToShare.length > 0 && (
+                  <Button
+                    onClick={handleShareFolderWithUsers}
+                    disabled={sharingLoading}
+                    className="mt-2 bg-blue-600 hover:bg-blue-700"
+                    size="sm"
+                  >
+                    Share with {selectedUsersToShare.length} user{selectedUsersToShare.length > 1 ? 's' : ''}
+                  </Button>
+                )}
+              </div>
+
+              {/* Link to Shows */}
+              <div>
+                <h4 className="text-sm font-medium text-zinc-400 mb-2 flex items-center gap-2">
+                  <Tv className="w-4 h-4" />
+                  Link to Shows (Series)
+                </h4>
+                <div className="max-h-40 overflow-y-auto bg-white/5 rounded-lg p-2 space-y-1">
+                  {showSeries
+                    .filter(series => !folderShares.some(s => s.series_id === series.id))
+                    .map(series => (
+                      <label
+                        key={series.id}
+                        className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedSeriesToShare.includes(series.id)}
+                          onChange={() => toggleSeriesSelection(series.id)}
+                          className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                        />
+                        <span className="text-sm text-zinc-300">{series.title}</span>
+                      </label>
+                    ))}
+                  {showSeries.filter(s => !folderShares.some(fs => fs.series_id === s.id)).length === 0 && (
+                    <p className="text-sm text-zinc-500 text-center py-2">All shows already linked</p>
+                  )}
+                </div>
+                {selectedSeriesToShare.length > 0 && (
+                  <Button
+                    onClick={handleLinkFolderToSeries}
+                    disabled={sharingLoading}
+                    className="mt-2 bg-green-600 hover:bg-green-700"
+                    size="sm"
+                  >
+                    Link to {selectedSeriesToShare.length} show{selectedSeriesToShare.length > 1 ? 's' : ''}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowShareFolderDialog(false);
+                setSharingFolder(null);
+              }}
+              className="text-zinc-400"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Title Dialog */}
       <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
         <DialogContent className="bg-[#18181b] border-zinc-800">
