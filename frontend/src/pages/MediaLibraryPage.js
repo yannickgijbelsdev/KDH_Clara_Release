@@ -454,6 +454,14 @@ const MediaLibraryPage = () => {
     );
   };
 
+  const toggleShowSelection = (showId) => {
+    setSelectedShowsToShare(prev => 
+      prev.includes(showId) 
+        ? prev.filter(id => id !== showId)
+        : [...prev, showId]
+    );
+  };
+
   const handleRenameFolder = async () => {
     if (!editingFolder || !newFolderName.trim()) return;
     
