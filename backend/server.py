@@ -219,11 +219,12 @@ async def switch_to_user(
         raise HTTPException(status_code=404, detail="User not found")
     
     # Create a new token for the target user with impersonation marker
+    exp_timestamp = datetime.now(timezone.utc).timestamp() + 3600 * 4  # 4 hour expiry
     token_payload = {
         "user_id": target_user['id'],
         "email": target_user['email'],
         "impersonated_by": current_user['id'],  # Track who is impersonating
-        "exp": datetime.now(timezone.utc).timestamp() + 3600 * 4  # 4 hour expiry
+        "exp": exp_timestamp
     }
     new_token = jwt.encode(token_payload, JWT_SECRET, algorithm="HS256")
     
@@ -234,6 +235,7 @@ async def switch_to_user(
     return {
         "token": new_token,
         "user": target_user,
+        "expires_at": exp_timestamp,
         "original_user": {
             "id": current_user['id'],
             "name": current_user['name'],
