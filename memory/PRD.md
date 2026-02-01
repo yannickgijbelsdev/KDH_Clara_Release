@@ -613,3 +613,50 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Links cleaned up when assets are deleted
   
 - [x] All 18 backend tests + frontend UI tests passed (100% success rate)
+
+### February 1, 2026 - Session Management & Advanced Features
+
+- [x] **Session Timeout (4 Hours)**:
+  - JWT expiration set to 4 hours since login
+  - Login/register responses include `expires_at` timestamp
+  - Frontend SessionWarningModal shows 5-minute countdown before logout
+  - Auto-logout when session expires
+  - Session state persisted in localStorage
+  
+- [x] **Share URL Domain Configuration**:
+  - SHARE_BASE_URL environment variable (defaults to https://clara.koodh.com)
+  - GET /api/config returns share_base_url for frontend
+  - Share links use configured domain instead of preview URL
+  
+- [x] **Media Library Folders**:
+  - Complete folder CRUD (create, read, update, delete)
+  - Nested folder structure with parent_id
+  - Folder tree endpoint (GET /api/media/folders/tree)
+  - Assets can be organized into folders (folder_id field)
+  - Folder sidebar in Media Library UI
+  - Breadcrumb navigation for current folder
+  - Asset counts per folder
+  
+- [x] **Folder Sharing**:
+  - Share folders with users (POST /api/media/folders/{id}/shares with user_ids)
+  - Link folders to shows (show_ids)
+  - Link folders to series (series_ids)
+  - View folder shares (GET /api/media/folders/{id}/shares)
+  - Remove shares (DELETE /api/media/folders/{id}/shares/{share_id})
+  - Get folders for show/occurrence (GET /api/media/folders/show/{id}, /occurrence/{id})
+  
+- [x] **Show/Rundown Permission Restrictions**:
+  - Admins can edit all shows and rundowns
+  - Editors can edit all shows and rundowns
+  - Presenters can only edit shows/rundowns they're assigned to
+  - Viewers cannot edit
+  - Only admins can delete shows and rundown items
+  
+- [x] **Bulk Assignment Changes for Recurring Shows**:
+  - POST /api/series/{id}/assignments/bulk with apply_to options:
+    - "this_only": Only series assignment (new occurrences inherit)
+    - "all_future": Series + all future occurrence assignments
+    - "all": Series + all occurrence assignments (past & future)
+  - DELETE /api/series/{id}/assignments/{user_id}/bulk with same options
+  
+- [x] All 22 new backend tests passed (100% success rate)
