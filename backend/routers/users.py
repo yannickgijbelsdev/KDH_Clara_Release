@@ -37,6 +37,7 @@ async def get_team_users(current_user: dict = Depends(get_current_user)):
 @users_router.post("/invite", response_model=UserResponse)
 async def invite_user(
     invite_data: InviteUserRequest,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Invite a new user to the team (admin only)."""
@@ -60,6 +61,24 @@ async def invite_user(
     }
     
     await db.users.insert_one(user_doc)
+    
+    # Log the user invitation
+    await log_action(
+        action="Invited User",
+        category="user",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user['team_id'],
+        ip_address=get_client_ip(request),
+        target_type="user",
+        target_id=user_id,
+        target_name=invite_data.name,
+        details={
+            "invited_email": invite_data.email,
+            "role": invite_data.role
+        }
+    )
     
     return UserResponse(
         id=user_id,
