@@ -590,9 +590,17 @@ const DashboardLayout = () => {
             {/* User section at bottom */}
             <div className="pt-4 border-t border-white/10 mt-4">
               <div className="flex items-center gap-3 p-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                  {user?.name?.charAt(0).toUpperCase()}
-                </div>
+                {user?.avatar?.file_key ? (
+                  <img 
+                    src={`${API}/uploads/avatars/${user.avatar.file_key}`}
+                    alt={user?.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">{user?.name}</p>
                   <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
