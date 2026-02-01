@@ -794,6 +794,80 @@ const MediaLibraryPage = () => {
           })}
         </div>
       )}
+        </div>
+      </div>
+
+      {/* New Folder Dialog */}
+      <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
+        <DialogContent className="bg-[#18181b] border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <FolderPlus className="w-5 h-5 text-orange-500" />
+              New Folder
+            </DialogTitle>
+          </DialogHeader>
+          <Input
+            data-testid="folder-name-input"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            placeholder="Folder name"
+            className="bg-white/5 border-white/10 text-white"
+            autoFocus
+          />
+          {newFolderParent && (
+            <p className="text-sm text-zinc-400">
+              Creating inside: <span className="text-orange-400">{folders.find(f => f.id === newFolderParent)?.name}</span>
+            </p>
+          )}
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowNewFolderDialog(false);
+                setNewFolderName('');
+                setNewFolderParent(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              data-testid="create-folder-btn"
+              onClick={handleCreateFolder}
+              disabled={folderLoading || !newFolderName.trim()}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              {folderLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Folder Dialog */}
+      <Dialog open={!!editingFolder} onOpenChange={() => setEditingFolder(null)}>
+        <DialogContent className="bg-[#18181b] border-zinc-800">
+          <DialogHeader>
+            <DialogTitle className="text-white">Rename Folder</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            placeholder="Folder name"
+            className="bg-white/5 border-white/10 text-white"
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditingFolder(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRenameFolder}
+              disabled={!newFolderName.trim()}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Title Dialog */}
       <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
