@@ -302,19 +302,22 @@ const MediaLibraryPage = () => {
   };
 
   const handleDeleteFolder = async (folderId) => {
-    if (!confirm('Delete this folder? Assets will be moved to the root level.')) return;
-    
     try {
       await axios.delete(`${API}/media/folders/${folderId}?move_to_root=true`);
       toast.success('Folder deleted');
       if (currentFolder === folderId) {
         setCurrentFolder(null);
       }
+      setDeletingFolder(null);
       fetchFolders();
       fetchAssets();
     } catch (error) {
       toast.error('Failed to delete folder');
     }
+  };
+
+  const openDeleteFolderDialog = (folder) => {
+    setDeletingFolder(folder);
   };
 
   const handleRenameFolder = async () => {
