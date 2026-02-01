@@ -659,7 +659,7 @@ const MediaLibraryPage = () => {
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Share2 className="w-5 h-5 text-orange-500" />
-              Share "{shareAsset?.title}"
+              Share &ldquo;{shareAsset?.title}&rdquo;
             </DialogTitle>
           </DialogHeader>
           
