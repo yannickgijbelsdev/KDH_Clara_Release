@@ -91,6 +91,14 @@ const MediaLibraryPage = () => {
   const [sharingFolder, setSharingFolder] = useState(null);
   const [deletingFolder, setDeletingFolder] = useState(null);
   
+  // Folder sharing state
+  const [teamUsers, setTeamUsers] = useState([]);
+  const [showSeries, setShowSeries] = useState([]);
+  const [folderShares, setFolderShares] = useState([]);
+  const [sharingLoading, setSharingLoading] = useState(false);
+  const [selectedUsersToShare, setSelectedUsersToShare] = useState([]);
+  const [selectedSeriesToShare, setSelectedSeriesToShare] = useState([]);
+  
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
 
