@@ -421,6 +421,10 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 ### Media Library (MVP 4)
 - GET/POST /api/media, GET/PUT/DELETE /api/media/{id}
 - GET /api/uploads/media/{file_key}
+- POST /api/media/{id}/share - Create public share link
+- GET /api/media/{id}/share - Get share link status
+- DELETE /api/media/{id}/share - Revoke share link
+- GET /api/share/{token} - Public file download (no auth)
 
 ### Show Series (MVP 4 - Admin only)
 - GET/POST /api/series, GET/PUT/DELETE /api/series/{id}
