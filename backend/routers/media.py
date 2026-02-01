@@ -10,8 +10,12 @@ import aiofiles
 import secrets
 
 from database import db, MEDIA_UPLOADS_DIR
-from models.media import MediaAssetResponse, MediaAssetUpdate
-from services.auth import get_current_user, require_can_edit_content
+from models.media import (
+    MediaAssetResponse, MediaAssetUpdate,
+    MediaFolderCreate, MediaFolderUpdate, MediaFolderResponse,
+    FolderShareRequest, FolderShareResponse
+)
+from services.auth import get_current_user, require_can_edit_content, require_admin
 
 media_router = APIRouter(prefix="/media", tags=["Media Library"])
 
