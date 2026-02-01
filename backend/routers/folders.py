@@ -308,6 +308,85 @@ async def share_folder(
                 "series_id": series_id
             })
             if not existing:
+
+
+# ============== FOLDERS LINKED TO SHOWS ==============
+
+@folders_router.get("/show/{show_id}")
+async def get_show_folders(
+    show_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all folders linked to a show."""
+    # Get direct show links
+    show_shares = await db.folder_shares.find(
+        {"show_id": show_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    folder_ids = [s["folder_id"] for s in show_shares]
+    
+    # Also check if show belongs to a series with linked folders
+    show = await db.shows.find_one({"id": show_id})
+    if show and show.get("series_id"):
+        series_shares = await db.folder_shares.find(
+            {"series_id": show["series_id"]},
+            {"_id": 0}
+        ).to_list(100)
+        folder_ids.extend([s["folder_id"] for s in series_shares])
+    
+    # Get unique folder IDs
+    folder_ids = list(set(folder_ids))
+    
+    if not folder_ids:
+        return []
+    
+    folders = await db.media_folders.find(
+        {"id": {"$in": folder_ids}},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Enrich with asset counts
+    for folder in folders:
+        folder["asset_count"] = await db.media_assets.count_documents({"folder_id": folder["id"]})
+    
+    return folders
+
+
+@folders_router.get("/occurrence/{occurrence_id}")
+async def get_occurrence_folders(
+    occurrence_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all folders linked to an occurrence (via its series)."""
+    occurrence = await db.show_occurrences.find_one({"id": occurrence_id})
+    if not occurrence:
+        raise HTTPException(status_code=404, detail="Occurrence not found")
+    
+    folder_ids = []
+    
+    # Check series links
+    if occurrence.get("show_series_id"):
+        series_shares = await db.folder_shares.find(
+            {"series_id": occurrence["show_series_id"]},
+            {"_id": 0}
+        ).to_list(100)
+        folder_ids.extend([s["folder_id"] for s in series_shares])
+    
+    if not folder_ids:
+        return []
+    
+    folders = await db.media_folders.find(
+        {"id": {"$in": folder_ids}},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Enrich with asset counts
+    for folder in folders:
+        folder["asset_count"] = await db.media_assets.count_documents({"folder_id": folder["id"]})
+    
+    return folders
+
                 share_doc = {
                     "id": str(uuid.uuid4()),
                     "folder_id": folder_id,
