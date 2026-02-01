@@ -873,6 +873,45 @@ const MediaLibraryPage = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Folder Confirmation Dialog */}
+      <Dialog open={!!deletingFolder} onOpenChange={() => setDeletingFolder(null)}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-500" />
+              Delete Folder
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <p className="text-zinc-300 mb-2">
+              Are you sure you want to delete <span className="font-semibold text-white">&ldquo;{deletingFolder?.name}&rdquo;</span>?
+            </p>
+            <p className="text-sm text-zinc-400">
+              All files in this folder will be moved to the root level. This action cannot be undone.
+            </p>
+          </div>
+          
+          <DialogFooter className="gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setDeletingFolder(null)}
+              className="text-zinc-400"
+            >
+              Cancel
+            </Button>
+            <Button
+              data-testid="confirm-delete-folder-btn"
+              onClick={() => handleDeleteFolder(deletingFolder?.id)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Folder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Title Dialog */}
       <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
         <DialogContent className="bg-[#18181b] border-zinc-800">
