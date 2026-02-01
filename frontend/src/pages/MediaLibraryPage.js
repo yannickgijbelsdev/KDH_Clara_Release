@@ -65,6 +65,10 @@ const MediaLibraryPage = () => {
   const [editingAsset, setEditingAsset] = useState(null);
   const [newTitle, setNewTitle] = useState('');
   const [previewAsset, setPreviewAsset] = useState(null);
+  const [shareAsset, setShareAsset] = useState(null);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareInfo, setShareInfo] = useState(null);
+  const [copied, setCopied] = useState(false);
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
 
