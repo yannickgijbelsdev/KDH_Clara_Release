@@ -338,17 +338,20 @@ const MediaLibraryPage = () => {
     setSharingLoading(true);
     setSelectedUsersToShare([]);
     setSelectedSeriesToShare([]);
+    setSelectedShowsToShare([]);
     
     try {
-      // Fetch team users, series, and existing shares in parallel
-      const [usersRes, seriesRes, sharesRes] = await Promise.all([
+      // Fetch team users, series, shows, and existing shares in parallel
+      const [usersRes, seriesRes, showsRes, sharesRes] = await Promise.all([
         axios.get(`${API}/users`),
         axios.get(`${API}/series`),
+        axios.get(`${API}/shows`),
         axios.get(`${API}/media/folders/${folder.id}/shares`)
       ]);
       
       setTeamUsers(usersRes.data);
       setShowSeries(seriesRes.data);
+      setIndividualShows(showsRes.data);
       setFolderShares(sharesRes.data);
     } catch (error) {
       toast.error('Failed to load sharing data');
