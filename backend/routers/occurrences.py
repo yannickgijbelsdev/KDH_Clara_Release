@@ -332,19 +332,14 @@ async def update_occurrence_rundown_item(
 async def delete_occurrence_rundown_item(
     occurrence_id: str,
     item_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin)
 ):
-    """Delete a rundown item from an occurrence."""
+    """Delete a rundown item from an occurrence. Admin only."""
     occurrence = await db.show_occurrences.find_one(
         {"id": occurrence_id, "team_id": current_user.get('team_id')}
     )
     if not occurrence:
         raise HTTPException(status_code=404, detail="Occurrence not found")
-    
-    if current_user.get('role') != 'admin':
-        has_access = await check_occurrence_assignment(occurrence_id, current_user)
-        if not has_access:
-            raise HTTPException(status_code=403, detail="Not assigned to this occurrence")
     
     result = await db.rundown_items_v2.delete_one({"id": item_id, "occurrence_id": occurrence_id})
     if result.deleted_count == 0:
