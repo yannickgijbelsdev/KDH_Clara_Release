@@ -535,8 +535,7 @@ const MediaLibraryPage = () => {
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSharingFolder(folder);
-                      setShowShareFolderDialog(true);
+                      openShareFolderDialog(folder);
                     }}
                     className="text-zinc-300"
                   >
