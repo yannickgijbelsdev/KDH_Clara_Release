@@ -111,7 +111,7 @@ async def login(credentials: UserLogin, request: Request):
         details={"role": role}
     )
     
-    token = create_token(user['id'])
+    token, expires_at = create_token(user['id'])
     user_response = UserWithTeamResponse(
         id=user['id'],
         email=user['email'],
@@ -122,7 +122,7 @@ async def login(credentials: UserLogin, request: Request):
         created_at=user['created_at']
     )
     
-    return TokenResponse(token=token, user=user_response)
+    return TokenResponse(token=token, user=user_response, expires_at=expires_at)
 
 
 @auth_router.post("/logout")
