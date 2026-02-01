@@ -94,10 +94,12 @@ const MediaLibraryPage = () => {
   // Folder sharing state
   const [teamUsers, setTeamUsers] = useState([]);
   const [showSeries, setShowSeries] = useState([]);
+  const [individualShows, setIndividualShows] = useState([]);
   const [folderShares, setFolderShares] = useState([]);
   const [sharingLoading, setSharingLoading] = useState(false);
   const [selectedUsersToShare, setSelectedUsersToShare] = useState([]);
   const [selectedSeriesToShare, setSelectedSeriesToShare] = useState([]);
+  const [selectedShowsToShare, setSelectedShowsToShare] = useState([]);
   
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
