@@ -69,12 +69,24 @@ const MediaLibraryPage = () => {
   const [shareLoading, setShareLoading] = useState(false);
   const [shareInfo, setShareInfo] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [shareBaseUrl, setShareBaseUrl] = useState('');
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
 
   useEffect(() => {
     fetchAssets();
+    fetchConfig();
   }, [kindFilter]);
+
+  const fetchConfig = async () => {
+    try {
+      const response = await axios.get(`${API}/config`);
+      setShareBaseUrl(response.data.share_base_url || window.location.origin);
+    } catch (error) {
+      // Fallback to current origin
+      setShareBaseUrl(window.location.origin);
+    }
+  };
 
   const fetchAssets = async () => {
     try {
