@@ -400,9 +400,17 @@ const DashboardLayout = () => {
                   data-testid="user-menu-btn"
                   className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-orange-500/10`}
                 >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
+                  {user?.avatar?.file_key ? (
+                    <img 
+                      src={`${API}/uploads/avatars/${user.avatar.file_key}`}
+                      alt={user?.name}
+                      className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   {useGroupedMenu && (
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-medium text-white truncate">{user?.name}</p>
@@ -412,9 +420,22 @@ const DashboardLayout = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align={useGroupedMenu ? "end" : "start"} side={useGroupedMenu ? "top" : "right"} className="w-56 bg-[#18181b] border-zinc-800 ml-2">
-                <div className="px-3 py-2">
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-zinc-500">{user?.email}</p>
+                <div className="px-3 py-2 flex items-center gap-3">
+                  {user?.avatar?.file_key ? (
+                    <img 
+                      src={`${API}/uploads/avatars/${user.avatar.file_key}`}
+                      alt={user?.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-white">{user?.name}</p>
+                    <p className="text-xs text-zinc-500">{user?.email}</p>
+                  </div>
                 </div>
                 <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem className="text-zinc-400">
