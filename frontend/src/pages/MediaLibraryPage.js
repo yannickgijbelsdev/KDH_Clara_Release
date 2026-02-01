@@ -277,6 +277,176 @@ const MediaLibraryPage = () => {
     }
   };
 
+  // ============== FOLDER FUNCTIONS ==============
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return;
+    setFolderLoading(true);
+    
+    try {
+      await axios.post(`${API}/media/folders`, {
+        name: newFolderName.trim(),
+        parent_id: newFolderParent
+      });
+      toast.success('Folder created');
+      setShowNewFolderDialog(false);
+      setNewFolderName('');
+      setNewFolderParent(null);
+      fetchFolders();
+    } catch (error) {
+      toast.error('Failed to create folder');
+    } finally {
+      setFolderLoading(false);
+    }
+  };
+
+  const handleDeleteFolder = async (folderId) => {
+    if (!confirm('Delete this folder? Assets will be moved to the root level.')) return;
+    
+    try {
+      await axios.delete(`${API}/media/folders/${folderId}?move_to_root=true`);
+      toast.success('Folder deleted');
+      if (currentFolder === folderId) {
+        setCurrentFolder(null);
+      }
+      fetchFolders();
+      fetchAssets();
+    } catch (error) {
+      toast.error('Failed to delete folder');
+    }
+  };
+
+  const handleRenameFolder = async () => {
+    if (!editingFolder || !newFolderName.trim()) return;
+    
+    try {
+      await axios.put(`${API}/media/folders/${editingFolder.id}`, {
+        name: newFolderName.trim()
+      });
+      toast.success('Folder renamed');
+      setEditingFolder(null);
+      setNewFolderName('');
+      fetchFolders();
+    } catch (error) {
+      toast.error('Failed to rename folder');
+    }
+  };
+
+  const toggleFolderExpand = (folderId) => {
+    setExpandedFolders(prev => {
+      const next = new Set(prev);
+      if (next.has(folderId)) {
+        next.delete(folderId);
+      } else {
+        next.add(folderId);
+      }
+      return next;
+    });
+  };
+
+  const handleMoveAssetToFolder = async (assetId, folderId) => {
+    try {
+      await axios.put(`${API}/media/${assetId}`, {
+        folder_id: folderId
+      });
+      toast.success('Asset moved');
+      fetchAssets();
+    } catch (error) {
+      toast.error('Failed to move asset');
+    }
+  };
+
+  // Recursive folder tree renderer
+  const renderFolderTree = (folderList, depth = 0) => {
+    return folderList.map(folder => {
+      const isExpanded = expandedFolders.has(folder.id);
+      const isSelected = currentFolder === folder.id;
+      const hasChildren = folder.children && folder.children.length > 0;
+      
+      return (
+        <div key={folder.id}>
+          <div
+            className={cn(
+              "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors group",
+              isSelected ? "bg-orange-500/20 text-orange-400" : "hover:bg-white/5 text-zinc-400",
+              depth > 0 && "ml-4"
+            )}
+            onClick={() => setCurrentFolder(folder.id)}
+          >
+            {hasChildren ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); toggleFolderExpand(folder.id); }}
+                className="p-0.5 hover:bg-white/10 rounded"
+              >
+                {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+              </button>
+            ) : (
+              <span className="w-4" />
+            )}
+            {isSelected ? <FolderOpen className="w-4 h-4 flex-shrink-0" /> : <Folder className="w-4 h-4 flex-shrink-0" />}
+            <span className="truncate flex-1 text-sm">{folder.name}</span>
+            <span className="text-xs text-zinc-500">{folder.asset_count}</span>
+            
+            {canEdit && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <button className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/10">
+                    <MoreVertical className="w-3 h-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-[#27272a] border-zinc-700">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNewFolderParent(folder.id);
+                      setShowNewFolderDialog(true);
+                    }}
+                    className="text-zinc-300"
+                  >
+                    <FolderPlus className="w-4 h-4 mr-2" />
+                    New Subfolder
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingFolder(folder);
+                      setNewFolderName(folder.name);
+                    }}
+                    className="text-zinc-300"
+                  >
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Rename
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSharingFolder(folder);
+                      setShowShareFolderDialog(true);
+                    }}
+                    className="text-zinc-300"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Share / Link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder.id); }}
+                    className="text-red-400"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+          {isExpanded && hasChildren && (
+            <div>{renderFolderTree(folder.children, depth + 1)}</div>
+          )}
+        </div>
+      );
+    });
+  };
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 B';
     const k = 1024;
