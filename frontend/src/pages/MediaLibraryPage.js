@@ -19,7 +19,12 @@ import {
   Image,
   Play,
   Pause,
-  Volume2
+  Volume2,
+  Share2,
+  Link,
+  Copy,
+  Check,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
