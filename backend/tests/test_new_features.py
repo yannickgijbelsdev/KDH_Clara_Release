@@ -281,17 +281,14 @@ class TestMediaFolders:
 class TestFolderSharing:
     """Test folder sharing with users/shows/series"""
     
-    created_folder_id = None
-    created_share_ids = []
-    
     def test_share_folder_with_user(self, admin_headers):
         """Share a folder with a user"""
         # Create a folder
         create_response = requests.post(f"{BASE_URL}/api/media/folders", headers=admin_headers, json={
-            "name": "TEST_Share_Folder"
+            "name": "TEST_Share_User_Folder"
         })
         assert create_response.status_code == 201
-        self.created_folder_id = create_response.json()["id"]
+        folder_id = create_response.json()["id"]
         
         # Get a user to share with
         users_response = requests.get(f"{BASE_URL}/api/users", headers=admin_headers)
@@ -305,7 +302,7 @@ class TestFolderSharing:
         
         # Share folder with user
         response = requests.post(
-            f"{BASE_URL}/api/media/folders/{self.created_folder_id}/shares",
+            f"{BASE_URL}/api/media/folders/{folder_id}/shares",
             headers=admin_headers,
             json={"user_ids": [user_id]}
         )
@@ -314,17 +311,19 @@ class TestFolderSharing:
         data = response.json()
         assert "shares_created" in data, "Response should contain shares_created"
         
+        # Cleanup
+        requests.delete(f"{BASE_URL}/api/media/folders/{folder_id}", headers=admin_headers)
+        
         print(f"✓ Shared folder with user {user_id}")
     
     def test_share_folder_with_show(self, admin_headers):
         """Share a folder with a show"""
-        if not self.created_folder_id:
-            # Create a folder
-            create_response = requests.post(f"{BASE_URL}/api/media/folders", headers=admin_headers, json={
-                "name": "TEST_Share_Show_Folder"
-            })
-            assert create_response.status_code == 201
-            self.created_folder_id = create_response.json()["id"]
+        # Create a folder
+        create_response = requests.post(f"{BASE_URL}/api/media/folders", headers=admin_headers, json={
+            "name": "TEST_Share_Show_Folder"
+        })
+        assert create_response.status_code == 201
+        folder_id = create_response.json()["id"]
         
         # Get a show to share with
         shows_response = requests.get(f"{BASE_URL}/api/shows", headers=admin_headers)
@@ -332,6 +331,7 @@ class TestFolderSharing:
         shows = shows_response.json()
         
         if len(shows) < 1:
+            requests.delete(f"{BASE_URL}/api/media/folders/{folder_id}", headers=admin_headers)
             print("⚠ No shows available to share with - skipping show share test")
             return
         
@@ -339,23 +339,25 @@ class TestFolderSharing:
         
         # Share folder with show
         response = requests.post(
-            f"{BASE_URL}/api/media/folders/{self.created_folder_id}/shares",
+            f"{BASE_URL}/api/media/folders/{folder_id}/shares",
             headers=admin_headers,
             json={"show_ids": [show_id]}
         )
         assert response.status_code == 200, f"Share folder with show failed: {response.text}"
         
+        # Cleanup
+        requests.delete(f"{BASE_URL}/api/media/folders/{folder_id}", headers=admin_headers)
+        
         print(f"✓ Shared folder with show {show_id}")
     
     def test_share_folder_with_series(self, admin_headers):
         """Share a folder with a series"""
-        if not self.created_folder_id:
-            # Create a folder
-            create_response = requests.post(f"{BASE_URL}/api/media/folders", headers=admin_headers, json={
-                "name": "TEST_Share_Series_Folder"
-            })
-            assert create_response.status_code == 201
-            self.created_folder_id = create_response.json()["id"]
+        # Create a folder
+        create_response = requests.post(f"{BASE_URL}/api/media/folders", headers=admin_headers, json={
+            "name": "TEST_Share_Series_Folder"
+        })
+        assert create_response.status_code == 201
+        folder_id = create_response.json()["id"]
         
         # Get a series to share with
         series_response = requests.get(f"{BASE_URL}/api/series", headers=admin_headers)
@@ -363,6 +365,7 @@ class TestFolderSharing:
         series_list = series_response.json()
         
         if len(series_list) < 1:
+            requests.delete(f"{BASE_URL}/api/media/folders/{folder_id}", headers=admin_headers)
             print("⚠ No series available to share with - skipping series share test")
             return
         
@@ -370,21 +373,40 @@ class TestFolderSharing:
         
         # Share folder with series
         response = requests.post(
-            f"{BASE_URL}/api/media/folders/{self.created_folder_id}/shares",
+            f"{BASE_URL}/api/media/folders/{folder_id}/shares",
             headers=admin_headers,
             json={"series_ids": [series_id]}
         )
         assert response.status_code == 200, f"Share folder with series failed: {response.text}"
         
+        # Cleanup
+        requests.delete(f"{BASE_URL}/api/media/folders/{folder_id}", headers=admin_headers)
+        
         print(f"✓ Shared folder with series {series_id}")
     
     def test_get_folder_shares(self, admin_headers):
         """Get all shares for a folder"""
-        if not self.created_folder_id:
-            pytest.skip("No folder created for share test")
+        # Create a folder
+        create_response = requests.post(f"{BASE_URL}/api/media/folders", headers=admin_headers, json={
+            "name": "TEST_Get_Shares_Folder"
+        })
+        assert create_response.status_code == 201
+        folder_id = create_response.json()["id"]
         
+        # Get users and share
+        users_response = requests.get(f"{BASE_URL}/api/users", headers=admin_headers)
+        users = users_response.json()
+        
+        if users:
+            requests.post(
+                f"{BASE_URL}/api/media/folders/{folder_id}/shares",
+                headers=admin_headers,
+                json={"user_ids": [users[0]["id"]]}
+            )
+        
+        # Get shares
         response = requests.get(
-            f"{BASE_URL}/api/media/folders/{self.created_folder_id}/shares",
+            f"{BASE_URL}/api/media/folders/{folder_id}/shares",
             headers=admin_headers
         )
         assert response.status_code == 200, f"Get folder shares failed: {response.text}"
@@ -392,13 +414,10 @@ class TestFolderSharing:
         data = response.json()
         assert isinstance(data, list), "Response should be a list of shares"
         
+        # Cleanup
+        requests.delete(f"{BASE_URL}/api/media/folders/{folder_id}", headers=admin_headers)
+        
         print(f"✓ Got {len(data)} shares for folder")
-    
-    def test_cleanup_folder(self, admin_headers):
-        """Cleanup test folder"""
-        if self.created_folder_id:
-            requests.delete(f"{BASE_URL}/api/media/folders/{self.created_folder_id}", headers=admin_headers)
-            print(f"✓ Cleaned up test folder {self.created_folder_id}")
 
 
 class TestShowPermissions:
