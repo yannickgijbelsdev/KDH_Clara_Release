@@ -47,6 +47,7 @@ MAX_MEDIA_SIZE = 100 * 1024 * 1024  # 100MB
 async def get_media_assets(
     kind: Optional[str] = None,
     search: Optional[str] = None,
+    folder_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     """Get all media assets for the team."""
@@ -56,6 +57,11 @@ async def get_media_assets(
         query["kind"] = kind
     if search:
         query["title"] = {"$regex": search, "$options": "i"}
+    if folder_id:
+        query["folder_id"] = folder_id
+    elif folder_id == "":
+        # Get assets without folder (root level)
+        query["$or"] = [{"folder_id": None}, {"folder_id": {"$exists": False}}]
     
     assets = await db.media_assets.find(
         query,
