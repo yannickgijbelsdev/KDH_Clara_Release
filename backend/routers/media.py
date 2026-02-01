@@ -186,3 +186,92 @@ async def delete_media_asset(
     
     await db.show_media.delete_many({"media_asset_id": asset_id})
     await db.rundown_item_media.delete_many({"media_asset_id": asset_id})
+    await db.media_share_links.delete_many({"asset_id": asset_id})
+
+
+@media_router.post("/{asset_id}/share")
+async def create_share_link(
+    asset_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate a public share link for a media asset."""
+    asset = await db.media_assets.find_one(
+        {"id": asset_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not asset:
+        raise HTTPException(status_code=404, detail="Media asset not found")
+    
+    # Check if share link already exists
+    existing = await db.media_share_links.find_one({"asset_id": asset_id})
+    if existing:
+        return {
+            "share_token": existing["share_token"],
+            "created_at": existing["created_at"]
+        }
+    
+    # Create new share link
+    share_token = secrets.token_urlsafe(32)
+    now = datetime.now(timezone.utc).isoformat()
+    
+    share_doc = {
+        "id": str(uuid.uuid4()),
+        "asset_id": asset_id,
+        "team_id": current_user.get('team_id'),
+        "share_token": share_token,
+        "created_by": current_user['id'],
+        "created_at": now
+    }
+    
+    await db.media_share_links.insert_one(share_doc)
+    
+    return {
+        "share_token": share_token,
+        "created_at": now
+    }
+
+
+@media_router.delete("/{asset_id}/share")
+async def revoke_share_link(
+    asset_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Revoke a public share link for a media asset."""
+    asset = await db.media_assets.find_one(
+        {"id": asset_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not asset:
+        raise HTTPException(status_code=404, detail="Media asset not found")
+    
+    result = await db.media_share_links.delete_one({"asset_id": asset_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Share link not found")
+    
+    return {"message": "Share link revoked"}
+
+
+@media_router.get("/{asset_id}/share")
+async def get_share_link(
+    asset_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the share link for a media asset if it exists."""
+    asset = await db.media_assets.find_one(
+        {"id": asset_id, "team_id": current_user.get('team_id')},
+        {"_id": 0}
+    )
+    if not asset:
+        raise HTTPException(status_code=404, detail="Media asset not found")
+    
+    share = await db.media_share_links.find_one({"asset_id": asset_id}, {"_id": 0})
+    
+    if not share:
+        return {"has_share_link": False}
+    
+    return {
+        "has_share_link": True,
+        "share_token": share["share_token"],
+        "created_at": share["created_at"]
+    }
