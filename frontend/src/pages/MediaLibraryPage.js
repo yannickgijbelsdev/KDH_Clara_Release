@@ -446,6 +446,17 @@ const MediaLibraryPage = () => {
                         <Download className="w-4 h-4 mr-2" />
                         Download
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        data-testid={`share-asset-${asset.id}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenShareDialog(asset);
+                        }}
+                        className="text-zinc-300"
+                      >
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share
+                      </DropdownMenuItem>
                       {canEdit && (
                         <>
                           <DropdownMenuItem
