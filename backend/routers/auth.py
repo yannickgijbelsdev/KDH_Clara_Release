@@ -65,7 +65,7 @@ async def register(user_data: UserCreate, request: Request):
         details={"role": role, "team_name": team_name}
     )
     
-    token = create_token(user_id)
+    token, expires_at = create_token(user_id)
     user_response = UserWithTeamResponse(
         id=user_id,
         email=user_data.email,
@@ -76,7 +76,7 @@ async def register(user_data: UserCreate, request: Request):
         created_at=now
     )
     
-    return TokenResponse(token=token, user=user_response)
+    return TokenResponse(token=token, user=user_response, expires_at=expires_at)
 
 
 @auth_router.post("/login", response_model=TokenResponse)
