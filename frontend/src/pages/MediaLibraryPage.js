@@ -652,6 +652,119 @@ const MediaLibraryPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Share Dialog */}
+      <Dialog open={!!shareAsset} onOpenChange={() => setShareAsset(null)}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-orange-500" />
+              Share "{shareAsset?.title}"
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {shareLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+              </div>
+            ) : shareInfo?.has_share_link ? (
+              <>
+                {/* Share link active */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-green-500">
+                    <Link className="w-4 h-4" />
+                    <span>Public link is active</span>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      data-testid="share-url-input"
+                      readOnly
+                      value={getShareUrl(shareInfo.share_token)}
+                      className="bg-white/5 border-white/10 text-zinc-300 text-sm font-mono"
+                    />
+                    <Button
+                      data-testid="copy-share-link-btn"
+                      variant="outline"
+                      size="icon"
+                      onClick={handleCopyShareLink}
+                      className="flex-shrink-0 border-zinc-700 hover:bg-zinc-800"
+                    >
+                      {copied ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => window.open(getShareUrl(shareInfo.share_token), '_blank')}
+                      className="flex-shrink-0 border-zinc-700 hover:bg-zinc-800"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  <p className="text-xs text-zinc-500">
+                    Anyone with this link can view and download this file without logging in.
+                  </p>
+                  
+                  <div className="pt-2 border-t border-zinc-800">
+                    <Button
+                      data-testid="revoke-share-link-btn"
+                      variant="ghost"
+                      onClick={handleRevokeShareLink}
+                      disabled={shareLoading}
+                      className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Revoke Share Link
+                    </Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* No share link yet */}
+                <div className="text-center py-4">
+                  <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+                    <Link className="w-8 h-8 text-zinc-500" />
+                  </div>
+                  <h3 className="text-white font-medium mb-2">Create a public link</h3>
+                  <p className="text-sm text-zinc-400 mb-4">
+                    Generate a shareable URL that allows anyone to view and download this file.
+                  </p>
+                  <Button
+                    data-testid="create-share-link-btn"
+                    onClick={handleCreateShareLink}
+                    disabled={shareLoading}
+                    className="bg-orange-500 hover:bg-orange-600"
+                  >
+                    {shareLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Link className="w-4 h-4 mr-2" />
+                    )}
+                    Generate Share Link
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setShareAsset(null)}
+              className="text-zinc-400"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
