@@ -394,7 +394,10 @@ const MediaLibraryPage = () => {
             {canEdit && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <button className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/10">
+                  <button 
+                    data-testid={`folder-menu-${folder.id}`}
+                    className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/10"
+                  >
                     <MoreVertical className="w-3 h-3" />
                   </button>
                 </DropdownMenuTrigger>
