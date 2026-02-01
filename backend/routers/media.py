@@ -7,6 +7,7 @@ from pathlib import Path
 import uuid
 import mimetypes
 import aiofiles
+import secrets
 
 from database import db, MEDIA_UPLOADS_DIR
 from models.media import MediaAssetResponse, MediaAssetUpdate
