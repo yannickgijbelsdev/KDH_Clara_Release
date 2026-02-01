@@ -89,6 +89,7 @@ const MediaLibraryPage = () => {
   const [editingFolder, setEditingFolder] = useState(null);
   const [showShareFolderDialog, setShowShareFolderDialog] = useState(false);
   const [sharingFolder, setSharingFolder] = useState(null);
+  const [deletingFolder, setDeletingFolder] = useState(null);
   
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
