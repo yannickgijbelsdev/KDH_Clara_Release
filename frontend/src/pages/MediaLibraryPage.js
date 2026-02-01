@@ -1095,7 +1095,12 @@ const MediaLibraryPage = () => {
                           ) : share.series_id ? (
                             <>
                               <Tv className="w-4 h-4 text-green-400" />
-                              <span className="text-sm text-zinc-300">{share.series_title}</span>
+                              <span className="text-sm text-zinc-300">{share.series_title} <span className="text-xs text-zinc-500">(Series)</span></span>
+                            </>
+                          ) : share.show_id ? (
+                            <>
+                              <Tv className="w-4 h-4 text-purple-400" />
+                              <span className="text-sm text-zinc-300">{share.show_title} <span className="text-xs text-zinc-500">(Show)</span></span>
                             </>
                           ) : (
                             <span className="text-sm text-zinc-400">Unknown</span>
@@ -1121,7 +1126,7 @@ const MediaLibraryPage = () => {
                   <Users className="w-4 h-4" />
                   Share with Team Members
                 </h4>
-                <div className="max-h-40 overflow-y-auto bg-white/5 rounded-lg p-2 space-y-1">
+                <div className="max-h-32 overflow-y-auto bg-white/5 rounded-lg p-2 space-y-1">
                   {teamUsers
                     .filter(user => !folderShares.some(s => s.user_id === user.id))
                     .map(user => (
@@ -1155,44 +1160,92 @@ const MediaLibraryPage = () => {
                 )}
               </div>
 
-              {/* Link to Shows */}
-              <div>
-                <h4 className="text-sm font-medium text-zinc-400 mb-2 flex items-center gap-2">
-                  <Tv className="w-4 h-4" />
-                  Link to Shows (Series)
-                </h4>
-                <div className="max-h-40 overflow-y-auto bg-white/5 rounded-lg p-2 space-y-1">
-                  {showSeries
-                    .filter(series => !folderShares.some(s => s.series_id === series.id))
-                    .map(series => (
-                      <label
-                        key={series.id}
-                        className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedSeriesToShare.includes(series.id)}
-                          onChange={() => toggleSeriesSelection(series.id)}
-                          className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
-                        />
-                        <span className="text-sm text-zinc-300">{series.title}</span>
-                      </label>
-                    ))}
-                  {showSeries.filter(s => !folderShares.some(fs => fs.series_id === s.id)).length === 0 && (
-                    <p className="text-sm text-zinc-500 text-center py-2">All shows already linked</p>
+              {/* Link to Series (Recurring Shows) */}
+              {showSeries.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-zinc-400 mb-2 flex items-center gap-2">
+                    <Tv className="w-4 h-4 text-green-400" />
+                    Link to Series (Recurring Shows)
+                  </h4>
+                  <div className="max-h-32 overflow-y-auto bg-white/5 rounded-lg p-2 space-y-1">
+                    {showSeries
+                      .filter(series => !folderShares.some(s => s.series_id === series.id))
+                      .map(series => (
+                        <label
+                          key={series.id}
+                          className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedSeriesToShare.includes(series.id)}
+                            onChange={() => toggleSeriesSelection(series.id)}
+                            className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                          />
+                          <span className="text-sm text-zinc-300">{series.title}</span>
+                        </label>
+                      ))}
+                    {showSeries.filter(s => !folderShares.some(fs => fs.series_id === s.id)).length === 0 && (
+                      <p className="text-sm text-zinc-500 text-center py-2">All series already linked</p>
+                    )}
+                  </div>
+                  {selectedSeriesToShare.length > 0 && (
+                    <Button
+                      onClick={handleLinkFolderToSeries}
+                      disabled={sharingLoading}
+                      className="mt-2 bg-green-600 hover:bg-green-700"
+                      size="sm"
+                    >
+                      Link to {selectedSeriesToShare.length} series
+                    </Button>
                   )}
                 </div>
-                {selectedSeriesToShare.length > 0 && (
-                  <Button
-                    onClick={handleLinkFolderToSeries}
-                    disabled={sharingLoading}
-                    className="mt-2 bg-green-600 hover:bg-green-700"
-                    size="sm"
-                  >
-                    Link to {selectedSeriesToShare.length} show{selectedSeriesToShare.length > 1 ? 's' : ''}
-                  </Button>
-                )}
-              </div>
+              )}
+
+              {/* Link to Individual Shows */}
+              {individualShows.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-zinc-400 mb-2 flex items-center gap-2">
+                    <Tv className="w-4 h-4 text-purple-400" />
+                    Link to Individual Shows
+                  </h4>
+                  <div className="max-h-32 overflow-y-auto bg-white/5 rounded-lg p-2 space-y-1">
+                    {individualShows
+                      .filter(show => !folderShares.some(s => s.show_id === show.id))
+                      .map(show => (
+                        <label
+                          key={show.id}
+                          className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-white/5 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedShowsToShare.includes(show.id)}
+                            onChange={() => toggleShowSelection(show.id)}
+                            className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                          />
+                          <span className="text-sm text-zinc-300">{show.title}</span>
+                          {show.scheduled_date && (
+                            <span className="text-xs text-zinc-500">
+                              {new Date(show.scheduled_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </label>
+                      ))}
+                    {individualShows.filter(s => !folderShares.some(fs => fs.show_id === s.id)).length === 0 && (
+                      <p className="text-sm text-zinc-500 text-center py-2">All shows already linked</p>
+                    )}
+                  </div>
+                  {selectedShowsToShare.length > 0 && (
+                    <Button
+                      onClick={handleLinkFolderToShows}
+                      disabled={sharingLoading}
+                      className="mt-2 bg-purple-600 hover:bg-purple-700"
+                      size="sm"
+                    >
+                      Link to {selectedShowsToShare.length} show{selectedShowsToShare.length > 1 ? 's' : ''}
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           )}
           
