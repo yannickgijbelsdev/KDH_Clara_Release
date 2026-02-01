@@ -420,10 +420,59 @@ const TeamSettingsPage = () => {
 
                 <div className="flex items-center gap-4">
                   {isCurrentUser ? (
-                    <span className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${roleColors[member.role]}`}>
-                      <RoleIcon className="w-4 h-4" />
-                      {roleLabels[member.role]}
-                    </span>
+                    <>
+                      <span className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${roleColors[member.role]}`}>
+                        <RoleIcon className="w-4 h-4" />
+                        {roleLabels[member.role]}
+                      </span>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-zinc-400 hover:text-white hover:bg-zinc-700"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                          <DropdownMenuItem
+                            onClick={() => openEditUser(member)}
+                            className="text-zinc-300"
+                          >
+                            <User className="w-4 h-4 mr-2" />
+                            Edit Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setAvatarTargetUserId(member.id);
+                              setTimeout(() => avatarInputRef.current?.click(), 100);
+                            }}
+                            className="text-zinc-300"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            {member.avatar ? 'Change Avatar' : 'Upload Avatar'}
+                          </DropdownMenuItem>
+                          {member.avatar && (
+                            <DropdownMenuItem
+                              onClick={() => handleRemoveAvatar(member.id)}
+                              className="text-zinc-300"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Remove Avatar
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => openResetPassword(member)}
+                            className="text-zinc-300"
+                          >
+                            <KeyRound className="w-4 h-4 mr-2" />
+                            Change Password
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </>
                   ) : (
                     <>
                       <Select
