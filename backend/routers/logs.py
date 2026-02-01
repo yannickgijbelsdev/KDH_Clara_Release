@@ -9,6 +9,36 @@ from services.auth import require_admin
 logs_router = APIRouter(prefix="/logs", tags=["Audit Logs"])
 
 
+async def enrich_logs_with_current_usernames(logs: list) -> list:
+    """Update logs with current user names from the users collection."""
+    if not logs:
+        return logs
+    
+    # Get all unique user_ids from logs
+    user_ids = list(set(log.get("user_id") for log in logs if log.get("user_id")))
+    
+    if not user_ids:
+        return logs
+    
+    # Fetch current user info for all user_ids
+    users = await db.users.find(
+        {"id": {"$in": user_ids}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1}
+    ).to_list(len(user_ids))
+    
+    # Create lookup dict
+    user_lookup = {u["id"]: u for u in users}
+    
+    # Update logs with current names
+    for log in logs:
+        user_id = log.get("user_id")
+        if user_id and user_id in user_lookup:
+            log["user_name"] = user_lookup[user_id].get("name", log.get("user_name"))
+            log["user_email"] = user_lookup[user_id].get("email", log.get("user_email"))
+    
+    return logs
+
+
 @logs_router.get("")
 async def get_audit_logs(
     category: Optional[str] = Query(None, description="Filter by category"),
@@ -55,6 +85,9 @@ async def get_audit_logs(
         query,
         {"_id": 0}
     ).sort("timestamp", -1).skip(skip).limit(limit).to_list(limit)
+    
+    # Enrich logs with current user names
+    logs = await enrich_logs_with_current_usernames(logs)
     
     # Get total count for pagination
     total = await db.audit_logs.count_documents(query)
