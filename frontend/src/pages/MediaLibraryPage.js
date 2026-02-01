@@ -507,66 +507,124 @@ const MediaLibraryPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Media Library</h1>
-          <p className="text-xs sm:text-sm text-zinc-400">Documents, audio files, and images</p>
+          <p className="text-xs sm:text-sm text-zinc-400">
+            {currentFolder ? folders.find(f => f.id === currentFolder)?.name || 'Folder' : 'All files and folders'}
+          </p>
         </div>
 
-        {canEdit && (
-          <>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".pdf,.docx,.txt,.mp3,.wav,.m4a,.jpg,.jpeg,.png,.gif,.webp"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Button
-              data-testid="upload-media-btn"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
-            >
-              {uploading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Upload className="w-4 h-4 mr-2" />
+        <div className="flex gap-2">
+          {canEdit && (
+            <>
+              <Button
+                data-testid="new-folder-btn"
+                onClick={() => setShowNewFolderDialog(true)}
+                variant="outline"
+                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              >
+                <FolderPlus className="w-4 h-4 mr-2" />
+                New Folder
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".pdf,.docx,.txt,.mp3,.wav,.m4a,.jpg,.jpeg,.png,.gif,.webp"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button
+                data-testid="upload-media-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-2" />
+                )}
+                Upload
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Main layout with sidebar */}
+      <div className="flex gap-6">
+        {/* Folder Sidebar */}
+        <div className="w-64 flex-shrink-0 hidden lg:block">
+          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+            <h3 className="text-sm font-semibold text-zinc-400 mb-3 px-2">Folders</h3>
+            
+            {/* All Files option */}
+            <div
+              className={cn(
+                "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors mb-1",
+                !currentFolder ? "bg-orange-500/20 text-orange-400" : "hover:bg-white/5 text-zinc-400"
               )}
-              Upload Files
-            </Button>
-          </>
-        )}
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
-        <form onSubmit={handleSearch} className="flex-1 sm:max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-            <Input
-              data-testid="media-search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search media..."
-              className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
-            />
+              onClick={() => setCurrentFolder(null)}
+            >
+              <Folder className="w-4 h-4" />
+              <span className="text-sm flex-1">All Files</span>
+              <span className="text-xs text-zinc-500">{assets.length}</span>
+            </div>
+            
+            {/* Folder tree */}
+            <div className="space-y-0.5">
+              {renderFolderTree(folders)}
+            </div>
           </div>
-        </form>
+        </div>
 
-        <Select value={kindFilter} onValueChange={setKindFilter}>
-          <SelectTrigger data-testid="kind-filter" className="w-full sm:w-40 bg-white/5 border-white/10 text-white">
-            <Filter className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="All types" />
-          </SelectTrigger>
-          <SelectContent className="bg-[#18181b] border-zinc-800">
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="document">Documents</SelectItem>
-            <SelectItem value="audio">Audio</SelectItem>
-            <SelectItem value="image">Images</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        {/* Main content area */}
+        <div className="flex-1 min-w-0">
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
+            <form onSubmit={handleSearch} className="flex-1 sm:max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                <Input
+                  data-testid="media-search-input"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search media..."
+                  className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
+                />
+              </div>
+            </form>
 
-      {/* Assets Grid */}
+            <Select value={kindFilter} onValueChange={setKindFilter}>
+              <SelectTrigger data-testid="kind-filter" className="w-full sm:w-40 bg-white/5 border-white/10 text-white">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="All types" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="document">Documents</SelectItem>
+                <SelectItem value="audio">Audio</SelectItem>
+                <SelectItem value="image">Images</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Breadcrumb for current folder */}
+          {currentFolder && (
+            <div className="flex items-center gap-2 mb-4 text-sm">
+              <button
+                onClick={() => setCurrentFolder(null)}
+                className="text-zinc-400 hover:text-white transition-colors"
+              >
+                All Files
+              </button>
+              <ChevronRight className="w-4 h-4 text-zinc-600" />
+              <span className="text-orange-400">
+                {folders.find(f => f.id === currentFolder)?.name || 'Folder'}
+              </span>
+            </div>
+          )}
+
+          {/* Assets Grid */}
       {filteredAssets.length === 0 ? (
         <div className="glass-card rounded-xl p-12 text-center">
           <File className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
