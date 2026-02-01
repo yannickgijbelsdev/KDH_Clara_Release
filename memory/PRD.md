@@ -583,3 +583,29 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Orange impersonation banner at top when viewing as another user
   - "Return to [admin]" button to exit impersonation
   - Non-admins blocked with 403 error
+
+### February 1, 2026 - Media Library Sharing
+- [x] **Public Share Links for Media Assets**:
+  - Generate secure, token-based URLs for media files
+  - Public access without authentication
+  - Share link management UI in Media Library
+  
+- [x] **Backend Endpoints**:
+  - POST /api/media/{asset_id}/share - Create share link with token
+  - GET /api/media/{asset_id}/share - Check if share link exists
+  - DELETE /api/media/{asset_id}/share - Revoke share link
+  - GET /api/share/{token} - Public file download (no auth)
+  
+- [x] **Frontend UI (MediaLibraryPage.js)**:
+  - "Share" option in asset dropdown menu
+  - Share dialog with status indicator ("Public link is active" / "Create a public link")
+  - Shareable URL display with copy-to-clipboard button
+  - External link button to open in new tab
+  - Revoke Share Link button to disable sharing
+  - Toast notifications for all actions
+  
+- [x] **Database (media_share_links collection)**:
+  - id, asset_id, team_id, share_token, created_by, created_at
+  - Links cleaned up when assets are deleted
+  
+- [x] All 18 backend tests + frontend UI tests passed (100% success rate)
