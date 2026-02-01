@@ -509,9 +509,6 @@ class TestRundownPermissions:
 class TestBulkAssignment:
     """Test bulk assignment changes for recurring shows"""
     
-    created_series_id = None
-    test_user_id = None
-    
     def test_bulk_assign_this_only(self, admin_headers):
         """Bulk assign user to series with apply_to='this_only'"""
         # Get or create a series
@@ -520,20 +517,9 @@ class TestBulkAssignment:
         series_list = series_response.json()
         
         if len(series_list) < 1:
-            # Create a series
-            create_response = requests.post(f"{BASE_URL}/api/series", headers=admin_headers, json={
-                "title": "TEST_Bulk_Series",
-                "default_start_time": "10:00",
-                "default_end_time": "12:00",
-                "recurrence_type": "weekly",
-                "start_date": "2026-02-01",
-                "days_of_week": [1, 3, 5]
-            })
-            if create_response.status_code != 201:
-                pytest.skip(f"Could not create series: {create_response.text}")
-            self.created_series_id = create_response.json()["id"]
-        else:
-            self.created_series_id = series_list[0]["id"]
+            pytest.skip("No series available for testing")
+        
+        series_id = series_list[0]["id"]
         
         # Get a user to assign
         users_response = requests.get(f"{BASE_URL}/api/users", headers=admin_headers)
@@ -543,14 +529,20 @@ class TestBulkAssignment:
         if len(users) < 1:
             pytest.skip("No users available for assignment")
         
-        self.test_user_id = users[0]["id"]
+        user_id = users[0]["id"]
+        
+        # First remove any existing assignment
+        requests.delete(
+            f"{BASE_URL}/api/series/{series_id}/assignments/{user_id}/bulk?apply_to=all",
+            headers=admin_headers
+        )
         
         # Bulk assign with this_only
         response = requests.post(
-            f"{BASE_URL}/api/series/{self.created_series_id}/assignments/bulk",
+            f"{BASE_URL}/api/series/{series_id}/assignments/bulk",
             headers=admin_headers,
             json={
-                "user_id": self.test_user_id,
+                "user_id": user_id,
                 "role_on_show": "presenter",
                 "apply_to": "this_only"
             }
@@ -565,10 +557,17 @@ class TestBulkAssignment:
     
     def test_bulk_assign_all_future(self, admin_headers):
         """Bulk assign user to series with apply_to='all_future'"""
-        if not self.created_series_id:
+        # Get series
+        series_response = requests.get(f"{BASE_URL}/api/series", headers=admin_headers)
+        assert series_response.status_code == 200
+        series_list = series_response.json()
+        
+        if len(series_list) < 1:
             pytest.skip("No series available for testing")
         
-        # Get another user or use same
+        series_id = series_list[0]["id"]
+        
+        # Get users
         users_response = requests.get(f"{BASE_URL}/api/users", headers=admin_headers)
         users = users_response.json()
         
@@ -579,13 +578,13 @@ class TestBulkAssignment:
         
         # First remove any existing assignment
         requests.delete(
-            f"{BASE_URL}/api/series/{self.created_series_id}/assignments/{user_id}/bulk?apply_to=all",
+            f"{BASE_URL}/api/series/{series_id}/assignments/{user_id}/bulk?apply_to=all",
             headers=admin_headers
         )
         
         # Bulk assign with all_future
         response = requests.post(
-            f"{BASE_URL}/api/series/{self.created_series_id}/assignments/bulk",
+            f"{BASE_URL}/api/series/{series_id}/assignments/bulk",
             headers=admin_headers,
             json={
                 "user_id": user_id,
@@ -602,10 +601,17 @@ class TestBulkAssignment:
     
     def test_bulk_assign_all(self, admin_headers):
         """Bulk assign user to series with apply_to='all'"""
-        if not self.created_series_id:
+        # Get series
+        series_response = requests.get(f"{BASE_URL}/api/series", headers=admin_headers)
+        assert series_response.status_code == 200
+        series_list = series_response.json()
+        
+        if len(series_list) < 1:
             pytest.skip("No series available for testing")
         
-        # Get another user or use same
+        series_id = series_list[0]["id"]
+        
+        # Get users
         users_response = requests.get(f"{BASE_URL}/api/users", headers=admin_headers)
         users = users_response.json()
         
@@ -616,13 +622,13 @@ class TestBulkAssignment:
         
         # First remove any existing assignment
         requests.delete(
-            f"{BASE_URL}/api/series/{self.created_series_id}/assignments/{user_id}/bulk?apply_to=all",
+            f"{BASE_URL}/api/series/{series_id}/assignments/{user_id}/bulk?apply_to=all",
             headers=admin_headers
         )
         
         # Bulk assign with all
         response = requests.post(
-            f"{BASE_URL}/api/series/{self.created_series_id}/assignments/bulk",
+            f"{BASE_URL}/api/series/{series_id}/assignments/bulk",
             headers=admin_headers,
             json={
                 "user_id": user_id,
@@ -639,11 +645,27 @@ class TestBulkAssignment:
     
     def test_bulk_remove_assignment(self, admin_headers):
         """Bulk remove user assignment from series"""
-        if not self.created_series_id or not self.test_user_id:
-            pytest.skip("No series or user available for testing")
+        # Get series
+        series_response = requests.get(f"{BASE_URL}/api/series", headers=admin_headers)
+        assert series_response.status_code == 200
+        series_list = series_response.json()
+        
+        if len(series_list) < 1:
+            pytest.skip("No series available for testing")
+        
+        series_id = series_list[0]["id"]
+        
+        # Get users
+        users_response = requests.get(f"{BASE_URL}/api/users", headers=admin_headers)
+        users = users_response.json()
+        
+        if len(users) < 1:
+            pytest.skip("No users available for testing")
+        
+        user_id = users[0]["id"]
         
         response = requests.delete(
-            f"{BASE_URL}/api/series/{self.created_series_id}/assignments/{self.test_user_id}/bulk?apply_to=all",
+            f"{BASE_URL}/api/series/{series_id}/assignments/{user_id}/bulk?apply_to=all",
             headers=admin_headers
         )
         assert response.status_code == 200, f"Bulk remove assignment failed: {response.text}"
