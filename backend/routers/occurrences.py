@@ -300,7 +300,8 @@ async def update_occurrence_rundown_item(
     if not occurrence:
         raise HTTPException(status_code=404, detail="Occurrence not found")
     
-    if current_user.get('role') != 'admin':
+    # Admins and editors can edit any occurrence, presenters need assignment
+    if current_user.get('role') not in ['admin', 'editor']:
         has_access = await check_occurrence_assignment(occurrence_id, current_user)
         if not has_access:
             raise HTTPException(status_code=403, detail="Not assigned to this occurrence")
