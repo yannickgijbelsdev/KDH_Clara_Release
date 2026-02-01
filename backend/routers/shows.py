@@ -624,9 +624,9 @@ async def update_show(
 async def delete_show(
     show_id: str,
     delete_all: bool = Query(default=False, description="Delete all occurrences of recurring show"),
-    current_user: dict = Depends(require_editor_or_admin)
+    current_user: dict = Depends(require_admin)
 ):
-    """Delete a show. For recurring shows, can delete just this one or all occurrences."""
+    """Delete a show. Admin only. For recurring shows, can delete just this one or all occurrences."""
     show = await db.shows.find_one(
         {"id": show_id, "team_id": current_user.get('team_id')}
     )
