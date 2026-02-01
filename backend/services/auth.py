@@ -19,12 +19,15 @@ def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
 
-def create_token(user_id: str) -> str:
+def create_token(user_id: str) -> tuple[str, float]:
+    """Create JWT token and return token + expiration timestamp."""
+    exp_timestamp = datetime.now(timezone.utc).timestamp() + (JWT_EXPIRATION_HOURS * 3600)
     payload = {
         'user_id': user_id,
-        'exp': datetime.now(timezone.utc).timestamp() + (JWT_EXPIRATION_HOURS * 3600)
+        'exp': exp_timestamp
     }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return token, exp_timestamp
 
 
 def decode_token(token: str) -> dict:
