@@ -187,29 +187,16 @@ async def get_log_categories(current_user: dict = Depends(require_admin)):
 
 @logs_router.get("/users")
 async def get_log_users(current_user: dict = Depends(require_admin)):
-    """Get unique users who have audit logs with their current names."""
+    """Get all team users for the filter dropdown."""
     team_id = current_user.get("team_id")
     
-    # Get unique user_ids from logs
-    pipeline = [
-        {"$match": {"team_id": team_id}},
-        {"$group": {"_id": "$user_id"}},
-        {"$match": {"_id": {"$ne": None}}}
-    ]
-    
-    log_users = await db.audit_logs.aggregate(pipeline).to_list(100)
-    user_ids = [u["_id"] for u in log_users]
-    
-    if not user_ids:
-        return []
-    
-    # Fetch current user info from users collection
+    # Fetch ALL users in the team (not just those with logs)
     users = await db.users.find(
-        {"id": {"$in": user_ids}},
+        {"team_id": team_id},
         {"_id": 0, "id": 1, "name": 1, "email": 1}
-    ).to_list(len(user_ids))
+    ).to_list(100)
     
-    return [{"id": u["id"], "name": u["name"], "email": u["email"]} for u in users]
+    return [{"id": u["id"], "name": u["name"], "email": u.get("email", "")} for u in users]
 
 
 @logs_router.get("/stats")
