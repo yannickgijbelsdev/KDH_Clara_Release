@@ -226,7 +226,8 @@ const MediaLibraryPage = () => {
   };
 
   const getShareUrl = (token) => {
-    const baseUrl = process.env.REACT_APP_BACKEND_URL || window.location.origin;
+    // Use configured share base URL (e.g., https://clara.koodh.com)
+    const baseUrl = shareBaseUrl || window.location.origin;
     return `${baseUrl}/api/share/${token}`;
   };
 
