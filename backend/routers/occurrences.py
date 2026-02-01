@@ -125,14 +125,16 @@ async def update_occurrence(
     occ_data: ShowOccurrenceUpdate,
     current_user: dict = Depends(get_current_user)
 ):
-    """Update an occurrence. Admins can edit any, others need assignment."""
+    """Update an occurrence. Admins and editors can edit any, presenters need assignment."""
     occurrence = await db.show_occurrences.find_one(
         {"id": occurrence_id, "team_id": current_user.get('team_id')}
     )
     if not occurrence:
         raise HTTPException(status_code=404, detail="Occurrence not found")
     
-    if current_user.get('role') != 'admin':
+    # Admins and editors can edit any occurrence
+    if current_user.get('role') not in ['admin', 'editor']:
+        # Presenters need to be assigned
         has_access = await check_occurrence_assignment(occurrence_id, current_user)
         if not has_access:
             raise HTTPException(status_code=403, detail="Not assigned to this occurrence")
