@@ -328,6 +328,106 @@ const MediaLibraryPage = () => {
     setDeletingFolder(folder);
   };
 
+  // ============== FOLDER SHARING FUNCTIONS ==============
+
+  const openShareFolderDialog = async (folder) => {
+    setSharingFolder(folder);
+    setShowShareFolderDialog(true);
+    setSharingLoading(true);
+    setSelectedUsersToShare([]);
+    setSelectedSeriesToShare([]);
+    
+    try {
+      // Fetch team users, series, and existing shares in parallel
+      const [usersRes, seriesRes, sharesRes] = await Promise.all([
+        axios.get(`${API}/users`),
+        axios.get(`${API}/series`),
+        axios.get(`${API}/media/folders/${folder.id}/shares`)
+      ]);
+      
+      setTeamUsers(usersRes.data);
+      setShowSeries(seriesRes.data);
+      setFolderShares(sharesRes.data);
+    } catch (error) {
+      toast.error('Failed to load sharing data');
+    } finally {
+      setSharingLoading(false);
+    }
+  };
+
+  const handleShareFolderWithUsers = async () => {
+    if (!sharingFolder || selectedUsersToShare.length === 0) return;
+    setSharingLoading(true);
+    
+    try {
+      await axios.post(`${API}/media/folders/${sharingFolder.id}/shares`, {
+        user_ids: selectedUsersToShare
+      });
+      toast.success('Folder shared with users');
+      
+      // Refresh shares
+      const sharesRes = await axios.get(`${API}/media/folders/${sharingFolder.id}/shares`);
+      setFolderShares(sharesRes.data);
+      setSelectedUsersToShare([]);
+    } catch (error) {
+      toast.error('Failed to share folder');
+    } finally {
+      setSharingLoading(false);
+    }
+  };
+
+  const handleLinkFolderToSeries = async () => {
+    if (!sharingFolder || selectedSeriesToShare.length === 0) return;
+    setSharingLoading(true);
+    
+    try {
+      await axios.post(`${API}/media/folders/${sharingFolder.id}/shares`, {
+        series_ids: selectedSeriesToShare
+      });
+      toast.success('Folder linked to shows');
+      
+      // Refresh shares
+      const sharesRes = await axios.get(`${API}/media/folders/${sharingFolder.id}/shares`);
+      setFolderShares(sharesRes.data);
+      setSelectedSeriesToShare([]);
+    } catch (error) {
+      toast.error('Failed to link folder');
+    } finally {
+      setSharingLoading(false);
+    }
+  };
+
+  const handleRemoveFolderShare = async (shareId) => {
+    if (!sharingFolder) return;
+    
+    try {
+      await axios.delete(`${API}/media/folders/${sharingFolder.id}/shares/${shareId}`);
+      toast.success('Share removed');
+      
+      // Refresh shares
+      const sharesRes = await axios.get(`${API}/media/folders/${sharingFolder.id}/shares`);
+      setFolderShares(sharesRes.data);
+    } catch (error) {
+      toast.error('Failed to remove share');
+    }
+  };
+
+  const toggleUserSelection = (userId) => {
+    setSelectedUsersToShare(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const toggleSeriesSelection = (seriesId) => {
+    setSelectedSeriesToShare(prev => 
+      prev.includes(seriesId) 
+        ? prev.filter(id => id !== seriesId)
+        : [...prev, seriesId]
+    );
+  };
+
   const handleRenameFolder = async () => {
     if (!editingFolder || !newFolderName.trim()) return;
     
