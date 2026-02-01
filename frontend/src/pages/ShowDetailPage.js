@@ -814,6 +814,78 @@ const ShowDetailPage = () => {
         </div>
       )}
 
+      {/* Linked Folders Section */}
+      {linkedFolders.length > 0 && (
+        <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10 mb-6">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <Folder className="w-5 h-5 text-orange-500" />
+            Linked Media Folders
+          </h3>
+          <div className="space-y-2">
+            {linkedFolders.map(folder => (
+              <div key={folder.id} className="bg-white/5 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => toggleFolder(folder.id)}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {expandedFolders.has(folder.id) ? (
+                      <FolderOpen className="w-5 h-5 text-orange-400" />
+                    ) : (
+                      <Folder className="w-5 h-5 text-zinc-400" />
+                    )}
+                    <span className="text-white font-medium">{folder.name}</span>
+                    <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">
+                      {folder.asset_count} file{folder.asset_count !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <ChevronRight className={cn(
+                    "w-4 h-4 text-zinc-500 transition-transform",
+                    expandedFolders.has(folder.id) && "rotate-90"
+                  )} />
+                </button>
+                
+                {expandedFolders.has(folder.id) && (
+                  <div className="px-4 pb-4">
+                    {folderAssets[folder.id] ? (
+                      folderAssets[folder.id].length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {folderAssets[folder.id].map(asset => {
+                            const FileIcon = getFileIcon(asset.kind, asset.mime_type);
+                            return (
+                              <a
+                                key={asset.id}
+                                href={`${API}/uploads/media/${asset.file_storage_key}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg hover:bg-zinc-800 transition-colors group"
+                              >
+                                <FileIcon className="w-5 h-5 text-zinc-400 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-zinc-300 truncate">{asset.title}</p>
+                                  <p className="text-xs text-zinc-500">{asset.kind}</p>
+                                </div>
+                                <ExternalLink className="w-4 h-4 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </a>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-zinc-500 text-center py-4">This folder is empty</p>
+                      )
+                    ) : (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Rundown Section */}
       <RundownEditor showId={showId} canEdit={isEditor} />
 
