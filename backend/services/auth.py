@@ -74,11 +74,28 @@ async def check_show_assignment(show_id: str, user: dict) -> bool:
     """Check if user is assigned to a show (legacy shows model)."""
     if user.get('role') == 'admin':
         return True
+    # Editors can always edit shows (existing behavior)
+    if user.get('role') == 'editor':
+        return True
     assignment = await db.show_assignments.find_one({
         "show_id": show_id,
         "user_id": user['id']
     })
     return assignment is not None
+
+
+async def require_show_edit_permission(show_id: str, user: dict):
+    """Check if user can edit a show (admin, editor, or assigned presenter)."""
+    if user.get('role') == 'admin':
+        return True
+    if user.get('role') == 'editor':
+        return True
+    if user.get('role') in ['presenter']:
+        # Check if assigned to this show
+        is_assigned = await check_show_assignment(show_id, user)
+        if is_assigned:
+            return True
+    raise HTTPException(status_code=403, detail="You don't have permission to edit this show")
 
 
 async def check_occurrence_assignment(occurrence_id: str, user: dict) -> bool:
