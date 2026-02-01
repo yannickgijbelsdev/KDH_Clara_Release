@@ -433,7 +433,7 @@ const MediaLibraryPage = () => {
                     Share / Link
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={(e) => { e.stopPropagation(); handleDeleteFolder(folder.id); }}
+                    onClick={(e) => { e.stopPropagation(); openDeleteFolderDialog(folder); }}
                     className="text-red-400"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
