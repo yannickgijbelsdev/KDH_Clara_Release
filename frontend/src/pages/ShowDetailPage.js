@@ -174,6 +174,11 @@ const ShowDetailPage = () => {
   const [stopRecurrenceDialogOpen, setStopRecurrenceDialogOpen] = useState(false);
   const [enableRecurrenceDialogOpen, setEnableRecurrenceDialogOpen] = useState(false);
   const [enableRecurrenceData, setEnableRecurrenceData] = useState({ interval: 1, endDate: null });
+  
+  // Linked folders state
+  const [linkedFolders, setLinkedFolders] = useState([]);
+  const [expandedFolders, setExpandedFolders] = useState(new Set());
+  const [folderAssets, setFolderAssets] = useState({});
 
   useEffect(() => {
     fetchShow();
