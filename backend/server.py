@@ -34,6 +34,7 @@ from routers import (
     occurrences_router, chat_router, media_router
 )
 from routers.logs import logs_router
+from routers.folders import folders_router
 from routers.wordpress import publish_content_to_wordpress
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
