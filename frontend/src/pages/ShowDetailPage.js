@@ -266,6 +266,40 @@ const ShowDetailPage = () => {
     }
   };
 
+  const fetchLinkedFolders = async () => {
+    try {
+      const response = await axios.get(`${API}/media/folders/show/${showId}`);
+      setLinkedFolders(response.data);
+    } catch (error) {
+      console.error('Failed to load linked folders');
+    }
+  };
+
+  const toggleFolder = async (folderId) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(folderId)) {
+      newExpanded.delete(folderId);
+    } else {
+      newExpanded.add(folderId);
+      // Fetch folder assets if not already loaded
+      if (!folderAssets[folderId]) {
+        try {
+          const response = await axios.get(`${API}/media?folder_id=${folderId}`);
+          setFolderAssets(prev => ({ ...prev, [folderId]: response.data }));
+        } catch (error) {
+          console.error('Failed to load folder assets');
+        }
+      }
+    }
+    setExpandedFolders(newExpanded);
+  };
+
+  const getFileIcon = (kind, mimeType) => {
+    if (kind === 'audio' || mimeType?.startsWith('audio/')) return Music;
+    if (kind === 'image' || mimeType?.startsWith('image/')) return Image;
+    return FileText;
+  };
+
   const handleSave = async (updateAll = false) => {
     setSaving(true);
     try {
