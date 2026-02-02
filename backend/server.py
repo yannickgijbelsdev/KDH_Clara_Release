@@ -414,20 +414,41 @@ async def upload_editor_file(
     """Upload a file from the TinyMCE editor."""
     from fastapi import HTTPException
     
-    # Validate file type
+    # Validate file type - support images, video, audio, and documents
     allowed_types = [
+        # Images
         'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
-        'video/mp4', 'video/webm', 'audio/mpeg', 'audio/wav', 'audio/ogg',
+        'image/heic', 'image/heif',  # Apple HEIC format
+        # Video
+        'video/mp4', 'video/webm', 'video/quicktime',  # quicktime = .mov
+        'video/x-msvideo',  # .avi
+        # Audio
+        'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/x-m4a',
+        # Documents
         'application/pdf'
     ]
     
-    if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail=f"File type {file.content_type} not allowed")
+    # Also check by file extension for browsers that don't send correct MIME type
+    allowed_extensions = [
+        'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'heic', 'heif',
+        'mp4', 'webm', 'mov', 'avi',
+        'mp3', 'wav', 'ogg', 'm4a',
+        'pdf'
+    ]
     
-    # Validate file size (10MB max)
+    file_ext = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+    
+    if file.content_type not in allowed_types and file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"File type {file.content_type} not allowed. Supported: images (jpg, png, gif, webp, heic), video (mp4, mov, webm), audio (mp3, wav, m4a), pdf")
+    
+    # Validate file size (100MB max for video, 10MB for others)
     contents = await file.read()
-    if len(contents) > 10 * 1024 * 1024:
-        raise HTTPException(status_code=400, detail="File too large. Maximum size is 10MB")
+    is_video = file.content_type and file.content_type.startswith('video/') or file_ext in ['mp4', 'mov', 'webm', 'avi']
+    max_size = 100 * 1024 * 1024 if is_video else 10 * 1024 * 1024
+    
+    if len(contents) > max_size:
+        max_mb = 100 if is_video else 10
+        raise HTTPException(status_code=400, detail=f"File too large. Maximum size is {max_mb}MB")
     
     # Generate unique filename
     ext = file.filename.split('.')[-1] if '.' in file.filename else ''
