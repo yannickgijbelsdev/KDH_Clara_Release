@@ -269,6 +269,45 @@ const RichTextEditor = ({
           border-color: #ea580c !important;
         }
       `}</style>
+      {/* Global TinyMCE z-index fix for dialogs/dropdowns */}
+      <style>{`
+        /* Ensure TinyMCE floating elements appear above dialogs */
+        .tox.tox-tinymce-aux {
+          z-index: 10000 !important;
+        }
+        .tox .tox-dialog-wrap {
+          z-index: 10001 !important;
+        }
+        .tox .tox-dialog-wrap__backdrop {
+          z-index: 10000 !important;
+        }
+        .tox .tox-menu {
+          z-index: 10002 !important;
+        }
+        .tox .tox-collection__item {
+          cursor: pointer !important;
+        }
+        .tox-tinymce {
+          z-index: 1 !important;
+        }
+        /* Fix for editor iframe clickability */
+        .tox .tox-edit-area {
+          z-index: 1 !important;
+        }
+        .tox .tox-edit-area iframe {
+          z-index: 1 !important;
+        }
+        /* Ensure toolbar is clickable */
+        .tox .tox-toolbar-overlord,
+        .tox .tox-toolbar__primary,
+        .tox .tox-toolbar__overflow {
+          z-index: 2 !important;
+        }
+        /* Fix autocompleter dropdown */
+        .tox .tox-autocompleter {
+          z-index: 10003 !important;
+        }
+      `}</style>
     </div>
   );
 };
