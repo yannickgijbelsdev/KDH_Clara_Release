@@ -1538,6 +1538,29 @@ const MediaLibraryPage = () => {
   );
 };
 
+// Droppable "All Files" (root) component
+const DroppableAllFiles = ({ isSelected, assetCount, onSelect }) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: 'all-files',
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors mb-1",
+        isSelected ? "bg-orange-500/20 text-orange-400" : "hover:bg-white/5 text-zinc-400",
+        isOver && "bg-orange-500/30 ring-2 ring-orange-500/50"
+      )}
+      onClick={onSelect}
+    >
+      <Folder className="w-4 h-4" />
+      <span className="text-sm flex-1">All Files</span>
+      <span className="text-xs text-zinc-500">{assetCount}</span>
+    </div>
+  );
+};
+
 // Droppable folder item component
 const DroppableFolderItem = ({ 
   folder, 
