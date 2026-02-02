@@ -61,9 +61,11 @@ const RichTextEditor = ({
     input.setAttribute('type', 'file');
     
     if (meta.filetype === 'image') {
-      input.setAttribute('accept', 'image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif');
+      // Accept all common image formats
+      input.setAttribute('accept', 'image/*,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.svg');
     } else if (meta.filetype === 'media') {
-      input.setAttribute('accept', 'video/mp4,video/quicktime,video/webm,audio/mpeg,audio/mp3,audio/wav,audio/m4a,.mp4,.mov,.webm,.mp3,.wav,.m4a');
+      // Accept video and audio
+      input.setAttribute('accept', 'video/*,audio/*,.mp4,.mov,.webm,.avi,.mp3,.wav,.m4a,.ogg');
     } else {
       input.setAttribute('accept', '*/*');
     }
