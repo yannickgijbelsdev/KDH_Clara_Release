@@ -3,6 +3,15 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'sonner';
 import {
+  DndContext,
+  DragOverlay,
+  useDraggable,
+  useDroppable,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
   FileText,
   Music,
   Upload,
@@ -31,7 +40,8 @@ import {
   ChevronRight,
   ChevronDown,
   Users,
-  Tv
+  Tv,
+  GripVertical
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
