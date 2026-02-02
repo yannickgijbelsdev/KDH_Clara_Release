@@ -257,18 +257,6 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Excerpt (optional)</Label>
-            <Textarea
-              data-testid="content-excerpt-input"
-              value={formData.excerpt}
-              onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-              placeholder="Brief summary..."
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 resize-none"
-              rows={2}
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label className="text-zinc-300">Status</Label>
             <Select
               value={formData.status}
