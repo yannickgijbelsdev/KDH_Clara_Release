@@ -1,0 +1,156 @@
+<analysis>**original_problem_statement:**
+The user's initial request was to build a web-based dashboard for radio editors, Clara, with features for team chat, content library, and show scheduling.
+
+The most recent set of user requests included:
+1.  Implement a 4-hour session timeout for users, with a warning modal before logout.
+2.  Change the media share URL to use a custom domain ().
+3.  Add a folder system to the Media Library, allowing folders to be created, nested, and linked to specific users or shows.
+4.  Refine permissions: only admins should be able to delete shows/rundowns, while assigned editors/presenters can edit.
+5.  When changing assignments for a recurring show, provide an option to apply the change to the single event, all future events, or all events in the series.
+6.  Replace the native browser confirmation alert for folder deletion with a custom, styled web alert.
+7.  Fix a bug where the Share button on a folder did nothing.
+8.  Allow linking folders to individual shows from Show Management, not just recurring series.
+9.  Display folders linked to a show within that show's rundown/detail page.
+10. Fix multiple issues with the TinyMCE rich text editor when used inside a dialog, where it was impossible to click into the editor, use dropdown menus, or interact with sub-dialogs like Insert/Edit Media.
+
+**User's preferred language**: Dutch
+**Reasoning**: The user's most recent messages and bug reports were written in Dutch, and the previous agent responded in Dutch. The next agent should start the conversation in Dutch.
+
+**what currently exists?**
+The Clara application is a mature full-stack solution (FastAPI, React, MongoDB) with a dark-themed UI.
+-   **Core Features:** User/team management, chat, content library with WordPress integration, show scheduling, media library, and a detailed activity log.
+-   **Advanced Workflows:** Admin content approval, audit history, soft-delete/restore (Trash), user impersonation, and a background scheduler.
+-   **Session Management:** User sessions expire after 4 hours, and the frontend displays a warning modal before automatically logging out.
+-   **Media Library Folders:** A complete folder system has been implemented. Users can create, rename, and delete nested folders. A new UI in the Media Library page allows for folder navigation and management. Folders can be shared with specific team members or linked to individual shows and recurring series via a dedicated dialog.
+-   **Show & Rundown Permissions:** Editing rights are granted to admins and assigned users, but deletion is restricted to admins only.
+-   **TinyMCE Editor:** The rich text editor is fully functional, including within modal dialogs. Complex z-index and focus-trapping issues have been resolved, ensuring all toolbars, dropdowns, and sub-dialogs are interactive.
+-   **Custom Share URL:** The backend is configured to generate public media sharing links using a custom base URL ().
+
+**Last working item**:
+-   **Last item agent was working:** Fixing an issue where the TinyMCE Insert/Edit Media sub-dialog was not interactive (could not be typed in) when opened from within the Create Content dialog.
+-   **Status:** USER VERIFICATION PENDING
+-   **Agent Testing Done:** Y
+-   **Which testing method agent to use?** frontend testing agent
+-   **User Testing Done:** N
+
+**All Pending/In progress Issue list**:
+There are no pending issues. The agent successfully addressed all recent user requests, culminating in the fix for the TinyMCE editor. The next steps involve moving on to new features from the backlog.
+
+**In progress Task List**:
+There are no tasks currently in progress.
+
+**Upcoming and Future Tasks**
+
+**Upcoming Tasks:**
+-   **(P0) Media Folders: Drag & Drop:** Implement drag-and-drop functionality to move assets between folders in the Media Library sidebar.
+-   **(P1) Microsoft SSO Integration:** Integrate Microsoft Single Sign-On for user authentication.
+
+**Future Tasks:**
+-   **(P1) Chat: Real-Time with WebSockets:** Upgrade the chat from polling to a more efficient WebSocket-based system.
+-   **(P1) Show Templates:** Allow users to create new shows using past rundowns as a template.
+-   **(P2) Frontend Refactoring:** Decompose large components like  and .
+-   **(P2) Custom WPM Setting:** Allow users to set a custom Words-Per-Minute rate for script timing.
+-   **(P2) Public Password Reset:** Implement a self-service Forgot Password flow.
+-   **(P3) Chat Enhancements:** Add message reactions and GIF support.
+-   **(P3) Advanced Scheduling:** Enhance the calendar with a daily view and drag-and-drop rescheduling.
+
+**Completed work in this session**
+-   **Feature:** Implemented a complete folder management system in the Media Library (backend CRUD, frontend UI, sharing/linking with users and shows).
+-   **Feature:** Implemented a 4-hour session timeout with a frontend warning modal.
+-   **Feature:** Configured the backend to use a custom domain for media share URLs.
+-   **Feature:** Added refined permission checks for show/rundown editing and deletion.
+-   **Feature:** Added backend endpoints for bulk assignment changes on recurring shows.
+-   **UI/UX:** Implemented the frontend UI for sharing media assets via a public link.
+-   **UI/UX:** Replaced a native browser alert with a custom dialog for folder deletion.
+-   **UI/UX:** Added a Linked Media Folders section to the .
+-   **Bugfix:** Fixed a critical bug preventing interaction with the TinyMCE editor (and its sub-dialogs/menus) when rendered inside a modal dialog.
+
+**Earlier issues found/mentioned but not fixed**
+-   None. All identified issues in this session were resolved.
+
+**Known issue recurrence from previous fork**
+-   None.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **JWT Session Management:** Using  in FastAPI to create 4-hour tokens and passing the  claim to the frontend for proactive session expiration warnings.
+-   **Fixing Modal Focus Traps:** Resolved a complex conflict between Radix UI's Dialog and TinyMCE's UI elements. The final solution uses a  in the  to detect when a TinyMCE sub-dialog opens and then dynamically sets the  attribute on the main Radix Dialog. This disables the focus trap, allowing interaction with TinyMCE's popups.
+-   **API Route Refactoring:** To fix a routing conflict where  was being captured by , all folder-related endpoints were moved from  to a new, dedicated  router prefixed with .
+-   **Complex Frontend State:**  was significantly refactored to manage a tree-like folder structure, asset lists per folder, and multiple complex dialog states for creating, renaming, deleting, and sharing folders.
+
+**key DB schema**
+-   ** (New):** 
+-   **:** Added  (nullable).
+-   ** (New):**  (where  is 'user', 'show', or 'series').
+
+**All files of reference**
+-   **/app/frontend/src/pages/MediaLibraryPage.js**: Core of the new folder functionality.
+-   **/app/frontend/src/pages/ShowDetailPage.js**: Displays folders linked to shows.
+-   **/app/backend/routers/folders.py**: Backend API for all folder operations.
+-   **/app/frontend/src/components/CreateContentDialog.js**: Contains the primary fix for the TinyMCE focus trap issue.
+-   **/app/frontend/src/components/ui/dialog.jsx**: Modified as part of the TinyMCE fix.
+-   **/app/frontend/src/context/AuthContext.js**: Manages session timeout logic.
+-   **/app/backend/services/auth.py**: Defines the 4-hour JWT token lifespan.
+
+**Areas that need refactoring**:
+-    has become very large and complex, managing state for assets, folders, and multiple dialogs. It could be broken down into smaller components (e.g., , , ).
+
+**key api endpoints**
+-   : Create a new folder.
+-   : Get all folders for the team.
+-   : Rename a folder.
+-   : Delete a folder.
+-   : Share/link a folder with users, shows, or series.
+-   : Get folders linked to a specific show.
+-   : Apply assignment changes to recurring shows.
+-   : Returns public configuration like the .
+-   : Now returns a token with an  timestamp.
+
+**Critical Info for New Agent**
+-   **Language:** The user's last messages were in **Dutch**. Start your communication in Dutch.
+-   **TinyMCE Fix:** A critical, non-trivial bug with TinyMCE inside dialogs was just fixed. The solution in  uses a  to set the main dialog to . Be aware of this pattern if similar UI interaction bugs appear.
+-   **Feature Scope:** A large batch of user-requested features was just completed (session timeout, folders, permissions). The codebase is significantly different from the start of the session. Review the new folder-related components before making changes.
+
+**documents and test reports created in this job**
+-   
+-   
+-    (updated with media sharing feature)
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User:** I cant share the folder to a show/rundown or a person with the url share. The button does nothing" -> **Completed**.
+2.  **User:** "I cant share it with the shows in show management -> **Completed**.
+3.  **User:** I dont see the linked folders in the rundowns of that specific show. -> **Completed**.
+4.  **User:** Fix the TinyMCE editor, because i cant click everywhere -> **Completed**.
+5.  **User:** (Uploaded image of TinyMCE editor).
+6.  **User:** not yet okay, because on this dropdown i cant click on anything -> **Completed**.
+7.  **User:** (Uploaded image of non-interactive TinyMCE dropdown).
+8.  **User:** Als ik nu insert media doe krijg ik dit (Now when I do insert media I get this) -> **Completed**.
+9.  **User:** (Uploaded image of non-interactive TinyMCE Insert Media dialog). This was the last reported issue.
+10. The agent implemented a fix for the TinyMCE Insert Media dialog issue. This is awaiting explicit confirmation from the user.
+
+**Project Health Check:**
+-   **Broken**: None.
+-   **Mocked**: None.
+
+**3rd Party Integrations**
+-   **WordPress REST API**: For content import/export.
+-   **TinyMCE**: Rich text editor. Now with custom fixes to work inside Radix UI dialogs.
+-   **reportlab**: PDF generation.
+-   **APScheduler**: Backend background job scheduling.
+-   **Microsoft SSO**: A potential future integration.
+
+**Testing status**
+-   **Testing agent used after significant changes**: YES (Two iterations)
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: None
+-   **Known regressions**: None.
+
+**Credentials to test flow:**
+-   **Email:** 
+-   **Password:** 
+-   (Fallback) **Email:**  / **Password:** 
+
+**What agent forgot to execute**
+-   None. The agent successfully implemented a large number of features and fixes based on user requests.</analysis>
