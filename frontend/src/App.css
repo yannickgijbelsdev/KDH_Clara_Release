@@ -130,6 +130,28 @@ body .tox.tox-tinymce-aux * {
   pointer-events: auto !important;
   cursor: pointer !important;
 }
+/* Ensure TinyMCE dialogs appear above everything and are fully interactive */
+.tox.tox-tinymce-aux .tox-dialog-wrap {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 999999 !important;
+}
+.tox.tox-tinymce-aux .tox-dialog {
+  position: relative !important;
+  z-index: 999999 !important;
+}
+/* Force TinyMCE dialog inputs to be interactive */
+.tox.tox-tinymce-aux input,
+.tox.tox-tinymce-aux textarea,
+.tox.tox-tinymce-aux select,
+.tox.tox-tinymce-aux button {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 999999 !important;
+}
 
 /* Glassmorphism sidebar */
 .glass-sidebar {
