@@ -150,7 +150,6 @@ const RichTextEditor = ({
           image_caption: true,
           image_title: true,
           image_uploadtab: true,
-          images_file_types: 'jpg,jpeg,png,gif,webp,heic,heif,svg',
           
           // File picker for uploads (enables browse button)
           file_picker_types: 'image media file',
