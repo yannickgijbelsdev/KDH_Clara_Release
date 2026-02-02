@@ -598,62 +598,6 @@ const MediaLibraryPage = () => {
       );
     });
   };
-                    className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/10"
-                  >
-                    <MoreVertical className="w-3 h-3" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-[#27272a] border-zinc-700">
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setNewFolderParent(folder.id);
-                      setShowNewFolderDialog(true);
-                    }}
-                    className="text-zinc-300"
-                  >
-                    <FolderPlus className="w-4 h-4 mr-2" />
-                    New Subfolder
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingFolder(folder);
-                      setNewFolderName(folder.name);
-                    }}
-                    className="text-zinc-300"
-                  >
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Rename
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openShareFolderDialog(folder);
-                    }}
-                    className="text-zinc-300"
-                  >
-                    <Users className="w-4 h-4 mr-2" />
-                    Share / Link
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => { e.stopPropagation(); openDeleteFolderDialog(folder); }}
-                    className="text-red-400"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-          {isExpanded && hasChildren && (
-            <div>{renderFolderTree(folder.children, depth + 1)}</div>
-          )}
-        </div>
-      );
-    });
-  };
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 B';
