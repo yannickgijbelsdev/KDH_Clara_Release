@@ -524,6 +524,44 @@ const MediaLibraryPage = () => {
     }
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (event) => {
+    const { active } = event;
+    const asset = assets.find(a => a.id === active.id);
+    setActiveAsset(asset);
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    setActiveAsset(null);
+    
+    if (!over) return;
+    
+    const assetId = active.id;
+    const targetFolderId = over.id;
+    
+    // Ignore if dropping on same folder or not a valid target
+    if (!targetFolderId) return;
+    
+    // Check if dropping on "all-files" (root)
+    if (targetFolderId === 'all-files') {
+      // Move to root (remove folder_id)
+      try {
+        await axios.put(`${API}/media/${assetId}`, {
+          folder_id: null
+        });
+        toast.success('Asset moved to root');
+        fetchAssets();
+      } catch (error) {
+        toast.error('Failed to move asset');
+      }
+      return;
+    }
+    
+    // Move to a specific folder
+    handleMoveAssetToFolder(assetId, targetFolderId);
+  };
+
   // Recursive folder tree renderer
   const renderFolderTree = (folderList, depth = 0) => {
     return folderList.map(folder => {
