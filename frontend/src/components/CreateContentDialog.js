@@ -33,6 +33,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
   const dialogRef = useRef(null);
+  const [tinyMCEDialogOpen, setTinyMCEDialogOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -44,25 +45,35 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
     status: 'draft',
   });
 
-  // Watch for TinyMCE dialogs opening and manage focus
+  // Watch for TinyMCE dialogs opening and disable focus trap
   useEffect(() => {
     if (!open) return;
 
-    const handleFocusTrap = (e) => {
-      // If the focused element is inside a TinyMCE aux container, don't interfere
-      const target = e.target;
-      if (target.closest('.tox-tinymce-aux') || target.closest('.tox-dialog')) {
-        e.stopPropagation();
-      }
-    };
+    const observer = new MutationObserver((mutations) => {
+      const tinyDialog = document.querySelector('.tox-dialog-wrap');
+      setTinyMCEDialogOpen(!!tinyDialog);
+    });
 
-    // Add listener for focus events
-    document.addEventListener('focusin', handleFocusTrap, true);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
 
-    return () => {
-      document.removeEventListener('focusin', handleFocusTrap, true);
-    };
+    return () => observer.disconnect();
   }, [open]);
+
+  // When TinyMCE dialog opens, set the main dialog as inert
+  useEffect(() => {
+    const dialogElement = document.querySelector('[role="dialog"][data-state="open"]');
+    if (dialogElement && tinyMCEDialogOpen) {
+      // Don't set inert on the TinyMCE dialog
+      if (!dialogElement.closest('.tox-dialog-wrap')) {
+        dialogElement.setAttribute('inert', '');
+      }
+    } else if (dialogElement) {
+      dialogElement.removeAttribute('inert');
+    }
+  }, [tinyMCEDialogOpen]);
 
   useEffect(() => {
     if (open) {
