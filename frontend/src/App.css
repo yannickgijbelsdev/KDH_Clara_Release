@@ -15,9 +15,41 @@
 }
 .tox .tox-collection__item {
   cursor: pointer !important;
+  pointer-events: auto !important;
 }
 .tox .tox-autocompleter {
   z-index: 10003 !important;
+}
+/* Toolbar dropdown fixes */
+.tox .tox-listboxfield {
+  z-index: 10002 !important;
+}
+.tox .tox-listbox__select-label {
+  pointer-events: auto !important;
+}
+.tox .tox-collection {
+  pointer-events: auto !important;
+}
+.tox .tox-collection--list {
+  pointer-events: auto !important;
+}
+.tox .tox-collection__group {
+  pointer-events: auto !important;
+}
+/* Fix for selectbox/dropdown menus */
+.tox .tox-selectfield {
+  z-index: 10002 !important;
+  pointer-events: auto !important;
+}
+.tox .tox-selectfield select {
+  pointer-events: auto !important;
+}
+/* Fix for split buttons and their menus */
+.tox .tox-split-button__chevron {
+  pointer-events: auto !important;
+}
+.tox .tox-tbtn--select {
+  pointer-events: auto !important;
 }
 /* Ensure TinyMCE toolbar buttons are clickable */
 .tox .tox-tbtn {
@@ -27,6 +59,24 @@
   pointer-events: auto !important;
 }
 .tox .tox-edit-area__iframe {
+  pointer-events: auto !important;
+}
+/* Force all tox menu items to be clickable */
+.tox [role="menuitem"],
+.tox [role="option"],
+.tox [role="listbox"] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+/* Fix toolbar overflow menu */
+.tox .tox-toolbar__overflow {
+  z-index: 10002 !important;
+  pointer-events: auto !important;
+}
+.tox .tox-pop {
+  z-index: 10003 !important;
+}
+.tox .tox-pop__dialog {
   pointer-events: auto !important;
 }
 
