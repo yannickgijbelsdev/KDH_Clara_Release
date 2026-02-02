@@ -32,6 +32,7 @@ const contentTypes = [
 const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const dialogRef = useRef(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -42,6 +43,26 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
     category_id: '',
     status: 'draft',
   });
+
+  // Watch for TinyMCE dialogs opening and manage focus
+  useEffect(() => {
+    if (!open) return;
+
+    const handleFocusTrap = (e) => {
+      // If the focused element is inside a TinyMCE aux container, don't interfere
+      const target = e.target;
+      if (target.closest('.tox-tinymce-aux') || target.closest('.tox-dialog')) {
+        e.stopPropagation();
+      }
+    };
+
+    // Add listener for focus events
+    document.addEventListener('focusin', handleFocusTrap, true);
+
+    return () => {
+      document.removeEventListener('focusin', handleFocusTrap, true);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (open) {
