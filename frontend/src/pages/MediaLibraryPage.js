@@ -111,8 +111,20 @@ const MediaLibraryPage = () => {
   const [selectedSeriesToShare, setSelectedSeriesToShare] = useState([]);
   const [selectedShowsToShare, setSelectedShowsToShare] = useState([]);
   
+  // Drag and drop state
+  const [activeAsset, setActiveAsset] = useState(null);
+  
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
+
+  // DnD sensors with activation constraint to prevent accidental drags
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required before drag starts
+      },
+    })
+  );
 
   useEffect(() => {
     fetchAssets();
