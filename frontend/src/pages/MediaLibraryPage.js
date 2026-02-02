@@ -702,102 +702,101 @@ const MediaLibraryPage = () => {
         </div>
       </div>
 
-      {/* Main layout with sidebar */}
-      <div className="flex gap-6">
-        {/* Folder Sidebar */}
-        <div className="w-64 flex-shrink-0 hidden lg:block">
-          <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-            <h3 className="text-sm font-semibold text-zinc-400 mb-3 px-2">Folders</h3>
-            
-            {/* All Files option */}
-            <div
-              className={cn(
-                "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors mb-1",
-                !currentFolder ? "bg-orange-500/20 text-orange-400" : "hover:bg-white/5 text-zinc-400"
-              )}
-              onClick={() => setCurrentFolder(null)}
-            >
-              <Folder className="w-4 h-4" />
-              <span className="text-sm flex-1">All Files</span>
-              <span className="text-xs text-zinc-500">{assets.length}</span>
-            </div>
-            
-            {/* Folder tree */}
-            <div className="space-y-0.5">
-              {renderFolderTree(folders)}
-            </div>
-          </div>
-        </div>
-
-        {/* Main content area */}
-        <div className="flex-1 min-w-0">
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
-            <form onSubmit={handleSearch} className="flex-1 sm:max-w-md">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                <Input
-                  data-testid="media-search-input"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search media..."
-                  className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
-                />
+      {/* Main layout with sidebar wrapped in DndContext */}
+      <DndContext 
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-6">
+          {/* Folder Sidebar */}
+          <div className="w-64 flex-shrink-0 hidden lg:block">
+            <div className="bg-white/5 rounded-xl p-3 border border-white/10">
+              <h3 className="text-sm font-semibold text-zinc-400 mb-3 px-2">Folders</h3>
+              
+              {/* All Files option (droppable) */}
+              <DroppableAllFiles 
+                isSelected={!currentFolder}
+                assetCount={assets.length}
+                onSelect={() => setCurrentFolder(null)}
+              />
+              
+              {/* Folder tree */}
+              <div className="space-y-0.5">
+                {renderFolderTree(folders)}
               </div>
-            </form>
-
-            <Select value={kindFilter} onValueChange={setKindFilter}>
-              <SelectTrigger data-testid="kind-filter" className="w-full sm:w-40 bg-white/5 border-white/10 text-white">
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#18181b] border-zinc-800">
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="document">Documents</SelectItem>
-                <SelectItem value="audio">Audio</SelectItem>
-                <SelectItem value="image">Images</SelectItem>
-              </SelectContent>
-            </Select>
+            </div>
           </div>
 
-          {/* Breadcrumb for current folder */}
-          {currentFolder && (
-            <div className="flex items-center gap-2 mb-4 text-sm">
-              <button
-                onClick={() => setCurrentFolder(null)}
-                className="text-zinc-400 hover:text-white transition-colors"
-              >
-                All Files
-              </button>
-              <ChevronRight className="w-4 h-4 text-zinc-600" />
-              <span className="text-orange-400">
-                {folders.find(f => f.id === currentFolder)?.name || 'Folder'}
-              </span>
-            </div>
-          )}
+          {/* Main content area */}
+          <div className="flex-1 min-w-0">
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
+              <form onSubmit={handleSearch} className="flex-1 sm:max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                  <Input
+                    data-testid="media-search-input"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search media..."
+                    className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
+                  />
+                </div>
+              </form>
 
-          {/* Assets Grid */}
-      {filteredAssets.length === 0 ? (
-        <div className="glass-card rounded-xl p-12 text-center">
-          <File className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">No media files</h3>
-          <p className="text-zinc-400 mb-4">
-            {searchQuery || kindFilter !== 'all'
-              ? 'No files match your filters'
-              : 'Upload documents and audio files to get started'}
-          </p>
-          {canEdit && !searchQuery && kindFilter === 'all' && (
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-orange-500 hover:bg-orange-600"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Files
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <Select value={kindFilter} onValueChange={setKindFilter}>
+                <SelectTrigger data-testid="kind-filter" className="w-full sm:w-40 bg-white/5 border-white/10 text-white">
+                  <Filter className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="All types" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#18181b] border-zinc-800">
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="document">Documents</SelectItem>
+                  <SelectItem value="audio">Audio</SelectItem>
+                  <SelectItem value="image">Images</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Breadcrumb for current folder */}
+            {currentFolder && (
+              <div className="flex items-center gap-2 mb-4 text-sm">
+                <button
+                  onClick={() => setCurrentFolder(null)}
+                  className="text-zinc-400 hover:text-white transition-colors"
+                >
+                  All Files
+                </button>
+                <ChevronRight className="w-4 h-4 text-zinc-600" />
+                <span className="text-orange-400">
+                  {folders.find(f => f.id === currentFolder)?.name || 'Folder'}
+                </span>
+              </div>
+            )}
+
+            {/* Assets Grid */}
+        {filteredAssets.length === 0 ? (
+          <div className="glass-card rounded-xl p-12 text-center">
+            <File className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">No media files</h3>
+            <p className="text-zinc-400 mb-4">
+              {searchQuery || kindFilter !== 'all'
+                ? 'No files match your filters'
+                : 'Upload documents and audio files to get started'}
+            </p>
+            {canEdit && !searchQuery && kindFilter === 'all' && (
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Files
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredAssets.map((asset) => {
             const FileIcon = getFileIcon(asset.kind, asset.mime_type);
             return (
