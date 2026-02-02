@@ -562,7 +562,7 @@ const MediaLibraryPage = () => {
     handleMoveAssetToFolder(assetId, targetFolderId);
   };
 
-  // Recursive folder tree renderer
+  // Recursive folder tree renderer with droppable support
   const renderFolderTree = (folderList, depth = 0) => {
     return folderList.map(folder => {
       const isExpanded = expandedFolders.has(folder.id);
@@ -570,34 +570,34 @@ const MediaLibraryPage = () => {
       const hasChildren = folder.children && folder.children.length > 0;
       
       return (
-        <div key={folder.id}>
-          <div
-            className={cn(
-              "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors group",
-              isSelected ? "bg-orange-500/20 text-orange-400" : "hover:bg-white/5 text-zinc-400",
-              depth > 0 && "ml-4"
-            )}
-            onClick={() => setCurrentFolder(folder.id)}
-          >
-            {hasChildren ? (
-              <button
-                onClick={(e) => { e.stopPropagation(); toggleFolderExpand(folder.id); }}
-                className="p-0.5 hover:bg-white/10 rounded"
-              >
-                {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-              </button>
-            ) : (
-              <span className="w-4" />
-            )}
-            {isSelected ? <FolderOpen className="w-4 h-4 flex-shrink-0" /> : <Folder className="w-4 h-4 flex-shrink-0" />}
-            <span className="truncate flex-1 text-sm">{folder.name}</span>
-            <span className="text-xs text-zinc-500">{folder.asset_count}</span>
-            
-            {canEdit && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <button 
-                    data-testid={`folder-menu-${folder.id}`}
+        <DroppableFolderItem
+          key={folder.id}
+          folder={folder}
+          isExpanded={isExpanded}
+          isSelected={isSelected}
+          hasChildren={hasChildren}
+          depth={depth}
+          onSelect={() => setCurrentFolder(folder.id)}
+          onToggleExpand={() => toggleFolderExpand(folder.id)}
+          canEdit={canEdit}
+          onNewSubfolder={() => {
+            setNewFolderParent(folder.id);
+            setShowNewFolderDialog(true);
+          }}
+          onRename={() => {
+            setEditingFolder(folder);
+            setNewFolderName(folder.name);
+          }}
+          onShare={() => openShareFolderDialog(folder)}
+          onDelete={() => openDeleteFolderDialog(folder)}
+        >
+          {isExpanded && hasChildren && (
+            <div>{renderFolderTree(folder.children, depth + 1)}</div>
+          )}
+        </DroppableFolderItem>
+      );
+    });
+  };
                     className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/10"
                   >
                     <MoreVertical className="w-3 h-3" />
