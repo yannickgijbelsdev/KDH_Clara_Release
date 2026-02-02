@@ -730,16 +730,6 @@ const ContentDetailPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Excerpt</Label>
-              <Textarea
-                value={editData.excerpt}
-                onChange={(e) => setEditData({ ...editData, excerpt: e.target.value })}
-                className="bg-[#27272a] border-zinc-700 text-white resize-none"
-                rows={2}
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label className="text-zinc-300">Category</Label>
               <Select
                 value={editData.category_id || "none"}
@@ -782,13 +772,6 @@ const ContentDetailPage = () => {
                   <Globe className="w-4 h-4" />
                   {content.external_url}
                 </a>
-              </div>
-            )}
-
-            {content.excerpt && (
-              <div>
-                <Label className="text-zinc-500 text-xs uppercase tracking-wider">Excerpt</Label>
-                <p className="text-zinc-300 mt-1">{content.excerpt}</p>
               </div>
             )}
 
