@@ -1669,7 +1669,7 @@ const DraggableAssetCard = ({ asset, children }) => {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative",
+        "relative group/drag",
         isDragging && "opacity-50 z-50"
       )}
     >
@@ -1677,10 +1677,10 @@ const DraggableAssetCard = ({ asset, children }) => {
       <div
         {...listeners}
         {...attributes}
-        className="absolute top-2 left-2 p-1.5 rounded bg-zinc-800/80 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hover:bg-zinc-700"
-        title="Drag to move to folder"
+        className="absolute top-4 left-4 p-1.5 rounded bg-zinc-700/90 opacity-0 group-hover/drag:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-20 hover:bg-zinc-600 shadow-lg"
+        title="Sleep naar een map"
       >
-        <GripVertical className="w-3 h-3 text-zinc-400" />
+        <GripVertical className="w-4 h-4 text-zinc-300" />
       </div>
       {children}
     </div>
