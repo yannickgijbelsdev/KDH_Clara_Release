@@ -95,16 +95,23 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
       <DialogContent 
         className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[800px] max-h-[90vh] overflow-y-auto"
         onInteractOutside={(e) => {
-          // Prevent dialog from closing when clicking TinyMCE dropdowns
+          // Prevent dialog from closing when clicking TinyMCE elements
           const target = e.target;
-          if (target.closest('.tox-tinymce-aux') || target.closest('.tox-menu') || target.closest('.tox-dialog')) {
+          if (target.closest('.tox-tinymce-aux') || target.closest('.tox-menu') || target.closest('.tox-dialog') || target.closest('.tox')) {
             e.preventDefault();
           }
         }}
         onPointerDownOutside={(e) => {
-          // Prevent dialog from closing when clicking TinyMCE dropdowns
+          // Prevent dialog from closing when clicking TinyMCE elements
           const target = e.target;
-          if (target.closest('.tox-tinymce-aux') || target.closest('.tox-menu') || target.closest('.tox-dialog')) {
+          if (target.closest('.tox-tinymce-aux') || target.closest('.tox-menu') || target.closest('.tox-dialog') || target.closest('.tox')) {
+            e.preventDefault();
+          }
+        }}
+        onFocusOutside={(e) => {
+          // Prevent focus from being stolen back from TinyMCE dialogs
+          const target = e.target;
+          if (target.closest('.tox-tinymce-aux') || target.closest('.tox-dialog') || target.closest('.tox')) {
             e.preventDefault();
           }
         }}
