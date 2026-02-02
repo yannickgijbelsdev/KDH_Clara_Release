@@ -143,12 +143,14 @@ const RichTextEditor = ({
           link_context_toolbar: true,
           link_title: true,
           
-          // Image settings
+          // Image settings - enable upload tab in image dialog
           image_advtab: true,
           image_caption: true,
           image_title: true,
+          image_uploadtab: true,
+          images_file_types: 'jpg,jpeg,png,gif,webp,heic,heif,svg',
           
-          // File picker for uploads
+          // File picker for uploads (enables browse button)
           file_picker_types: 'image media file',
           file_picker_callback: handleFilePicker,
           
@@ -157,10 +159,11 @@ const RichTextEditor = ({
           quickbars_insert_toolbar: 'quickimage quicktable',
           contextmenu: 'link image table',
           
-          // Paste settings
+          // Image upload settings - enables drag/drop and paste
           paste_data_images: true,
           automatic_uploads: true,
           images_upload_handler: handleImageUpload,
+          images_reuse_filename: true,
           
           // Content styling
           content_style: `
