@@ -1,28 +1,30 @@
 /* App-level custom styles */
 
-/* TinyMCE z-index fixes for dialogs */
+/* TinyMCE z-index fixes - must be higher than Radix Dialog (z-50 = 50) */
 .tox.tox-tinymce-aux {
-  z-index: 10000 !important;
+  z-index: 99999 !important;
+  position: fixed !important;
 }
 .tox .tox-dialog-wrap {
-  z-index: 10001 !important;
+  z-index: 99999 !important;
 }
 .tox .tox-dialog-wrap__backdrop {
-  z-index: 10000 !important;
+  z-index: 99998 !important;
 }
 .tox .tox-menu {
-  z-index: 10002 !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
 }
 .tox .tox-collection__item {
   cursor: pointer !important;
   pointer-events: auto !important;
 }
 .tox .tox-autocompleter {
-  z-index: 10003 !important;
+  z-index: 99999 !important;
 }
 /* Toolbar dropdown fixes */
 .tox .tox-listboxfield {
-  z-index: 10002 !important;
+  z-index: 99999 !important;
 }
 .tox .tox-listbox__select-label {
   pointer-events: auto !important;
@@ -38,7 +40,7 @@
 }
 /* Fix for selectbox/dropdown menus */
 .tox .tox-selectfield {
-  z-index: 10002 !important;
+  z-index: 99999 !important;
   pointer-events: auto !important;
 }
 .tox .tox-selectfield select {
@@ -70,13 +72,17 @@
 }
 /* Fix toolbar overflow menu */
 .tox .tox-toolbar__overflow {
-  z-index: 10002 !important;
+  z-index: 99999 !important;
   pointer-events: auto !important;
 }
 .tox .tox-pop {
-  z-index: 10003 !important;
+  z-index: 99999 !important;
 }
 .tox .tox-pop__dialog {
+  pointer-events: auto !important;
+}
+/* Ensure dropdown items can be clicked through any overlays */
+body .tox.tox-tinymce-aux * {
   pointer-events: auto !important;
 }
 
