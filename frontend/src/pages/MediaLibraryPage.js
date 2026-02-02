@@ -800,153 +800,176 @@ const MediaLibraryPage = () => {
           {filteredAssets.map((asset) => {
             const FileIcon = getFileIcon(asset.kind, asset.mime_type);
             return (
-              <div
-                key={asset.id}
-                data-testid={`media-asset-${asset.id}`}
-                className={cn(
-                  "glass-card rounded-xl p-4 hover:border-orange-500/30 transition-all group",
-                  canPreview(asset) && "cursor-pointer"
-                )}
-                onClick={() => canPreview(asset) && setPreviewAsset(asset)}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    'p-3 rounded-lg flex-shrink-0',
-                    asset.kind === 'audio' ? 'bg-amber-500/20' : 
-                    asset.mime_type?.startsWith('image/') ? 'bg-green-500/20' :
-                    'bg-blue-500/20'
-                  )}>
-                    <FileIcon className={cn(
-                      'w-6 h-6',
-                      asset.kind === 'audio' ? 'text-amber-500' : 
-                      asset.mime_type?.startsWith('image/') ? 'text-green-500' :
-                      'text-blue-500'
-                    )} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-white truncate" title={asset.title}>
-                      {asset.title}
-                    </h3>
-                    <p className="text-xs text-zinc-500 truncate">
-                      {asset.original_filename}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-zinc-400">
-                      <span>{formatFileSize(asset.size)}</span>
-                      <span>•</span>
-                      <span>{formatDate(asset.created_at)}</span>
+              <DraggableAssetCard key={asset.id} asset={asset}>
+                <div
+                  data-testid={`media-asset-${asset.id}`}
+                  className={cn(
+                    "glass-card rounded-xl p-4 hover:border-orange-500/30 transition-all group",
+                    canPreview(asset) && "cursor-pointer"
+                  )}
+                  onClick={() => canPreview(asset) && setPreviewAsset(asset)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      'p-3 rounded-lg flex-shrink-0',
+                      asset.kind === 'audio' ? 'bg-amber-500/20' : 
+                      asset.mime_type?.startsWith('image/') ? 'bg-green-500/20' :
+                      'bg-blue-500/20'
+                    )}>
+                      <FileIcon className={cn(
+                        'w-6 h-6',
+                        asset.kind === 'audio' ? 'text-amber-500' : 
+                        asset.mime_type?.startsWith('image/') ? 'text-green-500' :
+                        'text-blue-500'
+                      )} />
                     </div>
-                  </div>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
-                      {canPreview(asset) && (
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewAsset(asset);
-                          }}
-                          className="text-zinc-300"
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-white truncate" title={asset.title}>
+                        {asset.title}
+                      </h3>
+                      <p className="text-xs text-zinc-500 truncate">
+                        {asset.original_filename}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-zinc-400">
+                        <span>{formatFileSize(asset.size)}</span>
+                        <span>•</span>
+                        <span>{formatDate(asset.created_at)}</span>
+                      </div>
+                    </div>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Preview
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(getFileUrl(asset), '_blank');
-                        }}
-                        className="text-zinc-300"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        data-testid={`share-asset-${asset.id}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenShareDialog(asset);
-                        }}
-                        className="text-zinc-300"
-                      >
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share
-                      </DropdownMenuItem>
-                      {canEdit && (
-                        <>
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                        {canPreview(asset) && (
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              setEditingAsset(asset);
-                              setNewTitle(asset.title);
+                              setPreviewAsset(asset);
                             }}
                             className="text-zinc-300"
                           >
-                            <Pencil className="w-4 h-4 mr-2" />
-                            Rename
+                            <Eye className="w-4 h-4 mr-2" />
+                            Preview
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteAsset(asset);
-                            }}
-                            className="text-orange-500 focus:text-orange-500"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        )}
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(getFileUrl(asset), '_blank');
+                          }}
+                          className="text-zinc-300"
+                        >
+                          <Download className="w-4 h-4 mr-2" />
+                          Download
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          data-testid={`share-asset-${asset.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenShareDialog(asset);
+                          }}
+                          className="text-zinc-300"
+                        >
+                          <Share2 className="w-4 h-4 mr-2" />
+                          Share
+                        </DropdownMenuItem>
+                        {canEdit && (
+                          <>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingAsset(asset);
+                                setNewTitle(asset.title);
+                              }}
+                              className="text-zinc-300"
+                            >
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteAsset(asset);
+                              }}
+                              className="text-orange-500 focus:text-orange-500"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  {/* Image Thumbnail Preview */}
+                  {asset.mime_type?.startsWith('image/') && (
+                    <div className="mt-3 rounded-lg overflow-hidden bg-zinc-800 h-32">
+                      <img
+                        src={getFileUrl(asset)}
+                        alt={asset.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Audio Player */}
+                  {asset.kind === 'audio' && (
+                    <div className="mt-3" onClick={(e) => e.stopPropagation()}>
+                      <audio
+                        controls
+                        className="w-full h-8"
+                        src={getFileUrl(asset)}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Preview hint for PDF/text */}
+                  {(asset.mime_type === 'application/pdf' || asset.mime_type === 'text/plain') && (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Click to preview</span>
+                    </div>
+                  )}
                 </div>
-
-                {/* Image Thumbnail Preview */}
-                {asset.mime_type?.startsWith('image/') && (
-                  <div className="mt-3 rounded-lg overflow-hidden bg-zinc-800 h-32">
-                    <img
-                      src={getFileUrl(asset)}
-                      alt={asset.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-
-                {/* Audio Player */}
-                {asset.kind === 'audio' && (
-                  <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-                    <audio
-                      controls
-                      className="w-full h-8"
-                      src={getFileUrl(asset)}
-                    />
-                  </div>
-                )}
-                
-                {/* Preview hint for PDF/text */}
-                {(asset.mime_type === 'application/pdf' || asset.mime_type === 'text/plain') && (
-                  <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Click to preview</span>
-                  </div>
-                )}
-              </div>
+              </DraggableAssetCard>
             );
           })}
         </div>
       )}
+          </div>
         </div>
-      </div>
+
+        {/* Drag Overlay */}
+        <DragOverlay>
+          {activeAsset && (
+            <div className="glass-card rounded-xl p-4 opacity-90 shadow-2xl border-orange-500/50">
+              <div className="flex items-center gap-3">
+                <div className={cn(
+                  'p-2 rounded-lg',
+                  activeAsset.kind === 'audio' ? 'bg-amber-500/20' : 
+                  activeAsset.mime_type?.startsWith('image/') ? 'bg-green-500/20' :
+                  'bg-blue-500/20'
+                )}>
+                  <File className="w-5 h-5 text-orange-400" />
+                </div>
+                <span className="text-sm text-white font-medium truncate max-w-[200px]">
+                  {activeAsset.title}
+                </span>
+              </div>
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
 
       {/* New Folder Dialog */}
       <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
