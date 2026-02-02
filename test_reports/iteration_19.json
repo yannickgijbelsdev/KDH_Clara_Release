@@ -1,0 +1,90 @@
+{
+  "summary": "Completed testing of drag-and-drop functionality for media assets in Clara Dashboard. Fixed a critical backend bug where moving assets to root (folder_id=null) was not working. All 7 backend tests passed (100%). Frontend UI testing confirmed drag handle visibility, folder highlighting, and toast notifications work correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [],
+    "fixed": [
+      {
+        "endpoint": "PUT /api/media/{id}",
+        "issue": "Setting folder_id to null was not working - assets could not be moved back to root",
+        "fix": "Changed update_dict logic from filtering out None values to using model_dump(exclude_unset=True)",
+        "file": "/app/backend/routers/media.py",
+        "line": 164
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_drag_drop_media.py",
+    "/app/test_reports/pytest/drag_drop_media_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Drag-and-drop implemented correctly using @dnd-kit library",
+    "DraggableAssetCard component properly wraps asset cards with drag handle",
+    "DroppableFolderItem and DroppableAllFiles components handle drop targets",
+    "Visual feedback (orange ring highlight) works on drop targets during drag",
+    "Toast notifications display correctly for both 'Asset moved' and 'Asset moved to root'",
+    "Backend fix applied: exclude_unset=True allows explicit null values for folder_id"
+  ],
+  "updated_files": [
+    "/app/backend/routers/media.py",
+    "/app/backend/tests/test_drag_drop_media.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "100% (all UI features verified)"
+  },
+  "test_credentials": {
+    "email": "yannick.gijbels@koodh.com",
+    "password": "password123"
+  },
+  "seed_data_creation": "Used existing asset (24.png) and folder (Social Club) for testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Drag-and-drop for media assets is fully functional. Key components: DraggableAssetCard (wraps asset cards), DroppableFolderItem (folder drop targets), DroppableAllFiles (root drop target). Backend endpoint PUT /api/media/{id} accepts folder_id (string or null) to move assets between folders.",
+  "features_tested": {
+    "media_library_page_load": {
+      "status": "PASS",
+      "details": "Page loads with folder sidebar, All Files option, and asset cards"
+    },
+    "drag_handle_visibility": {
+      "status": "PASS",
+      "details": "GripVertical icon appears on hover over asset card (top-left corner)"
+    },
+    "drag_to_folder": {
+      "status": "PASS",
+      "details": "Dragging asset to folder updates folder_id and shows 'Asset moved' toast"
+    },
+    "drag_to_root": {
+      "status": "PASS",
+      "details": "Dragging asset to 'All Files' sets folder_id=null and shows 'Asset moved to root' toast"
+    },
+    "folder_highlighting": {
+      "status": "PASS",
+      "details": "Orange ring highlight appears on drop targets when asset is dragged over"
+    },
+    "toast_notifications": {
+      "status": "PASS",
+      "details": "Toast notifications appear for successful moves"
+    },
+    "backend_move_to_folder": {
+      "status": "PASS",
+      "details": "PUT /api/media/{id} with folder_id correctly updates asset"
+    },
+    "backend_move_to_root": {
+      "status": "PASS",
+      "details": "PUT /api/media/{id} with folder_id=null correctly moves asset to root (FIXED)"
+    }
+  },
+  "bug_fix_applied": {
+    "description": "Fixed backend bug where folder_id=null was being filtered out",
+    "root_cause": "Line 164 in media.py used `if v is not None` which filtered out explicit null values",
+    "solution": "Changed to `model_dump(exclude_unset=True)` which only excludes fields not explicitly set",
+    "impact": "Assets can now be moved back to root (All Files) via drag-and-drop"
+  }
+}
