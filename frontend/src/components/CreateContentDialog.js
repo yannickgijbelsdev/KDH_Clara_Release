@@ -92,7 +92,23 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[800px] max-h-[90vh] overflow-y-auto"
+        onInteractOutside={(e) => {
+          // Prevent dialog from closing when clicking TinyMCE dropdowns
+          const target = e.target;
+          if (target.closest('.tox-tinymce-aux') || target.closest('.tox-menu') || target.closest('.tox-dialog')) {
+            e.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(e) => {
+          // Prevent dialog from closing when clicking TinyMCE dropdowns
+          const target = e.target;
+          if (target.closest('.tox-tinymce-aux') || target.closest('.tox-menu') || target.closest('.tox-dialog')) {
+            e.preventDefault();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Create Content</DialogTitle>
         </DialogHeader>
