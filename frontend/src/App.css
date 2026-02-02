@@ -1,5 +1,35 @@
 /* App-level custom styles */
 
+/* TinyMCE z-index fixes for dialogs */
+.tox.tox-tinymce-aux {
+  z-index: 10000 !important;
+}
+.tox .tox-dialog-wrap {
+  z-index: 10001 !important;
+}
+.tox .tox-dialog-wrap__backdrop {
+  z-index: 10000 !important;
+}
+.tox .tox-menu {
+  z-index: 10002 !important;
+}
+.tox .tox-collection__item {
+  cursor: pointer !important;
+}
+.tox .tox-autocompleter {
+  z-index: 10003 !important;
+}
+/* Ensure TinyMCE toolbar buttons are clickable */
+.tox .tox-tbtn {
+  pointer-events: auto !important;
+}
+.tox .tox-toolbar__primary {
+  pointer-events: auto !important;
+}
+.tox .tox-edit-area__iframe {
+  pointer-events: auto !important;
+}
+
 /* Glassmorphism sidebar */
 .glass-sidebar {
   background: rgba(0, 0, 0, 0.4);
