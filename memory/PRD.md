@@ -660,3 +660,21 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - DELETE /api/series/{id}/assignments/{user_id}/bulk with same options
   
 - [x] All 22 new backend tests passed (100% success rate)
+
+### February 2, 2026 - Media Library Drag & Drop
+
+- [x] **Drag & Drop for Media Assets**:
+  - Implemented using @dnd-kit library (already installed)
+  - DraggableAssetCard component wraps asset cards with drag handle
+  - DroppableFolderItem component makes folders droppable targets
+  - DroppableAllFiles component allows moving assets back to root
+  - Visual feedback: orange ring highlight on drop targets during drag
+  - GripVertical drag handle appears on hover (top-left of asset cards)
+  - Toast notifications: "Asset moved" / "Asset moved to root"
+  
+- [x] **Backend Fix for Move to Root**:
+  - Fixed PUT /api/media/{id} to accept folder_id=null
+  - Changed from filtering None values to using exclude_unset=True
+  - Assets can now be moved back to root (All Files) via drag-and-drop
+  
+- [x] All 7 drag-and-drop tests passed (100% success rate)
