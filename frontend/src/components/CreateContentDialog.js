@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FileText, Link, BookOpen, Loader2, Folder } from 'lucide-react';
 import {
