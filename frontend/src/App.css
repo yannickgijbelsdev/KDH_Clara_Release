@@ -11,6 +11,46 @@
 .tox .tox-dialog-wrap__backdrop {
   z-index: 99998 !important;
 }
+.tox .tox-dialog {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+}
+.tox .tox-dialog__header,
+.tox .tox-dialog__body,
+.tox .tox-dialog__body-content,
+.tox .tox-dialog__footer {
+  pointer-events: auto !important;
+}
+/* Fix TinyMCE dialog inputs and buttons */
+.tox .tox-dialog input,
+.tox .tox-dialog textarea,
+.tox .tox-dialog select,
+.tox .tox-dialog button,
+.tox .tox-dialog .tox-textfield,
+.tox .tox-dialog .tox-listbox,
+.tox .tox-dialog .tox-button {
+  pointer-events: auto !important;
+  z-index: 99999 !important;
+}
+/* Fix dialog tabs */
+.tox .tox-dialog__body-nav,
+.tox .tox-dialog__body-nav-item {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+/* Fix for URL/source input in media dialog */
+.tox .tox-form__group {
+  pointer-events: auto !important;
+}
+.tox .tox-form__group input,
+.tox .tox-form__group .tox-textfield {
+  pointer-events: auto !important;
+}
+/* Ensure lock button in media dialog works */
+.tox .tox-lock {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
 .tox .tox-menu {
   z-index: 99999 !important;
   pointer-events: auto !important;
@@ -84,6 +124,11 @@
 /* Ensure dropdown items can be clicked through any overlays */
 body .tox.tox-tinymce-aux * {
   pointer-events: auto !important;
+}
+/* Fix for file picker/browse button in dialogs */
+.tox .tox-browse-url {
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 /* Glassmorphism sidebar */
