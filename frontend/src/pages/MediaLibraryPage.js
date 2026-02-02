@@ -1516,6 +1516,132 @@ const MediaLibraryPage = () => {
   );
 };
 
+// Droppable folder item component
+const DroppableFolderItem = ({ 
+  folder, 
+  isExpanded, 
+  isSelected, 
+  hasChildren, 
+  depth, 
+  onSelect, 
+  onToggleExpand, 
+  canEdit,
+  onNewSubfolder,
+  onRename,
+  onShare,
+  onDelete,
+  children 
+}) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: folder.id,
+  });
+
+  return (
+    <div ref={setNodeRef}>
+      <div
+        className={cn(
+          "flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition-colors group",
+          isSelected ? "bg-orange-500/20 text-orange-400" : "hover:bg-white/5 text-zinc-400",
+          isOver && "bg-orange-500/30 ring-2 ring-orange-500/50",
+          depth > 0 && "ml-4"
+        )}
+        onClick={onSelect}
+      >
+        {hasChildren ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleExpand(); }}
+            className="p-0.5 hover:bg-white/10 rounded"
+          >
+            {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+          </button>
+        ) : (
+          <span className="w-4" />
+        )}
+        {isSelected ? <FolderOpen className="w-4 h-4 flex-shrink-0" /> : <Folder className="w-4 h-4 flex-shrink-0" />}
+        <span className="truncate flex-1 text-sm">{folder.name}</span>
+        <span className="text-xs text-zinc-500">{folder.asset_count}</span>
+        
+        {canEdit && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <button 
+                data-testid={`folder-menu-${folder.id}`}
+                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/10"
+              >
+                <MoreVertical className="w-3 h-3" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-[#27272a] border-zinc-700">
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onNewSubfolder(); }}
+                className="text-zinc-300"
+              >
+                <FolderPlus className="w-4 h-4 mr-2" />
+                New Subfolder
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onRename(); }}
+                className="text-zinc-300"
+              >
+                <Pencil className="w-4 h-4 mr-2" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onShare(); }}
+                className="text-zinc-300"
+              >
+                <Users className="w-4 h-4 mr-2" />
+                Share / Link
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                className="text-red-400"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+};
+
+// Draggable asset card component
+const DraggableAssetCard = ({ asset, children }) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: asset.id,
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+  } : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "relative",
+        isDragging && "opacity-50 z-50"
+      )}
+    >
+      {/* Drag handle */}
+      <div
+        {...listeners}
+        {...attributes}
+        className="absolute top-2 left-2 p-1.5 rounded bg-zinc-800/80 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-10 hover:bg-zinc-700"
+        title="Drag to move to folder"
+      >
+        <GripVertical className="w-3 h-3 text-zinc-400" />
+      </div>
+      {children}
+    </div>
+  );
+};
+
 // Text file preview component
 const TextFilePreview = ({ url }) => {
   const [content, setContent] = useState('');
