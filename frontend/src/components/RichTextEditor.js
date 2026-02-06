@@ -140,7 +140,28 @@ const RichTextEditor = ({
   };
 
   return (
-    <div className="rich-text-editor-wrapper">
+    <div className="rich-text-editor-wrapper relative">
+      {/* Upload Progress Overlay */}
+      {isUploading && (
+        <div className="absolute inset-0 bg-black/70 z-50 flex items-center justify-center rounded-lg backdrop-blur-sm">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-xl min-w-[300px]">
+            <div className="flex items-center gap-3 mb-4">
+              <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+              <div>
+                <p className="text-white font-medium">Bestand uploaden...</p>
+                <p className="text-zinc-400 text-sm truncate max-w-[200px]">{uploadFileName}</p>
+              </div>
+            </div>
+            <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-center text-orange-400 text-sm font-medium mt-2">{uploadProgress}%</p>
+          </div>
+        </div>
+      )}
       <Editor
         id={id}
         tinymceScriptSrc="/tinymce/tinymce.min.js"
