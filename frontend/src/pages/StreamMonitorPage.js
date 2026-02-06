@@ -184,10 +184,10 @@ const VUMeter = ({ level, color }) => {
 const StreamPlayer = ({ stream, onStatusChange }) => {
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
-  const analyserRef = useRef(null);
   const sourceRef = useRef(null);
   const gainNodeRef = useRef(null);
   
+  const [analyser, setAnalyser] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Start muted for meters
@@ -203,15 +203,16 @@ const StreamPlayer = ({ stream, onStatusChange }) => {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioContextRef.current = new AudioContext();
       
-      analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
-      analyserRef.current.smoothingTimeConstant = 0.8;
+      const newAnalyser = audioContextRef.current.createAnalyser();
+      newAnalyser.fftSize = 256;
+      newAnalyser.smoothingTimeConstant = 0.8;
+      setAnalyser(newAnalyser);
 
       gainNodeRef.current = audioContextRef.current.createGain();
       gainNodeRef.current.gain.value = isMuted ? 0 : volume;
 
       // Connect analyser to gain, gain to destination
-      analyserRef.current.connect(gainNodeRef.current);
+      newAnalyser.connect(gainNodeRef.current);
       gainNodeRef.current.connect(audioContextRef.current.destination);
 
     } catch (err) {
@@ -222,15 +223,15 @@ const StreamPlayer = ({ stream, onStatusChange }) => {
 
   // Connect audio element to analyser
   const connectAudio = useCallback(() => {
-    if (!audioRef.current || !audioContextRef.current || sourceRef.current) return;
+    if (!audioRef.current || !audioContextRef.current || sourceRef.current || !analyser) return;
 
     try {
       sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-      sourceRef.current.connect(analyserRef.current);
+      sourceRef.current.connect(analyser);
     } catch (err) {
       console.error('Failed to connect audio:', err);
     }
-  }, []);
+  }, [analyser]);
 
   // Start the stream (muted for metering)
   const startStream = useCallback(async () => {
