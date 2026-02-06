@@ -678,3 +678,30 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Assets can now be moved back to root (All Files) via drag-and-drop
   
 - [x] All 7 drag-and-drop tests passed (100% success rate)
+
+### February 6, 2026 - Hetzner S3 Object Storage Integration
+
+- [x] **S3 Storage Service**:
+  - Created `/app/backend/services/s3_storage.py` for all S3 operations
+  - Supports upload, delete, get, and presigned URL generation
+  - Uses boto3 with S3v4 signature for Hetzner compatibility
+  - Configuration via environment variables (S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY, S3_SECRET_KEY)
+  
+- [x] **Media Library S3 Integration**:
+  - All new media uploads go directly to S3 bucket `koodh-clara`
+  - Files stored with path: `media/{team_id}/{uuid}.{ext}`
+  - `s3_url` field added to MediaAssetResponse model
+  - Frontend uses direct S3 URLs for serving files (faster CDN delivery)
+  - Fallback to local storage if S3 not configured
+  
+- [x] **TinyMCE Editor S3 Integration**:
+  - Editor file uploads (images, video, audio) now go to S3
+  - Files stored with path: `editor/{uuid}.{ext}`
+  - Direct S3 URL returned to TinyMCE for embedding
+  
+- [x] **S3 Status Endpoint**:
+  - GET /api/storage/status (admin only) - check S3 connection status
+
+- [x] **UI Cleanup**:
+  - Removed "Excerpt" field from Create Content dialog
+  - Removed "Excerpt" field from Content Detail edit mode
