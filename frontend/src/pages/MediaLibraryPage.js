@@ -619,6 +619,10 @@ const MediaLibraryPage = () => {
   };
 
   const getFileUrl = (asset) => {
+    // Use S3 URL directly if available, otherwise use the API endpoint
+    if (asset.s3_url) {
+      return asset.s3_url;
+    }
     return `${API}/uploads/media/${asset.file_storage_key}`;
   };
 
