@@ -527,7 +527,7 @@ const RDSSettingsPage = () => {
                 <div className="space-y-1">
                   {mfyFilters.map((f, i) => (
                     <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1">
-                      <span className="text-zinc-400">"{f.match}"</span>
+                      <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
                       <span className="text-zinc-600 mx-1">→</span>
                       <span className="text-orange-400">{f.replace || '(verwijderen)'}</span>
                     </div>
@@ -622,7 +622,7 @@ const RDSSettingsPage = () => {
                 <div className="space-y-1">
                   {grkFilters.map((f, i) => (
                     <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1">
-                      <span className="text-zinc-400">"{f.match}"</span>
+                      <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
                       <span className="text-zinc-600 mx-1">→</span>
                       <span className="text-violet-400">{f.replace || '(verwijderen)'}</span>
                     </div>
