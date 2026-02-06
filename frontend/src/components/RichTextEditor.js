@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import axios from 'axios';
+import { Loader2 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -17,6 +18,9 @@ const RichTextEditor = ({
   id = 'rich-text-editor'
 }) => {
   const editorRef = useRef(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadFileName, setUploadFileName] = useState('');
 
   const handleEditorChange = (content) => {
     onChange(content);
@@ -25,6 +29,10 @@ const RichTextEditor = ({
   // File upload handler for images
   const handleImageUpload = (blobInfo, progress) => new Promise(async (resolve, reject) => {
     try {
+      setIsUploading(true);
+      setUploadFileName(blobInfo.filename());
+      setUploadProgress(0);
+      
       const formData = new FormData();
       formData.append('file', blobInfo.blob(), blobInfo.filename());
       
@@ -32,10 +40,15 @@ const RichTextEditor = ({
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (e) => {
           if (e.total) {
-            progress(Math.round((e.loaded / e.total) * 100));
+            const percent = Math.round((e.loaded / e.total) * 100);
+            setUploadProgress(percent);
+            progress(percent);
           }
         }
       });
+      
+      setIsUploading(false);
+      setUploadProgress(0);
       
       if (response.data && response.data.url) {
         resolve(response.data.url);
@@ -47,6 +60,8 @@ const RichTextEditor = ({
         reader.readAsDataURL(blobInfo.blob());
       }
     } catch (error) {
+      setIsUploading(false);
+      setUploadProgress(0);
       // Fallback to base64 encoding
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -75,12 +90,25 @@ const RichTextEditor = ({
       if (!file) return;
 
       try {
+        setIsUploading(true);
+        setUploadFileName(file.name);
+        setUploadProgress(0);
+        
         const formData = new FormData();
         formData.append('file', file);
         
         const response = await axios.post(`${API}/uploads/editor-files`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (e) => {
+            if (e.total) {
+              const percent = Math.round((e.loaded / e.total) * 100);
+              setUploadProgress(percent);
+            }
+          }
         });
+        
+        setIsUploading(false);
+        setUploadProgress(0);
         
         if (response.data && response.data.url) {
           callback(response.data.url, { title: file.name });
@@ -95,6 +123,8 @@ const RichTextEditor = ({
           }
         }
       } catch (error) {
+        setIsUploading(false);
+        setUploadProgress(0);
         // Fallback to base64 for images
         if (meta.filetype === 'image') {
           const reader = new FileReader();
