@@ -23,19 +23,20 @@ from services.auth import get_current_user, require_editor_or_admin, require_adm
 from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
 from services.audit import log_action, get_client_ip
+from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured, get_s3_url
 
 shows_router = APIRouter(prefix="/shows", tags=["Shows"])
 
-# Create show images directory
+# Create show images directory (fallback for local storage)
 SHOW_IMAGES_DIR = UPLOADS_DIR.parent / 'show_images'
 SHOW_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
-# Create show title images directory
+# Create show title images directory (fallback for local storage)
 SHOW_TITLE_IMAGES_DIR = UPLOADS_DIR.parent / 'show_title_images'
 SHOW_TITLE_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
-ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
-MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
+ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'}
+MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 def generate_occurrence_dates(start_date: str, interval_weeks: int, end_date: Optional[str], max_occurrences: int = 52) -> List[str]:
