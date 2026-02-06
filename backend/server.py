@@ -70,6 +70,7 @@ api_router.include_router(chat_router)
 api_router.include_router(folders_router)  # Must be before media_router for /folders path
 api_router.include_router(media_router)
 api_router.include_router(logs_router)
+api_router.include_router(rds_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
