@@ -442,9 +442,16 @@ async def delete_show_image(
     
     image = show.get("image")
     if image:
-        file_path = SHOW_IMAGES_DIR / image.get("file_storage_key", "")
-        if file_path.exists():
-            file_path.unlink()
+        storage_key = image.get("file_storage_key", "")
+        if storage_key.startswith("shows/") and is_s3_configured():
+            try:
+                await delete_file_from_s3(storage_key)
+            except:
+                pass
+        else:
+            file_path = SHOW_IMAGES_DIR / storage_key
+            if file_path.exists():
+                file_path.unlink()
     
     await db.shows.update_one(
         {"id": show_id},
