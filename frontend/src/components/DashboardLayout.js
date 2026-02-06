@@ -107,6 +107,7 @@ const flatNavItems = [
   { to: '/logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
   { to: '/wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
   { to: '/rds', icon: Radio, label: 'RDS Instellingen', adminOnly: true },
+  { to: '/rds-builder', icon: Wand2, label: 'RDS Builder', adminOnly: true },
   { to: '/streams', icon: Headphones, label: 'Stream Monitor', adminOnly: true },
 ];
 
