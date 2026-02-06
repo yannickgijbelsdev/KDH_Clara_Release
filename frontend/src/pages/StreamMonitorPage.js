@@ -331,11 +331,6 @@ const StreamPlayer = ({ stream }) => {
     return () => clearInterval(interval);
   }, [analyser, isPlaying]);
 
-  // Report status changes
-  useEffect(() => {
-    onStatusChange?.({ isPlaying, isConnected, error });
-  }, [isPlaying, isConnected, error, onStatusChange]);
-
   // Auto-start stream for metering (muted)
   useEffect(() => {
     // Auto-start after a small delay
