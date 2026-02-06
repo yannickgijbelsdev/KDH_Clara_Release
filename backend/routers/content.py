@@ -1,6 +1,6 @@
 """Content library routes."""
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Request
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
 from typing import Optional, List
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +18,7 @@ from models.wordpress import PublishToWordPressRequest, PublishResponse, Publish
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.helpers import get_content_with_publish_statuses
 from services.audit import log_action, get_client_ip
+from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured, get_s3_url
 
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
 
