@@ -320,9 +320,18 @@ async def get_featured_image_file(file_key: str):
     return FileResponse(file_path, media_type=media_type)
 
 
-@api_router.get("/uploads/media/{file_key}")
+@api_router.get("/uploads/media/{file_key:path}")
 async def get_media_file(file_key: str):
-    """Serve a media file."""
+    """Serve a media file - redirects to S3 if the file is stored there."""
+    from fastapi.responses import RedirectResponse
+    
+    # Check if this is an S3 key (starts with media/)
+    if file_key.startswith("media/") and is_s3_configured():
+        # Redirect to S3 URL
+        s3_url = get_s3_url(file_key)
+        return RedirectResponse(url=s3_url, status_code=302)
+    
+    # Local file
     file_path = MEDIA_UPLOADS_DIR / file_key
     if not file_path.exists():
         from fastapi import HTTPException
@@ -342,6 +351,7 @@ async def get_show_image_file(file_key: str):
     
     media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
     return FileResponse(file_path, media_type=media_type)
+
 
 
 @api_router.get("/uploads/avatars/{file_key}")
