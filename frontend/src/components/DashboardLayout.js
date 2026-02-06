@@ -32,6 +32,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const roleIcons = {
   admin: Crown,
+  news_admin: FileCheck,
   editor: Pencil,
   presenter: Mic,
   viewer: Eye,
@@ -39,6 +40,7 @@ const roleIcons = {
 
 const roleLabels = {
   admin: 'Admin',
+  news_admin: 'News Admin',
   editor: 'Editor',
   presenter: 'Presenter',
   viewer: 'Viewer',
