@@ -793,3 +793,27 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] **Upload Progress Z-index Fix**:
   - Fixed positioning met zIndex: 100000
   - Overlay verschijnt nu boven TinyMCE dialogs
+
+
+### February 6, 2026 - Stream Monitor Page
+
+- [x] **Stream Monitor Pagina** (`/streams`):
+  - Live audio meters voor 3 streams: mfy.level27.be, grk.level27.be, grk2.level27.be
+  - Frequency visualizer met Web Audio API
+  - VU meter met kleurindicatie (groen/geel/rood)
+  - Play/Pause per stream
+  - Mute/Unmute om te luisteren
+  - Volume slider per stream
+  - Nieuwe menu item "Stream Monitor" onder Administration
+  - File: `/app/frontend/src/pages/StreamMonitorPage.js`
+
+- [x] **Shoutcast Scheduler (10 sec interval)**:
+  - Automatisch now playing data ophalen elke 10 seconden
+  - Gecachte data beschikbaar via API
+  - Logs worden opgeslagen per update
+
+- [x] **Now Playing Filters**:
+  - Configureerbare filters per station
+  - Default filters: "the feelgood station", "de stadsradio van genk"
+  - UI in RDS Settings pagina
+  - Endpoints: `/api/rds/shoutcast/filters/{station}`
