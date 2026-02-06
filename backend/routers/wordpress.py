@@ -324,6 +324,9 @@ async def publish_content_to_wordpress(
             "wordpress_site_id": target.site_id
         })
         
+        # Also check for content-level featured image if no site-specific one
+        content_featured_image = content.get("featured_image")
+        
         now = datetime.now(timezone.utc).isoformat()
         
         try:
@@ -336,58 +339,88 @@ async def publish_content_to_wordpress(
                 }
                 
                 wp_media_id = None
-                if featured_image:
-                    file_path = UPLOADS_DIR / featured_image.get("file_storage_key", "")
+                
+                # Try site-specific featured image first, then content-level featured image
+                image_to_upload = featured_image or (content_featured_image and {
+                    "file_storage_key": content_featured_image.get("file_storage_key"),
+                    "s3_url": content_featured_image.get("s3_url"),
+                    "file_name": content_featured_image.get("file_name"),
+                    "mime_type": content_featured_image.get("mime_type"),
+                    "sync_status": None,
+                    "wp_media_id": None
+                })
+                
+                if image_to_upload:
+                    file_storage_key = image_to_upload.get("file_storage_key", "")
+                    s3_url = image_to_upload.get("s3_url")
                     
                     needs_upload = (
-                        featured_image.get("sync_status") != "synced" or
-                        not featured_image.get("wp_media_id")
+                        image_to_upload.get("sync_status") != "synced" or
+                        not image_to_upload.get("wp_media_id")
                     )
                     
-                    if needs_upload and file_path.exists():
-                        async with aiofiles.open(file_path, 'rb') as f:
-                            file_content = await f.read()
+                    if needs_upload:
+                        file_content = None
                         
-                        media_headers = {
-                            "Authorization": f"Basic {auth_bytes}",
-                            "Content-Disposition": f'attachment; filename="{featured_image["file_name"]}"',
-                            "Content-Type": featured_image["mime_type"]
-                        }
+                        # Try to get file from S3 first
+                        if s3_url or (file_storage_key.startswith("content/") or file_storage_key.startswith("featured/")):
+                            if is_s3_configured():
+                                try:
+                                    file_content = await get_file_from_s3(file_storage_key)
+                                except Exception as e:
+                                    logging.warning(f"Failed to get file from S3: {e}")
                         
-                        media_response = await client.post(
-                            f"{site['wp_base_url']}/wp-json/wp/v2/media",
-                            headers=media_headers,
-                            content=file_content
-                        )
+                        # Fallback to local file
+                        if not file_content:
+                            file_path = UPLOADS_DIR / file_storage_key
+                            if file_path.exists():
+                                async with aiofiles.open(file_path, 'rb') as f:
+                                    file_content = await f.read()
                         
-                        if media_response.status_code in [200, 201]:
-                            media_data = media_response.json()
-                            wp_media_id = media_data.get('id')
-                            wp_media_url = media_data.get('source_url')
+                        if file_content:
+                            media_headers = {
+                                "Authorization": f"Basic {auth_bytes}",
+                                "Content-Disposition": f'attachment; filename="{image_to_upload.get("file_name", "image.jpg")}"',
+                                "Content-Type": image_to_upload.get("mime_type", "image/jpeg")
+                            }
                             
-                            await db.content_item_featured_images.update_one(
-                                {"id": featured_image["id"]},
-                                {"$set": {
-                                    "wp_media_id": wp_media_id,
-                                    "wp_media_url": wp_media_url,
-                                    "sync_status": "synced",
-                                    "sync_error_message": None,
-                                    "last_synced_at": now,
-                                    "updated_at": now
-                                }}
+                            media_response = await client.post(
+                                f"{site['wp_base_url']}/wp-json/wp/v2/media",
+                                headers=media_headers,
+                                content=file_content
                             )
-                        else:
-                            await db.content_item_featured_images.update_one(
-                                {"id": featured_image["id"]},
-                                {"$set": {
-                                    "sync_status": "failed",
-                                    "sync_error_message": f"Media upload failed: {media_response.status_code}",
-                                    "last_synced_at": now,
-                                    "updated_at": now
-                                }}
-                            )
+                            
+                            if media_response.status_code in [200, 201]:
+                                media_data = media_response.json()
+                                wp_media_id = media_data.get('id')
+                                wp_media_url = media_data.get('source_url')
+                                
+                                # Update sync status if it's a site-specific image
+                                if featured_image and featured_image.get("id"):
+                                    await db.content_item_featured_images.update_one(
+                                        {"id": featured_image["id"]},
+                                        {"$set": {
+                                            "wp_media_id": wp_media_id,
+                                            "wp_media_url": wp_media_url,
+                                            "sync_status": "synced",
+                                            "sync_error_message": None,
+                                            "last_synced_at": now,
+                                            "updated_at": now
+                                        }}
+                                    )
+                            else:
+                                if featured_image and featured_image.get("id"):
+                                    await db.content_item_featured_images.update_one(
+                                        {"id": featured_image["id"]},
+                                        {"$set": {
+                                            "sync_status": "failed",
+                                            "sync_error_message": f"Media upload failed: {media_response.status_code}",
+                                            "last_synced_at": now,
+                                            "updated_at": now
+                                        }}
+                                    )
                     else:
-                        wp_media_id = featured_image.get("wp_media_id")
+                        wp_media_id = image_to_upload.get("wp_media_id")
                 
                 body = content.get('body', '')
                 if content.get('type') == 'link' and content.get('external_url'):
