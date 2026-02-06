@@ -240,10 +240,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAdmin = user?.role === 'admin';
-  const isEditor = user?.role === 'editor' || user?.role === 'admin';
+  const isNewsAdmin = user?.role === 'news_admin';
+  const isEditor = user?.role === 'editor' || user?.role === 'admin' || user?.role === 'news_admin';
   const isPresenter = user?.role === 'presenter';
   const isViewer = user?.role === 'viewer';
-  const canEditContent = isAdmin || isEditor || isPresenter;
+  const canEditContent = isAdmin || isNewsAdmin || isEditor || isPresenter;
+  const canApproveContent = isAdmin || isNewsAdmin;
 
   return (
     <AuthContext.Provider value={{ 
@@ -254,10 +256,12 @@ export const AuthProvider = ({ children }) => {
       register, 
       logout,
       isAdmin,
+      isNewsAdmin,
       isEditor,
       isPresenter,
       isViewer,
       canEditContent,
+      canApproveContent,
       switchToUser,
       exitImpersonation,
       impersonating,
