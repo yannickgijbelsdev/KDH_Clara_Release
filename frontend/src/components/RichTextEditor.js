@@ -141,15 +141,18 @@ const RichTextEditor = ({
 
   return (
     <div className="rich-text-editor-wrapper relative">
-      {/* Upload Progress Overlay */}
+      {/* Upload Progress Overlay - Fixed position to appear above TinyMCE dialogs */}
       {isUploading && (
-        <div className="absolute inset-0 bg-black/70 z-50 flex items-center justify-center rounded-lg backdrop-blur-sm">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-xl min-w-[300px]">
+        <div 
+          className="fixed inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm"
+          style={{ zIndex: 100000 }}
+        >
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-2xl min-w-[320px]">
             <div className="flex items-center gap-3 mb-4">
               <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
               <div>
                 <p className="text-white font-medium">Bestand uploaden...</p>
-                <p className="text-zinc-400 text-sm truncate max-w-[200px]">{uploadFileName}</p>
+                <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
               </div>
             </div>
             <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
