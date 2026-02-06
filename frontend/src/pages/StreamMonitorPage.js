@@ -473,8 +473,8 @@ const StreamMonitorPage = () => {
       {/* Info banner */}
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
         <p className="text-blue-400 text-sm">
-          De audio meters starten automatisch (gedempt). Klik op het speaker icoon om te luisteren.
-          De meters werken ook zonder dat je luistert.
+          Klik op de <strong>Play</strong> knop om een stream te starten. De audio meters tonen het niveau van de stream.
+          Klik op het speaker icoon om de audio te beluisteren.
         </p>
       </div>
 
