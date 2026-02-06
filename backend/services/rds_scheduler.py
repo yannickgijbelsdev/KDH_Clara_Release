@@ -100,6 +100,13 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
         show_title = show.get("title")
         
         try:
+            # Fetch the show title template to get the rds_station setting
+            show_title_doc = await db.show_titles.find_one(
+                {"name": show_title, "team_id": show_team_id},
+                {"_id": 0, "rds_station": 1}
+            )
+            rds_station = show_title_doc.get("rds_station", "none") if show_title_doc else "none"
+            
             # Fetch rundown items for this show
             rundown_items = await db.rundown_items.find(
                 {"show_id": show_id},
@@ -113,6 +120,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 "show_date": show.get("date"),
                 "show_start_time": show.get("start_time"),
                 "show_end_time": show.get("end_time"),
+                "rds_station": rds_station,
                 "items": rundown_items,
                 "cached_at": timestamp,
                 "team_id": show_team_id,
@@ -141,7 +149,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 "status": "success",
                 "show_id": show_id,
                 "show_title": show_title,
-                "message": f"Cache vernieuwd voor '{show_title}' ({len(rundown_items)} items)",
+                "message": f"Cache vernieuwd voor '{show_title}' ({len(rundown_items)} items) - RDS: {rds_station}",
                 "cached_data": {
                     "item_count": len(rundown_items),
                     "show_date": show.get("date"),
