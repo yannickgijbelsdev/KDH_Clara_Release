@@ -450,7 +450,8 @@ async def publish_content_to_wordpress(
                 wp_data = {
                     "title": content['title'],
                     "content": body,
-                    "status": target.wp_status
+                    "status": target.wp_status,
+                    "format": "audio"  # Always publish as audio format for radio content
                 }
                 
                 # Handle scheduled publishing
