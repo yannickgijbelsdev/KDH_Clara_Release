@@ -42,32 +42,41 @@ const STREAMS = [
 const AudioMeter = ({ analyser, isActive, color }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
-  const [peakLevel, setPeakLevel] = useState(0);
+  const peakLevelRef = useRef(0);
+  const displayPeakRef = useRef(0);
 
   useEffect(() => {
-    if (!canvasRef.current || !analyser) return;
+    if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
 
     const colorMap = {
-      orange: { primary: '#f97316', secondary: '#ea580c', bg: 'rgba(249, 115, 22, 0.2)' },
-      violet: { primary: '#8b5cf6', secondary: '#7c3aed', bg: 'rgba(139, 92, 246, 0.2)' },
-      emerald: { primary: '#10b981', secondary: '#059669', bg: 'rgba(16, 185, 129, 0.2)' }
+      orange: { primary: '#f97316', secondary: '#ea580c' },
+      violet: { primary: '#8b5cf6', secondary: '#7c3aed' },
+      emerald: { primary: '#10b981', secondary: '#059669' }
     };
     const colors = colorMap[color] || colorMap.orange;
 
     const draw = () => {
-      if (!isActive) {
-        // Clear when not active
-        ctx.fillStyle = '#18181b';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Clear canvas
+      ctx.fillStyle = '#18181b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (!isActive || !analyser) {
+        // Draw inactive state
+        ctx.fillStyle = '#27272a';
+        for (let i = 0; i < 20; i++) {
+          const x = i * 15 + 2;
+          ctx.fillRect(x, canvas.height - 10, 12, 8);
+        }
+        displayPeakRef.current = 0;
         animationRef.current = requestAnimationFrame(draw);
         return;
       }
 
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
       analyser.getByteFrequencyData(dataArray);
 
       // Calculate average level
@@ -79,11 +88,8 @@ const AudioMeter = ({ analyser, isActive, color }) => {
       const normalizedLevel = average / 255;
       
       // Update peak with decay
-      setPeakLevel(prev => Math.max(normalizedLevel, prev * 0.95));
-
-      // Clear canvas
-      ctx.fillStyle = '#18181b';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      peakLevelRef.current = Math.max(normalizedLevel, peakLevelRef.current * 0.95);
+      displayPeakRef.current = Math.round(peakLevelRef.current * 100);
 
       // Draw frequency bars
       const barWidth = (canvas.width / bufferLength) * 2.5;
@@ -105,13 +111,19 @@ const AudioMeter = ({ analyser, isActive, color }) => {
       }
 
       // Draw peak line
-      const peakY = canvas.height - (peakLevel * canvas.height);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
+      const peakY = canvas.height - (peakLevelRef.current * canvas.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(0, peakY);
       ctx.lineTo(canvas.width, peakY);
       ctx.stroke();
+
+      // Draw level text directly on canvas
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.font = '10px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${displayPeakRef.current}%`, canvas.width - 4, 12);
 
       animationRef.current = requestAnimationFrame(draw);
     };
@@ -126,18 +138,12 @@ const AudioMeter = ({ analyser, isActive, color }) => {
   }, [analyser, isActive, color]);
 
   return (
-    <div className="relative">
-      <canvas
-        ref={canvasRef}
-        width={300}
-        height={100}
-        className="w-full h-24 rounded-lg bg-[#18181b]"
-      />
-      {/* Level indicator */}
-      <div className="absolute top-2 right-2 text-xs font-mono text-white/70">
-        {isActive ? `${Math.round(peakLevel * 100)}%` : '--'}
-      </div>
-    </div>
+    <canvas
+      ref={canvasRef}
+      width={300}
+      height={100}
+      className="w-full h-24 rounded-lg bg-[#18181b]"
+    />
   );
 };
 
