@@ -55,7 +55,7 @@ const approvalStatusConfig = {
 };
 
 const AdminApprovalPage = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const navigate = useNavigate();
   const [allContent, setAllContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
@@ -68,13 +68,16 @@ const AdminApprovalPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [approvalAction, setApprovalAction] = useState(null);
 
+  // News Admin can also approve content
+  const canApprove = isAdmin || user?.role === 'news_admin';
+
   useEffect(() => {
-    if (!isAdmin) {
+    if (!canApprove) {
       navigate('/');
       return;
     }
     fetchContent();
-  }, [isAdmin, navigate]);
+  }, [canApprove, navigate]);
 
   const fetchContent = async () => {
     setLoading(true);
