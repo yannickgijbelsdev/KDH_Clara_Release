@@ -1,0 +1,407 @@
+import { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { format } from 'date-fns';
+import { nl } from 'date-fns/locale';
+import {
+  Radio,
+  Plus,
+  Trash2,
+  GripVertical,
+  Play,
+  Pause,
+  Save,
+  Copy,
+  Check,
+  Clock,
+  Music,
+  Mic,
+  Type,
+  RefreshCw,
+  Loader2,
+  ArrowUp,
+  ArrowDown,
+} from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Switch } from '../components/ui/switch';
+import { toast } from 'sonner';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const ITEM_TYPES = [
+  { value: 'show_name', label: 'Show Naam', icon: Mic, description: 'Toont de naam van de huidige live show' },
+  { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Toont het huidige nummer van de stream' },
+  { value: 'custom_text', label: 'Custom Tekst', icon: Type, description: 'Toont een zelf gekozen tekst' },
+];
+
+// Sequence Item Component
+const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, isFirst, isLast }) => {
+  const typeConfig = ITEM_TYPES.find(t => t.value === item.type) || ITEM_TYPES[0];
+  const TypeIcon = typeConfig.icon;
+
+  return (
+    <div className="bg-[#27272a] rounded-lg p-4 border border-zinc-700">
+      <div className="flex items-center gap-3">
+        {/* Drag handle / Move buttons */}
+        <div className="flex flex-col gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMoveUp}
+            disabled={isFirst}
+            className="h-6 w-6 p-0 text-zinc-500 hover:text-white disabled:opacity-30"
+          >
+            <ArrowUp className="w-3 h-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMoveDown}
+            disabled={isLast}
+            className="h-6 w-6 p-0 text-zinc-500 hover:text-white disabled:opacity-30"
+          >
+            <ArrowDown className="w-3 h-3" />
+          </Button>
+        </div>
+
+        {/* Item number */}
+        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 text-sm font-mono">
+          {index + 1}
+        </div>
+
+        {/* Type icon */}
+        <div className="p-2 bg-zinc-800 rounded-lg">
+          <TypeIcon className="w-4 h-4 text-zinc-400" />
+        </div>
+
+        {/* Type selector */}
+        <select
+          value={item.type}
+          onChange={(e) => onUpdate({ ...item, type: e.target.value })}
+          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm flex-shrink-0"
+        >
+          {ITEM_TYPES.map(type => (
+            <option key={type.value} value={type.value}>{type.label}</option>
+          ))}
+        </select>
+
+        {/* Custom text input (only for custom_text type) */}
+        {item.type === 'custom_text' && (
+          <Input
+            value={item.content || ''}
+            onChange={(e) => onUpdate({ ...item, content: e.target.value })}
+            placeholder="Voer tekst in..."
+            className="bg-zinc-800 border-zinc-700 text-white flex-1"
+          />
+        )}
+
+        {/* Description for non-custom types */}
+        {item.type !== 'custom_text' && (
+          <span className="text-zinc-500 text-sm flex-1">{typeConfig.description}</span>
+        )}
+
+        {/* Duration */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Clock className="w-4 h-4 text-zinc-500" />
+          <Input
+            type="number"
+            min="1"
+            max="60"
+            value={item.duration}
+            onChange={(e) => onUpdate({ ...item, duration: parseInt(e.target.value) || 5 })}
+            className="bg-zinc-800 border-zinc-700 text-white w-16 text-center"
+          />
+          <span className="text-zinc-500 text-sm">sec</span>
+        </div>
+
+        {/* Delete button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDelete}
+          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Station Builder Component
+const StationBuilder = ({ station, stationName, color }) => {
+  const [sequence, setSequence] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+
+  const colorClasses = {
+    orange: {
+      border: 'border-orange-500/30',
+      bg: 'bg-orange-500/10',
+      text: 'text-orange-400',
+      button: 'bg-orange-500 hover:bg-orange-600'
+    },
+    violet: {
+      border: 'border-violet-500/30',
+      bg: 'bg-violet-500/10',
+      text: 'text-violet-400',
+      button: 'bg-violet-500 hover:bg-violet-600'
+    }
+  };
+  const colors = colorClasses[color] || colorClasses.orange;
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [seqRes, statusRes] = await Promise.all([
+        axios.get(`${API}/rds-builder/sequence/${station}`),
+        axios.get(`${API}/rds-builder/status/${station}`)
+      ]);
+      setSequence(seqRes.data);
+      setStatus(statusRes.data);
+    } catch (error) {
+      toast.error(`Kon data niet laden voor ${stationName}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [station, stationName]);
+
+  useEffect(() => {
+    fetchData();
+    // Refresh status every 2 seconds
+    const interval = setInterval(async () => {
+      try {
+        const statusRes = await axios.get(`${API}/rds-builder/status/${station}`);
+        setStatus(statusRes.data);
+      } catch (e) {
+        // Ignore errors during polling
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [fetchData, station]);
+
+  const handleSave = async () => {
+    if (!sequence) return;
+    setSaving(true);
+    try {
+      await axios.put(`${API}/rds-builder/sequence/${station}`, {
+        station,
+        items: sequence.items,
+        enabled: sequence.enabled,
+        loop: sequence.loop
+      });
+      toast.success(`Sequence opgeslagen voor ${stationName}`);
+    } catch (error) {
+      toast.error('Kon sequence niet opslaan');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const addItem = () => {
+    if (!sequence) return;
+    const newItem = {
+      id: `item-${Date.now()}`,
+      type: 'custom_text',
+      content: '',
+      duration: 5
+    };
+    setSequence({
+      ...sequence,
+      items: [...sequence.items, newItem]
+    });
+  };
+
+  const updateItem = (index, updatedItem) => {
+    if (!sequence) return;
+    const newItems = [...sequence.items];
+    newItems[index] = updatedItem;
+    setSequence({ ...sequence, items: newItems });
+  };
+
+  const deleteItem = (index) => {
+    if (!sequence) return;
+    setSequence({
+      ...sequence,
+      items: sequence.items.filter((_, i) => i !== index)
+    });
+  };
+
+  const moveItem = (index, direction) => {
+    if (!sequence) return;
+    const newItems = [...sequence.items];
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= newItems.length) return;
+    [newItems[index], newItems[newIndex]] = [newItems[newIndex], newItems[index]];
+    setSequence({ ...sequence, items: newItems });
+  };
+
+  const copyOutputUrl = () => {
+    const url = `https://clara.koodh.com/api/rds-builder/output/${station}.txt`;
+    navigator.clipboard.writeText(url);
+    setCopiedUrl(true);
+    toast.success('URL gekopieerd');
+    setTimeout(() => setCopiedUrl(false), 2000);
+  };
+
+  if (loading) {
+    return (
+      <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg ${colors.bg}`}>
+            <Radio className={`w-5 h-5 ${colors.text}`} />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">{stationName}</h3>
+            <p className="text-xs text-zinc-500">RDS Tekst Sequentie</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Enable/Disable toggle */}
+          <div className="flex items-center gap-2">
+            <Label className="text-zinc-400 text-sm">Actief</Label>
+            <Switch
+              checked={sequence?.enabled || false}
+              onCheckedChange={(checked) => setSequence({ ...sequence, enabled: checked })}
+            />
+          </div>
+
+          {/* Save button */}
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className={`${colors.button} text-white`}
+          >
+            {saving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            <span className="ml-2">{saving ? 'Opslaan...' : 'Opslaan'}</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Current output preview */}
+      <div className={`${colors.bg} rounded-lg p-4 mb-6`}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-zinc-400 text-sm">Huidige Output:</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={copyOutputUrl}
+            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+          >
+            {copiedUrl ? (
+              <Check className="w-3 h-3 mr-1 text-green-500" />
+            ) : (
+              <Copy className="w-3 h-3 mr-1" />
+            )}
+            URL Kopiëren
+          </Button>
+        </div>
+        <div className={`text-xl font-semibold ${colors.text} min-h-[1.75rem]`}>
+          {status?.current_text || <span className="text-zinc-600 italic">Geen output</span>}
+        </div>
+        {status?.enabled && (
+          <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500">
+            <span>Type: {status?.current_item_type || '-'}</span>
+            <span>Index: {(status?.current_index || 0) + 1} / {sequence?.items?.length || 0}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Output URL */}
+      <div className="bg-[#27272a] rounded-lg p-3 mb-6">
+        <Label className="text-zinc-400 text-xs mb-1 block">MagicRDS URL:</Label>
+        <code className={`text-sm ${colors.text} break-all`}>
+          https://clara.koodh.com/api/rds-builder/output/{station}.txt
+        </code>
+      </div>
+
+      {/* Sequence items */}
+      <div className="space-y-3 mb-4">
+        {sequence?.items?.map((item, index) => (
+          <SequenceItem
+            key={item.id}
+            item={item}
+            index={index}
+            onUpdate={(updated) => updateItem(index, updated)}
+            onDelete={() => deleteItem(index)}
+            onMoveUp={() => moveItem(index, -1)}
+            onMoveDown={() => moveItem(index, 1)}
+            isFirst={index === 0}
+            isLast={index === sequence.items.length - 1}
+          />
+        ))}
+      </div>
+
+      {/* Add item button */}
+      <Button
+        variant="outline"
+        onClick={addItem}
+        className="w-full border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+      >
+        <Plus className="w-4 h-4 mr-2" />
+        Item Toevoegen
+      </Button>
+
+      {/* Loop toggle */}
+      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-zinc-800">
+        <Switch
+          checked={sequence?.loop || false}
+          onCheckedChange={(checked) => setSequence({ ...sequence, loop: checked })}
+        />
+        <Label className="text-zinc-400 text-sm">Herhalen (loop)</Label>
+      </div>
+    </div>
+  );
+};
+
+// Main Page Component
+const RDSBuilderPage = () => {
+  return (
+    <div data-testid="rds-builder-page" className="max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2 bg-gradient-to-br from-orange-500/20 to-violet-500/20 rounded-lg">
+          <Radio className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">RDS Builder</h1>
+          <p className="text-sm text-zinc-500">Bouw je eigen RDS tekst sequentie voor MagicRDS</p>
+        </div>
+      </div>
+
+      {/* Info banner */}
+      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+        <p className="text-blue-400 text-sm">
+          Maak een sequentie van items die automatisch roteren. Configureer de duur per item en gebruik de output URL in MagicRDS.
+          De tekst wordt automatisch bijgewerkt op basis van de ingestelde intervallen.
+        </p>
+      </div>
+
+      {/* Station Builders */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <StationBuilder station="mfy" stationName="Radio MFY" color="orange" />
+        <StationBuilder station="grk" stationName="Radio GRK" color="violet" />
+      </div>
+    </div>
+  );
+};
+
+export default RDSBuilderPage;
