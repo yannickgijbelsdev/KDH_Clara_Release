@@ -125,6 +125,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 }
             }
             await db.rds_cache_logs.insert_one(log_entry)
+            log_entry.pop("_id", None)  # Remove MongoDB ObjectId before returning
             results.append(log_entry)
             
             logger.info(f"RDS cache refreshed for show '{show_title}' (team: {show_team_id})")
@@ -142,6 +143,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 "cached_data": None
             }
             await db.rds_cache_logs.insert_one(log_entry)
+            log_entry.pop("_id", None)  # Remove MongoDB ObjectId before returning
             results.append(log_entry)
             
             logger.error(f"RDS cache refresh failed for show '{show_title}': {e}")
