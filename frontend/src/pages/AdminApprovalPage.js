@@ -54,6 +54,13 @@ const approvalStatusConfig = {
   rejected: { icon: XCircle, color: 'text-red-500', bgColor: 'bg-red-500/10', label: 'Rejected' },
 };
 
+// Helper to get featured image URL (S3 or local)
+const getFeaturedImageUrl = (featuredImage) => {
+  if (!featuredImage) return null;
+  if (featuredImage.s3_url) return featuredImage.s3_url;
+  return `${API}/uploads/featured_images/${featuredImage.file_storage_key}`;
+};
+
 const AdminApprovalPage = () => {
   const { canApproveContent } = useAuth();
   const navigate = useNavigate();
