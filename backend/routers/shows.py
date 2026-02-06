@@ -159,7 +159,7 @@ async def upload_show_title_image(
     file: UploadFile = File(...),
     current_user: dict = Depends(require_admin)
 ):
-    """Upload an image for a show title. Admin only."""
+    """Upload an image for a show title to S3. Admin only."""
     # Verify title exists
     title = await db.show_titles.find_one({
         "id": title_id,
@@ -171,31 +171,48 @@ async def upload_show_title_image(
     # Validate file type
     content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
     if content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail="Invalid image type. Allowed: JPEG, PNG, GIF, WebP")
+        raise HTTPException(status_code=400, detail="Invalid image type. Allowed: JPEG, PNG, GIF, WebP, HEIC")
     
     # Read file content
     content = await file.read()
     if len(content) > MAX_IMAGE_SIZE:
-        raise HTTPException(status_code=400, detail="File too large. Max 5MB")
-    
-    # Generate storage key
-    file_ext = Path(file.filename).suffix or '.jpg'
-    storage_key = f"{title_id}_{uuid.uuid4().hex[:8]}{file_ext}"
-    file_path = SHOW_TITLE_IMAGES_DIR / storage_key
+        raise HTTPException(status_code=400, detail="File too large. Max 10MB")
     
     # Delete old image if exists
     if title.get('image'):
-        old_path = SHOW_TITLE_IMAGES_DIR / title['image'].get('file_key', '')
-        if old_path.exists():
-            old_path.unlink()
+        old_key = title['image'].get('file_key', '')
+        if old_key.startswith("show_titles/") and is_s3_configured():
+            try:
+                await delete_file_from_s3(old_key)
+            except:
+                pass
+        else:
+            old_path = SHOW_TITLE_IMAGES_DIR / old_key
+            if old_path.exists():
+                old_path.unlink()
     
-    # Save new image
-    async with aiofiles.open(file_path, 'wb') as f:
-        await f.write(content)
+    # Generate storage key and upload
+    file_ext = Path(file.filename).suffix or '.jpg'
+    storage_key = f"show_titles/{current_user.get('team_id')}/{title_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    s3_url = None
+    
+    if is_s3_configured():
+        try:
+            result = await upload_file_to_s3(content, storage_key, content_type)
+            s3_url = result['url']
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
+    else:
+        local_key = f"{title_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+        file_path = SHOW_TITLE_IMAGES_DIR / local_key
+        async with aiofiles.open(file_path, 'wb') as f:
+            await f.write(content)
+        storage_key = local_key
     
     # Update title record
     image_data = {
         "file_key": storage_key,
+        "s3_url": s3_url,
         "filename": file.filename,
         "mime_type": content_type,
         "size": len(content)
@@ -223,9 +240,16 @@ async def delete_show_title_image(
         raise HTTPException(status_code=404, detail="Show title not found")
     
     if title.get('image'):
-        file_path = SHOW_TITLE_IMAGES_DIR / title['image'].get('file_key', '')
-        if file_path.exists():
-            file_path.unlink()
+        storage_key = title['image'].get('file_key', '')
+        if storage_key.startswith("show_titles/") and is_s3_configured():
+            try:
+                await delete_file_from_s3(storage_key)
+            except:
+                pass
+        else:
+            file_path = SHOW_TITLE_IMAGES_DIR / storage_key
+            if file_path.exists():
+                file_path.unlink()
     
     await db.show_titles.update_one(
         {"id": title_id},
