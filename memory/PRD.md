@@ -709,12 +709,18 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 ### February 6, 2026 - Featured Image Display Bug Fix
 
 - [x] **Bug Fix: Featured images not showing in Content Library**:
-  - Root cause: `s3_url` field was missing from `ContentFeaturedImage` model
+  - Root cause 1: `s3_url` field was missing from `ContentFeaturedImage` model
+  - Root cause 2: Site-specific featured images from `content_item_featured_images` collection were not included in GET /api/content response
+  - Root cause 3: Frontend only checked `featured_image` and `external_featured_image`, not `publish_statuses[].featured_image`
+  
+- [x] **Backend Fixes**:
   - Added `s3_url: Optional[str] = None` to `ContentFeaturedImage` model
   - Added `s3_url: Optional[str] = None` to `FeaturedImageResponse` model
-  - API now correctly returns S3 URLs for featured images
+  - Updated GET /api/content endpoint to include featured images from `content_item_featured_images` collection in publish_statuses
   
-- [x] **Content Library Navigation Refresh**:
-  - Added `useLocation` hook and `location.key` dependency to refetch data
-  - Content list now refreshes when user navigates back from detail page
-  - Ensures featured images uploaded on detail page are visible when returning to list
+- [x] **Frontend Fixes**:
+  - Added `getBestFeaturedImage()` helper function that checks multiple sources:
+    1. Content-level `featured_image` (direct upload)
+    2. Site-specific `publish_statuses[].featured_image` (WordPress publish)
+    3. External `external_featured_image` (WordPress import)
+  - Added `useLocation` hook for data refresh on navigation back to list
