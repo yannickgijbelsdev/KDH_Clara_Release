@@ -461,14 +461,6 @@ const StreamPlayer = ({ stream }) => {
 
 // Main Page Component
 const StreamMonitorPage = () => {
-  const [streamStatuses, setStreamStatuses] = useState({});
-
-  const handleStatusChange = useCallback((streamId, status) => {
-    setStreamStatuses(prev => ({ ...prev, [streamId]: status }));
-  }, []);
-
-  const connectedCount = Object.values(streamStatuses).filter(s => s?.isConnected).length;
-
   return (
     <div data-testid="stream-monitor-page" className="max-w-6xl mx-auto">
       {/* Header */}
@@ -481,13 +473,6 @@ const StreamMonitorPage = () => {
             <h1 className="text-2xl font-bold text-white">Stream Monitor</h1>
             <p className="text-sm text-zinc-500">Live audio meters en stream beluisteren</p>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-2 text-sm">
-          <Wifi className="w-4 h-4 text-green-500" />
-          <span className="text-zinc-400">
-            {connectedCount} / {STREAMS.length} verbonden
-          </span>
         </div>
       </div>
 
@@ -502,11 +487,7 @@ const StreamMonitorPage = () => {
       {/* Stream Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {STREAMS.map((stream) => (
-          <StreamPlayer
-            key={stream.id}
-            stream={stream}
-            onStatusChange={(status) => handleStatusChange(stream.id, status)}
-          />
+          <StreamPlayer key={stream.id} stream={stream} />
         ))}
       </div>
     </div>
