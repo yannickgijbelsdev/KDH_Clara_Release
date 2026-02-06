@@ -28,6 +28,7 @@ import mimetypes
 from database import db, client, JWT_SECRET, UPLOADS_DIR, MEDIA_UPLOADS_DIR, AVATARS_DIR, SHOW_IMAGES_DIR
 from services.websocket import ws_manager
 from services.wp_scheduler import wp_scheduler
+from services.rds_scheduler import rds_scheduler
 from routers import (
     auth_router, teams_router, users_router, shows_router,
     content_router, wordpress_router, series_router,
@@ -35,6 +36,7 @@ from routers import (
 )
 from routers.logs import logs_router
 from routers.folders import folders_router
+from routers.rds import rds_router
 from routers.wordpress import publish_content_to_wordpress
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
