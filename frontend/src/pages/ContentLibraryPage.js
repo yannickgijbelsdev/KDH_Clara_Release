@@ -423,6 +423,7 @@ const ContentLibraryPage = () => {
           {filteredContent.map((item, index) => {
             const TypeIcon = typeIcons[item.type] || FileText;
             const publishSummary = getPublishSummary(item);
+            const featuredImageUrl = getBestFeaturedImage(item);
 
             return (
               <div
@@ -434,18 +435,10 @@ const ContentLibraryPage = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
                     {/* Featured Image Thumbnail or Type Icon */}
-                    {item.featured_image ? (
+                    {featuredImageUrl ? (
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
                         <img
-                          src={getFeaturedImageUrl(item.featured_image)}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : item.external_featured_image ? (
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
-                        <img
-                          src={item.external_featured_image}
+                          src={featuredImageUrl}
                           alt=""
                           className="w-full h-full object-cover"
                           onError={(e) => {
