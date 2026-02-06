@@ -652,6 +652,12 @@ const TeamSettingsPage = () => {
                       Admin - Full access
                     </div>
                   </SelectItem>
+                  <SelectItem value="news_admin" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="w-4 h-4" />
+                      News Admin - Editor + Approvals
+                    </div>
+                  </SelectItem>
                   <SelectItem value="editor" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
                     <div className="flex items-center gap-2">
                       <Pencil className="w-4 h-4" />
