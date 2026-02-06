@@ -58,14 +58,22 @@ async def require_admin(current_user: dict = Depends(get_current_user)):
 
 
 async def require_editor_or_admin(current_user: dict = Depends(get_current_user)):
-    if current_user.get('role') not in ['admin', 'editor']:
+    """Editors, News Admins, and Admins have full content editing access."""
+    if current_user.get('role') not in ['admin', 'news_admin', 'editor']:
         raise HTTPException(status_code=403, detail="Editor or admin access required")
     return current_user
 
 
+async def require_can_approve_content(current_user: dict = Depends(get_current_user)):
+    """Only Admins and News Admins can approve/reject content."""
+    if current_user.get('role') not in ['admin', 'news_admin']:
+        raise HTTPException(status_code=403, detail="Content approval access required")
+    return current_user
+
+
 async def require_can_edit_content(current_user: dict = Depends(get_current_user)):
-    """Editors, Presenters, and Admins can manage content/media."""
-    if current_user.get('role') not in ['admin', 'editor', 'presenter']:
+    """Editors, News Admins, Presenters, and Admins can manage content/media."""
+    if current_user.get('role') not in ['admin', 'news_admin', 'editor', 'presenter']:
         raise HTTPException(status_code=403, detail="Content editing access required")
     return current_user
 
@@ -74,8 +82,8 @@ async def check_show_assignment(show_id: str, user: dict) -> bool:
     """Check if user is assigned to a show (legacy shows model)."""
     if user.get('role') == 'admin':
         return True
-    # Editors can always edit shows (existing behavior)
-    if user.get('role') == 'editor':
+    # Editors and News Admins can always edit shows
+    if user.get('role') in ['editor', 'news_admin']:
         return True
     assignment = await db.show_assignments.find_one({
         "show_id": show_id,
@@ -85,10 +93,10 @@ async def check_show_assignment(show_id: str, user: dict) -> bool:
 
 
 async def require_show_edit_permission(show_id: str, user: dict):
-    """Check if user can edit a show (admin, editor, or assigned presenter)."""
+    """Check if user can edit a show (admin, news_admin, editor, or assigned presenter)."""
     if user.get('role') == 'admin':
         return True
-    if user.get('role') == 'editor':
+    if user.get('role') in ['editor', 'news_admin']:
         return True
     if user.get('role') in ['presenter']:
         # Check if assigned to this show
