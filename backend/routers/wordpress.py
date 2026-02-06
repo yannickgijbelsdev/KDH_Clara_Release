@@ -19,6 +19,7 @@ import aiofiles
 import logging
 
 from database import db, UPLOADS_DIR
+from services.s3_storage import get_file_from_s3, is_s3_configured
 from models.wordpress import (
     WordPressSiteCreate, WordPressSiteUpdate, WordPressSiteResponse,
     PublishToWordPressRequest, PublishResponse, PublishResult,
