@@ -330,6 +330,7 @@ const StreamPlayer = ({ stream, onStatusChange }) => {
       clearTimeout(timer);
       stopStream();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const colorMap = {
