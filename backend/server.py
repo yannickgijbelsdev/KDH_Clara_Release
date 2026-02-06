@@ -30,6 +30,7 @@ from services.websocket import ws_manager
 from services.wp_scheduler import wp_scheduler
 from services.rds_scheduler import rds_scheduler
 from services.shoutcast import ShoutcastScheduler
+from services.rds_builder_scheduler import RDSBuilderScheduler
 from routers import (
     auth_router, teams_router, users_router, shows_router,
     content_router, wordpress_router, series_router,
@@ -38,6 +39,7 @@ from routers import (
 from routers.logs import logs_router
 from routers.folders import folders_router
 from routers.rds import rds_router
+from routers.rds_builder import rds_builder_router
 from routers.wordpress import publish_content_to_wordpress
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
@@ -51,6 +53,9 @@ api_router = APIRouter(prefix="/api")
 
 # Create Shoutcast scheduler (needs db reference)
 shoutcast_scheduler = ShoutcastScheduler(db)
+
+# Create RDS Builder scheduler (needs db reference)
+rds_builder_scheduler = RDSBuilderScheduler(db)
 
 # Configure logging
 logging.basicConfig(
