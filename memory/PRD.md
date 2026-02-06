@@ -759,3 +759,37 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Toont bestandsnaam en percentage tijdens upload
   - Progress bar met animatie voor betere gebruikerservaring
   - File: `/app/frontend/src/components/RichTextEditor.js`
+
+
+### February 6, 2026 - RDS Station-Specifieke Features
+
+- [x] **RDS Station per Show Title**:
+  - Nieuwe `rds_station` field toegevoegd aan ShowTitle model
+  - Opties: MFY, GRK, Beide, Geen
+  - UI: Selector buttons in Edit Show Title dialog
+  - File: `/app/backend/models/shows.py`, `/app/frontend/src/pages/ShowManagementPage.js`
+
+- [x] **Station-Specifieke RDS Endpoints**:
+  - `/api/rds/mfy/live` - Live show titel voor MFY
+  - `/api/rds/mfy/cached-rundown` - Rundown voor MFY shows
+  - `/api/rds/grk/live` - Live show titel voor GRK
+  - `/api/rds/grk/cached-rundown` - Rundown voor GRK shows
+
+- [x] **Shoutcast Now Playing Integratie**:
+  - `/api/rds/mfy/now-playing` - Now playing van mfy.level27.be (JSON)
+  - `/api/rds/mfy/now-playing.txt` - Song title (plain text)
+  - `/api/rds/grk/now-playing` - Now playing van grk.level27.be (JSON)
+  - `/api/rds/grk/now-playing.txt` - Song title (plain text)
+  - File: `/app/backend/services/shoutcast.py`
+
+- [x] **RDS Settings Pagina Verbeterd**:
+  - Endpoints gegroepeerd per station (Radio MFY, Radio GRK, Alle Stations)
+  - Kleurcodering per station (oranje voor MFY, violet voor GRK)
+
+- [x] **RDS Scheduler Tijdzone Fix**:
+  - Probeert nu zowel CET (UTC+1) als UTC tijd
+  - Lost probleem op met nieuwe shows die niet werden gevonden
+
+- [x] **Upload Progress Z-index Fix**:
+  - Fixed positioning met zIndex: 100000
+  - Overlay verschijnt nu boven TinyMCE dialogs
