@@ -801,6 +801,10 @@ async def startup_db_client():
     # Start the Shoutcast scheduler for now playing updates (every 10 seconds)
     await shoutcast_scheduler.start()
     logger.info("Shoutcast scheduler started (10s interval)")
+    
+    # Start the RDS Builder scheduler for text rotation
+    await rds_builder_scheduler.start()
+    logger.info("RDS Builder scheduler started (1s interval)")
 
 
 @app.on_event("shutdown")
@@ -816,5 +820,9 @@ async def shutdown_db_client():
     # Stop the Shoutcast scheduler
     await shoutcast_scheduler.stop()
     logger.info("Shoutcast scheduler stopped")
+    
+    # Stop the RDS Builder scheduler
+    await rds_builder_scheduler.stop()
+    logger.info("RDS Builder scheduler stopped")
     
     client.close()
