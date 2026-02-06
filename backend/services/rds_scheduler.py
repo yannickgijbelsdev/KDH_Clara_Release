@@ -1,7 +1,7 @@
 """RDS Cache Scheduler - Refreshes live show cache every 5 minutes."""
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import uuid
 
 from database import db
@@ -19,24 +19,47 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     Returns:
         Dict with refresh status and details.
     """
-    now = datetime.now(timezone.utc)
-    today = now.strftime('%Y-%m-%d')
-    current_time = now.strftime('%H:%M')
-    timestamp = now.isoformat()
+    now_utc = datetime.now(timezone.utc)
+    # Also calculate CET/CEST time (UTC+1 in winter, UTC+2 in summer)
+    # Belgium/Netherlands use CET, so add 1 hour (or 2 for summer time)
+    # For simplicity, try both UTC and CET (UTC+1)
+    now_cet = now_utc + timedelta(hours=1)
     
-    # Build query for live shows
-    query = {
-        "status": "scheduled",
-        "date": today,
-        "start_time": {"$lte": current_time},
-        "end_time": {"$gte": current_time}
-    }
+    timestamp = now_utc.isoformat()
     
-    if team_id:
-        query["team_id"] = team_id
+    # Try to find live shows using both UTC and local (CET) time
+    # This handles cases where shows are stored in local time
+    queries_to_try = [
+        # Try CET time first (most likely for European users)
+        {
+            "date": now_cet.strftime('%Y-%m-%d'),
+            "time": now_cet.strftime('%H:%M')
+        },
+        # Also try UTC
+        {
+            "date": now_utc.strftime('%Y-%m-%d'),
+            "time": now_utc.strftime('%H:%M')
+        }
+    ]
     
-    # Find all live shows
-    live_shows = await db.shows.find(query, {"_id": 0}).to_list(100)
+    live_shows = []
+    
+    for q in queries_to_try:
+        query = {
+            "status": "scheduled",
+            "date": q["date"],
+            "start_time": {"$lte": q["time"]},
+            "end_time": {"$gte": q["time"]}
+        }
+        
+        if team_id:
+            query["team_id"] = team_id
+        
+        shows = await db.shows.find(query, {"_id": 0}).to_list(100)
+        if shows:
+            live_shows = shows
+            logger.info(f"Found {len(shows)} live shows using time {q['time']} on {q['date']}")
+            break
     
     results = []
     
