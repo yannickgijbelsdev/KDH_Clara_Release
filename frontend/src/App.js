@@ -79,6 +79,7 @@ const AppRoutes = () => {
         <Route path="team" element={<TeamSettingsPage />} />
         <Route path="logs" element={<LogsPage />} />
         <Route path="wordpress" element={<WordPressSettingsPage />} />
+        <Route path="rds" element={<RDSSettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
