@@ -1,6 +1,6 @@
 """Media library routes."""
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from typing import Optional, List
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,6 +8,7 @@ import uuid
 import mimetypes
 import aiofiles
 import secrets
+import os
 
 from database import db, MEDIA_UPLOADS_DIR
 from models.media import (
@@ -16,6 +17,10 @@ from models.media import (
     FolderShareRequest, FolderShareResponse
 )
 from services.auth import get_current_user, require_can_edit_content, require_admin
+from services.s3_storage import (
+    upload_file_to_s3, delete_file_from_s3, get_s3_url, 
+    is_s3_configured, check_s3_connection
+)
 
 media_router = APIRouter(prefix="/media", tags=["Media Library"])
 
@@ -37,9 +42,16 @@ ALLOWED_IMAGE_TYPES = {
     'image/jpeg': 'image',
     'image/png': 'image',
     'image/gif': 'image',
-    'image/webp': 'image'
+    'image/webp': 'image',
+    'image/heic': 'image',
+    'image/heif': 'image'
 }
-ALLOWED_MEDIA_TYPES = {**ALLOWED_DOCUMENT_TYPES, **ALLOWED_AUDIO_TYPES, **ALLOWED_IMAGE_TYPES}
+ALLOWED_VIDEO_TYPES = {
+    'video/mp4': 'video',
+    'video/quicktime': 'video',
+    'video/webm': 'video'
+}
+ALLOWED_MEDIA_TYPES = {**ALLOWED_DOCUMENT_TYPES, **ALLOWED_AUDIO_TYPES, **ALLOWED_IMAGE_TYPES, **ALLOWED_VIDEO_TYPES}
 MAX_MEDIA_SIZE = 100 * 1024 * 1024  # 100MB
 
 
