@@ -50,14 +50,20 @@ const RDSSettingsPage = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const [settingsRes, endpointsRes, logsRes] = await Promise.all([
+      const [settingsRes, endpointsRes, logsRes, shoutcastLogsRes, mfyFiltersRes, grkFiltersRes] = await Promise.all([
         axios.get(`${API}/rds/settings`),
         axios.get(`${API}/rds/endpoints`),
         axios.get(`${API}/rds/logs?limit=20`),
+        axios.get(`${API}/rds/shoutcast/logs?limit=50`),
+        axios.get(`${API}/rds/shoutcast/filters/mfy`),
+        axios.get(`${API}/rds/shoutcast/filters/grk`),
       ]);
       setSettings(settingsRes.data);
       setEndpoints(endpointsRes.data);
       setLogs(logsRes.data);
+      setShoutcastLogs(shoutcastLogsRes.data);
+      setMfyFilters(mfyFiltersRes.data.filters || []);
+      setGrkFilters(grkFiltersRes.data.filters || []);
       setEditData({
         production_base_url: settingsRes.data.production_base_url,
         cache_refresh_interval: settingsRes.data.cache_refresh_interval,
