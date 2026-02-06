@@ -406,12 +406,15 @@ import aiofiles
 EDITOR_UPLOADS_DIR = UPLOADS_DIR.parent / 'editor_files'
 EDITOR_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
+# Import S3 storage
+from services.s3_storage import upload_file_to_s3, is_s3_configured, get_s3_url
+
 @api_router.post("/uploads/editor-files")
 async def upload_editor_file(
     file: UploadFile = File(...),
     current_user: dict = Depends(require_editor_or_admin)
 ):
-    """Upload a file from the TinyMCE editor."""
+    """Upload a file from the TinyMCE editor to S3 storage."""
     from fastapi import HTTPException
     
     # Validate file type - support images, video, audio, and documents
@@ -441,8 +444,10 @@ async def upload_editor_file(
     if file.content_type not in allowed_types and file_ext not in allowed_extensions:
         raise HTTPException(status_code=400, detail=f"File type {file.content_type} not allowed. Supported: images (jpg, png, gif, webp, heic), video (mp4, mov, webm), audio (mp3, wav, m4a), pdf")
     
-    # Validate file size (100MB max for video, 10MB for others)
+    # Read file content
     contents = await file.read()
+    
+    # Validate file size (100MB max for video, 10MB for others)
     is_video = file.content_type and file.content_type.startswith('video/') or file_ext in ['mp4', 'mov', 'webm', 'avi']
     max_size = 100 * 1024 * 1024 if is_video else 10 * 1024 * 1024
     
@@ -452,23 +457,32 @@ async def upload_editor_file(
     
     # Generate unique filename
     ext = file.filename.split('.')[-1] if '.' in file.filename else ''
-    file_key = f"{uuid.uuid4()}.{ext}" if ext else str(uuid.uuid4())
-    file_path = EDITOR_UPLOADS_DIR / file_key
+    file_key = f"editor/{uuid.uuid4()}.{ext}" if ext else f"editor/{uuid.uuid4()}"
     
-    # Save file
+    # Upload to S3 if configured
+    if is_s3_configured():
+        try:
+            result = await upload_file_to_s3(contents, file_key, file.content_type)
+            return {"url": result['url'], "filename": file.filename, "size": len(contents)}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload to storage: {str(e)}")
+    
+    # Fallback to local storage
+    local_file_key = f"{uuid.uuid4()}.{ext}" if ext else str(uuid.uuid4())
+    file_path = EDITOR_UPLOADS_DIR / local_file_key
+    
     async with aiofiles.open(file_path, 'wb') as f:
         await f.write(contents)
     
-    # Return URL
     base_url = os.environ.get('REACT_APP_BACKEND_URL', '')
-    url = f"{base_url}/api/uploads/editor-files/{file_key}"
+    url = f"{base_url}/api/uploads/editor-files/{local_file_key}"
     
     return {"url": url, "filename": file.filename, "size": len(contents)}
 
 
 @api_router.get("/uploads/editor-files/{file_key}")
 async def get_editor_file(file_key: str):
-    """Serve an editor uploaded file."""
+    """Serve an editor uploaded file from local storage."""
     file_path = EDITOR_UPLOADS_DIR / file_key
     if not file_path.exists():
         from fastapi import HTTPException
