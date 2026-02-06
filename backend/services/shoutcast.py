@@ -88,7 +88,7 @@ async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> D
     server = SHOUTCAST_SERVERS[station]
     filters = []
     
-    if apply_filter and db:
+    if apply_filter and db is not None:
         filters = await get_filters_from_db(db, station)
     elif apply_filter:
         filters = DEFAULT_FILTERS
