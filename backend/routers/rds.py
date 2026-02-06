@@ -130,41 +130,108 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
     return {
         "base_url": base_url,
         "endpoints": [
+            # MFY Station Endpoints
             {
-                "name": "Live Show Title",
-                "description": "Geeft de titel van de huidige live show terug (plain text)",
+                "name": "MFY - Live Show",
+                "description": "Titel van de huidige MFY live show (plain text)",
+                "path": "/api/rds/mfy/live",
+                "full_url": f"{base_url}/api/rds/mfy/live",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "text/plain",
+                "station": "mfy"
+            },
+            {
+                "name": "MFY - Now Playing",
+                "description": "Huidige nummer van MFY Shoutcast (plain text)",
+                "path": "/api/rds/mfy/now-playing.txt",
+                "full_url": f"{base_url}/api/rds/mfy/now-playing.txt",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "text/plain",
+                "station": "mfy"
+            },
+            {
+                "name": "MFY - Now Playing (JSON)",
+                "description": "Shoutcast info inclusief luisteraars (JSON)",
+                "path": "/api/rds/mfy/now-playing",
+                "full_url": f"{base_url}/api/rds/mfy/now-playing",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "application/json",
+                "station": "mfy"
+            },
+            {
+                "name": "MFY - Cached Rundown",
+                "description": "Gecachte JSON rundown van MFY live show",
+                "path": "/api/rds/mfy/cached-rundown",
+                "full_url": f"{base_url}/api/rds/mfy/cached-rundown",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "application/json",
+                "station": "mfy"
+            },
+            # GRK Station Endpoints
+            {
+                "name": "GRK - Live Show",
+                "description": "Titel van de huidige GRK live show (plain text)",
+                "path": "/api/rds/grk/live",
+                "full_url": f"{base_url}/api/rds/grk/live",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "text/plain",
+                "station": "grk"
+            },
+            {
+                "name": "GRK - Now Playing",
+                "description": "Huidige nummer van GRK Shoutcast (plain text)",
+                "path": "/api/rds/grk/now-playing.txt",
+                "full_url": f"{base_url}/api/rds/grk/now-playing.txt",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "text/plain",
+                "station": "grk"
+            },
+            {
+                "name": "GRK - Now Playing (JSON)",
+                "description": "Shoutcast info inclusief luisteraars (JSON)",
+                "path": "/api/rds/grk/now-playing",
+                "full_url": f"{base_url}/api/rds/grk/now-playing",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "application/json",
+                "station": "grk"
+            },
+            {
+                "name": "GRK - Cached Rundown",
+                "description": "Gecachte JSON rundown van GRK live show",
+                "path": "/api/rds/grk/cached-rundown",
+                "full_url": f"{base_url}/api/rds/grk/cached-rundown",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "application/json",
+                "station": "grk"
+            },
+            # General Endpoints (backwards compatibility)
+            {
+                "name": "Alle Stations - Live Show",
+                "description": "Titel van elke huidige live show (plain text)",
                 "path": "/api/rds/live",
                 "full_url": f"{base_url}/api/rds/live",
                 "method": "GET",
                 "auth_required": False,
-                "response_type": "text/plain"
+                "response_type": "text/plain",
+                "station": "all"
             },
             {
-                "name": "Live Show Title (.txt)",
-                "description": "Zelfde als hierboven maar met .txt extensie",
-                "path": "/api/rds/live.txt",
-                "full_url": f"{base_url}/api/rds/live.txt",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "text/plain"
-            },
-            {
-                "name": "Cached Live Rundown (JSON)",
-                "description": "Gecachte JSON rundown van de huidige live show (vernieuwt elke 5 min)",
+                "name": "Alle Stations - Cached Rundown",
+                "description": "Gecachte JSON rundown van elke live show",
                 "path": "/api/rds/cached-rundown",
                 "full_url": f"{base_url}/api/rds/cached-rundown",
                 "method": "GET",
                 "auth_required": False,
-                "response_type": "application/json"
-            },
-            {
-                "name": "Show Rundown by ID",
-                "description": "JSON rundown voor een specifieke show",
-                "path": "/api/shows/{show_id}/rundown",
-                "full_url": f"{base_url}/api/shows/{{show_id}}/rundown",
-                "method": "GET",
-                "auth_required": True,
-                "response_type": "application/json"
+                "response_type": "application/json",
+                "station": "all"
             }
         ]
     }
