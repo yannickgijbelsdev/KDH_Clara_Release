@@ -291,17 +291,17 @@ const StreamPlayer = ({ stream, onStatusChange }) => {
 
   // Update level from analyser
   useEffect(() => {
-    if (!analyserRef.current || !isPlaying) {
+    if (!analyser || !isPlaying) {
       setLevel(0);
       return;
     }
 
-    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
     
     const updateLevel = () => {
-      if (!analyserRef.current || !isPlaying) return;
+      if (!analyser || !isPlaying) return;
       
-      analyserRef.current.getByteFrequencyData(dataArray);
+      analyser.getByteFrequencyData(dataArray);
       let sum = 0;
       for (let i = 0; i < dataArray.length; i++) {
         sum += dataArray[i];
@@ -312,7 +312,7 @@ const StreamPlayer = ({ stream, onStatusChange }) => {
 
     const interval = setInterval(updateLevel, 50);
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [analyser, isPlaying]);
 
   // Report status changes
   useEffect(() => {
