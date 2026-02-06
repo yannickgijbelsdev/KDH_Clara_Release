@@ -221,8 +221,16 @@ const DashboardLayout = () => {
   };
 
   // Filter items based on role
-  const getFilteredItems = (items) => items.filter(item => !item.adminOnly || isAdmin);
-  const filteredFlatItems = flatNavItems.filter(item => !item.adminOnly || isAdmin);
+  const getFilteredItems = (items) => items.filter(item => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.approverOnly && !canApprove) return false;
+    return true;
+  });
+  const filteredFlatItems = flatNavItems.filter(item => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.approverOnly && !canApprove) return false;
+    return true;
+  });
   const filteredGroups = navGroups
     .filter(group => !group.adminOnly || isAdmin)
     .map(group => ({
