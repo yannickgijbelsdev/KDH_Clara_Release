@@ -268,3 +268,169 @@ async def get_live_show_title_txt():
         return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
     
     return PlainTextResponse(content="", media_type="text/plain")
+
+
+# ============== STATION-SPECIFIC ENDPOINTS ==============
+
+@rds_router.get("/mfy/live")
+async def get_mfy_live_show_title():
+    """Public endpoint: Get the title of the current MFY live show as plain text."""
+    from fastapi.responses import PlainTextResponse
+    
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": ["mfy", "both"]}},
+        {"_id": 0, "show_title": 1}
+    )
+    
+    if cached and cached.get("show_title"):
+        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
+    
+    return PlainTextResponse(content="", media_type="text/plain")
+
+
+@rds_router.get("/mfy/live.txt")
+async def get_mfy_live_show_title_txt():
+    """Public endpoint: Same as /mfy/live but with .txt extension."""
+    from fastapi.responses import PlainTextResponse
+    
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": ["mfy", "both"]}},
+        {"_id": 0, "show_title": 1}
+    )
+    
+    if cached and cached.get("show_title"):
+        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
+    
+    return PlainTextResponse(content="", media_type="text/plain")
+
+
+@rds_router.get("/grk/live")
+async def get_grk_live_show_title():
+    """Public endpoint: Get the title of the current GRK live show as plain text."""
+    from fastapi.responses import PlainTextResponse
+    
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": ["grk", "both"]}},
+        {"_id": 0, "show_title": 1}
+    )
+    
+    if cached and cached.get("show_title"):
+        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
+    
+    return PlainTextResponse(content="", media_type="text/plain")
+
+
+@rds_router.get("/grk/live.txt")
+async def get_grk_live_show_title_txt():
+    """Public endpoint: Same as /grk/live but with .txt extension."""
+    from fastapi.responses import PlainTextResponse
+    
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": ["grk", "both"]}},
+        {"_id": 0, "show_title": 1}
+    )
+    
+    if cached and cached.get("show_title"):
+        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
+    
+    return PlainTextResponse(content="", media_type="text/plain")
+
+
+@rds_router.get("/mfy/now-playing")
+async def get_mfy_now_playing():
+    """Public endpoint: Get the current now playing info from MFY Shoutcast."""
+    from services.shoutcast import get_now_playing
+    return await get_now_playing("mfy")
+
+
+@rds_router.get("/mfy/now-playing.txt")
+async def get_mfy_now_playing_txt():
+    """Public endpoint: Get just the song title from MFY Shoutcast as plain text."""
+    from fastapi.responses import PlainTextResponse
+    from services.shoutcast import get_now_playing
+    
+    data = await get_now_playing("mfy")
+    return PlainTextResponse(content=data.get("song_title", ""), media_type="text/plain")
+
+
+@rds_router.get("/grk/now-playing")
+async def get_grk_now_playing():
+    """Public endpoint: Get the current now playing info from GRK Shoutcast."""
+    from services.shoutcast import get_now_playing
+    return await get_now_playing("grk")
+
+
+@rds_router.get("/grk/now-playing.txt")
+async def get_grk_now_playing_txt():
+    """Public endpoint: Get just the song title from GRK Shoutcast as plain text."""
+    from fastapi.responses import PlainTextResponse
+    from services.shoutcast import get_now_playing
+    
+    data = await get_now_playing("grk")
+    return PlainTextResponse(content=data.get("song_title", ""), media_type="text/plain")
+
+
+@rds_router.get("/mfy/cached-rundown")
+async def get_mfy_cached_rundown():
+    """Public endpoint: Get the cached rundown for the current MFY live show."""
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": ["mfy", "both"]}},
+        {"_id": 0}
+    )
+    
+    if not cached:
+        return {
+            "status": "no_live_show",
+            "message": "Er is momenteel geen MFY live show",
+            "station": "mfy",
+            "cached_at": None,
+            "show": None,
+            "items": []
+        }
+    
+    return {
+        "status": "success",
+        "station": "mfy",
+        "cached_at": cached.get("cached_at"),
+        "show": {
+            "id": cached.get("show_id"),
+            "title": cached.get("show_title"),
+            "date": cached.get("show_date"),
+            "start_time": cached.get("show_start_time"),
+            "end_time": cached.get("show_end_time")
+        },
+        "items": cached.get("items", [])
+    }
+
+
+@rds_router.get("/grk/cached-rundown")
+async def get_grk_cached_rundown():
+    """Public endpoint: Get the cached rundown for the current GRK live show."""
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": ["grk", "both"]}},
+        {"_id": 0}
+    )
+    
+    if not cached:
+        return {
+            "status": "no_live_show",
+            "message": "Er is momenteel geen GRK live show",
+            "station": "grk",
+            "cached_at": None,
+            "show": None,
+            "items": []
+        }
+    
+    return {
+        "status": "success",
+        "station": "grk",
+        "cached_at": cached.get("cached_at"),
+        "show": {
+            "id": cached.get("show_id"),
+            "title": cached.get("show_title"),
+            "date": cached.get("show_date"),
+            "start_time": cached.get("show_start_time"),
+            "end_time": cached.get("show_end_time")
+        },
+        "items": cached.get("items", [])
+    }
