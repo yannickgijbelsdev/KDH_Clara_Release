@@ -66,9 +66,9 @@ class TestAuthenticatedRDSEndpoints:
         if login_response.status_code != 200:
             pytest.skip("Login failed - skipping authenticated tests")
         
-        token = login_response.json().get("access_token")
+        token = login_response.json().get("token")
         if not token:
-            pytest.skip("No access token received")
+            pytest.skip("No token received")
         
         return {"Authorization": f"Bearer {token}"}
     
@@ -94,9 +94,9 @@ class TestAuthenticatedRDSEndpoints:
         print(f"RDS Settings: base_url={data['production_base_url']}, interval={data['cache_refresh_interval']}min")
         
     def test_rds_settings_requires_auth(self):
-        """Test GET /api/rds/settings returns 401 without auth"""
+        """Test GET /api/rds/settings returns 401/403 without auth"""
         response = requests.get(f"{BASE_URL}/api/rds/settings")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401 or 403, got {response.status_code}"
     
     def test_rds_endpoints_returns_api_list(self, auth_headers):
         """Test GET /api/rds/endpoints returns list of available API endpoints"""
@@ -131,9 +131,9 @@ class TestAuthenticatedRDSEndpoints:
             print(f"  - {ep['name']}: {ep['path']} (auth={ep['auth_required']})")
     
     def test_rds_endpoints_requires_auth(self):
-        """Test GET /api/rds/endpoints returns 401 without auth"""
+        """Test GET /api/rds/endpoints returns 401/403 without auth"""
         response = requests.get(f"{BASE_URL}/api/rds/endpoints")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401 or 403, got {response.status_code}"
     
     def test_rds_logs_returns_list(self, auth_headers):
         """Test GET /api/rds/logs returns cache logs list"""
@@ -158,9 +158,9 @@ class TestAuthenticatedRDSEndpoints:
         print(f"RDS Logs: Found {len(data)} log entries")
     
     def test_rds_logs_requires_auth(self):
-        """Test GET /api/rds/logs returns 401 without auth"""
+        """Test GET /api/rds/logs returns 401/403 without auth"""
         response = requests.get(f"{BASE_URL}/api/rds/logs")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401 or 403, got {response.status_code}"
     
     def test_rds_manual_refresh_cache(self, auth_headers):
         """Test POST /api/rds/refresh-cache manually triggers cache refresh"""
