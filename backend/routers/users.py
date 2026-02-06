@@ -306,7 +306,7 @@ async def upload_avatar(
     file: UploadFile = File(...),
     current_user: dict = Depends(require_admin)
 ):
-    """Upload avatar for a user (admin only)."""
+    """Upload avatar for a user to S3 (admin only)."""
     # Verify user exists and belongs to team
     user = await db.users.find_one(
         {"id": user_id, "team_id": current_user['team_id']}
@@ -317,31 +317,48 @@ async def upload_avatar(
     # Validate file type
     content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
     if content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail="Invalid image type. Allowed: JPEG, PNG, GIF, WebP")
+        raise HTTPException(status_code=400, detail="Invalid image type. Allowed: JPEG, PNG, GIF, WebP, HEIC")
     
     # Read and validate file size
     content = await file.read()
     if len(content) > MAX_AVATAR_SIZE:
-        raise HTTPException(status_code=400, detail="File too large. Max 5MB")
-    
-    # Generate storage key
-    file_ext = Path(file.filename).suffix or '.jpg'
-    storage_key = f"{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
-    file_path = AVATARS_DIR / storage_key
+        raise HTTPException(status_code=400, detail="File too large. Max 10MB")
     
     # Delete old avatar if exists
     if user.get('avatar'):
-        old_path = AVATARS_DIR / user['avatar'].get('file_key', '')
-        if old_path.exists():
-            old_path.unlink()
+        old_key = user['avatar'].get('file_key', '')
+        if old_key.startswith("avatars/") and is_s3_configured():
+            try:
+                await delete_file_from_s3(old_key)
+            except:
+                pass
+        else:
+            old_path = AVATARS_DIR / old_key
+            if old_path.exists():
+                old_path.unlink()
     
-    # Save new avatar
-    async with aiofiles.open(file_path, 'wb') as f:
-        await f.write(content)
+    # Generate storage key and upload
+    file_ext = Path(file.filename).suffix or '.jpg'
+    storage_key = f"avatars/{current_user['team_id']}/{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    s3_url = None
+    
+    if is_s3_configured():
+        try:
+            result = await upload_file_to_s3(content, storage_key, content_type)
+            s3_url = result['url']
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
+    else:
+        local_key = f"{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+        file_path = AVATARS_DIR / local_key
+        async with aiofiles.open(file_path, 'wb') as f:
+            await f.write(content)
+        storage_key = local_key
     
     # Update user record
     avatar_data = {
         "file_key": storage_key,
+        "s3_url": s3_url,
         "filename": file.filename,
         "mime_type": content_type,
         "size": len(content)
