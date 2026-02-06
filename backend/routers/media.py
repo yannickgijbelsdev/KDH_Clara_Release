@@ -93,30 +93,54 @@ async def upload_media_asset(
     title: Optional[str] = None,
     current_user: dict = Depends(require_can_edit_content)
 ):
-    """Upload a new media asset."""
+    """Upload a new media asset to S3 storage."""
     content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
     
-    if content_type not in ALLOWED_MEDIA_TYPES:
+    # Also check by extension for browsers that don't send correct MIME type
+    file_ext = Path(file.filename).suffix.lower() if file.filename else ''
+    ext_to_kind = {
+        '.pdf': 'document', '.docx': 'document', '.txt': 'document',
+        '.mp3': 'audio', '.wav': 'audio', '.m4a': 'audio', '.ogg': 'audio',
+        '.jpg': 'image', '.jpeg': 'image', '.png': 'image', '.gif': 'image', 
+        '.webp': 'image', '.heic': 'image', '.heif': 'image',
+        '.mp4': 'video', '.mov': 'video', '.webm': 'video'
+    }
+    
+    kind = ALLOWED_MEDIA_TYPES.get(content_type)
+    if not kind:
+        kind = ext_to_kind.get(file_ext)
+    
+    if not kind:
         raise HTTPException(
             status_code=400,
-            detail="Unsupported file type. Allowed: PDF, DOCX, TXT, MP3, WAV, M4A, JPEG, PNG, GIF, WebP"
+            detail="Unsupported file type. Allowed: PDF, DOCX, TXT, MP3, WAV, M4A, JPEG, PNG, GIF, WebP, HEIC, MP4, MOV"
         )
     
-    kind = ALLOWED_MEDIA_TYPES.get(content_type, 'document')
+    # Read file content
+    file_content = await file.read()
+    file_size = len(file_content)
     
-    file_ext = Path(file.filename).suffix or '.bin'
-    storage_key = f"{current_user.get('team_id')}_{uuid.uuid4().hex[:12]}{file_ext}"
-    file_path = MEDIA_UPLOADS_DIR / storage_key
+    if file_size > MAX_MEDIA_SIZE:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size is 100MB")
     
-    file_size = 0
-    async with aiofiles.open(file_path, 'wb') as f:
-        while chunk := await file.read(8192):
-            await f.write(chunk)
-            file_size += len(chunk)
-            if file_size > MAX_MEDIA_SIZE:
-                await f.close()
-                file_path.unlink()
-                raise HTTPException(status_code=400, detail="File too large. Maximum size is 100MB")
+    # Generate storage key
+    storage_key = f"media/{current_user.get('team_id')}/{uuid.uuid4().hex[:12]}{file_ext}"
+    
+    # Upload to S3 if configured, otherwise use local storage
+    s3_url = None
+    if is_s3_configured():
+        try:
+            result = await upload_file_to_s3(file_content, storage_key, content_type)
+            s3_url = result['url']
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload to storage: {str(e)}")
+    else:
+        # Fallback to local storage
+        local_key = f"{current_user.get('team_id')}_{uuid.uuid4().hex[:12]}{file_ext}"
+        file_path = MEDIA_UPLOADS_DIR / local_key
+        async with aiofiles.open(file_path, 'wb') as f:
+            await f.write(file_content)
+        storage_key = local_key
     
     now = datetime.now(timezone.utc).isoformat()
     asset_doc = {
@@ -126,6 +150,7 @@ async def upload_media_asset(
         "kind": kind,
         "title": title or file.filename,
         "file_storage_key": storage_key,
+        "s3_url": s3_url,  # Direct S3 URL if uploaded to S3
         "original_filename": file.filename,
         "mime_type": content_type,
         "size": file_size,
