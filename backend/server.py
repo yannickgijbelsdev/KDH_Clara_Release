@@ -783,6 +783,10 @@ async def startup_db_client():
     # Start the WordPress scheduler for automatic publishing of scheduled posts
     await wp_scheduler.start()
     logger.info("WordPress scheduler started")
+    
+    # Start the RDS cache scheduler for MagicRDS integration
+    await rds_scheduler.start()
+    logger.info("RDS cache scheduler started")
 
 
 @app.on_event("shutdown")
@@ -790,4 +794,9 @@ async def shutdown_db_client():
     # Stop the WordPress scheduler
     await wp_scheduler.stop()
     logger.info("WordPress scheduler stopped")
+    
+    # Stop the RDS cache scheduler
+    await rds_scheduler.stop()
+    logger.info("RDS cache scheduler stopped")
+    
     client.close()
