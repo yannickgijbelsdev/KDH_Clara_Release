@@ -501,3 +501,116 @@ async def get_grk_cached_rundown():
         },
         "items": cached.get("items", [])
     }
+
+
+
+# ============== SHOUTCAST FILTERS & LOGS ==============
+
+class ShoutcastFilter(BaseModel):
+    """A filter rule for now playing text."""
+    match: str
+    replace: str = ""
+    case_insensitive: bool = True
+
+
+class ShoutcastFiltersUpdate(BaseModel):
+    """Update filters for a station."""
+    filters: List[ShoutcastFilter]
+
+
+@rds_router.get("/shoutcast/filters/{station}")
+async def get_shoutcast_filters(
+    station: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Get the now playing filters for a station."""
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    settings = await db.shoutcast_settings.find_one(
+        {"station": station},
+        {"_id": 0}
+    )
+    
+    if not settings:
+        # Return default filters
+        from services.shoutcast import DEFAULT_FILTERS
+        return {
+            "station": station,
+            "filters": DEFAULT_FILTERS
+        }
+    
+    return settings
+
+
+@rds_router.put("/shoutcast/filters/{station}")
+async def update_shoutcast_filters(
+    station: str,
+    data: ShoutcastFiltersUpdate,
+    current_user: dict = Depends(require_admin)
+):
+    """Update the now playing filters for a station."""
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    filters_data = [f.dict() for f in data.filters]
+    
+    await db.shoutcast_settings.update_one(
+        {"station": station},
+        {"$set": {
+            "station": station,
+            "filters": filters_data,
+            "updated_at": now
+        }},
+        upsert=True
+    )
+    
+    return {
+        "status": "success",
+        "message": f"Filters updated for {station}",
+        "station": station,
+        "filters": filters_data
+    }
+
+
+@rds_router.get("/shoutcast/logs")
+async def get_shoutcast_logs(
+    station: Optional[str] = None,
+    limit: int = 100,
+    current_user: dict = Depends(require_admin)
+):
+    """Get recent Shoutcast now playing logs."""
+    query = {}
+    if station:
+        if station not in ["mfy", "grk"]:
+            raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+        query["station"] = station
+    
+    logs = await db.shoutcast_logs.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    return logs
+
+
+@rds_router.delete("/shoutcast/logs")
+async def clear_shoutcast_logs(
+    station: Optional[str] = None,
+    current_user: dict = Depends(require_admin)
+):
+    """Clear Shoutcast logs (optionally for a specific station)."""
+    query = {}
+    if station:
+        if station not in ["mfy", "grk"]:
+            raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+        query["station"] = station
+    
+    result = await db.shoutcast_logs.delete_many(query)
+    
+    return {
+        "status": "success",
+        "message": f"Deleted {result.deleted_count} log entries"
+    }
