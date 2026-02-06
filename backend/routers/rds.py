@@ -405,35 +405,35 @@ async def get_grk_live_show_title_txt():
 
 @rds_router.get("/mfy/now-playing")
 async def get_mfy_now_playing():
-    """Public endpoint: Get the current now playing info from MFY Shoutcast."""
-    from services.shoutcast import get_now_playing
-    return await get_now_playing("mfy")
+    """Public endpoint: Get the current now playing info from MFY Shoutcast (cached, 10s interval)."""
+    from services.shoutcast import get_cached_now_playing
+    return await get_cached_now_playing(db, "mfy")
 
 
 @rds_router.get("/mfy/now-playing.txt")
 async def get_mfy_now_playing_txt():
     """Public endpoint: Get just the song title from MFY Shoutcast as plain text."""
     from fastapi.responses import PlainTextResponse
-    from services.shoutcast import get_now_playing
+    from services.shoutcast import get_cached_now_playing
     
-    data = await get_now_playing("mfy")
+    data = await get_cached_now_playing(db, "mfy")
     return PlainTextResponse(content=data.get("song_title", ""), media_type="text/plain")
 
 
 @rds_router.get("/grk/now-playing")
 async def get_grk_now_playing():
-    """Public endpoint: Get the current now playing info from GRK Shoutcast."""
-    from services.shoutcast import get_now_playing
-    return await get_now_playing("grk")
+    """Public endpoint: Get the current now playing info from GRK Shoutcast (cached, 10s interval)."""
+    from services.shoutcast import get_cached_now_playing
+    return await get_cached_now_playing(db, "grk")
 
 
 @rds_router.get("/grk/now-playing.txt")
 async def get_grk_now_playing_txt():
     """Public endpoint: Get just the song title from GRK Shoutcast as plain text."""
     from fastapi.responses import PlainTextResponse
-    from services.shoutcast import get_now_playing
+    from services.shoutcast import get_cached_now_playing
     
-    data = await get_now_playing("grk")
+    data = await get_cached_now_playing(db, "grk")
     return PlainTextResponse(content=data.get("song_title", ""), media_type="text/plain")
 
 
