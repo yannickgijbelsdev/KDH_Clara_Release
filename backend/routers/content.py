@@ -923,9 +923,16 @@ async def delete_featured_image(
     if not image:
         raise HTTPException(status_code=404, detail="Featured image not found")
     
-    file_path = UPLOADS_DIR / image.get("file_storage_key", "")
-    if file_path.exists():
-        file_path.unlink()
+    storage_key = image.get("file_storage_key", "")
+    if storage_key.startswith("featured/") and is_s3_configured():
+        try:
+            await delete_file_from_s3(storage_key)
+        except:
+            pass
+    else:
+        file_path = UPLOADS_DIR / storage_key
+        if file_path.exists():
+            file_path.unlink()
     
     await db.content_item_featured_images.delete_one({"id": image["id"]})
 
