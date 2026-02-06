@@ -557,6 +557,39 @@ const ShowManagementPage = () => {
               </div>
             </div>
 
+            {/* RDS Station Selection */}
+            <div className="space-y-2">
+              <Label className="text-zinc-300">RDS Station</Label>
+              <p className="text-xs text-zinc-500 mb-2">Kies op welke radiostation(s) deze show moet worden getoond in RDS</p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'none', label: 'Geen', color: 'zinc' },
+                  { value: 'mfy', label: 'MFY', color: 'orange' },
+                  { value: 'grk', label: 'GRK', color: 'violet' },
+                  { value: 'both', label: 'Beide', color: 'green' },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setTitleFormData({ ...titleFormData, rds_station: option.value })}
+                    className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                      titleFormData.rds_station === option.value
+                        ? option.color === 'orange'
+                          ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+                          : option.color === 'violet'
+                          ? 'bg-violet-500/20 border-violet-500 text-violet-400'
+                          : option.color === 'green'
+                          ? 'bg-green-500/20 border-green-500 text-green-400'
+                          : 'bg-zinc-700 border-zinc-600 text-zinc-300'
+                        : 'bg-[#27272a] border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex gap-3 pt-4">
               <Button
                 type="button"
