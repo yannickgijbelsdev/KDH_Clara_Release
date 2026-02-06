@@ -483,8 +483,11 @@ const TeamSettingsPage = () => {
                         value={member.role}
                         onValueChange={(value) => handleUpdateRole(member.id, value)}
                       >
-                        <SelectTrigger className="w-32 bg-[#18181b] border-zinc-700 text-zinc-300">
-                          <SelectValue />
+                        <SelectTrigger className="w-36 bg-[#18181b] border-zinc-700 text-zinc-300">
+                          <div className="flex items-center gap-2">
+                            <RoleIcon className="w-4 h-4" />
+                            <span>{roleLabels[member.role]}</span>
+                          </div>
                         </SelectTrigger>
                         <SelectContent className="bg-[#18181b] border-zinc-800">
                           <SelectItem value="admin" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
