@@ -426,6 +426,27 @@ async def publish_content_to_wordpress(
                 if content.get('type') == 'link' and content.get('external_url'):
                     body = f'<p><a href="{content["external_url"]}" target="_blank">{content["external_url"]}</a></p>\n\n{body}'
                 
+                # Replace local API URLs with S3 URLs in body content
+                import os
+                import re
+                backend_url = os.environ.get('REACT_APP_BACKEND_URL', '')
+                s3_endpoint = os.environ.get('S3_ENDPOINT', '')
+                s3_bucket = os.environ.get('S3_BUCKET', '')
+                
+                if backend_url and s3_endpoint and s3_bucket:
+                    # Replace editor file URLs with S3 URLs
+                    body = re.sub(
+                        rf'{re.escape(backend_url)}/api/uploads/editor-files/editor/([^"\'>\s]+)',
+                        f'{s3_endpoint}/{s3_bucket}/editor/\\1',
+                        body
+                    )
+                    # Also handle relative URLs
+                    body = re.sub(
+                        r'/api/uploads/editor-files/editor/([^"\'>\s]+)',
+                        f'{s3_endpoint}/{s3_bucket}/editor/\\1',
+                        body
+                    )
+                
                 wp_data = {
                     "title": content['title'],
                     "content": body,
