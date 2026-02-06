@@ -70,7 +70,7 @@ async def process_rds_sequence(db, station: str):
         if next_change_str:
             try:
                 next_change_at = datetime.fromisoformat(next_change_str.replace('Z', '+00:00'))
-            except:
+            except (ValueError, TypeError):
                 next_change_at = None
     
     # Check if it's time to change
