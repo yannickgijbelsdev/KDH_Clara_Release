@@ -340,6 +340,8 @@ const ContentDetailPage = () => {
 
   const getImageUrl = (image) => {
     if (!image) return null;
+    // Use S3 URL if available, otherwise use local API endpoint
+    if (image.s3_url) return image.s3_url;
     return `${API}/uploads/featured_images/${image.file_storage_key}`;
   };
 
