@@ -509,6 +509,40 @@ async def get_storage_status(current_user: dict = Depends(require_admin)):
     return await check_s3_connection()
 
 
+@api_router.get("/email/status")
+async def get_email_status(current_user: dict = Depends(require_admin)):
+    """Get SMTP email connection status (admin only)."""
+    from services.email_service import test_smtp_connection
+    return await test_smtp_connection()
+
+
+@api_router.post("/email/test")
+async def send_test_email(current_user: dict = Depends(require_admin)):
+    """Send a test email to verify SMTP configuration (admin only)."""
+    from services.email_service import send_email
+    
+    success = await send_email(
+        to_email=current_user['email'],
+        subject="✅ Test E-mail - Clara Radio Dashboard",
+        html_body=f"""
+        <div style="font-family: sans-serif; padding: 20px;">
+            <h2>Test E-mail Succesvol!</h2>
+            <p>Hallo {current_user.get('name', 'Admin')},</p>
+            <p>Dit is een test e-mail van Clara Radio Dashboard om te bevestigen dat de e-mail configuratie correct werkt.</p>
+            <p style="color: #22c55e; font-weight: bold;">✅ SMTP configuratie is correct!</p>
+            <hr>
+            <p style="color: #666; font-size: 12px;">Clara Radio Dashboard</p>
+        </div>
+        """,
+        plain_body=f"Test e-mail succesvol! SMTP configuratie werkt correct."
+    )
+    
+    if success:
+        return {"success": True, "message": f"Test e-mail verstuurd naar {current_user['email']}"}
+    else:
+        return {"success": False, "message": "Kon geen e-mail versturen. Controleer de SMTP configuratie."}
+
+
 # ============== RDS / NOW PLAYING ==============
 
 @api_router.get("/rds/live")
