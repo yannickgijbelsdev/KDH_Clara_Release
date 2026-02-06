@@ -1,6 +1,5 @@
 """Media library routes."""
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File
-from fastapi.responses import FileResponse, RedirectResponse
 from typing import Optional, List
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,18 +7,14 @@ import uuid
 import mimetypes
 import aiofiles
 import secrets
-import os
 
 from database import db, MEDIA_UPLOADS_DIR
 from models.media import (
-    MediaAssetResponse, MediaAssetUpdate,
-    MediaFolderCreate, MediaFolderUpdate, MediaFolderResponse,
-    FolderShareRequest, FolderShareResponse
+    MediaAssetResponse, MediaAssetUpdate
 )
-from services.auth import get_current_user, require_can_edit_content, require_admin
+from services.auth import get_current_user, require_can_edit_content
 from services.s3_storage import (
-    upload_file_to_s3, delete_file_from_s3, get_s3_url, 
-    is_s3_configured, check_s3_connection
+    upload_file_to_s3, delete_file_from_s3, is_s3_configured
 )
 
 media_router = APIRouter(prefix="/media", tags=["Media Library"])
@@ -233,7 +228,7 @@ async def delete_media_asset(
     if storage_key.startswith("media/") and is_s3_configured():
         try:
             await delete_file_from_s3(storage_key)
-        except Exception as e:
+        except Exception:
             # Log but don't fail if S3 delete fails
             pass
     else:

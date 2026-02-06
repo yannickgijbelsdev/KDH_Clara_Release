@@ -1,6 +1,6 @@
 """Show series and recurring shows routes."""
 from fastapi import APIRouter, HTTPException, Depends, status
-from typing import Optional, List
+from typing import List
 from datetime import datetime, timezone
 import uuid
 

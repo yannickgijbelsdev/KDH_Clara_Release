@@ -24,7 +24,7 @@ from models.wordpress import (
     PublishToWordPressRequest, PublishResponse, PublishResult,
     WordPressConnectionTestResponse
 )
-from services.auth import get_current_user, require_admin, require_editor_or_admin
+from services.auth import get_current_user, require_admin
 
 # Security audit logger for WordPress integration
 wp_audit_logger = logging.getLogger("wordpress.audit")

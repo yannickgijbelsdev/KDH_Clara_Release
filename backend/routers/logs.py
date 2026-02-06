@@ -1,7 +1,7 @@
 """Audit logs routes."""
 from fastapi import APIRouter, Depends, Query
-from typing import Optional, List
-from datetime import datetime, timedelta, timezone
+from typing import Optional
+from datetime import datetime, timedelta
 
 from database import db
 from services.auth import require_admin

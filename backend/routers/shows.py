@@ -1,5 +1,5 @@
 """Show and rundown management routes."""
-from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File, Request
+from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File
 from fastapi.responses import HTMLResponse
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -13,17 +13,15 @@ from database import db, JWT_SECRET, UPLOADS_DIR
 from models.shows import (
     ShowCreate, ShowUpdate, ShowResponse,
     RundownItemCreate, RundownItemUpdate, RundownItemResponse,
-    ReorderRequest, AttachContentRequest, DeleteShowRequest,
-    ShowTitleCreate, ShowTitleUpdate, ShowTitleResponse,
+    ReorderRequest, AttachContentRequest, ShowTitleCreate, ShowTitleUpdate, ShowTitleResponse,
     StudioCreate, StudioUpdate, StudioResponse
 )
 from models.content import ContentItemResponse
-from models.media import AttachMediaRequest, RundownItemMediaResponse, MediaAssetResponse
+from models.media import AttachMediaRequest, RundownItemMediaResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
-from services.audit import log_action, get_client_ip
-from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured, get_s3_url
+from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
 
 shows_router = APIRouter(prefix="/shows", tags=["Shows"])
 
