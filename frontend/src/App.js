@@ -81,6 +81,7 @@ const AppRoutes = () => {
         <Route path="logs" element={<LogsPage />} />
         <Route path="wordpress" element={<WordPressSettingsPage />} />
         <Route path="rds" element={<RDSSettingsPage />} />
+        <Route path="streams" element={<StreamMonitorPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
