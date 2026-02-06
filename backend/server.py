@@ -502,6 +502,13 @@ async def get_editor_file(file_key: str):
     return FileResponse(file_path, media_type=media_type)
 
 
+@api_router.get("/storage/status")
+async def get_storage_status(current_user: dict = Depends(require_admin)):
+    """Get S3 storage connection status (admin only)."""
+    from services.s3_storage import check_s3_connection
+    return await check_s3_connection()
+
+
 # ============== RDS / NOW PLAYING ==============
 
 @api_router.get("/rds/live")
