@@ -400,9 +400,16 @@ async def delete_avatar(
         raise HTTPException(status_code=404, detail="User not found")
     
     if user.get('avatar'):
-        file_path = AVATARS_DIR / user['avatar'].get('file_key', '')
-        if file_path.exists():
-            file_path.unlink()
+        storage_key = user['avatar'].get('file_key', '')
+        if storage_key.startswith("avatars/") and is_s3_configured():
+            try:
+                await delete_file_from_s3(storage_key)
+            except:
+                pass
+        else:
+            file_path = AVATARS_DIR / storage_key
+            if file_path.exists():
+                file_path.unlink()
     
     await db.users.update_one(
         {"id": user_id},
