@@ -64,6 +64,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const roleIcons = {
   admin: Crown,
+  news_admin: FileCheck,
   editor: Pencil,
   presenter: Mic,
   viewer: Eye,
@@ -71,6 +72,7 @@ const roleIcons = {
 
 const roleColors = {
   admin: 'bg-orange-500/20 text-rose-400',
+  news_admin: 'bg-emerald-500/20 text-emerald-400',
   editor: 'bg-violet-500/20 text-violet-400',
   presenter: 'bg-amber-500/20 text-amber-400',
   viewer: 'bg-zinc-500/20 text-zinc-400',
@@ -78,6 +80,7 @@ const roleColors = {
 
 const roleLabels = {
   admin: 'Admin',
+  news_admin: 'News Admin',
   editor: 'Editor',
   presenter: 'Presenter',
   viewer: 'Viewer',
