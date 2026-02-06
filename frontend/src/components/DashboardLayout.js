@@ -111,6 +111,9 @@ const DashboardLayout = () => {
   const [expandedGroups, setExpandedGroups] = useState(['shows', 'content']);
   const [menuCounts, setMenuCounts] = useState({});
 
+  // Check if user can approve content (admin or news_admin)
+  const canApprove = user?.role === 'admin' || user?.role === 'news_admin';
+
   // Get menu preference (default to grouped)
   const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
 
