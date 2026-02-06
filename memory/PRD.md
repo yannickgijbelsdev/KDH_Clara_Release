@@ -705,3 +705,16 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] **UI Cleanup**:
   - Removed "Excerpt" field from Create Content dialog
   - Removed "Excerpt" field from Content Detail edit mode
+
+### February 6, 2026 - Featured Image Display Bug Fix
+
+- [x] **Bug Fix: Featured images not showing in Content Library**:
+  - Root cause: `s3_url` field was missing from `ContentFeaturedImage` model
+  - Added `s3_url: Optional[str] = None` to `ContentFeaturedImage` model
+  - Added `s3_url: Optional[str] = None` to `FeaturedImageResponse` model
+  - API now correctly returns S3 URLs for featured images
+  
+- [x] **Content Library Navigation Refresh**:
+  - Added `useLocation` hook and `location.key` dependency to refetch data
+  - Content list now refreshes when user navigates back from detail page
+  - Ensures featured images uploaded on detail page are visible when returning to list
