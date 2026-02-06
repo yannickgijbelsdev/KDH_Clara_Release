@@ -299,6 +299,9 @@ async def update_content_approval(
     current_user: dict = Depends(require_can_approve_content)
 ):
     """Admin/News Admin: Approve or reject content for WordPress publishing."""
+    from services.email_service import send_content_approval_notification
+    import os
+    
     content = await db.content_items.find_one(
         {"id": content_id, "team_id": current_user.get('team_id')}
     )
@@ -338,6 +341,27 @@ async def update_content_approval(
         details=approval_data.approval_notes or f"Content {approval_data.approval_status}",
         ip_address=ip_address
     )
+    
+    # Send email notification to content creator (if approved or rejected)
+    if approval_data.approval_status in ['approved', 'rejected']:
+        creator = await db.users.find_one({"id": content.get("created_by")})
+        if creator and creator.get("email"):
+            base_url = os.environ.get('REACT_APP_BACKEND_URL', '')
+            content_url = f"{base_url}/content/{content_id}" if base_url else None
+            
+            # Send notification in background (don't block the response)
+            import asyncio
+            asyncio.create_task(
+                send_content_approval_notification(
+                    to_email=creator["email"],
+                    to_name=creator.get("name", "Gebruiker"),
+                    content_title=content.get("title", "Untitled"),
+                    approval_status=approval_data.approval_status,
+                    approval_notes=approval_data.approval_notes,
+                    approver_name=current_user.get("name"),
+                    content_url=content_url
+                )
+            )
     
     return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
 
