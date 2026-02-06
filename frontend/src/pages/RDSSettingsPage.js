@@ -114,6 +114,50 @@ const RDSSettingsPage = () => {
     }
   };
 
+  // Shoutcast filter handlers
+  const handleSaveFilters = async (station) => {
+    setSavingFilters(true);
+    try {
+      const filters = station === 'mfy' ? mfyFilters : grkFilters;
+      await axios.put(`${API}/rds/shoutcast/filters/${station}`, { filters });
+      toast.success(`Filters opgeslagen voor ${station.toUpperCase()}`);
+      setEditingFilters(null);
+    } catch (error) {
+      toast.error('Kon filters niet opslaan');
+    } finally {
+      setSavingFilters(false);
+    }
+  };
+
+  const addFilter = (station) => {
+    const newFilter = { match: '', replace: '', case_insensitive: true };
+    if (station === 'mfy') {
+      setMfyFilters([...mfyFilters, newFilter]);
+    } else {
+      setGrkFilters([...grkFilters, newFilter]);
+    }
+  };
+
+  const removeFilter = (station, index) => {
+    if (station === 'mfy') {
+      setMfyFilters(mfyFilters.filter((_, i) => i !== index));
+    } else {
+      setGrkFilters(grkFilters.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateFilter = (station, index, field, value) => {
+    if (station === 'mfy') {
+      const updated = [...mfyFilters];
+      updated[index] = { ...updated[index], [field]: value };
+      setMfyFilters(updated);
+    } else {
+      const updated = [...grkFilters];
+      updated[index] = { ...updated[index], [field]: value };
+      setGrkFilters(updated);
+    }
+  };
+
   const copyToClipboard = (url, name) => {
     navigator.clipboard.writeText(url);
     setCopiedUrl(name);
