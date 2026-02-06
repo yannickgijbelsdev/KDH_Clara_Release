@@ -231,3 +231,40 @@ async def get_cached_rundown():
         },
         "items": cached.get("items", [])
     }
+
+
+@rds_router.get("/live")
+async def get_live_show_title():
+    """Public endpoint: Get the title of the current live show as plain text.
+    
+    Returns just the show title for use in RDS systems like MagicRDS.
+    Returns empty string if no live show is currently running.
+    """
+    from fastapi.responses import PlainTextResponse
+    
+    # Get the most recent cached rundown
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True},
+        {"_id": 0, "show_title": 1}
+    )
+    
+    if cached and cached.get("show_title"):
+        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
+    
+    return PlainTextResponse(content="", media_type="text/plain")
+
+
+@rds_router.get("/live.txt")
+async def get_live_show_title_txt():
+    """Public endpoint: Same as /live but with .txt extension for compatibility."""
+    from fastapi.responses import PlainTextResponse
+    
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True},
+        {"_id": 0, "show_title": 1}
+    )
+    
+    if cached and cached.get("show_title"):
+        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
+    
+    return PlainTextResponse(content="", media_type="text/plain")
