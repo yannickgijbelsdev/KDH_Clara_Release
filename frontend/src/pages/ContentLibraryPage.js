@@ -52,6 +52,16 @@ const statusLabels = {
   ready: 'Ready',
 };
 
+// Helper to get featured image URL (S3 or local)
+const getFeaturedImageUrl = (featuredImage) => {
+  if (!featuredImage) return null;
+  // Use S3 URL if available, otherwise use local API endpoint
+  if (featuredImage.s3_url) {
+    return featuredImage.s3_url;
+  }
+  return `${API}/uploads/featured_images/${featuredImage.file_storage_key}`;
+};
+
 const ContentLibraryPage = () => {
   const { isEditor } = useAuth();
   const navigate = useNavigate();
