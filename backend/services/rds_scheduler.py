@@ -60,6 +60,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 "cached_data": None
             }
             await db.rds_cache_logs.insert_one(log_entry)
+            log_entry.pop("_id", None)  # Remove MongoDB ObjectId before returning
             results.append(log_entry)
         
         return {
