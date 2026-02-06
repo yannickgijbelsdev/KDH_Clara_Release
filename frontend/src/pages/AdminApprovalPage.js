@@ -324,7 +324,7 @@ const AdminApprovalPage = () => {
                         <img
                           src={
                             item.external_featured_image ||
-                            `${API}/uploads/featured_images/${item.featured_image?.file_storage_key}`
+                            getFeaturedImageUrl(item.featured_image)
                           }
                           alt=""
                           className="w-full h-full object-cover"
