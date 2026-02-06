@@ -295,14 +295,18 @@ const StreamPlayer = ({ stream, onStatusChange }) => {
     }
   }, [isMuted]);
 
-  // Update level from analyser
+  // Update level from analyser - use ref to avoid re-renders
+  const levelRef = useRef(0);
+  
   useEffect(() => {
     if (!analyser || !isPlaying) {
+      levelRef.current = 0;
       setLevel(0);
       return;
     }
 
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    let lastUpdate = 0;
     
     const updateLevel = () => {
       if (!analyser || !isPlaying) return;
@@ -313,7 +317,14 @@ const StreamPlayer = ({ stream, onStatusChange }) => {
         sum += dataArray[i];
       }
       const avg = sum / dataArray.length / 255;
-      setLevel(avg);
+      levelRef.current = avg;
+      
+      // Only update state every 200ms to reduce re-renders
+      const now = Date.now();
+      if (now - lastUpdate > 200) {
+        setLevel(avg);
+        lastUpdate = now;
+      }
     };
 
     const interval = setInterval(updateLevel, 50);
