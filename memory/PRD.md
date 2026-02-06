@@ -752,3 +752,10 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Cached data beschikbaar via `/api/rds/cached-rundown` (geen auth nodig)
   - Logs worden opgeslagen en getoond in de RDS Instellingen pagina
   - File: `/app/backend/services/rds_scheduler.py`
+
+
+- [x] **Upload Progress Indicator in TinyMCE**:
+  - Visuele upload progress overlay toegevoegd aan de rich text editor
+  - Toont bestandsnaam en percentage tijdens upload
+  - Progress bar met animatie voor betere gebruikerservaring
+  - File: `/app/frontend/src/components/RichTextEditor.js`
