@@ -403,7 +403,7 @@ const ContentLibraryPage = () => {
                     {item.featured_image ? (
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
                         <img
-                          src={`${API}/uploads/featured_images/${item.featured_image.file_storage_key}`}
+                          src={getFeaturedImageUrl(item.featured_image)}
                           alt=""
                           className="w-full h-full object-cover"
                         />
