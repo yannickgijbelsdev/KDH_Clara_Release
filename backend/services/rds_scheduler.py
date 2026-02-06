@@ -1,9 +1,8 @@
 """RDS Cache Scheduler - Refreshes live show cache every 5 minutes."""
+import asyncio
 import logging
 from datetime import datetime, timezone
 import uuid
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
 
 from database import db
 
