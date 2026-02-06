@@ -18,23 +18,23 @@ const STREAMS = [
   {
     id: 'mfy',
     name: 'Radio MFY',
-    url: 'https://mfy.level27.be/;',
+    url: 'http://mfy.level27.be:8000/;',
     color: 'orange',
-    statsUrl: 'https://mfy.level27.be/stats?sid=1'
+    statsUrl: 'http://mfy.level27.be/stats?sid=1'
   },
   {
     id: 'grk',
     name: 'Radio GRK',
-    url: 'https://grk.level27.be/;',
+    url: 'http://grk.level27.be:8000/;',
     color: 'violet',
-    statsUrl: 'https://grk.level27.be/stats?sid=1'
+    statsUrl: 'http://grk.level27.be/stats?sid=1'
   },
   {
     id: 'grk2',
     name: 'Radio GRK 2',
-    url: 'https://grk2.level27.be/;',
+    url: 'http://grk2.level27.be:8000/;',
     color: 'emerald',
-    statsUrl: 'https://grk2.level27.be/stats?sid=1'
+    statsUrl: 'http://grk2.level27.be/stats?sid=1'
   }
 ];
 
