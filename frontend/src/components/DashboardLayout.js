@@ -63,7 +63,7 @@ const navGroups = [
     items: [
       { to: '/content', icon: FileText, label: 'Content Library', adminOnly: false },
       { to: '/media', icon: File, label: 'Media Library', adminOnly: false },
-      { to: '/approvals', icon: ClipboardCheck, label: 'Content Approval', adminOnly: true },
+      { to: '/approvals', icon: ClipboardCheck, label: 'Content Approval', adminOnly: false, approverOnly: true },
       { to: '/trash', icon: Trash2, label: 'Trash', adminOnly: true },
     ]
   },
