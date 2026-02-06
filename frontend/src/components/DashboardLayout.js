@@ -86,6 +86,7 @@ const navGroups = [
       { to: '/team', icon: Users, label: 'Team Settings', adminOnly: true },
       { to: '/wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
       { to: '/rds', icon: Radio, label: 'RDS Instellingen', adminOnly: true },
+      { to: '/rds-builder', icon: Wand2, label: 'RDS Builder', adminOnly: true },
       { to: '/streams', icon: Headphones, label: 'Stream Monitor', adminOnly: true },
       { to: '/logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
     ]
