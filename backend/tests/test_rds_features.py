@@ -189,9 +189,9 @@ class TestWordPressAudioFormat:
         if login_response.status_code != 200:
             pytest.skip("Login failed - skipping authenticated tests")
         
-        token = login_response.json().get("access_token")
+        token = login_response.json().get("token")
         if not token:
-            pytest.skip("No access token received")
+            pytest.skip("No token received")
         
         return {"Authorization": f"Bearer {token}"}
     
