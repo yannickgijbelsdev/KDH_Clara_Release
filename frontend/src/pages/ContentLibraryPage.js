@@ -62,6 +62,38 @@ const getFeaturedImageUrl = (featuredImage) => {
   return `${API}/uploads/featured_images/${featuredImage.file_storage_key}`;
 };
 
+// Helper to get the best available featured image for a content item
+// Priority: 1) content-level featured_image, 2) site-specific from publish_statuses, 3) external_featured_image
+const getBestFeaturedImage = (item) => {
+  // 1. Content-level featured image (direct upload)
+  if (item.featured_image) {
+    return getFeaturedImageUrl(item.featured_image);
+  }
+  
+  // 2. Site-specific featured image from publish_statuses
+  if (item.publish_statuses && item.publish_statuses.length > 0) {
+    for (const ps of item.publish_statuses) {
+      if (ps.featured_image) {
+        // Use S3 URL if available
+        if (ps.featured_image.s3_url) {
+          return ps.featured_image.s3_url;
+        }
+        // Fallback to local endpoint
+        if (ps.featured_image.file_storage_key) {
+          return `${API}/uploads/featured_images/${ps.featured_image.file_storage_key}`;
+        }
+      }
+    }
+  }
+  
+  // 3. External featured image (WordPress import)
+  if (item.external_featured_image) {
+    return item.external_featured_image;
+  }
+  
+  return null;
+};
+
 const ContentLibraryPage = () => {
   const { isEditor } = useAuth();
   const navigate = useNavigate();
