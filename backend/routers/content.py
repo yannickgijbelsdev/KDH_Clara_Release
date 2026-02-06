@@ -688,14 +688,14 @@ async def upload_content_featured_image(
     file: UploadFile = File(...),
     current_user: dict = Depends(require_editor_or_admin)
 ):
-    """Upload a featured image for the content item (not site-specific)."""
+    """Upload a featured image for the content item to S3."""
     content = await db.content_items.find_one(
         {"id": content_id, "team_id": current_user.get('team_id')}
     )
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
-    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif']
     content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
     if content_type not in allowed_types:
         raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}")
@@ -703,24 +703,43 @@ async def upload_content_featured_image(
     # Delete old featured image if exists
     old_image = content.get("featured_image")
     if old_image:
-        old_file = UPLOADS_DIR / old_image.get("file_storage_key", "")
-        if old_file.exists():
-            old_file.unlink()
+        old_key = old_image.get("file_storage_key", "")
+        if old_key.startswith("content/") and is_s3_configured():
+            try:
+                await delete_file_from_s3(old_key)
+            except:
+                pass
+        else:
+            old_file = UPLOADS_DIR / old_key
+            if old_file.exists():
+                old_file.unlink()
     
-    # Save new image
+    # Read file content
+    file_content = await file.read()
+    file_size = len(file_content)
+    
+    # Save to S3 or local
     file_ext = Path(file.filename).suffix or '.jpg'
-    storage_key = f"content_{content_id}_{uuid.uuid4().hex[:8]}{file_ext}"
-    file_path = UPLOADS_DIR / storage_key
+    storage_key = f"content/{current_user.get('team_id')}/{content_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    s3_url = None
     
-    file_size = 0
-    async with aiofiles.open(file_path, 'wb') as f:
-        while chunk := await file.read(8192):
-            await f.write(chunk)
-            file_size += len(chunk)
+    if is_s3_configured():
+        try:
+            result = await upload_file_to_s3(file_content, storage_key, content_type)
+            s3_url = result['url']
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
+    else:
+        local_key = f"content_{content_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+        file_path = UPLOADS_DIR / local_key
+        async with aiofiles.open(file_path, 'wb') as f:
+            await f.write(file_content)
+        storage_key = local_key
     
     now = datetime.now(timezone.utc).isoformat()
     image_data = {
         "file_storage_key": storage_key,
+        "s3_url": s3_url,
         "file_name": file.filename,
         "mime_type": content_type,
         "size": file_size
@@ -748,9 +767,16 @@ async def delete_content_featured_image(
     
     featured_image = content.get("featured_image")
     if featured_image:
-        file_path = UPLOADS_DIR / featured_image.get("file_storage_key", "")
-        if file_path.exists():
-            file_path.unlink()
+        storage_key = featured_image.get("file_storage_key", "")
+        if storage_key.startswith("content/") and is_s3_configured():
+            try:
+                await delete_file_from_s3(storage_key)
+            except:
+                pass
+        else:
+            file_path = UPLOADS_DIR / storage_key
+            if file_path.exists():
+                file_path.unlink()
     
     await db.content_items.update_one(
         {"id": content_id},
