@@ -29,6 +29,7 @@ from database import db, client, JWT_SECRET, UPLOADS_DIR, MEDIA_UPLOADS_DIR, AVA
 from services.websocket import ws_manager
 from services.wp_scheduler import wp_scheduler
 from services.rds_scheduler import rds_scheduler
+from services.shoutcast import ShoutcastScheduler
 from routers import (
     auth_router, teams_router, users_router, shows_router,
     content_router, wordpress_router, series_router,
@@ -47,6 +48,9 @@ app = FastAPI(title="Radio Show Planner API")
 
 # Create API router
 api_router = APIRouter(prefix="/api")
+
+# Create Shoutcast scheduler (needs db reference)
+shoutcast_scheduler = ShoutcastScheduler(db)
 
 # Configure logging
 logging.basicConfig(
