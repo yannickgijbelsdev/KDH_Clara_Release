@@ -172,41 +172,52 @@ async def run_scheduled_cache_refresh():
 
 
 class RDSScheduler:
-    """Scheduler for RDS cache refresh jobs."""
+    """Background scheduler for RDS cache refresh jobs."""
     
     def __init__(self):
-        self.scheduler = AsyncIOScheduler()
-        self._started = False
+        self.running = False
+        self.check_interval = 300  # 5 minutes in seconds
+        self.task = None
     
     async def start(self):
         """Start the RDS cache scheduler."""
-        if self._started:
+        if self.running:
+            logger.warning("RDS scheduler is already running")
             return
         
-        # Add job to refresh cache every 5 minutes
-        self.scheduler.add_job(
-            run_scheduled_cache_refresh,
-            trigger=IntervalTrigger(minutes=5),
-            id="rds_cache_refresh",
-            name="RDS Cache Refresh",
-            replace_existing=True
-        )
-        
-        self.scheduler.start()
-        self._started = True
+        self.running = True
+        self.task = asyncio.create_task(self._run_loop())
         logger.info("RDS cache scheduler started (5 min interval)")
-        
-        # Run initial refresh
-        await run_scheduled_cache_refresh()
     
     async def stop(self):
         """Stop the RDS cache scheduler."""
-        if not self._started:
+        if not self.running:
             return
         
-        self.scheduler.shutdown(wait=False)
-        self._started = False
+        self.running = False
+        if self.task:
+            self.task.cancel()
+            try:
+                await self.task
+            except asyncio.CancelledError:
+                pass
         logger.info("RDS cache scheduler stopped")
+    
+    async def _run_loop(self):
+        """Main loop that runs the scheduler."""
+        # Run initial refresh
+        await run_scheduled_cache_refresh()
+        
+        while self.running:
+            try:
+                await asyncio.sleep(self.check_interval)
+                if self.running:
+                    await run_scheduled_cache_refresh()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"RDS scheduler error: {e}")
+                await asyncio.sleep(60)  # Wait a minute before retrying
 
 
 # Global scheduler instance
