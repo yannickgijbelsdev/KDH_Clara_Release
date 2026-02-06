@@ -392,7 +392,7 @@ const StreamPlayer = ({ stream, onStatusChange }) => {
       {/* Audio Meter */}
       <div className="mb-4">
         <AudioMeter 
-          analyser={analyserRef.current} 
+          analyser={analyser} 
           isActive={isPlaying} 
           color={stream.color}
         />
