@@ -571,9 +571,10 @@ async def upload_chat_attachment(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload an attachment for chat (image, audio, file)."""
-    allowed_image_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
-    allowed_audio_types = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/webm"]
+    """Upload an attachment for chat to S3 (image, audio, video, file)."""
+    allowed_image_types = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic", "image/heif"]
+    allowed_audio_types = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/webm", "audio/m4a", "audio/x-m4a"]
+    allowed_video_types = ["video/mp4", "video/quicktime", "video/webm"]
     allowed_file_types = ["application/pdf", "text/plain"]
     
     content_type = file.content_type or ""
@@ -582,22 +583,40 @@ async def upload_chat_attachment(
         attachment_type = "image"
     elif content_type in allowed_audio_types:
         attachment_type = "audio"
+    elif content_type in allowed_video_types:
+        attachment_type = "video"
     elif content_type in allowed_file_types:
         attachment_type = "file"
     else:
         raise HTTPException(status_code=400, detail=f"Unsupported file type: {content_type}")
     
+    # Read file content
+    content = await file.read()
+    
     # Generate unique filename
     ext = os.path.splitext(file.filename)[1] if file.filename else ""
     unique_filename = f"{uuid.uuid4()}{ext}"
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
     
-    # Save file
+    # Upload to S3 if configured
+    if is_s3_configured():
+        storage_key = f"chat/{current_user.get('team_id')}/{unique_filename}"
+        try:
+            result = await upload_file_to_s3(content, storage_key, content_type)
+            return {
+                "url": result['url'],
+                "type": attachment_type,
+                "name": file.filename,
+                "size": len(content),
+                "storage_key": storage_key
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
+    
+    # Fallback to local storage
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
     async with aiofiles.open(file_path, 'wb') as f:
-        content = await file.read()
         await f.write(content)
     
-    # Return URL
     file_url = f"/api/chat/files/{unique_filename}"
     
     return {
@@ -610,7 +629,7 @@ async def upload_chat_attachment(
 
 @chat_router.get("/files/{filename}")
 async def get_chat_file(filename: str):
-    """Serve uploaded chat files."""
+    """Serve uploaded chat files from local storage."""
     from fastapi.responses import FileResponse
     
     file_path = os.path.join(UPLOAD_DIR, filename)
@@ -618,3 +637,4 @@ async def get_chat_file(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     
     return FileResponse(file_path)
+
