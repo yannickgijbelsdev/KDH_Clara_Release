@@ -85,6 +85,7 @@ const navGroups = [
     items: [
       { to: '/team', icon: Users, label: 'Team Settings', adminOnly: true },
       { to: '/wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
+      { to: '/rds', icon: Radio, label: 'RDS Instellingen', adminOnly: true },
       { to: '/logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
     ]
   },
