@@ -296,9 +296,9 @@ async def update_content_approval(
     content_id: str,
     approval_data: ContentApprovalUpdate,
     request: Request,
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(require_can_approve_content)
 ):
-    """Admin: Approve or reject content for WordPress publishing."""
+    """Admin/News Admin: Approve or reject content for WordPress publishing."""
     content = await db.content_items.find_one(
         {"id": content_id, "team_id": current_user.get('team_id')}
     )
