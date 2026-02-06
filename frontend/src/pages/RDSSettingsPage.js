@@ -15,6 +15,10 @@ import {
   Settings,
   Save,
   Loader2,
+  Filter,
+  Trash2,
+  Plus,
+  Music,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -27,6 +31,7 @@ const RDSSettingsPage = () => {
   const [settings, setSettings] = useState(null);
   const [endpoints, setEndpoints] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [shoutcastLogs, setShoutcastLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -36,6 +41,12 @@ const RDSSettingsPage = () => {
     production_base_url: '',
     cache_refresh_interval: 5,
   });
+  
+  // Shoutcast filters state
+  const [mfyFilters, setMfyFilters] = useState([]);
+  const [grkFilters, setGrkFilters] = useState([]);
+  const [editingFilters, setEditingFilters] = useState(null); // 'mfy' or 'grk'
+  const [savingFilters, setSavingFilters] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
