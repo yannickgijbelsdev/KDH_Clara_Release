@@ -17,11 +17,12 @@ from services.auth import (
     get_current_user, require_admin
 )
 from services.audit import log_action, get_client_ip
+from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured, get_s3_url
 
 users_router = APIRouter(prefix="/users", tags=["Users"])
 
-ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
-MAX_AVATAR_SIZE = 5 * 1024 * 1024  # 5MB
+ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'}
+MAX_AVATAR_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 @users_router.get("", response_model=List[UserResponse])
