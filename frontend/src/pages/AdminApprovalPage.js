@@ -178,7 +178,7 @@ const AdminApprovalPage = () => {
     item => !item.approval_status || item.approval_status === 'pending'
   ).length;
 
-  if (!canApprove) {
+  if (!canApproveContent) {
     return null;
   }
 
