@@ -331,15 +331,9 @@ const StreamPlayer = ({ stream }) => {
     return () => clearInterval(interval);
   }, [analyser, isPlaying]);
 
-  // Auto-start stream for metering (muted)
+  // Cleanup on unmount
   useEffect(() => {
-    // Auto-start after a small delay
-    const timer = setTimeout(() => {
-      startStream();
-    }, 1000);
-    
     return () => {
-      clearTimeout(timer);
       stopStream();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
