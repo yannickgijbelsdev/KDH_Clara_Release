@@ -220,16 +220,27 @@ async def delete_media_asset(
     asset_id: str,
     current_user: dict = Depends(require_can_edit_content)
 ):
-    """Delete a media asset."""
+    """Delete a media asset from storage."""
     asset = await db.media_assets.find_one(
         {"id": asset_id, "team_id": current_user.get('team_id')}
     )
     if not asset:
         raise HTTPException(status_code=404, detail="Media asset not found")
     
-    file_path = MEDIA_UPLOADS_DIR / asset.get("file_storage_key", "")
-    if file_path.exists():
-        file_path.unlink()
+    storage_key = asset.get("file_storage_key", "")
+    
+    # Delete from S3 if it's an S3 file
+    if storage_key.startswith("media/") and is_s3_configured():
+        try:
+            await delete_file_from_s3(storage_key)
+        except Exception as e:
+            # Log but don't fail if S3 delete fails
+            pass
+    else:
+        # Delete from local storage
+        file_path = MEDIA_UPLOADS_DIR / storage_key
+        if file_path.exists():
+            file_path.unlink()
     
     await db.media_assets.delete_one({"id": asset_id})
     
