@@ -344,9 +344,9 @@ async def update_content_approval(
 
 @content_router.get("/admin/pending-approval")
 async def get_pending_approval_content(
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(require_can_approve_content)
 ):
-    """Admin: Get all content pending approval."""
+    """Admin/News Admin: Get all content pending approval."""
     items = await db.content_items.find(
         {
             "team_id": current_user.get('team_id'),
