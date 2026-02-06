@@ -41,6 +41,13 @@ const typeIcons = {
   reference: BookOpen,
 };
 
+// Helper to get featured image URL (S3 or local)
+const getFeaturedImageUrl = (featuredImage) => {
+  if (!featuredImage) return null;
+  if (featuredImage.s3_url) return featuredImage.s3_url;
+  return `${API}/uploads/featured_images/${featuredImage.file_storage_key}`;
+};
+
 const TrashPage = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
