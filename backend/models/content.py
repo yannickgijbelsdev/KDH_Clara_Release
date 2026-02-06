@@ -43,6 +43,7 @@ class FeaturedImageResponse(BaseModel):
     wordpress_site_id: str
     wordpress_site_name: Optional[str] = None
     file_storage_key: str
+    s3_url: Optional[str] = None
     file_name: str
     mime_type: str
     size: int
