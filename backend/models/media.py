@@ -12,6 +12,7 @@ class MediaAssetResponse(BaseModel):
     kind: str
     title: str
     file_storage_key: str
+    s3_url: Optional[str] = None  # Direct S3 URL if uploaded to S3
     original_filename: str
     mime_type: str
     size: int
