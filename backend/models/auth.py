@@ -59,8 +59,8 @@ class TokenResponse(BaseModel):
 class InviteUserRequest(BaseModel):
     email: EmailStr
     name: str
-    role: Literal["admin", "editor", "presenter", "viewer"] = "editor"
+    role: Literal["admin", "news_admin", "editor", "presenter", "viewer"] = "editor"
 
 
 class UpdateUserRoleRequest(BaseModel):
-    role: Literal["admin", "editor", "presenter", "viewer"]
+    role: Literal["admin", "news_admin", "editor", "presenter", "viewer"]
