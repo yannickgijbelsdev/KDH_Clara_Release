@@ -116,6 +116,7 @@ const ShowManagementPage = () => {
       description: '',
       default_start_time: '09:00',
       default_end_time: '10:00',
+      rds_station: 'none',
     });
     setTitleDialogOpen(true);
   };
