@@ -187,7 +187,7 @@ const VUMeter = ({ level, color }) => {
 };
 
 // Stream Player Component
-const StreamPlayer = ({ stream, onStatusChange }) => {
+const StreamPlayer = ({ stream }) => {
   const audioRef = useRef(null);
   const audioContextRef = useRef(null);
   const sourceRef = useRef(null);
