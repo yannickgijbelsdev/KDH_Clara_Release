@@ -18,6 +18,7 @@ import LogsPage from './pages/LogsPage';
 import AdminApprovalPage from './pages/AdminApprovalPage';
 import TrashPage from './pages/TrashPage';
 import PersonalSettingsPage from './pages/PersonalSettingsPage';
+import RDSSettingsPage from './pages/RDSSettingsPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
