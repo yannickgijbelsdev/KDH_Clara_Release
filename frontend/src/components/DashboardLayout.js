@@ -6,7 +6,7 @@ import {
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
-  UserCog, ArrowLeftRight, FileCheck, Radio
+  UserCog, ArrowLeftRight, FileCheck, Radio, Headphones
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
