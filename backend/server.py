@@ -791,6 +791,10 @@ async def startup_db_client():
     # Start the RDS cache scheduler for MagicRDS integration
     await rds_scheduler.start()
     logger.info("RDS cache scheduler started")
+    
+    # Start the Shoutcast scheduler for now playing updates (every 10 seconds)
+    await shoutcast_scheduler.start()
+    logger.info("Shoutcast scheduler started (10s interval)")
 
 
 @app.on_event("shutdown")
@@ -802,5 +806,9 @@ async def shutdown_db_client():
     # Stop the RDS cache scheduler
     await rds_scheduler.stop()
     logger.info("RDS cache scheduler stopped")
+    
+    # Stop the Shoutcast scheduler
+    await shoutcast_scheduler.stop()
+    logger.info("Shoutcast scheduler stopped")
     
     client.close()
