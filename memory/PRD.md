@@ -724,3 +724,31 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     2. Site-specific `publish_statuses[].featured_image` (WordPress publish)
     3. External `external_featured_image` (WordPress import)
   - Added `useLocation` hook for data refresh on navigation back to list
+
+### February 6, 2026 - RDS Integration & WordPress Audio Format
+
+- [x] **WordPress Audio Format**:
+  - Artikelen worden nu standaard gepubliceerd met `format: "audio"` i.p.v. `standard`
+  - Aangepast in `/app/backend/routers/wordpress.py` line 454
+
+- [x] **Rundown Tekst Volledig Tonen**:
+  - Verwijderd `line-clamp-2` class van rundown item notes
+  - Tekst wordt nu volledig weergegeven in de rundown view
+  - File: `/app/frontend/src/components/SortableRundownItem.js`
+
+- [x] **RDS Instellingen Pagina** (`/rds`):
+  - Nieuwe pagina voor MagicRDS integratie
+  - Configuratie sectie: productie base URL en cache interval
+  - API Endpoints overzicht met kopieerbare URLs:
+    - `/api/rds/live` - Live show titel (plain text, publiek)
+    - `/api/rds/live.txt` - Zelfde met .txt extensie
+    - `/api/rds/cached-rundown` - Gecachte JSON rundown (publiek)
+    - `/api/shows/{show_id}/rundown` - Show-specifieke rundown (auth vereist)
+  - Cache logs met status en timestamps
+  - Handmatige cache refresh knop
+
+- [x] **RDS Cache Scheduler**:
+  - Automatische cronjob die elke 5 minuten de live show rundown cachet
+  - Cached data beschikbaar via `/api/rds/cached-rundown` (geen auth nodig)
+  - Logs worden opgeslagen en getoond in de RDS Instellingen pagina
+  - File: `/app/backend/services/rds_scheduler.py`
