@@ -10,6 +10,7 @@ class ShowTitleCreate(BaseModel):
     description: Optional[str] = ""
     default_start_time: Optional[str] = None
     default_end_time: Optional[str] = None
+    rds_station: Optional[Literal["mfy", "grk", "both", "none"]] = "none"
 
 
 class ShowTitleUpdate(BaseModel):
@@ -17,6 +18,7 @@ class ShowTitleUpdate(BaseModel):
     description: Optional[str] = None
     default_start_time: Optional[str] = None
     default_end_time: Optional[str] = None
+    rds_station: Optional[Literal["mfy", "grk", "both", "none"]] = None
 
 
 class ShowTitleResponse(BaseModel):
@@ -26,6 +28,7 @@ class ShowTitleResponse(BaseModel):
     description: str
     default_start_time: Optional[str] = None
     default_end_time: Optional[str] = None
+    rds_station: Optional[str] = "none"
     team_id: str
     created_by: str
     created_at: str
