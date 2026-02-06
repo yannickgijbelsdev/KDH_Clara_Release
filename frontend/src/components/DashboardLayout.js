@@ -95,7 +95,7 @@ const flatNavItems = [
   { to: '/content', icon: FileText, label: 'Content Library', adminOnly: false },
   { to: '/media', icon: File, label: 'Media Library', adminOnly: false },
   { to: '/chat', icon: MessageSquare, label: 'Team Chat', adminOnly: false },
-  { to: '/approvals', icon: ClipboardCheck, label: 'Content Approval', adminOnly: true },
+  { to: '/approvals', icon: ClipboardCheck, label: 'Content Approval', adminOnly: false, approverOnly: true },
   { to: '/trash', icon: Trash2, label: 'Trash', adminOnly: true },
   { to: '/show-management', icon: Sliders, label: 'Show Management', adminOnly: true },
   { to: '/team', icon: Users, label: 'Team Settings', adminOnly: true },
