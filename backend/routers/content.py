@@ -171,6 +171,15 @@ async def get_content_items(
         for ps in publish_statuses:
             site = await db.wordpress_sites.find_one({"id": ps["wordpress_site_id"]}, {"_id": 0})
             ps["wordpress_site_name"] = site["name"] if site else "Unknown"
+            
+            # Add featured image for this publish status
+            featured_image = await db.content_item_featured_images.find_one(
+                {"content_item_id": item["id"], "wordpress_site_id": ps["wordpress_site_id"]},
+                {"_id": 0}
+            )
+            if featured_image:
+                featured_image["wordpress_site_name"] = ps["wordpress_site_name"]
+            ps["featured_image"] = featured_image
         
         item["publish_statuses"] = publish_statuses
         result.append(item)
