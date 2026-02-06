@@ -432,6 +432,249 @@ const RDSSettingsPage = () => {
           </div>
         )}
       </div>
+
+      {/* Shoutcast Filters Section */}
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5 text-orange-400" />
+          <h2 className="text-lg font-semibold text-white">Now Playing Filters</h2>
+        </div>
+        <p className="text-zinc-500 text-sm mb-4">
+          Filter bepaalde teksten uit de now playing info. Als de tekst overeenkomt, wordt deze vervangen.
+        </p>
+
+        {/* MFY Filters */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-orange-400">Radio MFY</h3>
+            <div className="flex gap-2">
+              {editingFilters === 'mfy' ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingFilters(null)}
+                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+                  >
+                    Annuleren
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveFilters('mfy')}
+                    disabled={savingFilters}
+                    className="bg-orange-500 hover:bg-orange-600 text-white text-xs"
+                  >
+                    <Save className="w-3 h-3 mr-1" />
+                    {savingFilters ? 'Opslaan...' : 'Opslaan'}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingFilters('mfy')}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+                >
+                  <Settings className="w-3 h-3 mr-1" />
+                  Bewerken
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          {editingFilters === 'mfy' ? (
+            <div className="space-y-2">
+              {mfyFilters.map((filter, idx) => (
+                <div key={idx} className="flex gap-2 items-center bg-[#27272a] rounded-lg p-2">
+                  <Input
+                    value={filter.match}
+                    onChange={(e) => updateFilter('mfy', idx, 'match', e.target.value)}
+                    placeholder="Te filteren tekst"
+                    className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                  />
+                  <span className="text-zinc-500 text-xs">→</span>
+                  <Input
+                    value={filter.replace}
+                    onChange={(e) => updateFilter('mfy', idx, 'replace', e.target.value)}
+                    placeholder="Vervangen door (leeg = verwijderen)"
+                    className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFilter('mfy', idx)}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-7 w-7"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => addFilter('mfy')}
+                className="border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800 text-xs w-full"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Filter toevoegen
+              </Button>
+            </div>
+          ) : (
+            <div className="text-zinc-400 text-sm">
+              {mfyFilters.length === 0 ? (
+                <p className="text-zinc-500 italic">Geen filters ingesteld</p>
+              ) : (
+                <div className="space-y-1">
+                  {mfyFilters.map((f, i) => (
+                    <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1">
+                      <span className="text-zinc-400">"{f.match}"</span>
+                      <span className="text-zinc-600 mx-1">→</span>
+                      <span className="text-orange-400">{f.replace || '(verwijderen)'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* GRK Filters */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-violet-400">Radio GRK</h3>
+            <div className="flex gap-2">
+              {editingFilters === 'grk' ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingFilters(null)}
+                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+                  >
+                    Annuleren
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleSaveFilters('grk')}
+                    disabled={savingFilters}
+                    className="bg-violet-500 hover:bg-violet-600 text-white text-xs"
+                  >
+                    <Save className="w-3 h-3 mr-1" />
+                    {savingFilters ? 'Opslaan...' : 'Opslaan'}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingFilters('grk')}
+                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+                >
+                  <Settings className="w-3 h-3 mr-1" />
+                  Bewerken
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          {editingFilters === 'grk' ? (
+            <div className="space-y-2">
+              {grkFilters.map((filter, idx) => (
+                <div key={idx} className="flex gap-2 items-center bg-[#27272a] rounded-lg p-2">
+                  <Input
+                    value={filter.match}
+                    onChange={(e) => updateFilter('grk', idx, 'match', e.target.value)}
+                    placeholder="Te filteren tekst"
+                    className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                  />
+                  <span className="text-zinc-500 text-xs">→</span>
+                  <Input
+                    value={filter.replace}
+                    onChange={(e) => updateFilter('grk', idx, 'replace', e.target.value)}
+                    placeholder="Vervangen door (leeg = verwijderen)"
+                    className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeFilter('grk', idx)}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-7 w-7"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => addFilter('grk')}
+                className="border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800 text-xs w-full"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Filter toevoegen
+              </Button>
+            </div>
+          ) : (
+            <div className="text-zinc-400 text-sm">
+              {grkFilters.length === 0 ? (
+                <p className="text-zinc-500 italic">Geen filters ingesteld</p>
+              ) : (
+                <div className="space-y-1">
+                  {grkFilters.map((f, i) => (
+                    <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1">
+                      <span className="text-zinc-400">"{f.match}"</span>
+                      <span className="text-zinc-600 mx-1">→</span>
+                      <span className="text-violet-400">{f.replace || '(verwijderen)'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Shoutcast Logs Section */}
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Music className="w-5 h-5 text-green-400" />
+          <h2 className="text-lg font-semibold text-white">Shoutcast Logs</h2>
+          <span className="text-xs text-zinc-500 ml-2">Laatste 50 (elke 10 sec)</span>
+        </div>
+
+        {shoutcastLogs.length === 0 ? (
+          <div className="text-center py-8">
+            <Music className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+            <p className="text-zinc-500">Nog geen shoutcast logs</p>
+          </div>
+        ) : (
+          <div className="space-y-1 max-h-64 overflow-y-auto">
+            {shoutcastLogs.map((log) => (
+              <div
+                key={log.id}
+                className={`flex items-center gap-3 p-2 rounded text-xs ${
+                  log.station === 'mfy' ? 'bg-orange-500/5' : 'bg-violet-500/5'
+                }`}
+              >
+                <span className={`font-mono font-bold ${
+                  log.station === 'mfy' ? 'text-orange-400' : 'text-violet-400'
+                }`}>
+                  {log.station.toUpperCase()}
+                </span>
+                <span className="text-zinc-400 truncate flex-1">
+                  {log.song_title || <span className="italic text-zinc-600">(gefilterd)</span>}
+                </span>
+                <span className="text-zinc-600">
+                  {log.current_listeners} luisteraars
+                </span>
+                <span className="text-zinc-700 text-[10px]">
+                  {format(new Date(log.timestamp), 'HH:mm:ss', { locale: nl })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
