@@ -81,6 +81,7 @@ class ContentFeaturedImage(BaseModel):
     """Featured image attached directly to content item (not site-specific)."""
     model_config = ConfigDict(extra="ignore")
     file_storage_key: str
+    s3_url: Optional[str] = None
     file_name: str
     mime_type: str
     size: int
