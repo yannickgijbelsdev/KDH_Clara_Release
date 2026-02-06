@@ -65,6 +65,7 @@ const getFeaturedImageUrl = (featuredImage) => {
 const ContentLibraryPage = () => {
   const { isEditor } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [allContent, setAllContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -76,7 +77,7 @@ const ContentLibraryPage = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  const fetchContent = async () => {
+  const fetchContent = useCallback(async () => {
     try {
       const [contentRes, categoriesRes] = await Promise.all([
         axios.get(`${API}/content`),
@@ -89,11 +90,12 @@ const ContentLibraryPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
+  // Refetch content when navigating back to this page
   useEffect(() => {
     fetchContent();
-  }, []);
+  }, [fetchContent, location.key]);
 
   // Client-side instant filtering
   useEffect(() => {
