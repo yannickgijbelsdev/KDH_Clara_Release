@@ -120,6 +120,29 @@ async def update_rds_sequence(
     }
 
 
+@rds_builder_router.get("/output/{station}.txt")
+async def get_rds_output_txt(station: str):
+    """Public endpoint: Get the current RDS text output with .txt extension.
+    
+    This is the endpoint you configure in MagicRDS as the text source.
+    Returns plain text that rotates based on the configured sequence.
+    """
+    from fastapi.responses import PlainTextResponse
+    
+    if station not in ["mfy", "grk"]:
+        return PlainTextResponse(content="", media_type="text/plain")
+    
+    output = await db.rds_builder_output.find_one(
+        {"station": station},
+        {"_id": 0}
+    )
+    
+    if output and output.get("current_text"):
+        return PlainTextResponse(content=output["current_text"], media_type="text/plain")
+    
+    return PlainTextResponse(content="", media_type="text/plain")
+
+
 @rds_builder_router.get("/output/{station}")
 async def get_rds_output(station: str):
     """Public endpoint: Get the current RDS text output for a station.
