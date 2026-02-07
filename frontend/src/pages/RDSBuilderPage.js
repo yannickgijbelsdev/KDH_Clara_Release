@@ -37,8 +37,26 @@ const ITEM_TYPES = [
 
 // Sequence Item Component
 const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, isFirst, isLast }) => {
+  const [localContent, setLocalContent] = useState(item.content || '');
   const typeConfig = ITEM_TYPES.find(t => t.value === item.type) || ITEM_TYPES[0];
   const TypeIcon = typeConfig.icon;
+
+  // Sync local state when item changes from parent
+  useEffect(() => {
+    setLocalContent(item.content || '');
+  }, [item.id]); // Only reset when item ID changes, not content
+
+  const handleContentChange = (e) => {
+    const newContent = e.target.value;
+    setLocalContent(newContent);
+  };
+
+  const handleContentBlur = () => {
+    // Only update parent when user finishes typing (on blur)
+    if (localContent !== (item.content || '')) {
+      onUpdate({ ...item, content: localContent });
+    }
+  };
 
   return (
     <div className="bg-[#27272a] rounded-lg p-4 border border-zinc-700">
