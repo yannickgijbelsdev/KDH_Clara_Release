@@ -220,26 +220,39 @@ const StreamPlayer = ({ stream }) => {
         await audioContext.resume();
       }
       
-      // Set up the audio element
+      // Set up the audio element - crossOrigin must be set BEFORE src
       audioRef.current.crossOrigin = 'anonymous';
-      audioRef.current.src = stream.proxyUrl;
+      
+      // Add timestamp to prevent caching issues
+      const streamUrl = `${stream.proxyUrl}?t=${Date.now()}`;
+      audioRef.current.src = streamUrl;
       audioRef.current.volume = volume;
       
       // Connect audio element to analyser if not already connected
       if (!sourceRef.current) {
-        sourceRef.current = audioContext.createMediaElementSource(audioRef.current);
-        sourceRef.current.connect(audioAnalyser);
-        audioAnalyser.connect(audioContext.destination);
+        try {
+          sourceRef.current = audioContext.createMediaElementSource(audioRef.current);
+          sourceRef.current.connect(audioAnalyser);
+          audioAnalyser.connect(audioContext.destination);
+        } catch (connectError) {
+          // Source might already be connected from a previous attempt
+          console.warn('Audio source connection warning:', connectError);
+        }
       }
       
-      // Play the audio
-      await audioRef.current.play();
+      // Play the audio with a promise
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        await playPromise;
+      }
       
       setAnalyser(audioAnalyser);
       setIsPlaying(true);
     } catch (err) {
       console.error('Play error:', err);
-      setError('Kan stream niet afspelen');
+      setError(`Fout: ${err.message || 'Kan stream niet afspelen'}`);
+      setIsPlaying(false);
     } finally {
       setIsLoading(false);
     }
