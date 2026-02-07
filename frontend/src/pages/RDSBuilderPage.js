@@ -108,14 +108,14 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
         {item.type === 'custom_text' && (
           <input
             type="text"
-            value={item.content || ''}
-            onChange={(e) => {
-              e.stopPropagation();
-              const newContent = e.target.value;
-              onUpdate({ ...item, content: newContent });
+            value={localContent}
+            onChange={handleContentChange}
+            onBlur={handleContentBlur}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleContentBlur();
+              }
             }}
-            onKeyDown={(e) => e.stopPropagation()}
-            onFocus={(e) => e.stopPropagation()}
             placeholder="Voer tekst in..."
             className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
             data-testid={`custom-text-input-${index}`}
