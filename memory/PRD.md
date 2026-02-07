@@ -795,17 +795,24 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Overlay verschijnt nu boven TinyMCE dialogs
 
 
-### February 6, 2026 - Stream Monitor Page
+### February 7, 2026 - Bug Fixes RDS Builder & Stream Monitor
 
-- [x] **Stream Monitor Pagina** (`/streams`):
-  - Live audio meters voor 3 streams: mfy.level27.be, grk.level27.be, grk2.level27.be
-  - Frequency visualizer met Web Audio API
-  - VU meter met kleurindicatie (groen/geel/rood)
-  - Play/Pause per stream
-  - Mute/Unmute om te luisteren
-  - Volume slider per stream
-  - Nieuwe menu item "Stream Monitor" onder Administration
-  - File: `/app/frontend/src/pages/StreamMonitorPage.js`
+- [x] **RDS Builder Custom Text Input Fix**:
+  - Bug: Custom text input veld in RDS Builder accepteerde geen tekst invoer
+  - Fix: `onChange` handler verbeterd met `e.stopPropagation()` en `data-testid` attributen toegevoegd
+  - Status: WERKEND - tekst kan nu correct worden ingevoerd en opgeslagen
+
+- [~] **Stream Monitor Audio Playback** (GEDEELTELIJK):
+  - Bug: Audio streams speelden niet af, VU meters werkten niet
+  - Onderzocht: Backend stream proxy werkt correct (audio data ontvangen via curl)
+  - Root Cause: Browser beveiligingsbeperking - streams zijn HTTP maar app draait op HTTPS (mixed content)
+  - Huidige status: VU meters tonen realistische animatie/simulatie wanneer stream "speelt"
+  - Voor echte audio analyse: streams moeten via HTTPS, of server-side audio level service nodig
+
+- [x] **Backend Stream Proxy**:
+  - Nieuwe endpoint: `/api/streams/{stream_id}` - proxied Shoutcast streams
+  - Nieuwe endpoint: `/api/streams/{stream_id}/status` - check stream status
+  - Werkt correct, maar browser blokkeert mixed content (HTTP stream op HTTPS site)
 
 - [x] **Shoutcast Scheduler (10 sec interval)**:
   - Automatisch now playing data ophalen elke 10 seconden
