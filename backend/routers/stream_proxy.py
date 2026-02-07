@@ -56,14 +56,16 @@ async def proxy_stream(stream_id: str):
     
     return StreamingResponse(
         stream_audio(stream_url),
-        media_type="audio/aac",  # AAC+ audio format
+        media_type="audio/aacp",  # AAC+ audio format
         headers={
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, OPTIONS",
             "Access-Control-Allow-Headers": "*",
+            "Access-Control-Expose-Headers": "Content-Type, Content-Length",
             "Cache-Control": "no-cache, no-store, must-revalidate",
             "X-Accel-Buffering": "no",  # Disable nginx buffering
-            "Content-Type": "audio/aac",
+            "Content-Type": "audio/aacp",
+            "Transfer-Encoding": "chunked",
         }
     )
 
