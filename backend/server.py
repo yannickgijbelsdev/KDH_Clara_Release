@@ -40,6 +40,7 @@ from routers.logs import logs_router
 from routers.folders import folders_router
 from routers.rds import rds_router
 from routers.rds_builder import rds_builder_router
+from routers.stream_proxy import stream_proxy_router
 from routers.wordpress import publish_content_to_wordpress
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
@@ -81,6 +82,7 @@ api_router.include_router(media_router)
 api_router.include_router(logs_router)
 api_router.include_router(rds_router)
 api_router.include_router(rds_builder_router)
+api_router.include_router(stream_proxy_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
