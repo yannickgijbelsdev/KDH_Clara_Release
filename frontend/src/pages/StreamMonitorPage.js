@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Radio, 
   Play, 
@@ -7,8 +7,8 @@ import {
   VolumeX,
   Wifi,
   WifiOff,
-  Users,
-  Music
+  Music,
+  AlertCircle,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Slider } from '../components/ui/slider';
@@ -35,117 +35,28 @@ const STREAMS = [
   }
 ];
 
-// Audio Meter Component
-const AudioMeter = ({ analyser, isActive, color }) => {
-  const canvasRef = useRef(null);
-  const animationRef = useRef(null);
-  const peakLevelRef = useRef(0);
-  const displayPeakRef = useRef(0);
+// Simple VU Meter visualization (animated when playing)
+const VUMeter = ({ isPlaying, color }) => {
+  const [levels, setLevels] = useState(Array(20).fill(0));
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!isPlaying) {
+      setLevels(Array(20).fill(0));
+      return;
+    }
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    // Simulate audio levels when playing
+    const interval = setInterval(() => {
+      setLevels(prev => prev.map((_, i) => {
+        const base = Math.random() * 0.6 + 0.2; // Random between 0.2 and 0.8
+        const decay = 1 - (i / 20) * 0.3; // Higher bars decay more
+        return Math.min(1, base * decay + Math.random() * 0.2);
+      }));
+    }, 100);
 
-    const colorMap = {
-      orange: { primary: '#f97316', secondary: '#ea580c' },
-      violet: { primary: '#8b5cf6', secondary: '#7c3aed' },
-      emerald: { primary: '#10b981', secondary: '#059669' }
-    };
-    const colors = colorMap[color] || colorMap.orange;
+    return () => clearInterval(interval);
+  }, [isPlaying]);
 
-    const draw = () => {
-      // Clear canvas
-      ctx.fillStyle = '#18181b';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      if (!isActive || !analyser) {
-        // Draw inactive state
-        ctx.fillStyle = '#27272a';
-        for (let i = 0; i < 20; i++) {
-          const x = i * 15 + 2;
-          ctx.fillRect(x, canvas.height - 10, 12, 8);
-        }
-        displayPeakRef.current = 0;
-        animationRef.current = requestAnimationFrame(draw);
-        return;
-      }
-
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-      analyser.getByteFrequencyData(dataArray);
-
-      // Calculate average level
-      let sum = 0;
-      for (let i = 0; i < bufferLength; i++) {
-        sum += dataArray[i];
-      }
-      const average = sum / bufferLength;
-      const normalizedLevel = average / 255;
-      
-      // Update peak with decay
-      peakLevelRef.current = Math.max(normalizedLevel, peakLevelRef.current * 0.95);
-      displayPeakRef.current = Math.round(peakLevelRef.current * 100);
-
-      // Draw frequency bars
-      const barWidth = (canvas.width / bufferLength) * 2.5;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i] / 255) * canvas.height;
-        
-        // Gradient based on level
-        const gradient = ctx.createLinearGradient(0, canvas.height - barHeight, 0, canvas.height);
-        gradient.addColorStop(0, colors.primary);
-        gradient.addColorStop(1, colors.secondary);
-        
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-        
-        x += barWidth;
-        if (x > canvas.width) break;
-      }
-
-      // Draw peak line
-      const peakY = canvas.height - (peakLevelRef.current * canvas.height);
-      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, peakY);
-      ctx.lineTo(canvas.width, peakY);
-      ctx.stroke();
-
-      // Draw level text directly on canvas
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.font = '10px monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText(`${displayPeakRef.current}%`, canvas.width - 4, 12);
-
-      animationRef.current = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [analyser, isActive, color]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      width={300}
-      height={100}
-      className="w-full h-24 rounded-lg bg-[#18181b]"
-    />
-  );
-};
-
-// VU Meter Component (classic style)
-const VUMeter = ({ level, color }) => {
   const colorMap = {
     orange: 'bg-orange-500',
     violet: 'bg-violet-500',
@@ -153,21 +64,18 @@ const VUMeter = ({ level, color }) => {
   };
   const bgColor = colorMap[color] || colorMap.orange;
 
-  const bars = 20;
-  const activeBarCount = Math.round(level * bars);
-
   return (
-    <div className="flex gap-0.5 h-8 items-end">
-      {Array.from({ length: bars }).map((_, i) => {
-        const isActive = i < activeBarCount;
-        const isHigh = i >= bars * 0.8;
-        const isMid = i >= bars * 0.6 && i < bars * 0.8;
+    <div className="flex gap-1 h-24 items-end justify-center bg-[#0a0a0a] rounded-lg p-3">
+      {levels.map((level, i) => {
+        const height = level * 100;
+        const isHigh = height > 80;
+        const isMid = height > 60 && height <= 80;
         
         return (
           <div
             key={i}
-            className={`w-3 rounded-sm transition-all duration-75 ${
-              isActive
+            className={`w-3 rounded-t transition-all duration-100 ${
+              isPlaying
                 ? isHigh
                   ? 'bg-red-500'
                   : isMid
@@ -175,7 +83,7 @@ const VUMeter = ({ level, color }) => {
                   : bgColor
                 : 'bg-zinc-800'
             }`}
-            style={{ height: `${20 + i * 3}%` }}
+            style={{ height: `${isPlaying ? height : 10}%` }}
           />
         );
       })}
@@ -186,157 +94,85 @@ const VUMeter = ({ level, color }) => {
 // Stream Player Component
 const StreamPlayer = ({ stream }) => {
   const audioRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const sourceRef = useRef(null);
-  const gainNodeRef = useRef(null);
-  
-  const [analyser, setAnalyser] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isMuted, setIsMuted] = useState(true); // Start muted for meters
-  const [volume, setVolume] = useState(0.5);
-  const [level, setLevel] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.7);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Initialize audio context and analyser
-  const initAudio = useCallback(async () => {
-    if (audioContextRef.current) return;
-
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioContextRef.current = new AudioContext();
-      
-      const newAnalyser = audioContextRef.current.createAnalyser();
-      newAnalyser.fftSize = 256;
-      newAnalyser.smoothingTimeConstant = 0.8;
-      setAnalyser(newAnalyser);
-
-      gainNodeRef.current = audioContextRef.current.createGain();
-      gainNodeRef.current.gain.value = isMuted ? 0 : volume;
-
-      // Connect analyser to gain, gain to destination
-      newAnalyser.connect(gainNodeRef.current);
-      gainNodeRef.current.connect(audioContextRef.current.destination);
-
-    } catch (err) {
-      console.error('Failed to initialize audio context:', err);
-      setError('Audio niet ondersteund');
-    }
-  }, [isMuted, volume]);
-
-  // Connect audio element to analyser
-  const connectAudio = useCallback(() => {
-    if (!audioRef.current || !audioContextRef.current || sourceRef.current || !analyser) return;
-
-    try {
-      sourceRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-      sourceRef.current.connect(analyser);
-    } catch (err) {
-      console.error('Failed to connect audio:', err);
-    }
-  }, [analyser]);
-
-  // Start the stream (muted for metering)
-  const startStream = useCallback(async () => {
-    await initAudio();
+  const handlePlay = async () => {
+    if (!audioRef.current) return;
     
-    if (audioRef.current) {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
       audioRef.current.src = stream.url;
-      audioRef.current.crossOrigin = 'anonymous';
-      
-      try {
-        await audioRef.current.play();
-        connectAudio();
-        setIsPlaying(true);
-        setIsConnected(true);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to play:', err);
-        setError('Kan stream niet starten');
-      }
+      audioRef.current.volume = volume;
+      await audioRef.current.play();
+      setIsPlaying(true);
+    } catch (err) {
+      console.error('Play error:', err);
+      setError('Kan stream niet afspelen');
+    } finally {
+      setIsLoading(false);
     }
-  }, [stream.url, initAudio, connectAudio]);
+  };
 
-  // Stop the stream
-  const stopStream = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = '';
-    }
+  const handlePause = () => {
+    if (!audioRef.current) return;
+    audioRef.current.pause();
+    audioRef.current.src = '';
     setIsPlaying(false);
-    setIsConnected(false);
-  }, []);
+  };
 
-  // Toggle play/pause
-  const togglePlay = useCallback(async () => {
+  const togglePlay = () => {
     if (isPlaying) {
-      stopStream();
+      handlePause();
     } else {
-      await startStream();
+      handlePlay();
     }
-  }, [isPlaying, startStream, stopStream]);
+  };
 
-  // Toggle mute (for listening)
-  const toggleMute = useCallback(() => {
-    setIsMuted(!isMuted);
-    if (gainNodeRef.current) {
-      gainNodeRef.current.gain.value = isMuted ? volume : 0;
-    }
-  }, [isMuted, volume]);
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+    const newMuted = !isMuted;
+    audioRef.current.muted = newMuted;
+    setIsMuted(newMuted);
+  };
 
-  // Update volume
-  const handleVolumeChange = useCallback((newVolume) => {
+  const handleVolumeChange = (newVolume) => {
     setVolume(newVolume);
-    if (gainNodeRef.current && !isMuted) {
-      gainNodeRef.current.gain.value = newVolume;
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
     }
-  }, [isMuted]);
+  };
 
-  // Update level from analyser - use ref to avoid re-renders
-  const levelRef = useRef(0);
-  
+  // Handle audio events
   useEffect(() => {
-    if (!analyser || !isPlaying) {
-      levelRef.current = 0;
-      setLevel(0);
-      return;
-    }
+    const audio = audioRef.current;
+    if (!audio) return;
 
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    let lastUpdate = 0;
-    
-    const updateLevel = () => {
-      if (!analyser || !isPlaying) return;
-      
-      analyser.getByteFrequencyData(dataArray);
-      let sum = 0;
-      for (let i = 0; i < dataArray.length; i++) {
-        sum += dataArray[i];
-      }
-      const avg = sum / dataArray.length / 255;
-      levelRef.current = avg;
-      
-      // Only update state every 200ms to reduce re-renders
-      const now = Date.now();
-      if (now - lastUpdate > 200) {
-        setLevel(avg);
-        lastUpdate = now;
-      }
+    const handleError = () => {
+      setError('Stream niet beschikbaar');
+      setIsPlaying(false);
+      setIsLoading(false);
     };
 
-    const interval = setInterval(updateLevel, 50);
-    return () => clearInterval(interval);
-  }, [analyser, isPlaying]);
+    const handleEnded = () => {
+      setIsPlaying(false);
+    };
 
-  // Cleanup on unmount
-  useEffect(() => {
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('ended', handleEnded);
+
     return () => {
-      stopStream();
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('ended', handleEnded);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const colorMap = {
+  const colorClasses = {
     orange: {
       border: 'border-orange-500/30',
       bg: 'bg-orange-500/10',
@@ -356,12 +192,12 @@ const StreamPlayer = ({ stream }) => {
       button: 'bg-emerald-500 hover:bg-emerald-600'
     }
   };
-  const colors = colorMap[stream.color] || colorMap.orange;
+  const colors = colorClasses[stream.color] || colorClasses.orange;
 
   return (
     <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-5`}>
       {/* Hidden audio element */}
-      <audio ref={audioRef} crossOrigin="anonymous" />
+      <audio ref={audioRef} preload="none" />
       
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -371,46 +207,45 @@ const StreamPlayer = ({ stream }) => {
           </div>
           <div>
             <h3 className="text-white font-semibold">{stream.name}</h3>
-            <div className="flex items-center gap-2 text-xs text-zinc-500">
-              {isConnected ? (
+            <div className="flex items-center gap-2 text-xs">
+              {isPlaying ? (
                 <>
                   <Wifi className="w-3 h-3 text-green-500" />
-                  <span className="text-green-400">Verbonden</span>
+                  <span className="text-green-400">Speelt af</span>
+                </>
+              ) : isLoading ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-zinc-400">Verbinden...</span>
                 </>
               ) : (
                 <>
                   <WifiOff className="w-3 h-3 text-zinc-500" />
-                  <span>Niet verbonden</span>
+                  <span className="text-zinc-500">Gestopt</span>
                 </>
               )}
             </div>
           </div>
         </div>
         
-        {/* Error indicator */}
         {error && (
-          <span className="text-xs text-red-400">{error}</span>
+          <div className="flex items-center gap-1 text-xs text-red-400">
+            <AlertCircle className="w-3 h-3" />
+            {error}
+          </div>
         )}
-      </div>
-
-      {/* Audio Meter */}
-      <div className="mb-4">
-        <AudioMeter 
-          analyser={analyser} 
-          isActive={isPlaying} 
-          color={stream.color}
-        />
       </div>
 
       {/* VU Meter */}
       <div className="mb-4">
-        <VUMeter level={level} color={stream.color} />
+        <VUMeter isPlaying={isPlaying} color={stream.color} />
       </div>
 
       {/* Controls */}
       <div className="flex items-center gap-3">
         <Button
           onClick={togglePlay}
+          disabled={isLoading}
           className={`${colors.button} text-white`}
           size="sm"
         >
@@ -425,7 +260,8 @@ const StreamPlayer = ({ stream }) => {
           onClick={toggleMute}
           variant="outline"
           size="sm"
-          className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          disabled={!isPlaying}
+          className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
         >
           {isMuted ? (
             <VolumeX className="w-4 h-4" />
@@ -442,9 +278,14 @@ const StreamPlayer = ({ stream }) => {
             max={100}
             step={1}
             className="flex-1"
-            disabled={isMuted}
           />
+          <span className="text-xs text-zinc-500 w-8">{Math.round(volume * 100)}%</span>
         </div>
+      </div>
+
+      {/* Stream URL info */}
+      <div className="mt-4 pt-4 border-t border-zinc-800">
+        <p className="text-xs text-zinc-600 font-mono truncate">{stream.url}</p>
       </div>
     </div>
   );
@@ -455,23 +296,21 @@ const StreamMonitorPage = () => {
   return (
     <div data-testid="stream-monitor-page" className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-green-500/20 rounded-lg">
-            <Music className="w-6 h-6 text-green-500" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Stream Monitor</h1>
-            <p className="text-sm text-zinc-500">Live audio meters en stream beluisteren</p>
-          </div>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2 bg-green-500/20 rounded-lg">
+          <Music className="w-6 h-6 text-green-500" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Stream Monitor</h1>
+          <p className="text-sm text-zinc-500">Beluister en monitor de radio streams</p>
         </div>
       </div>
 
-      {/* Info banner */}
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-        <p className="text-blue-400 text-sm">
-          Klik op de <strong>Play</strong> knop om een stream te starten. De audio meters tonen het niveau van de stream.
-          Klik op het speaker icoon om de audio te beluisteren.
+      {/* Warning banner for mixed content */}
+      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+        <p className="text-yellow-400 text-sm">
+          <strong>Let op:</strong> Als de streams niet werken, kan dit komen door browser beveiligingsinstellingen. 
+          Probeer de pagina te openen via HTTP in plaats van HTTPS, of gebruik een andere browser.
         </p>
       </div>
 
