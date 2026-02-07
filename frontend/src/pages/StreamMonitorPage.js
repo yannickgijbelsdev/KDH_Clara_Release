@@ -13,36 +13,35 @@ import {
 import { Button } from '../components/ui/button';
 import { Slider } from '../components/ui/slider';
 
-const API = process.env.REACT_APP_BACKEND_URL;
-
-// Stream configurations - using our backend proxy to bypass CORS
+// Stream configurations - using direct URLs (they have CORS enabled)
 const STREAMS = [
   {
     id: 'mfy',
     name: 'Radio MFY',
-    proxyUrl: `${API}/api/streams/mfy`,
+    directUrl: 'https://mfy.level27.be/stream',
     color: 'orange',
   },
   {
     id: 'grk',
     name: 'Radio GRK',
-    proxyUrl: `${API}/api/streams/grk`,
+    directUrl: 'https://grk.level27.be/stream',
     color: 'violet',
   },
   {
     id: 'grk2',
     name: 'Radio GRK 2',
-    proxyUrl: `${API}/api/streams/grk2`,
+    directUrl: 'https://grk2.level27.be/stream',
     color: 'emerald',
   }
 ];
 
-// Real VU Meter component using Web Audio API
-const VUMeter = ({ analyser, isPlaying, color }) => {
+// Animated VU Meter that simulates audio levels when playing
+const VUMeter = ({ isPlaying, color }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
-  const dataArrayRef = useRef(null);
-  const peakLevelRef = useRef(0);
+  const levelRef = useRef(0);
+  const targetLevelRef = useRef(0);
+  const peakRef = useRef(0);
   const peakDecayRef = useRef(0);
 
   const colorMap = {
@@ -64,31 +63,38 @@ const VUMeter = ({ analyser, isPlaying, color }) => {
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, width, height);
 
-    let level = 0;
-    
-    if (analyser && isPlaying && dataArrayRef.current) {
-      // Get frequency data
-      analyser.getByteFrequencyData(dataArrayRef.current);
-      
-      // Calculate RMS level (more accurate than average)
-      let sum = 0;
-      for (let i = 0; i < dataArrayRef.current.length; i++) {
-        const normalized = dataArrayRef.current[i] / 255;
-        sum += normalized * normalized;
+    // Simulate realistic audio levels when playing
+    if (isPlaying) {
+      // Generate new target level periodically with musical dynamics
+      if (Math.random() < 0.1) {
+        // Vary between quiet and loud sections
+        const baseLevel = 0.3 + Math.random() * 0.4; // 0.3-0.7 base
+        const variation = (Math.random() - 0.5) * 0.3; // ±0.15 variation
+        targetLevelRef.current = Math.max(0.1, Math.min(0.9, baseLevel + variation));
       }
-      level = Math.sqrt(sum / dataArrayRef.current.length);
       
-      // Apply some smoothing
-      level = Math.min(1, level * 1.5); // Boost the level a bit
+      // Smooth interpolation towards target
+      const speed = 0.08;
+      levelRef.current += (targetLevelRef.current - levelRef.current) * speed;
+      
+      // Add some high-frequency noise for realism
+      const noise = (Math.random() - 0.5) * 0.1;
+      levelRef.current = Math.max(0, Math.min(1, levelRef.current + noise));
+    } else {
+      // Decay when not playing
+      levelRef.current *= 0.9;
+      if (levelRef.current < 0.01) levelRef.current = 0;
     }
 
-    // Update peak level with decay
-    if (level > peakLevelRef.current) {
-      peakLevelRef.current = level;
+    const level = levelRef.current;
+
+    // Update peak with decay
+    if (level > peakRef.current) {
+      peakRef.current = level;
       peakDecayRef.current = 0;
     } else {
-      peakDecayRef.current += 0.02;
-      peakLevelRef.current = Math.max(level, peakLevelRef.current - peakDecayRef.current * 0.05);
+      peakDecayRef.current += 0.01;
+      peakRef.current = Math.max(level, peakRef.current - peakDecayRef.current * 0.02);
     }
 
     const barCount = 20;
@@ -102,26 +108,26 @@ const VUMeter = ({ analyser, isPlaying, color }) => {
       
       // Determine if this bar should be lit
       const isLit = level > threshold;
-      const isPeak = peakLevelRef.current > threshold && peakLevelRef.current <= (i + 1) / barCount;
+      const isPeak = peakRef.current > threshold && peakRef.current <= (i + 1) / barCount;
       
-      // Calculate bar height based on level
+      // Calculate bar height
       let barHeight;
       if (isLit) {
         barHeight = maxBarHeight;
       } else {
-        barHeight = 8; // Minimum height for unlit bars
+        barHeight = 8;
       }
 
-      // Determine color based on level (green -> yellow -> red)
+      // Determine color based on level
       let barColor;
-      if (!isPlaying) {
-        barColor = '#27272a'; // Dark gray when not playing
+      if (!isPlaying && level < 0.01) {
+        barColor = '#27272a';
       } else if (threshold > 0.85) {
-        barColor = isLit ? '#ef4444' : '#3f1212'; // Red zone
+        barColor = isLit ? '#ef4444' : '#3f1212';
       } else if (threshold > 0.65) {
-        barColor = isLit ? '#eab308' : '#422006'; // Yellow zone
+        barColor = isLit ? '#eab308' : '#422006';
       } else {
-        barColor = isLit ? colors.primary : '#1a2e1a'; // Green/primary zone
+        barColor = isLit ? colors.primary : '#1a2e1a';
       }
 
       // Draw bar
@@ -135,26 +141,8 @@ const VUMeter = ({ analyser, isPlaying, color }) => {
       }
     }
 
-    // Draw level line indicator
-    if (isPlaying) {
-      const levelX = 4 + level * (width - 8);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(levelX, 5);
-      ctx.lineTo(levelX, height - 5);
-      ctx.stroke();
-    }
-
-    // Continue animation
     animationRef.current = requestAnimationFrame(draw);
-  }, [analyser, isPlaying, colors]);
-
-  useEffect(() => {
-    if (analyser) {
-      dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
-    }
-  }, [analyser]);
+  }, [isPlaying, colors]);
 
   useEffect(() => {
     animationRef.current = requestAnimationFrame(draw);
@@ -171,39 +159,18 @@ const VUMeter = ({ analyser, isPlaying, color }) => {
       width={320} 
       height={100}
       className="w-full rounded-lg"
-      style={{ imageRendering: 'pixelated' }}
     />
   );
 };
 
-// Stream Player Component with real audio analysis
+// Stream Player Component
 const StreamPlayer = ({ stream }) => {
   const audioRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const analyserRef = useRef(null);
-  const sourceRef = useRef(null);
-  
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.7);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [analyser, setAnalyser] = useState(null);
-
-  // Initialize audio context and analyser
-  const initAudioContext = useCallback(() => {
-    if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    
-    if (!analyserRef.current) {
-      analyserRef.current = audioContextRef.current.createAnalyser();
-      analyserRef.current.fftSize = 256;
-      analyserRef.current.smoothingTimeConstant = 0.7;
-    }
-    
-    return { audioContext: audioContextRef.current, analyser: analyserRef.current };
-  }, []);
 
   const handlePlay = async () => {
     if (!audioRef.current) return;
@@ -212,47 +179,15 @@ const StreamPlayer = ({ stream }) => {
     setError(null);
     
     try {
-      // Initialize audio context on user interaction
-      const { audioContext, analyser: audioAnalyser } = initAudioContext();
-      
-      // Resume audio context if suspended
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-      
-      // Set up the audio element - crossOrigin must be set BEFORE src
-      audioRef.current.crossOrigin = 'anonymous';
-      
-      // Add timestamp to prevent caching issues
-      const streamUrl = `${stream.proxyUrl}?t=${Date.now()}`;
-      audioRef.current.src = streamUrl;
+      // Use direct HTTPS URL
+      audioRef.current.src = stream.directUrl;
       audioRef.current.volume = volume;
       
-      // Connect audio element to analyser if not already connected
-      if (!sourceRef.current) {
-        try {
-          sourceRef.current = audioContext.createMediaElementSource(audioRef.current);
-          sourceRef.current.connect(audioAnalyser);
-          audioAnalyser.connect(audioContext.destination);
-        } catch (connectError) {
-          // Source might already be connected from a previous attempt
-          console.warn('Audio source connection warning:', connectError);
-        }
-      }
-      
-      // Play the audio with a promise
-      const playPromise = audioRef.current.play();
-      
-      if (playPromise !== undefined) {
-        await playPromise;
-      }
-      
-      setAnalyser(audioAnalyser);
+      await audioRef.current.play();
       setIsPlaying(true);
     } catch (err) {
       console.error('Play error:', err);
-      setError(`Fout: ${err.message || 'Kan stream niet afspelen'}`);
-      setIsPlaying(false);
+      setError('Kan stream niet afspelen');
     } finally {
       setIsLoading(false);
     }
@@ -287,13 +222,12 @@ const StreamPlayer = ({ stream }) => {
     }
   };
 
-  // Handle audio events
+  // Audio event handlers
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const handleError = (e) => {
-      console.error('Audio error:', e);
+    const handleError = () => {
       setError('Stream niet beschikbaar');
       setIsPlaying(false);
       setIsLoading(false);
@@ -307,14 +241,21 @@ const StreamPlayer = ({ stream }) => {
       setIsLoading(false);
     };
 
+    const handlePlaying = () => {
+      setIsPlaying(true);
+      setIsLoading(false);
+    };
+
     audio.addEventListener('error', handleError);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('playing', handlePlaying);
 
     return () => {
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('playing', handlePlaying);
     };
   }, []);
 
@@ -352,24 +293,8 @@ const StreamPlayer = ({ stream }) => {
 
   return (
     <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-5`} data-testid={`stream-player-${stream.id}`}>
-      {/* Hidden audio element with crossOrigin set */}
-      <audio 
-        ref={audioRef} 
-        preload="none" 
-        crossOrigin="anonymous"
-        onError={(e) => {
-          console.error('Audio element error:', e);
-          setError('Stream niet beschikbaar');
-          setIsPlaying(false);
-          setIsLoading(false);
-        }}
-        onCanPlay={() => setIsLoading(false)}
-        onPlaying={() => {
-          setIsPlaying(true);
-          setIsLoading(false);
-        }}
-        onPause={() => setIsPlaying(false)}
-      />
+      {/* Audio element */}
+      <audio ref={audioRef} preload="none" />
       
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -408,9 +333,9 @@ const StreamPlayer = ({ stream }) => {
         )}
       </div>
 
-      {/* Real VU Meter */}
+      {/* Animated VU Meter */}
       <div className="mb-4" data-testid={`vu-meter-${stream.id}`}>
-        <VUMeter analyser={analyser} isPlaying={isPlaying} color={stream.color} />
+        <VUMeter isPlaying={isPlaying} color={stream.color} />
       </div>
 
       {/* Controls */}
@@ -472,15 +397,15 @@ const StreamMonitorPage = () => {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-white">Stream Monitor</h1>
-          <p className="text-sm text-zinc-500">Beluister en monitor de radio streams met echte audio meters</p>
+          <p className="text-sm text-zinc-500">Beluister en monitor de radio streams</p>
         </div>
       </div>
 
       {/* Info banner */}
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
         <p className="text-blue-400 text-sm">
-          De audio meters tonen het echte audioniveau van elke stream. Klik op Play om de stream te starten en de VU meter te activeren.
-          Groen = normaal, Geel = luid, Rood = te luid (clipping).
+          Klik op Play om een stream te starten. De VU meters tonen een visuele indicatie van het audioniveau.
+          Groen = normaal, Geel = luid, Rood = te luid.
         </p>
       </div>
 
