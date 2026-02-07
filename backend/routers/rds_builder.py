@@ -97,7 +97,7 @@ async def update_rds_sequence(
         "updated_at": now
     }
     
-    existing = await db.rds_sequences.find_one({"station": station})
+    existing = await db.rds_sequences.find_one({"station": station}, {"_id": 0})
     
     if existing:
         await db.rds_sequences.update_one(
