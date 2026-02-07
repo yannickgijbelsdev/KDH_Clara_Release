@@ -378,15 +378,8 @@ async def get_mfy_live_show_title_txt():
     """Public endpoint: Same as /mfy/live but with .txt extension."""
     from fastapi.responses import PlainTextResponse
     
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": ["mfy", "both"]}},
-        {"_id": 0, "show_title": 1}
-    )
-    
-    if cached and cached.get("show_title"):
-        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
-    
-    return PlainTextResponse(content="", media_type="text/plain")
+    title = await get_live_show_title_for_station("mfy")
+    return PlainTextResponse(content=title, media_type="text/plain")
 
 
 @rds_router.get("/grk/live")
@@ -394,15 +387,8 @@ async def get_grk_live_show_title():
     """Public endpoint: Get the title of the current GRK live show as plain text."""
     from fastapi.responses import PlainTextResponse
     
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": ["grk", "both"]}},
-        {"_id": 0, "show_title": 1}
-    )
-    
-    if cached and cached.get("show_title"):
-        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
-    
-    return PlainTextResponse(content="", media_type="text/plain")
+    title = await get_live_show_title_for_station("grk")
+    return PlainTextResponse(content=title, media_type="text/plain")
 
 
 @rds_router.get("/grk/live.txt")
@@ -410,15 +396,8 @@ async def get_grk_live_show_title_txt():
     """Public endpoint: Same as /grk/live but with .txt extension."""
     from fastapi.responses import PlainTextResponse
     
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": ["grk", "both"]}},
-        {"_id": 0, "show_title": 1}
-    )
-    
-    if cached and cached.get("show_title"):
-        return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
-    
-    return PlainTextResponse(content="", media_type="text/plain")
+    title = await get_live_show_title_for_station("grk")
+    return PlainTextResponse(content=title, media_type="text/plain")
 
 
 @rds_router.get("/mfy/now-playing")
