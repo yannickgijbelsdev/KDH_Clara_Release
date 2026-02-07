@@ -352,8 +352,24 @@ const StreamPlayer = ({ stream }) => {
 
   return (
     <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-5`} data-testid={`stream-player-${stream.id}`}>
-      {/* Hidden audio element */}
-      <audio ref={audioRef} preload="none" crossOrigin="anonymous" />
+      {/* Hidden audio element with crossOrigin set */}
+      <audio 
+        ref={audioRef} 
+        preload="none" 
+        crossOrigin="anonymous"
+        onError={(e) => {
+          console.error('Audio element error:', e);
+          setError('Stream niet beschikbaar');
+          setIsPlaying(false);
+          setIsLoading(false);
+        }}
+        onCanPlay={() => setIsLoading(false)}
+        onPlaying={() => {
+          setIsPlaying(true);
+          setIsLoading(false);
+        }}
+        onPause={() => setIsPlaying(false)}
+      />
       
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
