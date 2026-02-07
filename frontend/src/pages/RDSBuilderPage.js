@@ -88,11 +88,12 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
 
         {/* Custom text input (only for custom_text type) */}
         {item.type === 'custom_text' && (
-          <Input
+          <input
+            type="text"
             value={item.content || ''}
             onChange={(e) => onUpdate({ ...item, content: e.target.value })}
             placeholder="Voer tekst in..."
-            className="bg-zinc-800 border-zinc-700 text-white flex-1"
+            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         )}
 
