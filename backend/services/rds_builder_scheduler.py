@@ -97,8 +97,27 @@ async def process_rds_sequence(db, station: str):
                 # Don't loop, stay at last item
                 current_index = len(items) - 1
         
-        current_item = items[current_index]
-        current_text = await get_item_text(db, station, current_item)
+        # Find the next item with actual content
+        # Skip items that would result in empty text
+        attempts = 0
+        max_attempts = len(items)
+        current_text = ""
+        
+        while attempts < max_attempts:
+            current_item = items[current_index]
+            current_text = await get_item_text(db, station, current_item)
+            
+            if current_text:  # Found an item with content
+                break
+                
+            # Skip to next item
+            current_index = (current_index + 1) % len(items)
+            attempts += 1
+            
+            if current_index == 0 and not sequence.get("loop", True):
+                current_index = len(items) - 1
+                break
+        
         duration = current_item.get("duration", 5)
         
         # Calculate next change time
