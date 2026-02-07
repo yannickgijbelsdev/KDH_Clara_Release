@@ -799,12 +799,17 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 - [x] **RDS Builder Custom Text Input Fix**:
   - Bug: Custom text input veld in RDS Builder accepteerde geen tekst invoer
-  - Fix: `onChange` handler verbeterd met `e.stopPropagation()` en `data-testid` attributen toegevoegd
+  - Fix: Lokale state toegevoegd aan SequenceItem component met onBlur sync naar parent
   - Status: WERKEND - tekst kan nu correct worden ingevoerd en opgeslagen
 
-- [~] **Stream Monitor Audio Playback** (GEDEELTELIJK):
+- [x] **RDS Builder Show Naam Fix**:
+  - Bug: Show naam werd niet getoond in de RDS output (bleef leeg)
+  - Oorzaak: Shows hadden `rds_station = "none"` maar code zocht alleen naar "mfy"/"grk"/"both"
+  - Fix: Fallback logica toegevoegd - nu wordt elke actieve show gevonden, ook zonder specifiek RDS station
+  - Files aangepast: `/app/backend/services/rds_builder_scheduler.py`, `/app/backend/routers/rds.py`
+
+- [~] **Stream Monitor Audio Playback** (TECHNISCHE BEPERKING):
   - Bug: Audio streams speelden niet af, VU meters werkten niet
-  - Onderzocht: Backend stream proxy werkt correct (audio data ontvangen via curl)
   - Root Cause: Browser beveiligingsbeperking - streams zijn HTTP maar app draait op HTTPS (mixed content)
   - Huidige status: VU meters tonen realistische animatie/simulatie wanneer stream "speelt"
   - Voor echte audio analyse: streams moeten via HTTPS, of server-side audio level service nodig
