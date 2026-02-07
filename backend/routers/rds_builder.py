@@ -181,29 +181,6 @@ async def debug_output(station: str):
     }
 
 
-@rds_builder_router.get("/output/{station}.txt")
-async def get_rds_output_txt(station: str):
-    """Same as /output/{station} but with .txt extension."""
-    from fastapi.responses import PlainTextResponse
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    if station not in ["mfy", "grk"]:
-        return PlainTextResponse(content="", media_type="text/plain")
-    
-    output = await db.rds_builder_output.find_one(
-        {"station": station},
-        {"_id": 0}
-    )
-    
-    logger.info(f"RDS Builder output for {station}: {output}")
-    
-    if output and output.get("current_text"):
-        return PlainTextResponse(content=output["current_text"], media_type="text/plain")
-    
-    return PlainTextResponse(content="", media_type="text/plain")
-
-
 @rds_builder_router.get("/status/{station}")
 async def get_rds_builder_status(
     station: str,
