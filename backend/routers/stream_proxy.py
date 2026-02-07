@@ -9,11 +9,11 @@ logger = logging.getLogger(__name__)
 
 stream_proxy_router = APIRouter(prefix="/streams", tags=["Stream Proxy"])
 
-# Stream configurations
+# Stream configurations - using /stream path for proper streaming
 STREAMS = {
-    "mfy": "http://mfy.level27.be/;",
-    "grk": "http://grk.level27.be/;",
-    "grk2": "http://grk2.level27.be/;"
+    "mfy": "http://mfy.level27.be/stream",
+    "grk": "http://grk.level27.be/stream",
+    "grk2": "http://grk2.level27.be/stream"
 }
 
 
