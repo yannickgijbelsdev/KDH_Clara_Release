@@ -148,6 +148,8 @@ async def get_rds_output(station: str):
 async def get_rds_output_txt(station: str):
     """Same as /output/{station} but with .txt extension."""
     from fastapi.responses import PlainTextResponse
+    import logging
+    logger = logging.getLogger(__name__)
     
     if station not in ["mfy", "grk"]:
         return PlainTextResponse(content="", media_type="text/plain")
@@ -156,6 +158,8 @@ async def get_rds_output_txt(station: str):
         {"station": station},
         {"_id": 0}
     )
+    
+    logger.info(f"RDS Builder output for {station}: {output}")
     
     if output and output.get("current_text"):
         return PlainTextResponse(content=output["current_text"], media_type="text/plain")
