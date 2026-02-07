@@ -16,8 +16,17 @@ async def get_item_text(db, station: str, item: dict) -> str:
     
     elif item_type == "show_name":
         # Get current live show title
+        # First try to find a show specifically assigned to this station or "both"
         cached = await db.rds_cached_rundowns.find_one(
             {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+            {"_id": 0, "show_title": 1}
+        )
+        if cached and cached.get("show_title"):
+            return cached["show_title"]
+        
+        # Fallback: find any active show (including those with rds_station = "none" or not set)
+        cached = await db.rds_cached_rundowns.find_one(
+            {"is_active": True},
             {"_id": 0, "show_title": 1}
         )
         if cached and cached.get("show_title"):
