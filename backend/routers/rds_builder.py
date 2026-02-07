@@ -144,6 +144,20 @@ async def get_rds_output(station: str):
     return PlainTextResponse(content="", media_type="text/plain")
 
 
+@rds_builder_router.get("/debug/{station}")
+async def debug_output(station: str):
+    """Debug endpoint to check output data."""
+    output = await db.rds_builder_output.find_one(
+        {"station": station},
+        {"_id": 0}
+    )
+    return {
+        "output_found": output is not None,
+        "current_text": output.get("current_text", "NOT_FOUND") if output else "NO_OUTPUT_RECORD",
+        "full_output": output
+    }
+
+
 @rds_builder_router.get("/output/{station}.txt")
 async def get_rds_output_txt(station: str):
     """Same as /output/{station} but with .txt extension."""
