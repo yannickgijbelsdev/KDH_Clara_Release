@@ -404,8 +404,12 @@ const StreamMonitorPage = () => {
       {/* Info banner */}
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
         <p className="text-blue-400 text-sm">
-          Klik op Play om een stream te starten. De VU meters tonen een visuele indicatie van het audioniveau.
-          Groen = normaal, Geel = luid, Rood = te luid.
+          Klik op Play om een stream te starten. De VU meters tonen een visuele simulatie van audioniveaus.
+          <br/>
+          <span className="text-zinc-500 text-xs">
+            Echte audio-analyse is niet mogelijk vanwege browser beveiligingsbeperkingen (CORS/mixed content). 
+            De meters geven een realistische representatie van het verwachte audioniveau.
+          </span>
         </p>
       </div>
 
