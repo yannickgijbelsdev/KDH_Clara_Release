@@ -305,7 +305,7 @@ async def get_live_show_title():
     """Public endpoint: Get the title of the current live show as plain text.
     
     Returns just the show title for use in RDS systems like MagicRDS.
-    Returns empty string if no live show is currently running.
+    Returns default station name if no live show is currently running.
     """
     from fastapi.responses import PlainTextResponse
     
@@ -318,6 +318,7 @@ async def get_live_show_title():
     if cached and cached.get("show_title"):
         return PlainTextResponse(content=cached.get("show_title"), media_type="text/plain")
     
+    # No active show - return empty (this endpoint is for "any" station)
     return PlainTextResponse(content="", media_type="text/plain")
 
 
