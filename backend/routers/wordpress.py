@@ -499,6 +499,10 @@ async def publish_content_to_wordpress(
                     "format": "audio"  # Always publish as audio format for radio content
                 }
                 
+                # Add category if found
+                if wp_category_id:
+                    wp_data["categories"] = [wp_category_id]
+                
                 # Handle scheduled publishing
                 if target.wp_status == "future" and target.scheduled_date:
                     wp_data["status"] = "future"
