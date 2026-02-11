@@ -417,20 +417,55 @@ async def get_mfy_now_playing_txt():
     return PlainTextResponse(content=data.get("song_title", ""), media_type="text/plain")
 
 
+async def get_now_playing_source_station(station: str) -> str:
+    """Determine which station's now playing data to use.
+    
+    If the current active show has rds_station="both", GRK uses MFY's now playing.
+    Otherwise, use the requested station's own now playing.
+    """
+    if station == "grk":
+        # Check if there's an active show with rds_station="both"
+        active_show = await db.rds_cached_rundowns.find_one(
+            {"is_active": True, "rds_station": "both"},
+            {"_id": 0, "rds_station": 1}
+        )
+        if active_show:
+            # Show is on both stations, GRK uses MFY's now playing
+            return "mfy"
+    return station
+
+
 @rds_router.get("/grk/now-playing")
 async def get_grk_now_playing():
-    """Public endpoint: Get the current now playing info from GRK Shoutcast (cached, 10s interval)."""
+    """Public endpoint: Get the current now playing info from GRK Shoutcast (cached, 10s interval).
+    
+    Note: If the current active show has rds_station="both", this returns MFY's now playing data.
+    """
     from services.shoutcast import get_cached_now_playing
-    return await get_cached_now_playing(db, "grk")
+    
+    source_station = await get_now_playing_source_station("grk")
+    data = await get_cached_now_playing(db, source_station)
+    
+    # Return with GRK station info but source station's song data
+    result = dict(data)
+    result["station"] = "grk"
+    result["source_station"] = source_station
+    if source_station != "grk":
+        result["note"] = "Now playing data sourced from MFY (show is on both stations)"
+    return result
 
 
 @rds_router.get("/grk/now-playing.txt")
 async def get_grk_now_playing_txt():
-    """Public endpoint: Get just the song title from GRK Shoutcast as plain text."""
+    """Public endpoint: Get just the song title from GRK Shoutcast as plain text.
+    
+    Note: If the current active show has rds_station="both", this returns MFY's song title.
+    """
     from fastapi.responses import PlainTextResponse
     from services.shoutcast import get_cached_now_playing
     
-    data = await get_cached_now_playing(db, "grk")
+    source_station = await get_now_playing_source_station("grk")
+    data = await get_cached_now_playing(db, source_station)
     return PlainTextResponse(content=data.get("song_title", ""), media_type="text/plain")
 
 
