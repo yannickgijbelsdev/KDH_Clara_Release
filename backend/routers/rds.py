@@ -423,14 +423,19 @@ async def get_now_playing_source_station(station: str) -> str:
     If the current active show has rds_station="both", GRK uses MFY's now playing.
     Otherwise, use the requested station's own now playing.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     if station == "grk":
         # Check if there's an active show with rds_station="both"
         active_show = await db.rds_cached_rundowns.find_one(
             {"is_active": True, "rds_station": "both"},
             {"_id": 0, "rds_station": 1}
         )
+        logger.info(f"RDS now-playing source check: station={station}, active_show_both={active_show is not None}")
         if active_show:
             # Show is on both stations, GRK uses MFY's now playing
+            logger.info("GRK using MFY now playing (show is on both stations)")
             return "mfy"
     return station
 
