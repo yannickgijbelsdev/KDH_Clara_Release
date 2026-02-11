@@ -400,32 +400,78 @@ const StationBuilder = ({ station, stationName, color }) => {
 
 // Main Page Component
 const RDSBuilderPage = () => {
+  const [activeTab, setActiveTab] = useState('outputs');
+
   return (
     <div data-testid="rds-builder-page" className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-6">
         <div className="p-2 bg-gradient-to-br from-orange-500/20 to-violet-500/20 rounded-lg">
           <Radio className="w-6 h-6 text-white" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-white">RDS Builder</h1>
-          <p className="text-sm text-zinc-500">Bouw je eigen RDS tekst sequentie voor MagicRDS</p>
+          <p className="text-sm text-zinc-500">Configureer RDS tekst outputs voor MagicRDS</p>
         </div>
       </div>
 
-      {/* Info banner */}
-      <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-        <p className="text-blue-400 text-sm">
-          Maak een sequentie van items die automatisch roteren. Configureer de duur per item en gebruik de output URL in MagicRDS.
-          De tekst wordt automatisch bijgewerkt op basis van de ingestelde intervallen.
-        </p>
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('outputs')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'outputs'
+              ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+              : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-white'
+          }`}
+        >
+          📡 Multi-Output (Streaming, DAB, FM)
+        </button>
+        <button
+          onClick={() => setActiveTab('legacy')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            activeTab === 'legacy'
+              ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+              : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-white'
+          }`}
+        >
+          🔄 Sequence Builder (Legacy)
+        </button>
       </div>
 
-      {/* Station Builders */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <StationBuilder station="mfy" stationName="Radio MFY" color="orange" />
-        <StationBuilder station="grk" stationName="Radio GRK" color="violet" />
-      </div>
+      {activeTab === 'outputs' ? (
+        <>
+          {/* Info banner */}
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+            <p className="text-blue-400 text-sm">
+              <strong>Multi-Output Mode:</strong> Maak verschillende outputs voor Streaming, DAB+, FM, etc. 
+              Per output kun je aanvinken welke items je wilt tonen (Show Naam, Now Playing, Custom Tekst) met eigen duraties.
+            </p>
+          </div>
+
+          {/* Output Managers */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <RDSOutputManager station="mfy" stationName="Radio MFY" color="orange" />
+            <RDSOutputManager station="grk" stationName="Radio GRK" color="violet" />
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Info banner */}
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+            <p className="text-yellow-400 text-sm">
+              <strong>Legacy Sequence Builder:</strong> De oude manier om RDS sequenties te maken. 
+              Gebruik Multi-Output voor meer flexibiliteit met verschillende outputs.
+            </p>
+          </div>
+
+          {/* Station Builders */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <StationBuilder station="mfy" stationName="Radio MFY" color="orange" />
+            <StationBuilder station="grk" stationName="Radio GRK" color="violet" />
+          </div>
+        </>
+      )}
     </div>
   );
 };
