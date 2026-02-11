@@ -340,6 +340,51 @@ async def publish_content_to_wordpress(
                 
                 wp_media_id = None
                 
+                # ========== GET WORDPRESS CATEGORY ==========
+                wp_category_id = None
+                
+                # Get Clara category info if content has a category
+                if content.get('category_id'):
+                    clara_category = await db.categories.find_one(
+                        {"id": content['category_id']},
+                        {"_id": 0}
+                    )
+                    
+                    if clara_category and clara_category.get('name'):
+                        category_name = clara_category['name']
+                        
+                        # Try to find existing WordPress category by name
+                        try:
+                            cat_response = await client.get(
+                                f"{site['wp_base_url']}/wp-json/wp/v2/categories",
+                                headers=headers,
+                                params={"search": category_name, "per_page": 100}
+                            )
+                            
+                            if cat_response.status_code == 200:
+                                wp_categories = cat_response.json()
+                                # Find exact match (case-insensitive)
+                                for wp_cat in wp_categories:
+                                    if wp_cat.get('name', '').lower() == category_name.lower():
+                                        wp_category_id = wp_cat.get('id')
+                                        break
+                                
+                                # If not found, create the category
+                                if not wp_category_id:
+                                    create_cat_response = await client.post(
+                                        f"{site['wp_base_url']}/wp-json/wp/v2/categories",
+                                        headers=headers,
+                                        json={"name": category_name}
+                                    )
+                                    if create_cat_response.status_code in [200, 201]:
+                                        new_cat = create_cat_response.json()
+                                        wp_category_id = new_cat.get('id')
+                                    else:
+                                        logging.warning(f"Could not create WP category '{category_name}': {create_cat_response.text[:100]}")
+                        except Exception as cat_error:
+                            logging.warning(f"Error handling WordPress category: {cat_error}")
+                # ========== END CATEGORY HANDLING ==========
+                
                 # Try site-specific featured image first, then content-level featured image
                 image_to_upload = featured_image or (content_featured_image and {
                     "file_storage_key": content_featured_image.get("file_storage_key"),
