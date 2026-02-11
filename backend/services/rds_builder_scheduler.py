@@ -7,6 +7,24 @@ import uuid
 logger = logging.getLogger(__name__)
 
 
+async def get_now_playing_station_for(db, station: str) -> str:
+    """Determine which station's now playing data to use.
+    
+    If the current active show has rds_station="both", GRK uses MFY's now playing.
+    Otherwise, use the requested station's own now playing.
+    """
+    if station == "grk":
+        # Check if there's an active show with rds_station="both"
+        active_show = await db.rds_cached_rundowns.find_one(
+            {"is_active": True, "rds_station": "both"},
+            {"_id": 0, "rds_station": 1}
+        )
+        if active_show:
+            # Show is on both stations, GRK uses MFY's now playing
+            return "mfy"
+    return station
+
+
 async def get_item_text(db, station: str, item: dict) -> str:
     """Get the text for a sequence item."""
     item_type = item.get("type")
@@ -34,9 +52,13 @@ async def get_item_text(db, station: str, item: dict) -> str:
         return ""
     
     elif item_type == "now_playing":
+        # Determine which station's now playing to use
+        # If active show is "both", GRK uses MFY's now playing
+        source_station = await get_now_playing_station_for(db, station)
+        
         # Get cached now playing from shoutcast
         cached = await db.shoutcast_cache.find_one(
-            {"station": station},
+            {"station": source_station},
             {"_id": 0, "song_title": 1}
         )
         if cached and cached.get("song_title"):
