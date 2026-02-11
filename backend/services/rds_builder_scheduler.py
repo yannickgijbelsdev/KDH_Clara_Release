@@ -49,7 +49,13 @@ async def get_item_text(db, station: str, item: dict) -> str:
         )
         if cached and cached.get("show_title"):
             return cached["show_title"]
-        return ""
+        
+        # Default fallback when no active show
+        default_names = {
+            "grk": "the feelgood station",
+            "mfy": "altijd dichtbij"
+        }
+        return default_names.get(station, "")
     
     elif item_type == "now_playing":
         # Determine which station's now playing to use
