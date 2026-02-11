@@ -171,6 +171,119 @@ async def run_rds_builder_cycle(db):
             await process_rds_sequence(db, station)
         except Exception as e:
             logger.error(f"RDS Builder error for {station}: {e}")
+    
+    # Also process named outputs
+    await process_named_outputs(db)
+
+
+async def process_named_outputs(db):
+    """Process all named RDS outputs (streaming, dab, fm, etc.)."""
+    # Get all enabled outputs
+    outputs = await db.rds_outputs.find(
+        {"enabled": True},
+        {"_id": 0}
+    ).to_list(100)
+    
+    for output_config in outputs:
+        try:
+            await process_named_output(db, output_config)
+        except Exception as e:
+            logger.error(f"RDS Output error for {output_config.get('slug')}: {e}")
+
+
+async def process_named_output(db, output_config: dict):
+    """Process a single named RDS output and update its state."""
+    now = datetime.now(timezone.utc)
+    timestamp = now.isoformat()
+    
+    output_id = output_config.get("id")
+    station = output_config.get("station")
+    items = output_config.get("items", [])
+    
+    # Filter to only enabled items
+    enabled_items = [item for item in items if item.get("enabled", True)]
+    
+    if not enabled_items:
+        return
+    
+    # Get current output state
+    state = await db.rds_output_states.find_one(
+        {"output_id": output_id},
+        {"_id": 0}
+    )
+    
+    current_index = 0
+    next_change_at = None
+    
+    if state:
+        current_index = state.get("current_index", 0)
+        next_change_str = state.get("next_change_at")
+        if next_change_str:
+            try:
+                next_change_at = datetime.fromisoformat(next_change_str.replace('Z', '+00:00'))
+            except (ValueError, TypeError):
+                next_change_at = None
+    
+    # Check if it's time to change
+    should_change = False
+    if next_change_at is None:
+        should_change = True
+    elif now >= next_change_at:
+        should_change = True
+    
+    if should_change:
+        # Move to next item
+        if state:
+            current_index = (current_index + 1) % len(enabled_items)
+            if current_index == 0 and not output_config.get("loop", True):
+                current_index = len(enabled_items) - 1
+        
+        # Find the next item with actual content
+        attempts = 0
+        max_attempts = len(enabled_items)
+        current_text = ""
+        
+        while attempts < max_attempts:
+            # Ensure index is valid
+            if current_index >= len(enabled_items):
+                current_index = 0
+            
+            current_item = enabled_items[current_index]
+            current_text = await get_item_text(db, station, current_item)
+            
+            if current_text:
+                break
+            
+            current_index = (current_index + 1) % len(enabled_items)
+            attempts += 1
+            
+            if current_index == 0 and not output_config.get("loop", True):
+                current_index = len(enabled_items) - 1
+                break
+        
+        duration = current_item.get("duration", 5)
+        
+        from datetime import timedelta
+        next_change_at = now + timedelta(seconds=duration)
+        
+        # Update output state
+        state_data = {
+            "output_id": output_id,
+            "station": station,
+            "current_index": current_index,
+            "current_text": current_text,
+            "current_item_type": current_item.get("type"),
+            "next_change_at": next_change_at.isoformat(),
+            "updated_at": timestamp
+        }
+        
+        await db.rds_output_states.update_one(
+            {"output_id": output_id},
+            {"$set": state_data},
+            upsert=True
+        )
+        
+        logger.debug(f"RDS Output [{output_config.get('slug')}]: '{current_text}' (next in {duration}s)")
 
 
 class RDSBuilderScheduler:
