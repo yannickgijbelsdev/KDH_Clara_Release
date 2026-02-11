@@ -842,3 +842,10 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - Nieuwe functie `get_now_playing_station_for()` 
     - RDS Builder sequenties gebruiken nu ook MFY data voor GRK's "now_playing" items
   - Tested: 100% backend tests passed (9/9)
+
+- [x] **Default Show Names (Fallback)**:
+  - Feature: Wanneer geen actieve show voor een station, toon default naam
+  - GRK default: "the feelgood station"
+  - MFY default: "altijd dichtbij"
+  - Werkt voor zowel `/api/rds/{station}/live` endpoints als RDS Builder "show_name" items
+  - Logica: Alleen shows met `rds_station` = station of "both" worden meegeteld
