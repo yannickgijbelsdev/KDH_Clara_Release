@@ -33,8 +33,8 @@ async def get_item_text(db, station: str, item: dict) -> str:
         return item.get("content", "") or ""
     
     elif item_type == "show_name":
-        # Get current live show title
-        # First try to find a show specifically assigned to this station or "both"
+        # Get current live show title for this station
+        # Only shows assigned to this station or "both" are considered
         cached = await db.rds_cached_rundowns.find_one(
             {"is_active": True, "rds_station": {"$in": [station, "both"]}},
             {"_id": 0, "show_title": 1}
@@ -42,15 +42,7 @@ async def get_item_text(db, station: str, item: dict) -> str:
         if cached and cached.get("show_title"):
             return cached["show_title"]
         
-        # Fallback: find any active show (including those with rds_station = "none" or not set)
-        cached = await db.rds_cached_rundowns.find_one(
-            {"is_active": True},
-            {"_id": 0, "show_title": 1}
-        )
-        if cached and cached.get("show_title"):
-            return cached["show_title"]
-        
-        # Default fallback when no active show
+        # Default fallback when no show for this station
         default_names = {
             "grk": "the feelgood station",
             "mfy": "altijd dichtbij"
