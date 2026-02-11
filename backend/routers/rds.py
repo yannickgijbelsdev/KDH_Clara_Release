@@ -339,11 +339,19 @@ async def get_live_show_title_txt():
 
 # ============== STATION-SPECIFIC ENDPOINTS ==============
 
+# Default station names when no live show
+DEFAULT_STATION_NAMES = {
+    "grk": "the feelgood station",
+    "mfy": "altijd dichtbij"
+}
+
+
 async def get_live_show_title_for_station(station: str) -> str:
     """Get the current live show title for a specific station.
     
     First tries to find a show specifically assigned to this station or "both".
     Falls back to any active show (including those with rds_station = "none" or not set).
+    If no active show, returns default station name.
     """
     # First try to find a show specifically assigned to this station or "both"
     cached = await db.rds_cached_rundowns.find_one(
@@ -361,7 +369,8 @@ async def get_live_show_title_for_station(station: str) -> str:
     if cached and cached.get("show_title"):
         return cached["show_title"]
     
-    return ""
+    # Default fallback when no active show
+    return DEFAULT_STATION_NAMES.get(station, "")
 
 
 @rds_router.get("/mfy/live")
