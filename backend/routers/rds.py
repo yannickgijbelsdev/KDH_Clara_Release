@@ -351,10 +351,9 @@ async def get_live_show_title_for_station(station: str) -> str:
     """Get the current live show title for a specific station.
     
     First tries to find a show specifically assigned to this station or "both".
-    Falls back to any active show (including those with rds_station = "none" or not set).
-    If no active show, returns default station name.
+    If no station-specific show, returns default station name.
     """
-    # First try to find a show specifically assigned to this station or "both"
+    # Try to find a show specifically assigned to this station or "both"
     cached = await db.rds_cached_rundowns.find_one(
         {"is_active": True, "rds_station": {"$in": [station, "both"]}},
         {"_id": 0, "show_title": 1}
@@ -362,15 +361,7 @@ async def get_live_show_title_for_station(station: str) -> str:
     if cached and cached.get("show_title"):
         return cached["show_title"]
     
-    # Fallback: find any active show (including those with rds_station = "none" or not set)
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True},
-        {"_id": 0, "show_title": 1}
-    )
-    if cached and cached.get("show_title"):
-        return cached["show_title"]
-    
-    # Default fallback when no active show
+    # Default fallback when no show for this station
     return DEFAULT_STATION_NAMES.get(station, "")
 
 
