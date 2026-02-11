@@ -849,3 +849,17 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - MFY default: "altijd dichtbij"
   - Werkt voor zowel `/api/rds/{station}/live` endpoints als RDS Builder "show_name" items
   - Logica: Alleen shows met `rds_station` = station of "both" worden meegeteld
+
+- [x] **Multi-Output System (Streaming, DAB, FM)**:
+  - Feature: Meerdere configureerbare RDS outputs per station
+  - Elke output heeft eigen naam, slug (URL), en configureerbare items
+  - Items: Show Naam, Now Playing, Custom Tekst - elk met aan/uit toggle en duratie
+  - Database collecties: `rds_outputs` (config), `rds_output_states` (huidige state)
+  - API endpoints:
+    - `GET /api/rds-builder/outputs/{station}` - lijst van outputs
+    - `POST /api/rds-builder/outputs/{station}` - nieuwe output
+    - `PUT /api/rds-builder/outputs/{station}/{slug}` - bewerken
+    - `DELETE /api/rds-builder/outputs/{station}/{slug}` - verwijderen
+    - `GET /api/rds-builder/output/{station}/{slug}.txt` - public URL voor MagicRDS
+  - Frontend: Tabbed interface met Multi-Output en Legacy Sequence Builder
+  - Tested: 24/24 backend tests passed, frontend UI volledig functioneel
