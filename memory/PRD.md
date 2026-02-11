@@ -829,3 +829,16 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Default filters: "the feelgood station", "de stadsradio van genk"
   - UI in RDS Settings pagina
   - Endpoints: `/api/rds/shoutcast/filters/{station}`
+
+### February 11, 2026 - RDS "Both" Station Feature
+- [x] **RDS Now Playing Source Logic for "Both" Station**:
+  - Feature: Wanneer een show op "both" (MFY en GRK) staat, gebruikt GRK de Now Playing data van MFY
+  - Implementatie in `/app/backend/routers/rds.py`:
+    - Nieuwe functie `get_now_playing_source_station()` om te bepalen welk station te gebruiken
+    - `/api/rds/grk/now-playing` retourneert nu MFY data als actieve show `rds_station='both'` heeft
+    - `/api/rds/grk/now-playing.txt` idem
+    - Response bevat `source_station` veld en optioneel `note` veld
+  - Implementatie in `/app/backend/services/rds_builder_scheduler.py`:
+    - Nieuwe functie `get_now_playing_station_for()` 
+    - RDS Builder sequenties gebruiken nu ook MFY data voor GRK's "now_playing" items
+  - Tested: 100% backend tests passed (9/9)
