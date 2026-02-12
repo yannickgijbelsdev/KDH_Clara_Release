@@ -773,36 +773,6 @@ async def get_station_show_image_url_txt(station: str):
     
     return PlainTextResponse(content="", media_type="text/plain")
 
-    station: str,
-    data: ShoutcastFiltersUpdate,
-    current_user: dict = Depends(require_admin)
-):
-    """Update the now playing filters for a station."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
-    now = datetime.now(timezone.utc).isoformat()
-    
-    filters_data = [f.dict() for f in data.filters]
-    
-    await db.shoutcast_settings.update_one(
-        {"station": station},
-        {"$set": {
-            "station": station,
-            "filters": filters_data,
-            "updated_at": now
-        }},
-        upsert=True
-    )
-    
-    return {
-        "status": "success",
-        "message": f"Filters updated for {station}",
-        "station": station,
-        "filters": filters_data
-    }
-
-
 @rds_router.get("/shoutcast/logs")
 async def get_shoutcast_logs(
     station: Optional[str] = None,
