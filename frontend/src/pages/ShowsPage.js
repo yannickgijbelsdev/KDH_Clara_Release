@@ -49,7 +49,7 @@ const ShowCard = ({ show, index, onClick }) => (
     {show.image && (
       <div className="w-full h-32 bg-zinc-800">
         <img
-          src={`${API}/uploads/show_images/${show.image.file_storage_key}`}
+          src={show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`}
           alt={show.title}
           className="w-full h-full object-cover"
         />
