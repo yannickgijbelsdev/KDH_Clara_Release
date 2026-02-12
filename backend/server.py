@@ -49,6 +49,12 @@ from fastapi import Depends
 # Create the main app
 app = FastAPI(title="Radio Show Planner API")
 
+# ============== HEALTH CHECK ENDPOINT (root level for Kubernetes) ==============
+@app.get("/health")
+async def root_health():
+    """Health check endpoint for Kubernetes liveness/readiness probes."""
+    return {"status": "healthy", "service": "radio-show-planner"}
+
 # Create API router
 api_router = APIRouter(prefix="/api")
 
