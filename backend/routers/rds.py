@@ -578,6 +578,34 @@ async def get_shoutcast_filters(
 
 @rds_router.put("/shoutcast/filters/{station}")
 async def update_shoutcast_filters(
+    station: str,
+    data: ShoutcastFiltersUpdate,
+    current_user: dict = Depends(require_admin)
+):
+    """Update the now playing filters for a station."""
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    filters_data = [f.dict() for f in data.filters]
+    
+    await db.shoutcast_settings.update_one(
+        {"station": station},
+        {"$set": {
+            "station": station,
+            "filters": filters_data,
+            "updated_at": now
+        }},
+        upsert=True
+    )
+    
+    return {
+        "status": "success",
+        "message": f"Filters updated for {station}",
+        "station": station,
+        "filters": filters_data
+    }
 
 
 # ============== RDS IMAGE ENDPOINTS ==============
