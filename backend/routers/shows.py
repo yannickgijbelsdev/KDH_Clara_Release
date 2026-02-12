@@ -267,7 +267,10 @@ async def delete_show_title_image(
     title_id: str,
     current_user: dict = Depends(require_admin)
 ):
-    """Remove image from a show title. Admin only."""
+    """Remove image from a show title. Admin only.
+    
+    Also removes the image from all shows with this title.
+    """
     title = await db.show_titles.find_one({
         "id": title_id,
         "team_id": current_user.get('team_id')
@@ -291,6 +294,21 @@ async def delete_show_title_image(
         {"id": title_id},
         {"$unset": {"image": ""}}
     )
+    
+    # Also remove image from all shows with this title
+    title_name = title.get("name")
+    if title_name:
+        result = await db.shows.update_many(
+            {"title": title_name, "team_id": current_user.get('team_id')},
+            {"$unset": {"image": ""}}
+        )
+        logger.info(f"Removed image from {result.modified_count} shows for '{title_name}'")
+        
+        # Also update RDS cached rundowns
+        await db.rds_cached_rundowns.update_many(
+            {"show_title": title_name},
+            {"$unset": {"show_image": ""}}
+        )
     
     return {"message": "Image removed"}
 
