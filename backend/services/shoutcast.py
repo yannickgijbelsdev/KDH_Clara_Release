@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 SHOUTCAST_SERVERS = {
     "mfy": {
         "name": "Radio MFY",
-        "url": "http://mfy.level27.be/stats?sid=1",
+        "url": "http://stream-shout.koodh.be:9010/stats?sid=1",
     },
     "grk": {
         "name": "Radio GRK", 
-        "url": "http://grk.level27.be/stats?sid=1",
+        "url": "http://stream-shout.koodh.be:9010/stats?sid=2",
     }
 }
 
