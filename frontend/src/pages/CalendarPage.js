@@ -330,26 +330,28 @@ const CalendarPage = () => {
                               <div className="flex items-center gap-2 min-w-0">
                                 <h4 className="text-white font-medium group-hover:text-rose-400 transition-colors line-clamp-1">
                                   {show.title}
-                            </h4>
-                            {show.is_recurring && (
-                              <Repeat className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" title="Recurring show" />
+                                </h4>
+                                {show.is_recurring && (
+                                  <Repeat className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" title="Recurring show" />
+                                )}
+                              </div>
+                              <span
+                                className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${statusColors[show.status]}`}
+                              />
+                            </div>
+                            <div className="flex items-center gap-1 text-zinc-500 text-sm">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span className="font-mono">
+                                {show.start_time} - {show.end_time}
+                              </span>
+                            </div>
+                            {show.description && (
+                              <p className="text-zinc-500 text-xs mt-2 line-clamp-2">
+                                {show.description}
+                              </p>
                             )}
                           </div>
-                          <span
-                            className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${statusColors[show.status]}`}
-                          />
                         </div>
-                        <div className="flex items-center gap-1 text-zinc-500 text-sm">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span className="font-mono">
-                            {show.start_time} - {show.end_time}
-                          </span>
-                        </div>
-                        {show.description && (
-                          <p className="text-zinc-500 text-xs mt-2 line-clamp-2">
-                            {show.description}
-                          </p>
-                        )}
                       </button>
                     ))}
                   </div>
