@@ -244,6 +244,21 @@ async def upload_show_title_image(
         {"$set": {"image": image_data}}
     )
     
+    # Sync image to all shows with this title name
+    title_name = title.get("name")
+    if title_name:
+        result = await db.shows.update_many(
+            {"title": title_name, "team_id": current_user.get('team_id')},
+            {"$set": {"image": image_data}}
+        )
+        logger.info(f"Synced image to {result.modified_count} shows for '{title_name}'")
+        
+        # Also update RDS cached rundowns
+        await db.rds_cached_rundowns.update_many(
+            {"show_title": title_name},
+            {"$set": {"show_image": image_data}}
+        )
+    
     return {"image": image_data}
 
 
