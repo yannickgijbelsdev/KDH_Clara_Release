@@ -108,7 +108,10 @@ async def update_show_title(
     title_data: ShowTitleUpdate,
     current_user: dict = Depends(require_admin)
 ):
-    """Update a show title. Admin only."""
+    """Update a show title. Admin only.
+    
+    When the name is changed, all shows with the old name will be updated to the new name.
+    """
     title = await db.show_titles.find_one({
         "id": title_id,
         "team_id": current_user.get('team_id')
@@ -116,16 +119,33 @@ async def update_show_title(
     if not title:
         raise HTTPException(status_code=404, detail="Show title not found")
     
+    old_name = title.get("name")
     update_dict = {k: v for k, v in title_data.model_dump().items() if v is not None}
     
     if "name" in update_dict:
+        new_name = update_dict["name"]
+        # Check for duplicates (case-insensitive)
         existing = await db.show_titles.find_one({
             "team_id": current_user.get('team_id'),
-            "name": {"$regex": f"^{update_dict['name']}$", "$options": "i"},
+            "name": {"$regex": f"^{new_name}$", "$options": "i"},
             "id": {"$ne": title_id}
         })
         if existing:
             raise HTTPException(status_code=400, detail="A show title with this name already exists")
+        
+        # Update all shows with the old name to use the new name
+        if old_name and new_name and old_name != new_name:
+            result = await db.shows.update_many(
+                {"title": old_name, "team_id": current_user.get('team_id')},
+                {"$set": {"title": new_name}}
+            )
+            logger.info(f"Updated {result.modified_count} shows from '{old_name}' to '{new_name}'")
+            
+            # Also update any cached rundowns with the old show title
+            await db.rds_cached_rundowns.update_many(
+                {"show_title": old_name},
+                {"$set": {"show_title": new_name}}
+            )
     
     if update_dict:
         await db.show_titles.update_one(
