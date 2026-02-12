@@ -8,6 +8,7 @@ import uuid
 import jwt
 import aiofiles
 import mimetypes
+import logging
 
 from database import db, JWT_SECRET, UPLOADS_DIR
 from models.shows import (
@@ -22,6 +23,8 @@ from services.auth import get_current_user, require_editor_or_admin, require_adm
 from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
+
+logger = logging.getLogger(__name__)
 
 shows_router = APIRouter(prefix="/shows", tags=["Shows"])
 
