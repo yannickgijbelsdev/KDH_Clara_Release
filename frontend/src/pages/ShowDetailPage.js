@@ -421,6 +421,18 @@ const ShowDetailPage = () => {
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
+        
+        {/* Show Image */}
+        {show.image && (
+          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-800">
+            <img
+              src={show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`}
+              alt={show.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-white">{show.title}</h1>
