@@ -578,6 +578,173 @@ async def get_shoutcast_filters(
 
 @rds_router.put("/shoutcast/filters/{station}")
 async def update_shoutcast_filters(
+
+
+# ============== RDS IMAGE ENDPOINTS ==============
+# Public endpoints for MagicRDS to fetch show images
+
+@rds_router.get("/{station}/image")
+async def get_station_show_image(station: str):
+    """Public endpoint: Get the current show image URL for a station.
+    
+    Returns the S3 URL or local URL of the current live show's image.
+    If no show is active, returns the default station image (if configured).
+    
+    URL format: /api/rds/{station}/image
+    Example: /api/rds/grk/image
+    
+    Returns JSON with image URL for programmatic access.
+    """
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    # Get the current live show for this station
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_title": 1, "show_image": 1}
+    )
+    
+    image_data = None
+    show_title = None
+    
+    if cached:
+        show_title = cached.get("show_title")
+        image_data = cached.get("show_image")
+    
+    # If no image in cached rundown, try to get from show_titles
+    if not image_data and show_title:
+        title_doc = await db.show_titles.find_one(
+            {"name": show_title},
+            {"_id": 0, "image": 1}
+        )
+        if title_doc:
+            image_data = title_doc.get("image")
+    
+    if image_data:
+        # Return the S3 URL if available, otherwise construct local URL
+        image_url = image_data.get("s3_url")
+        if not image_url:
+            # Construct local URL
+            file_key = image_data.get("file_key", "")
+            image_url = f"/uploads/show_title_images/{file_key}"
+        
+        return {
+            "station": station,
+            "show_title": show_title,
+            "has_image": True,
+            "image_url": image_url,
+            "mime_type": image_data.get("mime_type", "image/jpeg"),
+            "filename": image_data.get("filename")
+        }
+    
+    return {
+        "station": station,
+        "show_title": show_title,
+        "has_image": False,
+        "image_url": None,
+        "message": "No image available for current show"
+    }
+
+
+@rds_router.get("/{station}/image.jpg")
+async def get_station_show_image_redirect(station: str):
+    """Public endpoint: Redirect to the actual image file.
+    
+    This endpoint is useful for MagicRDS and other systems that expect
+    a direct image URL. It redirects to the actual S3 or local image.
+    
+    URL format: /api/rds/{station}/image.jpg
+    Example: /api/rds/grk/image.jpg
+    
+    Returns: 302 redirect to actual image, or 404 if no image available.
+    """
+    from fastapi.responses import RedirectResponse
+    
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=404, detail="Station not found")
+    
+    # Get the current live show for this station
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_title": 1, "show_image": 1}
+    )
+    
+    image_data = None
+    show_title = None
+    
+    if cached:
+        show_title = cached.get("show_title")
+        image_data = cached.get("show_image")
+    
+    # If no image in cached rundown, try to get from show_titles
+    if not image_data and show_title:
+        title_doc = await db.show_titles.find_one(
+            {"name": show_title},
+            {"_id": 0, "image": 1}
+        )
+        if title_doc:
+            image_data = title_doc.get("image")
+    
+    if image_data:
+        image_url = image_data.get("s3_url")
+        if image_url:
+            return RedirectResponse(url=image_url, status_code=302)
+        else:
+            # Local file - redirect to static file serving
+            file_key = image_data.get("file_key", "")
+            return RedirectResponse(url=f"/uploads/show_title_images/{file_key}", status_code=302)
+    
+    raise HTTPException(status_code=404, detail="No image available for current show")
+
+
+@rds_router.get("/{station}/image-url.txt")
+async def get_station_show_image_url_txt(station: str):
+    """Public endpoint: Get just the image URL as plain text.
+    
+    This is useful for systems that need to read a URL from a text file.
+    
+    URL format: /api/rds/{station}/image-url.txt
+    Example: /api/rds/grk/image-url.txt
+    
+    Returns: Plain text with the image URL, or empty if no image.
+    """
+    from fastapi.responses import PlainTextResponse
+    
+    if station not in ["mfy", "grk"]:
+        return PlainTextResponse(content="", media_type="text/plain")
+    
+    # Get the current live show for this station
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_title": 1, "show_image": 1}
+    )
+    
+    image_data = None
+    show_title = None
+    
+    if cached:
+        show_title = cached.get("show_title")
+        image_data = cached.get("show_image")
+    
+    # If no image in cached rundown, try to get from show_titles
+    if not image_data and show_title:
+        title_doc = await db.show_titles.find_one(
+            {"name": show_title},
+            {"_id": 0, "image": 1}
+        )
+        if title_doc:
+            image_data = title_doc.get("image")
+    
+    if image_data:
+        image_url = image_data.get("s3_url")
+        if not image_url:
+            file_key = image_data.get("file_key", "")
+            # Return full URL for MagicRDS
+            image_url = f"https://clara.koodh.com/uploads/show_title_images/{file_key}"
+        return PlainTextResponse(content=image_url, media_type="text/plain")
+    
+    return PlainTextResponse(content="", media_type="text/plain")
+
     station: str,
     data: ShoutcastFiltersUpdate,
     current_user: dict = Depends(require_admin)
