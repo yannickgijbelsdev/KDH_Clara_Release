@@ -1023,7 +1023,12 @@ const ShowDetailPage = () => {
       )}
 
       {/* Rundown Section */}
-      <RundownEditor showId={showId} canEdit={isEditor} showStartTime={show?.start_time} />
+      <RundownEditor 
+        showId={showId} 
+        canEdit={isEditor} 
+        showStartTime={show?.start_time} 
+        presenters={show?.presenters || []}
+      />
 
       {/* Delete Confirmation Dialog (Non-recurring) */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
