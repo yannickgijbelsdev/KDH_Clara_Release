@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -37,22 +37,22 @@ import { useAuth } from '../context/AuthContext';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const RECURRENCE_OPTIONS = [
-  { value: 'none', label: 'Eenmalig' },
-  { value: 'hourly', label: 'Elk uur' },
-  { value: 'daily', label: 'Elke dag' },
-  { value: 'weekly', label: 'Elke week' },
-  { value: 'monthly', label: 'Elke maand' },
+  { value: 'none', label: 'One-time' },
+  { value: 'hourly', label: 'Every hour' },
+  { value: 'daily', label: 'Every day' },
+  { value: 'weekly', label: 'Every week' },
+  { value: 'monthly', label: 'Every month' },
 ];
 
 const DURATION_OPTIONS = [
-  { value: 'fixed', label: 'Vaste duur' },
-  { value: 'until_next', label: 'Tot volgende item' },
+  { value: 'fixed', label: 'Fixed duration' },
+  { value: 'until_next', label: 'Until next item' },
 ];
 
 const STATION_OPTIONS = [
   { value: 'mfy', label: 'Radio MFY' },
   { value: 'grk', label: 'Radio GRK' },
-  { value: 'both', label: 'Beide stations' },
+  { value: 'both', label: 'Both stations' },
 ];
 
 // Create/Edit Dialog
@@ -96,11 +96,11 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
 
   const handleSave = async () => {
     if (!text.trim()) {
-      toast.error('Voer een tekst in');
+      toast.error('Please enter text');
       return;
     }
     if (!startDate || !startTime) {
-      toast.error('Selecteer een datum en tijd');
+      toast.error('Please select a date and time');
       return;
     }
 
@@ -119,7 +119,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
       });
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Kon item niet opslaan');
+      toast.error(error.response?.data?.detail || 'Could not save item');
     } finally {
       setSaving(false);
     }
@@ -133,7 +133,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <h3 className="text-lg font-semibold text-white">
-            {item ? 'Geplande tekst bewerken' : 'Nieuwe geplande tekst'}
+            {item ? 'Edit scheduled text' : 'New scheduled text'}
           </h3>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-5 h-5" />
@@ -144,11 +144,11 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
         <div className="p-4 space-y-4">
           {/* Text */}
           <div>
-            <Label className="text-zinc-400 text-sm">Custom tekst</Label>
+            <Label className="text-zinc-400 text-sm">Custom text</Label>
             <Textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Voer de RDS tekst in..."
+              placeholder="Enter RDS text..."
               className="bg-zinc-800 border-zinc-700 text-white mt-1 resize-none"
               rows={3}
             />
@@ -156,7 +156,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
 
           {/* Station Selection */}
           <div>
-            <Label className="text-zinc-400 text-sm">Zichtbaar op</Label>
+            <Label className="text-zinc-400 text-sm">Visible on</Label>
             <Select value={targetStation} onValueChange={setTargetStation}>
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
                 <SelectValue />
@@ -174,7 +174,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
           {/* Date & Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-zinc-400 text-sm">Datum</Label>
+              <Label className="text-zinc-400 text-sm">Date</Label>
               <Input
                 type="date"
                 value={startDate}
@@ -183,7 +183,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
               />
             </div>
             <div>
-              <Label className="text-zinc-400 text-sm">Tijd</Label>
+              <Label className="text-zinc-400 text-sm">Time</Label>
               <Input
                 type="time"
                 value={startTime}
@@ -196,7 +196,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
           {/* Duration */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-zinc-400 text-sm">Duur type</Label>
+              <Label className="text-zinc-400 text-sm">Duration type</Label>
               <Select value={durationType} onValueChange={setDurationType}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
                   <SelectValue />
@@ -212,7 +212,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
             </div>
             {durationType === 'fixed' && (
               <div>
-                <Label className="text-zinc-400 text-sm">Duur (minuten)</Label>
+                <Label className="text-zinc-400 text-sm">Duration (minutes)</Label>
                 <Input
                   type="number"
                   min="1"
@@ -228,7 +228,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
           {/* Recurrence */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-zinc-400 text-sm">Herhaling</Label>
+              <Label className="text-zinc-400 text-sm">Recurrence</Label>
               <Select value={recurrenceType} onValueChange={setRecurrenceType}>
                 <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
                   <SelectValue />
@@ -244,7 +244,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
             </div>
             {recurrenceType !== 'none' && (
               <div>
-                <Label className="text-zinc-400 text-sm">Einddatum (optioneel)</Label>
+                <Label className="text-zinc-400 text-sm">End date (optional)</Label>
                 <Input
                   type="date"
                   value={recurrenceEndDate}
@@ -262,23 +262,23 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
               onCheckedChange={setEnabled}
               className="data-[state=checked]:bg-green-500"
             />
-            <Label className="text-zinc-400 text-sm">Actief</Label>
+            <Label className="text-zinc-400 text-sm">Active</Label>
           </div>
 
           {/* Info */}
           <div className="bg-zinc-900 rounded-lg p-3 text-xs text-zinc-500">
-            <p><strong>Let op:</strong> Shows hebben altijd voorrang boven geplande custom teksten. De custom tekst wordt alleen getoond als er geen actieve show is.</p>
+            <p><strong>Note:</strong> Shows always take priority over scheduled custom texts. Custom text is only shown when there is no active show.</p>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex justify-end gap-2 p-4 border-t border-zinc-800">
           <Button variant="outline" onClick={onClose} className="border-zinc-700 text-zinc-300">
-            Annuleren
+            Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-            Opslaan
+            Save
           </Button>
         </div>
       </div>
@@ -335,7 +335,7 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
           );
         })}
         {dayItems.length > 3 && (
-          <span className="text-xs text-zinc-500 px-1">+{dayItems.length - 3} meer</span>
+          <span className="text-xs text-zinc-500 px-1">+{dayItems.length - 3} more</span>
         )}
       </div>
     </div>
@@ -373,7 +373,7 @@ const RDSSchedulerPage = () => {
       setCalendarItems(response.data);
     } catch (error) {
       console.error('Error fetching calendar:', error);
-      toast.error('Kon agenda niet laden');
+      toast.error('Could not load calendar');
     } finally {
       setLoading(false);
     }
@@ -405,35 +405,35 @@ const RDSSchedulerPage = () => {
     // API uses the viewing station, but the data contains the actual target station
     if (editingItem) {
       await axios.put(`${API}/rds-builder/scheduled-texts/${station}/${editingItem.id}`, data);
-      toast.success('Geplande tekst bijgewerkt');
+      toast.success('Scheduled text updated');
     } else {
       // For creating, use mfy as the API route but include station in data
       await axios.post(`${API}/rds-builder/scheduled-texts/mfy`, data);
-      toast.success('Geplande tekst aangemaakt');
+      toast.success('Scheduled text created');
     }
     fetchCalendarItems();
   };
 
   const handleDelete = async () => {
     if (!editingItem) return;
-    if (!window.confirm('Weet je zeker dat je deze geplande tekst wilt verwijderen?')) return;
+    if (!window.confirm('Are you sure you want to delete this scheduled text?')) return;
 
     try {
       // Use the station from the editing item for deletion
       const itemStation = editingItem.station === 'both' ? 'mfy' : editingItem.station;
       await axios.delete(`${API}/rds-builder/scheduled-texts/${itemStation}/${editingItem.id}`);
-      toast.success('Geplande tekst verwijderd');
+      toast.success('Scheduled text deleted');
       setDialogOpen(false);
       fetchCalendarItems();
     } catch (error) {
-      toast.error('Kon item niet verwijderen');
+      toast.error('Could not delete item');
     }
   };
 
   if (!isAdmin) {
     return (
       <div className="text-center py-12 text-zinc-500">
-        Je hebt geen toegang tot deze pagina.
+        You do not have access to this page.
       </div>
     );
   }
@@ -452,11 +452,11 @@ const RDSSchedulerPage = () => {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-white">RDS Custom Text Scheduler</h1>
-          <p className="text-sm text-zinc-500">Plan custom teksten voor specifieke tijdstippen</p>
+          <p className="text-sm text-zinc-500">Schedule custom texts for specific times</p>
         </div>
         <Button onClick={() => handleAddClick(new Date())} className="bg-orange-500 hover:bg-orange-600 text-white">
           <Plus className="w-4 h-4 mr-2" />
-          Nieuwe tekst
+          New text
         </Button>
       </div>
 
@@ -488,10 +488,10 @@ const RDSSchedulerPage = () => {
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button variant="outline" size="sm" onClick={handleToday} className="border-zinc-700 text-zinc-400">
-            Vandaag
+            Today
           </Button>
           <span className="text-white font-semibold w-40 text-center">
-            {format(currentMonth, 'MMMM yyyy', { locale: nl })}
+            {format(currentMonth, 'MMMM yyyy', { locale: enUS })}
           </span>
           <Button variant="outline" size="sm" onClick={handleNextMonth} className="border-zinc-700 text-zinc-400">
             <ChevronRight className="w-4 h-4" />
@@ -503,7 +503,7 @@ const RDSSchedulerPage = () => {
       <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 border-b border-zinc-800">
-          {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map(day => (
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
             <div key={day} className="py-2 text-center text-xs font-medium text-zinc-500 border-r border-zinc-800 last:border-r-0">
               {day}
             </div>
@@ -544,11 +544,11 @@ const RDSSchedulerPage = () => {
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded bg-green-500/20" />
-          <span>Beide stations</span>
+          <span>Both stations</span>
         </div>
         <div className="flex items-center gap-2">
           <Repeat className="w-3 h-3" />
-          <span>Herhalend</span>
+          <span>Recurring</span>
         </div>
       </div>
 
@@ -574,7 +574,7 @@ const RDSSchedulerPage = () => {
             className="border-red-500/50 text-red-400 hover:bg-red-500/10"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Verwijderen
+            Delete
           </Button>
         </div>
       )}
