@@ -1,74 +1,102 @@
 <analysis>**original_problem_statement:**
-The user initially reported two issues:
-1.  A bug in the RDS Builder page where the Custom Text input field was not working correctly, losing focus on each keystroke.
-2.  A feature request for the Stream Monitor page to have real, professional-style VU meters, similar to those on an audio mixing console.
+The user's requests during this session have built upon the initial problem statement. The consolidated requirements are:
 
-During the session, the user added more issues and requests:
-3.  The Show Naam (Show Name) was not appearing in the RDS builder's output text.
-4.  The plain text output URL for the RDS builder (e.g., ) was returning a blank page.
-5.  Articles published to integrated WordPress sites were being assigned the wrong category.
-6.  A new feature request: When a radio show is designated for both MFY and GRK stations, the Now Playing data for the GRK station's RDS output should be sourced from the MFY stream.
+1.  **WordPress Integration:** Fix a bug where articles published to WordPress are assigned the wrong category.
+2.  **Stream Monitor:** Implement real, professional-style VU meters, not a simulated animation.
+3.  **RDS Both Station Logic:** When a show is designated for both MFY and GRK stations, the Now Playing data for the GRK station's RDS output must be sourced from the MFY stream. (COMPLETED)
+4.  **RDS Fallback Names:** When no show is active, the RDS output for GRK should be 'the feelgood station' and for MFY it should be 'altijd dichtbij'. (COMPLETED)
+5.  **Multi-Output RDS:** Create a system to define multiple, independent RDS outputs per station (e.g., for Streaming, DAB, FM). Each output should be configurable to include different elements like 'now_playing', 'show_name', or 'custom_text'. (COMPLETED)
+6.  **Shoutcast URL Update:** Update the stream source URLs for MFY and GRK to a new server (). (COMPLETED)
+7.  **Data Sync on Update:**
+    *   When a show's title is updated in Show Management, the change must be propagated to all calendar entries and rundowns ( collection). (COMPLETED)
+    *   When a show's image is uploaded/updated, it must also be pushed to all related calendar entries and rundowns. (COMPLETED)
+8.  **RDS Image API:** Create a new API endpoint that provides the URL of the current active show's image, for use in external systems like Magic RDS. (COMPLETED)
+9.  **Deployment Fix:** Resolve deployment failures caused by Kubernetes health checks failing. (COMPLETED)
+10. **Show Image Display:** Fix a bug where show images were not appearing in the Calendar, Rundowns (Show Detail Page), and Shows list. (COMPLETED)
+11. **Rundown Timestamps:** In the rundown view, calculate and display timestamps for each item. An ad block should be allocated 2 minutes, and a music block 3 minutes, to calculate the running time.
 
 **User's preferred language**: Dutch
 
 **what currently exists?**
-The project is a web application with a React frontend and a Python/FastAPI backend using a MongoDB database. Key features include an RDS Builder for creating dynamic radio text, a Stream Monitor for checking audio streams, and a content publisher that syncs articles to external WordPress sites. A background scheduler () runs periodically to generate the RDS output text by combining pre-set sequences with live data like show names and now-playing information.
+The application is a full-stack radio management tool with a React frontend and FastAPI backend. Significant work has been done on the Radio Data System (RDS) module. It now supports a both station logic where GRK's now-playing data can be sourced from the MFY stream. It also has fallback show names for when no show is active. A major new feature is the multi-output RDS system, allowing administrators to create multiple, distinctly configured text outputs (e.g., for FM, DAB) per station via a new UI. The system for managing shows and their metadata has been improved, with changes to titles and images in the Show Management section now automatically synchronizing to all scheduled instances of that show. The backend has been made more robust with the addition of a  endpoint to satisfy deployment health checks. The Shoutcast stream sources have also been updated to a new server.
 
 **Last working item**:
--   **Last item agent was working:** The agent addressed a bug where articles published to WordPress were not being assigned the correct category. The fix involves modifying the publishing logic to dynamically find the category ID on WordPress by its name, create the category if it doesn't exist, and then assign the article to it.
--   **Status:** USER VERIFICATION PENDING
+-   **Last item agent was working:** The agent was beginning to implement a new feature request: adding calculated timestamps to rundown items on the . The logic requires giving ad blocks a 2-minute duration and music blocks a 3-minute duration to calculate a running timeline. The agent had just started by inspecting the  file.
+-   **Status:** NOT STARTED
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** Manual testing. The user needs to republish an article from the application to WordPress and verify that it appears under the correct category on the live WordPress site.
+-   **Which testing method agent to use?** frontend testing agent
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Stream Monitor VU Meters (P1)**
-    -   Description: The user wants real-time, functional VU meters on the Stream Monitor page. The current implementation only shows a simulated animation because of browser security policies (CORS and mixed-content blocking HTTP streams on an HTTPS site) that prevent the Web Audio API from analyzing the audio streams directly.
-    -   Attempted fixes:
-        1.  A backend proxy was created to bypass CORS, but this did not resolve the mixed-content issue in the browser.
-        2.  The feature was simplified to show an animated, non-functional meter, which did not meet the user's requirement.
+-   **Issue 1: Rundown Timestamps (P0)**
+    -   Description: The user wants to see calculated start times for each item in a show's rundown. The calculation should be based on the show's start time and the specified durations for item types (ad=2min, music=3min).
+    -   Status: NOT STARTED
     -   Next debug checklist:
-        -   Modify the backend proxy in  to serve the audio stream over HTTPS, which would resolve the mixed-content issue.
+        -   Modify the frontend component .
+        -   Implement a function that iterates through the rundown items ().
+        -   Calculate the cumulative time based on the  of the show and the type of each rundown item.
+        -   Display the calculated time next to each item in the list.
+    -   Why fix this issue and what will be achieved with the fix?: This will provide crucial timing information for show producers and presenters, allowing them to better plan their broadcasts.
+    -   Is recurring issue?: N
+    -   Should Test frontend/backend/both after fix?: Frontend
+    -   Blocked on other issue: None
+-   **Issue 2: Stream Monitor VU Meters (P1)**
+    -   Description: The user wants real-time, functional VU meters on the Stream Monitor page. The current implementation is a non-functional CSS animation due to browser security policies (CORS, mixed-content) preventing audio analysis.
+    -   Status: NOT STARTED
+    -   Attempted fixes: A backend proxy was created but failed to solve the mixed-content (HTTP on HTTPS page) issue.
+    -   Next debug checklist:
+        -   Investigate modifying the backend stream proxy () to serve the audio stream over HTTPS. This would resolve the mixed-content browser error.
         -   Alternatively, explore a WebSocket-based solution where the backend analyzes the audio and pushes level data to the frontend for visualization.
-    -   Why fix this issue and what will be achieved with the fix?: This is a core feature request from the user for real-time audio monitoring.
-    -   Status: NOT STARTED (Work was paused in favor of a temporary workaround)
+    -   Why fix this issue and what will be achieved with the fix?: Fulfills a core user request for real-time audio monitoring, making the Stream Monitor a functional tool.
     -   Is recurring issue?: Y
     -   Should Test frontend/backend/both after fix?: Both
     -   Blocked on other issue: None
+-   **Issue 3: WordPress Category Publishing (P2)**
+    -   Description: Articles published to WordPress are assigned a default category instead of the one selected in the app.
+    -   Status: USER VERIFICATION PENDING
+    -   Attempted fixes: A fix was implemented in the previous session in  to dynamically find or create the category on WordPress.
+    -   Next debug checklist: Await confirmation from the user that the fix works as expected. The user needs to publish an article and check its category on the WordPress site.
+    -   Why fix this issue and what will be achieved with the fix?: Ensures correct content organization on integrated WordPress sites.
+    -   Is recurring issue?: N
+    -   Should Test frontend/backend/both after fix?: User testing required.
+    -   Blocked on other issue: User feedback.
 
 **In progress Task List**:
--   **Task 1: WordPress Category Publishing (P0)**
-    -   Description: Articles published to WordPress are assigned a default category (Nieuws uit de buurt) instead of the one selected in the app (Social Club).
-    -   Where to resume: The fix has been implemented in . The agent explained the fix and is now awaiting user confirmation. The next step is to verify with the user if the issue is resolved.
-    -   What will be achieved with this?: Articles will be correctly categorized on the external WordPress sites, improving content organization.
-    -   Status: USER VERIFICATION PENDING
-    -   Should Test frontend/backend/both after fix?: Backend logic tested via user action on the frontend.
-    -   Blocked on something: User feedback.
+-   **Task 1: Implement Rundown Timestamps (P0)**
+    -   Where to resume: Start by modifying  to implement the time calculation logic for the rundown list.
+    -   What will be achieved with this?: Users will be able to see a calculated schedule for their shows within the rundown view.
+    -   Status: IN PROGRESS
+    -   Should Test frontend/backend/both after fix?: Frontend
+    -   Blocked on something: None
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks:**
-    -   **Task 1: RDS Both Station Now-Playing Logic (P0)**
-        -   Description: Implement a feature where if a show's RDS setting is both, the GRK station's Now Playing RDS text is sourced from the MFY stream.
-        -   File & method reference: .
-        -   Logic to implement: When the scheduler processes the now_playing item for the GRK station, it must check if the current show's  is both. If so, it should fetch now-playing data from the MFY stream source instead of the GRK one.
-        -   Status: NOT STARTED
+-   None specified.
 
 **Completed work in this session**
--   **RDS Builder Custom Text Input (DONE):** Fixed a bug that caused the text input to lose focus. The fix involved using local component state () in .
--   **RDS Show Naam Fallback (DONE):** Fixed an issue where show names didn't appear in the RDS output. The scheduler in  was updated to use any active show if a station-specific one isn't found.
--   **RDS Output Blank Page (DONE):** Resolved two underlying problems causing the  output URL to be empty:
-    1.  The scheduler was modified to skip sequence items that result in empty text (e.g., Show Naam with no active show).
-    2.  FastAPI route ordering was corrected in  to ensure the specific  route is matched before the general  route.
+-   **RDS Both Station Logic (DONE):** Implemented logic in  and  for GRK to use MFY's Now Playing data when a show is set to both. Tested and verified with the testing agent.
+-   **RDS Fallback Show Names (DONE):** Added fallback show titles ('the feelgood station' for GRK, 'altijd dichtbij' for MFY) in  and  for when no show is active.
+-   **Multi-Output RDS Feature (DONE):** A major feature was added.
+    -   Backend: New models and CRUD endpoints in  for managing multiple configurable RDS outputs.
+    -   Scheduler:  updated to process all new outputs.
+    -   Frontend: New  component created and integrated into  for UI management.
+-   **Shoutcast URL Update (DONE):** Updated stream source URLs in  to point to the new server.
+-   **Show Title Sync Fix (DONE):** Modified  to update the title on all associated  when a  is changed.
+-   **Show Image Sync Feature (DONE):** Updated  to propagate image uploads/deletions to all associated .
+-   **RDS Image API (DONE):** Added  and  endpoints to  to serve the active show's image URL.
+-   **Deployment Health Check Fix (DONE):** Added a root  endpoint in  to resolve Kubernetes readiness probe failures.
+-   **Show Image Display Fix (DONE):**
+    -   Ran a one-time script to sync existing images from  to .
+    -   Updated frontend components (, , ) to correctly display the images.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1: Real VU Meters for Stream Monitor**
-    -   Debug checklist: Investigate serving the proxied audio stream over HTTPS to solve the mixed-content issue or explore using WebSockets to send audio analysis from the backend to the frontend.
-    -   Why to solve this issue and what will be achieved with this?: Fulfills a primary user feature request for accurate, real-time audio visualization.
+    -   Debug checklist: Investigate serving the proxied audio stream over HTTPS to solve the mixed-content issue or explore using WebSockets.
+    -   Why to solve this issue and what will be achieved with this?: This is a primary feature request from the user for accurate, real-time audio visualization.
     -   Should Test frontend/backend/both after fix: Both
     -   Is recurring issue?: Y
 
 **Known issue recurrence from previous fork**
--   None.
+-   None in this session.
 
 **Code Architecture**
 
@@ -77,69 +105,80 @@ The project is a web application with a React frontend and a Python/FastAPI back
 -   **Frontend:** React
 -   **Backend:** Python (FastAPI)
 -   **Database:** MongoDB
--   **Architecture:** Monolithic app with a distinct frontend and backend, sharing the same repository.
--   **Background Jobs:** A standalone scheduler script () handles periodic tasks.
+-   **Architecture:** Monolithic app with a distinct frontend and backend.
+-   **Background Jobs:** Scheduler scripts () run periodically.
+-   **Denormalized Data Sync:** Logic was implemented to keep denormalized data (show titles, images) in the  collection consistent with the source  collection.
 -   **3rd Party Integration:** WordPress (via REST API).
 
 **key DB schema**
+-   :  (image field populated)
 -   : 
--   : 
--   : 
--   : 
--   : 
-
-**changes in tech stack**
--   None.
+-   :  (New collection)
 
 **All files of reference**
--   : Updated to fix the text input bug using local state.
--   : Heavily modified to add show fallback logic and skip empty RDS items.
--   : Corrected FastAPI route ordering and fixed a data serialization bug.
--   : Updated to add logic for finding/creating categories on WordPress during publishing.
--   : Modified to implement and then abandon a Web Audio API solution in favor of simulated meters. Needs a better solution.
+-   : Heavily modified for both logic, fallback names, and new multi-output processing.
+-   : Modified for both logic, fallback names, and new image API endpoints.
+-   : Modified to add the entire multi-output CRUD API.
+-   : Updated to include the new output manager.
+-   : New file for the multi-output UI.
+-   : Updated to sync title changes.
+-   : Updated to sync image changes.
+-   : Updated to add the  endpoint.
+-   : Updated to display show images.
+-   : Updated to display show images.
+-   : The next file to be modified for the rundown timestamp feature.
 
 **Areas that need refactoring**:
--   : The code should be cleaned up to remove the abandoned Web Audio API logic. The entire feature requires a new, robust implementation to meet the user's request for real VU meters.
+-   : Still contains abandoned code for Web Audio API and needs a complete rewrite to implement the real VU meters.
 
 **key api endpoints**
--   : Saves an RDS sequence.
--   : Provides the plain text RDS output.
--   : Publishes content to a WordPress site.
+-   : New root-level health check for Kubernetes.
+-   : Get all RDS outputs for a station.
+-   : Create a new RDS output.
+-   : Update an RDS output.
+-   : Delete an RDS output.
+-   : Get the public text for a specific RDS output.
+-   : Get the active show's image URL as text.
+-   : Get the active show's image URL as JSON.
 
 **Critical Info for New Agent**
--   The user tests on a production-like server (). Be aware that data availability (like active shows) may differ from the local test environment, and fixes must work in that context.
--   The real VU meters feature is technically challenging due to browser security policies. The most promising path forward is to fix the backend proxy to serve audio over HTTPS, thus avoiding mixed-content errors.
--   The user is technically savvy and checks API endpoints directly. Ensure that fixes are robust and cover all relevant endpoints.
+-   **Testing Mock Data:** When testing features related to active shows, be aware that the  runs periodically and will clear any manually inserted test data in the  collection if it doesn't find a corresponding *real* show in the main  collection.
+-   **Deployment Health Check:** The deployment environment requires a  endpoint at the root of the backend service (port 8001). This has been implemented in .
+-   **User Permissions:** The test user () may not have access to all data (e.g., shows) due to being in a different team. This can make UI verification via screenshots difficult. The agent successfully created  with password .
+-   **Testing Agent:** The  proved very effective for verifying complex backend logic and CRUD operations. It should be used after implementing the next set of features.
 
 **documents and test reports created in this job**
--   None.
+-   
+-   
+-    (updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **PENDING:** Nu zorg er ook voor dat... - New feature request: If a show is for both GRK & MFY, GRK's Now Playing RDS text should come from MFY's stream.
-2.  Het is opgelost - User confirmed a fix for the Show Naam issue.
-3.  De link is nog steeds wit... - User reported that the RDS output URL was blank, leading to the route ordering fix.
-4.  https://clara.koodh.com/api/rds-builder/output/grk.txt is wit... - User provided the exact URL that was failing.
-5.  Dit is niet mooi de shows tonen ook niet in de RDS builder - User reported a recurrence of the RDS builder UI bug.
-6.  **IN PROGRESS:** Ik heb een artikel geplaatst... - User reported the WordPress category bug. A fix has been implemented and is pending user verification.
-7.  Ga verder met wat ik je vroeg... - User clarified they want real audio meters, not simulated ones.
-8.  Initial message asking the agent to start.
+1.  **PENDING:** User requested the implementation of calculated timestamps in the rundown view. (Current task)
+2.  **Request:** User asked to see show images in the calendar, rundowns, and RDS builder. (Completed)
+3.  **Bug Report:** User provided deployment logs and asked for a fix. (Completed)
+4.  **Request:** User requested that show images be propagated to rundowns and that an API for the image URL be created. (Completed)
+5.  **Bug Report:** User reported that updating a show's title doesn't update it in the calendar/rundowns. (Completed)
+6.  **Request:** User asked to update the Shoutcast server URLs. (Completed)
+7.  **Request:** User requested the major feature of creating multiple, configurable RDS outputs per station. (Completed)
+8.  **Request:** User requested fallback show names for GRK and MFY when no show is active. (Completed)
+9.  **Request:** User asked the agent to implement the RDS Both station logic. (Completed)
+10. **Confirmation:** User confirmed a previous fix was resolved. (From handoff)
 
 **Project Health Check:**
--   **Broken:** The Stream Monitor feature does not provide the real VU meters requested by the user.
+-   **Broken:** The Stream Monitor feature still does not have the requested real-time VU meters.
 -   **Mocked:** The VU meters on the Stream Monitor page are a CSS animation and are not connected to live audio data.
 
 **3rd Party Integrations**
--   **WordPress:** Used for publishing articles via its REST API. Does not require special keys in this environment.
+-   **WordPress:** Used for publishing articles via its REST API.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES
+-   **Testing agent used after significant changes:** YES (used twice successfully for major features).
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** []
--   **Known regressions:** The RDS custom text input bug required a second fix after the first attempt proved insufficient.
+-   **Known regressions:** None.
 
 **Credentials to test flow:**
-The agent successfully used  /  to log in. This should be attempted first. If it fails, the agent should register a new user.
+The agent created  with password . This user should be used for login.
 
 **What agent forgot to execute**
--   The primary request for **real, functional VU meters** on the Stream Monitor page remains unfulfilled. The agent implemented a temporary visual workaround but did not solve the core technical challenge.
--   The newest feature request regarding the **RDS both station logic** for now-playing data has not been started.</analysis>
+-   The agent did not follow up on the WordPress Category Publishing issue, which remains in a  state from the previous session. All new user requests took priority.</analysis>
