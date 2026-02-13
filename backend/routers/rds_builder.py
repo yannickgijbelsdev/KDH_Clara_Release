@@ -809,9 +809,13 @@ async def get_active_scheduled_text(station: str):
             # Recurring event - check if current occurrence is active
             # Find the most recent occurrence that started before now
             current_occurrence = text_start
-            while current_occurrence <= now:
+            max_iterations = 1000
+            iteration = 0
+            while current_occurrence <= now and iteration < max_iterations:
                 next_occurrence = None
-                if recurrence == "daily":
+                if recurrence == "hourly":
+                    next_occurrence = current_occurrence + timedelta(hours=1)
+                elif recurrence == "daily":
                     next_occurrence = current_occurrence + timedelta(days=1)
                 elif recurrence == "weekly":
                     next_occurrence = current_occurrence + timedelta(weeks=1)
@@ -842,6 +846,7 @@ async def get_active_scheduled_text(station: str):
                 if next_occurrence and next_occurrence > now:
                     break
                 current_occurrence = next_occurrence or (now + timedelta(days=365))
+                iteration += 1
     
     return JSONResponse(content={"active": False, "text": None})
 
