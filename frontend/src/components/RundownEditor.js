@@ -363,15 +363,20 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
           <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {items.map((item, index) => (
-                <SortableRundownItem
+                <div
                   key={item.id}
-                  item={item}
-                  index={index}
-                  timestamp={timestamps[index]}
-                  onEdit={canEdit ? () => handleEditItem(item) : undefined}
-                  onDelete={canEdit ? () => handleDeleteItem(item.id) : undefined}
-                  canEdit={canEdit}
-                />
+                  ref={index === activeItemIndex ? activeItemRef : null}
+                >
+                  <SortableRundownItem
+                    item={item}
+                    index={index}
+                    timestamp={timestamps[index]}
+                    onEdit={canEdit ? () => handleEditItem(item) : undefined}
+                    onDelete={canEdit ? () => handleDeleteItem(item.id) : undefined}
+                    canEdit={canEdit}
+                    isActive={liveMode && index === activeItemIndex}
+                  />
+                </div>
               ))}
             </div>
           </SortableContext>
