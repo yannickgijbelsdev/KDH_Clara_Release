@@ -239,6 +239,35 @@ async def process_rds_sequence(db, station: str):
     now = datetime.now(timezone.utc)
     timestamp = now.isoformat()
     
+    # PRIORITY 1: Check for active scheduled text
+    # Scheduled texts from the RDS Custom Text Scheduler have priority over sequence items
+    active_scheduled = await get_active_scheduled_text_for_station(db, station)
+    
+    if active_scheduled:
+        # A scheduled text is active - update output with this text
+        output_data = {
+            "station": station,
+            "current_index": -1,  # -1 indicates scheduled text, not sequence item
+            "current_text": active_scheduled["text"],
+            "current_item_type": "scheduled_text",
+            "current_item_id": active_scheduled["id"],
+            "scheduled_text_active": True,
+            "scheduled_text_ends_at": active_scheduled["ends_at"].isoformat() if active_scheduled.get("ends_at") else None,
+            "next_change_at": (active_scheduled["ends_at"].isoformat() if active_scheduled.get("ends_at") 
+                             else (now + timedelta(seconds=60)).isoformat()),  # Re-check in 60s for infinite
+            "updated_at": timestamp
+        }
+        
+        await db.rds_builder_output.update_one(
+            {"station": station},
+            {"$set": output_data},
+            upsert=True
+        )
+        
+        logger.debug(f"RDS Builder [{station}]: Scheduled text active: '{active_scheduled['text'][:50]}...'")
+        return
+    
+    # PRIORITY 2: Process normal sequence if no scheduled text is active
     # Get sequence configuration
     sequence = await db.rds_sequences.find_one(
         {"station": station},
@@ -246,6 +275,12 @@ async def process_rds_sequence(db, station: str):
     )
     
     if not sequence or not sequence.get("enabled"):
+        # Clear scheduled_text_active flag if sequence is disabled
+        await db.rds_builder_output.update_one(
+            {"station": station},
+            {"$set": {"scheduled_text_active": False, "updated_at": timestamp}},
+            upsert=True
+        )
         return
     
     items = sequence.get("items", [])
@@ -260,26 +295,37 @@ async def process_rds_sequence(db, station: str):
     
     current_index = 0
     next_change_at = None
+    was_scheduled_text = False
     
     if output:
-        current_index = output.get("current_index", 0)
-        next_change_str = output.get("next_change_at")
-        if next_change_str:
-            try:
-                next_change_at = datetime.fromisoformat(next_change_str.replace('Z', '+00:00'))
-            except (ValueError, TypeError):
-                next_change_at = None
+        # Check if we were showing a scheduled text before
+        was_scheduled_text = output.get("scheduled_text_active", False)
+        
+        if not was_scheduled_text:
+            current_index = output.get("current_index", 0)
+            # Reset if index was -1 (scheduled text marker)
+            if current_index < 0:
+                current_index = 0
+            next_change_str = output.get("next_change_at")
+            if next_change_str:
+                try:
+                    next_change_at = datetime.fromisoformat(next_change_str.replace('Z', '+00:00'))
+                except (ValueError, TypeError):
+                    next_change_at = None
     
     # Check if it's time to change
     should_change = False
-    if next_change_at is None:
+    if was_scheduled_text:
+        # Returning from scheduled text, force change
+        should_change = True
+    elif next_change_at is None:
         should_change = True
     elif now >= next_change_at:
         should_change = True
     
     if should_change:
         # Move to next item
-        if output:
+        if output and not was_scheduled_text:
             current_index = (current_index + 1) % len(items)
             if current_index == 0 and not sequence.get("loop", True):
                 # Don't loop, stay at last item
@@ -309,7 +355,6 @@ async def process_rds_sequence(db, station: str):
         duration = current_item.get("duration", 5)
         
         # Calculate next change time
-        from datetime import timedelta
         next_change_at = now + timedelta(seconds=duration)
         
         # Update output
@@ -319,6 +364,8 @@ async def process_rds_sequence(db, station: str):
             "current_text": current_text,
             "current_item_type": current_item.get("type"),
             "current_item_id": current_item.get("id"),
+            "scheduled_text_active": False,
+            "scheduled_text_ends_at": None,
             "next_change_at": next_change_at.isoformat(),
             "updated_at": timestamp
         }
