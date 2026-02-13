@@ -628,6 +628,32 @@ const ShowDetailPage = () => {
           </div>
         ) : (
           <div>
+            {/* Presenters */}
+            {show.presenters && show.presenters.length > 0 && (
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-zinc-800">
+                <div className="flex items-center gap-2 text-violet-400">
+                  <Users className="w-4 h-4" />
+                  <span className="text-sm font-medium">Presenters:</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {show.presenters.map((presenter) => (
+                    <div
+                      key={presenter.id}
+                      className="flex items-center gap-2 px-2 py-1 bg-violet-500/10 border border-violet-500/30 rounded-full"
+                    >
+                      <div className="w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+                        {presenter.avatar?.s3_url ? (
+                          <img src={presenter.avatar.s3_url} alt={presenter.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-3 h-3 text-zinc-400" />
+                        )}
+                      </div>
+                      <span className="text-sm text-violet-300">{presenter.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             {show.description ? (
               <p className="text-zinc-400">{show.description}</p>
             ) : (
