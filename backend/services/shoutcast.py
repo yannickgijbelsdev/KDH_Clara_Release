@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 import logging
 import uuid
 from typing import Optional, Dict, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,16 @@ SHOUTCAST_SERVERS = {
         "url": "http://stream-shout.koodh.be:9010/stats?sid=2",
     }
 }
+
+# Stale now playing settings
+STALE_TIMEOUT_MINUTES = 15  # Show fallback after this many minutes of same song
+STALE_FALLBACK_TEXT = {
+    "mfy": "altijd dichtbij",
+    "grk": "the feelgood station"
+}
+
+# Track when song titles last changed (in-memory state)
+_song_change_tracker: Dict[str, Dict] = {}
 
 # Default filters (can be overridden by database settings)
 DEFAULT_FILTERS = [
