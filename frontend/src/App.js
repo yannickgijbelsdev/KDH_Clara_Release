@@ -74,6 +74,7 @@ const AppRoutes = () => {
         <Route path="show-management" element={<ShowManagementPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="content" element={<ContentLibraryPage />} />
+        <Route path="content/calendar" element={<ContentCalendarPage />} />
         <Route path="content/:contentId" element={<ContentDetailPage />} />
         <Route path="approvals" element={<AdminApprovalPage />} />
         <Route path="trash" element={<TrashPage />} />
