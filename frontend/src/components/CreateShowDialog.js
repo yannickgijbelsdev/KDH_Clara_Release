@@ -119,6 +119,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
         status: 'draft',
         recurrence: 'none',
         studio_id: '',
+        presenter_ids: [],
       });
       setDate(null);
       setEndDate(null);
@@ -130,7 +131,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
   const handleTitleSelect = (titleId) => {
     if (titleId === 'add-new') {
       setIsAddingNewTitle(true);
-      setFormData({ ...formData, titleId: '', title: '' });
+      setFormData({ ...formData, titleId: '', title: '', presenter_ids: [] });
       return;
     }
     
@@ -143,9 +144,21 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
         description: selectedTitle.description || formData.description,
         start_time: selectedTitle.default_start_time || formData.start_time,
         end_time: selectedTitle.default_end_time || formData.end_time,
+        presenter_ids: selectedTitle.default_presenter_ids || [],
       });
       setIsAddingNewTitle(false);
     }
+  };
+
+  const togglePresenter = (userId) => {
+    setFormData(prev => {
+      const current = prev.presenter_ids || [];
+      if (current.includes(userId)) {
+        return { ...prev, presenter_ids: current.filter(id => id !== userId) };
+      } else {
+        return { ...prev, presenter_ids: [...current, userId] };
+      }
+    });
   };
 
   const handleCreateNewTitle = async () => {
