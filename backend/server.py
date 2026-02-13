@@ -815,6 +815,13 @@ async def startup_db_client():
     # Start the RDS Builder scheduler for text rotation
     await rds_builder_scheduler.start()
     logger.info("RDS Builder scheduler started (1s interval)")
+    
+    # Start the Audio Trigger scheduler for sound detection
+    from services.audio_trigger import AudioTriggerScheduler
+    global audio_trigger_scheduler
+    audio_trigger_scheduler = AudioTriggerScheduler(db)
+    await audio_trigger_scheduler.start()
+    logger.info("Audio Trigger scheduler started (3s interval)")
 
 
 @app.on_event("shutdown")
@@ -834,5 +841,11 @@ async def shutdown_db_client():
     # Stop the RDS Builder scheduler
     await rds_builder_scheduler.stop()
     logger.info("RDS Builder scheduler stopped")
+    
+    # Stop the Audio Trigger scheduler
+    global audio_trigger_scheduler
+    if audio_trigger_scheduler:
+        await audio_trigger_scheduler.stop()
+        logger.info("Audio Trigger scheduler stopped")
     
     client.close()
