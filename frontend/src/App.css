@@ -230,3 +230,114 @@ input:focus, textarea:focus, select:focus {
 .drag-handle:active {
   cursor: grabbing;
 }
+
+
+/* Content Calendar Dark Mode Styles */
+.content-calendar .rbc-calendar {
+  background-color: transparent;
+}
+
+.content-calendar .rbc-month-view,
+.content-calendar .rbc-time-view {
+  background-color: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 0.5rem;
+}
+
+.content-calendar .rbc-header {
+  background-color: #27272a;
+  border-bottom: 1px solid #3f3f46;
+  color: #a1a1aa;
+  padding: 8px;
+  font-weight: 500;
+}
+
+.content-calendar .rbc-header + .rbc-header {
+  border-left: 1px solid #3f3f46;
+}
+
+.content-calendar .rbc-day-bg {
+  background-color: #18181b;
+}
+
+.content-calendar .rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid #27272a;
+}
+
+.content-calendar .rbc-off-range-bg {
+  background-color: #0f0f0f;
+}
+
+.content-calendar .rbc-today {
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.content-calendar .rbc-date-cell {
+  color: #e4e4e7;
+  padding: 4px 8px;
+}
+
+.content-calendar .rbc-date-cell.rbc-off-range {
+  color: #52525b;
+}
+
+.content-calendar .rbc-date-cell.rbc-now {
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+.content-calendar .rbc-month-row {
+  border-top: 1px solid #27272a;
+}
+
+.content-calendar .rbc-month-row + .rbc-month-row {
+  border-top: 1px solid #27272a;
+}
+
+.content-calendar .rbc-event {
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+.content-calendar .rbc-event-content {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content-calendar .rbc-show-more {
+  color: #8b5cf6;
+  background: transparent;
+  font-size: 11px;
+}
+
+/* Week view styles */
+.content-calendar .rbc-time-header {
+  background-color: #27272a;
+}
+
+.content-calendar .rbc-time-content {
+  border-top: 1px solid #27272a;
+}
+
+.content-calendar .rbc-timeslot-group {
+  border-bottom: 1px solid #27272a;
+}
+
+.content-calendar .rbc-time-slot {
+  color: #71717a;
+}
+
+.content-calendar .rbc-time-gutter {
+  background-color: #18181b;
+}
+
+.content-calendar .rbc-day-slot .rbc-time-slot {
+  border-top: 1px solid #27272a;
+}
+
+.content-calendar .rbc-allday-cell {
+  background-color: #18181b;
+}
+
