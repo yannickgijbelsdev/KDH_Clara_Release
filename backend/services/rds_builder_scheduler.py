@@ -26,6 +26,147 @@ async def get_now_playing_station_for(db, station: str) -> str:
     return station
 
 
+async def get_active_scheduled_text_for_station(db, station: str) -> dict | None:
+    """Check if there's an active scheduled text for this station.
+    
+    Returns the active scheduled text dict if one is currently active,
+    or None if no scheduled text is active.
+    
+    Scheduled texts have priority over sequence items.
+    Shows have priority over scheduled texts.
+    """
+    now = datetime.now(timezone.utc)
+    
+    # First check if there's an active show - shows have priority
+    # Check both UTC and CET time for show matching
+    now_cet = now + timedelta(hours=1)
+    
+    for check_time in [now_cet, now]:
+        active_show = await db.shows.find_one({
+            "date": check_time.strftime("%Y-%m-%d"),
+            "start_time": {"$lte": check_time.strftime("%H:%M")},
+            "end_time": {"$gte": check_time.strftime("%H:%M")},
+            "$or": [
+                {"rds_station": station},
+                {"rds_station": "both"}
+            ]
+        })
+        if active_show:
+            return None  # Show is active, no scheduled text should override
+    
+    # Also check cached rundowns (more reliable than direct show check)
+    cached_rundown = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_title": 1}
+    )
+    if cached_rundown and cached_rundown.get("show_title"):
+        return None  # Show is active via cache
+    
+    # Get enabled scheduled texts for this station OR texts set to "both"
+    texts = await db.rds_scheduled_texts.find(
+        {"$or": [{"station": station}, {"station": "both"}], "enabled": True},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Find which scheduled text is currently active
+    for text in texts:
+        # Parse start_datetime and ensure it's timezone-aware
+        start_dt_str = text["start_datetime"].replace("Z", "+00:00")
+        try:
+            text_start = datetime.fromisoformat(start_dt_str)
+        except ValueError:
+            # Handle datetime without timezone
+            text_start = datetime.fromisoformat(start_dt_str.split("+")[0])
+            text_start = text_start.replace(tzinfo=timezone.utc)
+        
+        # If naive datetime, assume UTC
+        if text_start.tzinfo is None:
+            text_start = text_start.replace(tzinfo=timezone.utc)
+        
+        recurrence = text.get("recurrence_type", "none")
+        recurrence_end = text.get("recurrence_end_date")
+        duration_type = text.get("duration_type", "fixed")
+        duration_minutes = text.get("duration_minutes", 5) or 5
+        
+        # Check recurrence end date (only if explicitly set)
+        if recurrence_end:
+            try:
+                recurrence_end_dt = datetime.fromisoformat(recurrence_end + "T23:59:59+00:00")
+                if now > recurrence_end_dt:
+                    continue  # This scheduled text has expired
+            except ValueError:
+                pass  # Invalid date format, ignore end date check
+        # If no recurrence_end_date, this is "infinite" - continue forever
+        
+        # Calculate if this text is active now
+        if recurrence == "none":
+            # One-time event
+            if duration_type == "fixed":
+                end_time = text_start + timedelta(minutes=duration_minutes)
+                if text_start <= now <= end_time:
+                    return {
+                        "text": text["text"],
+                        "id": text["id"],
+                        "ends_at": end_time,
+                        "is_recurring": False
+                    }
+            else:
+                # until_next - active from start time indefinitely (for one-time)
+                if text_start <= now:
+                    return {
+                        "text": text["text"],
+                        "id": text["id"],
+                        "ends_at": None,
+                        "is_recurring": False
+                    }
+        else:
+            # Recurring event - check if current occurrence is active
+            # Find the most recent occurrence that started before now
+            current_occurrence = text_start
+            max_iterations = 10000  # Increased for "infinite" schedules
+            iteration = 0
+            
+            while current_occurrence <= now and iteration < max_iterations:
+                next_occurrence = None
+                if recurrence == "hourly":
+                    next_occurrence = current_occurrence + timedelta(hours=1)
+                elif recurrence == "daily":
+                    next_occurrence = current_occurrence + timedelta(days=1)
+                elif recurrence == "weekly":
+                    next_occurrence = current_occurrence + timedelta(weeks=1)
+                elif recurrence == "monthly":
+                    next_occurrence = current_occurrence + relativedelta(months=1)
+                else:
+                    break  # Unknown recurrence type
+                
+                if duration_type == "fixed":
+                    end_time = current_occurrence + timedelta(minutes=duration_minutes)
+                    if current_occurrence <= now <= end_time:
+                        return {
+                            "text": text["text"],
+                            "id": text["id"],
+                            "ends_at": end_time,
+                            "is_recurring": True
+                        }
+                else:
+                    # until_next - active until next occurrence
+                    if next_occurrence and current_occurrence <= now < next_occurrence:
+                        return {
+                            "text": text["text"],
+                            "id": text["id"],
+                            "ends_at": next_occurrence,
+                            "is_recurring": True
+                        }
+                
+                if next_occurrence and next_occurrence > now:
+                    break
+                
+                current_occurrence = next_occurrence if next_occurrence else now + timedelta(days=365)
+                iteration += 1
+    
+    return None
+
+
 async def get_item_text(db, station: str, item: dict) -> str:
     """Get the text for a sequence item."""
     item_type = item.get("type")
