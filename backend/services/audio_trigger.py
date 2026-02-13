@@ -29,9 +29,10 @@ STREAM_URLS = {
 
 # Audio analysis settings
 SAMPLE_RATE = 22050  # Standard for audio fingerprinting
-CHUNK_DURATION = 5   # Seconds of audio to analyze at once
+CHUNK_DURATION = 8   # Seconds of audio to analyze at once (increased for better detection)
 HOP_LENGTH = 512     # For MFCC calculation
 N_MFCC = 20          # Number of MFCC coefficients
+DEFAULT_THRESHOLD = 0.75  # Lowered from 0.85 for better detection of short jingles
 
 
 def compute_audio_fingerprint(audio_data: np.ndarray, sr: int = SAMPLE_RATE) -> np.ndarray:
