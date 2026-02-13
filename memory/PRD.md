@@ -1001,3 +1001,33 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - `frontend/src/pages/StreamMonitorPage.js` - Status messages
     - `backend/routers/rds.py` - API endpoint descriptions
   - Tested: 100% frontend translation verified (13 features tested)
+
+
+### February 13, 2026 - Bug Fixes and UI Unification
+- [x] **Team Page Image Upload Bug Fix**:
+  - Fixed avatar image not refreshing after upload
+  - Updated img src to use `s3_url` when available with fallback to `file_key`
+  - Added `key` prop to force React re-render when avatar URL changes
+  - File: `frontend/src/pages/TeamSettingsPage.js` line 402
+
+- [x] **Rundown Editor - Presenter Display**:
+  - Added presenter display section to RundownEditor component
+  - Shows presenters with avatar badges and names after the header section
+  - Uses violet color scheme consistent with rest of application
+  - File: `frontend/src/components/RundownEditor.js`
+
+- [x] **UI Unification - Calendar Pages**:
+  - Unified RDS Scheduler Page styling to match main Show Calendar:
+    - Same rounded-xl container with bg-[#18181b]
+    - Consistent border-zinc-800 styling
+    - Station tabs (Radio MFY, Radio GRK) with proper color coding
+    - Legend at bottom with dot indicators
+    - Aspect-square day cells with hover effects
+  - Unified Content Calendar Page styling:
+    - Same rounded-xl container styling
+    - Legend moved inside calendar container at bottom
+    - Consistent header styling with subtitle
+  - Files updated:
+    - `frontend/src/pages/RDSSchedulerPage.js`
+    - `frontend/src/pages/ContentCalendarPage.js`
+  - Tested: 100% frontend verification (6 features tested)
