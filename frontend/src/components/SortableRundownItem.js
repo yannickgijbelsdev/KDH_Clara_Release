@@ -37,7 +37,7 @@ const calculateSpeakingDuration = (text) => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit = true }) => {
+const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit = true, isActive = false }) => {
   const {
     attributes,
     listeners,
@@ -71,8 +71,13 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
       data-testid={`rundown-item-${index}`}
       className={`group flex items-start gap-4 bg-[#27272a] rounded-lg p-4 ${typeColors[item.type]} ${
         isDragging ? 'dragging z-50' : ''
-      }`}
+      } ${isActive ? 'ring-2 ring-green-500 bg-green-500/10' : ''}`}
     >
+      {/* Live indicator */}
+      {isActive && (
+        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-8 bg-green-500 rounded-r-full animate-pulse" />
+      )}
+      
       {/* Drag Handle */}
       {canEdit ? (
         <button
