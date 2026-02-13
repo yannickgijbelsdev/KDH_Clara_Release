@@ -32,11 +32,13 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     queries_to_try = [
         # Try CET time first (most likely for European users)
         {
+            "now": now_cet,
             "date": now_cet.strftime('%Y-%m-%d'),
             "time": now_cet.strftime('%H:%M')
         },
         # Also try UTC
         {
+            "now": now_utc,
             "date": now_utc.strftime('%Y-%m-%d'),
             "time": now_utc.strftime('%H:%M')
         }
@@ -47,29 +49,48 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     for q in queries_to_try:
         current_time = q["time"]
         current_date = q["date"]
+        current_now = q["now"]
+        yesterday_date = (current_now - timedelta(days=1)).strftime('%Y-%m-%d')
         
+        # Query for shows today AND yesterday (for midnight-crossing shows)
         if team_id:
-            base_query = {"status": "scheduled", "date": current_date, "team_id": team_id}
+            base_query = {
+                "status": "scheduled",
+                "date": {"$in": [current_date, yesterday_date]},
+                "team_id": team_id
+            }
         else:
-            base_query = {"status": "scheduled", "date": current_date}
+            base_query = {
+                "status": "scheduled",
+                "date": {"$in": [current_date, yesterday_date]}
+            }
         
-        # Get all shows for today
-        all_shows_today = await db.shows.find(base_query, {"_id": 0}).to_list(100)
+        # Get all shows for today and yesterday
+        all_shows = await db.shows.find(base_query, {"_id": 0}).to_list(200)
         
         # Filter to find which shows are currently live
-        for show in all_shows_today:
+        for show in all_shows:
             start = show.get("start_time", "00:00")
             end = show.get("end_time", "23:59")
+            show_date = show.get("date", "")
             
             is_live = False
             
-            if start <= end:
-                # Normal show (doesn't cross midnight)
-                is_live = start <= current_time <= end
-            else:
-                # Show crosses midnight (e.g., 22:00 - 00:00)
-                # Live if: current >= start (show started today, hasn't ended yet)
-                is_live = current_time >= start
+            # Check if show crosses midnight (start > end, e.g., 22:00 - 01:00)
+            crosses_midnight = start > end
+            
+            if show_date == current_date:
+                # Show is scheduled for today
+                if crosses_midnight:
+                    # Show crosses midnight, live if we're past start time
+                    is_live = current_time >= start
+                else:
+                    # Normal show, live if between start and end
+                    is_live = start <= current_time <= end
+            elif show_date == yesterday_date and crosses_midnight:
+                # Show from yesterday that crosses midnight
+                # Live if current time is before the end time (which is on "today")
+                is_live = current_time <= end
             
             if is_live:
                 live_shows.append(show)
