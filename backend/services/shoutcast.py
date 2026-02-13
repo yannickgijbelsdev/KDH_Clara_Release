@@ -155,7 +155,9 @@ async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> D
             root = ET.fromstring(response.text)
             
             raw_song_title = root.findtext("SONGTITLE", "")
-            song_title = apply_filters(raw_song_title, filters) if apply_filter else raw_song_title
+            filtered_title = apply_filters(raw_song_title, filters) if apply_filter else raw_song_title
+            # Apply formatting: ARTIST - Title Case
+            song_title = format_now_playing(filtered_title) if apply_filter else filtered_title
             current_listeners = int(root.findtext("CURRENTLISTENERS", "0"))
             peak_listeners = int(root.findtext("PEAKLISTENERS", "0"))
             stream_status = int(root.findtext("STREAMSTATUS", "0"))
