@@ -133,7 +133,7 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             # MFY Station Endpoints
             {
                 "name": "MFY - Live Show",
-                "description": "Titel van de huidige MFY live show (plain text)",
+                "description": "Title of the current MFY live show (plain text)",
                 "path": "/api/rds/mfy/live",
                 "full_url": f"{base_url}/api/rds/mfy/live",
                 "method": "GET",
@@ -143,7 +143,7 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             },
             {
                 "name": "MFY - Now Playing",
-                "description": "Huidige nummer van MFY Shoutcast (plain text)",
+                "description": "Current track from MFY Shoutcast (plain text)",
                 "path": "/api/rds/mfy/now-playing.txt",
                 "full_url": f"{base_url}/api/rds/mfy/now-playing.txt",
                 "method": "GET",
@@ -153,7 +153,7 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             },
             {
                 "name": "MFY - Now Playing (JSON)",
-                "description": "Shoutcast info inclusief luisteraars (JSON)",
+                "description": "Shoutcast info including listeners (JSON)",
                 "path": "/api/rds/mfy/now-playing",
                 "full_url": f"{base_url}/api/rds/mfy/now-playing",
                 "method": "GET",
@@ -163,7 +163,7 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             },
             {
                 "name": "MFY - Cached Rundown",
-                "description": "Gecachte JSON rundown van MFY live show",
+                "description": "Cached JSON rundown from MFY live show",
                 "path": "/api/rds/mfy/cached-rundown",
                 "full_url": f"{base_url}/api/rds/mfy/cached-rundown",
                 "method": "GET",
@@ -174,7 +174,7 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             # GRK Station Endpoints
             {
                 "name": "GRK - Live Show",
-                "description": "Titel van de huidige GRK live show (plain text)",
+                "description": "Title of the current GRK live show (plain text)",
                 "path": "/api/rds/grk/live",
                 "full_url": f"{base_url}/api/rds/grk/live",
                 "method": "GET",
@@ -184,7 +184,7 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             },
             {
                 "name": "GRK - Now Playing",
-                "description": "Huidige nummer van GRK Shoutcast (plain text)",
+                "description": "Current track from GRK Shoutcast (plain text)",
                 "path": "/api/rds/grk/now-playing.txt",
                 "full_url": f"{base_url}/api/rds/grk/now-playing.txt",
                 "method": "GET",
@@ -194,7 +194,7 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             },
             {
                 "name": "GRK - Now Playing (JSON)",
-                "description": "Shoutcast info inclusief luisteraars (JSON)",
+                "description": "Shoutcast info including listeners (JSON)",
                 "path": "/api/rds/grk/now-playing",
                 "full_url": f"{base_url}/api/rds/grk/now-playing",
                 "method": "GET",
@@ -204,7 +204,7 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             },
             {
                 "name": "GRK - Cached Rundown",
-                "description": "Gecachte JSON rundown van GRK live show",
+                "description": "Cached JSON rundown from GRK live show",
                 "path": "/api/rds/grk/cached-rundown",
                 "full_url": f"{base_url}/api/rds/grk/cached-rundown",
                 "method": "GET",
@@ -214,8 +214,8 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
             },
             # General Endpoints (backwards compatibility)
             {
-                "name": "Alle Stations - Live Show",
-                "description": "Titel van elke huidige live show (plain text)",
+                "name": "All Stations - Live Show",
+                "description": "Title of any current live show (plain text)",
                 "path": "/api/rds/live",
                 "full_url": f"{base_url}/api/rds/live",
                 "method": "GET",
@@ -224,8 +224,8 @@ async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
                 "station": "all"
             },
             {
-                "name": "Alle Stations - Cached Rundown",
-                "description": "Gecachte JSON rundown van elke live show",
+                "name": "All Stations - Cached Rundown",
+                "description": "Cached JSON rundown from any live show",
                 "path": "/api/rds/cached-rundown",
                 "full_url": f"{base_url}/api/rds/cached-rundown",
                 "method": "GET",
