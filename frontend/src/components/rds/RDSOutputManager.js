@@ -114,6 +114,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
     { type: 'show_name', enabled: true, content: null, duration: 10 },
     { type: 'presenter_name', enabled: false, content: null, duration: 10 },
     { type: 'now_playing', enabled: true, content: null, duration: 5 },
+    { type: 'audio_trigger', enabled: false, content: null, duration: 10 },
     { type: 'custom_text', enabled: false, content: '', duration: 5 },
   ]);
   const [saving, setSaving] = useState(false);
@@ -140,6 +141,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
         { type: 'show_name', enabled: true, content: null, duration: 10 },
         { type: 'presenter_name', enabled: false, content: null, duration: 10 },
         { type: 'now_playing', enabled: true, content: null, duration: 5 },
+        { type: 'audio_trigger', enabled: false, content: null, duration: 10 },
         { type: 'custom_text', enabled: false, content: '', duration: 5 },
       ]);
     }
