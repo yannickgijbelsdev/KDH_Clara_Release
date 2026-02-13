@@ -264,7 +264,69 @@ async def manual_refresh_cache(current_user: dict = Depends(require_admin)):
     return result
 
 
-@rds_router.get("/cached-rundown")
+@rds_router.get("/debug-live-shows")
+async def debug_live_shows(current_user: dict = Depends(require_admin)):
+    """Debug endpoint to see why a show might not be syncing.
+    
+    Shows the current time (UTC and CET), and any shows that match the current timeframe.
+    """
+    from datetime import timedelta
+    
+    now_utc = datetime.now(timezone.utc)
+    now_cet = now_utc + timedelta(hours=1)
+    
+    team_id = current_user.get('team_id')
+    
+    # Find all shows for today (CET)
+    today_cet = now_cet.strftime('%Y-%m-%d')
+    today_utc = now_utc.strftime('%Y-%m-%d')
+    
+    shows_today_cet = await db.shows.find(
+        {"date": today_cet, "team_id": team_id},
+        {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
+    ).to_list(50)
+    
+    shows_today_utc = await db.shows.find(
+        {"date": today_utc, "team_id": team_id},
+        {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
+    ).to_list(50) if today_utc != today_cet else []
+    
+    # Check which shows would be considered "live" right now
+    current_time_cet = now_cet.strftime('%H:%M')
+    current_time_utc = now_utc.strftime('%H:%M')
+    
+    live_shows_cet = [
+        s for s in shows_today_cet 
+        if s.get('start_time', '99:99') <= current_time_cet <= s.get('end_time', '00:00')
+        and s.get('status') == 'scheduled'
+    ]
+    
+    # Check cached rundown
+    cached = await db.rds_cached_rundowns.find_one(
+        {"team_id": team_id},
+        {"_id": 0}
+    )
+    
+    return {
+        "debug_info": {
+            "current_time_utc": now_utc.isoformat(),
+            "current_time_cet": now_cet.isoformat(),
+            "current_time_cet_formatted": current_time_cet,
+            "today_date_cet": today_cet,
+        },
+        "shows_today": shows_today_cet + shows_today_utc,
+        "shows_that_should_be_live": live_shows_cet,
+        "issue_diagnosis": {
+            "no_shows_today": len(shows_today_cet) == 0,
+            "shows_not_scheduled": [s['title'] for s in shows_today_cet if s.get('status') != 'scheduled'],
+            "shows_without_rds_station": [s['title'] for s in shows_today_cet if s.get('rds_station') in [None, 'none']],
+        },
+        "current_cached_rundown": {
+            "show_title": cached.get('show_title') if cached else None,
+            "is_active": cached.get('is_active') if cached else None,
+            "cached_at": cached.get('cached_at') if cached else None,
+        }
+    }
 async def get_cached_rundown():
     """Public endpoint: Get the cached rundown for the current live show.
     
