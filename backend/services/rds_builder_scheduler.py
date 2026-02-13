@@ -267,6 +267,33 @@ async def process_rds_sequence(db, station: str):
     now = datetime.now(timezone.utc)
     timestamp = now.isoformat()
     
+    # PRIORITY 0: Check for active audio trigger
+    # Audio triggers (sound detection) have highest priority
+    active_audio_trigger = await get_active_audio_trigger_for_station(db, station)
+    
+    if active_audio_trigger:
+        # An audio trigger is active - update output with trigger action
+        output_data = {
+            "station": station,
+            "current_index": -2,  # -2 indicates audio trigger
+            "current_text": active_audio_trigger["text"],
+            "current_item_type": "audio_trigger",
+            "current_item_id": active_audio_trigger.get("trigger_id"),
+            "audio_trigger_active": True,
+            "scheduled_text_active": False,
+            "next_change_at": (now + timedelta(seconds=5)).isoformat(),  # Re-check frequently
+            "updated_at": timestamp
+        }
+        
+        await db.rds_builder_output.update_one(
+            {"station": station},
+            {"$set": output_data},
+            upsert=True
+        )
+        
+        logger.debug(f"RDS Builder [{station}]: Audio trigger active: '{active_audio_trigger['text'][:50]}...'")
+        return
+    
     # PRIORITY 1: Check for active scheduled text
     # Scheduled texts from the RDS Custom Text Scheduler have priority over sequence items
     active_scheduled = await get_active_scheduled_text_for_station(db, station)
@@ -280,6 +307,7 @@ async def process_rds_sequence(db, station: str):
             "current_item_type": "scheduled_text",
             "current_item_id": active_scheduled["id"],
             "scheduled_text_active": True,
+            "audio_trigger_active": False,
             "scheduled_text_ends_at": active_scheduled["ends_at"].isoformat() if active_scheduled.get("ends_at") else None,
             "next_change_at": (active_scheduled["ends_at"].isoformat() if active_scheduled.get("ends_at") 
                              else (now + timedelta(seconds=60)).isoformat()),  # Re-check in 60s for infinite
@@ -303,10 +331,14 @@ async def process_rds_sequence(db, station: str):
     )
     
     if not sequence or not sequence.get("enabled"):
-        # Clear scheduled_text_active flag if sequence is disabled
+        # Clear flags if sequence is disabled
         await db.rds_builder_output.update_one(
             {"station": station},
-            {"$set": {"scheduled_text_active": False, "updated_at": timestamp}},
+            {"$set": {
+                "scheduled_text_active": False, 
+                "audio_trigger_active": False,
+                "updated_at": timestamp
+            }},
             upsert=True
         )
         return
@@ -324,14 +356,16 @@ async def process_rds_sequence(db, station: str):
     current_index = 0
     next_change_at = None
     was_scheduled_text = False
+    was_audio_trigger = False
     
     if output:
-        # Check if we were showing a scheduled text before
+        # Check if we were showing a scheduled text or audio trigger before
         was_scheduled_text = output.get("scheduled_text_active", False)
+        was_audio_trigger = output.get("audio_trigger_active", False)
         
-        if not was_scheduled_text:
+        if not was_scheduled_text and not was_audio_trigger:
             current_index = output.get("current_index", 0)
-            # Reset if index was -1 (scheduled text marker)
+            # Reset if index was negative (scheduled text or audio trigger marker)
             if current_index < 0:
                 current_index = 0
             next_change_str = output.get("next_change_at")
