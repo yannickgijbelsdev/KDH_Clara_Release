@@ -10,6 +10,7 @@ import CalendarPage from './pages/CalendarPage';
 import TeamSettingsPage from './pages/TeamSettingsPage';
 import ContentLibraryPage from './pages/ContentLibraryPage';
 import ContentDetailPage from './pages/ContentDetailPage';
+import ContentCalendarPage from './pages/ContentCalendarPage';
 import WordPressSettingsPage from './pages/WordPressSettingsPage';
 import ChatPage from './pages/ChatPage';
 import MediaLibraryPage from './pages/MediaLibraryPage';
