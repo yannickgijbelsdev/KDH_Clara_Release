@@ -70,10 +70,15 @@ async def get_active_scheduled_text_for_station(db, station: str) -> dict | None
     now_cet = now + timedelta(hours=1)
     
     for check_time in [now_cet, now]:
+        current_date = check_time.strftime("%Y-%m-%d")
+        current_time_str = check_time.strftime("%H:%M")
+        yesterday_date = (check_time - timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        # Check for shows today that are currently live
         active_show = await db.shows.find_one({
-            "date": check_time.strftime("%Y-%m-%d"),
-            "start_time": {"$lte": check_time.strftime("%H:%M")},
-            "end_time": {"$gte": check_time.strftime("%H:%M")},
+            "date": current_date,
+            "start_time": {"$lte": current_time_str},
+            "end_time": {"$gte": current_time_str},
             "$or": [
                 {"rds_station": station},
                 {"rds_station": "both"}
@@ -81,6 +86,23 @@ async def get_active_scheduled_text_for_station(db, station: str) -> dict | None
         })
         if active_show:
             return None  # Show is active, no scheduled text should override
+        
+        # Also check for midnight-crossing shows from yesterday
+        # These have start_time > end_time (e.g., 22:00 - 01:00)
+        yesterday_shows = await db.shows.find({
+            "date": yesterday_date,
+            "$or": [
+                {"rds_station": station},
+                {"rds_station": "both"}
+            ]
+        }, {"_id": 0}).to_list(50)
+        
+        for show in yesterday_shows:
+            start = show.get("start_time", "00:00")
+            end = show.get("end_time", "23:59")
+            # Check if show crosses midnight AND we're still in the "after midnight" part
+            if start > end and current_time_str <= end:
+                return None  # Midnight-crossing show still active
     
     # Also check cached rundowns (more reliable than direct show check)
     cached_rundown = await db.rds_cached_rundowns.find_one(
