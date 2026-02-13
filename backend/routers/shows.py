@@ -1055,6 +1055,16 @@ async def enable_recurrence(
     
     # Create future occurrences
     if future_dates:
+        # Get image from parent show or show title
+        show_image = show.get('image')
+        if not show_image and show.get('title'):
+            show_title = await db.show_titles.find_one(
+                {"name": show['title'], "team_id": team_id},
+                {"_id": 0, "image": 1}
+            )
+            if show_title and show_title.get("image"):
+                show_image = show_title["image"]
+        
         child_docs = []
         for date in future_dates:
             child_doc = {
@@ -1065,6 +1075,8 @@ async def enable_recurrence(
                 "start_time": show['start_time'],
                 "end_time": show['end_time'],
                 "status": show.get('status', 'draft'),
+                "studio_id": show.get('studio_id'),
+                "presenter_ids": show.get('presenter_ids', []),
                 "editor_id": show.get('editor_id'),
                 "team_id": team_id,
                 "created_at": now,
@@ -1073,7 +1085,8 @@ async def enable_recurrence(
                 "recurrence_interval": recurrence_interval,
                 "recurrence_end_date": recurrence_end_date,
                 "parent_show_id": parent_id,
-                "is_recurring": True
+                "is_recurring": True,
+                "image": show_image  # Include image from parent or show title
             }
             child_docs.append(child_doc)
         
