@@ -732,7 +732,6 @@ async def get_active_scheduled_text(station: str):
         return JSONResponse(content={"active": False, "text": None})
     
     now = datetime.now(timezone.utc)
-    now_str = now.isoformat()
     
     # First check if there's an active show - shows have priority
     active_show = await db.shows.find_one({
