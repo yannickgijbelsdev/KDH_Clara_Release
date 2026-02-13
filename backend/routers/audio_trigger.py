@@ -116,7 +116,7 @@ async def create_audio_trigger(
     await db.audio_triggers.insert_one(trigger)
     
     # Remove MongoDB _id before returning
-    del trigger["_id"] if "_id" in trigger else None
+    trigger.pop("_id", None)
     
     return trigger
 
