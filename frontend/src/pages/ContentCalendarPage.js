@@ -234,39 +234,25 @@ const ContentCalendarPage = () => {
   }
 
   return (
-    <div className="p-6">
+    <div data-testid="content-calendar-page">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Content Calendar</h1>
-          <p className="text-zinc-500 mt-1">
-            Overview of published and scheduled articles
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">Content Calendar</h1>
+          <p className="text-sm sm:text-base text-zinc-400">Overview of published and scheduled articles</p>
         </div>
         <Button
           variant="outline"
           onClick={() => navigate('/content')}
-          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
         >
           <List className="w-4 h-4 mr-2" />
           Back to list
         </Button>
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center gap-6 mb-6 p-4 bg-[#18181b] rounded-lg border border-zinc-800">
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-green-500/20 border border-green-500"></div>
-          <span className="text-sm text-zinc-400">Published</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-orange-500/20 border border-orange-500"></div>
-          <span className="text-sm text-zinc-400">Scheduled</span>
-        </div>
-      </div>
-
       {/* Calendar */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 content-calendar">
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6 content-calendar">
         <Calendar
           localizer={localizer}
           events={events}
@@ -295,6 +281,19 @@ const ContentCalendarPage = () => {
           }}
           culture="en-US"
         />
+
+        {/* Legend */}
+        <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-zinc-800">
+          <span className="text-xs text-zinc-500">Status:</span>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="text-xs text-zinc-400">Published</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="text-xs text-zinc-400">Scheduled</span>
+          </div>
+        </div>
       </div>
     </div>
   );
