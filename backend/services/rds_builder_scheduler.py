@@ -514,7 +514,6 @@ async def process_named_output(db, output_config: dict):
         
         duration = current_item.get("duration", 5)
         
-        from datetime import timedelta
         next_change_at = now + timedelta(seconds=duration)
         
         # Update output state
@@ -524,6 +523,8 @@ async def process_named_output(db, output_config: dict):
             "current_index": current_index,
             "current_text": current_text,
             "current_item_type": current_item.get("type"),
+            "scheduled_text_active": False,
+            "scheduled_text_id": None,
             "next_change_at": next_change_at.isoformat(),
             "updated_at": timestamp
         }
