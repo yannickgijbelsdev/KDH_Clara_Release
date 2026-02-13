@@ -540,10 +540,11 @@ const RDSSettingsPage = () => {
               ) : (
                 <div className="space-y-1">
                   {mfyFilters.map((f, i) => (
-                    <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1">
+                    <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1 flex items-center gap-1">
                       <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
                       <span className="text-zinc-600 mx-1">→</span>
                       <span className="text-orange-400">{f.replace || '(remove)'}</span>
+                      {f.whole_word && <span className="text-zinc-600 ml-1">(heel woord)</span>}
                     </div>
                   ))}
                 </div>
