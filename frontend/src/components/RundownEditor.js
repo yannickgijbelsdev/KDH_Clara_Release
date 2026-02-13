@@ -296,16 +296,37 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
               </p>
             </div>
           </div>
-          {canEdit && (
-            <Button
-              data-testid="add-rundown-item-btn"
-              onClick={handleAddItem}
-              className="gap-2 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
-            >
-              <Plus className="w-4 h-4" />
-              Add Item
-            </Button>
-          )}
+          <div className="flex items-center gap-4">
+            {/* Live Mode Toggle */}
+            {showStartTime && items.length > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-lg">
+                {liveMode ? (
+                  <Play className="w-4 h-4 text-green-400" />
+                ) : (
+                  <Pause className="w-4 h-4 text-zinc-500" />
+                )}
+                <Label htmlFor="live-mode" className="text-sm text-zinc-300 cursor-pointer">
+                  Volg live
+                </Label>
+                <Switch
+                  id="live-mode"
+                  checked={liveMode}
+                  onCheckedChange={setLiveMode}
+                  className="data-[state=checked]:bg-green-500"
+                />
+              </div>
+            )}
+            {canEdit && (
+              <Button
+                data-testid="add-rundown-item-btn"
+                onClick={handleAddItem}
+                className="gap-2 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
+              >
+                <Plus className="w-4 h-4" />
+                Add Item
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
