@@ -446,28 +446,84 @@ const RDSSchedulerPage = () => {
   return (
     <div data-testid="rds-scheduler-page">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate('/rds-builder')}
-          className="text-zinc-400 hover:text-white"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-white">RDS Custom Text Scheduler</h1>
-          <p className="text-sm text-zinc-500">Schedule custom texts for specific times</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/rds-builder')}
+            className="text-zinc-400 hover:text-white"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">RDS Scheduler</h1>
+            <p className="text-sm sm:text-base text-zinc-400">Schedule custom texts for specific times</p>
+          </div>
         </div>
-        <Button onClick={() => handleAddClick(new Date())} className="bg-orange-500 hover:bg-orange-600 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          New text
+        <Button onClick={() => handleAddClick(new Date())} className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto">
+          <Plus className="w-5 h-5" />
+          New Text
         </Button>
       </div>
 
       {/* Station Selector & Month Navigation */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <h2 className="text-lg sm:text-xl font-bold text-white">
+              {format(currentMonth, 'MMMM yyyy', { locale: enUS })}
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToday}
+              className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+            >
+              Today
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePrevMonth}
+              className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNextMonth}
+              className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Station Tabs */}
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            variant={station === 'mfy' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setStation('mfy')}
+            className={station === 'mfy' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-zinc-700 text-zinc-400 hover:text-white'}
+          >
+            <Radio className="w-4 h-4 mr-2" />
+            Radio MFY
+          </Button>
+          <Button
+            variant={station === 'grk' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setStation('grk')}
+            className={station === 'grk' ? 'bg-violet-500 hover:bg-violet-600 text-white' : 'border-zinc-700 text-zinc-400 hover:text-white'}
+          >
+            <Radio className="w-4 h-4 mr-2" />
+            Radio GRK
+          </Button>
+        </div>
           <Button
             variant={station === 'mfy' ? 'default' : 'outline'}
             size="sm"
