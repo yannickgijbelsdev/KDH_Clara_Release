@@ -132,6 +132,7 @@ const ShowManagementPage = () => {
       default_start_time: '09:00',
       default_end_time: '10:00',
       rds_station: 'none',
+      default_presenter_ids: [],
     });
     setTitleDialogOpen(true);
   };
@@ -144,8 +145,28 @@ const ShowManagementPage = () => {
       default_start_time: title.default_start_time || '09:00',
       default_end_time: title.default_end_time || '10:00',
       rds_station: title.rds_station || 'none',
+      default_presenter_ids: title.default_presenter_ids || [],
     });
     setTitleDialogOpen(true);
+  };
+
+  const togglePresenter = (userId) => {
+    setTitleFormData(prev => {
+      const current = prev.default_presenter_ids || [];
+      if (current.includes(userId)) {
+        return { ...prev, default_presenter_ids: current.filter(id => id !== userId) };
+      } else {
+        return { ...prev, default_presenter_ids: [...current, userId] };
+      }
+    });
+  };
+
+  const getImageUrl = (image) => {
+    if (!image) return null;
+    if (image.s3_url) return image.s3_url;
+    const key = image.file_storage_key || image.file_key;
+    if (key) return `${API}/uploads/show_title_images/${key}`;
+    return null;
   };
 
   const handleSaveTitle = async (e) => {
