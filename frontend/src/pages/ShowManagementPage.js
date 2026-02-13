@@ -373,7 +373,7 @@ const ShowManagementPage = () => {
                       <div className="w-16 h-16 rounded-lg bg-orange-500/20 flex items-center justify-center overflow-hidden flex-shrink-0">
                         {title.image ? (
                           <img
-                            src={`${API}/uploads/show_title_images/${title.image.file_key}`}
+                            src={getImageUrl(title.image)}
                             alt={title.name}
                             className="w-full h-full object-cover"
                           />
@@ -383,7 +383,7 @@ const ShowManagementPage = () => {
                       </div>
                       <div>
                         <p className="text-white font-medium text-lg">{title.name}</p>
-                        <div className="flex items-center gap-4 text-sm text-zinc-500">
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
                           {title.description && (
                             <span className="truncate max-w-[300px]">{title.description}</span>
                           )}
@@ -391,6 +391,13 @@ const ShowManagementPage = () => {
                             <span className="flex items-center gap-1 text-orange-400">
                               <Clock className="w-3.5 h-3.5" />
                               {title.default_start_time} - {title.default_end_time}
+                            </span>
+                          )}
+                          {/* Default Presenters */}
+                          {title.default_presenters && title.default_presenters.length > 0 && (
+                            <span className="flex items-center gap-1 text-violet-400">
+                              <Users className="w-3.5 h-3.5" />
+                              {title.default_presenters.map(p => p.name).join(', ')}
                             </span>
                           )}
                         </div>
