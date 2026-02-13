@@ -877,3 +877,9 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - `/app/frontend/src/components/SortableRundownItem.js` - timestamp prop weergave
     - `/app/frontend/src/pages/ShowDetailPage.js` - showStartTime prop doorgeven
   - Tested: 8/8 frontend tests passed (100% success rate)
+
+- [x] **ShowImage Model Fix**:
+  - Bug: Shows API returned 520 error vanwege Pydantic validatiefout
+  - Oorzaak: Inconsistentie tussen database velden (file_key, filename) en model (file_storage_key, file_name)
+  - Fix: ShowImage model aangepast om beide naamconventies te ondersteunen met aliassen
+  - File: `/app/backend/models/shows.py`
