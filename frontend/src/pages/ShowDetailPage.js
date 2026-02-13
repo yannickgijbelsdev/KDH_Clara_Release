@@ -343,6 +343,7 @@ const ShowDetailPage = () => {
         start_time: editData.start_time,
         end_time: editData.end_time,
         status: editData.status,
+        presenter_ids: editData.presenter_ids || [],
       });
       setShow(response.data);
       setIsEditing(false);
