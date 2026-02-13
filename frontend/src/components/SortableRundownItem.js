@@ -37,7 +37,7 @@ const calculateSpeakingDuration = (text) => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-const SortableRundownItem = ({ item, index, onEdit, onDelete, canEdit = true }) => {
+const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit = true }) => {
   const {
     attributes,
     listeners,
