@@ -544,6 +544,7 @@ class ShoutcastFilter(BaseModel):
     match: str
     replace: str = ""
     case_insensitive: bool = True
+    whole_word: bool = False  # When True, only match whole words (prevents "Swift" → "Swi&")
 
 
 class ShoutcastFiltersUpdate(BaseModel):
