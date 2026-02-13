@@ -23,6 +23,7 @@ import RDSSettingsPage from './pages/RDSSettingsPage';
 import RDSBuilderPage from './pages/RDSBuilderPage';
 import RDSSchedulerPage from './pages/RDSSchedulerPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
+import AudioTriggersPage from './pages/AudioTriggersPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
