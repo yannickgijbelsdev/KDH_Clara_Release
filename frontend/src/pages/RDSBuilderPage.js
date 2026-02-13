@@ -613,13 +613,22 @@ const RDSBuilderPage = () => {
             <p className="text-sm text-zinc-500">Configure RDS text outputs for MagicRDS</p>
           </div>
         </div>
-        <Button
-          onClick={() => navigate('/rds-scheduler')}
-          className="bg-violet-500 hover:bg-violet-600 text-white"
-        >
-          <Calendar className="w-4 h-4 mr-2" />
-          Custom Text Scheduler
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => navigate('/audio-triggers')}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Volume2 className="w-4 h-4 mr-2" />
+            Audio Triggers
+          </Button>
+          <Button
+            onClick={() => navigate('/rds-scheduler')}
+            className="bg-violet-500 hover:bg-violet-600 text-white"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Custom Text Scheduler
+          </Button>
+        </div>
       </div>
 
       {/* Tabs */}
