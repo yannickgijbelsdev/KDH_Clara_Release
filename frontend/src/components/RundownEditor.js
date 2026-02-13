@@ -330,6 +330,31 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
         </div>
       </div>
 
+      {/* Presenters Display */}
+      {presenters && presenters.length > 0 && (
+        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-zinc-800/50">
+          <Users className="w-4 h-4 text-violet-400" />
+          <span className="text-sm text-zinc-400">Presenters:</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            {presenters.map((presenter) => (
+              <div
+                key={presenter.id}
+                className="flex items-center gap-1.5 px-2 py-1 bg-violet-500/10 rounded-full"
+              >
+                <div className="w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+                  {presenter.avatar?.s3_url ? (
+                    <img src={presenter.avatar.s3_url} alt={presenter.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-3 h-3 text-zinc-400" />
+                  )}
+                </div>
+                <span className="text-xs text-violet-300">{presenter.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
