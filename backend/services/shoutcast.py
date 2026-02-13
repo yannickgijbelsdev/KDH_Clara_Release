@@ -52,6 +52,32 @@ async def get_filters_from_db(db, station: str) -> List[Dict]:
     return DEFAULT_FILTERS
 
 
+def format_now_playing(song_title: str) -> str:
+    """Format now playing text: ARTIST in UPPERCASE, Title in Title Case.
+    
+    Examples:
+    - "phil collins - in the air tonight" → "PHIL COLLINS - In The Air Tonight"
+    - "ABBA - Dancing Queen" → "ABBA - Dancing Queen"
+    - "Some Artist" (no separator) → "SOME ARTIST"
+    """
+    if not song_title:
+        return song_title
+    
+    # Common separators between artist and title
+    separators = [" - ", " – ", " — "]
+    
+    for sep in separators:
+        if sep in song_title:
+            parts = song_title.split(sep, 1)  # Split only on first occurrence
+            if len(parts) == 2:
+                artist = parts[0].strip().upper()  # UPPERCASE for artist
+                title = parts[1].strip().title()   # Title Case for song title
+                return f"{artist} - {title}"
+    
+    # No separator found - treat entire string as artist name
+    return song_title.upper()
+
+
 def apply_filters(song_title: str, filters: List[Dict]) -> str:
     """Apply filters to song title.
     
