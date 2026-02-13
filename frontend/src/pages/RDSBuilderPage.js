@@ -29,11 +29,13 @@ import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { toast } from 'sonner';
 import RDSOutputManager from '../components/rds/RDSOutputManager';
+import { Users } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ITEM_TYPES = [
   { value: 'show_name', label: 'Show Naam', icon: Mic, description: 'Toont de naam van de huidige live show' },
+  { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Toont de presenter(s) van de huidige live show' },
   { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Toont het huidige nummer van de stream' },
   { value: 'custom_text', label: 'Custom Tekst', icon: Type, description: 'Toont een zelf gekozen tekst' },
 ];
