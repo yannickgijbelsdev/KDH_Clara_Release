@@ -584,9 +584,27 @@ async def get_shows(
         studios = await db.studios.find({"id": {"$in": studio_ids}}, {"_id": 0}).to_list(100)
         studios_map = {s['id']: s['name'] for s in studios}
     
+    # Get all presenter IDs and fetch info
+    all_presenter_ids = []
+    for show in shows:
+        all_presenter_ids.extend(show.get('presenter_ids', []))
+    all_presenter_ids = list(set(all_presenter_ids))
+    
+    presenters_map = {}
+    if all_presenter_ids:
+        presenters = await db.users.find(
+            {"id": {"$in": all_presenter_ids}},
+            {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+        ).to_list(100)
+        presenters_map = {p["id"]: p for p in presenters}
+    
     for show in shows:
         if show.get('studio_id'):
             show['studio_name'] = studios_map.get(show['studio_id'])
+        # Add presenter info
+        presenter_ids = show.get('presenter_ids', [])
+        if presenter_ids:
+            show['presenters'] = [presenters_map[pid] for pid in presenter_ids if pid in presenters_map]
     
     return shows
 
