@@ -347,6 +347,15 @@ const CalendarPage = () => {
                                 {show.start_time} - {show.end_time}
                               </span>
                             </div>
+                            {/* Presenters */}
+                            {show.presenters && show.presenters.length > 0 && (
+                              <div className="flex items-center gap-1 text-violet-400 text-xs mt-1">
+                                <Users className="w-3 h-3" />
+                                <span className="truncate">
+                                  {show.presenters.map(p => p.name).join(', ')}
+                                </span>
+                              </div>
+                            )}
                             {show.description && (
                               <p className="text-zinc-500 text-xs mt-2 line-clamp-2">
                                 {show.description}
