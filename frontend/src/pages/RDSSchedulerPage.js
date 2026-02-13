@@ -505,11 +505,11 @@ const RDSSchedulerPage = () => {
       </div>
 
       {/* Calendar */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6">
         {/* Weekday Headers */}
-        <div className="grid grid-cols-7 border-b border-zinc-800">
+        <div className="grid grid-cols-7 mb-2">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-            <div key={day} className="py-2 text-center text-xs font-medium text-zinc-500 border-r border-zinc-800 last:border-r-0">
+            <div key={day} className="text-center text-xs font-medium text-zinc-500 uppercase tracking-wider py-2">
               {day}
             </div>
           ))}
@@ -517,43 +517,41 @@ const RDSSchedulerPage = () => {
 
         {/* Calendar Grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: 35 }).map((_, i) => (
+              <div key={i} className="aspect-square bg-zinc-800/50 rounded-lg animate-pulse" />
+            ))}
           </div>
         ) : (
-          <div className="grid grid-cols-7">
+          <div className="grid grid-cols-7 gap-1">
             {calendarDays.map((day, idx) => (
-              <div key={idx} className="group">
-                <CalendarDay
-                  date={day}
-                  items={calendarItems}
-                  isCurrentMonth={day >= monthStart && day <= monthEnd}
-                  onItemClick={handleItemClick}
-                  onAddClick={handleAddClick}
-                />
-              </div>
+              <CalendarDay
+                key={idx}
+                date={day}
+                items={calendarItems}
+                isCurrentMonth={day >= monthStart && day <= monthEnd}
+                onItemClick={handleItemClick}
+                onAddClick={handleAddClick}
+              />
             ))}
           </div>
         )}
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-6 mt-4 text-xs text-zinc-500">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-zinc-800">
+        <span className="text-xs text-zinc-500">Status:</span>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded bg-orange-500/20" />
-          <span>Radio MFY</span>
+          <div className="w-2 h-2 rounded-full bg-orange-500" />
+          <span className="text-xs text-zinc-400">Radio MFY</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded bg-violet-500/20" />
-          <span>Radio GRK</span>
+          <div className="w-2 h-2 rounded-full bg-violet-500" />
+          <span className="text-xs text-zinc-400">Radio GRK</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded bg-green-500/20" />
-          <span>Both stations</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Repeat className="w-3 h-3" />
-          <span>Recurring</span>
+          <div className="w-2 h-2 rounded-full bg-green-500" />
+          <span className="text-xs text-zinc-400">Both</span>
         </div>
       </div>
 
