@@ -37,3 +37,12 @@ AVATARS_DIR.mkdir(parents=True, exist_ok=True)
 
 SHOW_IMAGES_DIR = ROOT_DIR / 'uploads' / 'show_images'
 SHOW_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+
+AUDIO_TRIGGERS_DIR = ROOT_DIR / 'uploads' / 'audio_triggers'
+AUDIO_TRIGGERS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# Dependency to get database
+def get_db():
+    """Dependency that provides the database connection."""
+    return db
