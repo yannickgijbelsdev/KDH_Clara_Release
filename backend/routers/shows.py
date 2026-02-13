@@ -60,6 +60,21 @@ def generate_occurrence_dates(start_date: str, interval_weeks: int, end_date: Op
 
 # ============== SHOW TITLES (Templates) ==============
 
+async def get_presenters_info(presenter_ids: List[str], team_id: str) -> List[dict]:
+    """Fetch presenter information for given IDs."""
+    if not presenter_ids:
+        return []
+    
+    presenters = await db.users.find(
+        {"id": {"$in": presenter_ids}, "team_id": team_id},
+        {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+    ).to_list(100)
+    
+    # Preserve order from presenter_ids
+    presenter_map = {p["id"]: p for p in presenters}
+    return [presenter_map[pid] for pid in presenter_ids if pid in presenter_map]
+
+
 @shows_router.get("/titles", response_model=List[ShowTitleResponse])
 async def get_show_titles(
     current_user: dict = Depends(get_current_user)
@@ -69,6 +84,13 @@ async def get_show_titles(
         {"team_id": current_user.get('team_id')},
         {"_id": 0}
     ).sort("name", 1).to_list(100)
+    
+    # Enrich with presenter info
+    for title in titles:
+        presenter_ids = title.get("default_presenter_ids", [])
+        if presenter_ids:
+            title["default_presenters"] = await get_presenters_info(presenter_ids, current_user.get('team_id'))
+    
     return titles
 
 
@@ -95,6 +117,8 @@ async def create_show_title(
         "description": title_data.description or "",
         "default_start_time": title_data.default_start_time,
         "default_end_time": title_data.default_end_time,
+        "rds_station": title_data.rds_station or "none",
+        "default_presenter_ids": title_data.default_presenter_ids or [],
         "team_id": current_user.get('team_id'),
         "created_by": current_user['id'],
         "created_at": now
@@ -102,6 +126,11 @@ async def create_show_title(
     
     await db.show_titles.insert_one(title_doc)
     title_doc.pop('_id', None)
+    
+    # Add presenter info to response
+    if title_doc.get("default_presenter_ids"):
+        title_doc["default_presenters"] = await get_presenters_info(title_doc["default_presenter_ids"], current_user.get('team_id'))
+    
     return title_doc
 
 
