@@ -633,6 +633,16 @@ async def create_show(
     if show_data.recurrence_type == "weekly" and show_data.recurrence_interval >= 1:
         parent_id = str(uuid.uuid4())
         
+        # Try to get image from show title if exists
+        show_image = None
+        if show_data.title:
+            show_title = await db.show_titles.find_one(
+                {"name": show_data.title, "team_id": team_id},
+                {"_id": 0, "image": 1}
+            )
+            if show_title and show_title.get("image"):
+                show_image = show_title["image"]
+        
         # Create parent show (first occurrence)
         parent_doc = {
             "id": parent_id,
@@ -652,7 +662,8 @@ async def create_show(
             "recurrence_interval": show_data.recurrence_interval,
             "recurrence_end_date": show_data.recurrence_end_date,
             "parent_show_id": None,  # This is the parent
-            "is_recurring": True
+            "is_recurring": True,
+            "image": show_image  # Include image from show title
         }
         await db.shows.insert_one(parent_doc)
         
