@@ -154,6 +154,23 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
             />
           </div>
 
+          {/* Station Selection */}
+          <div>
+            <Label className="text-zinc-400 text-sm">Zichtbaar op</Label>
+            <Select value={targetStation} onValueChange={setTargetStation}>
+              <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-800 border-zinc-700">
+                {STATION_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value} className="text-zinc-300">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Date & Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
