@@ -49,6 +49,32 @@ async def get_item_text(db, station: str, item: dict) -> str:
         }
         return default_names.get(station, "")
     
+    elif item_type == "presenter_name":
+        # Get current live show presenters for this station
+        cached = await db.rds_cached_rundowns.find_one(
+            {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+            {"_id": 0, "show_id": 1}
+        )
+        if cached and cached.get("show_id"):
+            # Get the show with presenter info
+            show = await db.shows.find_one(
+                {"id": cached["show_id"]},
+                {"_id": 0, "presenter_ids": 1}
+            )
+            if show and show.get("presenter_ids"):
+                # Fetch presenter names
+                presenters = await db.users.find(
+                    {"id": {"$in": show["presenter_ids"]}},
+                    {"_id": 0, "name": 1}
+                ).to_list(10)
+                
+                if presenters:
+                    # Join with " & " for multiple presenters
+                    names = [p.get("name", "") for p in presenters if p.get("name")]
+                    if names:
+                        return " & ".join(names)
+        return ""
+    
     elif item_type == "now_playing":
         # Determine which station's now playing to use
         # If active show is "both", GRK uses MFY's now playing
