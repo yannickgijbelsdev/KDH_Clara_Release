@@ -160,6 +160,10 @@ const ShowDetailPage = () => {
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
   
+  // Team users for presenter selection
+  const [teamUsers, setTeamUsers] = useState([]);
+  const [presenterPopoverOpen, setPresenterPopoverOpen] = useState(false);
+  
   // Image upload state
   const [uploadingImage, setUploadingImage] = useState(false);
   const imageInputRef = useRef(null);
@@ -185,7 +189,28 @@ const ShowDetailPage = () => {
   useEffect(() => {
     fetchShow();
     fetchLinkedFolders();
+    fetchTeamUsers();
   }, [showId]);
+
+  const fetchTeamUsers = async () => {
+    try {
+      const response = await axios.get(`${API}/users`);
+      setTeamUsers(response.data);
+    } catch (error) {
+      console.error('Failed to fetch team users:', error);
+    }
+  };
+
+  const togglePresenter = (userId) => {
+    setEditData(prev => {
+      const current = prev.presenter_ids || [];
+      if (current.includes(userId)) {
+        return { ...prev, presenter_ids: current.filter(id => id !== userId) };
+      } else {
+        return { ...prev, presenter_ids: [...current, userId] };
+      }
+    });
+  };
 
   // WebSocket connection
   useEffect(() => {
