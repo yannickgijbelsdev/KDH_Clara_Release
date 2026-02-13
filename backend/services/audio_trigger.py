@@ -577,9 +577,9 @@ class AudioTriggerScheduler:
                         # Currently active - look for OUT sound
                         out_fingerprint = await self._load_out_fingerprint(trigger)
                         if out_fingerprint is not None:
-                            threshold = trigger.get("threshold", 0.85)
+                            threshold = trigger.get("threshold", DEFAULT_THRESHOLD)
                             detected, score = await analyze_stream_for_trigger(
-                                station, out_fingerprint, threshold
+                                station, out_fingerprint, threshold, f"{trigger_name}_OUT"
                             )
                             
                             if detected:
