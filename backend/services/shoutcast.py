@@ -53,7 +53,16 @@ async def get_filters_from_db(db, station: str) -> List[Dict]:
 
 
 def apply_filters(song_title: str, filters: List[Dict]) -> str:
-    """Apply filters to song title."""
+    """Apply filters to song title.
+    
+    Each filter can have:
+    - match: text to find
+    - replace: text to replace with
+    - case_insensitive: bool (default True)
+    - whole_word: bool (default False) - only match whole words to avoid "Swift" → "Swi&"
+    """
+    import re
+    
     if not song_title:
         return song_title
     
@@ -62,13 +71,21 @@ def apply_filters(song_title: str, filters: List[Dict]) -> str:
         match_text = f.get("match", "")
         replace_text = f.get("replace", "")
         case_insensitive = f.get("case_insensitive", True)
+        whole_word = f.get("whole_word", False)
         
-        if case_insensitive:
-            # Case insensitive replace
-            import re
-            result = re.sub(re.escape(match_text), replace_text, result, flags=re.IGNORECASE)
+        if not match_text:
+            continue
+        
+        flags = re.IGNORECASE if case_insensitive else 0
+        
+        if whole_word:
+            # Use word boundaries to only match whole words
+            # \b matches word boundaries (start/end of word)
+            pattern = r'\b' + re.escape(match_text) + r'\b'
         else:
-            result = result.replace(match_text, replace_text)
+            pattern = re.escape(match_text)
+        
+        result = re.sub(pattern, replace_text, result, flags=flags)
     
     # Clean up result (remove extra spaces, trim)
     result = " ".join(result.split()).strip()
