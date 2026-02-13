@@ -179,6 +179,10 @@ async def update_show_title(
                 {"$set": {"show_title": new_name}}
             )
     
+    # Handle default_presenter_ids - allow setting to empty list
+    if title_data.default_presenter_ids is not None:
+        update_dict["default_presenter_ids"] = title_data.default_presenter_ids
+    
     if update_dict:
         await db.show_titles.update_one(
             {"id": title_id},
@@ -186,6 +190,11 @@ async def update_show_title(
         )
     
     updated = await db.show_titles.find_one({"id": title_id}, {"_id": 0})
+    
+    # Add presenter info to response
+    if updated.get("default_presenter_ids"):
+        updated["default_presenters"] = await get_presenters_info(updated["default_presenter_ids"], current_user.get('team_id'))
+    
     return updated
 
 
