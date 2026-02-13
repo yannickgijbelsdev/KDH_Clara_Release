@@ -51,8 +51,17 @@ const CalendarPage = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Fetch shows on mount and when window regains focus
   useEffect(() => {
     fetchShows();
+    
+    // Refetch when window regains focus (user returns to page)
+    const handleFocus = () => {
+      fetchShows();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const fetchShows = async () => {
