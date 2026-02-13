@@ -678,6 +678,11 @@ async def create_show(
             await db.shows.insert_one(occ_doc)
         
         parent_doc.pop('_id', None)
+        
+        # Add presenter info to response
+        if parent_doc.get("presenter_ids"):
+            parent_doc["presenters"] = await get_presenters_info(parent_doc["presenter_ids"], team_id)
+        
         return parent_doc
     else:
         # Non-recurring show
@@ -691,6 +696,7 @@ async def create_show(
             "end_time": show_data.end_time,
             "status": show_data.status,
             "studio_id": show_data.studio_id,
+            "presenter_ids": show_data.presenter_ids or [],
             "editor_id": current_user['id'],
             "team_id": team_id,
             "created_at": now,
