@@ -704,6 +704,11 @@ async def create_show(
         
         await db.shows.insert_one(show_doc)
         show_doc.pop('_id', None)
+        
+        # Add presenter info to response
+        if show_doc.get("presenter_ids"):
+            show_doc["presenters"] = await get_presenters_info(show_doc["presenter_ids"], team_id)
+        
         return show_doc
 
 
@@ -725,6 +730,10 @@ async def get_show(
         studio = await db.studios.find_one({"id": show['studio_id']}, {"_id": 0})
         if studio:
             show['studio_name'] = studio['name']
+    
+    # Get presenter info
+    if show.get('presenter_ids'):
+        show['presenters'] = await get_presenters_info(show['presenter_ids'], current_user.get('team_id'))
     
     return show
 
