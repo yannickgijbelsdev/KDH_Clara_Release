@@ -415,6 +415,34 @@ async def process_named_output(db, output_config: dict):
     station = output_config.get("station")
     items = output_config.get("items", [])
     
+    # PRIORITY 1: Check for active scheduled text for this station
+    active_scheduled = await get_active_scheduled_text_for_station(db, station)
+    
+    if active_scheduled:
+        # A scheduled text is active - update output state with this text
+        state_data = {
+            "output_id": output_id,
+            "station": station,
+            "current_index": -1,  # -1 indicates scheduled text
+            "current_text": active_scheduled["text"],
+            "current_item_type": "scheduled_text",
+            "scheduled_text_active": True,
+            "scheduled_text_id": active_scheduled["id"],
+            "next_change_at": (active_scheduled["ends_at"].isoformat() if active_scheduled.get("ends_at")
+                             else (now + timedelta(seconds=60)).isoformat()),
+            "updated_at": timestamp
+        }
+        
+        await db.rds_output_states.update_one(
+            {"output_id": output_id},
+            {"$set": state_data},
+            upsert=True
+        )
+        
+        logger.debug(f"RDS Output [{output_config.get('slug')}]: Scheduled text: '{active_scheduled['text'][:30]}...'")
+        return
+    
+    # PRIORITY 2: Process normal output items
     # Filter to only enabled items
     enabled_items = [item for item in items if item.get("enabled", True)]
     
@@ -429,26 +457,34 @@ async def process_named_output(db, output_config: dict):
     
     current_index = 0
     next_change_at = None
+    was_scheduled_text = False
     
     if state:
-        current_index = state.get("current_index", 0)
-        next_change_str = state.get("next_change_at")
-        if next_change_str:
-            try:
-                next_change_at = datetime.fromisoformat(next_change_str.replace('Z', '+00:00'))
-            except (ValueError, TypeError):
-                next_change_at = None
+        was_scheduled_text = state.get("scheduled_text_active", False)
+        
+        if not was_scheduled_text:
+            current_index = state.get("current_index", 0)
+            if current_index < 0:
+                current_index = 0
+            next_change_str = state.get("next_change_at")
+            if next_change_str:
+                try:
+                    next_change_at = datetime.fromisoformat(next_change_str.replace('Z', '+00:00'))
+                except (ValueError, TypeError):
+                    next_change_at = None
     
     # Check if it's time to change
     should_change = False
-    if next_change_at is None:
+    if was_scheduled_text:
+        should_change = True
+    elif next_change_at is None:
         should_change = True
     elif now >= next_change_at:
         should_change = True
     
     if should_change:
         # Move to next item
-        if state:
+        if state and not was_scheduled_text:
             current_index = (current_index + 1) % len(enabled_items)
             if current_index == 0 and not output_config.get("loop", True):
                 current_index = len(enabled_items) - 1
