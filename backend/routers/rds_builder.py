@@ -487,3 +487,350 @@ async def get_output_status(
         "updated_at": output_state.get("updated_at", "") if output_state else ""
     }
 
+
+# ============== SCHEDULED CUSTOM TEXTS ==============
+# Allows scheduling custom texts at specific times with optional recurrence
+
+class ScheduledTextCreate(BaseModel):
+    """Create a scheduled custom text."""
+    station: Literal["mfy", "grk"]
+    text: str
+    start_datetime: str  # ISO format datetime
+    duration_type: Literal["fixed", "until_next"] = "fixed"
+    duration_minutes: Optional[int] = 5  # Only used if duration_type is "fixed"
+    recurrence_type: Literal["none", "daily", "weekly", "monthly"] = "none"
+    recurrence_end_date: Optional[str] = None  # YYYY-MM-DD format
+    enabled: bool = True
+
+
+class ScheduledTextUpdate(BaseModel):
+    """Update a scheduled custom text."""
+    text: Optional[str] = None
+    start_datetime: Optional[str] = None
+    duration_type: Optional[Literal["fixed", "until_next"]] = None
+    duration_minutes: Optional[int] = None
+    recurrence_type: Optional[Literal["none", "daily", "weekly", "monthly"]] = None
+    recurrence_end_date: Optional[str] = None
+    enabled: Optional[bool] = None
+
+
+class ScheduledTextResponse(BaseModel):
+    """Response model for scheduled custom text."""
+    id: str
+    station: str
+    text: str
+    start_datetime: str
+    duration_type: str
+    duration_minutes: Optional[int]
+    recurrence_type: str
+    recurrence_end_date: Optional[str]
+    enabled: bool
+    created_at: str
+    updated_at: str
+
+
+@rds_builder_router.get("/scheduled-texts/{station}")
+async def get_scheduled_texts(
+    station: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Get all scheduled custom texts for a station."""
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    texts = await db.rds_scheduled_texts.find(
+        {"station": station},
+        {"_id": 0}
+    ).sort("start_datetime", 1).to_list(1000)
+    
+    return texts
+
+
+@rds_builder_router.get("/scheduled-texts/{station}/calendar")
+async def get_scheduled_texts_calendar(
+    station: str,
+    start_date: str,  # YYYY-MM-DD
+    end_date: str,    # YYYY-MM-DD
+    current_user: dict = Depends(require_admin)
+):
+    """Get scheduled texts for calendar view, expanding recurring items."""
+    from datetime import timedelta
+    from dateutil.relativedelta import relativedelta
+    
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    # Parse date range
+    try:
+        start = datetime.fromisoformat(start_date + "T00:00:00")
+        end = datetime.fromisoformat(end_date + "T23:59:59")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    
+    # Get all scheduled texts for this station
+    texts = await db.rds_scheduled_texts.find(
+        {"station": station},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Expand recurring items for the calendar view
+    calendar_items = []
+    
+    for text in texts:
+        text_start = datetime.fromisoformat(text["start_datetime"].replace("Z", "+00:00"))
+        recurrence = text.get("recurrence_type", "none")
+        recurrence_end = text.get("recurrence_end_date")
+        
+        if recurrence_end:
+            recurrence_end_dt = datetime.fromisoformat(recurrence_end + "T23:59:59")
+        else:
+            recurrence_end_dt = end  # Use view range end
+        
+        if recurrence == "none":
+            # One-time event
+            if start <= text_start <= end:
+                calendar_items.append({
+                    **text,
+                    "occurrence_date": text_start.strftime("%Y-%m-%d"),
+                    "occurrence_time": text_start.strftime("%H:%M"),
+                    "is_recurring": False
+                })
+        else:
+            # Recurring event - generate occurrences
+            current = text_start
+            while current <= min(end, recurrence_end_dt):
+                if current >= start:
+                    calendar_items.append({
+                        **text,
+                        "occurrence_date": current.strftime("%Y-%m-%d"),
+                        "occurrence_time": current.strftime("%H:%M"),
+                        "is_recurring": True
+                    })
+                
+                # Move to next occurrence
+                if recurrence == "daily":
+                    current += timedelta(days=1)
+                elif recurrence == "weekly":
+                    current += timedelta(weeks=1)
+                elif recurrence == "monthly":
+                    current += relativedelta(months=1)
+                else:
+                    break
+    
+    # Sort by occurrence date/time
+    calendar_items.sort(key=lambda x: f"{x['occurrence_date']}T{x['occurrence_time']}")
+    
+    return calendar_items
+
+
+@rds_builder_router.post("/scheduled-texts/{station}")
+async def create_scheduled_text(
+    station: str,
+    data: ScheduledTextCreate,
+    current_user: dict = Depends(require_admin)
+):
+    """Create a new scheduled custom text."""
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    text_id = str(uuid.uuid4())
+    
+    text_data = {
+        "id": text_id,
+        "station": station,
+        "text": data.text,
+        "start_datetime": data.start_datetime,
+        "duration_type": data.duration_type,
+        "duration_minutes": data.duration_minutes if data.duration_type == "fixed" else None,
+        "recurrence_type": data.recurrence_type,
+        "recurrence_end_date": data.recurrence_end_date,
+        "enabled": data.enabled,
+        "created_by": current_user.get("id"),
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.rds_scheduled_texts.insert_one(text_data)
+    text_data.pop("_id", None)
+    
+    return text_data
+
+
+@rds_builder_router.put("/scheduled-texts/{station}/{text_id}")
+async def update_scheduled_text(
+    station: str,
+    text_id: str,
+    data: ScheduledTextUpdate,
+    current_user: dict = Depends(require_admin)
+):
+    """Update a scheduled custom text."""
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    existing = await db.rds_scheduled_texts.find_one({"id": text_id, "station": station})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Scheduled text not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    update_data = {"updated_at": now}
+    
+    if data.text is not None:
+        update_data["text"] = data.text
+    if data.start_datetime is not None:
+        update_data["start_datetime"] = data.start_datetime
+    if data.duration_type is not None:
+        update_data["duration_type"] = data.duration_type
+    if data.duration_minutes is not None:
+        update_data["duration_minutes"] = data.duration_minutes
+    if data.recurrence_type is not None:
+        update_data["recurrence_type"] = data.recurrence_type
+    if data.recurrence_end_date is not None:
+        update_data["recurrence_end_date"] = data.recurrence_end_date
+    if data.enabled is not None:
+        update_data["enabled"] = data.enabled
+    
+    await db.rds_scheduled_texts.update_one(
+        {"id": text_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.rds_scheduled_texts.find_one({"id": text_id}, {"_id": 0})
+    return updated
+
+
+@rds_builder_router.delete("/scheduled-texts/{station}/{text_id}")
+async def delete_scheduled_text(
+    station: str,
+    text_id: str,
+    current_user: dict = Depends(require_admin)
+):
+    """Delete a scheduled custom text."""
+    if station not in ["mfy", "grk"]:
+        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
+    
+    existing = await db.rds_scheduled_texts.find_one({"id": text_id, "station": station})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Scheduled text not found")
+    
+    await db.rds_scheduled_texts.delete_one({"id": text_id})
+    
+    return {"status": "success", "message": "Scheduled text deleted"}
+
+
+@rds_builder_router.get("/scheduled-texts/{station}/active")
+async def get_active_scheduled_text(station: str):
+    """Public endpoint: Get the currently active scheduled text for a station.
+    
+    Shows have priority over scheduled texts.
+    Returns the currently active scheduled text if no show is playing.
+    """
+    from fastapi.responses import JSONResponse
+    from dateutil.relativedelta import relativedelta
+    
+    if station not in ["mfy", "grk"]:
+        return JSONResponse(content={"active": False, "text": None})
+    
+    now = datetime.now(timezone.utc)
+    now_str = now.isoformat()
+    
+    # First check if there's an active show - shows have priority
+    active_show = await db.shows.find_one({
+        "date": now.strftime("%Y-%m-%d"),
+        "start_time": {"$lte": now.strftime("%H:%M")},
+        "end_time": {"$gte": now.strftime("%H:%M")},
+        "$or": [
+            {"rds_station": station},
+            {"rds_station": "both"}
+        ]
+    })
+    
+    if active_show:
+        return JSONResponse(content={
+            "active": False,
+            "text": None,
+            "reason": "show_active",
+            "show_title": active_show.get("title")
+        })
+    
+    # Get all enabled scheduled texts for this station
+    texts = await db.rds_scheduled_texts.find(
+        {"station": station, "enabled": True},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Find which scheduled text is currently active
+    for text in texts:
+        text_start = datetime.fromisoformat(text["start_datetime"].replace("Z", "+00:00"))
+        recurrence = text.get("recurrence_type", "none")
+        recurrence_end = text.get("recurrence_end_date")
+        duration_type = text.get("duration_type", "fixed")
+        duration_minutes = text.get("duration_minutes", 5)
+        
+        # Check recurrence end
+        if recurrence_end:
+            recurrence_end_dt = datetime.fromisoformat(recurrence_end + "T23:59:59+00:00")
+            if now > recurrence_end_dt:
+                continue
+        
+        # Calculate if this text is active now
+        if recurrence == "none":
+            # One-time event
+            if duration_type == "fixed":
+                end_time = text_start + timedelta(minutes=duration_minutes)
+                if text_start <= now <= end_time:
+                    return JSONResponse(content={
+                        "active": True,
+                        "text": text["text"],
+                        "scheduled_text_id": text["id"],
+                        "ends_at": end_time.isoformat()
+                    })
+            else:
+                # until_next - active until next scheduled item
+                if text_start <= now:
+                    return JSONResponse(content={
+                        "active": True,
+                        "text": text["text"],
+                        "scheduled_text_id": text["id"],
+                        "ends_at": None
+                    })
+        else:
+            # Recurring event - check if current occurrence is active
+            # Find the most recent occurrence that started before now
+            current_occurrence = text_start
+            while current_occurrence <= now:
+                next_occurrence = None
+                if recurrence == "daily":
+                    next_occurrence = current_occurrence + timedelta(days=1)
+                elif recurrence == "weekly":
+                    next_occurrence = current_occurrence + timedelta(weeks=1)
+                elif recurrence == "monthly":
+                    next_occurrence = current_occurrence + relativedelta(months=1)
+                
+                if duration_type == "fixed":
+                    end_time = current_occurrence + timedelta(minutes=duration_minutes)
+                    if current_occurrence <= now <= end_time:
+                        return JSONResponse(content={
+                            "active": True,
+                            "text": text["text"],
+                            "scheduled_text_id": text["id"],
+                            "ends_at": end_time.isoformat(),
+                            "is_recurring": True
+                        })
+                else:
+                    # until_next - active until next occurrence
+                    if current_occurrence <= now < (next_occurrence or now + timedelta(days=365)):
+                        return JSONResponse(content={
+                            "active": True,
+                            "text": text["text"],
+                            "scheduled_text_id": text["id"],
+                            "ends_at": next_occurrence.isoformat() if next_occurrence else None,
+                            "is_recurring": True
+                        })
+                
+                if next_occurrence and next_occurrence > now:
+                    break
+                current_occurrence = next_occurrence or (now + timedelta(days=365))
+    
+    return JSONResponse(content={"active": False, "text": None})
+
