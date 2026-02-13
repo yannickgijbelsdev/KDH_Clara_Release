@@ -98,6 +98,12 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  
+  // Live sync mode state
+  const [liveMode, setLiveMode] = useState(false);
+  const [currentTime, setCurrentTime] = useState(null);
+  const [activeItemIndex, setActiveItemIndex] = useState(-1);
+  const activeItemRef = useRef(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -109,6 +115,74 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  useEffect(() => {
+    fetchRundown();
+  }, [showId]);
+
+  // Live mode timer - update current time every second
+  useEffect(() => {
+    if (!liveMode) {
+      setActiveItemIndex(-1);
+      return;
+    }
+    
+    const updateCurrentTime = () => {
+      const now = new Date();
+      const hours = now.getHours();
+      const mins = now.getMinutes();
+      const secs = now.getSeconds();
+      setCurrentTime(hours * 60 + mins + secs / 60);
+    };
+    
+    updateCurrentTime();
+    const interval = setInterval(updateCurrentTime, 1000);
+    
+    return () => clearInterval(interval);
+  }, [liveMode]);
+
+  // Calculate active item based on current time and timestamps
+  useEffect(() => {
+    if (!liveMode || currentTime === null || !showStartTime || items.length === 0) {
+      setActiveItemIndex(-1);
+      return;
+    }
+
+    const timestamps = calculateTimestamps(items, showStartTime);
+    let foundIndex = -1;
+    
+    // Find the item that is currently active based on time
+    for (let i = 0; i < timestamps.length; i++) {
+      const itemStartTime = parseTimestampToMinutes(timestamps[i]);
+      const nextStartTime = i + 1 < timestamps.length 
+        ? parseTimestampToMinutes(timestamps[i + 1]) 
+        : itemStartTime + 60; // Default 60 min if last item
+      
+      if (currentTime >= itemStartTime && currentTime < nextStartTime) {
+        foundIndex = i;
+        break;
+      }
+    }
+    
+    setActiveItemIndex(foundIndex);
+  }, [liveMode, currentTime, items, showStartTime]);
+
+  // Auto-scroll to active item
+  useEffect(() => {
+    if (liveMode && activeItemIndex >= 0 && activeItemRef.current) {
+      activeItemRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [activeItemIndex, liveMode]);
+
+  // Helper to parse timestamp "HH:MM" to minutes
+  const parseTimestampToMinutes = (timestamp) => {
+    if (!timestamp) return 0;
+    const [hours, mins] = timestamp.split(':').map(Number);
+    return hours * 60 + mins;
+  };
 
   useEffect(() => {
     fetchRundown();
