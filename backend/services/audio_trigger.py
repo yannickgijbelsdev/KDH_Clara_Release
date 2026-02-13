@@ -133,19 +133,30 @@ def compare_fingerprints(fp1: np.ndarray, fp2: np.ndarray) -> float:
 
 def find_audio_match(stream_fingerprints: List[np.ndarray], 
                      target_fingerprint: np.ndarray,
-                     threshold: float = 0.85) -> Tuple[bool, float]:
+                     threshold: float = DEFAULT_THRESHOLD,
+                     trigger_name: str = "unknown") -> Tuple[bool, float]:
     """Check if target audio is present in stream fingerprints.
     
     Returns (match_found, best_similarity_score).
     """
     if not stream_fingerprints:
+        logger.debug(f"[{trigger_name}] No stream fingerprints to compare")
         return False, 0.0
     
     best_score = 0.0
+    scores = []
     for fp in stream_fingerprints:
         score = compare_fingerprints(fp, target_fingerprint)
+        scores.append(score)
         if score > best_score:
             best_score = score
+    
+    # Log debug info about the match attempt
+    avg_score = sum(scores) / len(scores) if scores else 0
+    logger.debug(f"[{trigger_name}] Match check: best={best_score:.3f}, avg={avg_score:.3f}, threshold={threshold}, windows={len(scores)}")
+    
+    if best_score >= threshold:
+        logger.info(f"[{trigger_name}] MATCH FOUND! Score: {best_score:.3f} >= {threshold}")
     
     return best_score >= threshold, best_score
 
