@@ -1103,3 +1103,26 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - This ensures oldest shows aren't cut off if limit is reached
   - Tested with 2000+ shows - all calendar days now display correctly
   - Files updated: `backend/routers/shows.py` line 587-589
+
+### February 13, 2026 - Now Playing Formatting & Recurring Show Images Fix
+- [x] **Now Playing Title Formatting (P0)**:
+  - Artist names now display in UPPERCASE (e.g., "PHIL COLLINS")
+  - Song titles display in Title Case (e.g., "In The Air Tonight")
+  - Implemented in `backend/services/shoutcast.py` with `format_now_playing()` function
+  - Handles edge cases: missing separator, empty title after filtering
+  - Filters are applied first, then formatting
+  - Example: "phil collins - in the air tonight" → "PHIL COLLINS - In The Air Tonight"
+  
+- [x] **Recurring Show Images Bug Fix (P0)**:
+  - Bug: Images from show_titles weren't being propagated to recurring show instances
+  - Root cause: `create_show()` and `enable_recurrence()` didn't copy the image field
+  - Fixes implemented:
+    1. When creating recurring shows, image is fetched from show_title and applied
+    2. When enabling recurrence, image is copied from parent show or show_title
+    3. New endpoint: POST /api/shows/titles/sync-images - syncs existing shows with their title's image
+  - Files updated: `backend/routers/shows.py`
+  - Ran sync: 52 shows of "Backstage Radio" were updated with missing images
+  
+- [x] **System Dependency: ffmpeg**:
+  - Re-installed ffmpeg for audio trigger detection (required for stream analysis)
+  - Note: System-level dependencies may need re-installation after forks
