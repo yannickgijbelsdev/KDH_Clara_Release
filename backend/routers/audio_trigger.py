@@ -36,7 +36,7 @@ class AudioTriggerCreate(BaseModel):
     out_action_type: str = Field(default="now_playing", description="Action when OUT sound detected: now_playing, show_name, custom_text")
     out_action_text: str = Field(default="", description="Text to show when OUT sound detected (if custom_text)")
     timeout_minutes: int = Field(default=5, description="Auto-deactivate after N minutes if no OUT sound")
-    threshold: float = Field(default=0.85, description="Match threshold (0-1, higher = stricter)")
+    threshold: float = Field(default=0.75, description="Match threshold (0-1, higher = stricter)")
     enabled: bool = Field(default=True, description="Whether trigger is active")
 
 
