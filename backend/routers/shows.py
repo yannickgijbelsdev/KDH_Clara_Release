@@ -182,6 +182,15 @@ async def update_show_title(
     # Handle default_presenter_ids - allow setting to empty list
     if title_data.default_presenter_ids is not None:
         update_dict["default_presenter_ids"] = title_data.default_presenter_ids
+        
+        # Also update all shows with this title to sync presenters
+        old_title = await db.show_titles.find_one({"id": title_id}, {"name": 1})
+        if old_title:
+            await db.shows.update_many(
+                {"title": old_title["name"], "team_id": current_user.get('team_id')},
+                {"$set": {"presenter_ids": title_data.default_presenter_ids}}
+            )
+            logger.info(f"Synced presenter_ids to all shows with title '{old_title['name']}'")
     
     if update_dict:
         await db.show_titles.update_one(
