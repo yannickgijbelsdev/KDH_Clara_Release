@@ -61,10 +61,25 @@ class StudioResponse(BaseModel):
 
 class ShowImage(BaseModel):
     """Image attached to a show."""
-    file_storage_key: str
-    file_name: str
+    model_config = ConfigDict(extra="ignore")
+    # Support both new (file_storage_key) and legacy (file_key) field names
+    file_storage_key: Optional[str] = Field(default=None, alias="file_storage_key")
+    file_key: Optional[str] = None  # Legacy field
+    file_name: Optional[str] = Field(default=None, alias="file_name")
+    filename: Optional[str] = None  # Legacy field
     mime_type: str
     size: int
+    s3_url: Optional[str] = None
+    
+    @property
+    def storage_key(self) -> Optional[str]:
+        """Get the storage key, supporting both naming conventions."""
+        return self.file_storage_key or self.file_key
+    
+    @property
+    def name(self) -> Optional[str]:
+        """Get the filename, supporting both naming conventions."""
+        return self.file_name or self.filename
 
 
 class ShowCreate(BaseModel):
