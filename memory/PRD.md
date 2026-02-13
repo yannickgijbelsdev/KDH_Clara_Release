@@ -947,3 +947,33 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - Files aangepast:
   - `/app/frontend/src/components/RundownEditor.js` - sticky header styling
   - `/app/frontend/src/pages/ShowDetailPage.js` - handlePrintView() URL fix
+
+### February 13, 2026 - Presenter Assignment Feature
+- [x] **Show Management - Default Presenters**:
+  - Multi-select om standaard presenters toe te wijzen aan show titles
+  - Presenters worden in violet weergegeven met Users icoon
+  - Alle teamleden kunnen geselecteerd worden
+  - Files: `backend/models/shows.py`, `backend/routers/shows.py`, `frontend/src/pages/ShowManagementPage.js`
+
+- [x] **Show Management - Image URL Fix**:
+  - getImageUrl() functie toegevoegd voor consistente URL handling
+  - Ondersteunt zowel s3_url als file_storage_key/file_key formaten
+
+- [x] **Calendar/Create Show - Presenter Override**:
+  - Presenter selectie veld in Create Show Dialog
+  - Auto-fill van default presenters bij selectie van show title
+  - Mogelijkheid om presenters te overschrijven voor specifieke shows
+  - File: `frontend/src/components/CreateShowDialog.js`
+
+- [x] **Calendar Sidebar & Show Detail - Presenter Display**:
+  - Presenters worden in violet weergegeven in calendar sidebar
+  - Show Detail Page toont presenters met avatar badges
+  - Edit modus ondersteunt presenter wijziging
+  - Files: `frontend/src/pages/CalendarPage.js`, `frontend/src/pages/ShowDetailPage.js`
+
+- Backend API updates:
+  - `PresenterInfo` model toegevoegd
+  - `default_presenter_ids` in ShowTitle models
+  - `presenter_ids` in Show models
+  - `get_presenters_info()` helper functie voor data enrichment
+  - Alle CRUD endpoints verrijken responses met presenter details
