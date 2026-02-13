@@ -177,7 +177,17 @@ const ShowManagementPage = () => {
       if (editingTitle) {
         const response = await axios.put(`${API}/shows/titles/${editingTitle.id}`, titleFormData);
         setShowTitles(showTitles.map(t => t.id === editingTitle.id ? response.data : t));
-        toast.success('Show title updated');
+        
+        // Check if presenters were updated
+        const oldPresenterIds = editingTitle.default_presenter_ids || [];
+        const newPresenterIds = titleFormData.default_presenter_ids || [];
+        const presentersChanged = JSON.stringify(oldPresenterIds.sort()) !== JSON.stringify(newPresenterIds.sort());
+        
+        if (presentersChanged) {
+          toast.success('Show title and all shows updated with new presenters');
+        } else {
+          toast.success('Show title updated');
+        }
       } else {
         const response = await axios.post(`${API}/shows/titles`, titleFormData);
         setShowTitles([...showTitles, response.data]);
