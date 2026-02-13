@@ -761,6 +761,10 @@ async def update_show(
     update_dict = {k: v for k, v in show_data.model_dump().items() if v is not None and k != 'update_all_occurrences'}
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     
+    # Handle presenter_ids - allow setting to empty list
+    if show_data.presenter_ids is not None:
+        update_dict["presenter_ids"] = show_data.presenter_ids
+    
     # Remove date from update_dict if updating all (each occurrence has different date)
     if update_all and 'date' in update_dict:
         del update_dict['date']
