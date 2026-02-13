@@ -599,7 +599,10 @@ async def get_scheduled_texts_calendar(
         else:
             # Recurring event - generate occurrences
             current = text_start
-            while current <= min(end, recurrence_end_dt):
+            # Limit hourly recurrence to prevent too many items
+            max_iterations = 1000 if recurrence != "hourly" else 100
+            iteration = 0
+            while current <= min(end, recurrence_end_dt) and iteration < max_iterations:
                 if current >= start:
                     calendar_items.append({
                         **text,
@@ -609,7 +612,9 @@ async def get_scheduled_texts_calendar(
                     })
                 
                 # Move to next occurrence
-                if recurrence == "daily":
+                if recurrence == "hourly":
+                    current += timedelta(hours=1)
+                elif recurrence == "daily":
                     current += timedelta(days=1)
                 elif recurrence == "weekly":
                     current += timedelta(weeks=1)
@@ -617,6 +622,7 @@ async def get_scheduled_texts_calendar(
                     current += relativedelta(months=1)
                 else:
                     break
+                iteration += 1
     
     # Sort by occurrence date/time
     calendar_items.sort(key=lambda x: f"{x['occurrence_date']}T{x['occurrence_time']}")
