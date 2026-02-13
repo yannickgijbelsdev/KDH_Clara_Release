@@ -759,9 +759,9 @@ async def get_active_scheduled_text(station: str):
             "show_title": active_show.get("title")
         })
     
-    # Get all enabled scheduled texts for this station
+    # Get enabled scheduled texts for this station OR texts set to "both"
     texts = await db.rds_scheduled_texts.find(
-        {"station": station, "enabled": True},
+        {"$or": [{"station": station}, {"station": "both"}], "enabled": True},
         {"_id": 0}
     ).to_list(1000)
     
