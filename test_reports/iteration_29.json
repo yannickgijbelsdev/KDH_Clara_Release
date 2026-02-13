@@ -1,0 +1,80 @@
+{
+  "summary": "Three new features tested and verified: 1) Rundown Time Sync 'Volg live' toggle - PASS, 2) Content Calendar page at /content/calendar - PASS, 3) RDS Builder presenter_name type - PASS. Fixed missing presenter_name option in Multi-Output mode.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_new_features_v2.py",
+    "/app/test_reports/pytest/new_features_v2_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "RundownEditor.js correctly shows 'Volg live' toggle when showStartTime is set and items.length > 0",
+    "SortableRundownItem.js has isActive prop that applies green ring-2 highlight",
+    "ContentCalendarPage.js uses react-big-calendar with Dutch localization",
+    "ContentLibraryPage.js has Kalender button with data-testid='content-calendar-btn'",
+    "RDSBuilderPage.js includes presenter_name in ITEM_TYPES with Users icon",
+    "rds_builder.py has presenter_name in Literal types for RDSItem and RDSOutputItem",
+    "rds_builder_scheduler.py get_item_text() handles presenter_name type correctly"
+  ],
+  "updated_files": [
+    "/app/frontend/src/components/rds/RDSOutputManager.js"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (all 3 new features verified)"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Created temporary rundown item 'TEST Item for Volg Live' to trigger toggle visibility",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Three new features fully working: 1) Volg live toggle in RundownEditor (requires start_time + items > 0), 2) Content Calendar at /content/calendar with Maand/Week toggle and legend, 3) RDS presenter_name in Legacy Builder AND Multi-Output mode (fixed during this iteration).",
+  "features_tested": {
+    "Rundown Time Sync - Volg live toggle": {
+      "status": "PASS",
+      "details": "Toggle appears when show has start_time and rundown items, can be toggled on/off, shows green highlight on active item"
+    },
+    "Content Calendar - Kalender button in Content Library": {
+      "status": "PASS",
+      "details": "Kalender button with CalendarDays icon found with data-testid='content-calendar-btn', navigates to /content/calendar"
+    },
+    "Content Calendar - Page with month/week view": {
+      "status": "PASS",
+      "details": "Page title 'Content Kalender', Maand/Week toggle buttons work, Dutch localization"
+    },
+    "Content Calendar - Legend": {
+      "status": "PASS",
+      "details": "Legend shows 'Gepubliceerd' (green) and 'Gepland' (orange) with colored boxes"
+    },
+    "Content Calendar - Terug naar lijst button": {
+      "status": "PASS",
+      "details": "Button navigates back to /content"
+    },
+    "RDS Builder - Presenter option in Legacy Sequence Builder": {
+      "status": "PASS",
+      "details": "presenter_name type selectable in dropdown with Users icon and description"
+    },
+    "RDS Builder - Presenter option in Multi-Output mode": {
+      "status": "PASS",
+      "details": "Fixed during testing - added presenter_name to RDSOutputManager.js ITEM_TYPES and default items"
+    },
+    "API - presenter_name type accepted": {
+      "status": "PASS",
+      "details": "Backend accepts presenter_name in RDS sequence items and multi-output configs"
+    }
+  },
+  "fix_applied": {
+    "file": "/app/frontend/src/components/rds/RDSOutputManager.js",
+    "issue": "presenter_name type was missing from ITEM_TYPES array and default items in OutputDialog",
+    "fix": "Added presenter_name with Users icon to ITEM_TYPES and included it in default items array"
+  }
+}
