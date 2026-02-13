@@ -863,3 +863,17 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - `GET /api/rds-builder/output/{station}/{slug}.txt` - public URL voor MagicRDS
   - Frontend: Tabbed interface met Multi-Output en Legacy Sequence Builder
   - Tested: 24/24 backend tests passed, frontend UI volledig functioneel
+
+### February 13, 2026 - Rundown Timestamps Feature
+- [x] **Calculated Timestamps in Rundown**:
+  - Feature: Elke rundown item toont nu een berekende starttijd
+  - Berekening gebaseerd op show starttijd + cumulatieve duur van vorige items
+  - Default duraties: Ad blok = 2 minuten, Music blok = 3 minuten
+  - Items met expliciete duur gebruiken die waarde
+  - Talk items berekenen duur van tekst (150 WPM spreektempo)
+  - Weergave: Oranje kleur (text-orange-400), HH:MM formaat (bijv. 17:00, 17:03)
+  - Files aangepast:
+    - `/app/frontend/src/components/RundownEditor.js` - calculateTimestamps() functie
+    - `/app/frontend/src/components/SortableRundownItem.js` - timestamp prop weergave
+    - `/app/frontend/src/pages/ShowDetailPage.js` - showStartTime prop doorgeven
+  - Tested: 8/8 frontend tests passed (100% success rate)
