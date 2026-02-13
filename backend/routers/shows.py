@@ -360,6 +360,61 @@ async def delete_show_title_image(
     return {"message": "Image removed"}
 
 
+@shows_router.post("/titles/sync-images")
+async def sync_show_title_images(
+    current_user: dict = Depends(require_admin)
+):
+    """Sync images from show titles to all shows with matching titles.
+    
+    This fixes shows that were created before their show title had an image,
+    or recurring shows that didn't get the image propagated.
+    """
+    team_id = current_user.get('team_id')
+    
+    # Get all show titles with images
+    titles_with_images = await db.show_titles.find(
+        {"team_id": team_id, "image": {"$exists": True, "$ne": None}},
+        {"_id": 0, "name": 1, "image": 1}
+    ).to_list(100)
+    
+    total_updated = 0
+    updated_titles = []
+    
+    for title in titles_with_images:
+        title_name = title.get("name")
+        title_image = title.get("image")
+        
+        if not title_name or not title_image:
+            continue
+        
+        # Update all shows with this title that don't have an image
+        result = await db.shows.update_many(
+            {
+                "title": title_name,
+                "team_id": team_id,
+                "$or": [
+                    {"image": {"$exists": False}},
+                    {"image": None}
+                ]
+            },
+            {"$set": {"image": title_image}}
+        )
+        
+        if result.modified_count > 0:
+            total_updated += result.modified_count
+            updated_titles.append({
+                "title": title_name,
+                "shows_updated": result.modified_count
+            })
+            logger.info(f"Synced image to {result.modified_count} shows for '{title_name}'")
+    
+    return {
+        "success": True,
+        "total_shows_updated": total_updated,
+        "details": updated_titles
+    }
+
+
 # ============== STUDIOS/ROOMS ==============
 
 @shows_router.get("/studios", response_model=List[StudioResponse])
