@@ -1091,3 +1091,15 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - GET /api/audio-triggers/logs - Detection logs
   - Libraries installed: librosa, scipy, soundfile (for audio fingerprinting)
   - Tested: API endpoints working, manual activation/deactivation verified
+
+### February 13, 2026 - Calendar Rendering Bug Fix
+- [x] **P0 Bug Fix: Calendar Shows Disappearing**:
+  - Bug: When there are many recurring shows (500+), shows would disappear from the calendar view
+  - Root cause: Backend API `/api/shows` used `.to_list(1000)` limit with descending date sort
+  - This meant older shows were cut off when total shows exceeded 1000
+  - Fix in `backend/routers/shows.py`:
+    - Increased limit from 1000 to 5000
+    - Changed sort order from descending (-1) to ascending (1) 
+    - This ensures oldest shows aren't cut off if limit is reached
+  - Tested with 2000+ shows - all calendar days now display correctly
+  - Files updated: `backend/routers/shows.py` line 587-589
