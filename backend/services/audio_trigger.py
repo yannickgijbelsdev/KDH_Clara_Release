@@ -237,8 +237,17 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
             # Load and analyze
             audio_data, sr = librosa.load(tmp_path, sr=SAMPLE_RATE, mono=True)
             
+            # Check if we got valid audio data
+            if audio_data is None or len(audio_data) == 0:
+                logger.warning(f"No audio data loaded from stream")
+                return False, 0.0
+            
             # Compute fingerprints for the stream chunk
             stream_fps = compute_fingerprint_sequence(audio_data, sr)
+            
+            if not stream_fps:
+                logger.warning(f"No fingerprints computed from stream")
+                return False, 0.0
             
             # Check for match
             return find_audio_match(stream_fps, trigger_fingerprint, threshold)
@@ -247,7 +256,8 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
             os.unlink(tmp_path)
             
     except Exception as e:
-        logger.error(f"Error analyzing stream: {e}")
+        import traceback
+        logger.error(f"Error analyzing stream: {e}\n{traceback.format_exc()}")
         return False, 0.0
 
 
