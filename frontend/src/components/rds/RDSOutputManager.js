@@ -29,10 +29,10 @@ import { toast } from 'sonner';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ITEM_TYPES = [
-  { value: 'show_name', label: 'Show Naam', icon: Mic, description: 'Naam van de huidige live show (of default)' },
-  { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Presenter(s) van de huidige live show' },
-  { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Huidige nummer van de stream' },
-  { value: 'custom_text', label: 'Custom Tekst', icon: Type, description: 'Zelf gekozen tekst' },
+  { value: 'show_name', label: 'Show Name', icon: Mic, description: 'Name of the current live show (or default)' },
+  { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Presenter(s) of the current live show' },
+  { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Current track from the stream' },
+  { value: 'custom_text', label: 'Custom Text', icon: Type, description: 'Custom text of your choice' },
 ];
 
 // Output Item Row Component
@@ -76,7 +76,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
           onChange={(e) => setLocalContent(e.target.value)}
           onBlur={handleContentBlur}
           onKeyDown={(e) => e.key === 'Enter' && handleContentBlur()}
-          placeholder="Voer tekst in..."
+          placeholder="Enter text..."
           disabled={!item.enabled}
           className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
         />
@@ -161,11 +161,11 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      toast.error('Voer een naam in');
+      toast.error('Please enter a name');
       return;
     }
     if (!slug.trim()) {
-      toast.error('Voer een slug in');
+      toast.error('Please enter a slug');
       return;
     }
 
@@ -181,7 +181,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
       });
       onClose();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Kon output niet opslaan');
+      toast.error(error.response?.data?.detail || 'Could not save output');
     } finally {
       setSaving(false);
     }
@@ -195,7 +195,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <h3 className="text-lg font-semibold text-white">
-            {output ? 'Output Bewerken' : 'Nieuwe Output'}
+            {output ? 'Edit Output' : 'New Output'}
           </h3>
           <Button variant="ghost" size="sm" onClick={onClose}>
             <X className="w-5 h-5" />
@@ -207,11 +207,11 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
           {/* Name & Slug */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label className="text-zinc-400 text-sm">Naam</Label>
+              <Label className="text-zinc-400 text-sm">Name</Label>
               <Input
                 value={name}
                 onChange={handleNameChange}
-                placeholder="bijv. Streaming, DAB+, FM"
+                placeholder="e.g. Streaming, DAB+, FM"
                 className="bg-zinc-800 border-zinc-700 text-white mt-1"
               />
             </div>
@@ -220,7 +220,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
               <Input
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                placeholder="bijv. streaming, dab, fm"
+                placeholder="e.g. streaming, dab, fm"
                 disabled={!!output}
                 className="bg-zinc-800 border-zinc-700 text-white mt-1 font-mono"
               />
@@ -229,7 +229,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
 
           {/* Preview URL */}
           <div className="bg-zinc-900 rounded-lg p-3">
-            <Label className="text-zinc-500 text-xs">API URL voor MagicRDS:</Label>
+            <Label className="text-zinc-500 text-xs">API URL for MagicRDS:</Label>
             <code className="text-orange-400 text-sm block mt-1">
               https://clara.koodh.com/api/rds-builder/output/{station}/{slug || 'slug'}.txt
             </code>
@@ -237,7 +237,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
 
           {/* Items Configuration */}
           <div>
-            <Label className="text-zinc-400 text-sm mb-2 block">Items (vink aan wat je wilt tonen)</Label>
+            <Label className="text-zinc-400 text-sm mb-2 block">Items (check what you want to show)</Label>
             <div className="space-y-2">
               {items.map((item, index) => (
                 <OutputItemRow
@@ -258,7 +258,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
                 onCheckedChange={setEnabled}
                 className="data-[state=checked]:bg-green-500"
               />
-              <Label className="text-zinc-400 text-sm">Output actief</Label>
+              <Label className="text-zinc-400 text-sm">Output active</Label>
             </div>
             <div className="flex items-center gap-2">
               <Switch
@@ -266,7 +266,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
                 onCheckedChange={setLoop}
                 className="data-[state=checked]:bg-blue-500"
               />
-              <Label className="text-zinc-400 text-sm">Herhalen (loop)</Label>
+              <Label className="text-zinc-400 text-sm">Repeat (loop)</Label>
             </div>
           </div>
         </div>
@@ -274,11 +274,11 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
         {/* Footer */}
         <div className="flex justify-end gap-2 p-4 border-t border-zinc-800">
           <Button variant="outline" onClick={onClose} className="border-zinc-700 text-zinc-300">
-            Annuleren
+            Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
             {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-            Opslaan
+            Save
           </Button>
         </div>
       </div>
@@ -295,20 +295,20 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
     const url = `https://clara.koodh.com/api/rds-builder/output/${station}/${output.slug}.txt`;
     navigator.clipboard.writeText(url);
     setCopiedUrl(true);
-    toast.success('URL gekopieerd');
+    toast.success('URL copied');
     setTimeout(() => setCopiedUrl(false), 2000);
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Weet je zeker dat je '${output.name}' wilt verwijderen?`)) return;
+    if (!window.confirm(`Are you sure you want to delete '${output.name}'?`)) return;
     
     setDeleting(true);
     try {
       await axios.delete(`${API}/rds-builder/outputs/${station}/${output.slug}`);
-      toast.success('Output verwijderd');
+      toast.success('Output deleted');
       onRefresh();
     } catch (error) {
-      toast.error('Kon output niet verwijderen');
+      toast.error('Could not delete output');
     } finally {
       setDeleting(false);
     }
@@ -336,15 +336,15 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
 
       {/* Current output preview */}
       <div className="bg-zinc-900 rounded-lg p-3 mb-3">
-        <span className="text-zinc-500 text-xs block mb-1">Huidige output:</span>
+        <span className="text-zinc-500 text-xs block mb-1">Current output:</span>
         <span className="text-orange-400 font-medium">
-          {output.current_text || <span className="text-zinc-600 italic">Geen output</span>}
+          {output.current_text || <span className="text-zinc-600 italic">No output</span>}
         </span>
       </div>
 
       {/* Enabled items summary */}
       <div className="flex items-center gap-2 mb-3 text-xs text-zinc-500">
-        <span>{enabledItemCount} item{enabledItemCount !== 1 ? 's' : ''} actief:</span>
+        <span>{enabledItemCount} item{enabledItemCount !== 1 ? 's' : ''} active:</span>
         <div className="flex gap-1">
           {output.items?.filter(i => i.enabled).map(item => {
             const Icon = ITEM_TYPES.find(t => t.value === item.type)?.icon || Type;
@@ -420,10 +420,10 @@ const RDSOutputManager = ({ station, stationName, color }) => {
   const handleSave = async (data) => {
     if (editingOutput) {
       await axios.put(`${API}/rds-builder/outputs/${station}/${editingOutput.slug}`, data);
-      toast.success('Output bijgewerkt');
+      toast.success('Output updated');
     } else {
       await axios.post(`${API}/rds-builder/outputs/${station}`, data);
-      toast.success('Output aangemaakt');
+      toast.success('Output created');
     }
     fetchOutputs();
   };
@@ -448,12 +448,12 @@ const RDSOutputManager = ({ station, stationName, color }) => {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">{stationName} Outputs</h3>
-            <p className="text-xs text-zinc-500">Configureer meerdere outputs voor Streaming, DAB, FM, etc.</p>
+            <p className="text-xs text-zinc-500">Configure multiple outputs for Streaming, DAB, FM, etc.</p>
           </div>
         </div>
         <Button onClick={handleCreate} className={`${colors.button} text-white`}>
           <Plus className="w-4 h-4 mr-2" />
-          Nieuwe Output
+          New Output
         </Button>
       </div>
 
@@ -461,8 +461,8 @@ const RDSOutputManager = ({ station, stationName, color }) => {
       {outputs.length === 0 ? (
         <div className="text-center py-8 text-zinc-500">
           <Link className="w-10 h-10 mx-auto mb-3 opacity-50" />
-          <p>Nog geen outputs geconfigureerd</p>
-          <p className="text-sm">Maak een output aan voor Streaming, DAB, FM, etc.</p>
+          <p>No outputs configured yet</p>
+          <p className="text-sm">Create an output for Streaming, DAB, FM, etc.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
