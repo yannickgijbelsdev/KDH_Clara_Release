@@ -717,7 +717,8 @@ async def delete_scheduled_text(
     if station not in ["mfy", "grk"]:
         raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
     
-    existing = await db.rds_scheduled_texts.find_one({"id": text_id, "station": station})
+    # Find by ID only, since station might be "both" in the actual data
+    existing = await db.rds_scheduled_texts.find_one({"id": text_id})
     if not existing:
         raise HTTPException(status_code=404, detail="Scheduled text not found")
     
