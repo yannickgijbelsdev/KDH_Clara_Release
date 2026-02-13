@@ -633,6 +633,69 @@ const ShowManagementPage = () => {
               </div>
             </div>
 
+            {/* Default Presenters Selection */}
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Standaard Presenters</Label>
+              <p className="text-xs text-zinc-500 mb-2">Selecteer de standaard presenters voor deze show</p>
+              <Popover open={presenterPopoverOpen} onOpenChange={setPresenterPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full justify-start text-left bg-[#27272a] border-zinc-700 text-white hover:bg-zinc-700"
+                  >
+                    <Users className="w-4 h-4 mr-2 text-violet-400" />
+                    {titleFormData.default_presenter_ids?.length > 0 ? (
+                      <span className="truncate">
+                        {titleFormData.default_presenter_ids.map(id => 
+                          teamUsers.find(u => u.id === id)?.name || 'Unknown'
+                        ).join(', ')}
+                      </span>
+                    ) : (
+                      <span className="text-zinc-500">Selecteer presenters...</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-0 bg-[#18181b] border-zinc-800" align="start">
+                  <div className="p-2 border-b border-zinc-800">
+                    <p className="text-sm text-zinc-400 font-medium">Teamleden</p>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto p-2 space-y-1">
+                    {teamUsers.map((user) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onClick={() => togglePresenter(user.id)}
+                        className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                          titleFormData.default_presenter_ids?.includes(user.id)
+                            ? 'bg-violet-500/20 text-violet-400'
+                            : 'hover:bg-zinc-800 text-zinc-300'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+                          {user.avatar?.s3_url ? (
+                            <img src={user.avatar.s3_url} alt={user.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="w-4 h-4 text-zinc-400" />
+                          )}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <p className="text-sm font-medium">{user.name}</p>
+                          <p className="text-xs text-zinc-500">{user.role}</p>
+                        </div>
+                        {titleFormData.default_presenter_ids?.includes(user.id) && (
+                          <Check className="w-4 h-4 text-violet-400" />
+                        )}
+                      </button>
+                    ))}
+                    {teamUsers.length === 0 && (
+                      <p className="text-sm text-zinc-500 text-center py-4">Geen teamleden gevonden</p>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
             <div className="flex gap-3 pt-4">
               <Button
                 type="button"
