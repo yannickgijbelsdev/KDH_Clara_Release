@@ -541,6 +541,8 @@ class AudioTriggerScheduler:
                     if windows and not self._is_in_time_window(windows):
                         continue
                     
+                    trigger_name = trigger.get("name", trigger_id)
+                    
                     # Get current state
                     state = await self.db.audio_trigger_states.find_one(
                         {"trigger_id": trigger_id, "station": station},
@@ -563,9 +565,9 @@ class AudioTriggerScheduler:
                         # Look for IN sound
                         in_fingerprint = await self._load_trigger_fingerprint(trigger)
                         if in_fingerprint is not None:
-                            threshold = trigger.get("threshold", 0.85)
+                            threshold = trigger.get("threshold", DEFAULT_THRESHOLD)
                             detected, score = await analyze_stream_for_trigger(
-                                station, in_fingerprint, threshold
+                                station, in_fingerprint, threshold, trigger_name
                             )
                             
                             if detected:
