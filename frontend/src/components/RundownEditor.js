@@ -306,7 +306,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
                   <Pause className="w-4 h-4 text-zinc-500" />
                 )}
                 <Label htmlFor="live-mode" className="text-sm text-zinc-300 cursor-pointer">
-                  Volg live
+                  Follow live
                 </Label>
                 <Switch
                   id="live-mode"
