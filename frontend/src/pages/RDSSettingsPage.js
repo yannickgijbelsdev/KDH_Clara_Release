@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import {
   Radio,
   RefreshCw,
@@ -69,7 +69,7 @@ const RDSSettingsPage = () => {
         cache_refresh_interval: settingsRes.data.cache_refresh_interval,
       });
     } catch (error) {
-      toast.error('Kon RDS instellingen niet laden');
+      toast.error('Could not load RDS settings');
     } finally {
       setLoading(false);
     }
@@ -85,12 +85,12 @@ const RDSSettingsPage = () => {
       const response = await axios.put(`${API}/rds/settings`, editData);
       setSettings(response.data);
       setEditMode(false);
-      toast.success('Instellingen opgeslagen');
+      toast.success('Settings saved');
       // Refresh endpoints to get new URLs
       const endpointsRes = await axios.get(`${API}/rds/endpoints`);
       setEndpoints(endpointsRes.data);
     } catch (error) {
-      toast.error('Kon instellingen niet opslaan');
+      toast.error('Could not save settings');
     } finally {
       setSaving(false);
     }
@@ -100,7 +100,7 @@ const RDSSettingsPage = () => {
     setRefreshing(true);
     try {
       const response = await axios.post(`${API}/rds/refresh-cache`);
-      toast.success(response.data.message || 'Cache vernieuwd');
+      toast.success(response.data.message || 'Cache refreshed');
       // Refresh logs
       const logsRes = await axios.get(`${API}/rds/logs?limit=20`);
       setLogs(logsRes.data);
@@ -108,7 +108,7 @@ const RDSSettingsPage = () => {
       const settingsRes = await axios.get(`${API}/rds/settings`);
       setSettings(settingsRes.data);
     } catch (error) {
-      toast.error('Kon cache niet vernieuwen');
+      toast.error('Could not refresh cache');
     } finally {
       setRefreshing(false);
     }
@@ -120,10 +120,10 @@ const RDSSettingsPage = () => {
     try {
       const filters = station === 'mfy' ? mfyFilters : grkFilters;
       await axios.put(`${API}/rds/shoutcast/filters/${station}`, { filters });
-      toast.success(`Filters opgeslagen voor ${station.toUpperCase()}`);
+      toast.success(`Filters saved for ${station.toUpperCase()}`);
       setEditingFilters(null);
     } catch (error) {
-      toast.error('Kon filters niet opslaan');
+      toast.error('Could not save filters');
     } finally {
       setSavingFilters(false);
     }
@@ -161,7 +161,7 @@ const RDSSettingsPage = () => {
   const copyToClipboard = (url, name) => {
     navigator.clipboard.writeText(url);
     setCopiedUrl(name);
-    toast.success('URL gekopieerd');
+    toast.success('URL copied');
     setTimeout(() => setCopiedUrl(null), 2000);
   };
 
@@ -181,11 +181,11 @@ const RDSSettingsPage = () => {
   const getStatusLabel = (status) => {
     switch (status) {
       case 'success':
-        return 'Succes';
+        return 'Success';
       case 'failed':
-        return 'Mislukt';
+        return 'Failed';
       case 'no_show':
-        return 'Geen show';
+        return 'No show';
       default:
         return status;
     }
@@ -228,7 +228,7 @@ const RDSSettingsPage = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-orange-400" />
-            <h2 className="text-lg font-semibold text-white">Configuratie</h2>
+            <h2 className="text-lg font-semibold text-white">Configuration</h2>
           </div>
           {!editMode ? (
             <Button
@@ -238,7 +238,7 @@ const RDSSettingsPage = () => {
               className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
             >
               <Settings className="w-4 h-4" />
-              Bewerken
+              Edit
             </Button>
           ) : (
             <div className="flex gap-2">
@@ -254,7 +254,7 @@ const RDSSettingsPage = () => {
                 }}
                 className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
               >
-                Annuleren
+                Cancel
               </Button>
               <Button
                 size="sm"
@@ -263,7 +263,7 @@ const RDSSettingsPage = () => {
                 className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
               >
                 <Save className="w-4 h-4" />
-                {saving ? 'Opslaan...' : 'Opslaan'}
+                {saving ? 'Saving...' : 'Save'}
               </Button>
             </div>
           )}
@@ -272,7 +272,7 @@ const RDSSettingsPage = () => {
         {editMode ? (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Productie Base URL</Label>
+              <Label className="text-zinc-300">Production Base URL</Label>
               <Input
                 value={editData.production_base_url}
                 onChange={(e) => setEditData({ ...editData, production_base_url: e.target.value })}
@@ -280,11 +280,11 @@ const RDSSettingsPage = () => {
                 className="bg-[#27272a] border-zinc-700 text-white font-mono"
               />
               <p className="text-xs text-zinc-500">
-                De basis URL van je productie omgeving. Dit wordt gebruikt voor de API endpoints.
+                The base URL of your production environment. This is used for the API endpoints.
               </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-zinc-300">Cache Vernieuwingsinterval (minuten)</Label>
+              <Label className="text-zinc-300">Cache Refresh Interval (minutes)</Label>
               <Input
                 type="number"
                 min="1"
@@ -294,30 +294,30 @@ const RDSSettingsPage = () => {
                 className="bg-[#27272a] border-zinc-700 text-white w-24"
               />
               <p className="text-xs text-zinc-500">
-                Hoe vaak de live show cache automatisch wordt vernieuwd.
+                How often the live show cache is automatically refreshed.
               </p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-zinc-500 text-sm mb-1">Productie URL</p>
+              <p className="text-zinc-500 text-sm mb-1">Production URL</p>
               <p className="text-white font-mono">{settings?.production_base_url || '-'}</p>
             </div>
             <div>
               <p className="text-zinc-500 text-sm mb-1">Cache Interval</p>
-              <p className="text-white">Elke {settings?.cache_refresh_interval || 5} minuten</p>
+              <p className="text-white">Every {settings?.cache_refresh_interval || 5} minutes</p>
             </div>
             <div>
-              <p className="text-zinc-500 text-sm mb-1">Laatste Cache Vernieuwing</p>
+              <p className="text-zinc-500 text-sm mb-1">Last Cache Refresh</p>
               <p className="text-white">
                 {settings?.last_cache_refresh
-                  ? format(new Date(settings.last_cache_refresh), 'dd MMM yyyy HH:mm:ss', { locale: nl })
-                  : 'Nog niet uitgevoerd'}
+                  ? format(new Date(settings.last_cache_refresh), 'MMM dd yyyy HH:mm:ss', { locale: enUS })
+                  : 'Not yet run'}
               </p>
             </div>
           </div>
-        )}
+        )}}
       </div>
 
       {/* API Endpoints Section */}
@@ -327,7 +327,7 @@ const RDSSettingsPage = () => {
           <h2 className="text-lg font-semibold text-white">API Endpoints</h2>
         </div>
         <p className="text-zinc-500 text-sm mb-4">
-          Kopieer deze URLs om te gebruiken in MagicRDS of andere externe systemen.
+          Copy these URLs to use in MagicRDS or other external systems.
         </p>
 
         {/* Group endpoints by station */}
@@ -335,7 +335,7 @@ const RDSSettingsPage = () => {
           const stationEndpoints = endpoints?.endpoints?.filter(e => e.station === station) || [];
           if (stationEndpoints.length === 0) return null;
           
-          const stationName = station === 'mfy' ? 'Radio MFY' : station === 'grk' ? 'Radio GRK' : 'Alle Stations';
+          const stationName = station === 'mfy' ? 'Radio MFY' : station === 'grk' ? 'Radio GRK' : 'All Stations';
           const stationColor = station === 'mfy' ? 'orange' : station === 'grk' ? 'violet' : 'zinc';
           
           return (
@@ -358,9 +358,9 @@ const RDSSettingsPage = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-white text-sm font-medium">{endpoint.name.replace(`${station.toUpperCase()} - `, '').replace('Alle Stations - ', '')}</h4>
+                          <h4 className="text-white text-sm font-medium">{endpoint.name.replace(`${station.toUpperCase()} - `, '').replace('Alle Stations - ', '').replace('All Stations - ', '')}</h4>
                           <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
-                            Publiek
+                            Public
                           </span>
                         </div>
                         <p className="text-zinc-500 text-xs mb-2">{endpoint.description}</p>
@@ -403,7 +403,7 @@ const RDSSettingsPage = () => {
         {logs.length === 0 ? (
           <div className="text-center py-8">
             <Clock className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
-            <p className="text-zinc-500">Nog geen cache logs</p>
+            <p className="text-zinc-500">No cache logs yet</p>
           </div>
         ) : (
           <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -424,7 +424,7 @@ const RDSSettingsPage = () => {
                   </div>
                   <p className="text-zinc-500 text-sm">{log.message}</p>
                   <p className="text-zinc-600 text-xs mt-1">
-                    {format(new Date(log.timestamp), 'dd MMM yyyy HH:mm:ss', { locale: nl })}
+                    {format(new Date(log.timestamp), 'MMM dd yyyy HH:mm:ss', { locale: enUS })}
                   </p>
                 </div>
               </div>
@@ -440,7 +440,7 @@ const RDSSettingsPage = () => {
           <h2 className="text-lg font-semibold text-white">Now Playing Filters</h2>
         </div>
         <p className="text-zinc-500 text-sm mb-4">
-          Filter bepaalde teksten uit de now playing info. Als de tekst overeenkomt, wordt deze vervangen.
+          Filter certain texts from the now playing info. If the text matches, it will be replaced.
         </p>
 
         {/* MFY Filters */}
@@ -456,7 +456,7 @@ const RDSSettingsPage = () => {
                     onClick={() => setEditingFilters(null)}
                     className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
                   >
-                    Annuleren
+                    Cancel
                   </Button>
                   <Button
                     size="sm"
@@ -465,7 +465,7 @@ const RDSSettingsPage = () => {
                     className="bg-orange-500 hover:bg-orange-600 text-white text-xs"
                   >
                     <Save className="w-3 h-3 mr-1" />
-                    {savingFilters ? 'Opslaan...' : 'Opslaan'}
+                    {savingFilters ? 'Saving...' : 'Save'}
                   </Button>
                 </>
               ) : (
@@ -476,7 +476,7 @@ const RDSSettingsPage = () => {
                   className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
                 >
                   <Settings className="w-3 h-3 mr-1" />
-                  Bewerken
+                  Edit
                 </Button>
               )}
             </div>
@@ -489,14 +489,14 @@ const RDSSettingsPage = () => {
                   <Input
                     value={filter.match}
                     onChange={(e) => updateFilter('mfy', idx, 'match', e.target.value)}
-                    placeholder="Te filteren tekst"
+                    placeholder="Text to filter"
                     className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
                   />
                   <span className="text-zinc-500 text-xs">→</span>
                   <Input
                     value={filter.replace}
                     onChange={(e) => updateFilter('mfy', idx, 'replace', e.target.value)}
-                    placeholder="Vervangen door (leeg = verwijderen)"
+                    placeholder="Replace with (empty = remove)"
                     className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
                   />
                   <Button
@@ -516,20 +516,20 @@ const RDSSettingsPage = () => {
                 className="border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800 text-xs w-full"
               >
                 <Plus className="w-3 h-3 mr-1" />
-                Filter toevoegen
+                Add filter
               </Button>
             </div>
           ) : (
             <div className="text-zinc-400 text-sm">
               {mfyFilters.length === 0 ? (
-                <p className="text-zinc-500 italic">Geen filters ingesteld</p>
+                <p className="text-zinc-500 italic">No filters set</p>
               ) : (
                 <div className="space-y-1">
                   {mfyFilters.map((f, i) => (
                     <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1">
                       <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
                       <span className="text-zinc-600 mx-1">→</span>
-                      <span className="text-orange-400">{f.replace || '(verwijderen)'}</span>
+                      <span className="text-orange-400">{f.replace || '(remove)'}</span>
                     </div>
                   ))}
                 </div>
@@ -551,7 +551,7 @@ const RDSSettingsPage = () => {
                     onClick={() => setEditingFilters(null)}
                     className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
                   >
-                    Annuleren
+                    Cancel
                   </Button>
                   <Button
                     size="sm"
@@ -560,7 +560,7 @@ const RDSSettingsPage = () => {
                     className="bg-violet-500 hover:bg-violet-600 text-white text-xs"
                   >
                     <Save className="w-3 h-3 mr-1" />
-                    {savingFilters ? 'Opslaan...' : 'Opslaan'}
+                    {savingFilters ? 'Saving...' : 'Save'}
                   </Button>
                 </>
               ) : (
@@ -571,7 +571,7 @@ const RDSSettingsPage = () => {
                   className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
                 >
                   <Settings className="w-3 h-3 mr-1" />
-                  Bewerken
+                  Edit
                 </Button>
               )}
             </div>
@@ -584,14 +584,14 @@ const RDSSettingsPage = () => {
                   <Input
                     value={filter.match}
                     onChange={(e) => updateFilter('grk', idx, 'match', e.target.value)}
-                    placeholder="Te filteren tekst"
+                    placeholder="Text to filter"
                     className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
                   />
                   <span className="text-zinc-500 text-xs">→</span>
                   <Input
                     value={filter.replace}
                     onChange={(e) => updateFilter('grk', idx, 'replace', e.target.value)}
-                    placeholder="Vervangen door (leeg = verwijderen)"
+                    placeholder="Replace with (empty = remove)"
                     className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
                   />
                   <Button
@@ -611,20 +611,20 @@ const RDSSettingsPage = () => {
                 className="border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800 text-xs w-full"
               >
                 <Plus className="w-3 h-3 mr-1" />
-                Filter toevoegen
+                Add filter
               </Button>
             </div>
           ) : (
             <div className="text-zinc-400 text-sm">
               {grkFilters.length === 0 ? (
-                <p className="text-zinc-500 italic">Geen filters ingesteld</p>
+                <p className="text-zinc-500 italic">No filters set</p>
               ) : (
                 <div className="space-y-1">
                   {grkFilters.map((f, i) => (
                     <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1">
                       <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
                       <span className="text-zinc-600 mx-1">→</span>
-                      <span className="text-violet-400">{f.replace || '(verwijderen)'}</span>
+                      <span className="text-violet-400">{f.replace || '(remove)'}</span>
                     </div>
                   ))}
                 </div>
@@ -639,13 +639,13 @@ const RDSSettingsPage = () => {
         <div className="flex items-center gap-2 mb-4">
           <Music className="w-5 h-5 text-green-400" />
           <h2 className="text-lg font-semibold text-white">Shoutcast Logs</h2>
-          <span className="text-xs text-zinc-500 ml-2">Laatste 50 (elke 10 sec)</span>
+          <span className="text-xs text-zinc-500 ml-2">Last 50 (every 10 sec)</span>
         </div>
 
         {shoutcastLogs.length === 0 ? (
           <div className="text-center py-8">
             <Music className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
-            <p className="text-zinc-500">Nog geen shoutcast logs</p>
+            <p className="text-zinc-500">No shoutcast logs yet</p>
           </div>
         ) : (
           <div className="space-y-1 max-h-64 overflow-y-auto">
@@ -662,13 +662,13 @@ const RDSSettingsPage = () => {
                   {log.station.toUpperCase()}
                 </span>
                 <span className="text-zinc-400 truncate flex-1">
-                  {log.song_title || <span className="italic text-zinc-600">(gefilterd)</span>}
+                  {log.song_title || <span className="italic text-zinc-600">(filtered)</span>}
                 </span>
                 <span className="text-zinc-600">
-                  {log.current_listeners} luisteraars
+                  {log.current_listeners} listeners
                 </span>
                 <span className="text-zinc-700 text-[10px]">
-                  {format(new Date(log.timestamp), 'HH:mm:ss', { locale: nl })}
+                  {format(new Date(log.timestamp), 'HH:mm:ss', { locale: enUS })}
                 </span>
               </div>
             ))}
