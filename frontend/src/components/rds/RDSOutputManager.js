@@ -30,6 +30,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ITEM_TYPES = [
   { value: 'show_name', label: 'Show Naam', icon: Mic, description: 'Naam van de huidige live show (of default)' },
+  { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Presenter(s) van de huidige live show' },
   { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Huidige nummer van de stream' },
   { value: 'custom_text', label: 'Custom Tekst', icon: Type, description: 'Zelf gekozen tekst' },
 ];
