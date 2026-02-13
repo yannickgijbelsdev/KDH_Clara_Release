@@ -116,7 +116,6 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
         recurrence_type: recurrenceType,
         recurrence_end_date: recurrenceEndDate || null,
         enabled,
-        station,
       });
       onClose();
     } catch (error) {
@@ -130,7 +129,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#18181b] border border-zinc-700 rounded-xl w-full max-w-lg">
+      <div className="bg-[#18181b] border border-zinc-700 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-zinc-800">
           <h3 className="text-lg font-semibold text-white">
