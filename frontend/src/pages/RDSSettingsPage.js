@@ -485,28 +485,42 @@ const RDSSettingsPage = () => {
           {editingFilters === 'mfy' ? (
             <div className="space-y-2">
               {mfyFilters.map((filter, idx) => (
-                <div key={idx} className="flex gap-2 items-center bg-[#27272a] rounded-lg p-2">
-                  <Input
-                    value={filter.match}
-                    onChange={(e) => updateFilter('mfy', idx, 'match', e.target.value)}
-                    placeholder="Text to filter"
-                    className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
-                  />
-                  <span className="text-zinc-500 text-xs">→</span>
-                  <Input
-                    value={filter.replace}
-                    onChange={(e) => updateFilter('mfy', idx, 'replace', e.target.value)}
-                    placeholder="Replace with (empty = remove)"
-                    className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFilter('mfy', idx)}
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-7 w-7"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                <div key={idx} className="flex flex-col gap-2 bg-[#27272a] rounded-lg p-2">
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      value={filter.match}
+                      onChange={(e) => updateFilter('mfy', idx, 'match', e.target.value)}
+                      placeholder="Text to filter (e.g. ft.)"
+                      className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                    />
+                    <span className="text-zinc-500 text-xs">→</span>
+                    <Input
+                      value={filter.replace}
+                      onChange={(e) => updateFilter('mfy', idx, 'replace', e.target.value)}
+                      placeholder="Replace with (e.g. &)"
+                      className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFilter('mfy', idx)}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-7 w-7"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-4 pl-1">
+                    <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={filter.whole_word || false}
+                        onChange={(e) => updateFilter('mfy', idx, 'whole_word', e.target.checked)}
+                        className="w-3 h-3 rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                      />
+                      <span>Heel woord</span>
+                      <span className="text-zinc-600">(voorkomt "Swift" → "Swi&")</span>
+                    </label>
+                  </div>
                 </div>
               ))}
               <Button
