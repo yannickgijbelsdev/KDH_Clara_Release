@@ -913,3 +913,20 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - `/app/frontend/src/App.js` - route toegevoegd
   - Nieuwe MongoDB collection: `rds_scheduled_texts`
   - Tested: 21/21 backend tests passed, 100% frontend UI verified
+
+### February 13, 2026 - RDS Scheduler Hourly & Both Stations Update
+- [x] **Hourly Recurrence Option**:
+  - Nieuwe optie "Elk uur" toegevoegd aan herhaling dropdown
+  - Handig voor nieuws updates die elk heel uur moeten verschijnen
+  - Kalender toont alle uurlijkse items met "+X meer" indicator voor dagen met veel items
+
+- [x] **Station Selection per Scheduled Text**:
+  - Nieuwe "Zichtbaar op" dropdown in de create/edit dialog
+  - Opties: Radio MFY, Radio GRK, Beide stations
+  - Items voor "Beide stations" worden groen weergegeven in de kalender
+  - API endpoints bijgewerkt om "both" station te ondersteunen
+  - Calendar en active endpoints tonen items voor zowel de specifieke station als "both"
+
+- Files aangepast:
+  - `/app/backend/routers/rds_builder.py` - hourly recurrence, both station support
+  - `/app/frontend/src/pages/RDSSchedulerPage.js` - station selector, hourly option, green color for "both"
