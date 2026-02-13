@@ -1,83 +1,71 @@
 <analysis>**original_problem_statement:**
 The user's requests from this and previous sessions are:
 
-1.  **New (P0): RDS Custom Text Scheduler - Infinite Bug:** When scheduling a custom text with the infinite option, the scheduling still stops after 3 days. This needs to be fixed so it runs indefinitely.
-2.  **New (P1): RDS Custom Text in RDS Builder:** The custom texts scheduled via the RDS Custom Text Scheduler should appear in the main RDS Builder interface. This would allow users to enable or disable them on-demand, just like other RDS elements.
-3.  **Presenter Sync (FIXED):** When presenters are updated for a show *title*, the changes were not propagating to the individual show *instances* in the calendar and rundown views. This required both backend and frontend fixes.
-4.  **Team Page Image Upload Bug (FIXED):** On the team page, uploading a new user photo did not refresh the image shown on the page.
-5.  **Multiple Presenters Feature (VERIFIED):** The user wanted to assign multiple presenters to a show. The agent confirmed this feature already existed but was not syncing correctly.
-6.  **UI Unification (DONE):** The RDS Custom Text Scheduler and Content Library calendar views were visually redesigned to match the style of the main Show Calendar.
-7.  **Deployment Failures (FIXED):** The application was failing to deploy due to hardcoded fallback values for environment variables (, ).
-8.  **Future: Stream Monitor VU Meters:** Implement real, professional-style VU meters on the Stream Monitor page. The current implementation is a non-functional CSS animation.
+1.  **New (P0): Missing Images for Recurring Shows:** The user has noticed that for a recurring show, an image might appear for its instance on one day (e.g., Friday) but be missing for another instance on a different day (e.g., Sunday) in the calendar sidebar. This suggests a data synchronization or retrieval issue with recurring events.
+2.  **New (P1): Stale Now Playing Override:** If the Now Playing information from the stream doesn't change for a set period (e.g., 15 minutes), the RDS text should automatically switch to a default message (altijd dichtbij). It should revert to the Now Playing title once the stream data updates.
+3.  **New (P2): Audio Trigger Not Working (FIXED):** The previously implemented audio trigger feature was not detecting the jingle from the live stream. The user had uploaded an MP3 but saw no activity.
+4.  **New (P0): Calendar Rendering Bug (FIXED):** When the show calendar contained a large number of items (over 1000), older events would disappear from the calendar view because the backend query was limited and sorted by the newest first.
+5.  **Future: Stream Monitor VU Meters (P2):** Implement real, professional-style VU meters on the Stream Monitor page. The current implementation is a non-functional CSS animation, blocked by browser security policies.
 
-**User's preferred language**: Dutch. The user's last several messages were in Dutch. The next agent MUST respond in Dutch.
+**User's preferred language**: Dutch. The next agent MUST respond in Dutch.
 
 **what currently exists?**
-The application is a full-stack radio management tool. In this session, several critical bugs and tasks were completed:
-- The presenter synchronization logic was fixed on the backend, ensuring that updating presenters on a show title now correctly updates all associated show instances. The frontend was also updated to reflect these changes in real-time.
-- A bug preventing user avatars from refreshing on the team page was resolved.
-- The UI for the RDS Scheduler and Content Calendar was unified to match the main Show Calendar's dark mode theme.
-- Critical deployment blockers related to missing environment variable configurations were resolved, preparing the app for a successful production deployment.
+The application is a full-stack radio management tool. In this session, the agent successfully resolved several critical bugs and implemented a new feature:
+
+1.  **Calendar Bug Fix:** The bug causing older events to disappear from the calendar has been fixed. The backend query limit was increased, and the sort order was reversed to ensure all events are fetched correctly.
+2.  **Audio Trigger System Fix:** The audio trigger feature is now fully operational. The agent diagnosed and fixed multiple issues: an incorrect API route order, a stream decoding failure by installing and integrating  to handle the AAC+ stream format, and a logic error where the trigger wasn't running due to a restrictive time window. The system now correctly detects the jingle in the live audio stream and displays the configured RDS text.
+3.  **Stale Now Playing Detection:** Backend logic has been implemented to detect when the Now Playing song title remains unchanged for 15 minutes. When this happens, the RDS output is automatically switched to a default text. The system reverts to showing the song title once a new song is detected. The timeout duration is currently hardcoded.
+
+The agent was last investigating a new bug related to missing images for recurring shows.
 
 **Last working item**:
--   **Last item agent was working:** The agent had just acknowledged two new feature requests from the user regarding the RDS Custom Text Scheduler and began investigating by viewing the relevant backend file, .
--   **Status:** NOT STARTED
+-   **Last item agent was working:** Investigating a bug where recurring shows sometimes don't display their associated image in the calendar sidebar. The user clarified that the same show might have an image on one day but not on another, pointing to a sync issue rather than simply missing data.
+-   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** Backend testing agent after fixing the logic, followed by frontend testing to verify the builder integration.
+-   **Which testing method agent to use?** Frontend testing agent. The agent should verify the calendar sidebar's behavior for recurring shows, inspecting the network responses for the  endpoint to see if the  field is inconsistent across different instances of the same recurring show.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: RDS Custom Text Scheduler - Infinite Bug (P0)**
-    -   **Description:** The infinite scheduling option in the RDS custom text scheduler stops functioning after 3 days instead of running indefinitely.
-    -   **Status:** NOT STARTED
+-   **Issue 1: Missing Images for Recurring Shows (P0)**
+    -   **Description:** In the calendar sidebar (), an image for a recurring show appears on some days but is missing on others. This indicates an issue with how recurring show data, specifically the  property, is fetched or processed.
+    -   **Attempted fixes:** The agent initially diagnosed this as a simple data issue () but was corrected by the user who confirmed it's a consistency problem with recurring instances.
     -   **Next debug checklist:**
-        1.  Analyze the backend logic in  that handles the creation and management of scheduled RDS text events.
-        2.  Identify how the end date or duration is calculated and stored when the infinite option is selected.
-        3.  The logic likely has a hardcoded limit or miscalculation that needs to be removed or corrected to represent a truly indefinite schedule.
-    -   **Why fix this issue and what will be achieved with the fix?** This is a core feature of the scheduler that is not working as advertised. Fixing it will allow users to reliably schedule persistent on-air messages.
+        1.  Examine the backend logic that generates show instances, especially for recurring shows. This is likely in .
+        2.  Check how the  field is associated with a base show and how it's propagated to its recurring instances.
+        3.  Verify the database documents for a recurring show and its parent to see if the image link is stored correctly.
+        4.  Inspect the JSON response from the  endpoint to confirm if the  field is inconsistently  for different instances of the same show.
+    -   **Why fix this issue and what will be achieved with the fix?** It creates an inconsistent and unprofessional user experience. Fixing it will ensure all scheduled shows are displayed correctly with their branding.
+    -   **Status:** IN PROGRESS
     -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Backend
-    -   **Blocked on other issue:** None
-
--   **Issue 2: Integrate RDS Custom Text into RDS Builder (P1)**
-    -   **Description:** Scheduled custom texts are managed separately and do not appear in the main RDS Builder. The user wants them integrated into the builder to allow for real-time enabling/disabling.
-    -   **Status:** NOT STARTED
-    -   **Next debug checklist:**
-        1.  Investigate how items are fetched and displayed in .
-        2.  Create or modify a backend endpoint to provide a list of all active scheduled custom texts.
-        3.  Modify the RDS Builder frontend to fetch and display these custom texts, likely in their own section.
-        4.  Implement the toggle functionality, which will require a new backend endpoint to update the  status of a scheduled text item.
-    -   **Why fix this issue and what will be achieved with the fix?** This will unify control of all on-air text elements into a single interface (RDS Builder), improving operator workflow and control.
-    -   **Is recurring issue?** N
-    -   **Should Test frontend/backend/both after fix?** Both
+    -   **Should Test frontend/backend/both after fix?** Both. Backend to ensure data consistency, frontend to verify the visual display.
     -   **Blocked on other issue:** None
 
 **In progress Task List**:
--   None.
+-   **Task 1: Configuration for Stale Now Playing Timeout (P1)**
+    -   **Where to resume:** The backend logic in  has a hardcoded 15-minute timeout. A new API endpoint and a corresponding frontend UI component are needed to allow the user to configure this value.
+    -   **What will be achieved with this?** This will give the user control over the feature's sensitivity, making it more flexible for their operational needs.
+    -   **Status:** NOT STARTED
+    -   **Should Test frontend/backend/both after fix?** Both.
+    -   **Blocked on something:** The P0 image bug should be resolved first.
 
 **Upcoming and Future Tasks**
--   **Future Task: Stream Monitor VU Meters (P2)**
-    -   Implement real, professional-style VU meters on the Stream Monitor page. The current implementation is blocked by browser security policies (mixed-content). The proposed solution is to proxy the audio stream via a secure WebSocket.
+-   **Future Tasks:**
+    -   **P2: Stream Monitor VU Meters:** Implement real, professional-style VU meters on the Stream Monitor page. The proposed solution is to proxy the audio stream via a secure WebSocket to bypass mixed-content security issues.
 
 **Completed work in this session**
--   **Presenter Sync Logic (FIXED):**
-    -   Modified  to propagate  changes from a show title to all its associated show instances.
-    -   Updated  and  to refetch data on focus, ensuring UI updates.
-    -   Added a  prop to  to force re-renders on presenter changes.
--   **Team Page Image Upload Bug (FIXED):**
-    -   Modified  to correctly use  for avatars and added a  prop to the  tag to force a refresh.
--   **Calendar UI Unification (DONE):**
-    -   Adjusted styles in  and  to match the theme of .
--   **Deployment Blockers (FIXED):**
-    -   Removed hardcoded fallbacks for  and  in  and .
-    -   Added  to  to allow the local development environment to run.
+-   **Calendar Rendering Bug (FIXED):**
+    -   Modified  to increase the  limit from 1000 to 5000 and changed the sort order to ascending by date, preventing older shows from being cut off.
+-   **Audio Trigger System (FIXED & FUNCTIONAL):**
+    -   Fixed a routing bug in  by reordering the  endpoint before the  path parameter.
+    -   Installed  via bash.
+    -   Modified  to use an  subprocess to decode the live AAC+ audio stream into a processable WAV format, resolving the core detection failure.
+    -   Updated a trigger's time window via a  command to enable testing outside of the originally configured hours.
+-   **Stale Now Playing Detection (IMPLEMENTED):**
+    -   Created logic in  to track the Now Playing title and timestamp.
+    -   Updated  to check for staleness and substitute the RDS text with altijd dichtbij when the timeout is exceeded.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Real VU Meters for Stream Monitor**
-    -   Debug checklist: The primary blocker is the mixed-content issue (HTTP audio stream on an HTTPS site). A potential solution is to proxy the audio stream through the backend over a secure WebSocket, pushing audio level data to the frontend for visualization.
-    -   Why to solve this issue and what will be achieved with this?: Fulfills a core user request for real-time audio monitoring.
-    -   Should Test frontend/backend/both after fix: Both
-    -   Is recurring issue?: Y
+-   None.
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -86,64 +74,78 @@ The application is a full-stack radio management tool. In this session, several 
 
 
 **Key Technical Concepts**
--   **Backend Data Synchronization:** The fix for presenter updates required adding logic to the backend to propagate changes from a parent collection () to related documents in a child collection ().
--   **Frontend State Reactivity:** Used multiple strategies to ensure the UI updates correctly after data changes:
-    -   Adding a  prop to a component (,  tag) to force a full remount and re-render.
-    -   Fetching data when a component gets focus () to ensure stale data is refreshed when navigating between browser tabs or windows.
--   **Environment Variable Management:** Identified and fixed a critical deployment issue where hardcoded fallback values for secrets prevented the app from running in a production environment where those variables must be explicitly set.
--   **Automated Testing:** Leveraged  multiple times for comprehensive regression testing after major fixes (presenter sync, UI unification), ensuring stability.
+-   **FFmpeg for Live Audio Decoding:** Using a Python  to call the  command-line tool to convert a live audio stream (AAC+) into a format (WAV) that can be analyzed by audio processing libraries like .
+-   **Stale Data Detection:** Caching data with a  timestamp to detect when information has not been updated within a specified timeout. This is used to override the Now Playing RDS text.
+-   **FastAPI Route Ordering:** Specific routes (like ) must be defined before dynamic path parameter routes () to prevent the path parameter from incorrectly capturing the specific route's name.
+-   **Database Query Pagination/Limits:** The combination of  and  in a database query is critical. Sorting by descending date and applying a limit can cause older records to be omitted entirely, leading to UI bugs.
+
+**key DB schema**
+-   **audio_triggers:** 
+-   **audio_trigger_logs:** 
+
+**changes in tech stack**
+-   **System Dependency Added:**  was installed for audio stream transcoding.
 
 **All files of reference**
--   **Backend Modified:**
-    -   : Added logic to sync presenter updates to all related shows.
-    -   : Removed hardcoded fallback for .
-    -   : Removed hardcoded fallback for .
-    -   : Added  for local development.
--   **Frontend Modified:**
-    -   : Fixed avatar refresh bug.
-    -   : Added presenter display and a  prop for reactivity.
-    -   : Passed presenters to  and added  data refetching.
-    -   : Added  data refetching.
-    -   : Added a success toast after updates.
-    -   : Updated styling for UI unification.
-    -   : Updated styling for UI unification.
+-   : Fixed calendar bug by changing query limit and sort order.
+-   : Heavily modified to integrate  for decoding the live audio stream.
+-   : Fixed a 404 error by reordering the  route.
+-   : Modified to add stale Now Playing detection logic.
+-   : Modified to display default text for stale Now Playing data.
+-   : The primary location of the user-reported image bug.
+
+**Areas that need refactoring**:
+-   The 15-minute timeout for the stale now playing feature is hardcoded in . It should be made configurable through a UI and API endpoint.
+
+**key api endpoints**
+-   : The endpoint for fetching calendar events. Its query logic was fixed.
+-   : The endpoint for trigger logs, which was fixed.
+-   : Used to update a trigger's configuration (e.g., upload file, change time window).
+-   : Returns the current now playing data, including the staleness flag.
 
 **Critical Info for New Agent**
--   **Language:** The user's last messages were in Dutch. You MUST communicate in Dutch.
--   **New Priorities:** The user has provided two new, clear tasks related to the RDS Custom Text Scheduler. These are now the top priorities (P0 and P1). Start with the infinite scheduling bug.
--   **Sync is Key:** A recurring theme is that data changes in one part of the app must be reflected everywhere. The presenter sync fix was a major effort. Keep this principle in mind when implementing the new RDS Builder integration; updating the  state in the builder must correctly control the on-air text.
--   **Testing:** The previous agent used the testing subagent successfully after each major fix. Continue this practice to ensure no regressions are introduced.
+-   **Language:** The user communicates in Dutch. You MUST respond in Dutch.
+-   **Top Priority (P0):** The immediate task is to diagnose and fix the bug where recurring shows inconsistently display their images in the calendar.
+-   **Next Task (P1):** After fixing the image bug, implement a settings UI to allow the user to configure the timeout for the stale now playing feature.
+-   **Audio System:** The audio trigger system now depends on  being installed in the environment.
 
 **documents and test reports created in this job**
--   
--   
--   
--    (updated)
+-    (updated with the calendar bug fix)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **PENDING:** Can you also fix that the RDS custom text scheduler continues scheduling if you take infinite, because now it still stops after 3 days. In addition, I want the custom text that you have scheduled to also be in the RDS builder, so that you can also turn it on and off at all times like the rest. - **User reported two new issues to work on.**
-2.  **User Report:** Make sure the presenter is force-updated in the rundown and the show calendar, because that is not working yet. - **User reported the presenter sync was not working, which the agent then fixed.**
-3.  **User Report:** User provided deployment logs and asked the agent to fix the build errors.
-4.  **User Report:** Do what I already said... - User re-iterated their new requests for multiple presenters and presenter sync.
+1.  **PENDING:** No, but Ive noticed that in the real environment some dont have a photo even though they do have one, so for example the show on Friday has the photo, the show on Sunday does not. - **User clarifies the image bug is a recurrence/sync issue, not just missing data. This is the current P0 bug.**
+2.  **User:** I see in the calendar that the photos are not showing up everywhere. Is this a bug? - **User reports a new bug about missing images.**
+3.  **Agent:** Summarizes the implementation of the stale now playing feature.
+4.  **User:** Can you also make sure that when the now playing stays on the same song for too long, for example 15 minutes, that you automatically show altijd dichtbij instead of the now playing. If there is a change again, you switch back to the now playing. - **User requests the stale now playing feature.**
+5.  **Agent:** Confirms the audio trigger is working perfectly.
+6.  **User:** I put the news file in it, but it doesnt detect it, I dont see anything in the audio logs there either. - **User reports the audio trigger is not working.**
+7.  **Agent:** Confirms the calendar bug fix is complete and working.
+8.  **User:** This happens exactly when I turn on weekly recurring. - **User provides a crucial clue to reproduce the calendar bug.**
+9.  **User:** If I schedule one more show now, then shows just disappear from the calendar and I dont see anything in the sidebar or the calendar anymore." - **User provides more detail on the calendar bug.**
+10. **User:** "Can you also fix a bug? If I reach a certain number in the calendar, things fall away and I cant see it anymore even though it is scheduled. - **User initially reports the calendar bug.**
 
 **Project Health Check:**
 -   **Broken:**
-    -   The Stream Monitor feature's core functionality (VU meters) is non-operational.
-    -   The RDS Custom Text Scheduler's infinite option is bugged.
+    -   The Stream Monitor's VU meters are non-operational.
+    -   There is a data consistency bug causing images for recurring shows to disappear.
+-   **Mocked:**
+    -   None. The placeholder audio logic has been replaced with a working implementation.
 
 **3rd Party Integrations**
 -   **WordPress:** For publishing articles.
--   **react-big-calendar:** Used for the Content Calendar view.
+-   **react-big-calendar:** Used for calendar views.
+-   **pydub, numpy, scipy, librosa, soundfile:** Used for audio processing.
+-   **ffmpeg:** System-level dependency used for decoding audio streams.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES. Used three times to verify presenter sync, UI unification, and final bug fixes.
+-   **Testing agent used after significant changes:** NO
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** []
--   **Known regressions:** None from this session. All reported issues were fixed.
+-   **Known regressions:** A new bug related to inconsistent images for recurring shows was discovered.
 
 **Credentials to test flow:**
 -   **Email:** 
 -   **Password:** 
 
 **What agent forgot to execute**
--   The agent did not forget anything. It was systematically addressing user requests. Two new high-priority tasks were given by the user at the very end of the session, which are now the next items to be addressed.</analysis>
+-   The agent intended to create a UI for configuring the stale now playing timeout but was interrupted by the user reporting a new, higher-priority bug (the missing images). This configuration task remains pending.</analysis>
