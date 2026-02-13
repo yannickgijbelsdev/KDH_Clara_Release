@@ -535,7 +535,13 @@ const ShowDetailPage = () => {
                   variant="outline"
                   size="sm"
                   data-testid="edit-show-btn"
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => {
+                    setEditData({
+                      ...show,
+                      presenter_ids: show.presenter_ids || (show.presenters ? show.presenters.map(p => p.id) : [])
+                    });
+                    setIsEditing(true);
+                  }}
                   className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
                 >
                   <Edit2 className="w-4 h-4" />
