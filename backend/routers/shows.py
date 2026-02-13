@@ -695,7 +695,8 @@ async def create_show(
                 "recurrence_interval": show_data.recurrence_interval,
                 "recurrence_end_date": show_data.recurrence_end_date,
                 "parent_show_id": parent_id,
-                "is_recurring": True
+                "is_recurring": True,
+                "image": show_image  # Include image from show title
             }
             await db.shows.insert_one(occ_doc)
         
