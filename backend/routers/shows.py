@@ -795,6 +795,10 @@ async def update_show(
         if studio:
             updated_show['studio_name'] = studio['name']
     
+    # Get presenter info
+    if updated_show.get('presenter_ids'):
+        updated_show['presenters'] = await get_presenters_info(updated_show['presenter_ids'], current_user.get('team_id'))
+    
     return updated_show
 
 
