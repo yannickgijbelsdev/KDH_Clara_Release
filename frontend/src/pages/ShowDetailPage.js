@@ -1024,6 +1024,7 @@ const ShowDetailPage = () => {
 
       {/* Rundown Section */}
       <RundownEditor 
+        key={`rundown-${showId}-${show?.presenters?.map(p => p.id).join('-') || 'no-presenters'}`}
         showId={showId} 
         canEdit={isEditor} 
         showStartTime={show?.start_time} 
