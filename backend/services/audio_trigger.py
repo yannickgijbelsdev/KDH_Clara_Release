@@ -226,7 +226,8 @@ async def fetch_stream_chunk(station: str, duration: float = CHUNK_DURATION) -> 
 
 
 async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarray,
-                                      threshold: float = 0.85) -> Tuple[bool, float]:
+                                      threshold: float = DEFAULT_THRESHOLD,
+                                      trigger_name: str = "unknown") -> Tuple[bool, float]:
     """Analyze a stream chunk and check for trigger audio.
     
     Returns (detected, similarity_score).
@@ -235,9 +236,13 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
         return False, 0.0
     
     # Fetch stream chunk
+    logger.debug(f"[{trigger_name}] Fetching {CHUNK_DURATION}s audio from {station} stream...")
     audio_bytes = await fetch_stream_chunk(station)
     if not audio_bytes:
+        logger.warning(f"[{trigger_name}] Failed to fetch stream chunk from {station}")
         return False, 0.0
+    
+    logger.debug(f"[{trigger_name}] Received {len(audio_bytes)} bytes from stream")
     
     try:
         # Save to temp file for processing
@@ -263,7 +268,7 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
             )
             
             if result.returncode != 0 or not os.path.exists(output_path):
-                logger.warning(f"FFmpeg conversion failed: {result.stderr.decode()[:200]}")
+                logger.warning(f"[{trigger_name}] FFmpeg conversion failed: {result.stderr.decode()[:200]}")
                 return False, 0.0
             
             # Load the converted WAV file
@@ -271,18 +276,23 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
             
             # Check if we got valid audio data
             if audio_data is None or len(audio_data) == 0:
-                logger.warning(f"No audio data loaded from stream")
+                logger.warning(f"[{trigger_name}] No audio data loaded from stream")
                 return False, 0.0
+            
+            audio_duration = len(audio_data) / sr
+            logger.debug(f"[{trigger_name}] Loaded {audio_duration:.2f}s of audio data")
             
             # Compute fingerprints for the stream chunk
             stream_fps = compute_fingerprint_sequence(audio_data, sr)
             
             if not stream_fps:
-                logger.warning(f"No fingerprints computed from stream (audio too short?)")
+                logger.warning(f"[{trigger_name}] No fingerprints computed from stream (audio too short?)")
                 return False, 0.0
             
+            logger.debug(f"[{trigger_name}] Computed {len(stream_fps)} fingerprint windows")
+            
             # Check for match
-            return find_audio_match(stream_fps, trigger_fingerprint, threshold)
+            return find_audio_match(stream_fps, trigger_fingerprint, threshold, trigger_name)
             
         finally:
             # Clean up temp files
