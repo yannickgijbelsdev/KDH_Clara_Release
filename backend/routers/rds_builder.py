@@ -507,6 +507,7 @@ class ScheduledTextUpdate(BaseModel):
     """Update a scheduled custom text."""
     text: Optional[str] = None
     start_datetime: Optional[str] = None
+    station: Optional[Literal["mfy", "grk", "both"]] = None
     duration_type: Optional[Literal["fixed", "until_next"]] = None
     duration_minutes: Optional[int] = None
     recurrence_type: Optional[Literal["none", "hourly", "daily", "weekly", "monthly"]] = None
