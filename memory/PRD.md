@@ -977,3 +977,27 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - `presenter_ids` in Show models
   - `get_presenters_info()` helper functie voor data enrichment
   - Alle CRUD endpoints verrijken responses met presenter details
+
+### February 13, 2026 - Rundown Live Mode, Content Calendar & RDS Presenter
+- [x] **Rundown Time Sync (Live Mode)**:
+  - "Volg live" toggle bovenaan de rundown editor
+  - Groen highlighted huidige rundown item gebaseerd op werkelijke tijd
+  - Auto-scroll naar actief item
+  - Groene pulserende indicator links van actief item
+  - Files: `frontend/src/components/RundownEditor.js`, `frontend/src/components/SortableRundownItem.js`
+
+- [x] **Content Library Calendar View**:
+  - Nieuwe "Kalender" knop in Content Library header
+  - Nieuwe pagina `/content/calendar` met react-big-calendar
+  - Maand en Week view toggle
+  - Legenda: Gepubliceerd (groen) en Gepland (oranje)
+  - Featured images als thumbnails in events
+  - Dark mode styling voor calendar
+  - Files: `frontend/src/pages/ContentCalendarPage.js`, `frontend/src/pages/ContentLibraryPage.js`, `frontend/src/App.css`
+
+- [x] **RDS Builder Presenter Name**:
+  - Nieuw item type "Presenter" in RDS sequence builder
+  - Toont presenter(s) van huidige live show
+  - Meerdere presenters gejoined met " & "
+  - Ondersteund in zowel Legacy als Multi-Output mode
+  - Files: `frontend/src/pages/RDSBuilderPage.js`, `frontend/src/components/rds/RDSOutputManager.js`, `backend/routers/rds_builder.py`, `backend/services/rds_builder_scheduler.py`
