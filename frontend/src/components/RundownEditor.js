@@ -14,7 +14,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Plus, Music, Mic, FileText, Radio, ListOrdered, Play, Pause } from 'lucide-react';
+import { Plus, Music, Mic, FileText, Radio, ListOrdered, Play, Pause, Users, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
