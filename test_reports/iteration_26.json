@@ -1,0 +1,90 @@
+{
+  "summary": "RDS Custom Text Scheduler feature - All tests passed (21/21 backend, 100% frontend). Fixed a critical bug in the /active endpoint (TypeError comparing offset-naive and offset-aware datetimes).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rds_scheduled_texts.py",
+    "/app/test_reports/pytest/rds_scheduled_texts_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All CRUD endpoints working correctly",
+    "Calendar expansion of recurring items works as expected",
+    "Show priority over scheduled texts logic implemented correctly",
+    "Frontend dialog has all required fields (text, date, time, duration type, duration minutes, recurrence type, recurrence end date, enabled)",
+    "Station selector (MFY/GRK) works correctly",
+    "Month navigation and Today button work correctly"
+  ],
+  "updated_files": [
+    "/app/backend/routers/rds_builder.py (fixed timezone-aware datetime comparison bug in get_active_scheduled_text)",
+    "/app/backend/tests/test_rds_scheduled_texts.py (new test file)"
+  ],
+  "success_rate": {
+    "backend": "100% (21/21 tests passed)",
+    "frontend": "100% (all UI flows verified)"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Existing test data used: daily recurring scheduled text 'Test nieuws flash' for MFY station starting 2026-02-13 at 18:00",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "RDS Custom Text Scheduler feature is fully implemented and tested. Endpoints: GET/POST /api/rds-builder/scheduled-texts/{station}, PUT/DELETE /api/rds-builder/scheduled-texts/{station}/{id}, GET /api/rds-builder/scheduled-texts/{station}/calendar, GET /api/rds-builder/scheduled-texts/{station}/active. Frontend page at /rds-scheduler with calendar view and create/edit dialog.",
+  "features_tested": {
+    "GET /api/rds-builder/scheduled-texts/{station}": {
+      "status": "PASS",
+      "details": "Returns list of scheduled texts for station"
+    },
+    "POST /api/rds-builder/scheduled-texts/{station}": {
+      "status": "PASS",
+      "details": "Creates scheduled text with all options (fixed/until_next duration, none/daily/weekly/monthly recurrence)"
+    },
+    "PUT /api/rds-builder/scheduled-texts/{station}/{id}": {
+      "status": "PASS",
+      "details": "Updates existing scheduled text"
+    },
+    "DELETE /api/rds-builder/scheduled-texts/{station}/{id}": {
+      "status": "PASS",
+      "details": "Deletes scheduled text"
+    },
+    "GET /api/rds-builder/scheduled-texts/{station}/calendar": {
+      "status": "PASS",
+      "details": "Returns calendar items with recurring items expanded across date range"
+    },
+    "GET /api/rds-builder/scheduled-texts/{station}/active": {
+      "status": "PASS",
+      "details": "Returns currently active scheduled text (respects show priority) - BUG FIXED: timezone comparison"
+    },
+    "RDS Scheduler page loads": {
+      "status": "PASS",
+      "details": "Calendar view with month navigation, station selector"
+    },
+    "Create dialog with all fields": {
+      "status": "PASS",
+      "details": "Text, date, time, duration type, duration minutes, recurrence type, recurrence end date, enabled toggle"
+    },
+    "Calendar shows recurring items expanded": {
+      "status": "PASS",
+      "details": "Daily recurring item appears on multiple days in calendar"
+    },
+    "Link from RDS Builder to Scheduler": {
+      "status": "PASS",
+      "details": "'Custom Text Scheduler' button navigates to /rds-scheduler"
+    }
+  },
+  "bug_fixed": {
+    "file": "/app/backend/routers/rds_builder.py",
+    "line": "763-768",
+    "issue": "TypeError: can't compare offset-naive and offset-aware datetimes in get_active_scheduled_text endpoint",
+    "root_cause": "When start_datetime is stored without timezone info (e.g., '2026-02-13T18:00:00'), parsing it creates a naive datetime that can't be compared with timezone-aware 'now'",
+    "fix": "Added timezone awareness check and fallback to UTC if datetime is naive"
+  }
+}
