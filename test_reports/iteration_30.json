@@ -1,0 +1,96 @@
+{
+  "summary": "Dutch to English UI translation verification complete. All tested pages display English text correctly. No Dutch UI text found in any of the tested pages.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CalendarPage.js: Weekday headers correctly show Mon/Tue/Wed/Thu/Fri/Sat/Sun",
+    "CalendarPage.js: Status labels show Draft/Scheduled/Completed",
+    "CalendarPage.js: 'Today', 'New Show', 'Schedule' buttons all in English",
+    "RDSSchedulerPage.js: 'RDS Custom Text Scheduler' title, 'Schedule custom texts' subtitle",
+    "RDSSchedulerPage.js: 'New text', 'Today' buttons in English",
+    "RDSSchedulerPage.js: Weekday headers Mon-Sun in English",
+    "RDSSchedulerPage.js: Dialog labels (Date, Time, Duration, Recurrence) in English",
+    "ContentCalendarPage.js: 'Content Calendar', 'Published', 'Scheduled', 'Month', 'Week', 'Back to list' all English",
+    "RDSBuilderPage.js: Item types 'Show Name', 'Presenter', 'Now Playing', 'Custom Text' in English",
+    "RDSSettingsPage.js: 'Refresh Cache', 'Configuration', 'API Endpoints', 'Cache Logs' in English",
+    "RDSOutputManager.js: 'New Output', 'Edit Output' dialogs in English",
+    "ShowManagementPage.js: 'Show Titles', 'Studios', 'Add Title', 'Default Presenters' in English",
+    "RundownEditor.js: 'Follow live' toggle label in English"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A - frontend only testing",
+    "frontend": "100% - all English translations verified"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test"
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All UI elements have been translated from Dutch to English. Translation verification covered: Calendar pages (CalendarPage, RDSSchedulerPage, ContentCalendarPage), RDS pages (RDSBuilderPage, RDSSettingsPage, RDSOutputManager), ShowManagementPage, CreateShowDialog, RundownEditor. All navigation items, buttons, labels, status indicators, dialogs, and date formatting now use English text.",
+  "features_tested": {
+    "CalendarPage - English weekdays": {
+      "status": "PASS",
+      "details": "Mon/Tue/Wed/Thu/Fri/Sat/Sun weekday headers verified"
+    },
+    "CalendarPage - English status labels": {
+      "status": "PASS",
+      "details": "Draft/Scheduled/Completed status labels verified"
+    },
+    "CalendarPage - English buttons": {
+      "status": "PASS",
+      "details": "'Today', 'New Show' buttons verified"
+    },
+    "RDSSchedulerPage - English title and subtitle": {
+      "status": "PASS",
+      "details": "'RDS Custom Text Scheduler', 'Schedule custom texts for specific times' verified"
+    },
+    "RDSSchedulerPage - English weekdays": {
+      "status": "PASS",
+      "details": "Mon/Tue/Wed/Thu/Fri/Sat/Sun weekday headers verified"
+    },
+    "RDSSchedulerPage - English buttons": {
+      "status": "PASS",
+      "details": "'New text', 'Today' buttons verified"
+    },
+    "ContentCalendarPage - English labels": {
+      "status": "PASS",
+      "details": "'Content Calendar', 'Published', 'Scheduled', 'Month', 'Week', 'Back to list' verified"
+    },
+    "RDSBuilderPage - English item types": {
+      "status": "PASS",
+      "details": "'Show Name', 'Now Playing', 'Custom Text' item types verified"
+    },
+    "RDSSettingsPage - English sections": {
+      "status": "PASS",
+      "details": "'RDS Settings', 'Refresh Cache', 'Configuration', 'API Endpoints', 'Cache Logs' verified"
+    },
+    "ShowManagementPage - English labels": {
+      "status": "PASS",
+      "details": "'Show Management', 'Show Titles', 'Studios', 'Add Title' verified"
+    },
+    "RundownEditor - Follow live toggle": {
+      "status": "PASS",
+      "details": "'Follow live' label verified in English (was 'Volg live')"
+    },
+    "Navigation menu - English items": {
+      "status": "PASS",
+      "details": "'Shows', 'Calendar', 'Content', 'Administration' menu items verified"
+    },
+    "Date formatting - English locale": {
+      "status": "PASS",
+      "details": "Month names (February 2026) and date formatting using English locale"
+    }
+  }
+}
