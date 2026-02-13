@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,7 +20,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const locales = { 'nl': nl };
+const locales = { 'en-US': enUS };
 
 const localizer = dateFnsLocalizer({
   format,
@@ -102,7 +102,7 @@ const CustomToolbar = ({ label, onNavigate, onView, view }) => {
           onClick={() => onNavigate('TODAY')}
           className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 ml-2"
         >
-          Vandaag
+          Today
         </Button>
       </div>
       
@@ -116,7 +116,7 @@ const CustomToolbar = ({ label, onNavigate, onView, view }) => {
           className={view === 'month' ? 'bg-violet-500 text-white' : 'text-zinc-400 hover:text-white'}
         >
           <CalendarDays className="w-4 h-4 mr-2" />
-          Maand
+          Month
         </Button>
         <Button
           variant={view === 'week' ? 'secondary' : 'ghost'}
@@ -238,9 +238,9 @@ const ContentCalendarPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Content Kalender</h1>
+          <h1 className="text-2xl font-bold text-white">Content Calendar</h1>
           <p className="text-zinc-500 mt-1">
-            Overzicht van gepubliceerde en geplande artikelen
+            Overview of published and scheduled articles
           </p>
         </div>
         <Button
@@ -249,7 +249,7 @@ const ContentCalendarPage = () => {
           className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
         >
           <List className="w-4 h-4 mr-2" />
-          Terug naar lijst
+          Back to list
         </Button>
       </div>
 
@@ -257,11 +257,11 @@ const ContentCalendarPage = () => {
       <div className="flex items-center gap-6 mb-6 p-4 bg-[#18181b] rounded-lg border border-zinc-800">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-green-500/20 border border-green-500"></div>
-          <span className="text-sm text-zinc-400">Gepubliceerd</span>
+          <span className="text-sm text-zinc-400">Published</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-orange-500/20 border border-orange-500"></div>
-          <span className="text-sm text-zinc-400">Gepland</span>
+          <span className="text-sm text-zinc-400">Scheduled</span>
         </div>
       </div>
 
@@ -284,16 +284,16 @@ const ContentCalendarPage = () => {
             event: EventComponent,
           }}
           messages={{
-            today: 'Vandaag',
-            previous: 'Vorige',
-            next: 'Volgende',
-            month: 'Maand',
+            today: 'Today',
+            previous: 'Previous',
+            next: 'Next',
+            month: 'Month',
             week: 'Week',
-            day: 'Dag',
+            day: 'Day',
             agenda: 'Agenda',
-            noEventsInRange: 'Geen artikelen in deze periode',
+            noEventsInRange: 'No articles in this period',
           }}
-          culture="nl"
+          culture="en-US"
         />
       </div>
     </div>
