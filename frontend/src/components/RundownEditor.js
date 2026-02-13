@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import {
   DndContext,
@@ -14,8 +14,10 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Plus, Music, Mic, FileText, Radio, ListOrdered } from 'lucide-react';
+import { Plus, Music, Mic, FileText, Radio, ListOrdered, Play, Pause } from 'lucide-react';
 import { Button } from './ui/button';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
 import { toast } from 'sonner';
 import SortableRundownItem from './SortableRundownItem';
 import RundownItemDialog from './RundownItemDialog';
