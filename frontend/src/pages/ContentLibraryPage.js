@@ -214,7 +214,7 @@ const ContentLibraryPage = () => {
             className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
           >
             <CalendarDays className="w-4 h-4" />
-            Kalender
+            Calendar
           </Button>
           {isEditor && (
             <Button

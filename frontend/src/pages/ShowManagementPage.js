@@ -603,13 +603,13 @@ const ShowManagementPage = () => {
             {/* RDS Station Selection */}
             <div className="space-y-2">
               <Label className="text-zinc-300">RDS Station</Label>
-              <p className="text-xs text-zinc-500 mb-2">Kies op welke radiostation(s) deze show moet worden getoond in RDS</p>
+              <p className="text-xs text-zinc-500 mb-2">Choose on which radio station(s) this show should be displayed in RDS</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { value: 'none', label: 'Geen', color: 'zinc' },
+                  { value: 'none', label: 'None', color: 'zinc' },
                   { value: 'mfy', label: 'MFY', color: 'orange' },
                   { value: 'grk', label: 'GRK', color: 'violet' },
-                  { value: 'both', label: 'Beide', color: 'green' },
+                  { value: 'both', label: 'Both', color: 'green' },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -635,8 +635,8 @@ const ShowManagementPage = () => {
 
             {/* Default Presenters Selection */}
             <div className="space-y-2">
-              <Label className="text-zinc-300">Standaard Presenters</Label>
-              <p className="text-xs text-zinc-500 mb-2">Selecteer de standaard presenters voor deze show</p>
+              <Label className="text-zinc-300">Default Presenters</Label>
+              <p className="text-xs text-zinc-500 mb-2">Select the default presenters for this show</p>
               <Popover open={presenterPopoverOpen} onOpenChange={setPresenterPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
@@ -652,7 +652,7 @@ const ShowManagementPage = () => {
                         ).join(', ')}
                       </span>
                     ) : (
-                      <span className="text-zinc-500">Selecteer presenters...</span>
+                      <span className="text-zinc-500">Select presenters...</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -689,7 +689,7 @@ const ShowManagementPage = () => {
                       </button>
                     ))}
                     {teamUsers.length === 0 && (
-                      <p className="text-sm text-zinc-500 text-center py-4">Geen teamleden gevonden</p>
+                      <p className="text-sm text-zinc-500 text-center py-4">No team members found</p>
                     )}
                   </div>
                 </PopoverContent>
