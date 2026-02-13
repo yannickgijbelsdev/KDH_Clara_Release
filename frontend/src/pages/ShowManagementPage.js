@@ -61,6 +61,9 @@ const ShowManagementPage = () => {
   const [activeTab, setActiveTab] = useState('titles');
   const [loading, setLoading] = useState(true);
   
+  // Team users for presenter selection
+  const [teamUsers, setTeamUsers] = useState([]);
+  
   // Show Titles state
   const [showTitles, setShowTitles] = useState([]);
   const [titleDialogOpen, setTitleDialogOpen] = useState(false);
@@ -73,8 +76,10 @@ const ShowManagementPage = () => {
     default_start_time: '09:00',
     default_end_time: '10:00',
     rds_station: 'none',
+    default_presenter_ids: [],
   });
   const [savingTitle, setSavingTitle] = useState(false);
+  const [presenterPopoverOpen, setPresenterPopoverOpen] = useState(false);
   
   // Image upload state
   const [uploadingImage, setUploadingImage] = useState(false);
