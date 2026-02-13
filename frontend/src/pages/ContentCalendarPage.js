@@ -1,0 +1,303 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import { format, parse, startOfWeek, getDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+import { nl } from 'date-fns/locale';
+import {
+  ChevronLeft,
+  ChevronRight,
+  List,
+  CalendarDays,
+  Globe,
+  Clock,
+  FileText,
+  Image,
+} from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { toast } from 'sonner';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const locales = { 'nl': nl };
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  getDay,
+  locales,
+});
+
+// Helper to get featured image URL
+const getFeaturedImageUrl = (featuredImage) => {
+  if (!featuredImage) return null;
+  if (featuredImage.s3_url) return featuredImage.s3_url;
+  return `${API}/uploads/featured_images/${featuredImage.file_storage_key}`;
+};
+
+// Get the best available featured image for a content item
+const getBestFeaturedImage = (item) => {
+  if (item.featured_image) {
+    return getFeaturedImageUrl(item.featured_image);
+  }
+  if (item.publish_statuses && item.publish_statuses.length > 0) {
+    for (const ps of item.publish_statuses) {
+      if (ps.featured_image) {
+        return ps.featured_image.s3_url || `${API}/uploads/featured_images/${ps.featured_image.file_storage_key}`;
+      }
+    }
+  }
+  if (item.external_featured_image) {
+    return item.external_featured_image;
+  }
+  return null;
+};
+
+// Custom Event Component with Featured Image
+const EventComponent = ({ event }) => {
+  const imageUrl = getBestFeaturedImage(event.resource);
+  
+  return (
+    <div className="flex items-center gap-2 px-1 py-0.5 overflow-hidden h-full">
+      {imageUrl && (
+        <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0 bg-zinc-700">
+          <img 
+            src={imageUrl} 
+            alt="" 
+            className="w-full h-full object-cover"
+            onError={(e) => e.target.style.display = 'none'}
+          />
+        </div>
+      )}
+      <span className="truncate text-xs font-medium">{event.title}</span>
+    </div>
+  );
+};
+
+// Custom Toolbar
+const CustomToolbar = ({ label, onNavigate, onView, view }) => {
+  return (
+    <div className="flex items-center justify-between mb-6 pb-4 border-b border-zinc-800">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onNavigate('PREV')}
+          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onNavigate('NEXT')}
+          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => onNavigate('TODAY')}
+          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 ml-2"
+        >
+          Vandaag
+        </Button>
+      </div>
+      
+      <h2 className="text-xl font-semibold text-white">{label}</h2>
+      
+      <div className="flex items-center gap-2 bg-zinc-800 rounded-lg p-1">
+        <Button
+          variant={view === 'month' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => onView('month')}
+          className={view === 'month' ? 'bg-violet-500 text-white' : 'text-zinc-400 hover:text-white'}
+        >
+          <CalendarDays className="w-4 h-4 mr-2" />
+          Maand
+        </Button>
+        <Button
+          variant={view === 'week' ? 'secondary' : 'ghost'}
+          size="sm"
+          onClick={() => onView('week')}
+          className={view === 'week' ? 'bg-violet-500 text-white' : 'text-zinc-400 hover:text-white'}
+        >
+          <List className="w-4 h-4 mr-2" />
+          Week
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const ContentCalendarPage = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [contentItems, setContentItems] = useState([]);
+  const [view, setView] = useState('month');
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  useEffect(() => {
+    fetchContent();
+  }, []);
+
+  const fetchContent = async () => {
+    try {
+      const response = await axios.get(`${API}/content`);
+      // Filter only published and scheduled items
+      const filtered = response.data.filter(item => {
+        // Check if item has any WordPress publish status
+        if (item.publish_statuses && item.publish_statuses.length > 0) {
+          return item.publish_statuses.some(ps => 
+            ps.status === 'published' || ps.status === 'scheduled'
+          );
+        }
+        return false;
+      });
+      setContentItems(filtered);
+    } catch (error) {
+      toast.error('Failed to load content');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transform content items to calendar events
+  const events = useMemo(() => {
+    const calendarEvents = [];
+    
+    contentItems.forEach(item => {
+      if (item.publish_statuses) {
+        item.publish_statuses.forEach(ps => {
+          if (ps.status === 'published' || ps.status === 'scheduled') {
+            const publishDate = ps.published_at 
+              ? new Date(ps.published_at) 
+              : ps.scheduled_at 
+                ? new Date(ps.scheduled_at)
+                : null;
+            
+            if (publishDate) {
+              calendarEvents.push({
+                id: `${item.id}-${ps.site_id}`,
+                title: item.title,
+                start: publishDate,
+                end: publishDate,
+                allDay: true,
+                resource: {
+                  ...item,
+                  publishStatus: ps,
+                },
+                status: ps.status,
+              });
+            }
+          }
+        });
+      }
+    });
+    
+    return calendarEvents;
+  }, [contentItems]);
+
+  const handleSelectEvent = (event) => {
+    navigate(`/content/${event.resource.id}`);
+  };
+
+  const handleNavigate = (newDate) => {
+    setCurrentDate(newDate);
+  };
+
+  const eventStyleGetter = (event) => {
+    const isPublished = event.status === 'published';
+    return {
+      style: {
+        backgroundColor: isPublished ? 'rgba(34, 197, 94, 0.2)' : 'rgba(249, 115, 22, 0.2)',
+        borderColor: isPublished ? 'rgb(34, 197, 94)' : 'rgb(249, 115, 22)',
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderRadius: '4px',
+        color: isPublished ? 'rgb(134, 239, 172)' : 'rgb(253, 186, 116)',
+      },
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-10 bg-zinc-800 rounded w-1/3"></div>
+          <div className="h-[600px] bg-zinc-800 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Content Kalender</h1>
+          <p className="text-zinc-500 mt-1">
+            Overzicht van gepubliceerde en geplande artikelen
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate('/content')}
+          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+        >
+          <List className="w-4 h-4 mr-2" />
+          Terug naar lijst
+        </Button>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-6 mb-6 p-4 bg-[#18181b] rounded-lg border border-zinc-800">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-green-500/20 border border-green-500"></div>
+          <span className="text-sm text-zinc-400">Gepubliceerd</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded bg-orange-500/20 border border-orange-500"></div>
+          <span className="text-sm text-zinc-400">Gepland</span>
+        </div>
+      </div>
+
+      {/* Calendar */}
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 content-calendar">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 600 }}
+          view={view}
+          onView={setView}
+          date={currentDate}
+          onNavigate={handleNavigate}
+          onSelectEvent={handleSelectEvent}
+          eventPropGetter={eventStyleGetter}
+          components={{
+            toolbar: CustomToolbar,
+            event: EventComponent,
+          }}
+          messages={{
+            today: 'Vandaag',
+            previous: 'Vorige',
+            next: 'Volgende',
+            month: 'Maand',
+            week: 'Week',
+            day: 'Dag',
+            agenda: 'Agenda',
+            noEventsInRange: 'Geen artikelen in deze periode',
+          }}
+          culture="nl"
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ContentCalendarPage;
