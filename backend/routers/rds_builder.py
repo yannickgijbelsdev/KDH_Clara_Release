@@ -493,12 +493,12 @@ async def get_output_status(
 
 class ScheduledTextCreate(BaseModel):
     """Create a scheduled custom text."""
-    station: Literal["mfy", "grk"]
+    station: Literal["mfy", "grk", "both"]
     text: str
     start_datetime: str  # ISO format datetime
     duration_type: Literal["fixed", "until_next"] = "fixed"
     duration_minutes: Optional[int] = 5  # Only used if duration_type is "fixed"
-    recurrence_type: Literal["none", "daily", "weekly", "monthly"] = "none"
+    recurrence_type: Literal["none", "hourly", "daily", "weekly", "monthly"] = "none"
     recurrence_end_date: Optional[str] = None  # YYYY-MM-DD format
     enabled: bool = True
 
@@ -509,7 +509,7 @@ class ScheduledTextUpdate(BaseModel):
     start_datetime: Optional[str] = None
     duration_type: Optional[Literal["fixed", "until_next"]] = None
     duration_minutes: Optional[int] = None
-    recurrence_type: Optional[Literal["none", "daily", "weekly", "monthly"]] = None
+    recurrence_type: Optional[Literal["none", "hourly", "daily", "weekly", "monthly"]] = None
     recurrence_end_date: Optional[str] = None
     enabled: Optional[bool] = None
 
