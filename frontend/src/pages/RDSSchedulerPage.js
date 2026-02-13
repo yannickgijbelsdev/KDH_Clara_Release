@@ -311,20 +311,29 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
         </Button>
       </div>
       <div className="space-y-0.5">
-        {dayItems.slice(0, 3).map((item, idx) => (
-          <button
-            key={`${item.id}-${idx}`}
-            onClick={() => onItemClick(item)}
-            className={`w-full text-left px-1.5 py-0.5 rounded text-xs truncate ${
-              item.enabled
-                ? item.station === 'mfy' ? 'bg-orange-500/20 text-orange-300' : 'bg-violet-500/20 text-violet-300'
-                : 'bg-zinc-800 text-zinc-500'
-            }`}
-          >
-            <span className="font-mono mr-1">{item.occurrence_time}</span>
-            {item.text.substring(0, 15)}...
-          </button>
-        ))}
+        {dayItems.slice(0, 3).map((item, idx) => {
+          // Determine color based on station
+          let colorClass = 'bg-zinc-800 text-zinc-500'; // disabled
+          if (item.enabled) {
+            if (item.station === 'both') {
+              colorClass = 'bg-green-500/20 text-green-300';
+            } else if (item.station === 'mfy') {
+              colorClass = 'bg-orange-500/20 text-orange-300';
+            } else {
+              colorClass = 'bg-violet-500/20 text-violet-300';
+            }
+          }
+          return (
+            <button
+              key={`${item.id}-${idx}`}
+              onClick={() => onItemClick(item)}
+              className={`w-full text-left px-1.5 py-0.5 rounded text-xs truncate ${colorClass}`}
+            >
+              <span className="font-mono mr-1">{item.occurrence_time}</span>
+              {item.text.substring(0, 15)}...
+            </button>
+          );
+        })}
         {dayItems.length > 3 && (
           <span className="text-xs text-zinc-500 px-1">+{dayItems.length - 3} meer</span>
         )}
