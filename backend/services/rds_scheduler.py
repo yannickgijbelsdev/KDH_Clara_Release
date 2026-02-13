@@ -45,51 +45,37 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     live_shows = []
     
     for q in queries_to_try:
-        # Standard query for shows that don't cross midnight
-        query_normal = {
-            "status": "scheduled",
-            "date": q["date"],
-            "start_time": {"$lte": q["time"]},
-            "end_time": {"$gte": q["time"]}
-        }
-        
-        # Query for shows that cross midnight (end_time < start_time, e.g., 22:00-00:00)
-        # These shows are live if: current_time >= start_time (same day)
-        query_midnight = {
-            "status": "scheduled",
-            "date": q["date"],
-            "start_time": {"$lte": q["time"]},
-            "end_time": {"$lt": "$start_time"}  # This won't work in MongoDB, need different approach
-        }
+        current_time = q["time"]
+        current_date = q["date"]
         
         if team_id:
-            query_normal["team_id"] = team_id
+            base_query = {"status": "scheduled", "date": current_date, "team_id": team_id}
+        else:
+            base_query = {"status": "scheduled", "date": current_date}
         
-        # First try normal shows
-        shows = await db.shows.find(query_normal, {"_id": 0}).to_list(100)
+        # Get all shows for today
+        all_shows_today = await db.shows.find(base_query, {"_id": 0}).to_list(100)
         
-        # Also find shows that cross midnight (end_time like "00:00", "01:00", etc.)
-        # These are shows where end_time < start_time (as strings, "00:00" < "22:00")
-        midnight_query = {
-            "status": "scheduled",
-            "date": q["date"],
-            "start_time": {"$lte": q["time"]},
-            "end_time": {"$regex": "^0[0-5]:"}  # Matches 00:xx to 05:xx (overnight shows)
-        }
-        if team_id:
-            midnight_query["team_id"] = team_id
+        # Filter to find which shows are currently live
+        for show in all_shows_today:
+            start = show.get("start_time", "00:00")
+            end = show.get("end_time", "23:59")
+            
+            is_live = False
+            
+            if start <= end:
+                # Normal show (doesn't cross midnight)
+                is_live = start <= current_time <= end
+            else:
+                # Show crosses midnight (e.g., 22:00 - 00:00)
+                # Live if: current >= start (show started today, hasn't ended yet)
+                is_live = current_time >= start
+            
+            if is_live:
+                live_shows.append(show)
         
-        midnight_shows = await db.shows.find(midnight_query, {"_id": 0}).to_list(100)
-        
-        # Filter midnight shows: only include if start_time > end_time (crosses midnight)
-        for show in midnight_shows:
-            if show.get("start_time", "00:00") > show.get("end_time", "23:59"):
-                if show not in shows:
-                    shows.append(show)
-        
-        if shows:
-            live_shows = shows
-            logger.info(f"Found {len(shows)} live shows using time {q['time']} on {q['date']}")
+        if live_shows:
+            logger.info(f"Found {len(live_shows)} live shows using time {current_time} on {current_date}")
             break
     
     results = []
