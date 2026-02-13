@@ -883,3 +883,33 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Oorzaak: Inconsistentie tussen database velden (file_key, filename) en model (file_storage_key, file_name)
   - Fix: ShowImage model aangepast om beide naamconventies te ondersteunen met aliassen
   - File: `/app/backend/models/shows.py`
+
+### February 13, 2026 - RDS Custom Text Scheduler Feature
+- [x] **RDS Custom Text Scheduler**:
+  - Nieuwe feature: Meerdere custom teksten schedulen op specifieke tijdstippen
+  - Backend API endpoints:
+    - `GET /api/rds-builder/scheduled-texts/{station}` - alle geplande teksten ophalen
+    - `POST /api/rds-builder/scheduled-texts/{station}` - nieuwe geplande tekst aanmaken
+    - `PUT /api/rds-builder/scheduled-texts/{station}/{id}` - geplande tekst bewerken
+    - `DELETE /api/rds-builder/scheduled-texts/{station}/{id}` - geplande tekst verwijderen
+    - `GET /api/rds-builder/scheduled-texts/{station}/calendar` - kalender items met recurring expansion
+    - `GET /api/rds-builder/scheduled-texts/{station}/active` - momenteel actieve geplande tekst
+  - Scheduling opties:
+    - Datum en tijd selectie
+    - Duur type: Vaste duur (in minuten) OF Tot volgende item
+    - Herhaling: Eenmalig, Dagelijks, Wekelijks, Maandelijks
+    - Einddatum voor herhalende items (optioneel)
+  - Frontend:
+    - Nieuwe `/rds-scheduler` pagina met kalender view
+    - Maand navigatie en vandaag button
+    - Station selector (MFY/GRK)
+    - Create/Edit dialog met alle opties
+    - Link vanuit RDS Builder pagina ("Custom Text Scheduler" button)
+  - Shows hebben altijd voorrang boven geplande custom teksten
+  - Files aangepast:
+    - `/app/backend/routers/rds_builder.py` - nieuwe API endpoints
+    - `/app/frontend/src/pages/RDSSchedulerPage.js` - nieuwe pagina
+    - `/app/frontend/src/pages/RDSBuilderPage.js` - link naar scheduler
+    - `/app/frontend/src/App.js` - route toegevoegd
+  - Nieuwe MongoDB collection: `rds_scheduled_texts`
+  - Tested: 21/21 backend tests passed, 100% frontend UI verified
