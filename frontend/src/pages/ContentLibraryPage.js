@@ -206,16 +206,27 @@ const ContentLibraryPage = () => {
             )}
           </p>
         </div>
-        {isEditor && (
+        <div className="flex items-center gap-3">
           <Button
-            data-testid="create-content-btn"
-            onClick={() => setIsCreateOpen(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
+            data-testid="content-calendar-btn"
+            onClick={() => navigate('/content/calendar')}
+            variant="outline"
+            className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
           >
-            <Plus className="w-5 h-5" />
-            New Content
+            <CalendarDays className="w-4 h-4" />
+            Kalender
           </Button>
-        )}
+          {isEditor && (
+            <Button
+              data-testid="create-content-btn"
+              onClick={() => setIsCreateOpen(true)}
+              className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
+            >
+              <Plus className="w-5 h-5" />
+              New Content
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Search and Filters */}
