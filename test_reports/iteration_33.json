@@ -1,0 +1,63 @@
+{
+  "summary": "Presenter sync feature testing COMPLETE - All features working correctly. Backend: PUT /api/shows/titles/{id} now syncs presenter_ids to all shows when default_presenter_ids are updated. Frontend: Presenters display correctly on Calendar sidebar, Show Detail page, and Rundown Editor. Backstage Radio correctly shows 2 presenters: Yannick Gijbels and Hadewig Weyen.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_presenter_sync.py",
+    "/app/test_reports/pytest/presenter_sync_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend shows.py lines 183-193: Presenter sync correctly updates all shows with matching title when default_presenter_ids changes",
+    "ShowDetailPage.js: Window focus listener added to refetch show data - ensures presenter updates reflect when user returns from editing",
+    "RundownEditor.js: Key prop added with presenter IDs to force re-render when presenters change",
+    "CalendarPage.js: Window focus listener added to refetch shows - sidebar shows presenter info correctly"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (5/5 tests passed)",
+    "frontend": "100% (all features verified)"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Backstage Radio title pre-configured with 2 presenters (Yannick Gijbels, Hadewig Weyen), synced to 52 shows",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Presenter sync feature fully working. Backstage Radio has 52 scheduled shows all synced with 2 presenters. The sync happens automatically when updating default_presenter_ids on show title via PUT /api/shows/titles/{id}. Frontend components (CalendarPage, ShowDetailPage, RundownEditor) have window focus listeners to refetch data when user returns.",
+  "features_tested": {
+    "Show Management - Update presenters on show title": {
+      "status": "PASS",
+      "details": "PUT /api/shows/titles/{id} endpoint correctly syncs presenter_ids to all shows with that title. Verified: 52 Backstage Radio shows all have presenter_ids synced."
+    },
+    "Calendar Page - Presenters in sidebar": {
+      "status": "PASS",
+      "details": "Calendar sidebar shows 'Yannick Gijbels, Hadewig Weyen' for Backstage Radio shows when clicking on a day with shows. Users icon with presenter names displayed."
+    },
+    "Show Detail Page - Presenters display": {
+      "status": "PASS",
+      "details": "Show Detail page shows 'Presenters:' label with 'Yannick Gijbels' and 'Hadewig Weyen' displayed as badges in the Show Details section."
+    },
+    "Rundown Editor - Presenters display": {
+      "status": "PASS",
+      "details": "Rundown section shows 'Presenters:' label with both presenter names as badges at the top of the rundown editor."
+    },
+    "Show Management - Presenters in title list": {
+      "status": "PASS",
+      "details": "Show Management page displays 'Yannick Gijbels' and 'Hadewig Weyen' next to Backstage Radio in the show titles list."
+    }
+  },
+  "verification_screenshots": {
+    "calendar_sidebar": ".screenshots/02_calendar_sidebar.png - Shows Saturday Feb 21 with Backstage Radio and both presenters",
+    "show_detail": ".screenshots/01_show_management_page.png - Shows Management with presenters listed",
+    "rundown_editor": "Verified via playwright - Presenters section visible in Rundown Editor"
+  }
+}
