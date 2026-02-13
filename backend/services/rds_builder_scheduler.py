@@ -377,8 +377,8 @@ async def process_rds_sequence(db, station: str):
     
     # Check if it's time to change
     should_change = False
-    if was_scheduled_text:
-        # Returning from scheduled text, force change
+    if was_scheduled_text or was_audio_trigger:
+        # Returning from scheduled text or audio trigger, force change
         should_change = True
     elif next_change_at is None:
         should_change = True
@@ -387,7 +387,7 @@ async def process_rds_sequence(db, station: str):
     
     if should_change:
         # Move to next item
-        if output and not was_scheduled_text:
+        if output and not was_scheduled_text and not was_audio_trigger:
             current_index = (current_index + 1) % len(items)
             if current_index == 0 and not sequence.get("loop", True):
                 # Don't loop, stay at last item
