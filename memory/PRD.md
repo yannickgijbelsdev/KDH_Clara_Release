@@ -1031,3 +1031,27 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - `frontend/src/pages/RDSSchedulerPage.js`
     - `frontend/src/pages/ContentCalendarPage.js`
   - Tested: 100% frontend verification (6 features tested)
+
+### February 13, 2026 - RDS Scheduler "Infinite" Bug Fix & Builder Integration
+- [x] **P0 Bug Fix: RDS Custom Text Scheduler "Infinite" Scheduling**:
+  - Bug: Scheduled texts with "infinite" option (no end date) stopped after ~3 days
+  - Root cause: Scheduler logic didn't process scheduled texts in RDS Builder output
+  - Fix: Added `get_active_scheduled_text_for_station()` function to rds_builder_scheduler.py
+  - Fix: Modified `process_rds_sequence()` and `process_named_output()` to check for active scheduled texts
+  - Scheduled texts now have priority over sequence items (Shows > Scheduled Texts > Sequence Items)
+  - max_iterations increased to 10000 for long-running infinite schedules
+  - Files updated:
+    - `backend/services/rds_builder_scheduler.py` - Complete refactor to support scheduled texts
+  - Tested: 15/15 backend tests passed (100% success rate)
+
+- [x] **P1 Feature: Scheduled Texts in RDS Builder Interface**:
+  - New "Scheduled Texts" section added to RDS Builder page
+  - Shows all scheduled texts for each station (MFY and GRK)
+  - Toggle switches to enable/disable scheduled texts on-demand
+  - "∞ Infinite" label displayed for texts without end date
+  - "Both stations" label for texts that apply to both stations
+  - Priority indicator: "Shows > Scheduled texts > Sequence items"
+  - Scheduler button links to full RDS Custom Text Scheduler page
+  - Files updated:
+    - `frontend/src/pages/RDSBuilderPage.js` - Added ScheduledTextsManager component
+  - Tested: 100% frontend verification (all UI features working)
