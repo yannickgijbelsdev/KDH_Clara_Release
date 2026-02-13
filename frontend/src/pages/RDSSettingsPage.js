@@ -208,8 +208,8 @@ const RDSSettingsPage = () => {
             <Radio className="w-6 h-6 text-orange-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">RDS Instellingen</h1>
-            <p className="text-sm text-zinc-500">MagicRDS en externe systemen integratie</p>
+            <h1 className="text-2xl font-bold text-white">RDS Settings</h1>
+            <p className="text-sm text-zinc-500">MagicRDS and external systems integration</p>
           </div>
         </div>
         <Button
@@ -219,7 +219,7 @@ const RDSSettingsPage = () => {
           data-testid="refresh-cache-btn"
         >
           <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Vernieuwen...' : 'Cache Vernieuwen'}
+          {refreshing ? 'Refreshing...' : 'Refresh Cache'}
         </Button>
       </div>
 
