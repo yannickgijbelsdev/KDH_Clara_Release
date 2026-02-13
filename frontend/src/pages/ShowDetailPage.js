@@ -191,6 +191,14 @@ const ShowDetailPage = () => {
     fetchShow();
     fetchLinkedFolders();
     fetchTeamUsers();
+    
+    // Refetch when window regains focus (user returns from editing show management)
+    const handleFocus = () => {
+      fetchShow();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [showId]);
 
   const fetchTeamUsers = async () => {
