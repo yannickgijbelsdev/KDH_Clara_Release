@@ -264,6 +264,21 @@ async def get_item_text(db, station: str, item: dict) -> str:
                 return cached["song_title"]
         return ""
     
+    elif item_type == "audio_trigger":
+        # Get active audio trigger text for this station
+        # Audio triggers are activated when jingles (news, ads) are detected
+        state = await db.audio_trigger_states.find_one(
+            {"station": {"$in": [station, "both"]}, "is_active": True},
+            {"_id": 0, "action_text": 1, "action_type": 1}
+        )
+        
+        if state:
+            action_type = state.get("action_type", "custom_text")
+            # Only return text if it's a custom_text action (not "now_playing" action)
+            if action_type == "custom_text":
+                return state.get("action_text", "")
+        return ""
+    
     return ""
 
 
