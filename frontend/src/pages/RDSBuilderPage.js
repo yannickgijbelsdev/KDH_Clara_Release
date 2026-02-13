@@ -403,19 +403,29 @@ const StationBuilder = ({ station, stationName, color }) => {
 
 // Main Page Component
 const RDSBuilderPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('outputs');
 
   return (
     <div data-testid="rds-builder-page" className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-gradient-to-br from-orange-500/20 to-violet-500/20 rounded-lg">
-          <Radio className="w-6 h-6 text-white" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-orange-500/20 to-violet-500/20 rounded-lg">
+            <Radio className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">RDS Builder</h1>
+            <p className="text-sm text-zinc-500">Configureer RDS tekst outputs voor MagicRDS</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">RDS Builder</h1>
-          <p className="text-sm text-zinc-500">Configureer RDS tekst outputs voor MagicRDS</p>
-        </div>
+        <Button
+          onClick={() => navigate('/rds-scheduler')}
+          className="bg-violet-500 hover:bg-violet-600 text-white"
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Custom Text Scheduler
+        </Button>
       </div>
 
       {/* Tabs */}
