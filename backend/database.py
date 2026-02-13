@@ -13,12 +13,14 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # JWT Configuration
-JWT_SECRET = os.environ.get('JWT_SECRET', 'radio-show-planner-secret-key-2024')
+JWT_SECRET = os.environ.get('JWT_SECRET')
+if not JWT_SECRET:
+    raise ValueError("JWT_SECRET environment variable is required")
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 4  # Session expires after 4 hours
 
 # Share URL configuration
-SHARE_BASE_URL = os.environ.get('SHARE_BASE_URL', 'https://clara.koodh.com')
+SHARE_BASE_URL = os.environ.get('SHARE_BASE_URL', '')
 
 # Role definitions
 ROLES = ["admin", "editor", "presenter", "viewer"]
