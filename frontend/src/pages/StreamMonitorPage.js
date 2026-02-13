@@ -187,7 +187,7 @@ const StreamPlayer = ({ stream }) => {
       setIsPlaying(true);
     } catch (err) {
       console.error('Play error:', err);
-      setError('Kan stream niet afspelen');
+      setError('Cannot play stream');
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +228,7 @@ const StreamPlayer = ({ stream }) => {
     if (!audio) return;
 
     const handleError = () => {
-      setError('Stream niet beschikbaar');
+      setError('Stream not available');
       setIsPlaying(false);
       setIsLoading(false);
     };
@@ -308,17 +308,17 @@ const StreamPlayer = ({ stream }) => {
               {isPlaying ? (
                 <>
                   <Wifi className="w-3 h-3 text-green-500" />
-                  <span className="text-green-400">Speelt af</span>
+                  <span className="text-green-400">Playing</span>
                 </>
               ) : isLoading ? (
                 <>
                   <div className="w-3 h-3 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-zinc-400">Verbinden...</span>
+                  <span className="text-zinc-400">Connecting...</span>
                 </>
               ) : (
                 <>
                   <WifiOff className="w-3 h-3 text-zinc-500" />
-                  <span className="text-zinc-500">Gestopt</span>
+                  <span className="text-zinc-500">Stopped</span>
                 </>
               )}
             </div>
@@ -397,18 +397,18 @@ const StreamMonitorPage = () => {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-white">Stream Monitor</h1>
-          <p className="text-sm text-zinc-500">Beluister en monitor de radio streams</p>
+          <p className="text-sm text-zinc-500">Listen to and monitor the radio streams</p>
         </div>
       </div>
 
       {/* Info banner */}
       <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
         <p className="text-blue-400 text-sm">
-          Klik op Play om een stream te starten. De VU meters tonen een visuele simulatie van audioniveaus.
+          Click Play to start a stream. The VU meters show a visual simulation of audio levels.
           <br/>
           <span className="text-zinc-500 text-xs">
-            Echte audio-analyse is niet mogelijk vanwege browser beveiligingsbeperkingen (CORS/mixed content). 
-            De meters geven een realistische representatie van het verwachte audioniveau.
+            Real audio analysis is not possible due to browser security limitations (CORS/mixed content). 
+            The meters provide a realistic representation of the expected audio level.
           </span>
         </p>
       </div>
