@@ -15,7 +15,7 @@ rds_builder_router = APIRouter(prefix="/rds-builder", tags=["RDS Builder"])
 class RDSItem(BaseModel):
     """A single item in the RDS sequence."""
     id: str
-    type: Literal["now_playing", "show_name", "presenter_name", "custom_text"]
+    type: Literal["now_playing", "show_name", "presenter_name", "audio_trigger", "custom_text"]
     content: Optional[str] = None  # For custom_text type
     duration: int = 5  # How long to display this item (seconds)
 
