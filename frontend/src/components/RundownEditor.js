@@ -93,7 +93,7 @@ const calculateTimestamps = (items, showStartTime) => {
   });
 };
 
-const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
+const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenters = [] }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
