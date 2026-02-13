@@ -74,6 +74,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
       const dt = item.start_datetime ? parseISO(item.start_datetime) : new Date();
       setStartDate(format(dt, 'yyyy-MM-dd'));
       setStartTime(format(dt, 'HH:mm'));
+      setTargetStation(item.station || currentStation || 'mfy');
       setDurationType(item.duration_type || 'fixed');
       setDurationMinutes(item.duration_minutes || 5);
       setRecurrenceType(item.recurrence_type || 'none');
@@ -84,13 +85,14 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
       setText('');
       setStartDate(format(new Date(), 'yyyy-MM-dd'));
       setStartTime('12:00');
+      setTargetStation(currentStation || 'mfy');
       setDurationType('fixed');
       setDurationMinutes(5);
       setRecurrenceType('none');
       setRecurrenceEndDate('');
       setEnabled(true);
     }
-  }, [item, isOpen]);
+  }, [item, isOpen, currentStation]);
 
   const handleSave = async () => {
     if (!text.trim()) {
@@ -108,6 +110,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
       await onSave({
         text: text.trim(),
         start_datetime: startDatetime,
+        station: targetStation,
         duration_type: durationType,
         duration_minutes: durationType === 'fixed' ? durationMinutes : null,
         recurrence_type: recurrenceType,
