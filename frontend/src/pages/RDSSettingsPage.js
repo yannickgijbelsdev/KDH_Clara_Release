@@ -130,7 +130,7 @@ const RDSSettingsPage = () => {
   };
 
   const addFilter = (station) => {
-    const newFilter = { match: '', replace: '', case_insensitive: true };
+    const newFilter = { match: '', replace: '', case_insensitive: true, whole_word: false };
     if (station === 'mfy') {
       setMfyFilters([...mfyFilters, newFilter]);
     } else {
