@@ -293,12 +293,17 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
 
   return (
     <div
-      className={`min-h-[100px] border-r border-b border-zinc-800 p-1 ${
-        isCurrentMonth ? 'bg-zinc-900/50' : 'bg-zinc-900/20'
-      } ${isToday ? 'ring-2 ring-orange-500/50 ring-inset' : ''}`}
+      className={`aspect-square p-1 rounded-lg transition-all duration-200 relative
+        ${isCurrentMonth ? 'bg-[#27272a]' : 'bg-[#1a1a1c]'}
+        ${isToday ? 'ring-2 ring-violet-500' : ''}
+        hover:bg-zinc-700 group
+      `}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className={`text-xs font-medium ${isToday ? 'text-orange-400' : isCurrentMonth ? 'text-zinc-400' : 'text-zinc-600'}`}>
+        <span className={`text-sm font-mono
+          ${isCurrentMonth ? 'text-zinc-300' : 'text-zinc-600'}
+          ${isToday ? 'text-violet-400 font-bold' : ''}
+        `}>
           {format(date, 'd')}
         </span>
         <Button
