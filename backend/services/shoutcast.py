@@ -157,14 +157,62 @@ async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> D
 
 
 async def cache_now_playing(db, station: str) -> Dict:
-    """Fetch and cache now playing data for a station."""
+    """Fetch and cache now playing data for a station.
+    
+    Also tracks if the song has been playing too long (stale) and
+    replaces it with fallback text if needed.
+    """
+    global _song_change_tracker
+    
     timestamp = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(timezone.utc)
     
     data = await get_now_playing(station, db, apply_filter=True)
     
-    # Save to cache
+    current_song = data.get("song_title", "")
+    
+    # Initialize tracker for this station if needed
+    if station not in _song_change_tracker:
+        _song_change_tracker[station] = {
+            "last_song": current_song,
+            "last_change_time": now,
+            "is_stale": False
+        }
+    
+    tracker = _song_change_tracker[station]
+    
+    # Check if song changed
+    if current_song != tracker["last_song"] and current_song:
+        # Song changed - reset tracker
+        tracker["last_song"] = current_song
+        tracker["last_change_time"] = now
+        tracker["is_stale"] = False
+        logger.info(f"[{station}] Song changed to: {current_song}")
+    else:
+        # Same song - check if stale
+        time_since_change = now - tracker["last_change_time"]
+        stale_threshold = timedelta(minutes=STALE_TIMEOUT_MINUTES)
+        
+        if time_since_change >= stale_threshold and current_song:
+            if not tracker["is_stale"]:
+                logger.info(f"[{station}] Now playing stale for {STALE_TIMEOUT_MINUTES} min, showing fallback")
+                tracker["is_stale"] = True
+    
+    # Determine the effective song title to display
+    effective_song_title = current_song
+    is_stale = tracker["is_stale"]
+    
+    if is_stale:
+        # Use fallback text instead of stale song
+        effective_song_title = STALE_FALLBACK_TEXT.get(station, "")
+    
+    # Save to cache with both original and effective titles
     cache_data = {
         **data,
+        "song_title": effective_song_title,  # This is what gets displayed
+        "original_song_title": current_song,  # Keep the original for reference
+        "is_stale": is_stale,
+        "stale_since": tracker["last_change_time"].isoformat() if is_stale else None,
         "cached_at": timestamp,
         "updated_at": timestamp
     }
@@ -181,14 +229,16 @@ async def cache_now_playing(db, station: str) -> Dict:
         "station": station,
         "timestamp": timestamp,
         "status": data.get("status"),
-        "song_title": data.get("song_title", ""),
+        "song_title": effective_song_title,
+        "original_song_title": current_song,
         "raw_song_title": data.get("raw_song_title", ""),
+        "is_stale": is_stale,
         "current_listeners": data.get("current_listeners", 0),
         "stream_online": data.get("stream_online", False)
     }
     await db.shoutcast_logs.insert_one(log_entry)
     
-    return data
+    return {**data, "song_title": effective_song_title, "is_stale": is_stale}
 
 
 async def get_cached_now_playing(db, station: str) -> Dict:
