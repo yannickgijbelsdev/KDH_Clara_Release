@@ -37,6 +37,193 @@ import { Users } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Scheduled Texts Manager Component - Shows scheduled texts with toggle functionality
+const ScheduledTextsManager = ({ station, stationName, color }) => {
+  const navigate = useNavigate();
+  const [scheduledTexts, setScheduledTexts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(null);
+
+  const colorClasses = {
+    orange: {
+      border: 'border-orange-500/30',
+      bg: 'bg-orange-500/10',
+      text: 'text-orange-400',
+    },
+    violet: {
+      border: 'border-violet-500/30',
+      bg: 'bg-violet-500/10',
+      text: 'text-violet-400',
+    }
+  };
+  const colors = colorClasses[color] || colorClasses.orange;
+
+  const fetchScheduledTexts = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/rds-builder/scheduled-texts/${station}`);
+      setScheduledTexts(response.data);
+    } catch (error) {
+      console.error('Error fetching scheduled texts:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [station]);
+
+  useEffect(() => {
+    fetchScheduledTexts();
+    // Refresh every 10 seconds
+    const interval = setInterval(fetchScheduledTexts, 10000);
+    return () => clearInterval(interval);
+  }, [fetchScheduledTexts]);
+
+  const handleToggle = async (text, newEnabled) => {
+    setToggling(text.id);
+    try {
+      const targetStation = text.station === 'both' ? 'mfy' : text.station;
+      await axios.put(`${API}/rds-builder/scheduled-texts/${targetStation}/${text.id}`, {
+        enabled: newEnabled
+      });
+      toast.success(newEnabled ? 'Scheduled text enabled' : 'Scheduled text disabled');
+      fetchScheduledTexts();
+    } catch (error) {
+      toast.error('Could not update scheduled text');
+    } finally {
+      setToggling(null);
+    }
+  };
+
+  const getRecurrenceLabel = (type) => {
+    switch (type) {
+      case 'hourly': return 'Hourly';
+      case 'daily': return 'Daily';
+      case 'weekly': return 'Weekly';
+      case 'monthly': return 'Monthly';
+      default: return 'One-time';
+    }
+  };
+
+  const formatDateTime = (dt) => {
+    try {
+      const date = parseISO(dt);
+      return format(date, 'dd/MM/yyyy HH:mm');
+    } catch {
+      return dt;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-lg ${colors.bg}`}>
+            <CalendarClock className={`w-5 h-5 ${colors.text}`} />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-white">{stationName} Scheduled Texts</h3>
+            <p className="text-xs text-zinc-500">Scheduled custom texts (priority over sequence items)</p>
+          </div>
+        </div>
+        <Button
+          onClick={() => navigate('/rds-scheduler')}
+          variant="outline"
+          size="sm"
+          className="border-zinc-700 text-zinc-300 hover:text-white"
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Scheduler
+        </Button>
+      </div>
+
+      {/* Scheduled Texts List */}
+      {scheduledTexts.length === 0 ? (
+        <div className="text-center py-6 text-zinc-500">
+          <CalendarClock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p className="text-sm">No scheduled texts</p>
+          <p className="text-xs">Use the Scheduler to create timed custom texts</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {scheduledTexts.map((text) => (
+            <div
+              key={text.id}
+              className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                text.enabled 
+                  ? 'bg-zinc-800/50 border-zinc-700' 
+                  : 'bg-zinc-900/50 border-zinc-800 opacity-60'
+              }`}
+            >
+              {/* Toggle Switch */}
+              <Switch
+                checked={text.enabled}
+                onCheckedChange={(checked) => handleToggle(text, checked)}
+                disabled={toggling === text.id}
+                className="data-[state=checked]:bg-green-500"
+              />
+
+              {/* Recurrence indicator */}
+              <div className={`p-1.5 rounded ${text.recurrence_type !== 'none' ? 'bg-violet-500/20' : 'bg-zinc-700'}`}>
+                {text.recurrence_type !== 'none' ? (
+                  <Repeat className="w-3.5 h-3.5 text-violet-400" />
+                ) : (
+                  <Clock className="w-3.5 h-3.5 text-zinc-400" />
+                )}
+              </div>
+
+              {/* Text content */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white truncate font-medium">{text.text}</p>
+                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                  <span>{formatDateTime(text.start_datetime)}</span>
+                  <span>•</span>
+                  <span>{getRecurrenceLabel(text.recurrence_type)}</span>
+                  {!text.recurrence_end_date && text.recurrence_type !== 'none' && (
+                    <>
+                      <span>•</span>
+                      <span className="text-green-400">∞ Infinite</span>
+                    </>
+                  )}
+                  {text.station === 'both' && (
+                    <>
+                      <span>•</span>
+                      <span className="text-blue-400">Both stations</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Duration badge */}
+              <div className="text-xs text-zinc-500 bg-zinc-800 px-2 py-1 rounded">
+                {text.duration_type === 'fixed' 
+                  ? `${text.duration_minutes || 5} min` 
+                  : 'Until next'
+                }
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Info note */}
+      <div className="mt-4 pt-4 border-t border-zinc-800">
+        <p className="text-xs text-zinc-500">
+          <strong className="text-zinc-400">Priority:</strong> Shows &gt; Scheduled texts &gt; Sequence items
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const ITEM_TYPES = [
   { value: 'show_name', label: 'Show Name', icon: Mic, description: 'Shows the name of the current live show' },
   { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Shows the presenter(s) of the current live show' },
