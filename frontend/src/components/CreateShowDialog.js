@@ -451,13 +451,13 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                       ).join(', ')}
                     </span>
                   ) : (
-                    <span className="text-zinc-500">Selecteer presenters...</span>
+                    <span className="text-zinc-500">Select presenters...</span>
                   )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-72 p-0 bg-[#18181b] border-zinc-800" align="start">
                 <div className="p-2 border-b border-zinc-800">
-                  <p className="text-sm text-zinc-400 font-medium">Teamleden</p>
+                  <p className="text-sm text-zinc-400 font-medium">Team Members</p>
                 </div>
                 <div className="max-h-60 overflow-y-auto p-2 space-y-1">
                   {teamUsers.map((user) => (
@@ -488,7 +488,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                     </button>
                   ))}
                   {teamUsers.length === 0 && (
-                    <p className="text-sm text-zinc-500 text-center py-4">Geen teamleden gevonden</p>
+                    <p className="text-sm text-zinc-500 text-center py-4">No team members found</p>
                   )}
                 </div>
               </PopoverContent>
