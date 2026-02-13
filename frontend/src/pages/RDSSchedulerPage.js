@@ -317,20 +317,22 @@ const RDSSchedulerPage = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [preselectedDate, setPreselectedDate] = useState(null);
 
-  // Calculate calendar days
+  // Calculate calendar days - memoized to prevent infinite loops
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
   const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  
+  // Memoize date strings for API calls
+  const startDateStr = format(calendarStart, 'yyyy-MM-dd');
+  const endDateStr = format(calendarEnd, 'yyyy-MM-dd');
 
   const fetchCalendarItems = useCallback(async () => {
     setLoading(true);
     try {
-      const startDate = format(calendarStart, 'yyyy-MM-dd');
-      const endDate = format(calendarEnd, 'yyyy-MM-dd');
       const response = await axios.get(`${API}/rds-builder/scheduled-texts/${station}/calendar`, {
-        params: { start_date: startDate, end_date: endDate }
+        params: { start_date: startDateStr, end_date: endDateStr }
       });
       setCalendarItems(response.data);
     } catch (error) {
@@ -339,7 +341,7 @@ const RDSSchedulerPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [station, calendarStart, calendarEnd]);
+  }, [station, startDateStr, endDateStr]);
 
   useEffect(() => {
     fetchCalendarItems();
