@@ -538,8 +538,9 @@ async def get_scheduled_texts(
     if station not in ["mfy", "grk"]:
         raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
     
+    # Get texts for this specific station OR texts set to "both"
     texts = await db.rds_scheduled_texts.find(
-        {"station": station},
+        {"$or": [{"station": station}, {"station": "both"}]},
         {"_id": 0}
     ).sort("start_datetime", 1).to_list(1000)
     
