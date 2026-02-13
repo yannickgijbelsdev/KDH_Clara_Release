@@ -38,6 +38,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const RECURRENCE_OPTIONS = [
   { value: 'none', label: 'Eenmalig' },
+  { value: 'hourly', label: 'Elk uur' },
   { value: 'daily', label: 'Elke dag' },
   { value: 'weekly', label: 'Elke week' },
   { value: 'monthly', label: 'Elke maand' },
@@ -48,11 +49,18 @@ const DURATION_OPTIONS = [
   { value: 'until_next', label: 'Tot volgende item' },
 ];
 
+const STATION_OPTIONS = [
+  { value: 'mfy', label: 'Radio MFY' },
+  { value: 'grk', label: 'Radio GRK' },
+  { value: 'both', label: 'Beide stations' },
+];
+
 // Create/Edit Dialog
-const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, station }) => {
+const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) => {
   const [text, setText] = useState('');
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
+  const [targetStation, setTargetStation] = useState('mfy');
   const [durationType, setDurationType] = useState('fixed');
   const [durationMinutes, setDurationMinutes] = useState(5);
   const [recurrenceType, setRecurrenceType] = useState('none');
