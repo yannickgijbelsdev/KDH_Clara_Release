@@ -1,0 +1,93 @@
+{
+  "summary": "RDS Custom Text Scheduler bug fixes verified - ALL TESTS PASS. P0 'infinite' bug fix and P1 RDS Builder visibility features working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rds_infinite_scheduling.py",
+    "/app/test_reports/pytest/rds_infinite_scheduling_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "rds_builder_scheduler.py: get_active_scheduled_text_for_station() correctly handles None recurrence_end_date by only checking expiration when recurrence_end_date is explicitly set (lines 92-99)",
+    "rds_builder_scheduler.py: max_iterations increased to 10000 (line 126) for 'infinite' schedules to handle long-running recurring texts",
+    "RDSBuilderPage.js: ScheduledTextsManager component correctly shows scheduled texts with toggle switches and '∞ Infinite' label for texts without end date (lines 41-225)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_rds_infinite_scheduling.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "100% (all UI features verified)"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Existing scheduled texts used: 'Nieuws update elk uur' (Hourly, Infinite), 'Nieuws elk heel uur' (Hourly, Infinite, Both stations), 'Test nieuws flash' (Daily, Infinite)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "RDS Custom Text Scheduler infinite bug fix verified. Scheduled texts with no recurrence_end_date (infinite) now work correctly without stopping after 3 days. The RDS Builder page shows scheduled texts with toggle switches for enable/disable functionality.",
+  "features_tested": {
+    "P0 Infinite Bug Fix - Scheduler Logic": {
+      "status": "PASS",
+      "details": "Backend scheduler in rds_builder_scheduler.py correctly handles scheduled texts with no recurrence_end_date. Only checks expiration when recurrence_end_date is explicitly set. max_iterations = 10000 for infinite schedules."
+    },
+    "Backend - Scheduled texts with no end date remain active": {
+      "status": "PASS",
+      "details": "Created and verified infinite hourly/daily scheduled texts. API correctly returns texts with recurrence_end_date: null"
+    },
+    "Backend - /api/rds-builder/scheduled-texts/{station}/active endpoint": {
+      "status": "PASS",
+      "details": "Endpoint correctly returns active scheduled text information including is_recurring flag"
+    },
+    "Backend - RDS Builder output shows scheduled text when active": {
+      "status": "PASS",
+      "details": "Debug endpoint confirms scheduled_text_active flag and current_text output"
+    },
+    "Frontend - Scheduled Texts section in RDS Builder": {
+      "status": "PASS",
+      "details": "RDSBuilderPage.js shows 'Radio MFY Scheduled Texts' and 'Radio GRK Scheduled Texts' sections with ScheduledTextsManager component"
+    },
+    "Frontend - Toggle switches for enable/disable": {
+      "status": "PASS",
+      "details": "4 toggle switches found. Tested toggle functionality - state changes correctly from checked to unchecked and back. Toast notification 'Scheduled text enabled/disabled' appears."
+    },
+    "Frontend - '∞ Infinite' label for texts without end date": {
+      "status": "PASS",
+      "details": "Label visible for all 3 scheduled texts in MFY section and 1 in GRK section that have no recurrence_end_date"
+    },
+    "Integration - Both stations scheduled texts": {
+      "status": "PASS",
+      "details": "Scheduled texts with station='both' appear in both MFY and GRK lists"
+    },
+    "Integration - Priority order correct": {
+      "status": "PASS",
+      "details": "Priority note visible: 'Shows > Scheduled texts > Sequence items'"
+    }
+  },
+  "verification_screenshots": {
+    "rds_builder_page": ".screenshots/04_rds_builder_scheduled_texts.png",
+    "toggle_test": ".screenshots/06_rds_builder_verified.png"
+  },
+  "bugs_verified_fixed": [
+    {
+      "bug_id": "P0",
+      "description": "RDS Custom Text Scheduler 'infinite' bug - scheduling stops after 3 days instead of running indefinitely",
+      "fix_verified": true,
+      "fix_location": "backend/services/rds_builder_scheduler.py - get_active_scheduled_text_for_station() lines 92-99, max_iterations=10000 line 126"
+    },
+    {
+      "bug_id": "P1",
+      "description": "RDS Custom Text should be visible in RDS Builder with toggle functionality",
+      "fix_verified": true,
+      "fix_location": "frontend/src/pages/RDSBuilderPage.js - ScheduledTextsManager component lines 41-225"
+    }
+  ]
+}
