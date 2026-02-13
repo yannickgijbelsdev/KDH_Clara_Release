@@ -26,6 +26,34 @@ async def get_now_playing_station_for(db, station: str) -> str:
     return station
 
 
+async def get_active_audio_trigger_for_station(db, station: str) -> dict | None:
+    """Check if there's an active audio trigger for this station.
+    
+    Audio triggers have the highest priority (except for shows).
+    Returns the trigger action if one is active, or None.
+    """
+    state = await db.audio_trigger_states.find_one(
+        {"station": {"$in": [station, "both"]}, "is_active": True},
+        {"_id": 0}
+    )
+    
+    if not state:
+        return None
+    
+    action_type = state.get("action_type", "custom_text")
+    
+    # If action is "now_playing", return None to fall through to normal behavior
+    if action_type == "now_playing":
+        return None
+    
+    return {
+        "text": state.get("action_text", ""),
+        "trigger_id": state.get("trigger_id"),
+        "action_type": action_type,
+        "is_audio_trigger": True
+    }
+
+
 async def get_active_scheduled_text_for_station(db, station: str) -> dict | None:
     """Check if there's an active scheduled text for this station.
     
