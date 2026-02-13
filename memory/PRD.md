@@ -1055,3 +1055,39 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Files updated:
     - `frontend/src/pages/RDSBuilderPage.js` - Added ScheduledTextsManager component
   - Tested: 100% frontend verification (all UI features working)
+
+### February 13, 2026 - Audio Trigger System (Sound Detection)
+- [x] **Audio Trigger Feature: Detect sounds in live stream**:
+  - New feature: Automatically detect specific sounds (like commercial jingles) in the live stream
+  - When IN sound is detected, show custom RDS text (e.g., "Reclame")
+  - When OUT sound is detected (optional), return to normal output (Now Playing, Show Name, etc.)
+  - Features:
+    - Upload IN sound (MP3/WAV) - triggers activation
+    - Upload OUT sound (optional) - triggers deactivation
+    - Configure time windows when to listen (save CPU resources)
+    - Set timeout duration (auto-deactivate if no OUT sound)
+    - Match threshold slider (0.5-0.99 for strictness)
+    - Manual test buttons for activation/deactivation
+    - Detection logs with timestamps
+  - Priority order: Shows > Audio Triggers > Scheduled Texts > Sequence Items
+  - Backend implementation:
+    - New service: `backend/services/audio_trigger.py` - Audio fingerprinting with librosa
+    - New router: `backend/routers/audio_trigger.py` - CRUD + upload endpoints
+    - New scheduler: AudioTriggerScheduler (3s interval during active windows)
+    - New collections: `audio_triggers`, `audio_trigger_states`, `audio_trigger_logs`
+  - Frontend implementation:
+    - New page: `frontend/src/pages/AudioTriggersPage.js`
+    - Route: `/audio-triggers`
+    - Link from RDS Builder page (green "Audio Triggers" button)
+  - API Endpoints:
+    - GET/POST /api/audio-triggers - List/Create triggers
+    - GET/PUT/DELETE /api/audio-triggers/{id} - CRUD
+    - POST /api/audio-triggers/{id}/in-sound - Upload IN sound
+    - POST /api/audio-triggers/{id}/out-sound - Upload OUT sound
+    - DELETE /api/audio-triggers/{id}/in-sound - Delete IN sound
+    - DELETE /api/audio-triggers/{id}/out-sound - Delete OUT sound
+    - POST /api/audio-triggers/{id}/test - Manual activate/deactivate
+    - GET /api/audio-triggers/station/{station}/active - Public active check
+    - GET /api/audio-triggers/logs - Detection logs
+  - Libraries installed: librosa, scipy, soundfile (for audio fingerprinting)
+  - Tested: API endpoints working, manual activation/deactivation verified
