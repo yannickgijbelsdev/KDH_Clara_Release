@@ -524,44 +524,7 @@ const RDSSchedulerPage = () => {
             Radio GRK
           </Button>
         </div>
-          <Button
-            variant={station === 'mfy' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setStation('mfy')}
-            className={station === 'mfy' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-zinc-700 text-zinc-400'}
-          >
-            <Radio className="w-4 h-4 mr-2" />
-            Radio MFY
-          </Button>
-          <Button
-            variant={station === 'grk' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setStation('grk')}
-            className={station === 'grk' ? 'bg-violet-500 hover:bg-violet-600 text-white' : 'border-zinc-700 text-zinc-400'}
-          >
-            <Radio className="w-4 h-4 mr-2" />
-            Radio GRK
-          </Button>
-        </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handlePrevMonth} className="border-zinc-700 text-zinc-400">
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleToday} className="border-zinc-700 text-zinc-400">
-            Today
-          </Button>
-          <span className="text-white font-semibold w-40 text-center">
-            {format(currentMonth, 'MMMM yyyy', { locale: enUS })}
-          </span>
-          <Button variant="outline" size="sm" onClick={handleNextMonth} className="border-zinc-700 text-zinc-400">
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Calendar */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6">
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 mb-2">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
@@ -591,7 +554,7 @@ const RDSSchedulerPage = () => {
               />
             ))}
           </div>
-        )}
+        )}}
       </div>
 
       {/* Legend */}
