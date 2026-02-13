@@ -1,70 +1,70 @@
 <analysis>**original_problem_statement:**
 The user's requests during this session have built upon the initial problem statement. The consolidated requirements are:
 
-1.  **WordPress Integration:** Fix a bug where articles published to WordPress are assigned the wrong category.
-2.  **Stream Monitor:** Implement real, professional-style VU meters, not a simulated animation.
-3.  **RDS Both Station Logic:** When a show is designated for both MFY and GRK stations, the Now Playing data for the GRK station's RDS output must be sourced from the MFY stream. (COMPLETED)
-4.  **RDS Fallback Names:** When no show is active, the RDS output for GRK should be 'the feelgood station' and for MFY it should be 'altijd dichtbij'. (COMPLETED)
-5.  **Multi-Output RDS:** Create a system to define multiple, independent RDS outputs per station (e.g., for Streaming, DAB, FM). Each output should be configurable to include different elements like 'now_playing', 'show_name', or 'custom_text'. (COMPLETED)
-6.  **Shoutcast URL Update:** Update the stream source URLs for MFY and GRK to a new server (). (COMPLETED)
-7.  **Data Sync on Update:**
-    *   When a show's title is updated in Show Management, the change must be propagated to all calendar entries and rundowns ( collection). (COMPLETED)
-    *   When a show's image is uploaded/updated, it must also be pushed to all related calendar entries and rundowns. (COMPLETED)
-8.  **RDS Image API:** Create a new API endpoint that provides the URL of the current active show's image, for use in external systems like Magic RDS. (COMPLETED)
-9.  **Deployment Fix:** Resolve deployment failures caused by Kubernetes health checks failing. (COMPLETED)
-10. **Show Image Display:** Fix a bug where show images were not appearing in the Calendar, Rundowns (Show Detail Page), and Shows list. (COMPLETED)
-11. **Rundown Timestamps:** In the rundown view, calculate and display timestamps for each item. An ad block should be allocated 2 minutes, and a music block 3 minutes, to calculate the running time.
+1.  **Rundown Timestamps:** In the rundown view, calculate and display timestamps for each item. An ad block should be allocated 2 minutes, and a music block 3 minutes, to calculate the running time. (COMPLETED)
+2.  **RDS Custom Text Scheduler:**
+    *   Create a system to schedule custom RDS text messages.
+    *   Provide a calendar view to visualize the schedule.
+    *   Allow scheduling for a specific date and time.
+    *   Implement recurrence options: , , , . (COMPLETED)
+    *   Allow setting a fixed duration or having the text display until the next scheduled item. (COMPLETED)
+    *   Add an every hour recurrence option. (COMPLETED)
+    *   Allow scheduling a text for Radio MFY, Radio GRK, or Both stations simultaneously. (COMPLETED)
+3.  **Rundown UI/UX Improvements:**
+    *   Make the Add Item button in the show rundown view sticky so it remains visible while scrolling.
+    *   Fix the Export/Print function URL to use the production domain () instead of the development one.
+4.  **WordPress Integration:** Fix a bug where articles published to WordPress are assigned the wrong category. (COMPLETED - User verified)
+5.  **Stream Monitor:** Implement real, professional-style VU meters, not a simulated animation.
 
 **User's preferred language**: Dutch
 
 **what currently exists?**
-The application is a full-stack radio management tool with a React frontend and FastAPI backend. Significant work has been done on the Radio Data System (RDS) module. It now supports a both station logic where GRK's now-playing data can be sourced from the MFY stream. It also has fallback show names for when no show is active. A major new feature is the multi-output RDS system, allowing administrators to create multiple, distinctly configured text outputs (e.g., for FM, DAB) per station via a new UI. The system for managing shows and their metadata has been improved, with changes to titles and images in the Show Management section now automatically synchronizing to all scheduled instances of that show. The backend has been made more robust with the addition of a  endpoint to satisfy deployment health checks. The Shoutcast stream sources have also been updated to a new server.
+The application is a full-stack radio management tool. Recent work has significantly enhanced its capabilities.
+
+A Rundown Timestamps feature has been successfully implemented, which automatically calculates and displays the start time for each item in a show's rundown based on the show's start time and predefined durations for item types.
+
+A comprehensive RDS Custom Text Scheduler has been built. This feature allows users to schedule custom RDS text messages with advanced options. It includes a full-page calendar view (), a creation/editing dialog, and support for complex scheduling rules. Users can set texts to recur once, daily, weekly, monthly, or hourly. They can also target these messages to a specific radio station (MFY or GRK) or to both simultaneously.
+
+The backend has been made more robust by fixing a Pydantic model validation error related to inconsistent field names in the database for show images.
 
 **Last working item**:
--   **Last item agent was working:** The agent was beginning to implement a new feature request: adding calculated timestamps to rundown items on the . The logic requires giving ad blocks a 2-minute duration and music blocks a 3-minute duration to calculate a running timeline. The agent had just started by inspecting the  file.
+-   **Last item agent was working:** The agent had just started to address two new UI/UX requests from the user:
+    1.  Making the 'Add Item' button in the show rundown editor sticky.
+    2.  Fixing the URL used in the print/export function to point to the production domain.
+    The agent had identified the relevant files (, ) to begin the work.
 -   **Status:** NOT STARTED
 -   **Agent Testing Done:** N
 -   **Which testing method agent to use?** frontend testing agent
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Rundown Timestamps (P0)**
-    -   Description: The user wants to see calculated start times for each item in a show's rundown. The calculation should be based on the show's start time and the specified durations for item types (ad=2min, music=3min).
+-   **Issue 1: Rundown UI/UX Fixes (P0)**
+    -   Description: The user wants to make the Add Item button sticky on the rundown page and correct the URL in the print/export function.
     -   Status: NOT STARTED
     -   Next debug checklist:
-        -   Modify the frontend component .
-        -   Implement a function that iterates through the rundown items ().
-        -   Calculate the cumulative time based on the  of the show and the type of each rundown item.
-        -   Display the calculated time next to each item in the list.
-    -   Why fix this issue and what will be achieved with the fix?: This will provide crucial timing information for show producers and presenters, allowing them to better plan their broadcasts.
+        -   Modify  or .
+        -   For the sticky button: Apply CSS classes (e.g., , , ) to the container holding the Add Item button.
+        -   For the URL fix: Locate the print/export function and replace the hardcoded or dynamically generated development URL with .
+    -   Why fix this issue and what will be achieved with the fix?: This will improve user experience by making a key action always accessible and ensuring printed materials have the correct public-facing URL.
     -   Is recurring issue?: N
     -   Should Test frontend/backend/both after fix?: Frontend
     -   Blocked on other issue: None
 -   **Issue 2: Stream Monitor VU Meters (P1)**
-    -   Description: The user wants real-time, functional VU meters on the Stream Monitor page. The current implementation is a non-functional CSS animation due to browser security policies (CORS, mixed-content) preventing audio analysis.
+    -   Description: The user wants real-time, functional VU meters on the Stream Monitor page. The current implementation is a non-functional CSS animation due to browser security policies (CORS, mixed-content).
     -   Status: NOT STARTED
-    -   Attempted fixes: A backend proxy was created but failed to solve the mixed-content (HTTP on HTTPS page) issue.
+    -   Attempted fixes: A backend proxy was created in a previous session but failed to solve the mixed-content (HTTP stream on HTTPS page) issue.
     -   Next debug checklist:
-        -   Investigate modifying the backend stream proxy () to serve the audio stream over HTTPS. This would resolve the mixed-content browser error.
+        -   Investigate modifying the backend stream proxy () to serve the audio stream over HTTPS.
         -   Alternatively, explore a WebSocket-based solution where the backend analyzes the audio and pushes level data to the frontend for visualization.
     -   Why fix this issue and what will be achieved with the fix?: Fulfills a core user request for real-time audio monitoring, making the Stream Monitor a functional tool.
     -   Is recurring issue?: Y
     -   Should Test frontend/backend/both after fix?: Both
     -   Blocked on other issue: None
--   **Issue 3: WordPress Category Publishing (P2)**
-    -   Description: Articles published to WordPress are assigned a default category instead of the one selected in the app.
-    -   Status: USER VERIFICATION PENDING
-    -   Attempted fixes: A fix was implemented in the previous session in  to dynamically find or create the category on WordPress.
-    -   Next debug checklist: Await confirmation from the user that the fix works as expected. The user needs to publish an article and check its category on the WordPress site.
-    -   Why fix this issue and what will be achieved with the fix?: Ensures correct content organization on integrated WordPress sites.
-    -   Is recurring issue?: N
-    -   Should Test frontend/backend/both after fix?: User testing required.
-    -   Blocked on other issue: User feedback.
 
 **In progress Task List**:
--   **Task 1: Implement Rundown Timestamps (P0)**
-    -   Where to resume: Start by modifying  to implement the time calculation logic for the rundown list.
-    -   What will be achieved with this?: Users will be able to see a calculated schedule for their shows within the rundown view.
+-   **Task 1: Implement Rundown UI/UX Fixes (P0)**
+    -   Where to resume: Begin editing  and  to implement the sticky button and URL fix.
+    -   What will be achieved with this?: A better user experience on the show rundown page.
     -   Status: IN PROGRESS
     -   Should Test frontend/backend/both after fix?: Frontend
     -   Blocked on something: None
@@ -73,96 +73,91 @@ The application is a full-stack radio management tool with a React frontend and 
 -   None specified.
 
 **Completed work in this session**
--   **RDS Both Station Logic (DONE):** Implemented logic in  and  for GRK to use MFY's Now Playing data when a show is set to both. Tested and verified with the testing agent.
--   **RDS Fallback Show Names (DONE):** Added fallback show titles ('the feelgood station' for GRK, 'altijd dichtbij' for MFY) in  and  for when no show is active.
--   **Multi-Output RDS Feature (DONE):** A major feature was added.
-    -   Backend: New models and CRUD endpoints in  for managing multiple configurable RDS outputs.
-    -   Scheduler:  updated to process all new outputs.
-    -   Frontend: New  component created and integrated into  for UI management.
--   **Shoutcast URL Update (DONE):** Updated stream source URLs in  to point to the new server.
--   **Show Title Sync Fix (DONE):** Modified  to update the title on all associated  when a  is changed.
--   **Show Image Sync Feature (DONE):** Updated  to propagate image uploads/deletions to all associated .
--   **RDS Image API (DONE):** Added  and  endpoints to  to serve the active show's image URL.
--   **Deployment Health Check Fix (DONE):** Added a root  endpoint in  to resolve Kubernetes readiness probe failures.
--   **Show Image Display Fix (DONE):**
-    -   Ran a one-time script to sync existing images from  to .
-    -   Updated frontend components (, , ) to correctly display the images.
+-   **Rundown Timestamps (DONE):**
+    -   Implemented logic in  to calculate and display timestamps for each rundown item.
+    -   Tested and verified with the .
+-   **Show Image Pydantic Bug Fix (DONE):**
+    -   Fixed a 500-error caused by a mismatch between the  Pydantic model and MongoDB field names ( vs. ).
+    -   Resolved by adding aliases and  to the model in  for backward compatibility.
+-   **RDS Custom Text Scheduler (DONE):**
+    -   Backend: Created new models () and full CRUD APIs in .
+    -   Frontend: Created a new page () with  for visualization and a dialog () for creation/editing.
+-   **RDS Scheduler Enhancements (DONE):**
+    -   Added an Every Hour recurrence option to the backend logic and frontend dialog.
+    -   Added functionality to schedule texts for MFY, GRK, or Both stations.
+    -   Tested and verified with screenshots and the .
+-   **WordPress Category Publishing (DONE):**
+    -   User confirmed via chat (Categorie is ok) that the fix from the previous session is working.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1: Real VU Meters for Stream Monitor**
-    -   Debug checklist: Investigate serving the proxied audio stream over HTTPS to solve the mixed-content issue or explore using WebSockets.
+    -   Debug checklist: Investigate serving the proxied audio stream over HTTPS or explore using WebSockets.
     -   Why to solve this issue and what will be achieved with this?: This is a primary feature request from the user for accurate, real-time audio visualization.
     -   Should Test frontend/backend/both after fix: Both
     -   Is recurring issue?: Y
 
 **Known issue recurrence from previous fork**
--   None in this session.
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React
--   **Backend:** Python (FastAPI)
+-   **Frontend:** React, date-fns, react-big-calendar
+-   **Backend:** Python (FastAPI), Pydantic, python-dateutil
 -   **Database:** MongoDB
--   **Architecture:** Monolithic app with a distinct frontend and backend.
--   **Background Jobs:** Scheduler scripts () run periodically.
--   **Denormalized Data Sync:** Logic was implemented to keep denormalized data (show titles, images) in the  collection consistent with the source  collection.
--   **3rd Party Integration:** WordPress (via REST API).
+-   **Data Modeling:** Used Pydantic model aliases () and  to handle database schema inconsistencies without requiring data migration.
+-   **Date/Time Logic:** Extensive use of  on the frontend and , , and  on the backend for complex recurrence calculations.
+-   **React Hooks:** Fixed an infinite loop by correctly using  to memoize dependencies for a  hook.
 
 **key DB schema**
--   :  (image field populated)
--   : 
--   :  (New collection)
+-   : (New collection) 
+-   :  (Model updated to handle  alias)
 
 **All files of reference**
--   : Heavily modified for both logic, fallback names, and new multi-output processing.
--   : Modified for both logic, fallback names, and new image API endpoints.
--   : Modified to add the entire multi-output CRUD API.
--   : Updated to include the new output manager.
--   : New file for the multi-output UI.
--   : Updated to sync title changes.
--   : Updated to sync image changes.
--   : Updated to add the  endpoint.
--   : Updated to display show images.
--   : Updated to display show images.
--   : The next file to be modified for the rundown timestamp feature.
+-   **Backend (Modified):**
+    -   : Added  model and enums.
+    -   : Added all CRUD endpoints for the new scheduler feature.
+    -   : Fixed  model with aliases.
+    -   : Added .
+-   **Frontend (New/Modified):**
+    -   : New page for the scheduler calendar.
+    -   : New component for create/edit dialog.
+    -   : New component for custom day rendering.
+    -   : Implemented timestamp calculation logic.
+    -   : Displayed the calculated timestamp.
+    -   : Passed  prop.
+    -   : Added link to the new scheduler page.
+    -   : Added route for the scheduler page.
 
 **Areas that need refactoring**:
 -   : Still contains abandoned code for Web Audio API and needs a complete rewrite to implement the real VU meters.
 
 **key api endpoints**
--   : New root-level health check for Kubernetes.
--   : Get all RDS outputs for a station.
--   : Create a new RDS output.
--   : Update an RDS output.
--   : Delete an RDS output.
--   : Get the public text for a specific RDS output.
--   : Get the active show's image URL as text.
--   : Get the active show's image URL as JSON.
+-   : Create a scheduled text.
+-   : Get scheduled texts for a station in a given date range.
+-   : Update a scheduled text.
+-   : Delete a scheduled text.
+-   : Get the currently active scheduled text for a station.
 
 **Critical Info for New Agent**
--   **Testing Mock Data:** When testing features related to active shows, be aware that the  runs periodically and will clear any manually inserted test data in the  collection if it doesn't find a corresponding *real* show in the main  collection.
--   **Deployment Health Check:** The deployment environment requires a  endpoint at the root of the backend service (port 8001). This has been implemented in .
--   **User Permissions:** The test user () may not have access to all data (e.g., shows) due to being in a different team. This can make UI verification via screenshots difficult. The agent successfully created  with password .
--   **Testing Agent:** The  proved very effective for verifying complex backend logic and CRUD operations. It should be used after implementing the next set of features.
+-   The user  with password  is confirmed to work for logging in and accessing data.  does not work.
+-   The user has confirmed the WordPress category bug is resolved. It can be marked as completed.
+-   A Pydantic validation error was a major blocker. The fix involved using model aliases, which is a good pattern to remember if similar  errors occur when fetching data.
+-   A React infinite loop was fixed by using  on  dependencies. Be mindful of this pattern in complex components.
 
 **documents and test reports created in this job**
 -   
 -   
--    (updated)
+-    (updated multiple times)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **PENDING:** User requested the implementation of calculated timestamps in the rundown view. (Current task)
-2.  **Request:** User asked to see show images in the calendar, rundowns, and RDS builder. (Completed)
-3.  **Bug Report:** User provided deployment logs and asked for a fix. (Completed)
-4.  **Request:** User requested that show images be propagated to rundowns and that an API for the image URL be created. (Completed)
-5.  **Bug Report:** User reported that updating a show's title doesn't update it in the calendar/rundowns. (Completed)
-6.  **Request:** User asked to update the Shoutcast server URLs. (Completed)
-7.  **Request:** User requested the major feature of creating multiple, configurable RDS outputs per station. (Completed)
-8.  **Request:** User requested fallback show names for GRK and MFY when no show is active. (Completed)
-9.  **Request:** User asked the agent to implement the RDS Both station logic. (Completed)
-10. **Confirmation:** User confirmed a previous fix was resolved. (From handoff)
+1.  **PENDING:** User requested a sticky Add Item button and a fix for the print/export URL in the rundown view.
+2.  **Request:** User asked to add an every hour recurrence option and a both stations target for the RDS scheduler. (Completed)
+3.  **Request:** User initiated the RDS Scheduler feature with requirements for scheduling, recurrence, and a calendar view. (Completed)
+4.  **Confirmation:** User confirmed the WordPress Category issue was resolved. (Completed)
+5.  **Request:** User asked to implement the Rundown Timestamps feature. (Completed)
+6.  (Older messages related to completed tasks)
 
 **Project Health Check:**
 -   **Broken:** The Stream Monitor feature still does not have the requested real-time VU meters.
@@ -172,13 +167,15 @@ The application is a full-stack radio management tool with a React frontend and 
 -   **WordPress:** Used for publishing articles via its REST API.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES (used twice successfully for major features).
+-   **Testing agent used after significant changes:** YES (used twice for the timestamp and scheduler features).
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** []
 -   **Known regressions:** None.
 
 **Credentials to test flow:**
-The agent created  with password . This user should be used for login.
+-   **Email:** 
+-   **Password:** 
 
 **What agent forgot to execute**
--   The agent did not follow up on the WordPress Category Publishing issue, which remains in a  state from the previous session. All new user requests took priority.</analysis>
+-   The agent did not call the  tool after completing the RDS scheduler enhancements (hourly and both stations). It moved directly to acknowledging the next user request.
+-   The long-pending Stream Monitor VU Meters task was not addressed in this session.</analysis>
