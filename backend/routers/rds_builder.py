@@ -217,7 +217,7 @@ async def get_rds_builder_status(
 
 class RDSOutputItem(BaseModel):
     """A single item in an RDS output configuration."""
-    type: Literal["now_playing", "show_name", "custom_text"]
+    type: Literal["now_playing", "show_name", "presenter_name", "custom_text"]
     enabled: bool = True
     content: Optional[str] = None  # For custom_text type
     duration: int = 5  # How long to display this item (seconds)
