@@ -584,7 +584,9 @@ async def get_shows(
         if not query["date"]:
             del query["date"]
     
-    shows = await db.shows.find(query, {"_id": 0}).sort("date", -1).to_list(1000)
+    # Increase limit to handle large recurring show sets
+    # Sort ascending by date to ensure oldest shows aren't cut off
+    shows = await db.shows.find(query, {"_id": 0}).sort("date", 1).to_list(5000)
     
     # Get studio names for shows that have studio_id
     studio_ids = list(set(s.get('studio_id') for s in shows if s.get('studio_id')))
