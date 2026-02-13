@@ -151,12 +151,12 @@ def find_audio_match(stream_fingerprints: List[np.ndarray],
         if score > best_score:
             best_score = score
     
-    # Log debug info about the match attempt
+    # Log debug info about the match attempt (use INFO for visibility)
     avg_score = sum(scores) / len(scores) if scores else 0
-    logger.debug(f"[{trigger_name}] Match check: best={best_score:.3f}, avg={avg_score:.3f}, threshold={threshold}, windows={len(scores)}")
+    logger.info(f"[{trigger_name}] Match: best={best_score:.3f}, avg={avg_score:.3f}, threshold={threshold}, windows={len(scores)}")
     
     if best_score >= threshold:
-        logger.info(f"[{trigger_name}] MATCH FOUND! Score: {best_score:.3f} >= {threshold}")
+        logger.info(f"[{trigger_name}] *** MATCH FOUND! *** Score: {best_score:.3f} >= {threshold}")
     
     return best_score >= threshold, best_score
 
