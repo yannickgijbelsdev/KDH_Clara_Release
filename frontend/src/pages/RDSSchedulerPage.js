@@ -391,11 +391,15 @@ const RDSSchedulerPage = () => {
   };
 
   const handleSave = async (data) => {
+    // Use the station from the data (which includes "both" option)
+    const targetStation = data.station || station;
+    // API uses the viewing station, but the data contains the actual target station
     if (editingItem) {
       await axios.put(`${API}/rds-builder/scheduled-texts/${station}/${editingItem.id}`, data);
       toast.success('Geplande tekst bijgewerkt');
     } else {
-      await axios.post(`${API}/rds-builder/scheduled-texts/${station}`, data);
+      // For creating, use mfy as the API route but include station in data
+      await axios.post(`${API}/rds-builder/scheduled-texts/mfy`, data);
       toast.success('Geplande tekst aangemaakt');
     }
     fetchCalendarItems();
@@ -406,7 +410,9 @@ const RDSSchedulerPage = () => {
     if (!window.confirm('Weet je zeker dat je deze geplande tekst wilt verwijderen?')) return;
 
     try {
-      await axios.delete(`${API}/rds-builder/scheduled-texts/${station}/${editingItem.id}`);
+      // Use the station from the editing item for deletion
+      const itemStation = editingItem.station === 'both' ? 'mfy' : editingItem.station;
+      await axios.delete(`${API}/rds-builder/scheduled-texts/${itemStation}/${editingItem.id}`);
       toast.success('Geplande tekst verwijderd');
       setDialogOpen(false);
       fetchCalendarItems();
