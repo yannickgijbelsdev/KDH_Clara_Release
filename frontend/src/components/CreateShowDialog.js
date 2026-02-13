@@ -42,10 +42,12 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
   const [endDate, setEndDate] = useState(null);
   const [showTitles, setShowTitles] = useState([]);
   const [studios, setStudios] = useState([]);
+  const [teamUsers, setTeamUsers] = useState([]);
   const [loadingTitles, setLoadingTitles] = useState(false);
   const [isAddingNewTitle, setIsAddingNewTitle] = useState(false);
   const [newTitleName, setNewTitleName] = useState('');
   const [creatingTitle, setCreatingTitle] = useState(false);
+  const [presenterPopoverOpen, setPresenterPopoverOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -56,6 +58,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
     status: 'draft',
     recurrence: 'none',
     studio_id: '',
+    presenter_ids: [],
   });
 
   // Fetch show titles and studios when dialog opens
@@ -63,6 +66,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
     if (open) {
       fetchShowTitles();
       fetchStudios();
+      fetchTeamUsers();
     }
   }, [open]);
 
@@ -84,6 +88,15 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
       setStudios(response.data);
     } catch (error) {
       console.error('Failed to fetch studios:', error);
+    }
+  };
+
+  const fetchTeamUsers = async () => {
+    try {
+      const response = await axios.get(`${API}/users`);
+      setTeamUsers(response.data);
+    } catch (error) {
+      console.error('Failed to fetch team users:', error);
     }
   };
 
