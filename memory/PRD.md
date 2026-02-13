@@ -930,3 +930,20 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - Files aangepast:
   - `/app/backend/routers/rds_builder.py` - hourly recurrence, both station support
   - `/app/frontend/src/pages/RDSSchedulerPage.js` - station selector, hourly option, green color for "both"
+
+### February 13, 2026 - Rundown UI/UX Improvements
+- [x] **Sticky "Add Item" Button**:
+  - Rundown header met "Add Item" knop blijft nu zichtbaar tijdens scrollen
+  - CSS classes: `sticky top-0 z-10 bg-[#18181b]`
+  - Border-bottom toegevoegd voor visuele scheiding
+  - File: `/app/frontend/src/components/RundownEditor.js`
+
+- [x] **Export/Print URL Production Fix**:
+  - Print/Export functie gebruikt nu productie URL: `https://clara.koodh.com`
+  - Voorheen gebruikte dynamische API URL (development)
+  - Hardcoded naar productie voor consistente uitvoer
+  - File: `/app/frontend/src/pages/ShowDetailPage.js`
+
+- Files aangepast:
+  - `/app/frontend/src/components/RundownEditor.js` - sticky header styling
+  - `/app/frontend/src/pages/ShowDetailPage.js` - handlePrintView() URL fix
