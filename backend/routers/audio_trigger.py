@@ -68,6 +68,30 @@ async def get_audio_triggers(
     return triggers
 
 
+@audio_trigger_router.get("/logs")
+async def get_trigger_logs(
+    trigger_id: Optional[str] = None,
+    station: Optional[str] = None,
+    limit: int = 100,
+    db=Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get audio trigger detection logs."""
+    query = {}
+    
+    if trigger_id:
+        query["trigger_id"] = trigger_id
+    if station:
+        query["station"] = station
+    
+    logs = await db.audio_trigger_logs.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    return logs
+
+
 @audio_trigger_router.get("/{trigger_id}")
 async def get_audio_trigger(
     trigger_id: str,
