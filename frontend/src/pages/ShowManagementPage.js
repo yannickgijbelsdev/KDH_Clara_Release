@@ -108,12 +108,14 @@ const ShowManagementPage = () => {
 
   const fetchData = async () => {
     try {
-      const [titlesRes, studiosRes] = await Promise.all([
+      const [titlesRes, studiosRes, usersRes] = await Promise.all([
         axios.get(`${API}/shows/titles`),
         axios.get(`${API}/shows/studios`),
+        axios.get(`${API}/users`),
       ]);
       setShowTitles(titlesRes.data);
       setStudios(studiosRes.data);
+      setTeamUsers(usersRes.data);
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
