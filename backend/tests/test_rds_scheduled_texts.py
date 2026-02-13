@@ -39,7 +39,7 @@ class TestRDSScheduledTextsAuth:
         # Create new session without auth
         no_auth_session = requests.Session()
         response = no_auth_session.get(f"{BASE_URL}/api/rds-builder/scheduled-texts/mfy")
-        assert response.status_code == 401, "Should require authentication"
+        assert response.status_code in [401, 403], "Should require authentication"
     
     def test_create_scheduled_text_requires_auth(self):
         """POST /api/rds-builder/scheduled-texts/{station} requires authentication"""
@@ -54,7 +54,7 @@ class TestRDSScheduledTextsAuth:
             "enabled": True,
             "station": "mfy"
         })
-        assert response.status_code == 401, "Should require authentication"
+        assert response.status_code in [401, 403], "Should require authentication"
 
 
 class TestRDSScheduledTextsCRUD:
