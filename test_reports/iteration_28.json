@@ -1,0 +1,87 @@
+{
+  "summary": "Presenter functionality testing complete - All features working correctly: 1) Show titles return default_presenters, 2) Shows return presenters field, 3) Create/Edit show supports presenter_ids, 4) Show title selection auto-fills default presenters in Create Show Dialog, 5) Presenters displayed in Show Detail Page with violet styling",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_presenters.py",
+    "/app/test_reports/pytest/presenters_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend get_presenters_info helper function correctly fetches presenter details and preserves order",
+    "ShowTitleCreate/Update models properly handle default_presenter_ids as Optional[List[str]]",
+    "ShowCreate/Update models properly handle presenter_ids as Optional[List[str]]",
+    "Frontend ShowManagementPage.js correctly displays presenters in violet color with Users icon",
+    "Frontend CreateShowDialog.js auto-fills presenter_ids when selecting show title with default presenters",
+    "Frontend CalendarPage.js shows presenters in sidebar for shows that have them",
+    "Frontend ShowDetailPage.js displays presenters in Show Details section and supports editing"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_presenters.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% (all presenter UI features verified)"
+  },
+  "test_credentials": {
+    "email": "test@test.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Created test shows and titles with TEST_ prefix - all cleaned up automatically",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Presenter functionality fully implemented. Show titles support default_presenter_ids, shows support presenter_ids. Auto-fill works when selecting show title. Presenters displayed in violet color throughout app.",
+  "features_tested": {
+    "Show Management - default presenters in violet": {
+      "status": "PASS",
+      "details": "Backstage Radio shows 'Yannick Gijbels' in violet color with Users icon"
+    },
+    "Show Management - edit dialog presenter selection": {
+      "status": "PASS",
+      "details": "Edit dialog has 'Standaard Presenters' field with multi-select popover showing Teamleden"
+    },
+    "Create Show Dialog - presenter selection field": {
+      "status": "PASS",
+      "details": "Dialog has Presenters field with 'Selecteer presenters...' placeholder and multi-select popover"
+    },
+    "Create Show Dialog - auto-fill default presenters": {
+      "status": "PASS",
+      "details": "Selecting 'Backstage Radio' auto-fills 'Yannick Gijbels' in Presenters field"
+    },
+    "Calendar sidebar - presenters shown": {
+      "status": "PASS",
+      "details": "Shows with presenters display them in violet text in sidebar"
+    },
+    "Show Detail Page - presenters display": {
+      "status": "PASS",
+      "details": "Backstage Radio shows 'Presenters: Yannick Gijbels' with avatar in violet pill styling"
+    },
+    "Show Detail Page - edit presenters": {
+      "status": "PASS",
+      "details": "Edit mode shows Presenters field with multi-select popover"
+    },
+    "API /api/shows/titles - default_presenters field": {
+      "status": "PASS",
+      "details": "API returns default_presenter_ids and enriched default_presenters with id, name, avatar"
+    },
+    "API /api/shows - presenters field": {
+      "status": "PASS",
+      "details": "API returns presenter_ids and enriched presenters with id, name, avatar"
+    }
+  },
+  "implementation_verification": {
+    "backend/routers/shows.py": "get_presenters_info helper function at line 63-75, used in all relevant endpoints",
+    "backend/models/shows.py": "PresenterInfo model at line 26-32, default_presenter_ids in ShowTitleCreate/Update, presenter_ids in ShowCreate/Update",
+    "frontend ShowManagementPage.js": "Line 397-402 displays presenters in violet with Users icon",
+    "frontend CreateShowDialog.js": "Line 432-496 has Presenters section with multi-select popover, line 140-150 handles auto-fill",
+    "frontend CalendarPage.js": "Line 351-358 displays presenters in sidebar",
+    "frontend ShowDetailPage.js": "Line 727-750 displays presenters in Show Details, line 661-720 has edit mode popover"
+  }
+}
