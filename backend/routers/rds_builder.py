@@ -760,7 +760,12 @@ async def get_active_scheduled_text(station: str):
     
     # Find which scheduled text is currently active
     for text in texts:
-        text_start = datetime.fromisoformat(text["start_datetime"].replace("Z", "+00:00"))
+        # Parse start_datetime and ensure it's timezone-aware
+        start_dt_str = text["start_datetime"].replace("Z", "+00:00")
+        text_start = datetime.fromisoformat(start_dt_str)
+        # If naive datetime, assume UTC
+        if text_start.tzinfo is None:
+            text_start = text_start.replace(tzinfo=timezone.utc)
         recurrence = text.get("recurrence_type", "none")
         recurrence_end = text.get("recurrence_end_date")
         duration_type = text.get("duration_type", "fixed")
