@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format, addWeeks } from 'date-fns';
-import { CalendarIcon, Repeat, Plus, Loader2 } from 'lucide-react';
+import { CalendarIcon, Repeat, Plus, Loader2, Users, User, Check } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
