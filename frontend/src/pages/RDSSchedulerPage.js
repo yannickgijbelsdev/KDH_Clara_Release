@@ -534,6 +534,10 @@ const RDSSchedulerPage = () => {
           <span>Radio GRK</span>
         </div>
         <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded bg-green-500/20" />
+          <span>Beide stations</span>
+        </div>
+        <div className="flex items-center gap-2">
           <Repeat className="w-3 h-3" />
           <span>Herhalend</span>
         </div>
