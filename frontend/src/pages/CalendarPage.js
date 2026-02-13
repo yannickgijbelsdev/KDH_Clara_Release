@@ -22,6 +22,8 @@ import {
   Clock,
   Calendar as CalendarIcon,
   Repeat,
+  Users,
+  User,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
