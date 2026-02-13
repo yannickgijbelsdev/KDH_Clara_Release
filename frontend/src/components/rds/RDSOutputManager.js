@@ -33,6 +33,7 @@ const ITEM_TYPES = [
   { value: 'show_name', label: 'Show Name', icon: Mic, description: 'Name of the current live show (or default)' },
   { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Presenter(s) of the current live show' },
   { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Current track from the stream' },
+  { value: 'audio_trigger', label: 'Audio Trigger', icon: Volume2, description: 'Text from detected audio (news, ads)' },
   { value: 'custom_text', label: 'Custom Text', icon: Type, description: 'Custom text of your choice' },
 ];
 
