@@ -549,7 +549,7 @@ const RDSSchedulerPage = () => {
         }}
         onSave={handleSave}
         item={editingItem || (preselectedDate ? { start_datetime: preselectedDate.toISOString() } : null)}
-        station={station}
+        currentStation={station}
       />
 
       {/* Delete button in dialog footer when editing */}
