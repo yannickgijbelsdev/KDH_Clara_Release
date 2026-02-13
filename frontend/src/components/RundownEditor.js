@@ -41,7 +41,57 @@ const calculateSpeakingDuration = (text) => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-const RundownEditor = ({ showId, canEdit = true }) => {
+// Default durations for item types (in minutes)
+const DEFAULT_DURATIONS = {
+  ad: 2,
+  music: 3,
+};
+
+// Parse duration string "MM:SS" to minutes
+const parseDurationToMinutes = (duration) => {
+  if (!duration) return 0;
+  const [mins, secs] = duration.split(':').map(Number);
+  return mins + (secs || 0) / 60;
+};
+
+// Calculate timestamps for all items based on show start time
+const calculateTimestamps = (items, showStartTime) => {
+  if (!showStartTime) return items.map(() => null);
+  
+  // Parse show start time (format: "HH:MM")
+  const [startHours, startMins] = showStartTime.split(':').map(Number);
+  let currentMinutes = startHours * 60 + startMins;
+  
+  return items.map((item) => {
+    const timestamp = currentMinutes;
+    
+    // Calculate this item's duration
+    let itemDuration = 0;
+    if (item.duration) {
+      // Use explicit duration if set
+      itemDuration = parseDurationToMinutes(item.duration);
+    } else if (DEFAULT_DURATIONS[item.type]) {
+      // Use default duration for type (ad=2min, music=3min)
+      itemDuration = DEFAULT_DURATIONS[item.type];
+    } else if (item.type !== 'music' && item.notes) {
+      // Estimate from text for talk/item types
+      const estimated = calculateSpeakingDuration(item.notes);
+      if (estimated) {
+        itemDuration = parseDurationToMinutes(estimated);
+      }
+    }
+    
+    // Move to next timestamp
+    currentMinutes += itemDuration;
+    
+    // Format timestamp as HH:MM
+    const hours = Math.floor(timestamp / 60) % 24;
+    const mins = Math.floor(timestamp % 60);
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+  });
+};
+
+const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
