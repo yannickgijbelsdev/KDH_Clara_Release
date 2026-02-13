@@ -206,29 +206,31 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
 
   return (
     <div data-testid="rundown-editor" className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-violet-500/20 rounded-lg">
-            <ListOrdered className="w-5 h-5 text-violet-500" />
+      <div className="sticky top-0 z-10 bg-[#18181b] pb-4 -mx-6 px-6 pt-0 border-b border-zinc-800/50 mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-violet-500/20 rounded-lg">
+              <ListOrdered className="w-5 h-5 text-violet-500" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-white">Rundown</h2>
+              <p className="text-sm text-zinc-500">
+                {items.length} items • {totalDuration} total
+                {hasEstimated && <span className="text-violet-400 ml-1">(incl. estimates)</span>}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-white">Rundown</h2>
-            <p className="text-sm text-zinc-500">
-              {items.length} items • {totalDuration} total
-              {hasEstimated && <span className="text-violet-400 ml-1">(incl. estimates)</span>}
-            </p>
-          </div>
+          {canEdit && (
+            <Button
+              data-testid="add-rundown-item-btn"
+              onClick={handleAddItem}
+              className="gap-2 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
+            >
+              <Plus className="w-4 h-4" />
+              Add Item
+            </Button>
+          )}
         </div>
-        {canEdit && (
-          <Button
-            data-testid="add-rundown-item-btn"
-            onClick={handleAddItem}
-            className="gap-2 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
-          >
-            <Plus className="w-4 h-4" />
-            Add Item
-          </Button>
-        )}
       </div>
 
       {loading ? (

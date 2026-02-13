@@ -349,7 +349,8 @@ const ShowDetailPage = () => {
   };
 
   const handlePrintView = () => {
-    window.open(`${API}/shows/${showId}/rundown/print?token=${token}`, '_blank');
+    // Use production URL for print/export
+    window.open(`https://clara.koodh.com/api/shows/${showId}/rundown/print?token=${token}`, '_blank');
   };
 
   // Image upload handlers
