@@ -568,9 +568,9 @@ async def get_scheduled_texts_calendar(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
     
-    # Get all scheduled texts for this station
+    # Get texts for this specific station OR texts set to "both"
     texts = await db.rds_scheduled_texts.find(
-        {"station": station},
+        {"$or": [{"station": station}, {"station": "both"}]},
         {"_id": 0}
     ).to_list(1000)
     
