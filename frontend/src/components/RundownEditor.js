@@ -268,6 +268,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
                   key={item.id}
                   item={item}
                   index={index}
+                  timestamp={timestamps[index]}
                   onEdit={canEdit ? () => handleEditItem(item) : undefined}
                   onDelete={canEdit ? () => handleDeleteItem(item.id) : undefined}
                   canEdit={canEdit}
