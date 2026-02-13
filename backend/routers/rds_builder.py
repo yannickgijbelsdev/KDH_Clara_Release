@@ -688,6 +688,8 @@ async def update_scheduled_text(
         update_data["text"] = data.text
     if data.start_datetime is not None:
         update_data["start_datetime"] = data.start_datetime
+    if data.station is not None:
+        update_data["station"] = data.station
     if data.duration_type is not None:
         update_data["duration_type"] = data.duration_type
     if data.duration_minutes is not None:
