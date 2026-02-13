@@ -63,6 +63,15 @@ def format_now_playing(song_title: str) -> str:
     if not song_title:
         return song_title
     
+    # Clean up any trailing separators from filtered content
+    song_title = song_title.strip()
+    for sep in [" - ", " – ", " — ", "-", "–", "—"]:
+        if song_title.endswith(sep.strip()):
+            song_title = song_title.rstrip(sep.strip()).strip()
+    
+    if not song_title:
+        return song_title
+    
     # Common separators between artist and title
     separators = [" - ", " – ", " — "]
     
@@ -71,7 +80,13 @@ def format_now_playing(song_title: str) -> str:
             parts = song_title.split(sep, 1)  # Split only on first occurrence
             if len(parts) == 2:
                 artist = parts[0].strip().upper()  # UPPERCASE for artist
-                title = parts[1].strip().title()   # Title Case for song title
+                title = parts[1].strip()
+                
+                # If title is empty after filter, just return artist
+                if not title:
+                    return artist
+                
+                title = title.title()  # Title Case for song title
                 return f"{artist} - {title}"
     
     # No separator found - treat entire string as artist name
