@@ -20,6 +20,7 @@ import TrashPage from './pages/TrashPage';
 import PersonalSettingsPage from './pages/PersonalSettingsPage';
 import RDSSettingsPage from './pages/RDSSettingsPage';
 import RDSBuilderPage from './pages/RDSBuilderPage';
+import RDSSchedulerPage from './pages/RDSSchedulerPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
 import './App.css';
 
