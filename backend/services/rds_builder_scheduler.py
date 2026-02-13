@@ -427,6 +427,7 @@ async def process_rds_sequence(db, station: str):
             "current_item_type": current_item.get("type"),
             "current_item_id": current_item.get("id"),
             "scheduled_text_active": False,
+            "audio_trigger_active": False,
             "scheduled_text_ends_at": None,
             "next_change_at": next_change_at.isoformat(),
             "updated_at": timestamp
