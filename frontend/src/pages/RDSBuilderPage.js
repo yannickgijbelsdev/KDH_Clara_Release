@@ -34,10 +34,10 @@ import { Users } from 'lucide-react';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ITEM_TYPES = [
-  { value: 'show_name', label: 'Show Naam', icon: Mic, description: 'Toont de naam van de huidige live show' },
-  { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Toont de presenter(s) van de huidige live show' },
-  { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Toont het huidige nummer van de stream' },
-  { value: 'custom_text', label: 'Custom Tekst', icon: Type, description: 'Toont een zelf gekozen tekst' },
+  { value: 'show_name', label: 'Show Name', icon: Mic, description: 'Shows the name of the current live show' },
+  { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Shows the presenter(s) of the current live show' },
+  { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Shows the current track from the stream' },
+  { value: 'custom_text', label: 'Custom Text', icon: Type, description: 'Shows a custom text of your choice' },
 ];
 
 // Sequence Item Component
@@ -121,7 +121,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
                 handleContentBlur();
               }
             }}
-            placeholder="Voer tekst in..."
+            placeholder="Enter text..."
             className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
             data-testid={`custom-text-input-${index}`}
           />
@@ -193,7 +193,7 @@ const StationBuilder = ({ station, stationName, color }) => {
       setSequence(seqRes.data);
       setStatus(statusRes.data);
     } catch (error) {
-      toast.error(`Kon data niet laden voor ${stationName}`);
+      toast.error(`Could not load data for ${stationName}`);
     } finally {
       setLoading(false);
     }
@@ -223,9 +223,9 @@ const StationBuilder = ({ station, stationName, color }) => {
         enabled: sequence.enabled,
         loop: sequence.loop
       });
-      toast.success(`Sequence opgeslagen voor ${stationName}`);
+      toast.success(`Sequence saved for ${stationName}`);
     } catch (error) {
-      toast.error('Kon sequence niet opslaan');
+      toast.error('Could not save sequence');
     } finally {
       setSaving(false);
     }
@@ -273,7 +273,7 @@ const StationBuilder = ({ station, stationName, color }) => {
     const url = `https://clara.koodh.com/api/rds-builder/output/${station}.txt`;
     navigator.clipboard.writeText(url);
     setCopiedUrl(true);
-    toast.success('URL gekopieerd');
+    toast.success('URL copied');
     setTimeout(() => setCopiedUrl(false), 2000);
   };
 
@@ -297,14 +297,14 @@ const StationBuilder = ({ station, stationName, color }) => {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white">{stationName}</h3>
-            <p className="text-xs text-zinc-500">RDS Tekst Sequentie</p>
+            <p className="text-xs text-zinc-500">RDS Text Sequence</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Enable/Disable toggle */}
           <div className="flex items-center gap-2">
-            <Label className="text-zinc-400 text-sm">Actief</Label>
+            <Label className="text-zinc-400 text-sm">Active</Label>
             <Switch
               checked={sequence?.enabled || false}
               onCheckedChange={(checked) => setSequence({ ...sequence, enabled: checked })}
@@ -322,7 +322,7 @@ const StationBuilder = ({ station, stationName, color }) => {
             ) : (
               <Save className="w-4 h-4" />
             )}
-            <span className="ml-2">{saving ? 'Opslaan...' : 'Opslaan'}</span>
+            <span className="ml-2">{saving ? 'Saving...' : 'Save'}</span>
           </Button>
         </div>
       </div>
@@ -330,7 +330,7 @@ const StationBuilder = ({ station, stationName, color }) => {
       {/* Current output preview */}
       <div className={`${colors.bg} rounded-lg p-4 mb-6`}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-zinc-400 text-sm">Huidige Output:</span>
+          <span className="text-zinc-400 text-sm">Current Output:</span>
           <Button
             variant="outline"
             size="sm"
@@ -342,11 +342,11 @@ const StationBuilder = ({ station, stationName, color }) => {
             ) : (
               <Copy className="w-3 h-3 mr-1" />
             )}
-            URL Kopiëren
+            Copy URL
           </Button>
         </div>
         <div className={`text-xl font-semibold ${colors.text} min-h-[1.75rem]`}>
-          {status?.current_text || <span className="text-zinc-600 italic">Geen output</span>}
+          {status?.current_text || <span className="text-zinc-600 italic">No output</span>}
         </div>
         {status?.enabled && (
           <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500">
@@ -388,7 +388,7 @@ const StationBuilder = ({ station, stationName, color }) => {
         className="w-full border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800"
       >
         <Plus className="w-4 h-4 mr-2" />
-        Item Toevoegen
+        Add Item
       </Button>
 
       {/* Loop toggle */}
@@ -397,7 +397,7 @@ const StationBuilder = ({ station, stationName, color }) => {
           checked={sequence?.loop || false}
           onCheckedChange={(checked) => setSequence({ ...sequence, loop: checked })}
         />
-        <Label className="text-zinc-400 text-sm">Herhalen (loop)</Label>
+        <Label className="text-zinc-400 text-sm">Repeat (loop)</Label>
       </div>
     </div>
   );
@@ -418,7 +418,7 @@ const RDSBuilderPage = () => {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">RDS Builder</h1>
-            <p className="text-sm text-zinc-500">Configureer RDS tekst outputs voor MagicRDS</p>
+            <p className="text-sm text-zinc-500">Configure RDS text outputs for MagicRDS</p>
           </div>
         </div>
         <Button
@@ -459,8 +459,8 @@ const RDSBuilderPage = () => {
           {/* Info banner */}
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
             <p className="text-blue-400 text-sm">
-              <strong>Multi-Output Mode:</strong> Maak verschillende outputs voor Streaming, DAB+, FM, etc. 
-              Per output kun je aanvinken welke items je wilt tonen (Show Naam, Now Playing, Custom Tekst) met eigen duraties.
+              <strong>Multi-Output Mode:</strong> Create different outputs for Streaming, DAB+, FM, etc. 
+              For each output, you can select which items to show (Show Name, Now Playing, Custom Text) with custom durations.
             </p>
           </div>
 
@@ -475,8 +475,8 @@ const RDSBuilderPage = () => {
           {/* Info banner */}
           <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
             <p className="text-yellow-400 text-sm">
-              <strong>Legacy Sequence Builder:</strong> De oude manier om RDS sequenties te maken. 
-              Gebruik Multi-Output voor meer flexibiliteit met verschillende outputs.
+              <strong>Legacy Sequence Builder:</strong> The old way to create RDS sequences. 
+              Use Multi-Output for more flexibility with different outputs.
             </p>
           </div>
 
