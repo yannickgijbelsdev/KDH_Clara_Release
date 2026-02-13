@@ -395,7 +395,6 @@ class AudioTriggerScheduler:
         else:
             # OUT sound detected - deactivate trigger
             out_action_type = trigger.get("out_action_type", "now_playing")
-            out_action_text = trigger.get("out_action_text", "")
             
             logger.info(f"Audio trigger OUT detected: {trigger.get('name')} on {station}")
             
