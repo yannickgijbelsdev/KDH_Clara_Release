@@ -11,6 +11,7 @@ class ShowTitleCreate(BaseModel):
     default_start_time: Optional[str] = None
     default_end_time: Optional[str] = None
     rds_station: Optional[Literal["mfy", "grk", "both", "none"]] = "none"
+    default_presenter_ids: Optional[List[str]] = None
 
 
 class ShowTitleUpdate(BaseModel):
@@ -19,6 +20,15 @@ class ShowTitleUpdate(BaseModel):
     default_start_time: Optional[str] = None
     default_end_time: Optional[str] = None
     rds_station: Optional[Literal["mfy", "grk", "both", "none"]] = None
+    default_presenter_ids: Optional[List[str]] = None
+
+
+class PresenterInfo(BaseModel):
+    """Basic presenter information."""
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    avatar: Optional[dict] = None
 
 
 class ShowTitleResponse(BaseModel):
@@ -33,6 +43,8 @@ class ShowTitleResponse(BaseModel):
     created_by: str
     created_at: str
     image: Optional[dict] = None
+    default_presenter_ids: Optional[List[str]] = None
+    default_presenters: Optional[List[PresenterInfo]] = None
 
 
 # ============== STUDIOS/ROOMS ==============
