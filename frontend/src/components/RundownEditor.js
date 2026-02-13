@@ -200,6 +200,9 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null }) => {
   };
 
   const { timeStr: totalDuration, hasEstimated } = calculateTotalDuration();
+  
+  // Calculate timestamps for all items
+  const timestamps = calculateTimestamps(items, showStartTime);
 
   return (
     <div data-testid="rundown-editor" className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
