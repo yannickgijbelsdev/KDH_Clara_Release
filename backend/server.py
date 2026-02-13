@@ -90,6 +90,7 @@ api_router.include_router(logs_router)
 api_router.include_router(rds_router)
 api_router.include_router(rds_builder_router)
 api_router.include_router(stream_proxy_router)
+api_router.include_router(audio_trigger_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
