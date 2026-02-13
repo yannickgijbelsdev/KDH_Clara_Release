@@ -228,14 +228,34 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
         return False, 0.0
     
     try:
-        # Save to temp file for processing (AAC+ needs decoding)
-        with tempfile.NamedTemporaryFile(suffix=".aac", delete=False) as tmp:
+        # Save to temp file for processing
+        with tempfile.NamedTemporaryFile(suffix=".stream", delete=False) as tmp:
             tmp.write(audio_bytes)
-            tmp_path = tmp.name
+            input_path = tmp.name
+        
+        # Use ffmpeg to convert stream to WAV for proper decoding
+        output_path = input_path + ".wav"
         
         try:
-            # Load and analyze
-            audio_data, sr = librosa.load(tmp_path, sr=SAMPLE_RATE, mono=True)
+            import subprocess
+            result = subprocess.run(
+                [
+                    "ffmpeg", "-y", "-i", input_path,
+                    "-acodec", "pcm_s16le",
+                    "-ar", str(SAMPLE_RATE),
+                    "-ac", "1",  # mono
+                    output_path
+                ],
+                capture_output=True,
+                timeout=10
+            )
+            
+            if result.returncode != 0 or not os.path.exists(output_path):
+                logger.warning(f"FFmpeg conversion failed: {result.stderr.decode()[:200]}")
+                return False, 0.0
+            
+            # Load the converted WAV file
+            audio_data, sr = librosa.load(output_path, sr=SAMPLE_RATE, mono=True)
             
             # Check if we got valid audio data
             if audio_data is None or len(audio_data) == 0:
@@ -246,14 +266,18 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
             stream_fps = compute_fingerprint_sequence(audio_data, sr)
             
             if not stream_fps:
-                logger.warning(f"No fingerprints computed from stream")
+                logger.warning(f"No fingerprints computed from stream (audio too short?)")
                 return False, 0.0
             
             # Check for match
             return find_audio_match(stream_fps, trigger_fingerprint, threshold)
             
         finally:
-            os.unlink(tmp_path)
+            # Clean up temp files
+            if os.path.exists(input_path):
+                os.unlink(input_path)
+            if os.path.exists(output_path):
+                os.unlink(output_path)
             
     except Exception as e:
         import traceback
