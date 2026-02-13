@@ -87,6 +87,17 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
         <div className="w-7 shrink-0" />
       )}
 
+      {/* Timestamp */}
+      {timestamp && (
+        <span 
+          className="font-mono text-sm text-orange-400 w-14 text-center mt-1 shrink-0"
+          data-testid={`timestamp-${index}`}
+          title="Scheduled start time"
+        >
+          {timestamp}
+        </span>
+      )}
+
       {/* Order Number */}
       <span className="font-mono text-sm text-zinc-500 w-6 text-center mt-1 shrink-0">
         {index + 1}
