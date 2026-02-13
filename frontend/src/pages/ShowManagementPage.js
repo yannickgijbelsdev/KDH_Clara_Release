@@ -658,7 +658,7 @@ const ShowManagementPage = () => {
                 </PopoverTrigger>
                 <PopoverContent className="w-72 p-0 bg-[#18181b] border-zinc-800" align="start">
                   <div className="p-2 border-b border-zinc-800">
-                    <p className="text-sm text-zinc-400 font-medium">Teamleden</p>
+                    <p className="text-sm text-zinc-400 font-medium">Team Members</p>
                   </div>
                   <div className="max-h-60 overflow-y-auto p-2 space-y-1">
                     {teamUsers.map((user) => (
