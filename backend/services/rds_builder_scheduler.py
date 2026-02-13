@@ -1,7 +1,8 @@
 """RDS Builder Scheduler - Rotates RDS text based on configured sequences."""
 import asyncio
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from dateutil.relativedelta import relativedelta
 import uuid
 
 logger = logging.getLogger(__name__)
