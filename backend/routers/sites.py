@@ -89,6 +89,7 @@ async def create_site(
         "name": site_data.name,
         "slug": site_data.slug.lower(),
         "logo_url": None,
+        "header_image_url": None,
         "audio_enabled": False,
         "audio_type": None,
         "audio_url": None,
