@@ -7,6 +7,27 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 const MainSiteContext = createContext(null);
 
+// Helper function to setup axios interceptor
+const setupInterceptor = (interceptorRef, mainSiteId) => {
+  // Remove previous interceptor if it exists
+  if (interceptorRef.current !== null) {
+    axios.interceptors.request.eject(interceptorRef.current);
+    interceptorRef.current = null;
+  }
+
+  // Add new interceptor when mainSiteId is available
+  if (mainSiteId) {
+    interceptorRef.current = axios.interceptors.request.use(
+      (config) => {
+        // Add main site ID header to all API requests
+        config.headers['X-Main-Site-ID'] = mainSiteId;
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+  }
+};
+
 export const useMainSite = () => {
   const context = useContext(MainSiteContext);
   if (!context) {
@@ -26,33 +47,15 @@ export const MainSiteProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const interceptorRef = useRef(null);
 
-  // Setup axios interceptor to add X-Main-Site-ID header to all requests
+  // Cleanup interceptor on unmount
   useEffect(() => {
-    // Remove previous interceptor if it exists
-    if (interceptorRef.current !== null) {
-      axios.interceptors.request.eject(interceptorRef.current);
-    }
-
-    // Add new interceptor when mainSite is available
-    if (mainSite?.id) {
-      interceptorRef.current = axios.interceptors.request.use(
-        (config) => {
-          // Add main site ID header to all API requests
-          config.headers['X-Main-Site-ID'] = mainSite.id;
-          return config;
-        },
-        (error) => Promise.reject(error)
-      );
-    }
-
-    // Cleanup on unmount
     return () => {
       if (interceptorRef.current !== null) {
         axios.interceptors.request.eject(interceptorRef.current);
         interceptorRef.current = null;
       }
     };
-  }, [mainSite?.id]);
+  }, []);
 
   const fetchMainSite = useCallback(async () => {
     if (!mainSiteSlug || !token) {
@@ -67,6 +70,12 @@ export const MainSiteProvider = ({ children }) => {
 
       if (res.ok) {
         const data = await res.json();
+        
+        // IMPORTANT: Setup interceptor BEFORE setting mainSite state
+        // This ensures the interceptor is ready before any child components
+        // start making API calls after the re-render
+        setupInterceptor(interceptorRef, data.id);
+        
         setMainSite(data);
         setError(null);
 
@@ -81,17 +90,21 @@ export const MainSiteProvider = ({ children }) => {
         }
       } else if (res.status === 404) {
         setError('Main site not found');
+        setupInterceptor(interceptorRef, null); // Clear interceptor
         setMainSite(null);
       } else if (res.status === 403) {
         setError('Access denied');
+        setupInterceptor(interceptorRef, null); // Clear interceptor
         setMainSite(null);
       } else {
         setError('Failed to load main site');
+        setupInterceptor(interceptorRef, null); // Clear interceptor
         setMainSite(null);
       }
     } catch (err) {
       console.error('Failed to fetch main site:', err);
       setError('Failed to load main site');
+      setupInterceptor(interceptorRef, null); // Clear interceptor
       setMainSite(null);
     } finally {
       setLoading(false);
