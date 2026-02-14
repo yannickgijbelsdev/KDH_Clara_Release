@@ -26,9 +26,16 @@ class SiteUpdate(BaseModel):
     
     # Logo
     logo_url: Optional[str] = None
+    logo_scale: Optional[int] = None  # 10-200 percentage
     
     # Header image (shows above audio player if no video)
     header_image_url: Optional[str] = None
+    
+    # Button styling
+    button_color: Optional[str] = None  # Hex color for form buttons
+    
+    # Form file uploads
+    form_file_upload_enabled: Optional[bool] = None
     
     # Audio settings
     audio_enabled: Optional[bool] = None
@@ -57,7 +64,10 @@ class SiteResponse(BaseModel):
     name: str
     slug: str
     logo_url: Optional[str] = None
+    logo_scale: int = 100  # percentage
     header_image_url: Optional[str] = None
+    button_color: Optional[str] = None
+    form_file_upload_enabled: bool = False
     
     # Audio
     audio_enabled: bool = False
@@ -86,7 +96,10 @@ class SitePublicResponse(BaseModel):
     name: str
     slug: str
     logo_url: Optional[str] = None
+    logo_scale: int = 100
     header_image_url: Optional[str] = None
+    button_color: Optional[str] = None
+    form_file_upload_enabled: bool = False
     
     audio_enabled: bool = False
     audio_type: Optional[str] = None
@@ -109,6 +122,7 @@ class SiteSubmissionCreate(BaseModel):
     phone: Optional[str] = None
     message: Optional[str] = None
     custom_fields: Optional[dict] = None
+    file_urls: Optional[List[str]] = None  # S3 URLs of uploaded files
 
 
 class SiteSubmissionResponse(BaseModel):
@@ -119,6 +133,7 @@ class SiteSubmissionResponse(BaseModel):
     phone: Optional[str] = None
     message: Optional[str] = None
     custom_fields: Optional[dict] = None
+    file_urls: Optional[List[str]] = None
     created_at: str
 
 
