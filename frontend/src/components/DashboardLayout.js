@@ -179,22 +179,33 @@ const DashboardLayout = () => {
     }
   }, [isAdmin]);
 
+  // Get mainSite from context to ensure X-Main-Site-ID header is available
+  const { mainSite, loading: mainSiteLoading } = useMainSite();
+
   // Fetch current site details when in site context
   const fetchCurrentSite = useCallback(async () => {
     if (!currentSiteId) {
       setCurrentSite(null);
       return;
     }
+    // Wait for mainSite to be loaded before making API call
+    // This ensures the axios interceptor has the X-Main-Site-ID header set
+    if (mainSiteLoading || !mainSite?.id) {
+      console.log('DashboardLayout: Waiting for mainSite context...');
+      return;
+    }
     try {
-      console.log('DashboardLayout: Fetching current site:', currentSiteId);
-      const response = await axios.get(`${API}/sites/${currentSiteId}`);
+      console.log('DashboardLayout: Fetching current site:', currentSiteId, 'with main_site_id:', mainSite.id);
+      const response = await axios.get(`${API}/sites/${currentSiteId}`, {
+        headers: { 'X-Main-Site-ID': mainSite.id }
+      });
       console.log('DashboardLayout: Current site loaded:', response.data);
       setCurrentSite(response.data);
     } catch (error) {
       console.error('Failed to fetch current site:', error);
       setCurrentSite(null);
     }
-  }, [currentSiteId]);
+  }, [currentSiteId, mainSite?.id, mainSiteLoading]);
 
   // Fetch submission counts for current site
   const fetchSubmissionCount = useCallback(async () => {
