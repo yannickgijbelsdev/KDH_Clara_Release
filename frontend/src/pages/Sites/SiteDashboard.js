@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Globe, Settings, Users, MessageSquare, Save, Trash2, 
   Plus, X, Music, Video, Image, Lock, Eye, EyeOff,
-  Upload, Link, Play, ExternalLink, ImageIcon, Palette, FileUp
+  Upload, Link, Play, ExternalLink, ImageIcon, Palette, FileUp,
+  FileImage, FileAudio, FileVideo, RefreshCw
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -25,6 +26,7 @@ export default function SiteDashboard() {
   const [teamUsers, setTeamUsers] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
+  const submissionsPollingRef = useRef(null);
 
   // Listen for tab changes from sidebar
   useEffect(() => {
