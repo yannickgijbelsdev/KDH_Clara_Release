@@ -156,8 +156,9 @@ async def create_site(
     
     await db.sites.insert_one(site_doc)
     
-    # Remove password_hash from response
+    # Remove password_hash and _id from response
     del site_doc["password_hash"]
+    site_doc.pop("_id", None)  # Remove MongoDB's _id field
     return site_doc
 
 
