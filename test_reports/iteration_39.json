@@ -1,0 +1,134 @@
+{
+  "summary": "Data Isolation Bug Fix - ALL TESTS PASSING. The X-Main-Site-ID header support has been correctly implemented across all content API endpoints. DBNT main site shows 0 content items while Radiogroep shows 132 items, confirming data isolation is working.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Sidebar Navigation",
+        "issues": ["Console shows 'Pathnames cannot have embedded double slashes' warnings (e.g., /dbnt//dbnt/content). Routes are being normalized automatically so functionality is not affected, but should be fixed for cleaner code."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_data_isolation.py",
+    "/app/test_reports/pytest/data_isolation_results.xml"
+  ],
+  "action_items": [
+    "Minor: Fix double slash in route paths in DashboardLayout.js sidebar links (e.g., /dbnt//dbnt/content should be /dbnt/content)"
+  ],
+  "critical_code_review_comments": [
+    "backend/services/main_site_context.py - Correctly extracts X-Main-Site-ID header from requests",
+    "backend/routers/shows.py - Line 86-91: Correctly filters by main_site_id when header present",
+    "backend/routers/media.py - Line 64-69: Correctly filters media assets by main_site_id",
+    "backend/routers/content.py - Line 158-161: Correctly filters content items by main_site_id",
+    "backend/routers/series.py - Line 27-35: Correctly filters show series by main_site_id",
+    "backend/routers/occurrences.py - Line 31-37: Correctly filters occurrences by main_site_id",
+    "backend/routers/folders.py - Line 26-31: Correctly filters media folders by main_site_id",
+    "frontend/src/context/MainSiteContext.js - Line 38-45: Axios interceptor correctly adds X-Main-Site-ID header to all API requests",
+    "backend/routers/main_sites.py - Line 542-612: migrate-content endpoint correctly migrates existing content to main_site_id"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_data_isolation.py"
+  ],
+  "success_rate": {
+    "backend": "100% (21/21 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "network_admin": {
+      "email": "yannick.gijbels@koodh.com",
+      "password": "test"
+    }
+  },
+  "seed_data_creation": "No seed data created - used existing main sites Radiogroep and DBNT",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Data isolation bug fix verified. DBNT main site has 0 content (shows, media, content items) while Radiogroep has 132 content items after migration. X-Main-Site-ID header correctly filters all content API endpoints. Minor routing issue with double slashes in sidebar paths doesn't affect functionality.",
+  "features_tested": {
+    "Data isolation - DBNT empty": {
+      "status": "PASS",
+      "details": "DBNT main site shows 0 shows, 0 media, 0 content items, 0 series, 0 show titles, 0 studios"
+    },
+    "Data isolation - Radiogroep has content": {
+      "status": "PASS",
+      "details": "Radiogroep main site shows 132 content items in UI"
+    },
+    "X-Main-Site-ID header filtering": {
+      "status": "PASS",
+      "details": "All endpoints accept and correctly filter by X-Main-Site-ID header"
+    },
+    "Login flow": {
+      "status": "PASS",
+      "details": "Network admin (yannick.gijbels@koodh.com) can log in successfully"
+    },
+    "Site selection navigation": {
+      "status": "PASS",
+      "details": "Network Admin page shows both main sites, clicking 'Open Dashboard' navigates to correct main site"
+    },
+    "Content creation isolation": {
+      "status": "PASS",
+      "details": "Creating show title in DBNT does not appear in Radiogroep (tested via API)"
+    },
+    "Network Management link": {
+      "status": "PASS",
+      "details": "User dropdown shows 'Network Admin' role identifier"
+    }
+  },
+  "backend_test_results": {
+    "test_file": "/app/backend/tests/test_data_isolation.py",
+    "total_tests": 21,
+    "passed": 21,
+    "failed": 0,
+    "tests": [
+      "TestAuthentication::test_login_success - PASS",
+      "TestAuthentication::test_user_is_network_admin - PASS",
+      "TestMainSiteAccess::test_get_all_main_sites - PASS",
+      "TestMainSiteAccess::test_get_radiogroep_by_slug - PASS",
+      "TestMainSiteAccess::test_get_dbnt_by_slug - PASS",
+      "TestDataIsolation::test_radiogroep_has_shows - PASS",
+      "TestDataIsolation::test_dbnt_has_zero_shows - PASS",
+      "TestDataIsolation::test_dbnt_has_zero_media - PASS",
+      "TestDataIsolation::test_dbnt_has_zero_content - PASS",
+      "TestDataIsolation::test_dbnt_has_zero_series - PASS",
+      "TestDataIsolation::test_dbnt_has_zero_show_titles - PASS",
+      "TestDataIsolation::test_dbnt_has_zero_studios - PASS",
+      "TestContentCreationIsolation::test_create_show_title_in_dbnt_isolated - PASS",
+      "TestXMainSiteIDHeaderBehavior::test_shows_endpoint_accepts_header - PASS",
+      "TestXMainSiteIDHeaderBehavior::test_media_endpoint_accepts_header - PASS",
+      "TestXMainSiteIDHeaderBehavior::test_content_endpoint_accepts_header - PASS",
+      "TestXMainSiteIDHeaderBehavior::test_series_endpoint_accepts_header - PASS",
+      "TestXMainSiteIDHeaderBehavior::test_occurrences_endpoint_accepts_header - PASS",
+      "TestXMainSiteIDHeaderBehavior::test_folders_endpoint_accepts_header - PASS",
+      "TestXMainSiteIDHeaderBehavior::test_categories_endpoint_accepts_header - PASS",
+      "TestMyAccessEndpoint::test_my_access_returns_main_sites - PASS"
+    ]
+  },
+  "ui_test_results": {
+    "screenshots": [
+      ".screenshots/01_network_admin.png - Network Admin page showing both main sites",
+      ".screenshots/02_dbnt_dashboard.png - DBNT Content Library with 0 items",
+      ".screenshots/radiogroep_content.png - Radiogroep Content Library with 132 items"
+    ]
+  },
+  "main_sites_verified": {
+    "Radiogroep MFY/GRK": {
+      "slug": "radiogroep",
+      "sites": 2,
+      "users": 2,
+      "content_items": 132,
+      "data_isolated": true
+    },
+    "DBNT": {
+      "slug": "dbnt",
+      "sites": 0,
+      "users": 0,
+      "content_items": 0,
+      "data_isolated": true
+    }
+  }
+}
