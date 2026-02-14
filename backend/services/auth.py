@@ -48,7 +48,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    # Ensure is_network_admin field exists (defaults to False)
+    if 'is_network_admin' not in user:
+        user['is_network_admin'] = False
     return user
+
+
+async def require_network_admin(current_user: dict = Depends(get_current_user)):
+    """Require network admin access for multi-site management."""
+    if not current_user.get('is_network_admin'):
+        raise HTTPException(status_code=403, detail="Network admin access required")
+    return current_user
 
 
 async def require_admin(current_user: dict = Depends(get_current_user)):
