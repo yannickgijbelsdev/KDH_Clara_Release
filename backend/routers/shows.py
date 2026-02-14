@@ -687,12 +687,16 @@ async def get_shows(
 
 @shows_router.post("", response_model=ShowResponse, status_code=status.HTTP_201_CREATED)
 async def create_show(
+    request: Request,
     show_data: ShowCreate,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Create a new show. If recurring, also creates future occurrences."""
     now = datetime.now(timezone.utc).isoformat()
     team_id = current_user.get('team_id', '')
+    
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
     
     # For recurring shows, create parent and occurrences
     if show_data.recurrence_type == "weekly" and show_data.recurrence_interval >= 1:
@@ -701,8 +705,14 @@ async def create_show(
         # Try to get image from show title if exists
         show_image = None
         if show_data.title:
+            # Use main_site_id filter if available, otherwise team_id
+            title_query = {"name": show_data.title}
+            if main_site_id:
+                title_query["main_site_id"] = main_site_id
+            else:
+                title_query["team_id"] = team_id
             show_title = await db.show_titles.find_one(
-                {"name": show_data.title, "team_id": team_id},
+                title_query,
                 {"_id": 0, "image": 1}
             )
             if show_title and show_title.get("image"):
