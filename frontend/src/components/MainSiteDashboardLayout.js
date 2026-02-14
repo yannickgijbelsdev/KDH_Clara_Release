@@ -637,8 +637,6 @@ const MainSiteDashboardLayout = () => {
     );
   };
 
-  const RoleIcon = roleIcons[userRole] || roleIcons[user?.role] || User;
-
   return (
     <TooltipProvider delayDuration={0}>
       <div className="min-h-screen bg-[#09090b]">
