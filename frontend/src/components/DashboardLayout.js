@@ -129,6 +129,14 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(['shows', 'content']);
   const [menuCounts, setMenuCounts] = useState({});
+  const [sites, setSites] = useState([]);
+  const [currentSite, setCurrentSite] = useState(null);
+  const [siteTab, setSiteTab] = useState('general');
+
+  // Check if we're in a site context
+  const siteMatch = location.pathname.match(/^\/sites\/([^/]+)/);
+  const isInSiteContext = !!siteMatch;
+  const currentSiteId = siteMatch ? siteMatch[1] : null;
 
   // Check if user can approve content (admin or news_admin)
   const canApprove = user?.role === 'admin' || user?.role === 'news_admin';
