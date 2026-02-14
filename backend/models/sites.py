@@ -17,6 +17,7 @@ class SiteCreate(BaseModel):
     """Model for creating a new site."""
     name: str
     slug: str  # URL path, e.g., "radio123" for /radio123
+    main_site_id: Optional[str] = None  # Parent main site ID
     
 
 class SiteUpdate(BaseModel):
