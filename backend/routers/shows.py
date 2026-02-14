@@ -622,13 +622,22 @@ async def delete_show_image(
 
 @shows_router.get("", response_model=List[ShowResponse])
 async def get_shows(
+    request: Request,
     status: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get shows for the current team."""
-    query = {"team_id": current_user.get('team_id')}
+    """Get shows for the current main site or team."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        # Fallback to team_id for backwards compatibility
+        query = {"team_id": current_user.get('team_id')}
+    
     if status:
         query["status"] = status
     if date_from or date_to:
