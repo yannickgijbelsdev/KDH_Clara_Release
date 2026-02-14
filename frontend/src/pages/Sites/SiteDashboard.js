@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Globe, Settings, Users, MessageSquare, Save, Trash2, 
-  Plus, X, Music, Video, Image, Lock, Eye, EyeOff,
+  Plus, X, Music, Video, Lock, Eye, EyeOff,
   Upload, Link, Play, ExternalLink
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
@@ -196,7 +196,6 @@ export default function SiteDashboard() {
   };
 
   const removeFormField = (fieldId) => {
-    // Don't allow removing default fields
     if (['name', 'phone', 'message'].includes(fieldId)) {
       toast.error('Standaard velden kunnen niet verwijderd worden');
       return;
@@ -314,7 +313,7 @@ export default function SiteDashboard() {
         </Button>
       </div>
 
-      {/* Content based on activeTab */}
+      {/* General Tab */}
       {activeTab === 'general' && (
         <div className="space-y-6">
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
@@ -406,10 +405,12 @@ export default function SiteDashboard() {
               )}
             </div>
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Media Tab */}
-        <TabsContent value="media" className="space-y-6">
+      {/* Media Tab */}
+      {activeTab === 'media' && (
+        <div className="space-y-6">
           {/* Audio Section */}
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
             <div className="flex items-center justify-between mb-4">
@@ -572,10 +573,12 @@ export default function SiteDashboard() {
               </div>
             )}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Form Tab */}
-        <TabsContent value="form" className="space-y-6">
+      {/* Form Tab */}
+      {activeTab === 'form' && (
+        <div className="space-y-6">
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -595,7 +598,7 @@ export default function SiteDashboard() {
                 </p>
 
                 <div className="space-y-3">
-                  {(site.form_fields || []).map((field, index) => (
+                  {(site.form_fields || []).map((field) => (
                     <div 
                       key={field.id}
                       className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg"
@@ -649,10 +652,12 @@ export default function SiteDashboard() {
               </div>
             )}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Submissions Tab */}
-        <TabsContent value="submissions" className="space-y-4">
+      {/* Submissions Tab */}
+      {activeTab === 'submissions' && (
+        <div className="space-y-4">
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
             <h2 className="text-lg font-semibold text-white mb-4">Inzendingen</h2>
             
@@ -707,10 +712,12 @@ export default function SiteDashboard() {
               </div>
             )}
           </div>
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Users Tab */}
-        <TabsContent value="users" className="space-y-4">
+      {/* Users Tab */}
+      {activeTab === 'users' && (
+        <div className="space-y-4">
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
             <h2 className="text-lg font-semibold text-white mb-4">Gebruikerstoegang</h2>
             
@@ -782,8 +789,8 @@ export default function SiteDashboard() {
               </div>
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }
