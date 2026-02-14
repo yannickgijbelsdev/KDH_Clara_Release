@@ -153,6 +153,7 @@ async def upload_media_asset(
     asset_doc = {
         "id": str(uuid.uuid4()),
         "team_id": current_user.get('team_id'),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "uploaded_by": current_user['id'],
         "kind": kind,
         "title": title or file.filename,
