@@ -258,7 +258,7 @@ export default function SitesListPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate(`/sites/${site.id}`)}
+                  onClick={() => navigate(`${mainSiteSlug ? `/${mainSiteSlug}` : ''}/sites/${site.id}`)}
                   className="text-zinc-400 hover:text-white"
                 >
                   <Settings className="h-4 w-4 mr-2" />
