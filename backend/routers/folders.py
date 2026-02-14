@@ -101,24 +101,31 @@ async def get_folder_tree(
 
 @folders_router.post("", response_model=MediaFolderResponse, status_code=status.HTTP_201_CREATED)
 async def create_folder(
+    request: Request,
     folder_data: MediaFolderCreate,
     current_user: dict = Depends(require_can_edit_content)
 ):
     """Create a new folder."""
     now = datetime.now(timezone.utc).isoformat()
     
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
     # Validate parent folder if specified
     if folder_data.parent_id:
-        parent = await db.media_folders.find_one({
-            "id": folder_data.parent_id,
-            "team_id": current_user.get('team_id')
-        })
+        parent_query = {"id": folder_data.parent_id}
+        if main_site_id:
+            parent_query["main_site_id"] = main_site_id
+        else:
+            parent_query["team_id"] = current_user.get('team_id')
+        parent = await db.media_folders.find_one(parent_query)
         if not parent:
             raise HTTPException(status_code=404, detail="Parent folder not found")
     
     folder_doc = {
         "id": str(uuid.uuid4()),
         "team_id": current_user.get('team_id'),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "name": folder_data.name,
         "parent_id": folder_data.parent_id,
         "color": folder_data.color,
