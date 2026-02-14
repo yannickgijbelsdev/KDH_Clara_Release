@@ -145,6 +145,7 @@ async def enrich_content_item(item: dict) -> dict:
 
 @content_router.get("", response_model=List[ContentItemResponse])
 async def get_content_items(
+    request: Request,
     type: Optional[str] = None,
     status: Optional[str] = None,
     category_id: Optional[str] = None,
@@ -152,8 +153,14 @@ async def get_content_items(
     include_deleted: bool = False,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all content items for the team. Deleted items only visible to admins."""
-    query = {"team_id": current_user.get('team_id')}
+    """Get all content items for the main site or team. Deleted items only visible to admins."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
     
     # Filter out deleted items for non-admins
     is_admin = current_user.get('role') == 'admin'
