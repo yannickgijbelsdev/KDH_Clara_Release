@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useMainSite } from '../../context/MainSiteContext';
-import { Button } from '../../components/ui/button';
+import { useAuth } from '../context/AuthContext';
+import { useMainSite } from '../context/MainSiteContext';
+import { Button } from './ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../../components/ui/dropdown-menu';
+} from './ui/dropdown-menu';
 import {
   Radio,
   Calendar,
