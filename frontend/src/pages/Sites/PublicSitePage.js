@@ -191,7 +191,7 @@ export default function PublicSitePage() {
     setSubmitting(true);
     
     try {
-      const res = await fetch(`${API}/api/sites/public/${slug}/submit`, {
+      const res = await fetch(`${API}${apiPath}/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -207,12 +207,12 @@ export default function PublicSitePage() {
       
       if (res.ok) {
         setSubmitted(true);
-        toast.success('Bericht verzonden!');
+        toast.success('Message sent!');
       } else {
-        toast.error('Er is een fout opgetreden');
+        toast.error('An error occurred');
       }
     } catch (err) {
-      toast.error('Er is een fout opgetreden');
+      toast.error('An error occurred');
     } finally {
       setSubmitting(false);
     }
