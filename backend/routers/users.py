@@ -65,7 +65,7 @@ async def invite_user(
     request: Request,
     current_user: dict = Depends(require_admin)
 ):
-    """Invite a new user to the team (admin only)."""
+    """Invite a new user to the team (admin only), also grants access to current main_site."""
     existing = await db.users.find_one({"email": invite_data.email})
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -73,6 +73,9 @@ async def invite_user(
     user_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     temp_password = generate_temp_password()
+    
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
     
     user_doc = {
         "id": user_id,
@@ -87,6 +90,17 @@ async def invite_user(
     
     await db.users.insert_one(user_doc)
     
+    # If in multisite context, also grant access to this main site
+    if main_site_id:
+        access_doc = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "main_site_id": main_site_id,
+            "role": invite_data.role,
+            "created_at": now
+        }
+        await db.main_site_users.insert_one(access_doc)
+    
     # Log the user invitation
     await log_action(
         action="Invited User",
@@ -95,6 +109,7 @@ async def invite_user(
         user_name=current_user.get('name'),
         user_email=current_user.get('email'),
         team_id=current_user['team_id'],
+        main_site_id=main_site_id,
         ip_address=get_client_ip(request),
         target_type="user",
         target_id=user_id,
