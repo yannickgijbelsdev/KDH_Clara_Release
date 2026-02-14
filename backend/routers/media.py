@@ -53,13 +53,20 @@ MAX_MEDIA_SIZE = 100 * 1024 * 1024  # 100MB
 
 @media_router.get("", response_model=List[MediaAssetResponse])
 async def get_media_assets(
+    request: Request,
     kind: Optional[str] = None,
     search: Optional[str] = None,
     folder_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all media assets for the team."""
-    query = {"team_id": current_user.get('team_id')}
+    """Get all media assets for the main site or team."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
     
     if kind:
         query["kind"] = kind
@@ -85,11 +92,15 @@ async def get_media_assets(
 
 @media_router.post("", response_model=MediaAssetResponse, status_code=status.HTTP_201_CREATED)
 async def upload_media_asset(
+    request: Request,
     file: UploadFile = File(...),
     title: Optional[str] = None,
     current_user: dict = Depends(require_can_edit_content)
 ):
     """Upload a new media asset to S3 storage."""
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
     content_type = file.content_type or mimetypes.guess_type(file.filename)[0]
     
     # Also check by extension for browsers that don't send correct MIME type
