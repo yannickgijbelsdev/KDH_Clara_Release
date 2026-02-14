@@ -9,7 +9,7 @@ import Hls from 'hls.js';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function PublicSitePage() {
-  const { slug } = useParams();
+  const { slug, mainSiteSlug, siteSlug } = useParams();
   const [site, setSite] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,14 +28,21 @@ export default function PublicSitePage() {
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
   const fileInputRef = useRef(null);
+  
+  // Determine if this is a multisite URL or legacy URL
+  const isMultisite = !!mainSiteSlug && !!siteSlug;
+  const effectiveSlug = isMultisite ? siteSlug : slug;
+  const apiPath = isMultisite 
+    ? `/api/sites/public/${mainSiteSlug}/${siteSlug}`
+    : `/api/sites/public/${slug}`;
 
   useEffect(() => {
     fetchSite();
-  }, [slug]);
+  }, [slug, mainSiteSlug, siteSlug]);
 
   const fetchSite = async () => {
     try {
-      const res = await fetch(`${API}/api/sites/public/${slug}`);
+      const res = await fetch(`${API}${apiPath}`);
       if (res.ok) {
         const data = await res.json();
         setSite(data);
@@ -51,13 +58,13 @@ export default function PublicSitePage() {
         });
         setFormData(initialFormData);
       } else if (res.status === 404) {
-        setError('Pagina niet gevonden');
-        document.title = 'Pagina niet gevonden';
+        setError('Page not found');
+        document.title = 'Page not found';
       } else {
-        setError('Er is een fout opgetreden');
+        setError('An error occurred');
       }
     } catch (err) {
-      setError('Er is een fout opgetreden');
+      setError('An error occurred');
     } finally {
       setLoading(false);
     }
@@ -65,7 +72,7 @@ export default function PublicSitePage() {
 
   const verifyPassword = async () => {
     try {
-      const res = await fetch(`${API}/api/sites/public/${slug}/verify-password`, {
+      const res = await fetch(`${API}${apiPath}/verify-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: passwordInput })
@@ -74,10 +81,10 @@ export default function PublicSitePage() {
         setPasswordVerified(true);
         setPasswordRequired(false);
       } else {
-        toast.error('Ongeldig wachtwoord');
+        toast.error('Invalid password');
       }
     } catch (err) {
-      toast.error('Er is een fout opgetreden');
+      toast.error('An error occurred');
     }
   };
 
