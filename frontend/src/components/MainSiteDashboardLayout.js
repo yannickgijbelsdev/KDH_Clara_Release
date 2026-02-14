@@ -837,9 +837,10 @@ const MainSiteDashboardLayout = () => {
               <nav className="space-y-1">
                 {flatNavItems.map((item) => {
                   const Icon = item.icon;
-                  const fullPath = `/${mainSiteSlug}/${item.to}`;
+                  // item.to already contains the full path from buildNavGroups
+                  const fullPath = item.to;
                   const isActive = location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
-                  const badgeCount = getBadgeCount(item.to);
+                  const badgeCount = getBadgeCount(item.featureId || item.to);
                   return (
                     <NavLink
                       key={item.to}
