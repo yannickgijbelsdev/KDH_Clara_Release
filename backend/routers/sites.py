@@ -13,7 +13,7 @@ from models.sites import (
     SiteSubmissionCreate, SiteSubmissionResponse,
     SiteUserRole, SitePasswordCheck, FormField
 )
-from routers.auth import get_current_user, require_admin
+from services.auth import get_current_user, require_admin
 
 import logging
 logger = logging.getLogger(__name__)
