@@ -248,7 +248,7 @@ export default function PublicSitePage() {
         <div className="text-center mb-8">
           {site?.logo_url && (
             <img 
-              src={`${API}${site.logo_url}`}
+              src={site.logo_url.startsWith('http') ? site.logo_url : `${API}${site.logo_url}`}
               alt={site?.name}
               className="h-24 sm:h-32 w-auto mx-auto mb-4"
             />
@@ -258,12 +258,51 @@ export default function PublicSitePage() {
           </h1>
         </div>
 
+        {/* Video Player - shown first if enabled */}
+        {site?.video_enabled && site?.video_url && (
+          <div className="bg-zinc-900 rounded-2xl overflow-hidden mb-6 border border-zinc-800">
+            {site.video_type === 'hls' ? (
+              <video
+                ref={videoRef}
+                className="w-full aspect-video"
+                controls
+                playsInline
+              />
+            ) : embedUrl ? (
+              <iframe
+                src={embedUrl}
+                className="w-full aspect-video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <div className="aspect-video flex items-center justify-center text-zinc-400">
+                Video URL kon niet worden geladen
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Header Image - shown only if video is not enabled */}
+        {!site?.video_enabled && site?.header_image_url && (
+          <div className="rounded-2xl overflow-hidden mb-6">
+            <img 
+              src={site.header_image_url.startsWith('http') ? site.header_image_url : `${API}${site.header_image_url}`}
+              alt=""
+              className="w-full h-auto object-cover"
+            />
+          </div>
+        )}
+
         {/* Audio Player */}
         {site?.audio_enabled && site?.audio_url && (
           <div className="bg-zinc-900 rounded-2xl p-6 mb-6 border border-zinc-800">
             <audio
               ref={audioRef}
-              src={site.audio_type === 'file' ? `${API}${site.audio_url}` : site.audio_url}
+              src={site.audio_type === 'file' 
+                ? (site.audio_url.startsWith('http') ? site.audio_url : `${API}${site.audio_url}`)
+                : site.audio_url
+              }
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
             />
@@ -306,31 +345,6 @@ export default function PublicSitePage() {
                     />
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Video Player */}
-        {site?.video_enabled && site?.video_url && (
-          <div className="bg-zinc-900 rounded-2xl overflow-hidden mb-6 border border-zinc-800">
-            {site.video_type === 'hls' ? (
-              <video
-                ref={videoRef}
-                className="w-full aspect-video"
-                controls
-                playsInline
-              />
-            ) : embedUrl ? (
-              <iframe
-                src={embedUrl}
-                className="w-full aspect-video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <div className="aspect-video flex items-center justify-center text-zinc-400">
-                Video URL kon niet worden geladen
               </div>
             )}
           </div>
