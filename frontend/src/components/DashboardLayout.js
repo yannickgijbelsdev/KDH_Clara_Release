@@ -141,7 +141,8 @@ const DashboardLayout = () => {
   const [submissionCounts, setSubmissionCounts] = useState({});
 
   // Check if we're in a site context
-  const siteMatch = location.pathname.match(/^\/sites\/([^/]+)/);
+  // Match both /sites/{id} and /{mainSiteSlug}/sites/{id} patterns
+  const siteMatch = location.pathname.match(/(?:^\/sites\/|\/sites\/)([^/]+)/);
   const isInSiteContext = !!siteMatch;
   const currentSiteId = siteMatch ? siteMatch[1] : null;
 
