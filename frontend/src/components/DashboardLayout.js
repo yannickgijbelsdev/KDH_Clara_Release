@@ -574,6 +574,7 @@ const DashboardLayout = () => {
                 {isInSiteContext && currentSite && getSiteNavGroup(currentSite).items.map((item) => {
                   const Icon = item.icon;
                   const isActive = siteTab === item.tab;
+                  const badgeCount = item.tab === 'submissions' ? submissionCounts[currentSiteId] : 0;
                   return (
                     <Tooltip key={item.tab}>
                       <TooltipTrigger asChild>
@@ -592,10 +593,15 @@ const DashboardLayout = () => {
                           `}
                         >
                           <Icon className="w-5 h-5" />
+                          {badgeCount > 0 && (
+                            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white">
+                              {badgeCount > 99 ? '99+' : badgeCount}
+                            </span>
+                          )}
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
-                        {item.label}
+                        {item.label} {badgeCount > 0 && `(${badgeCount})`}
                       </TooltipContent>
                     </Tooltip>
                   );
