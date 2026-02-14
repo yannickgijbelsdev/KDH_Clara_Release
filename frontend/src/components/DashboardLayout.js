@@ -101,11 +101,12 @@ const getSiteNavGroup = (currentSite) => ({
   label: currentSite?.name || 'Site',
   icon: Globe,
   items: [
-    { to: '#general', icon: Settings, label: 'Algemeen', tab: 'general' },
+    { to: '#general', icon: Settings, label: 'General', tab: 'general' },
     { to: '#media', icon: Play, label: 'Media', tab: 'media' },
-    { to: '#form', icon: MessageSquare, label: 'Formulier', tab: 'form' },
-    { to: '#submissions', icon: Send, label: 'Inzendingen', tab: 'submissions' },
-    { to: '#users', icon: Users, label: 'Gebruikers', tab: 'users' },
+    { to: '#form', icon: MessageSquare, label: 'Form', tab: 'form' },
+    { to: '#styling', icon: Palette, label: 'Styling', tab: 'styling' },
+    { to: '#submissions', icon: Send, label: 'Submissions', tab: 'submissions' },
+    { to: '#users', icon: Users, label: 'Users', tab: 'users' },
   ]
 });
 
