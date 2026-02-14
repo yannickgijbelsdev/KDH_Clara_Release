@@ -523,3 +523,90 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
             for ms in main_sites
         ]
     }
+
+
+
+# ============== CONTENT MIGRATION ==============
+
+CONTENT_COLLECTIONS = [
+    'shows',
+    'show_titles',
+    'studios',
+    'media_assets',
+    'content_items',
+    'categories',
+    'series'
+]
+
+
+@main_sites_router.post("/migrate-content/{main_site_id}")
+async def migrate_team_content_to_main_site(
+    main_site_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Migrate existing team content to a main site.
+    This should be run once after creating the first main site to
+    associate existing content with the main site.
+    
+    Only network admins or main site admins can run this.
+    """
+    # Verify main site exists
+    main_site = await db.main_sites.find_one({"id": main_site_id})
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+    
+    # Check permissions
+    is_network_admin = current_user.get('is_network_admin', False)
+    if not is_network_admin:
+        access = await db.main_site_users.find_one({
+            "user_id": current_user['id'],
+            "main_site_id": main_site_id,
+            "role": "admin"
+        })
+        if not access:
+            raise HTTPException(status_code=403, detail="Admin access required")
+    
+    team_id = current_user.get('team_id')
+    if not team_id:
+        raise HTTPException(status_code=400, detail="User has no team_id")
+    
+    results = {}
+    
+    # Migrate each collection
+    for collection_name in CONTENT_COLLECTIONS:
+        collection = db[collection_name]
+        
+        # Find documents that belong to this team and don't have main_site_id
+        query = {
+            'team_id': team_id,
+            '$or': [
+                {'main_site_id': {'$exists': False}},
+                {'main_site_id': None}
+            ]
+        }
+        
+        count_before = await collection.count_documents(query)
+        
+        if count_before > 0:
+            # Update documents
+            result = await collection.update_many(
+                query,
+                {'$set': {'main_site_id': main_site_id}}
+            )
+            results[collection_name] = {
+                "found": count_before,
+                "migrated": result.modified_count
+            }
+        else:
+            results[collection_name] = {
+                "found": 0,
+                "migrated": 0
+            }
+    
+    return {
+        "success": True,
+        "main_site_id": main_site_id,
+        "main_site_name": main_site.get("name"),
+        "migration_results": results
+    }
