@@ -94,8 +94,6 @@ const TeamSettingsPage = () => {
   const [team, setTeam] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isEditingTeam, setIsEditingTeam] = useState(false);
-  const [teamName, setTeamName] = useState('');
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
