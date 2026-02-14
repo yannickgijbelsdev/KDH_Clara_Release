@@ -1,0 +1,74 @@
+{
+  "summary": "Bug Fix Verified: Mini-site sidebar navigation now correctly changes content when menu items are clicked. Root cause identified and fixed in MainSiteDashboardLayout.js - the siteTabChange event was not being dispatched when clicking sidebar tabs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "bug_fix_applied": {
+    "root_cause": "MainSiteDashboardLayout.js was missing the siteTabChange event dispatch in onClick handlers for sidebar navigation buttons. The fix was applied to DashboardLayout.js but MainSiteDashboardLayout.js had the same bug.",
+    "files_modified": [
+      "/app/frontend/src/components/MainSiteDashboardLayout.js"
+    ],
+    "changes_made": [
+      "Added window.dispatchEvent(new CustomEvent('siteTabChange', { detail: item.tab })) to renderIconNavigation() onClick handler",
+      "Added window.dispatchEvent(new CustomEvent('siteTabChange', { detail: item.tab })) to renderGroupedNavItem() onClick handler for tab items",
+      "Added data-testid attributes for testability"
+    ]
+  },
+  "test_results": {
+    "sidebar_navigation": {
+      "general_tab": "PASS - Content shows Page settings, Name, URL (slug)",
+      "media_tab": "PASS - Content shows Header Image, Audio Player, Video Player",
+      "form_tab": "PASS - Content shows Contact Form",
+      "styling_tab": "PASS - Content shows Page Styling, Button Color, Background Color",
+      "submissions_tab": "PASS - Content shows Submissions",
+      "users_tab": "PASS - Content shows User Access, Add user"
+    },
+    "data_testid_attributes": {
+      "site-nav-general": "PRESENT",
+      "site-nav-media": "PRESENT",
+      "site-nav-form": "PRESENT",
+      "site-nav-styling": "PRESENT",
+      "site-nav-submissions": "PRESENT",
+      "site-nav-users": "PRESENT"
+    }
+  },
+  "test_credentials": {
+    "network_admin_email": "yannick.gijbels@koodh.com",
+    "network_admin_password": "test"
+  },
+  "test_site": {
+    "main_site_slug": "radiogroep",
+    "mini_site_id": "64bbe2be-b5f6-45cd-9d2e-ccfea4f8b24e",
+    "mini_site_name": "test44"
+  },
+  "action_items": [],
+  "updated_files": [
+    "/app/frontend/src/components/MainSiteDashboardLayout.js"
+  ],
+  "success_rate": {
+    "backend": "N/A - Frontend only test",
+    "frontend": "100%"
+  },
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The sidebar navigation bug in mini-site dashboards is now fixed. The issue was in MainSiteDashboardLayout.js where the siteTabChange event was not being dispatched. Test verified all 6 tabs (General, Media, Form, Styling, Submissions, Users) now correctly change content when clicked.",
+  "rca_of_issue": {
+    "problem": "Sidebar navigation in mini-site dashboard highlights icons when clicked but content doesn't change",
+    "root_cause": "MainSiteDashboardLayout.js onClick handlers only called setSiteTab(item.tab) but did NOT dispatch the siteTabChange event that SiteDashboard.js listens for to update the activeTab state",
+    "reproduction_steps": [
+      "Login as network admin (yannick.gijbels@koodh.com / test)",
+      "Navigate to /radiogroep/sites",
+      "Click on a mini-site (e.g., test44)",
+      "Click any sidebar menu icon (Media, Form, Styling, etc.)",
+      "Observe icon highlights but content stays on 'Page settings'"
+    ],
+    "fix_applied": "Added window.dispatchEvent(new CustomEvent('siteTabChange', { detail: item.tab })) to both renderIconNavigation() and renderGroupedNavItem() onClick handlers",
+    "verification": "All 6 tabs now correctly change content when clicked"
+  }
+}
