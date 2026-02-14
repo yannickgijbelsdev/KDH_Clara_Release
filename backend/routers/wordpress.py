@@ -9,7 +9,7 @@ SECURITY REQUIREMENTS:
 - Failed authentication attempts are logged for audit
 - Sites can be disabled via is_active toggle without deleting credentials
 """
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from typing import List
 from datetime import datetime, timezone
 import uuid
@@ -26,6 +26,7 @@ from models.wordpress import (
     WordPressConnectionTestResponse
 )
 from services.auth import get_current_user, require_admin
+from services.main_site_context import get_main_site_id_from_header
 
 # Security audit logger for WordPress integration
 wp_audit_logger = logging.getLogger("wordpress.audit")
@@ -36,11 +37,19 @@ wordpress_router = APIRouter(prefix="/wordpress", tags=["WordPress"])
 
 @wordpress_router.get("/sites", response_model=List[WordPressSiteResponse])
 async def get_wordpress_sites(
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all WordPress sites for the team."""
+    """Get all WordPress sites for the team, filtered by main_site_id if in multisite context."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
+    
     sites = await db.wordpress_sites.find(
-        {"team_id": current_user.get('team_id')},
+        query,
         {"_id": 0, "app_password": 0}
     ).to_list(100)
     return sites
@@ -49,13 +58,18 @@ async def get_wordpress_sites(
 @wordpress_router.get("/sites/{site_id}", response_model=WordPressSiteResponse)
 async def get_wordpress_site(
     site_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get a single WordPress site."""
-    site = await db.wordpress_sites.find_one(
-        {"id": site_id, "team_id": current_user.get('team_id')},
-        {"_id": 0, "app_password": 0}
-    )
+    """Get a single WordPress site, with main_site_id isolation."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"id": site_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": site_id, "team_id": current_user.get('team_id')}
+    
+    site = await db.wordpress_sites.find_one(query, {"_id": 0, "app_password": 0})
     if not site:
         raise HTTPException(status_code=404, detail="WordPress site not found")
     return site
@@ -63,16 +77,21 @@ async def get_wordpress_site(
 
 @wordpress_router.post("/sites", response_model=WordPressSiteResponse, status_code=status.HTTP_201_CREATED)
 async def create_wordpress_site(
+    request: Request,
     site_data: WordPressSiteCreate,
     current_user: dict = Depends(require_admin)
 ):
-    """Create a new WordPress site connection (admin only)."""
+    """Create a new WordPress site connection (admin only), with main_site_id isolation."""
     site_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
     
     site_doc = {
         "id": site_id,
         "team_id": current_user.get('team_id'),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "name": site_data.name,
         "wp_base_url": site_data.wp_base_url.rstrip('/'),
         "username": site_data.username,
@@ -94,13 +113,19 @@ async def create_wordpress_site(
 @wordpress_router.put("/sites/{site_id}", response_model=WordPressSiteResponse)
 async def update_wordpress_site(
     site_id: str,
+    request: Request,
     site_data: WordPressSiteUpdate,
     current_user: dict = Depends(require_admin)
 ):
-    """Update a WordPress site connection (admin only)."""
-    site = await db.wordpress_sites.find_one(
-        {"id": site_id, "team_id": current_user.get('team_id')}
-    )
+    """Update a WordPress site connection (admin only), with main_site_id isolation."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"id": site_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": site_id, "team_id": current_user.get('team_id')}
+    
+    site = await db.wordpress_sites.find_one(query)
     if not site:
         raise HTTPException(status_code=404, detail="WordPress site not found")
     
@@ -124,12 +149,18 @@ async def update_wordpress_site(
 @wordpress_router.delete("/sites/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_wordpress_site(
     site_id: str,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
-    """Delete a WordPress site connection (admin only)."""
-    result = await db.wordpress_sites.delete_one(
-        {"id": site_id, "team_id": current_user.get('team_id')}
-    )
+    """Delete a WordPress site connection (admin only), with main_site_id isolation."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"id": site_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": site_id, "team_id": current_user.get('team_id')}
+    
+    result = await db.wordpress_sites.delete_one(query)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="WordPress site not found")
     
@@ -139,6 +170,7 @@ async def delete_wordpress_site(
 @wordpress_router.post("/sites/{site_id}/test", response_model=WordPressConnectionTestResponse)
 async def test_wordpress_site(
     site_id: str,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Test a WordPress site connection and verify user capabilities (admin only).
@@ -149,9 +181,14 @@ async def test_wordpress_site(
     - Checks for required capabilities (edit_posts, upload_files)
     - Warns if connected as Administrator (security risk)
     """
-    site = await db.wordpress_sites.find_one(
-        {"id": site_id, "team_id": current_user.get('team_id')}
-    )
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"id": site_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": site_id, "team_id": current_user.get('team_id')}
+    
+    site = await db.wordpress_sites.find_one(query)
     if not site:
         raise HTTPException(status_code=404, detail="WordPress site not found")
     
@@ -248,13 +285,18 @@ async def test_wordpress_site(
 
 @wordpress_router.get("/connection")
 async def get_legacy_connection(
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Legacy endpoint - returns first active site if exists."""
-    site = await db.wordpress_sites.find_one(
-        {"team_id": current_user.get('team_id'), "is_active": True},
-        {"_id": 0, "app_password": 0}
-    )
+    """Legacy endpoint - returns first active site if exists, with main_site_id isolation."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id, "is_active": True}
+    else:
+        query = {"team_id": current_user.get('team_id'), "is_active": True}
+    
+    site = await db.wordpress_sites.find_one(query, {"_id": 0, "app_password": 0})
     if site:
         return {
             "id": site["id"],
