@@ -357,15 +357,71 @@ const DashboardLayout = () => {
         )}
 
         {/* Desktop Sidebar */}
-        <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
-          {/* Logo */}
-          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'text-center'}`}>
-            <span className="text-white font-black text-base">Clara</span>
-          </div>
+        <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu || isInSiteContext ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
+          {/* Logo or Site Header */}
+          {isInSiteContext && currentSite ? (
+            <div className="mb-6 px-4">
+              <button
+                onClick={() => navigate('/sites')}
+                className="flex items-center gap-2 text-zinc-400 hover:text-white transition mb-3"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="text-sm">Terug naar Sites</span>
+              </button>
+              <div className="flex items-center gap-3">
+                {currentSite.logo_url ? (
+                  <img 
+                    src={`${API}${currentSite.logo_url}`}
+                    alt={currentSite.name}
+                    className="w-10 h-10 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-zinc-500" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-semibold truncate">{currentSite.name}</p>
+                  <p className="text-xs text-zinc-500 truncate">/{currentSite.slug}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'text-center'}`}>
+              <span className="text-white font-black text-base">Clara</span>
+            </div>
+          )}
 
           {/* Navigation */}
-          <nav className={`flex-1 overflow-y-auto ${useGroupedMenu ? 'px-3' : 'flex flex-col items-center gap-2'}`}>
-            {useGroupedMenu ? (
+          <nav className={`flex-1 overflow-y-auto ${useGroupedMenu || isInSiteContext ? 'px-3' : 'flex flex-col items-center gap-2'}`}>
+            {isInSiteContext ? (
+              // Site-specific Navigation
+              <div className="space-y-1">
+                {siteNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = siteTab === item.tab;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setSiteTab(item.tab);
+                        // Dispatch custom event to notify SiteDashboard
+                        window.dispatchEvent(new CustomEvent('siteTabChange', { detail: item.tab }));
+                      }}
+                      data-testid={`site-nav-${item.id}`}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
+                        isActive
+                          ? 'bg-orange-500/20 text-orange-400'
+                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : useGroupedMenu ? (
               // Grouped Navigation
               <div className="space-y-4">
                 {filteredGroups.map((group) => {
