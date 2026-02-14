@@ -78,13 +78,19 @@ async def get_presenters_info(presenter_ids: List[str], team_id: str) -> List[di
 
 @shows_router.get("/titles", response_model=List[ShowTitleResponse])
 async def get_show_titles(
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all show titles for the team. Available to all users."""
-    titles = await db.show_titles.find(
-        {"team_id": current_user.get('team_id')},
-        {"_id": 0}
-    ).sort("name", 1).to_list(100)
+    """Get all show titles for the main site or team. Available to all users."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
+    
+    titles = await db.show_titles.find(query, {"_id": 0}).sort("name", 1).to_list(100)
     
     # Enrich with presenter info
     for title in titles:
@@ -97,6 +103,7 @@ async def get_show_titles(
 
 @shows_router.post("/titles", response_model=ShowTitleResponse, status_code=status.HTTP_201_CREATED)
 async def create_show_title(
+    request: Request,
     title_data: ShowTitleCreate,
     current_user: dict = Depends(require_admin)
 ):
@@ -104,11 +111,16 @@ async def create_show_title(
     title_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
-    # Check for duplicate name
-    existing = await db.show_titles.find_one({
-        "team_id": current_user.get('team_id'),
-        "name": {"$regex": f"^{title_data.name}$", "$options": "i"}
-    })
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Check for duplicate name within the same context
+    if main_site_id:
+        dup_query = {"main_site_id": main_site_id, "name": {"$regex": f"^{title_data.name}$", "$options": "i"}}
+    else:
+        dup_query = {"team_id": current_user.get('team_id'), "name": {"$regex": f"^{title_data.name}$", "$options": "i"}}
+    
+    existing = await db.show_titles.find_one(dup_query)
     if existing:
         raise HTTPException(status_code=400, detail="A show title with this name already exists")
     
@@ -121,6 +133,7 @@ async def create_show_title(
         "rds_station": title_data.rds_station or "none",
         "default_presenter_ids": title_data.default_presenter_ids or [],
         "team_id": current_user.get('team_id'),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "created_by": current_user['id'],
         "created_at": now
     }
