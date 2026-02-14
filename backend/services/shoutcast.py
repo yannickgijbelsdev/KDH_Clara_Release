@@ -52,6 +52,34 @@ async def get_filters_from_db(db, station: str) -> List[Dict]:
     return DEFAULT_FILTERS
 
 
+def is_unformatted_title(song_title: str) -> bool:
+    """Check if a song title appears to be unformatted (all uppercase).
+    
+    A properly formatted title has:
+    - Artist in UPPERCASE
+    - Song title in Title Case (mixed case)
+    
+    If both parts are fully uppercase, the formatting hasn't been applied yet.
+    """
+    if not song_title:
+        return False
+    
+    # Check for separator
+    separators = [" - ", " – ", " — "]
+    for sep in separators:
+        if sep in song_title:
+            parts = song_title.split(sep, 1)
+            if len(parts) == 2:
+                title_part = parts[1].strip()
+                # If the title part is all uppercase (and has letters), it's unformatted
+                if title_part and title_part.isupper():
+                    return True
+                return False
+    
+    # No separator - can't determine, assume formatted
+    return False
+
+
 def format_now_playing(song_title: str) -> str:
     """Format now playing text: ARTIST in UPPERCASE, Title in Title Case.
     
