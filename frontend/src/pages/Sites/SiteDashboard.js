@@ -3,12 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Globe, Settings, Users, MessageSquare, Save, Trash2, 
   Plus, X, Music, Video, Image, Lock, Eye, EyeOff,
-  Upload, Link, Play, ExternalLink, ImageIcon
+  Upload, Link, Play, ExternalLink, ImageIcon, Palette, FileUp
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
+import { Slider } from '../../components/ui/slider';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
