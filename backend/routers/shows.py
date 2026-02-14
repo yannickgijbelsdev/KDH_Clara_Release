@@ -433,18 +433,25 @@ async def sync_show_title_images(
 
 @shows_router.get("/studios", response_model=List[StudioResponse])
 async def get_studios(
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all studios for the team. Available to all users."""
-    studios = await db.studios.find(
-        {"team_id": current_user.get('team_id')},
-        {"_id": 0}
-    ).sort("name", 1).to_list(100)
+    """Get all studios for the main site or team. Available to all users."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
+    
+    studios = await db.studios.find(query, {"_id": 0}).sort("name", 1).to_list(100)
     return studios
 
 
 @shows_router.post("/studios", response_model=StudioResponse, status_code=status.HTTP_201_CREATED)
 async def create_studio(
+    request: Request,
     studio_data: StudioCreate,
     current_user: dict = Depends(require_admin)
 ):
@@ -452,11 +459,16 @@ async def create_studio(
     studio_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
-    # Check for duplicate name
-    existing = await db.studios.find_one({
-        "team_id": current_user.get('team_id'),
-        "name": {"$regex": f"^{studio_data.name}$", "$options": "i"}
-    })
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Check for duplicate name within the same context
+    if main_site_id:
+        dup_query = {"main_site_id": main_site_id, "name": {"$regex": f"^{studio_data.name}$", "$options": "i"}}
+    else:
+        dup_query = {"team_id": current_user.get('team_id'), "name": {"$regex": f"^{studio_data.name}$", "$options": "i"}}
+    
+    existing = await db.studios.find_one(dup_query)
     if existing:
         raise HTTPException(status_code=400, detail="A studio with this name already exists")
     
@@ -465,6 +477,7 @@ async def create_studio(
         "name": studio_data.name,
         "description": studio_data.description or "",
         "team_id": current_user.get('team_id'),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "created_by": current_user['id'],
         "created_at": now
     }
