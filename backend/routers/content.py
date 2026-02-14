@@ -541,14 +541,19 @@ async def restore_content_item(
 
 @content_router.get("/admin/deleted")
 async def get_deleted_content(
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
-    """Admin: Get all soft-deleted content items."""
+    """Admin: Get all soft-deleted content items, filtered by main_site_id."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id, "deleted_at": {"$exists": True}}
+    else:
+        query = {"team_id": current_user.get('team_id'), "deleted_at": {"$exists": True}}
+    
     items = await db.content_items.find(
-        {
-            "team_id": current_user.get('team_id'),
-            "deleted_at": {"$exists": True}
-        },
+        query,
         {"_id": 0}
     ).sort("deleted_at", -1).to_list(500)
     
