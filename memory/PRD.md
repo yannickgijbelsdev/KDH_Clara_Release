@@ -1126,3 +1126,28 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] **System Dependency: ffmpeg**:
   - Re-installed ffmpeg for audio trigger detection (required for stream analysis)
   - Note: System-level dependencies may need re-installation after forks
+
+### February 14, 2026 - Pagina's (Landing Pages) Feature
+- [x] **New Feature: Pagina's / Landing Pages**
+  - Create custom public landing pages with configurable URLs (e.g., /radio-test)
+  - Features per page:
+    - **Logo upload** - Custom branding
+    - **Audio Player** - MP3/AAC livestream OR uploaded audio file
+    - **Video Player** - YouTube, Vimeo, Twitch embeds OR HLS stream
+    - **Contact Form** - Naam, Telefoonnummer, Bericht + custom fields
+    - **Password Protection** - Optional page access control
+  - Admin features:
+    - Manage sites in Dashboard under Administration > Pagina's
+    - View form submissions per site
+    - Assign users with editor/viewer roles
+  - Files created:
+    - `backend/models/sites.py` - Site, FormField, Submission models
+    - `backend/routers/sites.py` - CRUD, uploads, submissions API
+    - `frontend/src/pages/Sites/SitesListPage.js` - Sites overview
+    - `frontend/src/pages/Sites/SiteDashboard.js` - Site settings with tabs
+    - `frontend/src/pages/Sites/PublicSitePage.js` - Public landing page renderer
+  - Database collections: `sites`, `site_submissions`, `site_users`
+
+### Now Playing Formatting Improvements
+- [x] **Unformatted Title Detection** - If the now playing text is still all caps (not properly formatted), show fallback text to give the cache time to update
+- [x] **Artist Case Check** - Also detect when artist is not in UPPERCASE (e.g., "The Cranberries" instead of "THE CRANBERRIES")
