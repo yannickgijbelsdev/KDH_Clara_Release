@@ -799,6 +799,7 @@ async def create_show(
             "presenter_ids": show_data.presenter_ids or [],
             "editor_id": current_user['id'],
             "team_id": team_id,
+            "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
             "created_at": now,
             "updated_at": now,
             "recurrence_type": "none",
