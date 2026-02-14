@@ -504,6 +504,62 @@ async def delete_submission(
     return {"message": "Inzending verwijderd"}
 
 
+@sites_router.get("/{site_id}/submissions/count")
+async def get_site_submission_count(
+    site_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the count of unviewed submissions for a site."""
+    team_id = current_user.get('team_id')
+    user_id = current_user.get('id')
+    
+    site = await db.sites.find_one({"id": site_id, "team_id": team_id})
+    if not site:
+        raise HTTPException(status_code=404, detail="Site niet gevonden")
+    
+    # Get last viewed timestamp for this user
+    last_viewed = await db.site_submission_views.find_one({
+        "site_id": site_id,
+        "user_id": user_id
+    })
+    
+    if last_viewed and last_viewed.get("viewed_at"):
+        # Count submissions after last viewed
+        count = await db.site_submissions.count_documents({
+            "site_id": site_id,
+            "created_at": {"$gt": last_viewed["viewed_at"]}
+        })
+    else:
+        # Count all submissions
+        count = await db.site_submissions.count_documents({"site_id": site_id})
+    
+    return {"count": count}
+
+
+@sites_router.post("/{site_id}/submissions/mark-viewed")
+async def mark_submissions_viewed(
+    site_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Mark all submissions as viewed for the current user."""
+    team_id = current_user.get('team_id')
+    user_id = current_user.get('id')
+    
+    site = await db.sites.find_one({"id": site_id, "team_id": team_id})
+    if not site:
+        raise HTTPException(status_code=404, detail="Site niet gevonden")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    await db.site_submission_views.update_one(
+        {"site_id": site_id, "user_id": user_id},
+        {"$set": {"viewed_at": now}},
+        upsert=True
+    )
+    
+    return {"message": "Marked as viewed"}
+
+
 # ============== PUBLIC ENDPOINTS ==============
 
 @sites_router.get("/public/{slug}")
