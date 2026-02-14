@@ -208,7 +208,7 @@ export default function PublicSitePage() {
         <div className="bg-zinc-900 rounded-2xl p-8 max-w-md w-full border border-zinc-800">
           {site?.logo_url && (
             <img 
-              src={`${API}${site.logo_url}`}
+              src={site.logo_url.startsWith('http') ? site.logo_url : `${API}${site.logo_url}`}
               alt={site?.name}
               className="h-20 w-auto mx-auto mb-6"
             />
