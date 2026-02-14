@@ -214,13 +214,17 @@ const DashboardLayout = () => {
   // Fetch submission counts for current site
   const fetchSubmissionCount = useCallback(async () => {
     if (!currentSiteId) return;
+    // Wait for mainSite to be loaded
+    if (mainSiteLoading || !mainSite?.id) return;
     try {
-      const response = await axios.get(`${API}/sites/${currentSiteId}/submissions/count`);
+      const response = await axios.get(`${API}/sites/${currentSiteId}/submissions/count`, {
+        headers: { 'X-Main-Site-ID': mainSite.id }
+      });
       setSubmissionCounts(prev => ({ ...prev, [currentSiteId]: response.data.count }));
     } catch (error) {
       console.error('Failed to fetch submission count:', error);
     }
-  }, [currentSiteId]);
+  }, [currentSiteId, mainSite?.id, mainSiteLoading]);
 
   // Fetch counts on mount and periodically
   useEffect(() => {
