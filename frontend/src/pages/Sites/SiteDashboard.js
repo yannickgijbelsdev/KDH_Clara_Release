@@ -17,7 +17,7 @@ import axios from 'axios';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function SiteDashboard() {
-  const { siteId } = useParams();
+  const { siteId, mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [site, setSite] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -344,7 +344,9 @@ export default function SiteDashboard() {
     );
   }
 
-  const publicUrl = `${window.location.origin}/${site.slug}`;
+  const publicUrl = mainSiteSlug 
+    ? `${window.location.origin}/${mainSiteSlug}/${site.slug}`
+    : `${window.location.origin}/${site.slug}`;
 
   return (
     <div className="space-y-6">
@@ -397,7 +399,9 @@ export default function SiteDashboard() {
               <div>
                 <Label>URL (slug)</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-400 text-sm">{window.location.origin}/</span>
+                  <span className="text-zinc-400 text-sm">
+                    {window.location.origin}/{mainSiteSlug ? `${mainSiteSlug}/` : ''}
+                  </span>
                   <Input
                     value={site.slug || ''}
                     onChange={(e) => setSite(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
