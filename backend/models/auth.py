@@ -35,6 +35,7 @@ class UserResponse(BaseModel):
     team_id: str
     created_at: str
     avatar: Optional[dict] = None
+    is_network_admin: bool = False
 
 
 class UserWithTeamResponse(BaseModel):
@@ -48,6 +49,7 @@ class UserWithTeamResponse(BaseModel):
     created_at: str
     avatar: Optional[dict] = None
     preferences: Optional[dict] = None
+    is_network_admin: bool = False
 
 
 class TokenResponse(BaseModel):
