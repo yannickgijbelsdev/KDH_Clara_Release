@@ -513,22 +513,44 @@ const DashboardLayout = () => {
                   {roleLabels[user?.role]}
                 </DropdownMenuItem>
                 {user?.team_name && (
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/sites')}
-                    className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <Home className="w-4 h-4 mr-2" />
-                    {user.team_name}
-                  </DropdownMenuItem>
-                )}
-                {isAdmin && (
-                  <DropdownMenuItem 
-                    onClick={() => navigate('/sites')}
-                    className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    Pagina's
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem 
+                      onClick={() => navigate('/shows')}
+                      className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <Home className="w-4 h-4 mr-2" />
+                      {user.team_name}
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuItem 
+                          onClick={() => navigate('/sites')}
+                          className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer pl-6"
+                        >
+                          <Globe className="w-4 h-4 mr-2" />
+                          Sites
+                        </DropdownMenuItem>
+                        {sites.map(site => (
+                          <DropdownMenuItem 
+                            key={site.id}
+                            onClick={() => navigate(`/sites/${site.id}`)}
+                            className="text-zinc-500 focus:text-white focus:bg-zinc-800 cursor-pointer pl-10 text-sm"
+                          >
+                            {site.logo_url ? (
+                              <img 
+                                src={`${API}${site.logo_url}`}
+                                alt={site.name}
+                                className="w-4 h-4 mr-2 rounded object-cover"
+                              />
+                            ) : (
+                              <Globe className="w-3 h-3 mr-2 opacity-50" />
+                            )}
+                            {site.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
+                  </>
                 )}
                 <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem
