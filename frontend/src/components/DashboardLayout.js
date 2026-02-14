@@ -171,7 +171,7 @@ const DashboardLayout = () => {
   const fetchSites = useCallback(async () => {
     if (!isAdmin) return;
     try {
-      const response = await axios.get(`${API}/sites`);
+      const response = await axios.get(`${API}/api/sites`);
       setSites(response.data || []);
     } catch (error) {
       console.error('Failed to fetch sites:', error);
