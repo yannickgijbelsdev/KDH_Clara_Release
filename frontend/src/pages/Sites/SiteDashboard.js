@@ -158,14 +158,14 @@ export default function SiteDashboard() {
         body: JSON.stringify(site)
       });
       if (res.ok) {
-        toast.success('Site opgeslagen');
+        toast.success('Site saved');
         fetchSite();
       } else {
         const err = await res.json();
-        toast.error(err.detail || 'Fout bij opslaan');
+        toast.error(err.detail || 'Error saving');
       }
     } catch (error) {
-      toast.error('Fout bij opslaan');
+      toast.error('Error saving');
     } finally {
       setSaving(false);
     }
@@ -188,10 +188,10 @@ export default function SiteDashboard() {
       if (res.ok) {
         const data = await res.json();
         setSite(prev => ({ ...prev, logo_url: data.logo_url }));
-        toast.success('Logo geüpload');
+        toast.success('Logo uploaded');
       }
     } catch (error) {
-      toast.error('Fout bij uploaden logo');
+      toast.error('Error uploading logo');
     }
   };
 
@@ -212,10 +212,10 @@ export default function SiteDashboard() {
       if (res.ok) {
         const data = await res.json();
         setSite(prev => ({ ...prev, header_image_url: data.header_image_url }));
-        toast.success('Header afbeelding geüpload');
+        toast.success('Header image uploaded');
       }
     } catch (error) {
-      toast.error('Fout bij uploaden header afbeelding');
+      toast.error('Error uploading header image');
     }
   };
 
