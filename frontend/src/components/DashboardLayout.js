@@ -137,6 +137,7 @@ const DashboardLayout = () => {
   const [sites, setSites] = useState([]);
   const [currentSite, setCurrentSite] = useState(null);
   const [siteTab, setSiteTab] = useState('general');
+  const [submissionCounts, setSubmissionCounts] = useState({});
 
   // Check if we're in a site context
   const siteMatch = location.pathname.match(/^\/sites\/([^/]+)/);
