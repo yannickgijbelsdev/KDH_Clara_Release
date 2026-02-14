@@ -236,27 +236,84 @@ async def upload_site_logo(
     if file.content_type not in allowed_types:
         raise HTTPException(status_code=400, detail="Alleen afbeeldingen toegestaan")
     
-    # Create upload directory
-    upload_dir = "/app/backend/uploads/site_logos"
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    # Save file
-    ext = file.filename.split(".")[-1] if "." in file.filename else "png"
-    filename = f"{site_id}.{ext}"
-    filepath = os.path.join(upload_dir, filename)
-    
     content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
+    ext = file.filename.split(".")[-1] if "." in file.filename else "png"
     
-    # Update site
-    logo_url = f"/uploads/site_logos/{filename}"
+    if is_s3_configured():
+        # Upload to S3
+        file_key = f"sites/{site_id}/logo.{ext}"
+        try:
+            result = await upload_file_to_s3(content, file_key, file.content_type)
+            logo_url = result['url']
+        except Exception as e:
+            logger.error(f"S3 upload failed: {e}")
+            raise HTTPException(status_code=500, detail="Upload mislukt")
+    else:
+        # Fallback to local storage
+        upload_dir = "/app/backend/uploads/site_logos"
+        os.makedirs(upload_dir, exist_ok=True)
+        filename = f"{site_id}.{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, "wb") as f:
+            f.write(content)
+        logo_url = f"/uploads/site_logos/{filename}"
+    
     await db.sites.update_one(
         {"id": site_id},
         {"$set": {"logo_url": logo_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     
     return {"logo_url": logo_url}
+
+
+# ============== SITE HEADER IMAGE UPLOAD ==============
+
+@sites_router.post("/{site_id}/header")
+async def upload_site_header(
+    site_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a header image for a site."""
+    team_id = current_user.get('team_id')
+    
+    site = await db.sites.find_one({"id": site_id, "team_id": team_id})
+    if not site:
+        raise HTTPException(status_code=404, detail="Site niet gevonden")
+    
+    # Validate file type
+    allowed_types = ["image/png", "image/jpeg", "image/gif", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Alleen afbeeldingen toegestaan")
+    
+    content = await file.read()
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    
+    if is_s3_configured():
+        # Upload to S3
+        file_key = f"sites/{site_id}/header.{ext}"
+        try:
+            result = await upload_file_to_s3(content, file_key, file.content_type)
+            header_url = result['url']
+        except Exception as e:
+            logger.error(f"S3 upload failed: {e}")
+            raise HTTPException(status_code=500, detail="Upload mislukt")
+    else:
+        # Fallback to local storage
+        upload_dir = "/app/backend/uploads/site_headers"
+        os.makedirs(upload_dir, exist_ok=True)
+        filename = f"{site_id}.{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, "wb") as f:
+            f.write(content)
+        header_url = f"/uploads/site_headers/{filename}"
+    
+    await db.sites.update_one(
+        {"id": site_id},
+        {"$set": {"header_image_url": header_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"header_image_url": header_url}
 
 
 # ============== SITE AUDIO UPLOAD ==============
@@ -279,21 +336,28 @@ async def upload_site_audio(
     if file.content_type not in allowed_types:
         raise HTTPException(status_code=400, detail="Alleen MP3 of AAC bestanden toegestaan")
     
-    # Create upload directory
-    upload_dir = "/app/backend/uploads/site_audio"
-    os.makedirs(upload_dir, exist_ok=True)
-    
-    # Save file
-    ext = file.filename.split(".")[-1] if "." in file.filename else "mp3"
-    filename = f"{site_id}.{ext}"
-    filepath = os.path.join(upload_dir, filename)
-    
     content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
-    
-    audio_url = f"/uploads/site_audio/{filename}"
+    ext = file.filename.split(".")[-1] if "." in file.filename else "mp3"
     audio_format = "aac" if ext.lower() == "aac" else "mp3"
+    
+    if is_s3_configured():
+        # Upload to S3
+        file_key = f"sites/{site_id}/audio.{ext}"
+        try:
+            result = await upload_file_to_s3(content, file_key, file.content_type)
+            audio_url = result['url']
+        except Exception as e:
+            logger.error(f"S3 upload failed: {e}")
+            raise HTTPException(status_code=500, detail="Upload mislukt")
+    else:
+        # Fallback to local storage
+        upload_dir = "/app/backend/uploads/site_audio"
+        os.makedirs(upload_dir, exist_ok=True)
+        filename = f"{site_id}.{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, "wb") as f:
+            f.write(content)
+        audio_url = f"/uploads/site_audio/{filename}"
     
     await db.sites.update_one(
         {"id": site_id},
