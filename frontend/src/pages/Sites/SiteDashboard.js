@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Globe, Settings, Users, MessageSquare, Save, Trash2, 
-  Plus, X, Music, Video, Lock, Eye, EyeOff,
-  Upload, Link, Play, ExternalLink
+  Plus, X, Music, Video, Image, Lock, Eye, EyeOff,
+  Upload, Link, Play, ExternalLink, ImageIcon
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
