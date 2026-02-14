@@ -93,7 +93,11 @@ const AppRoutes = () => {
         <Route path="rds-scheduler" element={<RDSSchedulerPage />} />
         <Route path="audio-triggers" element={<AudioTriggersPage />} />
         <Route path="streams" element={<StreamMonitorPage />} />
+        <Route path="sites" element={<SitesListPage />} />
+        <Route path="sites/:siteId" element={<SiteDashboard />} />
       </Route>
+      {/* Public site pages - outside of protected routes */}
+      <Route path="/:slug" element={<PublicSitePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
