@@ -393,6 +393,39 @@ export default function SiteDashboard() {
                 </div>
               </div>
 
+              {/* Logo Scale */}
+              {site.logo_url && (
+                <div className="space-y-3">
+                  <Label>Logo grootte op publieke pagina</Label>
+                  <div className="flex items-center gap-4">
+                    <Slider
+                      value={[site.logo_scale || 100]}
+                      onValueChange={(value) => setSite(prev => ({ ...prev, logo_scale: value[0] }))}
+                      min={10}
+                      max={200}
+                      step={5}
+                      className="flex-1"
+                    />
+                    <span className="text-sm text-zinc-400 w-12 text-right">{site.logo_scale || 100}%</span>
+                  </div>
+                  <div className="p-4 bg-zinc-800/50 rounded-lg">
+                    <p className="text-xs text-zinc-500 mb-2">Voorbeeld op publieke pagina:</p>
+                    <div className="flex justify-center py-4">
+                      <img 
+                        src={site.logo_url.startsWith('http') ? site.logo_url : `${API}${site.logo_url}`}
+                        alt="Logo preview"
+                        style={{ 
+                          height: `${Math.round(128 * (site.logo_scale || 100) / 100)}px`,
+                          width: 'auto',
+                          maxWidth: '100%'
+                        }}
+                        className="object-contain"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between p-4 bg-zinc-800/50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <Lock className="h-5 w-5 text-zinc-400" />
