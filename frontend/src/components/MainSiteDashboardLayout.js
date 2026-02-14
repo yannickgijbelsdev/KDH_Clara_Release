@@ -780,7 +780,7 @@ const MainSiteDashboardLayout = () => {
                     <DropdownMenuSeparator className="bg-zinc-800" />
                     <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer">
                       <Network className="w-4 h-4 mr-2" />
-                      Network Admin
+                      Network Beheer
                     </DropdownMenuItem>
                   </>
                 )}
