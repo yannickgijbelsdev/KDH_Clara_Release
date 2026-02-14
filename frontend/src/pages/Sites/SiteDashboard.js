@@ -435,6 +435,49 @@ export default function SiteDashboard() {
       {/* Media Tab */}
       {activeTab === 'media' && (
         <div className="space-y-6">
+          {/* Header Image Section */}
+          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+            <div className="flex items-center gap-3 mb-4">
+              <ImageIcon className="h-5 w-5 text-orange-400" />
+              <div>
+                <h2 className="text-lg font-semibold text-white">Header Afbeelding</h2>
+                <p className="text-sm text-zinc-400">Wordt getoond boven de audio player (als er geen video is)</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              {site.header_image_url && (
+                <div className="relative">
+                  <img 
+                    src={site.header_image_url.startsWith('http') ? site.header_image_url : `${API}${site.header_image_url}`}
+                    alt="Header"
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setSite(prev => ({ ...prev, header_image_url: null }))}
+                    className="absolute top-2 right-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              <label className="cursor-pointer block">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleHeaderImageUpload}
+                  className="hidden"
+                />
+                <div className="flex items-center gap-2 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-600">
+                  <Upload className="h-4 w-4" />
+                  <span>{site.header_image_url ? 'Andere afbeelding uploaden' : 'Header afbeelding uploaden'}</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
           {/* Audio Section */}
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
             <div className="flex items-center justify-between mb-4">
