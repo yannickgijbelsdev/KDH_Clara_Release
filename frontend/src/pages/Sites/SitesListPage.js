@@ -1,0 +1,282 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Globe, ExternalLink, Settings, Trash2 } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../../components/ui/dialog';
+import { toast } from 'sonner';
+
+const API = process.env.REACT_APP_BACKEND_URL;
+
+export default function SitesListPage() {
+  const navigate = useNavigate();
+  const [sites, setSites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newSite, setNewSite] = useState({ name: '', slug: '' });
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    fetchSites();
+  }, []);
+
+  const fetchSites = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/sites`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSites(data);
+      }
+    } catch (error) {
+      console.error('Error fetching sites:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createSite = async () => {
+    if (!newSite.name || !newSite.slug) {
+      toast.error('Vul alle velden in');
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/sites`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(newSite)
+      });
+      
+      if (res.ok) {
+        const site = await res.json();
+        toast.success('Site aangemaakt');
+        setShowCreateDialog(false);
+        setNewSite({ name: '', slug: '' });
+        navigate(`/sites/${site.id}`);
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Fout bij aanmaken');
+      }
+    } catch (error) {
+      toast.error('Fout bij aanmaken');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const deleteSite = async (siteId) => {
+    if (!window.confirm('Weet je zeker dat je deze site wilt verwijderen?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/sites/${siteId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        toast.success('Site verwijderd');
+        fetchSites();
+      } else {
+        toast.error('Fout bij verwijderen');
+      }
+    } catch (error) {
+      toast.error('Fout bij verwijderen');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Globe className="h-8 w-8 text-orange-500" />
+          <div>
+            <h1 className="text-2xl font-bold text-white">Pagina's</h1>
+            <p className="text-sm text-zinc-400">Beheer je publieke landingspagina's</p>
+          </div>
+        </div>
+        <Button 
+          onClick={() => setShowCreateDialog(true)}
+          className="bg-orange-500 hover:bg-orange-600"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Nieuwe pagina
+        </Button>
+      </div>
+
+      {/* Sites Grid */}
+      {sites.length === 0 ? (
+        <div className="text-center py-16 bg-zinc-900/50 rounded-xl border border-zinc-800">
+          <Globe className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-white mb-2">Geen pagina's</h3>
+          <p className="text-zinc-400 mb-6">
+            Maak je eerste publieke landingspagina aan
+          </p>
+          <Button 
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-orange-500 hover:bg-orange-600"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Pagina aanmaken
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {sites.map(site => (
+            <div 
+              key={site.id}
+              className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden hover:border-zinc-700 transition group"
+            >
+              <div className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    {site.logo_url ? (
+                      <img 
+                        src={`${API}${site.logo_url}`}
+                        alt={site.name}
+                        className="h-12 w-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-lg bg-zinc-800 flex items-center justify-center">
+                        <Globe className="h-6 w-6 text-zinc-500" />
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-white">{site.name}</h3>
+                      <a 
+                        href={`${window.location.origin}/${site.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-orange-400 hover:text-orange-300 flex items-center gap-1"
+                      >
+                        /{site.slug}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {site.audio_enabled && (
+                    <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">
+                      Audio
+                    </span>
+                  )}
+                  {site.video_enabled && (
+                    <span className="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded">
+                      Video
+                    </span>
+                  )}
+                  {site.form_enabled && (
+                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">
+                      Formulier
+                    </span>
+                  )}
+                  {site.password_protected && (
+                    <span className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">
+                      Beveiligd
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-6 py-3 bg-zinc-800/50 border-t border-zinc-800 flex justify-between">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/sites/${site.id}`)}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Instellingen
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteSite(site.id)}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Create Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-800">
+          <DialogHeader>
+            <DialogTitle>Nieuwe pagina aanmaken</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Naam</Label>
+              <Input
+                value={newSite.name}
+                onChange={(e) => setNewSite(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Mijn Radio Pagina"
+                className="bg-zinc-800 border-zinc-700"
+              />
+            </div>
+            
+            <div>
+              <Label>URL</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-zinc-400 text-sm">{window.location.origin}/</span>
+                <Input
+                  value={newSite.slug}
+                  onChange={(e) => setNewSite(prev => ({ 
+                    ...prev, 
+                    slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') 
+                  }))}
+                  placeholder="mijn-pagina"
+                  className="bg-zinc-800 border-zinc-700"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowCreateDialog(false)}>
+              Annuleren
+            </Button>
+            <Button 
+              onClick={createSite} 
+              disabled={creating}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              {creating ? 'Aanmaken...' : 'Aanmaken'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
