@@ -275,15 +275,29 @@ async def get_item_text(db, station: str, item: dict) -> str:
         # Get cached now playing from shoutcast
         cached = await db.shoutcast_cache.find_one(
             {"station": source_station},
-            {"_id": 0, "song_title": 1, "is_stale": 1}
+            {"_id": 0, "song_title": 1, "is_stale": 1, "raw_song_title": 1}
         )
         if cached:
             # If now_playing is stale, return empty string to skip this item
             # This prevents showing duplicate "altijd dichtbij" from both show_name and now_playing
             if cached.get("is_stale"):
                 return ""
-            if cached.get("song_title"):
-                return cached["song_title"]
+            
+            song_title = cached.get("song_title", "")
+            raw_title = cached.get("raw_song_title", "")
+            
+            # Check if the title appears unformatted (all caps including song part)
+            # This can happen when the cache hasn't been updated yet after deployment
+            # In this case, show fallback text to give time for proper formatting
+            if song_title and raw_title:
+                # Import the check function
+                from services.shoutcast import is_unformatted_title
+                if is_unformatted_title(song_title):
+                    logger.debug(f"[{station}] Now playing appears unformatted, showing fallback: {song_title}")
+                    return ""  # Return empty to skip and show fallback
+            
+            if song_title:
+                return song_title
         return ""
     
     elif item_type == "audio_trigger":
