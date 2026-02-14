@@ -601,15 +601,16 @@ const MainSiteDashboardLayout = () => {
         {/* Normal navigation icons when not in site context */}
         {!isInSiteContext && flatNavItems.map((item) => {
           const Icon = item.icon;
-          const fullPath = `/${mainSiteSlug}/${item.to}`;
-          const isActive = location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
-          const badgeCount = getBadgeCount(item.to);
-          const isHighlight = ['chat', 'approvals'].includes(item.to);
+          // item.to already contains the full path like /radiogroep/shows
+          const isActive = location.pathname === item.to || location.pathname.startsWith(item.to + '/');
+          const pathSegment = item.to.split('/').pop(); // Get last segment for badge lookup
+          const badgeCount = getBadgeCount(pathSegment);
+          const isHighlight = ['chat', 'approvals'].includes(pathSegment);
           return (
             <Tooltip key={item.to}>
               <TooltipTrigger asChild>
                 <NavLink
-                  to={fullPath}
+                  to={item.to}
                   onClick={closeSidebar}
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
