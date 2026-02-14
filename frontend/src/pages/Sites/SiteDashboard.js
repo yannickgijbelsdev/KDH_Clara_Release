@@ -314,33 +314,8 @@ export default function SiteDashboard() {
         </Button>
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="bg-zinc-800/50">
-          <TabsTrigger value="general" className="data-[state=active]:bg-orange-500">
-            <Settings className="h-4 w-4 mr-2" />
-            Algemeen
-          </TabsTrigger>
-          <TabsTrigger value="media" className="data-[state=active]:bg-orange-500">
-            <Play className="h-4 w-4 mr-2" />
-            Media
-          </TabsTrigger>
-          <TabsTrigger value="form" className="data-[state=active]:bg-orange-500">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Formulier
-          </TabsTrigger>
-          <TabsTrigger value="submissions" className="data-[state=active]:bg-orange-500">
-            <MessageSquare className="h-4 w-4 mr-2" />
-            Inzendingen ({submissions.length})
-          </TabsTrigger>
-          <TabsTrigger value="users" className="data-[state=active]:bg-orange-500">
-            <Users className="h-4 w-4 mr-2" />
-            Gebruikers
-          </TabsTrigger>
-        </TabsList>
-
-        {/* General Tab */}
-        <TabsContent value="general" className="space-y-6">
+      {/* Content based on activeTab */}
+      {activeTab === 'general' && (
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
             <h2 className="text-lg font-semibold text-white mb-4">Pagina instellingen</h2>
             
