@@ -232,7 +232,7 @@ export default function SitesListPage() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="bg-zinc-900 border-zinc-800">
           <DialogHeader>
-            <DialogTitle>Nieuwe pagina aanmaken</DialogTitle>
+            <DialogTitle>Nieuwe site aanmaken</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
