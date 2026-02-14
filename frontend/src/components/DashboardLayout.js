@@ -145,6 +145,11 @@ const DashboardLayout = () => {
   const siteMatch = location.pathname.match(/(?:^\/sites\/|\/sites\/)([^/]+)/);
   const isInSiteContext = !!siteMatch;
   const currentSiteId = siteMatch ? siteMatch[1] : null;
+  
+  // Extract mainSiteSlug if present (for multisite navigation)
+  const mainSiteSlugMatch = location.pathname.match(/^\/([^/]+)\/sites\//);
+  const mainSiteSlug = mainSiteSlugMatch ? mainSiteSlugMatch[1] : null;
+  const sitesBasePath = mainSiteSlug ? `/${mainSiteSlug}/sites` : '/sites';
 
   // Check if user can approve content (admin or news_admin)
   const canApprove = user?.role === 'admin' || user?.role === 'news_admin';
