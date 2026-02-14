@@ -1151,3 +1151,33 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 ### Now Playing Formatting Improvements
 - [x] **Unformatted Title Detection** - If the now playing text is still all caps (not properly formatted), show fallback text to give the cache time to update
 - [x] **Artist Case Check** - Also detect when artist is not in UPPERCASE (e.g., "The Cranberries" instead of "THE CRANBERRIES")
+
+
+### February 14, 2026 - Sites Navigation Improvement
+- [x] **Renamed "Pagina's" to "Sites"**:
+  - Menu dropdown under user profile now shows "Sites" instead of "Pagina's"
+  - Sites list page header changed to "Sites"
+  - Button changed to "Nieuwe site" instead of "Nieuwe pagina"
+  - Empty state message updated to "Geen sites" instead of "Geen pagina's"
+  - Files updated: `DashboardLayout.js`, `SitesListPage.js`
+
+- [x] **Dynamic Sites Listing in Dropdown**:
+  - Sites are now listed dynamically under "Sites" in user dropdown
+  - Each site links directly to its dashboard (/sites/{id})
+  - Sites are fetched via `/api/sites` for admin users
+  - Shows site logo/icon and name for quick navigation
+  - File: `DashboardLayout.js` lines 158-166, 582-606
+
+- [x] **Context-Switching Sidebar**:
+  - When navigating to a site dashboard (/sites/{id}):
+    - Main sidebar is replaced with site-specific menu
+    - "Terug naar Sites" back navigation button at top
+    - Site name and slug displayed in header
+    - Menu items: Algemeen, Media, Formulier, Inzendingen, Gebruikers
+  - When clicking "Terug naar Sites" or navigating away:
+    - Normal sidebar is restored
+  - Uses custom event `siteTabChange` for tab switching between sidebar and SiteDashboard
+  - Files: `DashboardLayout.js` lines 99-105 (siteNavItems), 392-442 (site-specific nav render)
+  - File: `SiteDashboard.js` lines 29-34 (event listener)
+
+- [x] **Testing**: All 9 navigation features tested with 100% success rate
