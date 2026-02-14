@@ -574,7 +574,11 @@ const MainSiteDashboardLayout = () => {
             <Tooltip key={item.tab}>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => setSiteTab(item.tab)}
+                  onClick={() => {
+                    setSiteTab(item.tab);
+                    window.dispatchEvent(new CustomEvent('siteTabChange', { detail: item.tab }));
+                  }}
+                  data-testid={`site-nav-${item.tab}`}
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
                     ${isActive 
