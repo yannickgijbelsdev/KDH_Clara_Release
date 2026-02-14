@@ -340,7 +340,7 @@ export default function PublicSitePage() {
 
         {/* Video Player - shown first if enabled, directly under header */}
         {site?.video_enabled && site?.video_url && (
-          <div className="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800">
+          <div className="rounded-xl overflow-hidden border border-zinc-800" style={{ backgroundColor: containerColor }}>
             {site.video_type === 'hls' ? (
               <video
                 ref={videoRef}
@@ -376,7 +376,7 @@ export default function PublicSitePage() {
 
         {/* Audio Player - directly against header/video */}
         {site?.audio_enabled && site?.audio_url && (
-          <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 mt-0">
+          <div className="rounded-xl p-4 border border-zinc-800 mt-0" style={{ backgroundColor: containerColor }}>
             <audio
               ref={audioRef}
               src={site.audio_type === 'file' 
@@ -390,8 +390,8 @@ export default function PublicSitePage() {
               <Button
                 onClick={togglePlay}
                 size="lg"
-                className="h-14 w-14 rounded-full"
-                style={site?.button_color ? { backgroundColor: site.button_color } : { backgroundColor: '#f97316' }}
+                className="h-14 w-14 rounded-full text-white hover:opacity-90"
+                style={{ backgroundColor: buttonColor }}
               >
                 {isPlaying ? (
                   <Pause className="h-7 w-7" />
@@ -399,18 +399,21 @@ export default function PublicSitePage() {
                   <Play className="h-7 w-7 ml-1" />
                 )}
               </Button>
-              <Button
+              <button
                 onClick={toggleMute}
-                variant="ghost"
-                size="sm"
-                className="text-zinc-400 hover:text-white"
+                className="p-2 rounded-lg transition-colors"
+                style={{ 
+                  color: isMuted ? buttonColor : '#a1a1aa',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = buttonColor}
+                onMouseLeave={(e) => e.currentTarget.style.color = isMuted ? buttonColor : '#a1a1aa'}
               >
                 {isMuted ? (
                   <VolumeX className="h-5 w-5" />
                 ) : (
                   <Volume2 className="h-5 w-5" />
                 )}
-              </Button>
+              </button>
             </div>
             {isPlaying && (
               <div className="mt-3 flex justify-center">
@@ -422,7 +425,7 @@ export default function PublicSitePage() {
                       style={{
                         height: `${16 + Math.random() * 16}px`,
                         animationDelay: `${i * 0.1}s`,
-                        backgroundColor: site?.button_color || '#f97316'
+                        backgroundColor: buttonColor
                       }}
                     />
                   ))}
