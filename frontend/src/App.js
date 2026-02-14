@@ -169,9 +169,13 @@ const AppRoutes = () => {
 
 // Component to redirect to first available feature
 const MainSiteIndex = () => {
-  const { mainSite, mainSiteSlug, loading } = require('./context/MainSiteContext').useMainSite();
-  const navigate = require('react-router-dom').useNavigate();
-  const { useEffect } = require('react');
+  return <MainSiteIndexInner />;
+};
+
+// Separate inner component to use hooks properly
+const MainSiteIndexInner = () => {
+  const { mainSite, mainSiteSlug, loading } = useMainSite();
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (!loading && mainSite) {
