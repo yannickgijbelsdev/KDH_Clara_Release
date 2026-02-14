@@ -15,6 +15,7 @@ from models.sites import (
 )
 from services.auth import get_current_user, require_admin
 from services.s3_storage import upload_file_to_s3, is_s3_configured
+from services.main_site_context import get_main_site_id_from_header
 
 import logging
 logger = logging.getLogger(__name__)
@@ -35,16 +36,30 @@ def verify_password(password: str, hashed: str) -> bool:
 # ============== SITE CRUD ==============
 
 @sites_router.get("")
-async def get_sites(current_user: dict = Depends(get_current_user)):
-    """Get all sites for the current team."""
+async def get_sites(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all sites for the current main site context."""
     team_id = current_user.get('team_id')
     user_id = current_user.get('id')
     is_admin = current_user.get('role') == 'admin'
     
-    if is_admin:
-        # Admins see all team sites
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build base query
+    if main_site_id:
+        # Multisite context - filter by main_site_id
+        base_query = {"main_site_id": main_site_id}
+    else:
+        # Legacy context - filter by team_id
+        base_query = {"team_id": team_id}
+    
+    if is_admin or current_user.get('is_network_admin'):
+        # Admins see all sites in context
         sites = await db.sites.find(
-            {"team_id": team_id},
+            base_query,
             {"_id": 0, "password_hash": 0}
         ).to_list(100)
     else:
@@ -56,7 +71,7 @@ async def get_sites(current_user: dict = Depends(get_current_user)):
         site_ids = [a["site_id"] for a in user_site_access]
         
         sites = await db.sites.find(
-            {"id": {"$in": site_ids}, "team_id": team_id},
+            {"id": {"$in": site_ids}, **base_query},
             {"_id": 0, "password_hash": 0}
         ).to_list(100)
     
@@ -65,22 +80,28 @@ async def get_sites(current_user: dict = Depends(get_current_user)):
 
 @sites_router.post("")
 async def create_site(
+    request: Request,
     site_data: SiteCreate,
     current_user: dict = Depends(require_admin)
 ):
     """Create a new site (mini site)."""
     team_id = current_user.get('team_id')
     
+    # Get main_site_id from header first, then fallback to body
+    main_site_id = await get_main_site_id_from_header(request)
+    if not main_site_id and site_data.main_site_id:
+        main_site_id = site_data.main_site_id
+    
     # If main_site_id provided, validate it exists
     main_site = None
-    if site_data.main_site_id:
-        main_site = await db.main_sites.find_one({"id": site_data.main_site_id})
+    if main_site_id:
+        main_site = await db.main_sites.find_one({"id": main_site_id})
         if not main_site:
             raise HTTPException(status_code=404, detail="Main site not found")
         
         # Check if slug is unique within this main site
         existing = await db.sites.find_one({
-            "main_site_id": site_data.main_site_id,
+            "main_site_id": main_site_id,
             "slug": site_data.slug.lower()
         })
         if existing:
@@ -104,7 +125,7 @@ async def create_site(
     site_doc = {
         "id": site_id,
         "team_id": team_id,
-        "main_site_id": site_data.main_site_id,
+        "main_site_id": main_site_id,
         "name": site_data.name,
         "slug": site_data.slug.lower(),
         "logo_url": None,
