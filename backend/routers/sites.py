@@ -89,7 +89,9 @@ async def create_site(
         "name": site_data.name,
         "slug": site_data.slug.lower(),
         "logo_url": None,
+        "logo_scale": 100,
         "header_image_url": None,
+        "button_color": None,
         "audio_enabled": False,
         "audio_type": None,
         "audio_url": None,
@@ -98,6 +100,7 @@ async def create_site(
         "video_type": None,
         "video_url": None,
         "form_enabled": False,
+        "form_file_upload_enabled": False,
         "form_fields": [
             {"id": "name", "label": "Naam", "type": "text", "required": True},
             {"id": "phone", "label": "Telefoonnummer", "type": "tel", "required": False},
