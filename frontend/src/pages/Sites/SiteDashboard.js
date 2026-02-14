@@ -1032,13 +1032,13 @@ export default function SiteDashboard() {
       {activeTab === 'users' && (
         <div className="space-y-4">
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
-            <h2 className="text-lg font-semibold text-white mb-4">Gebruikerstoegang</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">User Access</h2>
             
             <div className="space-y-4">
               {/* Current users */}
               {siteUsers.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Huidige gebruikers</Label>
+                  <Label>Current users</Label>
                   {siteUsers.map(user => (
                     <div 
                       key={user.user_id}
@@ -1046,7 +1046,7 @@ export default function SiteDashboard() {
                     >
                       <div>
                         <p className="font-medium text-white">{user.name || user.email}</p>
-                        <p className="text-sm text-zinc-400">{user.role === 'editor' ? 'Bewerker' : 'Alleen bekijken'}</p>
+                        <p className="text-sm text-zinc-400">{user.role === 'editor' ? 'Editor' : 'View only'}</p>
                       </div>
                       <Button
                         variant="ghost"
@@ -1063,13 +1063,13 @@ export default function SiteDashboard() {
 
               {/* Add user */}
               <div>
-                <Label>Gebruiker toevoegen</Label>
+                <Label>Add user</Label>
                 <div className="flex gap-2 mt-2">
                   <select
                     id="add-user-select"
                     className="flex-1 bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2"
                   >
-                    <option value="">Selecteer gebruiker...</option>
+                    <option value="">Select user...</option>
                     {teamUsers
                       .filter(u => !siteUsers.find(su => su.user_id === u.id))
                       .map(user => (
@@ -1083,8 +1083,8 @@ export default function SiteDashboard() {
                     className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2"
                     defaultValue="viewer"
                   >
-                    <option value="viewer">Alleen bekijken</option>
-                    <option value="editor">Bewerker</option>
+                    <option value="viewer">View only</option>
+                    <option value="editor">Editor</option>
                   </select>
                   <Button
                     onClick={() => {
