@@ -413,7 +413,7 @@ const DashboardLayout = () => {
                           <div className="flex items-center gap-2">
                             {currentSite.logo_url ? (
                               <img 
-                                src={`${API}${currentSite.logo_url}`}
+                                src={currentSite.logo_url.startsWith('http') ? currentSite.logo_url : `${API}${currentSite.logo_url}`}
                                 alt={currentSite.name}
                                 className="w-4 h-4 rounded object-cover"
                               />
