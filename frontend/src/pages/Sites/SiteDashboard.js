@@ -925,11 +925,11 @@ export default function SiteDashboard() {
       {activeTab === 'submissions' && (
         <div className="space-y-4">
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
-            <h2 className="text-lg font-semibold text-white mb-4">Inzendingen</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">Submissions</h2>
             
             {submissions.length === 0 ? (
               <p className="text-zinc-400 text-center py-8">
-                Nog geen inzendingen ontvangen
+                No submissions received yet
               </p>
             ) : (
               <div className="space-y-3">
@@ -947,7 +947,7 @@ export default function SiteDashboard() {
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-zinc-500">
-                          {new Date(sub.created_at).toLocaleString('nl-NL')}
+                          {new Date(sub.created_at).toLocaleString('en-US')}
                         </span>
                         <Button
                           variant="ghost"
@@ -976,7 +976,7 @@ export default function SiteDashboard() {
                     {/* File attachments */}
                     {sub.file_urls && sub.file_urls.length > 0 && (
                       <div className="mt-2 pt-2 border-t border-zinc-700">
-                        <p className="text-xs text-zinc-500 mb-2">Bijlagen:</p>
+                        <p className="text-xs text-zinc-500 mb-2">Attachments:</p>
                         <div className="flex flex-wrap gap-2">
                           {sub.file_urls.map((url, idx) => {
                             const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
