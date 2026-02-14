@@ -66,17 +66,39 @@ const AppRoutes = () => {
     <Routes>
       <Route 
         path="/login" 
-        element={user ? <Navigate to="/shows" replace /> : <LoginPage />} 
+        element={user ? <Navigate to="/" replace /> : <LoginPage />} 
       />
+      
+      {/* Root route - shows site selector or network admin */}
+      <Route 
+        path="/" 
+        element={
+          <ProtectedRoute>
+            {user?.is_network_admin ? <NetworkDashboard /> : <MainSiteSelector />}
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Network Admin Dashboard */}
+      <Route 
+        path="/network" 
+        element={
+          <ProtectedRoute>
+            <NetworkDashboard />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Legacy routes (for backward compatibility) */}
       <Route
-        path="/"
+        path="/legacy"
         element={
           <ProtectedRoute>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/shows" replace />} />
+        <Route index element={<Navigate to="/legacy/shows" replace />} />
         <Route path="shows" element={<ShowsPage />} />
         <Route path="shows/:showId" element={<ShowDetailPage />} />
         <Route path="show-management" element={<ShowManagementPage />} />
@@ -100,10 +122,86 @@ const AppRoutes = () => {
         <Route path="sites" element={<SitesListPage />} />
         <Route path="sites/:siteId" element={<SiteDashboard />} />
       </Route>
-      {/* Public site pages - outside of protected routes */}
-      <Route path="/:slug" element={<PublicSitePage />} />
+      
+      {/* Main Site Routes - /:mainSiteSlug/... */}
+      <Route
+        path="/:mainSiteSlug"
+        element={
+          <ProtectedRoute>
+            <MainSiteProvider>
+              <MainSiteDashboardLayout />
+            </MainSiteProvider>
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<MainSiteIndex />} />
+        <Route path="shows" element={<ShowsPage />} />
+        <Route path="shows/:showId" element={<ShowDetailPage />} />
+        <Route path="show-management" element={<ShowManagementPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
+        <Route path="content" element={<ContentLibraryPage />} />
+        <Route path="content/calendar" element={<ContentCalendarPage />} />
+        <Route path="content/:contentId" element={<ContentDetailPage />} />
+        <Route path="approvals" element={<AdminApprovalPage />} />
+        <Route path="trash" element={<TrashPage />} />
+        <Route path="settings" element={<PersonalSettingsPage />} />
+        <Route path="chat" element={<ChatPage />} />
+        <Route path="media" element={<MediaLibraryPage />} />
+        <Route path="team" element={<TeamSettingsPage />} />
+        <Route path="logs" element={<LogsPage />} />
+        <Route path="wordpress" element={<WordPressSettingsPage />} />
+        <Route path="rds" element={<RDSSettingsPage />} />
+        <Route path="rds-builder" element={<RDSBuilderPage />} />
+        <Route path="rds-scheduler" element={<RDSSchedulerPage />} />
+        <Route path="audio-triggers" element={<AudioTriggersPage />} />
+        <Route path="streams" element={<StreamMonitorPage />} />
+        <Route path="sites" element={<SitesListPage />} />
+        <Route path="sites/:siteId" element={<SiteDashboard />} />
+      </Route>
+
+      {/* Public mini site pages - /:mainSiteSlug/:siteSlug */}
+      <Route path="/:mainSiteSlug/:siteSlug" element={<PublicSitePage />} />
+      
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+  );
+};
+
+// Component to redirect to first available feature
+const MainSiteIndex = () => {
+  const { mainSite, mainSiteSlug, loading } = require('./context/MainSiteContext').useMainSite();
+  const navigate = require('react-router-dom').useNavigate();
+  const { useEffect } = require('react');
+  
+  useEffect(() => {
+    if (!loading && mainSite) {
+      const features = mainSite.enabled_features || [];
+      // Redirect to first enabled feature
+      const featureRoutes = {
+        shows: 'shows',
+        calendar: 'calendar',
+        content_library: 'content',
+        media_library: 'media',
+        team_chat: 'chat',
+        sites: 'sites',
+        rds_settings: 'rds'
+      };
+      
+      for (const [feature, route] of Object.entries(featureRoutes)) {
+        if (features.includes(feature)) {
+          navigate(`/${mainSiteSlug}/${route}`, { replace: true });
+          return;
+        }
+      }
+      // Fallback to sites if nothing else
+      navigate(`/${mainSiteSlug}/sites`, { replace: true });
+    }
+  }, [loading, mainSite, mainSiteSlug, navigate]);
+  
+  return (
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="animate-pulse text-zinc-400">Loading...</div>
+    </div>
   );
 };
 
