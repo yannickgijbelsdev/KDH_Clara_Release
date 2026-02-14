@@ -139,6 +139,9 @@ const MainSiteDashboardLayout = () => {
   const [siteTab, setSiteTab] = useState('general');
   const [submissionCounts, setSubmissionCounts] = useState({});
   const [myMainSites, setMyMainSites] = useState([]);
+  
+  // Get user's menu preference (grouped or flat)
+  const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
 
   // Check if we're in a site context
   const siteMatch = location.pathname.match(/\/sites\/([^/]+)/);
