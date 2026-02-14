@@ -186,6 +186,17 @@ const DashboardLayout = () => {
     }
   }, [currentSiteId]);
 
+  // Fetch submission counts for current site
+  const fetchSubmissionCount = useCallback(async () => {
+    if (!currentSiteId) return;
+    try {
+      const response = await axios.get(`${API}/sites/${currentSiteId}/submissions/count`);
+      setSubmissionCounts(prev => ({ ...prev, [currentSiteId]: response.data.count }));
+    } catch (error) {
+      console.error('Failed to fetch submission count:', error);
+    }
+  }, [currentSiteId]);
+
   // Fetch counts on mount and periodically
   useEffect(() => {
     if (user) {
@@ -200,6 +211,25 @@ const DashboardLayout = () => {
   useEffect(() => {
     fetchCurrentSite();
   }, [fetchCurrentSite]);
+
+  // Fetch submission count when in site context
+  useEffect(() => {
+    if (isInSiteContext && currentSiteId) {
+      fetchSubmissionCount();
+      const interval = setInterval(fetchSubmissionCount, 15000); // Refresh every 15 seconds
+      return () => clearInterval(interval);
+    }
+  }, [isInSiteContext, currentSiteId, fetchSubmissionCount]);
+
+  // Listen for submissions viewed event to clear badge
+  useEffect(() => {
+    const handleSubmissionsViewed = (e) => {
+      const siteId = e.detail;
+      setSubmissionCounts(prev => ({ ...prev, [siteId]: 0 }));
+    };
+    window.addEventListener('submissionsViewed', handleSubmissionsViewed);
+    return () => window.removeEventListener('submissionsViewed', handleSubmissionsViewed);
+  }, []);
 
   // Update browser tab title dynamically
   useEffect(() => {
