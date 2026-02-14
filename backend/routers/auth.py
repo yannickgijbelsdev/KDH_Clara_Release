@@ -119,7 +119,8 @@ async def login(credentials: UserLogin, request: Request):
         role=role,
         team_id=team_id,
         team_name=team_name,
-        created_at=user['created_at']
+        created_at=user['created_at'],
+        is_network_admin=user.get('is_network_admin', False)
     )
     
     return TokenResponse(token=token, user=user_response, expires_at=expires_at)
