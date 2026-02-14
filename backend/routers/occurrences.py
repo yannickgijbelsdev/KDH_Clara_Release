@@ -76,6 +76,7 @@ async def get_occurrences(
 
 @occurrences_router.post("", response_model=ShowOccurrenceResponse, status_code=status.HTTP_201_CREATED)
 async def create_occurrence(
+    request: Request,
     occ_data: ShowOccurrenceCreate,
     current_user: dict = Depends(require_admin)
 ):
@@ -84,9 +85,13 @@ async def create_occurrence(
     rundown_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
     occ_doc = {
         "id": occ_id,
         "team_id": current_user.get('team_id'),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "show_series_id": occ_data.show_series_id,
         "title": occ_data.title,
         "date": occ_data.date,
