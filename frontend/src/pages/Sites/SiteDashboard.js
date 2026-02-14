@@ -316,6 +316,7 @@ export default function SiteDashboard() {
 
       {/* Content based on activeTab */}
       {activeTab === 'general' && (
+        <div className="space-y-6">
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
             <h2 className="text-lg font-semibold text-white mb-4">Pagina instellingen</h2>
             
