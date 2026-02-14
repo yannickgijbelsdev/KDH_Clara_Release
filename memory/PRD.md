@@ -1210,3 +1210,45 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Files: `SiteDashboard.js` lines 439-479, `PublicSitePage.js` lines 287-295, `backend/models/sites.py`
 
 - [x] **Testing**: All 11 backend tests passed, all frontend features verified (100% success rate)
+
+
+### February 14, 2026 - Sites UI Refinements (Phase 3)
+- [x] **Header Logo Verwijderd**:
+  - Dashboard header toont nu alleen team/site naam, geen logo meer
+  - Vermindert visuele rommel in de header
+  - File: `DashboardLayout.js` lines 862-879
+
+- [x] **Logo Schaling met Percentage**:
+  - Nieuwe slider (10-200%) om logo grootte op publieke pagina in te stellen
+  - Live preview van geschaalde logo in site dashboard
+  - Model field: `logo_scale` (int, default 100)
+  - Files: `SiteDashboard.js` (slider + preview), `PublicSitePage.js` (getLogoStyle function)
+
+- [x] **Compacte Header op Publieke Pagina**:
+  - Header verkleind met minimale spacing (mb-2)
+  - Audio player plakt direct tegen header afbeelding
+  - Kleinere padding voor cleaner uiterlijk
+  - File: `PublicSitePage.js` lines 317-357
+
+- [x] **Configureerbare Knop Kleuren**:
+  - Kleurenkiezer met hex input in Formulier tab
+  - Live preview van "Verstuur" knop
+  - Model field: `button_color` (str, nullable)
+  - Publieke pagina past kleur toe op form submit en play button
+  - Files: `SiteDashboard.js` (Form tab), `PublicSitePage.js` (buttonStyle, buttonClassName)
+
+- [x] **Bestandsuploads in Contactformulier**:
+  - Toggle "Bestandsuploads toestaan" in Formulier tab
+  - Bezoekers kunnen afbeeldingen, audio en video uploaden (max 50MB)
+  - Bestanden worden naar S3 geüpload
+  - Model fields: `form_file_upload_enabled`, `file_urls` in submissions
+  - New endpoint: `POST /api/sites/public/{slug}/upload-file`
+  - Files: `backend/routers/sites.py` line 568, `backend/models/sites.py`, `PublicSitePage.js`
+
+- [x] **Testing**: 16/16 backend tests passed, all 9 frontend features verified (100% success rate)
+
+## Upcoming Tasks (P1)
+- **Configurable "Stale Now Playing" Timeout** - Make the 15-minute timeout in shoutcast_service.py configurable via API and UI
+
+## Future Tasks (P2)
+- **Stream Monitor VU Meters** - Implement functional VU meters (blocked by browser security, needs WebSocket proxy)
