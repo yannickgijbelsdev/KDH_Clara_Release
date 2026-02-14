@@ -36,6 +36,8 @@ export default function PublicSitePage() {
       if (res.ok) {
         const data = await res.json();
         setSite(data);
+        // Set dynamic page title
+        document.title = data.name || 'Site';
         if (data.password_protected && !passwordVerified) {
           setPasswordRequired(true);
         }
@@ -47,6 +49,7 @@ export default function PublicSitePage() {
         setFormData(initialFormData);
       } else if (res.status === 404) {
         setError('Pagina niet gevonden');
+        document.title = 'Pagina niet gevonden';
       } else {
         setError('Er is een fout opgetreden');
       }
