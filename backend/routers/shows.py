@@ -1,5 +1,5 @@
 """Show and rundown management routes."""
-from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File, Request
 from fastapi.responses import HTMLResponse
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -23,6 +23,7 @@ from services.auth import get_current_user, require_editor_or_admin, require_adm
 from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
+from services.main_site_context import get_main_site_id_from_header
 
 logger = logging.getLogger(__name__)
 
