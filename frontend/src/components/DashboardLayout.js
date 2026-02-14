@@ -197,7 +197,7 @@ const DashboardLayout = () => {
   const fetchSubmissionCount = useCallback(async () => {
     if (!currentSiteId) return;
     try {
-      const response = await axios.get(`${API}/api/sites/${currentSiteId}/submissions/count`);
+      const response = await axios.get(`${API}/sites/${currentSiteId}/submissions/count`);
       setSubmissionCounts(prev => ({ ...prev, [currentSiteId]: response.data.count }));
     } catch (error) {
       console.error('Failed to fetch submission count:', error);
