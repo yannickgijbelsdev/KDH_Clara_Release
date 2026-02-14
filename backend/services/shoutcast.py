@@ -53,13 +53,15 @@ async def get_filters_from_db(db, station: str) -> List[Dict]:
 
 
 def is_unformatted_title(song_title: str) -> bool:
-    """Check if a song title appears to be unformatted (all uppercase).
+    """Check if a song title appears to be unformatted.
     
     A properly formatted title has:
-    - Artist in UPPERCASE
-    - Song title in Title Case (mixed case)
+    - Artist in UPPERCASE (e.g., "THE CRANBERRIES")
+    - Song title in Title Case (e.g., "Zombie")
     
-    If both parts are fully uppercase, the formatting hasn't been applied yet.
+    Returns True (unformatted) if:
+    - Both parts are fully uppercase: "THE CRANBERRIES - ZOMBIE"
+    - Artist is not uppercase: "The Cranberries - Zombie" or "the cranberries - zombie"
     """
     if not song_title:
         return False
@@ -70,10 +72,22 @@ def is_unformatted_title(song_title: str) -> bool:
         if sep in song_title:
             parts = song_title.split(sep, 1)
             if len(parts) == 2:
+                artist_part = parts[0].strip()
                 title_part = parts[1].strip()
+                
+                # Check if artist has any letters
+                if not any(c.isalpha() for c in artist_part):
+                    return False
+                
                 # If the title part is all uppercase (and has letters), it's unformatted
-                if title_part and title_part.isupper():
+                if title_part and any(c.isalpha() for c in title_part) and title_part.isupper():
                     return True
+                
+                # If the artist is NOT all uppercase, it's unformatted
+                # (e.g., "The Cranberries" or "the cranberries" instead of "THE CRANBERRIES")
+                if artist_part and not artist_part.isupper():
+                    return True
+                
                 return False
     
     # No separator - can't determine, assume formatted
