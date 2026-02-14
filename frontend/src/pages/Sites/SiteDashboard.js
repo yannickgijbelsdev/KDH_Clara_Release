@@ -968,6 +968,53 @@ export default function SiteDashboard() {
                         ))}
                       </div>
                     )}
+                    {/* File attachments */}
+                    {sub.file_urls && sub.file_urls.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-zinc-700">
+                        <p className="text-xs text-zinc-500 mb-2">Bijlagen:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {sub.file_urls.map((url, idx) => {
+                            const isImage = url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                            const isAudio = url.match(/\.(mp3|wav|ogg|aac)$/i);
+                            const isVideo = url.match(/\.(mp4|webm|mov|avi)$/i);
+                            const filename = url.split('/').pop();
+                            
+                            if (isImage) {
+                              return (
+                                <a 
+                                  key={idx}
+                                  href={url.startsWith('http') ? url : `${API}${url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block"
+                                >
+                                  <img 
+                                    src={url.startsWith('http') ? url : `${API}${url}`}
+                                    alt={filename}
+                                    className="h-16 w-16 rounded object-cover hover:opacity-80 transition"
+                                  />
+                                </a>
+                              );
+                            }
+                            
+                            return (
+                              <a
+                                key={idx}
+                                href={url.startsWith('http') ? url : `${API}${url}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-3 py-2 bg-zinc-700/50 rounded-lg hover:bg-zinc-700 transition text-sm"
+                              >
+                                {isAudio && <FileAudio className="h-4 w-4 text-orange-400" />}
+                                {isVideo && <FileVideo className="h-4 w-4 text-blue-400" />}
+                                {!isAudio && !isVideo && <FileImage className="h-4 w-4 text-green-400" />}
+                                <span className="text-zinc-300 max-w-32 truncate">{filename}</span>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
