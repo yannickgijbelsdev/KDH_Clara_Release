@@ -505,7 +505,57 @@ const DashboardLayout = () => {
               </div>
             ) : (
               // Flat Icon Navigation (original)
-              filteredFlatItems.map((item) => {
+              <>
+                {/* Back to Sites icon when in site context */}
+                {isInSiteContext && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <NavLink
+                        to="/sites"
+                        className="w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10 mb-2"
+                      >
+                        <ArrowLeft className="w-5 h-5" />
+                      </NavLink>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                      Terug naar Sites
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                
+                {/* Site-specific icons when in site context */}
+                {isInSiteContext && currentSite && getSiteNavGroup(currentSite).items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = siteTab === item.tab;
+                  return (
+                    <Tooltip key={item.tab}>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            setSiteTab(item.tab);
+                            window.dispatchEvent(new CustomEvent('siteTabChange', { detail: item.tab }));
+                          }}
+                          data-testid={`site-nav-${item.tab}`}
+                          className={`
+                            w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
+                            ${isActive 
+                              ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
+                              : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                            }
+                          `}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                        {item.label}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+                
+                {/* Normal navigation icons when not in site context */}
+                {!isInSiteContext && filteredFlatItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.to;
                 const badgeCount = getBadgeCount(item.to);
