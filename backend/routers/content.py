@@ -218,6 +218,9 @@ async def create_content_item(
     content_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
     content_doc = {
         "id": content_id,
         "title": content_data.title,
@@ -228,6 +231,7 @@ async def create_content_item(
         "category_id": content_data.category_id,
         "status": content_data.status,
         "team_id": current_user.get('team_id', ''),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "created_by": current_user['id'],
         "created_at": now,
         "updated_at": now
