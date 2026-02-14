@@ -255,7 +255,9 @@ export default function SitesListPage() {
             <div>
               <Label>URL</Label>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-zinc-400 text-sm">{window.location.origin}/</span>
+                <span className="text-zinc-400 text-sm">
+                  {window.location.origin}/{mainSiteSlug ? `${mainSiteSlug}/` : ''}
+                </span>
                 <Input
                   value={newSite.slug}
                   onChange={(e) => setNewSite(prev => ({ 
