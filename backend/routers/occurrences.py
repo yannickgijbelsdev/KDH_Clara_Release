@@ -1,5 +1,5 @@
 """Show occurrences routes."""
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.responses import HTMLResponse
 from typing import Optional, List
 from datetime import datetime, timezone
@@ -13,12 +13,14 @@ from models.series import (
 from models.shows import RundownItemCreate, RundownItemUpdate, RundownItemResponse, ReorderRequest
 from services.auth import get_current_user, require_admin, check_occurrence_assignment
 from services.websocket import ws_manager
+from services.main_site_context import get_main_site_id_from_header
 
 occurrences_router = APIRouter(prefix="/occurrences", tags=["Show Occurrences"])
 
 
 @occurrences_router.get("", response_model=List[ShowOccurrenceResponse])
 async def get_occurrences(
+    request: Request,
     series_id: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
@@ -26,7 +28,13 @@ async def get_occurrences(
     current_user: dict = Depends(get_current_user)
 ):
     """Get show occurrences with optional filters."""
-    query = {"team_id": current_user.get('team_id')}
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
     
     if series_id:
         query["show_series_id"] = series_id

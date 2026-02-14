@@ -1,5 +1,5 @@
 """Media folders routes."""
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
@@ -10,17 +10,25 @@ from models.media import (
     FolderShareRequest, FolderShareResponse
 )
 from services.auth import get_current_user, require_can_edit_content
+from services.main_site_context import get_main_site_id_from_header
 
 folders_router = APIRouter(prefix="/media/folders", tags=["Media Folders"])
 
 
 @folders_router.get("", response_model=List[MediaFolderResponse])
 async def get_folders(
+    request: Request,
     parent_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all folders for the team, optionally filtered by parent."""
-    query = {"team_id": current_user.get('team_id')}
+    """Get all folders for the main site or team, optionally filtered by parent."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
     
     if parent_id:
         query["parent_id"] = parent_id
@@ -38,23 +46,33 @@ async def get_folders(
         user = await db.users.find_one({"id": folder["created_by"]}, {"name": 1})
         folder["created_by_name"] = user.get("name") if user else "Unknown"
         
-        # Count assets in folder
-        asset_count = await db.media_assets.count_documents({
-            "folder_id": folder["id"],
-            "team_id": current_user.get('team_id')
-        })
+        # Count assets in folder - use main_site_id if available
+        asset_query = {"folder_id": folder["id"]}
+        if main_site_id:
+            asset_query["main_site_id"] = main_site_id
+        else:
+            asset_query["team_id"] = current_user.get('team_id')
+        asset_count = await db.media_assets.count_documents(asset_query)
         folder["asset_count"] = asset_count
     
     return folders
 
 
 @folders_router.get("/tree")
-async def get_folder_tree(current_user: dict = Depends(get_current_user)):
+async def get_folder_tree(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
     """Get complete folder tree with nested structure."""
-    all_folders = await db.media_folders.find(
-        {"team_id": current_user.get('team_id')},
-        {"_id": 0}
-    ).sort("name", 1).to_list(1000)
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
+    
+    all_folders = await db.media_folders.find(query, {"_id": 0}).sort("name", 1).to_list(1000)
     
     # Build tree structure
     folder_map = {f["id"]: {**f, "children": [], "asset_count": 0} for f in all_folders}

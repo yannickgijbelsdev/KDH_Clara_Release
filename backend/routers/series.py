@@ -1,5 +1,5 @@
 """Show series and recurring shows routes."""
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from typing import List
 from datetime import datetime, timezone
 import uuid
@@ -12,24 +12,32 @@ from models.series import (
 from models.assignments import ShowAssignmentCreate, ShowAssignmentResponse
 from services.auth import get_current_user, require_admin
 from services.helpers import parse_rrule, generate_dates_from_recurrence
+from services.main_site_context import get_main_site_id_from_header
 
 series_router = APIRouter(prefix="/series", tags=["Show Series"])
 
 
 @series_router.get("", response_model=List[ShowSeriesResponse])
 async def get_show_series(
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get all show series for the team."""
-    series_list = await db.show_series.find(
-        {"team_id": current_user.get('team_id')},
-        {"_id": 0}
-    ).sort("title", 1).to_list(1000)
+    """Get all show series for the main site or team."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
+    
+    series_list = await db.show_series.find(query, {"_id": 0}).sort("title", 1).to_list(1000)
     return series_list
 
 
 @series_router.post("", response_model=ShowSeriesResponse, status_code=status.HTTP_201_CREATED)
 async def create_show_series(
+    request: Request,
     series_data: ShowSeriesCreate,
     current_user: dict = Depends(require_admin)
 ):
@@ -37,9 +45,13 @@ async def create_show_series(
     series_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
     series_doc = {
         "id": series_id,
         "team_id": current_user.get('team_id'),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "title": series_data.title,
         "description": series_data.description or "",
         "default_start_time": series_data.default_start_time,
