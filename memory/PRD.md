@@ -1296,3 +1296,23 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - Files: `DashboardLayout.js` (submissionCounts), `backend/routers/sites.py`
 
 - [x] **Testing**: 17/17 backend tests passed, all 11 frontend features verified (100% success rate)
+
+### February 14, 2026 - Sites UI Improvements (Phase 5)
+- [x] **Styling Tab Created**:
+  - New separate "Styling" menu item with Palette icon
+  - Moved all color settings (Button, Background, Container) from Form tab to Styling tab
+  - Files: `DashboardLayout.js` (menu), `SiteDashboard.js` (styling tab)
+
+- [x] **English Translations**:
+  - All Sites feature text translated from Dutch to English
+  - Menu items: General, Media, Form, Styling, Submissions, Users
+  - "Back to Sites" instead of "Terug naar Sites"
+  - All labels, buttons, and messages now in English
+  - Files: `SitesListPage.js`, `SiteDashboard.js`, `DashboardLayout.js`
+
+- [x] **Logo Image Fix**:
+  - Fixed broken logo display on SitesListPage
+  - Added `getImageUrl()` helper to properly handle S3 URLs vs local paths
+  - File: `SitesListPage.js` line 98-101
+
+- [x] **Testing**: Verified via screenshots - all changes working correctly
