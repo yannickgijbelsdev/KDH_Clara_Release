@@ -425,7 +425,7 @@ const DashboardLayout = () => {
                 {/* Back to Sites link when in site context */}
                 {isInSiteContext && (
                   <NavLink
-                    to="/sites"
+                    to={sitesBasePath}
                     className="flex items-center gap-2 px-3 py-2 text-zinc-400 hover:text-white transition text-sm"
                   >
                     <ArrowLeft className="w-4 h-4" />
