@@ -750,6 +750,60 @@ export default function SiteDashboard() {
                   <Plus className="h-4 w-4 mr-2" />
                   Veld toevoegen
                 </Button>
+
+                {/* File Upload Option */}
+                <div className="flex items-center justify-between p-4 bg-zinc-800/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <FileUp className="h-5 w-5 text-zinc-400" />
+                    <div>
+                      <p className="text-white font-medium">Bestandsuploads toestaan</p>
+                      <p className="text-sm text-zinc-400">Bezoekers kunnen afbeeldingen, audio en video uploaden</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={site.form_file_upload_enabled || false}
+                    onCheckedChange={(checked) => setSite(prev => ({ ...prev, form_file_upload_enabled: checked }))}
+                  />
+                </div>
+
+                {/* Button Color */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Palette className="h-4 w-4 text-zinc-400" />
+                    <Label>Knop kleur</Label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={site.button_color || '#f97316'}
+                      onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
+                      className="w-12 h-10 rounded cursor-pointer border border-zinc-700 bg-transparent"
+                    />
+                    <Input
+                      value={site.button_color || '#f97316'}
+                      onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
+                      placeholder="#f97316"
+                      className="bg-zinc-800 border-zinc-700 w-32"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSite(prev => ({ ...prev, button_color: null }))}
+                      className="text-zinc-400"
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                  <div className="mt-2">
+                    <p className="text-xs text-zinc-500 mb-2">Voorbeeld:</p>
+                    <button
+                      className="px-4 py-2 rounded-lg text-white font-medium transition"
+                      style={{ backgroundColor: site.button_color || '#f97316' }}
+                    >
+                      Verstuur
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
