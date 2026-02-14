@@ -80,27 +80,40 @@ async def create_content_audit_log(
 # ============== CATEGORIES ==============
 
 @content_router.get("/categories", response_model=List[CategoryResponse])
-async def get_categories(current_user: dict = Depends(get_current_user)):
-    """Get all categories for the team."""
-    categories = await db.categories.find(
-        {"team_id": current_user.get('team_id')},
-        {"_id": 0}
-    ).sort("name", 1).to_list(100)
+async def get_categories(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all categories for the main site or team."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"main_site_id": main_site_id}
+    else:
+        query = {"team_id": current_user.get('team_id')}
+    
+    categories = await db.categories.find(query, {"_id": 0}).sort("name", 1).to_list(100)
     return categories
 
 
 @content_router.post("/categories", response_model=CategoryResponse)
 async def create_category(
+    request: Request,
     name: str,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Create a new category."""
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
     slug = name.lower().replace(" ", "-")
     cat_id = str(uuid.uuid4())[:8]
     
     cat_doc = {
         "id": f"cat_{cat_id}",
         "team_id": current_user.get('team_id'),
+        "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "name": name,
         "slug": slug,
         "created_at": datetime.now(timezone.utc).isoformat()
