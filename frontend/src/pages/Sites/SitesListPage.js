@@ -46,7 +46,7 @@ export default function SitesListPage() {
 
   const createSite = async () => {
     if (!newSite.name || !newSite.slug) {
-      toast.error('Vul alle velden in');
+      toast.error('Please fill in all fields');
       return;
     }
 
@@ -64,23 +64,23 @@ export default function SitesListPage() {
       
       if (res.ok) {
         const site = await res.json();
-        toast.success('Site aangemaakt');
+        toast.success('Site created');
         setShowCreateDialog(false);
         setNewSite({ name: '', slug: '' });
         navigate(`/sites/${site.id}`);
       } else {
         const err = await res.json();
-        toast.error(err.detail || 'Fout bij aanmaken');
+        toast.error(err.detail || 'Error creating site');
       }
     } catch (error) {
-      toast.error('Fout bij aanmaken');
+      toast.error('Error creating site');
     } finally {
       setCreating(false);
     }
   };
 
   const deleteSite = async (siteId) => {
-    if (!window.confirm('Weet je zeker dat je deze site wilt verwijderen?')) return;
+    if (!window.confirm('Are you sure you want to delete this site?')) return;
     
     try {
       const token = localStorage.getItem('token');
@@ -90,14 +90,21 @@ export default function SitesListPage() {
       });
       
       if (res.ok) {
-        toast.success('Site verwijderd');
+        toast.success('Site deleted');
         fetchSites();
       } else {
-        toast.error('Fout bij verwijderen');
+        toast.error('Error deleting site');
       }
     } catch (error) {
-      toast.error('Fout bij verwijderen');
+      toast.error('Error deleting site');
     }
+  };
+
+  // Helper to get correct image URL
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${API}${url}`;
   };
 
   if (loading) {
@@ -116,7 +123,7 @@ export default function SitesListPage() {
           <Globe className="h-8 w-8 text-orange-500" />
           <div>
             <h1 className="text-2xl font-bold text-white">Sites</h1>
-            <p className="text-sm text-zinc-400">Beheer je publieke landingspagina's</p>
+            <p className="text-sm text-zinc-400">Manage your public landing pages</p>
           </div>
         </div>
         <Button 
@@ -124,7 +131,7 @@ export default function SitesListPage() {
           className="bg-orange-500 hover:bg-orange-600"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Nieuwe site
+          New site
         </Button>
       </div>
 
@@ -132,16 +139,16 @@ export default function SitesListPage() {
       {sites.length === 0 ? (
         <div className="text-center py-16 bg-zinc-900/50 rounded-xl border border-zinc-800">
           <Globe className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">Geen sites</h3>
+          <h3 className="text-lg font-medium text-white mb-2">No sites yet</h3>
           <p className="text-zinc-400 mb-6">
-            Maak je eerste publieke landingspagina aan
+            Create your first public landing page
           </p>
           <Button 
             onClick={() => setShowCreateDialog(true)}
             className="bg-orange-500 hover:bg-orange-600"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Site aanmaken
+            Create site
           </Button>
         </div>
       ) : (
@@ -156,7 +163,7 @@ export default function SitesListPage() {
                   <div className="flex items-center gap-3">
                     {site.logo_url ? (
                       <img 
-                        src={`${API}${site.logo_url}`}
+                        src={getImageUrl(site.logo_url)}
                         alt={site.name}
                         className="h-12 w-12 rounded-lg object-cover"
                       />
@@ -193,12 +200,12 @@ export default function SitesListPage() {
                   )}
                   {site.form_enabled && (
                     <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">
-                      Formulier
+                      Form
                     </span>
                   )}
                   {site.password_protected && (
                     <span className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">
-                      Beveiligd
+                      Protected
                     </span>
                   )}
                 </div>
@@ -212,7 +219,7 @@ export default function SitesListPage() {
                   className="text-zinc-400 hover:text-white"
                 >
                   <Settings className="h-4 w-4 mr-2" />
-                  Instellingen
+                  Settings
                 </Button>
                 <Button
                   variant="ghost"
@@ -232,16 +239,16 @@ export default function SitesListPage() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="bg-zinc-900 border-zinc-800">
           <DialogHeader>
-            <DialogTitle>Nieuwe site aanmaken</DialogTitle>
+            <DialogTitle>Create new site</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div>
-              <Label>Naam</Label>
+              <Label>Name</Label>
               <Input
                 value={newSite.name}
                 onChange={(e) => setNewSite(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Mijn Radio Pagina"
+                placeholder="My Radio Page"
                 className="bg-zinc-800 border-zinc-700"
               />
             </div>
@@ -256,7 +263,7 @@ export default function SitesListPage() {
                     ...prev, 
                     slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') 
                   }))}
-                  placeholder="mijn-pagina"
+                  placeholder="my-page"
                   className="bg-zinc-800 border-zinc-700"
                 />
               </div>
@@ -265,14 +272,14 @@ export default function SitesListPage() {
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowCreateDialog(false)}>
-              Annuleren
+              Cancel
             </Button>
             <Button 
               onClick={createSite} 
               disabled={creating}
               className="bg-orange-500 hover:bg-orange-600"
             >
-              {creating ? 'Aanmaken...' : 'Aanmaken'}
+              {creating ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>
