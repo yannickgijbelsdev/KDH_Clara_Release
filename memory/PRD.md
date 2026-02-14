@@ -1316,3 +1316,18 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - File: `SitesListPage.js` line 98-101
 
 - [x] **Testing**: Verified via screenshots - all changes working correctly
+
+
+### February 14, 2026 - RDS Builder Apostrophe Bug Fix
+- [x] **Bug Fix: Incorrect capitalization after apostrophes in RDS builder**:
+  - Problem: Python's `str.title()` treats apostrophes as word boundaries
+  - Example: "it's" became "It'S" instead of "It's"
+  - Solution: Created `smart_title_case()` function with regex-based apostrophe handling
+  - Supports various apostrophe types: ' ' ʼ
+  - File: `/app/backend/services/shoutcast.py` (lines 97-134)
+  - Test cases verified:
+    - "it's nice" → "It's Nice" ✅
+    - "don't stop" → "Don't Stop" ✅
+    - "can't help" → "Can't Help" ✅
+    - "livin' la vida" → "Livin' La Vida" ✅
+
