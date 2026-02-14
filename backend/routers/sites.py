@@ -68,17 +68,35 @@ async def create_site(
     site_data: SiteCreate,
     current_user: dict = Depends(require_admin)
 ):
-    """Create a new site."""
+    """Create a new site (mini site)."""
     team_id = current_user.get('team_id')
     
-    # Check if slug is unique
-    existing = await db.sites.find_one({"slug": site_data.slug})
-    if existing:
-        raise HTTPException(status_code=400, detail="Deze URL is al in gebruik")
+    # If main_site_id provided, validate it exists
+    main_site = None
+    if site_data.main_site_id:
+        main_site = await db.main_sites.find_one({"id": site_data.main_site_id})
+        if not main_site:
+            raise HTTPException(status_code=404, detail="Main site not found")
+        
+        # Check if slug is unique within this main site
+        existing = await db.sites.find_one({
+            "main_site_id": site_data.main_site_id,
+            "slug": site_data.slug.lower()
+        })
+        if existing:
+            raise HTTPException(status_code=400, detail="This URL is already in use within this main site")
+    else:
+        # Check if slug is globally unique for sites without main_site
+        existing = await db.sites.find_one({
+            "slug": site_data.slug.lower(),
+            "main_site_id": {"$exists": False}
+        })
+        if existing:
+            raise HTTPException(status_code=400, detail="This URL is already in use")
     
     # Validate slug format
     if not site_data.slug.isalnum() and not all(c.isalnum() or c == '-' for c in site_data.slug):
-        raise HTTPException(status_code=400, detail="URL mag alleen letters, cijfers en streepjes bevatten")
+        raise HTTPException(status_code=400, detail="URL may only contain letters, numbers, and hyphens")
     
     now = datetime.now(timezone.utc).isoformat()
     site_id = str(uuid.uuid4())
@@ -86,6 +104,7 @@ async def create_site(
     site_doc = {
         "id": site_id,
         "team_id": team_id,
+        "main_site_id": site_data.main_site_id,
         "name": site_data.name,
         "slug": site_data.slug.lower(),
         "logo_url": None,
@@ -104,9 +123,9 @@ async def create_site(
         "form_enabled": False,
         "form_file_upload_enabled": False,
         "form_fields": [
-            {"id": "name", "label": "Naam", "type": "text", "required": True},
-            {"id": "phone", "label": "Telefoonnummer", "type": "tel", "required": False},
-            {"id": "message", "label": "Bericht", "type": "textarea", "required": False},
+            {"id": "name", "label": "Name", "type": "text", "required": True},
+            {"id": "phone", "label": "Phone", "type": "tel", "required": False},
+            {"id": "message", "label": "Message", "type": "textarea", "required": False},
         ],
         "password_protected": False,
         "password_hash": None,
