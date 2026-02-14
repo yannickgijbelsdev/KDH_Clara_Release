@@ -462,9 +462,21 @@ const DashboardLayout = () => {
                   {roleLabels[user?.role]}
                 </DropdownMenuItem>
                 {user?.team_name && (
-                  <DropdownMenuItem className="text-zinc-400">
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/sites')}
+                    className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
                     <Home className="w-4 h-4 mr-2" />
                     {user.team_name}
+                  </DropdownMenuItem>
+                )}
+                {isAdmin && (
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/sites')}
+                    className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Pagina's
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator className="bg-zinc-800" />
