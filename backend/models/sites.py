@@ -57,6 +57,7 @@ class SiteResponse(BaseModel):
     name: str
     slug: str
     logo_url: Optional[str] = None
+    header_image_url: Optional[str] = None
     
     # Audio
     audio_enabled: bool = False
@@ -85,6 +86,7 @@ class SitePublicResponse(BaseModel):
     name: str
     slug: str
     logo_url: Optional[str] = None
+    header_image_url: Optional[str] = None
     
     audio_enabled: bool = False
     audio_type: Optional[str] = None
