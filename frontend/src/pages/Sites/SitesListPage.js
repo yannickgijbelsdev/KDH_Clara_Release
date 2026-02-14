@@ -132,7 +132,7 @@ export default function SitesListPage() {
       {sites.length === 0 ? (
         <div className="text-center py-16 bg-zinc-900/50 rounded-xl border border-zinc-800">
           <Globe className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">Geen pagina's</h3>
+          <h3 className="text-lg font-medium text-white mb-2">Geen sites</h3>
           <p className="text-zinc-400 mb-6">
             Maak je eerste publieke landingspagina aan
           </p>
@@ -141,7 +141,7 @@ export default function SitesListPage() {
             className="bg-orange-500 hover:bg-orange-600"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Pagina aanmaken
+            Site aanmaken
           </Button>
         </div>
       ) : (
