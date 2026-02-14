@@ -17,6 +17,7 @@ from services.auth import (
 )
 from services.audit import log_action, get_client_ip
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
+from services.main_site_context import get_main_site_id_from_header
 
 users_router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -25,12 +26,36 @@ MAX_AVATAR_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 @users_router.get("", response_model=List[UserResponse])
-async def get_team_users(current_user: dict = Depends(get_current_user)):
-    """Get all users in the current team."""
-    users = await db.users.find(
-        {"team_id": current_user['team_id']},
-        {"_id": 0, "password_hash": 0}
-    ).to_list(100)
+async def get_team_users(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all users, filtered by main_site access if in multisite context."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        # Get users who have access to this main site
+        user_accesses = await db.main_site_users.find(
+            {"main_site_id": main_site_id},
+            {"_id": 0, "user_id": 1}
+        ).to_list(100)
+        user_ids = [ua["user_id"] for ua in user_accesses]
+        
+        # Also include the current user if they have access (network admin might not be in main_site_users)
+        if current_user['id'] not in user_ids:
+            user_ids.append(current_user['id'])
+        
+        users = await db.users.find(
+            {"id": {"$in": user_ids}},
+            {"_id": 0, "password_hash": 0}
+        ).to_list(100)
+    else:
+        # Fallback to team_id for backwards compatibility
+        users = await db.users.find(
+            {"team_id": current_user['team_id']},
+            {"_id": 0, "password_hash": 0}
+        ).to_list(100)
+    
     return users
 
 
