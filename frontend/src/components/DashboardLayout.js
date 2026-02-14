@@ -185,7 +185,9 @@ const DashboardLayout = () => {
       return;
     }
     try {
+      console.log('DashboardLayout: Fetching current site:', currentSiteId);
       const response = await axios.get(`${API}/sites/${currentSiteId}`);
+      console.log('DashboardLayout: Current site loaded:', response.data);
       setCurrentSite(response.data);
     } catch (error) {
       console.error('Failed to fetch current site:', error);
