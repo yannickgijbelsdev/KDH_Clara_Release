@@ -14,6 +14,7 @@ from models.sites import (
     SiteUserRole, SitePasswordCheck, FormField
 )
 from services.auth import get_current_user, require_admin
+from services.s3_storage import upload_file_to_s3, is_s3_configured
 
 import logging
 logger = logging.getLogger(__name__)
