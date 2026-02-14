@@ -65,7 +65,7 @@ export default function SiteDashboard() {
         setSubmissions(prev => {
           // Check if there are new submissions
           if (!silent && prev.length > 0 && data.length > prev.length) {
-            toast.info(`${data.length - prev.length} nieuwe inzending(en)!`);
+            toast.info(`${data.length - prev.length} new submission(s)!`);
           }
           return data;
         });
