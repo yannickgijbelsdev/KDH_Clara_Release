@@ -541,83 +541,395 @@ const MainSiteDashboardLayout = () => {
     );
   };
 
+  // Build flat nav items array for icon sidebar
+  const flatNavItems = navGroups.flatMap(group => group.items || []);
+
+  // Render icon-only sidebar navigation
+  const renderIconNavigation = () => {
+    return (
+      <nav className="flex-1 flex flex-col items-center gap-2 py-4 overflow-y-auto">
+        {/* Back button when in site context */}
+        {isInSiteContext && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => navigate(`/${mainSiteSlug}/sites`)}
+                className="w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10 mb-2"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+              Back to Sites
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Site-specific icons when in site context */}
+        {isInSiteContext && currentSite && getSiteNavGroup(currentSite).items.map((item) => {
+          const Icon = item.icon;
+          const isActive = siteTab === item.tab;
+          const badgeCount = item.tab === 'submissions' ? submissionCounts[currentSiteId] : 0;
+          return (
+            <Tooltip key={item.tab}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setSiteTab(item.tab)}
+                  className={`
+                    w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
+                    ${isActive 
+                      ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
+                      : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                    }
+                  `}
+                >
+                  <Icon className="w-5 h-5" />
+                  {badgeCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white">
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
+                  )}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                {item.label} {badgeCount > 0 && `(${badgeCount})`}
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+
+        {/* Normal navigation icons when not in site context */}
+        {!isInSiteContext && flatNavItems.map((item) => {
+          const Icon = item.icon;
+          const fullPath = `/${mainSiteSlug}/${item.to}`;
+          const isActive = location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
+          const badgeCount = getBadgeCount(item.to);
+          const isHighlight = ['chat', 'approvals'].includes(item.to);
+          return (
+            <Tooltip key={item.to}>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to={fullPath}
+                  onClick={closeSidebar}
+                  className={`
+                    w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
+                    ${isActive 
+                      ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
+                      : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                    }
+                  `}
+                >
+                  <Icon className="w-5 h-5" />
+                  {badgeCount > 0 && (
+                    <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full ${isHighlight ? 'bg-orange-500 text-white' : 'bg-zinc-600 text-white'}`}>
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
+                  )}
+                </NavLink>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                {item.label} {badgeCount > 0 && `(${badgeCount})`}
+              </TooltipContent>
+            </Tooltip>
+          );
+        })}
+      </nav>
+    );
+  };
+
+  const RoleIcon = roleIcons[userRole] || roleIcons[user?.role] || User;
+
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-[#09090b] text-white flex">
-        {/* Mobile sidebar overlay */}
+    <TooltipProvider delayDuration={0}>
+      <div className="min-h-screen bg-[#09090b]">
+        {/* Impersonation Banner */}
+        {impersonating && (
+          <div className="fixed top-0 left-0 right-0 z-[60] bg-orange-500 text-white px-4 py-2">
+            <div className="flex items-center justify-between max-w-screen-xl mx-auto">
+              <div className="flex items-center gap-2 text-sm">
+                <ArrowLeftRight className="w-4 h-4" />
+                <span>
+                  Viewing as <strong>{user?.name}</strong> ({user?.email})
+                </span>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleExitImpersonation}
+                className="text-white hover:bg-orange-600 gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Return to {impersonating.name}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Header */}
+        <header className={`lg:hidden fixed ${impersonating ? 'top-10' : 'top-0'} left-0 right-0 z-50 glass border-b border-white/10`}>
+          <div className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-orange-500 rounded-lg">
+                <span className="text-white font-black text-sm">C</span>
+              </div>
+              <span className="text-lg font-bold text-white">Clara</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="text-zinc-400 hover:text-white"
+            >
+              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </Button>
+          </div>
+        </header>
+
+        {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="lg:hidden fixed inset-0 bg-black/60 z-40"
             onClick={closeSidebar}
           />
         )}
 
-        {/* Sidebar */}
-        <aside
-          className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col transform transition-transform lg:transform-none ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          }`}
-        >
-          {/* Header with main site selector */}
-          <div className="p-4 border-b border-zinc-800">
+        {/* Desktop Sidebar */}
+        <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
+          {/* Logo */}
+          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'text-center'}`}>
+            <span className="text-white font-black text-base">Clara</span>
+          </div>
+
+          {/* Navigation */}
+          {useGroupedMenu ? renderGroupedNavigation() : renderIconNavigation()}
+
+          {/* User Avatar at Bottom */}
+          <div className={`mt-auto pt-4 ${useGroupedMenu ? 'px-3' : 'flex justify-center'}`}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="w-full flex items-center gap-3 hover:bg-zinc-800 rounded-lg p-2 transition-colors">
-                  {mainSite.logo_url ? (
-                    <img src={mainSite.logo_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-orange-500/10`}
+                >
+                  {user?.avatar?.url || user?.avatar?.file_key ? (
+                    <img 
+                      src={user?.avatar?.url || `${API}/uploads/avatars/${user.avatar.file_key}`}
+                      alt={user?.name}
+                      className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                    />
                   ) : (
-                    <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                      <Globe className="w-4 h-4 text-orange-500" />
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                      {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="font-semibold text-sm truncate">{mainSite.name}</div>
-                    <div className="text-xs text-zinc-500">/{mainSiteSlug}</div>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-                </button>
+                  {useGroupedMenu && (
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                      <p className="text-xs text-zinc-500 truncate">{roleLabels[userRole] || roleLabels[user?.role]}</p>
+                    </div>
+                  )}
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 bg-zinc-900 border-zinc-800">
-                {myMainSites.map(site => (
-                  <DropdownMenuItem
-                    key={site.id}
-                    onClick={() => navigate(`/${site.slug}`)}
-                    className={site.slug === mainSiteSlug ? 'bg-zinc-800' : ''}
-                  >
-                    <Globe className="w-4 h-4 mr-2" />
-                    {site.name}
-                  </DropdownMenuItem>
-                ))}
+              <DropdownMenuContent align={useGroupedMenu ? "end" : "start"} side={useGroupedMenu ? "top" : "right"} className="w-56 bg-[#18181b] border-zinc-800 ml-2">
+                <div className="px-3 py-2 flex items-center gap-3">
+                  {user?.avatar?.url || user?.avatar?.file_key ? (
+                    <img 
+                      src={user?.avatar?.url || `${API}/uploads/avatars/${user.avatar.file_key}`}
+                      alt={user?.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-white">{user?.name}</p>
+                    <p className="text-xs text-zinc-500">{user?.email}</p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuItem className="text-zinc-400">
+                  <RoleIcon className="w-4 h-4 mr-2" />
+                  {roleLabels[userRole] || roleLabels[user?.role]}
+                </DropdownMenuItem>
+                {/* Main Sites Switcher */}
+                {myMainSites.length > 1 && (
+                  <>
+                    <DropdownMenuSeparator className="bg-zinc-800" />
+                    {myMainSites.map(site => (
+                      <DropdownMenuItem
+                        key={site.id}
+                        onClick={() => navigate(`/${site.slug}`)}
+                        className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800' : ''}`}
+                      >
+                        <Globe className="w-4 h-4 mr-2" />
+                        {site.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
                 {user?.is_network_admin && (
                   <>
                     <DropdownMenuSeparator className="bg-zinc-800" />
-                    <DropdownMenuItem onClick={() => navigate('/network')}>
+                    <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-400 focus:text-white focus:bg-zinc-800">
                       <Network className="w-4 h-4 mr-2" />
                       Network Admin
                     </DropdownMenuItem>
                   </>
                 )}
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuItem
+                  onClick={() => navigate(`/${mainSiteSlug}/settings`)}
+                  className="text-zinc-400 focus:text-white focus:bg-zinc-800"
+                >
+                  <UserCog className="w-4 h-4 mr-2" />
+                  Personal Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+        </aside>
 
-          {/* Navigation - respects user's menu preference */}
-          {useGroupedMenu ? renderGroupedNavigation() : renderFlatNavigation()}
-
-          {/* User section */}
-          <div className="p-4 border-t border-zinc-800">
-            {impersonating && (
-              <button
-                onClick={handleExitImpersonation}
-                className="flex items-center gap-2 px-3 py-2 mb-2 w-full text-yellow-500 bg-yellow-500/10 rounded-lg text-sm hover:bg-yellow-500/20 transition-colors"
+        {/* Mobile Sidebar */}
+        <aside
+          className={`
+            lg:hidden fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 glass
+            w-64 transform transition-transform duration-300 ease-in-out
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          <div className="p-6 pt-4 h-full flex flex-col">
+            {/* Mobile: Close button area */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-orange-500 rounded-lg">
+                  <span className="text-white font-black text-sm">C</span>
+                </div>
+                <span className="text-lg font-bold text-white">Clara</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={closeSidebar}
+                className="text-zinc-400 hover:text-white"
               >
-                <ArrowLeftRight className="h-4 w-4" />
-                <span>Exit Impersonation</span>
-              </button>
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className="flex-1 overflow-y-auto">
+              <nav className="space-y-1">
+                {flatNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const fullPath = `/${mainSiteSlug}/${item.to}`;
+                  const isActive = location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
+                  const badgeCount = getBadgeCount(item.to);
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={fullPath}
+                      onClick={closeSidebar}
+                      className={`
+                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                        ${isActive
+                          ? 'bg-orange-500/20 text-orange-500'
+                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }
+                      `}
+                    >
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{item.label}</span>
+                      {badgeCount > 0 && (
+                        <span className="ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center bg-orange-500 text-white">
+                          {badgeCount > 99 ? '99+' : badgeCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </nav>
+            </div>
+
+            {/* User section at bottom */}
+            <div className="pt-4 border-t border-white/10 mt-4">
+              <div className="flex items-center gap-3 p-3">
+                {user?.avatar?.url || user?.avatar?.file_key ? (
+                  <img 
+                    src={user?.avatar?.url || `${API}/uploads/avatars/${user.avatar.file_key}`}
+                    alt={user?.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                  <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign out
+              </Button>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className={`${useGroupedMenu ? 'lg:ml-56' : 'lg:ml-[72px]'} min-h-screen ${impersonating ? 'pt-26 lg:pt-10' : 'pt-16 lg:pt-0'} transition-all duration-300`}>
+          {/* Page Header */}
+          <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
+            <div className="px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  {isInSiteContext && currentSite ? (
+                    <p className="text-sm font-medium text-white">{currentSite.name}</p>
+                  ) : mainSite?.name && (
+                    <p className="text-sm font-medium text-white">{mainSite.name}</p>
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
+                    <RoleIcon className="w-3 h-3" />
+                    {roleLabels[userRole] || roleLabels[user?.role]}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 sm:p-6 lg:p-8">
+            {isInSiteContext && currentSite ? (
+              <Outlet context={{ siteTab, setSiteTab, currentSite, fetchCurrentSite }} />
+            ) : (
+              <Outlet />
             )}
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+          </div>
+        </main>
+      </div>
+    </TooltipProvider>
+  );
+};
+
+export default MainSiteDashboardLayout;
                 <button className="w-full flex items-center gap-3 hover:bg-zinc-800 rounded-lg p-2 transition-colors">
                   <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden">
                     {user?.avatar?.url ? (
