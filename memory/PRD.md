@@ -1505,5 +1505,29 @@ clara.koodh.com/
 - `/app/backend/tests/test_data_isolation.py` - Comprehensive data isolation tests
 - `/app/backend/scripts/migrate_to_multisite.py` - Standalone migration script
 
+### February 14, 2026 - Data Isolation Race Condition Fix
+**Problem:** New main sites were showing content from other sites due to a race condition in the axios interceptor timing. When switching between main sites:
+1. The `mainSiteSlug` would change (URL update)
+2. `fetchMainSite()` would start fetching the new site data
+3. **SIMULTANEOUSLY**, child components (ShowsPage, ContentLibraryPage) would re-render and make API calls
+4. The axios interceptor was only updated AFTER `setMainSite()` completed
+5. This caused API calls to be made with the OLD or NO `X-Main-Site-ID` header
+
+**Root Cause:** The axios interceptor was set in a `useEffect` hook that ran AFTER the state update and re-render cycle, creating a window where API calls would use stale/missing headers.
+
+**Solution:** Refactored `MainSiteContext.js`:
+1. Created a separate `setupInterceptor()` helper function
+2. Interceptor is now set BEFORE `setMainSite()` is called in `fetchMainSite()`
+3. Interceptor is cleared immediately when `mainSiteSlug` changes (before fetching new site)
+4. This ensures the interceptor is always up-to-date before any child component makes API calls
+
+**Testing:**
+- Created new test site, verified Shows & Content pages show "No content yet" ✅
+- Switched between Radiogroep (with data) and DBNT Studio (empty), data isolation maintained ✅
+- Switched back to Radiogroep, data still correct ✅
+
+**Files Changed:**
+- `/app/frontend/src/context/MainSiteContext.js` - Complete refactor of interceptor lifecycle management
+
 
 
