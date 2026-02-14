@@ -289,9 +289,9 @@ export default function SiteDashboard() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSubmissions(prev => prev.filter(s => s.id !== submissionId));
-      toast.success('Inzending verwijderd');
+      toast.success('Submission deleted');
     } catch (error) {
-      toast.error('Fout bij verwijderen');
+      toast.error('Error deleting');
     }
   };
 
@@ -307,9 +307,9 @@ export default function SiteDashboard() {
         body: JSON.stringify({ user_id: userId, role })
       });
       fetchSiteUsers();
-      toast.success('Gebruiker toegevoegd');
+      toast.success('User added');
     } catch (error) {
-      toast.error('Fout bij toevoegen gebruiker');
+      toast.error('Error adding user');
     }
   };
 
@@ -321,9 +321,9 @@ export default function SiteDashboard() {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchSiteUsers();
-      toast.success('Gebruiker verwijderd');
+      toast.success('User removed');
     } catch (error) {
-      toast.error('Fout bij verwijderen gebruiker');
+      toast.error('Error removing user');
     }
   };
 
