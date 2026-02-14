@@ -9,7 +9,6 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -24,6 +23,16 @@ export default function SiteDashboard() {
   const [siteUsers, setSiteUsers] = useState([]);
   const [teamUsers, setTeamUsers] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
+
+  // Listen for tab changes from sidebar
+  useEffect(() => {
+    const handleTabChange = (e) => {
+      setActiveTab(e.detail);
+    };
+    window.addEventListener('siteTabChange', handleTabChange);
+    return () => window.removeEventListener('siteTabChange', handleTabChange);
+  }, []);
 
   const fetchSite = useCallback(async () => {
     try {
