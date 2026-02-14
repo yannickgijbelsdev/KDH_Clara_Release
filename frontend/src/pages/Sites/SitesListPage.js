@@ -115,7 +115,7 @@ export default function SitesListPage() {
         <div className="flex items-center gap-3">
           <Globe className="h-8 w-8 text-orange-500" />
           <div>
-            <h1 className="text-2xl font-bold text-white">Pagina's</h1>
+            <h1 className="text-2xl font-bold text-white">Sites</h1>
             <p className="text-sm text-zinc-400">Beheer je publieke landingspagina's</p>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function SitesListPage() {
           className="bg-orange-500 hover:bg-orange-600"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Nieuwe pagina
+          Nieuwe site
         </Button>
       </div>
 
