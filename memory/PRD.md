@@ -1596,3 +1596,22 @@ clara.koodh.com/
     - `frontend/src/pages/Sites/SiteDashboard.js` - Added mainSiteSlug, axios, URL fixes
   - Tested: All mini-site operations working (create, list, edit, public access)
   - Data isolation verified: DBNT Studio shows 0 sites, Radiogroep MFY/GRK shows 4 sites
+
+### February 14, 2026 - Mini Site Dashboard Menu Bug Fix
+- [x] **P0 Bug Fix: Mini Site Dashboard Menu Not Working**:
+  - Bug: The sidebar navigation menu within a mini-site's dashboard did not work. Clicking icons highlighted them but the content area did not update.
+  - Root causes identified and fixed:
+    1. **Race condition in DashboardLayout.js**: API calls (`fetchCurrentSite`, `fetchSites`, `fetchSubmissionCount`) were executed before `MainSiteContext` had configured the axios interceptor with `X-Main-Site-ID` header
+    2. **Missing siteTabChange event in MainSiteDashboardLayout.js**: The onClick handlers for sidebar tabs only called `setSiteTab()` but did NOT dispatch the `siteTabChange` custom event that `SiteDashboard.js` listens for
+  - Fixes implemented:
+    - **DashboardLayout.js**: Added `useMainSite()` hook and modified all API fetching functions to:
+      - Wait for `mainSite?.id` to be available before making API calls
+      - Manually add `X-Main-Site-ID` header to each request
+    - **MainSiteDashboardLayout.js** (fixed by testing agent): Added `window.dispatchEvent(new CustomEvent('siteTabChange', { detail: item.tab }))` to:
+      - `renderIconNavigation()` onClick handler
+      - `renderGroupedNavItem()` onClick handler for tab items
+  - Files updated:
+    - `frontend/src/components/DashboardLayout.js` - Added mainSite context, fixed API calls
+    - `frontend/src/components/MainSiteDashboardLayout.js` - Added siteTabChange event dispatch
+  - Tested: All 6 sidebar tabs (General, Media, Form, Styling, Submissions, Users) now correctly update content when clicked
+  - 100% frontend test success rate
