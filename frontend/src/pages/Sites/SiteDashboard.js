@@ -375,7 +375,7 @@ export default function SiteDashboard() {
         </div>
         <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600">
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Opslaan...' : 'Opslaan'}
+          {saving ? 'Save...' : 'Save'}
         </Button>
       </div>
 
@@ -383,15 +383,15 @@ export default function SiteDashboard() {
       {activeTab === 'general' && (
         <div className="space-y-6">
           <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
-            <h2 className="text-lg font-semibold text-white mb-4">Pagina instellingen</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">Page settings</h2>
             
             <div className="grid gap-4">
               <div>
-                <Label>Naam</Label>
+                <Label>Name</Label>
                 <Input
                   value={site.name || ''}
                   onChange={(e) => setSite(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Mijn Radio Pagina"
+                  placeholder="My Radio Page"
                   className="bg-zinc-800 border-zinc-700"
                 />
               </div>
@@ -403,7 +403,7 @@ export default function SiteDashboard() {
                   <Input
                     value={site.slug || ''}
                     onChange={(e) => setSite(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-                    placeholder="mijn-pagina"
+                    placeholder="my-page"
                     className="bg-zinc-800 border-zinc-700"
                   />
                 </div>
@@ -437,7 +437,7 @@ export default function SiteDashboard() {
               {/* Logo Scale */}
               {site.logo_url && (
                 <div className="space-y-3">
-                  <Label>Logo grootte op publieke pagina</Label>
+                  <Label>Logo size on public page</Label>
                   <div className="flex items-center gap-4">
                     <Slider
                       value={[site.logo_scale || 100]}
@@ -450,7 +450,7 @@ export default function SiteDashboard() {
                     <span className="text-sm text-zinc-400 w-12 text-right">{site.logo_scale || 100}%</span>
                   </div>
                   <div className="p-4 bg-zinc-800/50 rounded-lg">
-                    <p className="text-xs text-zinc-500 mb-2">Voorbeeld op publieke pagina:</p>
+                    <p className="text-xs text-zinc-500 mb-2">Preview on public page:</p>
                     <div className="flex justify-center py-4">
                       <img 
                         src={site.logo_url.startsWith('http') ? site.logo_url : `${API}${site.logo_url}`}
