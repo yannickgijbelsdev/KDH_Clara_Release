@@ -423,7 +423,7 @@ const DashboardLayout = () => {
                     className="flex items-center gap-2 px-3 py-2 text-zinc-400 hover:text-white transition text-sm"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    <span>Terug naar Sites</span>
+                    <span>Back to Sites</span>
                   </NavLink>
                 )}
                 
@@ -566,7 +566,7 @@ const DashboardLayout = () => {
                       </NavLink>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
-                      Terug naar Sites
+                      Back to Sites
                     </TooltipContent>
                   </Tooltip>
                 )}
