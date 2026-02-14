@@ -861,7 +861,18 @@ const DashboardLayout = () => {
             <div className="px-8 py-4">
               <div className="flex items-center justify-between">
                 <div>
-                  {user?.team_name && (
+                  {isInSiteContext && currentSite ? (
+                    <div className="flex items-center gap-2">
+                      {currentSite.logo_url && (
+                        <img 
+                          src={`${API}${currentSite.logo_url}`}
+                          alt={currentSite.name}
+                          className="w-6 h-6 rounded object-cover"
+                        />
+                      )}
+                      <p className="text-sm font-medium text-white">{currentSite.name}</p>
+                    </div>
+                  ) : user?.team_name && (
                     <p className="text-sm font-medium text-white">{user.team_name}</p>
                   )}
                 </div>
