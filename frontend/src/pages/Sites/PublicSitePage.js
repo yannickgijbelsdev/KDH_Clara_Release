@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Play, Pause, Volume2, VolumeX, Send, Lock, Loader2 } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Send, Lock, Loader2, Upload, X, FileImage, FileAudio, FileVideo } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
@@ -21,10 +21,13 @@ export default function PublicSitePage() {
   const [formData, setFormData] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
   
   const audioRef = useRef(null);
   const videoRef = useRef(null);
   const hlsRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchSite();
@@ -125,6 +128,57 @@ export default function PublicSitePage() {
     }
   }, [site?.video_enabled, site?.video_type, site?.video_url]);
 
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    
+    setUploading(true);
+    const newFiles = [];
+    
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      try {
+        const res = await fetch(`${API}/api/sites/public/${slug}/upload-file`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          newFiles.push({
+            url: data.file_url,
+            name: data.filename,
+            type: data.content_type
+          });
+        } else {
+          const err = await res.json();
+          toast.error(err.detail || `Fout bij uploaden: ${file.name}`);
+        }
+      } catch (err) {
+        toast.error(`Fout bij uploaden: ${file.name}`);
+      }
+    }
+    
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeFile = (index) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const getFileIcon = (type) => {
+    if (type?.startsWith('image/')) return FileImage;
+    if (type?.startsWith('audio/')) return FileAudio;
+    if (type?.startsWith('video/')) return FileVideo;
+    return Upload;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -139,7 +193,8 @@ export default function PublicSitePage() {
           message: formData.message || '',
           custom_fields: Object.fromEntries(
             Object.entries(formData).filter(([key]) => !['name', 'phone', 'message'].includes(key))
-          )
+          ),
+          file_urls: uploadedFiles.map(f => f.url)
         })
       });
       
@@ -181,6 +236,27 @@ export default function PublicSitePage() {
       }
     }
     return null;
+  };
+
+  // Get button styles
+  const buttonStyle = site?.button_color ? {
+    backgroundColor: site.button_color,
+    '--hover-color': site.button_color
+  } : {};
+
+  const buttonClassName = site?.button_color 
+    ? 'w-full text-white hover:opacity-90' 
+    : 'w-full bg-orange-500 hover:bg-orange-600';
+
+  // Calculate logo height based on scale
+  const getLogoStyle = () => {
+    const baseHeight = 128; // 32 = h-32 in tailwind (8rem = 128px)
+    const scale = site?.logo_scale || 100;
+    const height = Math.round(baseHeight * scale / 100);
+    return {
+      height: `${height}px`,
+      width: 'auto'
+    };
   };
 
   if (loading) {
@@ -243,24 +319,27 @@ export default function PublicSitePage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      <div className="max-w-4xl mx-auto p-4 sm:p-8">
-        {/* Header with Logo */}
-        <div className="text-center mb-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 pt-4 sm:pt-6">
+        {/* Compact Header with Logo */}
+        <div className="text-center mb-2">
           {site?.logo_url && (
             <img 
               src={site.logo_url.startsWith('http') ? site.logo_url : `${API}${site.logo_url}`}
               alt={site?.name}
-              className="h-24 sm:h-32 w-auto mx-auto mb-4"
+              style={getLogoStyle()}
+              className="mx-auto"
             />
           )}
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">
-            {site?.name}
-          </h1>
+          {!site?.logo_url && (
+            <h1 className="text-xl sm:text-2xl font-bold text-white py-2">
+              {site?.name}
+            </h1>
+          )}
         </div>
 
-        {/* Video Player - shown first if enabled */}
+        {/* Video Player - shown first if enabled, directly under header */}
         {site?.video_enabled && site?.video_url && (
-          <div className="bg-zinc-900 rounded-2xl overflow-hidden mb-6 border border-zinc-800">
+          <div className="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800">
             {site.video_type === 'hls' ? (
               <video
                 ref={videoRef}
@@ -283,9 +362,9 @@ export default function PublicSitePage() {
           </div>
         )}
 
-        {/* Header Image - shown only if video is not enabled */}
+        {/* Header Image - shown only if video is not enabled, compact spacing */}
         {!site?.video_enabled && site?.header_image_url && (
-          <div className="rounded-2xl overflow-hidden mb-6">
+          <div className="rounded-xl overflow-hidden">
             <img 
               src={site.header_image_url.startsWith('http') ? site.header_image_url : `${API}${site.header_image_url}`}
               alt=""
@@ -294,9 +373,9 @@ export default function PublicSitePage() {
           </div>
         )}
 
-        {/* Audio Player */}
+        {/* Audio Player - directly against header/video */}
         {site?.audio_enabled && site?.audio_url && (
-          <div className="bg-zinc-900 rounded-2xl p-6 mb-6 border border-zinc-800">
+          <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800 mt-0">
             <audio
               ref={audioRef}
               src={site.audio_type === 'file' 
@@ -310,12 +389,13 @@ export default function PublicSitePage() {
               <Button
                 onClick={togglePlay}
                 size="lg"
-                className="h-16 w-16 rounded-full bg-orange-500 hover:bg-orange-600"
+                className="h-14 w-14 rounded-full"
+                style={site?.button_color ? { backgroundColor: site.button_color } : { backgroundColor: '#f97316' }}
               >
                 {isPlaying ? (
-                  <Pause className="h-8 w-8" />
+                  <Pause className="h-7 w-7" />
                 ) : (
-                  <Play className="h-8 w-8 ml-1" />
+                  <Play className="h-7 w-7 ml-1" />
                 )}
               </Button>
               <Button
@@ -325,22 +405,23 @@ export default function PublicSitePage() {
                 className="text-zinc-400 hover:text-white"
               >
                 {isMuted ? (
-                  <VolumeX className="h-6 w-6" />
+                  <VolumeX className="h-5 w-5" />
                 ) : (
-                  <Volume2 className="h-6 w-6" />
+                  <Volume2 className="h-5 w-5" />
                 )}
               </Button>
             </div>
             {isPlaying && (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-3 flex justify-center">
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className="w-1 bg-orange-500 rounded-full animate-pulse"
+                      className="w-1 rounded-full animate-pulse"
                       style={{
-                        height: `${20 + Math.random() * 20}px`,
-                        animationDelay: `${i * 0.1}s`
+                        height: `${16 + Math.random() * 16}px`,
+                        animationDelay: `${i * 0.1}s`,
+                        backgroundColor: site?.button_color || '#f97316'
                       }}
                     />
                   ))}
@@ -352,19 +433,19 @@ export default function PublicSitePage() {
 
         {/* Contact Form */}
         {site?.form_enabled && (
-          <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
-            <h2 className="text-xl font-bold text-white mb-4">Neem contact op</h2>
+          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mt-4 mb-6">
+            <h2 className="text-lg font-bold text-white mb-3">Neem contact op</h2>
             
             {submitted ? (
-              <div className="text-center py-8">
-                <div className="h-16 w-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Send className="h-8 w-8 text-green-500" />
+              <div className="text-center py-6">
+                <div className="h-14 w-14 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Send className="h-7 w-7 text-green-500" />
                 </div>
                 <p className="text-white font-medium">Bedankt voor je bericht!</p>
-                <p className="text-zinc-400 mt-1">We nemen zo snel mogelijk contact op.</p>
+                <p className="text-zinc-400 mt-1 text-sm">We nemen zo snel mogelijk contact op.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3">
                 {(site.form_fields || []).map(field => (
                   <div key={field.id}>
                     <label className="block text-sm font-medium text-zinc-300 mb-1">
@@ -376,8 +457,8 @@ export default function PublicSitePage() {
                         value={formData[field.id] || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
-                        rows={4}
-                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white resize-none focus:outline-none focus:border-orange-500"
+                        rows={3}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none focus:border-orange-500"
                       />
                     ) : (
                       <Input
@@ -385,16 +466,79 @@ export default function PublicSitePage() {
                         value={formData[field.id] || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
-                        className="bg-zinc-800 border-zinc-700"
+                        className="bg-zinc-800 border-zinc-700 text-sm"
                       />
                     )}
                   </div>
                 ))}
                 
+                {/* File Upload Section */}
+                {site.form_file_upload_enabled && (
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-300 mb-1">
+                      Bestanden toevoegen
+                    </label>
+                    <div className="space-y-2">
+                      {/* Uploaded files list */}
+                      {uploadedFiles.length > 0 && (
+                        <div className="space-y-1">
+                          {uploadedFiles.map((file, index) => {
+                            const FileIcon = getFileIcon(file.type);
+                            return (
+                              <div 
+                                key={index}
+                                className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg text-sm"
+                              >
+                                <FileIcon className="h-4 w-4 text-zinc-400" />
+                                <span className="flex-1 truncate text-zinc-300">{file.name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeFile(index)}
+                                  className="text-zinc-500 hover:text-red-400"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* Upload button */}
+                      <label className="cursor-pointer block">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          multiple
+                          accept="image/*,audio/*,video/*"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                          disabled={uploading}
+                        />
+                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-600 text-sm text-zinc-400">
+                          {uploading ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span>Uploaden...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4" />
+                              <span>Afbeelding, audio of video uploaden</span>
+                            </>
+                          )}
+                        </div>
+                      </label>
+                      <p className="text-xs text-zinc-500">Max 50MB per bestand</p>
+                    </div>
+                  </div>
+                )}
+                
                 <Button 
                   type="submit" 
-                  disabled={submitting}
-                  className="w-full bg-orange-500 hover:bg-orange-600"
+                  disabled={submitting || uploading}
+                  className={buttonClassName}
+                  style={buttonStyle}
                 >
                   {submitting ? (
                     <>
