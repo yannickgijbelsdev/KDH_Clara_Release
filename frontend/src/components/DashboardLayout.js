@@ -168,19 +168,23 @@ const DashboardLayout = () => {
     }
   }, []);
 
+  // Get mainSite from context to ensure X-Main-Site-ID header is available
+  const { mainSite, loading: mainSiteLoading } = useMainSite();
+
   // Fetch sites for navigation
   const fetchSites = useCallback(async () => {
     if (!isAdmin) return;
+    // Wait for mainSite to be loaded to ensure X-Main-Site-ID header is available
+    if (mainSiteLoading || !mainSite?.id) return;
     try {
-      const response = await axios.get(`${API}/sites`);
+      const response = await axios.get(`${API}/sites`, {
+        headers: { 'X-Main-Site-ID': mainSite.id }
+      });
       setSites(response.data || []);
     } catch (error) {
       console.error('Failed to fetch sites:', error);
     }
-  }, [isAdmin]);
-
-  // Get mainSite from context to ensure X-Main-Site-ID header is available
-  const { mainSite, loading: mainSiteLoading } = useMainSite();
+  }, [isAdmin, mainSite?.id, mainSiteLoading]);
 
   // Fetch current site details when in site context
   const fetchCurrentSite = useCallback(async () => {
