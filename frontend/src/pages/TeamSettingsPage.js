@@ -314,54 +314,18 @@ const TeamSettingsPage = () => {
             <div className="p-2 bg-orange-500/20 rounded-lg">
               <Building2 className="w-5 h-5 text-orange-500" />
             </div>
-            <h2 className="text-lg font-semibold text-white">Team Information</h2>
+            <h2 className="text-lg font-semibold text-white">Site Information</h2>
           </div>
         </div>
 
-        {isEditingTeam ? (
-          <div className="flex items-center gap-4">
-            <Input
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              className="bg-[#27272a] border-zinc-700 text-white max-w-md"
-              placeholder="Team name"
-            />
-            <Button
-              onClick={handleUpdateTeamName}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
-            >
-              Save
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsEditingTeam(false);
-                setTeamName(team.name);
-              }}
-              className="bg-transparent border-zinc-700 text-zinc-300"
-            >
-              Cancel
-            </Button>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-2xl font-bold text-white">{mainSite?.name || team?.name}</p>
+            <p className="text-sm text-zinc-500 mt-1">
+              {mainSite?.slug ? `/${mainSite.slug}` : `Created ${new Date(team?.created_at).toLocaleDateString()}`}
+            </p>
           </div>
-        ) : (
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-2xl font-bold text-white">{team?.name}</p>
-              <p className="text-sm text-zinc-500 mt-1">
-                Created {new Date(team?.created_at).toLocaleDateString()}
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditingTeam(true)}
-              className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-            >
-              <Edit2 className="w-4 h-4" />
-              Edit
-            </Button>
-          </div>
-        )}
+        </div>
       </div>
 
       {/* Users Section */}
