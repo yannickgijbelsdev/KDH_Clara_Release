@@ -376,7 +376,7 @@ const MainSiteDashboardLayout = () => {
         <button
           key={item.tab}
           onClick={() => setSiteTab(item.tab)}
-          className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors w-full text-left ${
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors w-full text-left ${
             isActive
               ? 'bg-orange-500/10 text-orange-500'
               : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
@@ -399,7 +399,7 @@ const MainSiteDashboardLayout = () => {
         to={item.to}
         onClick={closeSidebar}
         className={({ isActive }) =>
-          `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+          `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isActive
               ? 'bg-orange-500/10 text-orange-500'
               : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
