@@ -94,6 +94,41 @@ def is_unformatted_title(song_title: str) -> bool:
     return False
 
 
+def smart_title_case(text: str) -> str:
+    """Convert text to Title Case while handling apostrophes correctly.
+    
+    Python's str.title() treats apostrophes as word boundaries, causing
+    issues like "it's" → "It'S". This function fixes that.
+    
+    Examples:
+    - "it's a wonderful life" → "It's A Wonderful Life"
+    - "don't stop believin'" → "Don't Stop Believin'"
+    - "rock 'n' roll" → "Rock 'N' Roll"
+    """
+    if not text:
+        return text
+    
+    # First apply standard title case
+    result = text.title()
+    
+    # Fix apostrophe issues: find patterns like "'X" where X is uppercase
+    # and convert X to lowercase (unless it's at the start of a word)
+    import re
+    
+    # Pattern matches: apostrophe followed by a single uppercase letter
+    # that is NOT at the start of a word (has a letter before the apostrophe)
+    def fix_apostrophe(match):
+        before = match.group(1)  # Character before apostrophe
+        apostrophe = match.group(2)  # The apostrophe
+        after = match.group(3)  # Character after apostrophe
+        return before + apostrophe + after.lower()
+    
+    # Match: letter + apostrophe + uppercase letter
+    result = re.sub(r"([a-zA-Z])([''ʼ])([A-Z])", fix_apostrophe, result)
+    
+    return result
+
+
 def format_now_playing(song_title: str) -> str:
     """Format now playing text: ARTIST in UPPERCASE, Title in Title Case.
     
@@ -101,6 +136,7 @@ def format_now_playing(song_title: str) -> str:
     - "phil collins - in the air tonight" → "PHIL COLLINS - In The Air Tonight"
     - "ABBA - Dancing Queen" → "ABBA - Dancing Queen"
     - "Some Artist" (no separator) → "SOME ARTIST"
+    - "taylor swift - it's nice to have a friend" → "TAYLOR SWIFT - It's Nice To Have A Friend"
     """
     if not song_title:
         return song_title
@@ -128,7 +164,7 @@ def format_now_playing(song_title: str) -> str:
                 if not title:
                     return artist
                 
-                title = title.title()  # Title Case for song title
+                title = smart_title_case(title)  # Smart Title Case for song title
                 return f"{artist} - {title}"
     
     # No separator found - treat entire string as artist name
