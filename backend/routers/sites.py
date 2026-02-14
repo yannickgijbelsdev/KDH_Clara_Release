@@ -92,6 +92,8 @@ async def create_site(
         "logo_scale": 100,
         "header_image_url": None,
         "button_color": None,
+        "background_color": None,
+        "container_color": None,
         "audio_enabled": False,
         "audio_type": None,
         "audio_url": None,
