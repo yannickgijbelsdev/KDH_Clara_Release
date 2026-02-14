@@ -239,14 +239,15 @@ export default function PublicSitePage() {
   };
 
   // Get button styles
-  const buttonStyle = site?.button_color ? {
-    backgroundColor: site.button_color,
-    '--hover-color': site.button_color
-  } : {};
+  const buttonColor = site?.button_color || '#f97316';
+  const backgroundColor = site?.background_color || '#09090b';
+  const containerColor = site?.container_color || '#18181b';
 
-  const buttonClassName = site?.button_color 
-    ? 'w-full text-white hover:opacity-90' 
-    : 'w-full bg-orange-500 hover:bg-orange-600';
+  const buttonStyle = {
+    backgroundColor: buttonColor
+  };
+
+  const buttonClassName = 'w-full text-white hover:opacity-90';
 
   // Calculate logo height based on scale
   const getLogoStyle = () => {
@@ -261,15 +262,15 @@ export default function PublicSitePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor }}>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: buttonColor }} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor }}>
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-2">Oeps!</h1>
           <p className="text-zinc-400">{error}</p>
@@ -280,8 +281,8 @@ export default function PublicSitePage() {
 
   if (passwordRequired && !passwordVerified) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-        <div className="bg-zinc-900 rounded-2xl p-8 max-w-md w-full border border-zinc-800">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor }}>
+        <div className="rounded-2xl p-8 max-w-md w-full border border-zinc-800" style={{ backgroundColor: containerColor }}>
           {site?.logo_url && (
             <img 
               src={site.logo_url.startsWith('http') ? site.logo_url : `${API}${site.logo_url}`}
