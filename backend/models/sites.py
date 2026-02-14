@@ -31,8 +31,10 @@ class SiteUpdate(BaseModel):
     # Header image (shows above audio player if no video)
     header_image_url: Optional[str] = None
     
-    # Button styling
+    # Styling
     button_color: Optional[str] = None  # Hex color for form buttons
+    background_color: Optional[str] = None  # Hex color for page background
+    container_color: Optional[str] = None  # Hex color for card/container backgrounds
     
     # Form file uploads
     form_file_upload_enabled: Optional[bool] = None
@@ -67,6 +69,8 @@ class SiteResponse(BaseModel):
     logo_scale: int = 100  # percentage
     header_image_url: Optional[str] = None
     button_color: Optional[str] = None
+    background_color: Optional[str] = None
+    container_color: Optional[str] = None
     form_file_upload_enabled: bool = False
     
     # Audio
@@ -99,6 +103,8 @@ class SitePublicResponse(BaseModel):
     logo_scale: int = 100
     header_image_url: Optional[str] = None
     button_color: Optional[str] = None
+    background_color: Optional[str] = None
+    container_color: Optional[str] = None
     form_file_upload_enabled: bool = False
     
     audio_enabled: bool = False
