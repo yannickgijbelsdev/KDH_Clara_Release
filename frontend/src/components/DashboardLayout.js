@@ -95,14 +95,19 @@ const navGroups = [
   },
 ];
 
-// Site-specific navigation when editing a site
-const siteNavItems = [
-  { id: 'general', icon: Settings, label: 'Algemeen', tab: 'general' },
-  { id: 'media', icon: Play, label: 'Media', tab: 'media' },
-  { id: 'form', icon: MessageSquare, label: 'Formulier', tab: 'form' },
-  { id: 'submissions', icon: Send, label: 'Inzendingen', tab: 'submissions' },
-  { id: 'users', icon: Users, label: 'Gebruikers', tab: 'users' },
-];
+// Site-specific navigation group (shown when in site context)
+const getSiteNavGroup = (currentSite) => ({
+  id: 'site',
+  label: currentSite?.name || 'Site',
+  icon: Globe,
+  items: [
+    { to: '#general', icon: Settings, label: 'Algemeen', tab: 'general' },
+    { to: '#media', icon: Play, label: 'Media', tab: 'media' },
+    { to: '#form', icon: MessageSquare, label: 'Formulier', tab: 'form' },
+    { to: '#submissions', icon: Send, label: 'Inzendingen', tab: 'submissions' },
+    { to: '#users', icon: Users, label: 'Gebruikers', tab: 'users' },
+  ]
+});
 
 // Flat navigation (original structure)
 const flatNavItems = [
