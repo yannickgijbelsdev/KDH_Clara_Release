@@ -556,9 +556,77 @@ async def submit_site_form(slug: str, submission: SiteSubmissionCreate):
         "phone": submission.phone,
         "message": submission.message,
         "custom_fields": submission.custom_fields or {},
+        "file_urls": submission.file_urls or [],
         "created_at": now
     }
     
     await db.site_submissions.insert_one(submission_doc)
     
     return {"message": "Bericht verzonden", "id": submission_id}
+
+
+@sites_router.post("/public/{slug}/upload-file")
+async def upload_form_file(
+    slug: str,
+    file: UploadFile = File(...)
+):
+    """Upload a file for a form submission (images, audio, video)."""
+    site = await db.sites.find_one({"slug": slug.lower()})
+    
+    if not site:
+        raise HTTPException(status_code=404, detail="Pagina niet gevonden")
+    
+    if not site.get("form_enabled"):
+        raise HTTPException(status_code=400, detail="Formulier is niet actief")
+    
+    if not site.get("form_file_upload_enabled"):
+        raise HTTPException(status_code=400, detail="Bestandsuploads zijn niet toegestaan")
+    
+    # Validate file type - allow images, audio, video
+    allowed_types = [
+        # Images
+        "image/png", "image/jpeg", "image/gif", "image/webp",
+        # Audio
+        "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/aac", "audio/x-aac",
+        # Video
+        "video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"
+    ]
+    
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400, 
+            detail="Alleen afbeeldingen, audio en video bestanden toegestaan"
+        )
+    
+    # Check file size (max 50MB)
+    content = await file.read()
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="Bestand is te groot (max 50MB)")
+    
+    ext = file.filename.split(".")[-1] if "." in file.filename else "bin"
+    file_id = str(uuid.uuid4())
+    
+    if is_s3_configured():
+        # Upload to S3
+        file_key = f"sites/{site['id']}/submissions/{file_id}.{ext}"
+        try:
+            result = await upload_file_to_s3(content, file_key, file.content_type)
+            file_url = result['url']
+        except Exception as e:
+            logger.error(f"S3 upload failed: {e}")
+            raise HTTPException(status_code=500, detail="Upload mislukt")
+    else:
+        # Fallback to local storage
+        upload_dir = f"/app/backend/uploads/site_submissions/{site['id']}"
+        os.makedirs(upload_dir, exist_ok=True)
+        filename = f"{file_id}.{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, "wb") as f:
+            f.write(content)
+        file_url = f"/uploads/site_submissions/{site['id']}/{filename}"
+    
+    return {
+        "file_url": file_url,
+        "filename": file.filename,
+        "content_type": file.content_type
+    }
