@@ -54,7 +54,7 @@ export default function SiteDashboard() {
     }
   }, [siteId]);
 
-  const fetchSubmissions = useCallback(async () => {
+  const fetchSubmissions = useCallback(async (silent = false) => {
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`${API}/api/sites/${siteId}/submissions`, {
@@ -62,10 +62,30 @@ export default function SiteDashboard() {
       });
       if (res.ok) {
         const data = await res.json();
-        setSubmissions(data);
+        setSubmissions(prev => {
+          // Check if there are new submissions
+          if (!silent && prev.length > 0 && data.length > prev.length) {
+            toast.info(`${data.length - prev.length} nieuwe inzending(en)!`);
+          }
+          return data;
+        });
       }
     } catch (error) {
       console.error('Error fetching submissions:', error);
+    }
+  }, [siteId]);
+
+  const markSubmissionsViewed = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await fetch(`${API}/api/sites/${siteId}/submissions/mark-viewed`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Dispatch event to update badge in sidebar
+      window.dispatchEvent(new CustomEvent('submissionsViewed', { detail: siteId }));
+    } catch (error) {
+      console.error('Error marking submissions as viewed:', error);
     }
   }, [siteId]);
 
@@ -105,6 +125,25 @@ export default function SiteDashboard() {
     fetchSiteUsers();
     fetchTeamUsers();
   }, [fetchSite, fetchSubmissions, fetchSiteUsers, fetchTeamUsers]);
+
+  // Auto-refresh submissions when on submissions tab
+  useEffect(() => {
+    if (activeTab === 'submissions') {
+      // Mark as viewed when opening tab
+      markSubmissionsViewed();
+      
+      // Poll for new submissions every 10 seconds
+      submissionsPollingRef.current = setInterval(() => {
+        fetchSubmissions(true);
+      }, 10000);
+      
+      return () => {
+        if (submissionsPollingRef.current) {
+          clearInterval(submissionsPollingRef.current);
+        }
+      };
+    }
+  }, [activeTab, fetchSubmissions, markSubmissionsViewed]);
 
   const handleSave = async () => {
     setSaving(true);
