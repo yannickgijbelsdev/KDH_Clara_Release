@@ -12,65 +12,36 @@ import {
   DialogFooter,
 } from '../../components/ui/dialog';
 import { toast } from 'sonner';
+import axios from 'axios';
+import { useMainSite } from '../../context/MainSiteContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function SitesListPage() {
   const navigate = useNavigate();
   const { mainSiteSlug } = useParams();
+  const { mainSite: contextMainSite } = useMainSite();
   const [sites, setSites] = useState([]);
-  const [mainSite, setMainSite] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newSite, setNewSite] = useState({ name: '', slug: '' });
   const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    if (mainSiteSlug) {
-      fetchMainSiteAndSites();
-    } else {
-      fetchSites();
-    }
-  }, [mainSiteSlug]);
+  // Use mainSite from context when available
+  const mainSite = contextMainSite;
 
-  const fetchMainSiteAndSites = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Fetch main site
-      const mainSiteRes = await fetch(`${API}/api/main-sites/by-slug/${mainSiteSlug}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (mainSiteRes.ok) {
-        const mainSiteData = await mainSiteRes.json();
-        setMainSite(mainSiteData);
-        
-        // Fetch sites for this main site
-        const sitesRes = await fetch(`${API}/api/main-sites/${mainSiteData.id}/sites`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (sitesRes.ok) {
-          const sitesData = await sitesRes.json();
-          setSites(sitesData);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    fetchSites();
+  }, [mainSiteSlug, mainSite]);
 
   const fetchSites = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/api/sites`, {
+      // Use axios which automatically includes the X-Main-Site-ID header via interceptor
+      const res = await axios.get(`${API}/api/sites`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) {
-        const data = await res.json();
-        setSites(data);
-      }
+      setSites(res.data);
     } catch (error) {
       console.error('Error fetching sites:', error);
     } finally {
@@ -80,67 +51,48 @@ export default function SitesListPage() {
 
   const createSite = async () => {
     if (!newSite.name || !newSite.slug) {
-      toast.error('Please fill in all fields');
+      toast.error('Vul alle velden in');
       return;
     }
 
     setCreating(true);
     try {
       const token = localStorage.getItem('token');
-      const payload = {
-        ...newSite,
-        main_site_id: mainSite?.id || null
-      };
-      
-      const res = await fetch(`${API}/api/sites`, {
-        method: 'POST',
-        headers: {
+      // Use axios which automatically includes the X-Main-Site-ID header via interceptor
+      const res = await axios.post(`${API}/api/sites`, newSite, {
+        headers: { 
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
+        }
       });
       
-      if (res.ok) {
-        const site = await res.json();
-        toast.success('Site created');
-        setShowCreateDialog(false);
-        setNewSite({ name: '', slug: '' });
-        const basePath = mainSiteSlug ? `/${mainSiteSlug}` : '';
-        navigate(`${basePath}/sites/${site.id}`);
-      } else {
-        const err = await res.json();
-        toast.error(err.detail || 'Error creating site');
-      }
+      toast.success('Site aangemaakt');
+      setShowCreateDialog(false);
+      setNewSite({ name: '', slug: '' });
+      const basePath = mainSiteSlug ? `/${mainSiteSlug}` : '';
+      navigate(`${basePath}/sites/${res.data.id}`);
     } catch (error) {
-      toast.error('Error creating site');
+      const errorMsg = error.response?.data?.detail || 'Fout bij aanmaken site';
+      toast.error(errorMsg);
     } finally {
       setCreating(false);
     }
   };
 
   const deleteSite = async (siteId) => {
-    if (!window.confirm('Are you sure you want to delete this site?')) return;
+    if (!window.confirm('Weet u zeker dat u deze site wilt verwijderen?')) return;
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/api/sites/${siteId}`, {
-        method: 'DELETE',
+      // Use axios which automatically includes the X-Main-Site-ID header via interceptor
+      await axios.delete(`${API}/api/sites/${siteId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (res.ok) {
-        toast.success('Site deleted');
-        if (mainSiteSlug) {
-          fetchMainSiteAndSites();
-        } else {
-          fetchSites();
-        }
-      } else {
-        toast.error('Error deleting site');
-      }
+      toast.success('Site verwijderd');
+      fetchSites();
     } catch (error) {
-      toast.error('Error deleting site');
+      toast.error('Fout bij verwijderen site');
     }
   };
 
