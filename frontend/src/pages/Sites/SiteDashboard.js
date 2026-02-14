@@ -547,7 +547,7 @@ export default function SiteDashboard() {
                 />
                 <div className="flex items-center gap-2 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-600">
                   <Upload className="h-4 w-4" />
-                  <span>{site.header_image_url ? 'Andere afbeelding uploaden' : 'Header afbeelding uploaden'}</span>
+                  <span>{site.header_image_url ? 'Upload different image' : 'Upload header image'}</span>
                 </div>
               </label>
             </div>
