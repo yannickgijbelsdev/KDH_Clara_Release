@@ -4,7 +4,7 @@ import hashlib
 import os
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from fastapi.responses import JSONResponse
 
 from database import db
@@ -164,13 +164,24 @@ async def create_site(
 @sites_router.get("/{site_id}")
 async def get_site(
     site_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get a specific site."""
     team_id = current_user.get('team_id')
     
+    # Get main_site_id from header for multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query
+    query = {"id": site_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    else:
+        query["team_id"] = team_id
+    
     site = await db.sites.find_one(
-        {"id": site_id, "team_id": team_id},
+        query,
         {"_id": 0, "password_hash": 0}
     )
     
