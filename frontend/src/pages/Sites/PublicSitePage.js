@@ -291,7 +291,7 @@ export default function PublicSitePage() {
             />
           )}
           <div className="text-center mb-6">
-            <Lock className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+            <Lock className="h-12 w-12 mx-auto mb-4" style={{ color: buttonColor }} />
             <h1 className="text-xl font-bold text-white">
               Deze pagina is beveiligd
             </h1>
@@ -307,7 +307,7 @@ export default function PublicSitePage() {
               placeholder="Wachtwoord"
               className="bg-zinc-800 border-zinc-700 mb-4"
             />
-            <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600">
+            <Button type="submit" className="w-full text-white hover:opacity-90" style={{ backgroundColor: buttonColor }}>
               Toegang krijgen
             </Button>
           </form>
@@ -319,7 +319,7 @@ export default function PublicSitePage() {
   const embedUrl = getEmbedUrl();
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen" style={{ backgroundColor }}>
       <div className="max-w-4xl mx-auto px-4 sm:px-8 pt-4 sm:pt-6">
         {/* Compact Header with Logo */}
         <div className="text-center mb-2">
