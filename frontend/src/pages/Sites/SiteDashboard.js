@@ -241,17 +241,17 @@ export default function SiteDashboard() {
           audio_type: 'file',
           audio_format: data.audio_format
         }));
-        toast.success('Audio geüpload');
+        toast.success('Audio uploaded');
       }
     } catch (error) {
-      toast.error('Fout bij uploaden audio');
+      toast.error('Error uploading audio');
     }
   };
 
   const addFormField = () => {
     const newField = {
       id: `field_${Date.now()}`,
-      label: 'Nieuw veld',
+      label: 'New field',
       type: 'text',
       required: false
     };
@@ -263,7 +263,7 @@ export default function SiteDashboard() {
 
   const removeFormField = (fieldId) => {
     if (['name', 'phone', 'message'].includes(fieldId)) {
-      toast.error('Standaard velden kunnen niet verwijderd worden');
+      toast.error('Default fields cannot be removed');
       return;
     }
     setSite(prev => ({
