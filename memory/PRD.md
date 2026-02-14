@@ -1573,3 +1573,26 @@ clara.koodh.com/
 - **Team Members:** Radiogroep shows 2 members, DBNT shows 1 member ✅
 - **Log Stats:** Properly isolated per main_site ✅
 
+
+### February 14, 2026 - Mini Sites Bug Fix (Multisite)
+- [x] **P0 Bug Fix: Mini Site Creation and Access**:
+  - Bug: Creating mini-sites threw an error, and after refresh they appeared but were inaccessible ("Page Not Found")
+  - Root causes identified and fixed:
+    1. `sites.py` `get_sites` endpoint didn't filter by `main_site_id` header
+    2. `sites.py` `create_site` endpoint used body `main_site_id` instead of `X-Main-Site-ID` header  
+    3. `sites.py` `get_site` endpoint didn't validate main site context
+    4. `sites.py` returned MongoDB `_id` in response causing serialization error
+    5. `SitesListPage.js` used `fetch` instead of `axios`, missing the `X-Main-Site-ID` header interceptor
+    6. `SiteDashboard.js` also needed `axios` and `mainSiteSlug` for proper header and URL display
+  - Fixes implemented:
+    - Added `get_main_site_id_from_header` dependency to `GET /api/sites`, `POST /api/sites`, `GET /api/sites/{id}`
+    - Added `site_doc.pop("_id", None)` after MongoDB insert
+    - Updated `SitesListPage.js` to use `axios` and `useMainSite` context
+    - Updated `SiteDashboard.js` with `mainSiteSlug` param for correct URL previews
+    - Fixed URL preview in create dialog to show main site slug
+  - Files updated:
+    - `backend/routers/sites.py` - Added Request import, main_site_id filtering, _id removal
+    - `frontend/src/pages/Sites/SitesListPage.js` - Switched to axios, simplified fetching
+    - `frontend/src/pages/Sites/SiteDashboard.js` - Added mainSiteSlug, axios, URL fixes
+  - Tested: All mini-site operations working (create, list, edit, public access)
+  - Data isolation verified: DBNT Studio shows 0 sites, Radiogroep MFY/GRK shows 4 sites
