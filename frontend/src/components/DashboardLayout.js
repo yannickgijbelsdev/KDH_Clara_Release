@@ -565,7 +565,7 @@ const DashboardLayout = () => {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <NavLink
-                        to="/sites"
+                        to={sitesBasePath}
                         className="w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10 mb-2"
                       >
                         <ArrowLeft className="w-5 h-5" />
