@@ -707,3 +707,157 @@ async def upload_form_file(
         "filename": file.filename,
         "content_type": file.content_type
     }
+
+
+
+# ============== MULTISITE PUBLIC ENDPOINTS ==============
+
+@sites_router.get("/public/{main_site_slug}/{site_slug}")
+async def get_public_site_multisite(main_site_slug: str, site_slug: str):
+    """Get public site data by main site slug and site slug."""
+    # Find main site
+    main_site = await db.main_sites.find_one(
+        {"slug": main_site_slug.lower()},
+        {"_id": 0, "id": 1}
+    )
+    
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    # Find site within main site
+    site = await db.sites.find_one(
+        {"main_site_id": main_site["id"], "slug": site_slug.lower()},
+        {"_id": 0, "password_hash": 0, "team_id": 0}
+    )
+    
+    if not site:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    return site
+
+
+@sites_router.post("/public/{main_site_slug}/{site_slug}/verify-password")
+async def verify_site_password_multisite(main_site_slug: str, site_slug: str, data: SitePasswordCheck):
+    """Verify password for a protected site (multisite)."""
+    main_site = await db.main_sites.find_one({"slug": main_site_slug.lower()})
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    site = await db.sites.find_one({
+        "main_site_id": main_site["id"],
+        "slug": site_slug.lower()
+    })
+    
+    if not site:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    if not site.get("password_protected"):
+        return {"valid": True}
+    
+    if verify_password(data.password, site.get("password_hash", "")):
+        return {"valid": True}
+    
+    raise HTTPException(status_code=401, detail="Invalid password")
+
+
+@sites_router.post("/public/{main_site_slug}/{site_slug}/submit")
+async def submit_site_form_multisite(main_site_slug: str, site_slug: str, submission: SiteSubmissionCreate):
+    """Submit a form on a public site (multisite)."""
+    main_site = await db.main_sites.find_one({"slug": main_site_slug.lower()})
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    site = await db.sites.find_one({
+        "main_site_id": main_site["id"],
+        "slug": site_slug.lower()
+    })
+    
+    if not site:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    if not site.get("form_enabled"):
+        raise HTTPException(status_code=400, detail="Form is not active")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    submission_id = str(uuid.uuid4())
+    
+    submission_doc = {
+        "id": submission_id,
+        "site_id": site["id"],
+        "name": submission.name,
+        "phone": submission.phone,
+        "message": submission.message,
+        "custom_fields": submission.custom_fields or {},
+        "file_urls": submission.file_urls or [],
+        "created_at": now
+    }
+    
+    await db.site_submissions.insert_one(submission_doc)
+    
+    return {"message": "Message sent", "id": submission_id}
+
+
+@sites_router.post("/public/{main_site_slug}/{site_slug}/upload-file")
+async def upload_form_file_multisite(
+    main_site_slug: str,
+    site_slug: str,
+    file: UploadFile = File(...)
+):
+    """Upload a file for a form submission (multisite)."""
+    main_site = await db.main_sites.find_one({"slug": main_site_slug.lower()})
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    site = await db.sites.find_one({
+        "main_site_id": main_site["id"],
+        "slug": site_slug.lower()
+    })
+    
+    if not site:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    if not site.get("form_enabled"):
+        raise HTTPException(status_code=400, detail="Form is not active")
+    
+    if not site.get("form_file_upload_enabled"):
+        raise HTTPException(status_code=400, detail="File uploads are not allowed")
+    
+    # Validate file type
+    allowed_types = [
+        "image/png", "image/jpeg", "image/gif", "image/webp",
+        "audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/aac", "audio/x-aac",
+        "video/mp4", "video/webm", "video/quicktime", "video/x-msvideo"
+    ]
+    
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Only images, audio and video files allowed")
+    
+    content = await file.read()
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 50MB)")
+    
+    ext = file.filename.split(".")[-1] if "." in file.filename else "bin"
+    file_id = str(uuid.uuid4())
+    
+    if is_s3_configured():
+        file_key = f"sites/{site['id']}/submissions/{file_id}.{ext}"
+        try:
+            result = await upload_file_to_s3(content, file_key, file.content_type)
+            file_url = result['url']
+        except Exception as e:
+            logger.error(f"S3 upload failed: {e}")
+            raise HTTPException(status_code=500, detail="Upload failed")
+    else:
+        upload_dir = f"/app/backend/uploads/site_submissions/{site['id']}"
+        os.makedirs(upload_dir, exist_ok=True)
+        filename = f"{file_id}.{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, "wb") as f:
+            f.write(content)
+        file_url = f"/uploads/site_submissions/{site['id']}/{filename}"
+    
+    return {
+        "file_url": file_url,
+        "filename": file.filename,
+        "content_type": file.content_type
+    }
