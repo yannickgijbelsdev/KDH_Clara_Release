@@ -63,6 +63,7 @@ class SiteResponse(BaseModel):
     """Model for site response."""
     id: str
     team_id: str
+    main_site_id: Optional[str] = None  # Parent main site
     name: str
     slug: str
     logo_url: Optional[str] = None
