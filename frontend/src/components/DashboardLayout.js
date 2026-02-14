@@ -200,6 +200,17 @@ const DashboardLayout = () => {
     fetchCurrentSite();
   }, [fetchCurrentSite]);
 
+  // Update browser tab title dynamically
+  useEffect(() => {
+    if (isInSiteContext && currentSite) {
+      document.title = `Clara | ${currentSite.name}`;
+    } else if (user?.team_name) {
+      document.title = `Clara | ${user.team_name}`;
+    } else {
+      document.title = 'Clara';
+    }
+  }, [isInSiteContext, currentSite, user?.team_name]);
+
   // Mark chat as read when visiting chat page
   useEffect(() => {
     if (location.pathname === '/chat' && menuCounts.chat > 0) {
