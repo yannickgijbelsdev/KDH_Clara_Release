@@ -89,10 +89,19 @@ const navGroups = [
       { to: '/rds', icon: Radio, label: 'RDS Settings', adminOnly: true },
       { to: '/rds-builder', icon: Wand2, label: 'RDS Builder', adminOnly: true },
       { to: '/streams', icon: Headphones, label: 'Stream Monitor', adminOnly: true },
-      { to: '/sites', icon: Globe, label: 'Pagina\'s', adminOnly: true },
+      { to: '/sites', icon: Globe, label: 'Sites', adminOnly: true, hasSitesList: true },
       { to: '/logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
     ]
   },
+];
+
+// Site-specific navigation when editing a site
+const siteNavItems = [
+  { id: 'general', icon: Settings, label: 'Algemeen', tab: 'general' },
+  { id: 'media', icon: Play, label: 'Media', tab: 'media' },
+  { id: 'form', icon: MessageSquare, label: 'Formulier', tab: 'form' },
+  { id: 'submissions', icon: Send, label: 'Inzendingen', tab: 'submissions' },
+  { id: 'users', icon: Users, label: 'Gebruikers', tab: 'users' },
 ];
 
 // Flat navigation (original structure)
