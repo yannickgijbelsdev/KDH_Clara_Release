@@ -131,7 +131,11 @@ export default function SitesListPage() {
       
       if (res.ok) {
         toast.success('Site deleted');
-        fetchSites();
+        if (mainSiteSlug) {
+          fetchMainSiteAndSites();
+        } else {
+          fetchSites();
+        }
       } else {
         toast.error('Error deleting site');
       }
