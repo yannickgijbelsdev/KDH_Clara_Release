@@ -134,23 +134,11 @@ const TeamSettingsPage = () => {
         axios.get(`${API}/users`),
       ]);
       setTeam(teamRes.data);
-      setTeamName(teamRes.data.name);
       setUsers(usersRes.data);
     } catch (error) {
       toast.error('Failed to load team data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleUpdateTeamName = async () => {
-    try {
-      await axios.put(`${API}/teams/current`, { name: teamName });
-      setTeam({ ...team, name: teamName });
-      setIsEditingTeam(false);
-      toast.success('Team name updated');
-    } catch (error) {
-      toast.error('Failed to update team name');
     }
   };
 
