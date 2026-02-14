@@ -24,6 +24,9 @@ import RDSBuilderPage from './pages/RDSBuilderPage';
 import RDSSchedulerPage from './pages/RDSSchedulerPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
 import AudioTriggersPage from './pages/AudioTriggersPage';
+import SitesListPage from './pages/Sites/SitesListPage';
+import SiteDashboard from './pages/Sites/SiteDashboard';
+import PublicSitePage from './pages/Sites/PublicSitePage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
