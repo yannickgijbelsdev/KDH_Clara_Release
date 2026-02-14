@@ -154,14 +154,46 @@ const DashboardLayout = () => {
     }
   }, []);
 
+  // Fetch sites for navigation
+  const fetchSites = useCallback(async () => {
+    if (!isAdmin) return;
+    try {
+      const response = await axios.get(`${API}/sites`);
+      setSites(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch sites:', error);
+    }
+  }, [isAdmin]);
+
+  // Fetch current site details when in site context
+  const fetchCurrentSite = useCallback(async () => {
+    if (!currentSiteId) {
+      setCurrentSite(null);
+      return;
+    }
+    try {
+      const response = await axios.get(`${API}/sites/${currentSiteId}`);
+      setCurrentSite(response.data);
+    } catch (error) {
+      console.error('Failed to fetch current site:', error);
+      setCurrentSite(null);
+    }
+  }, [currentSiteId]);
+
   // Fetch counts on mount and periodically
   useEffect(() => {
     if (user) {
       fetchMenuCounts();
+      fetchSites();
       const interval = setInterval(fetchMenuCounts, 30000); // Refresh every 30 seconds
       return () => clearInterval(interval);
     }
-  }, [user, fetchMenuCounts]);
+  }, [user, fetchMenuCounts, fetchSites]);
+
+  // Fetch current site when entering site context
+  useEffect(() => {
+    fetchCurrentSite();
+  }, [fetchCurrentSite]);
 
   // Mark chat as read when visiting chat page
   useEffect(() => {
