@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Plus, Globe, ExternalLink, Settings, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -17,15 +17,49 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 export default function SitesListPage() {
   const navigate = useNavigate();
+  const { mainSiteSlug } = useParams();
   const [sites, setSites] = useState([]);
+  const [mainSite, setMainSite] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newSite, setNewSite] = useState({ name: '', slug: '' });
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    fetchSites();
-  }, []);
+    if (mainSiteSlug) {
+      fetchMainSiteAndSites();
+    } else {
+      fetchSites();
+    }
+  }, [mainSiteSlug]);
+
+  const fetchMainSiteAndSites = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch main site
+      const mainSiteRes = await fetch(`${API}/api/main-sites/by-slug/${mainSiteSlug}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (mainSiteRes.ok) {
+        const mainSiteData = await mainSiteRes.json();
+        setMainSite(mainSiteData);
+        
+        // Fetch sites for this main site
+        const sitesRes = await fetch(`${API}/api/main-sites/${mainSiteData.id}/sites`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (sitesRes.ok) {
+          const sitesData = await sitesRes.json();
+          setSites(sitesData);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchSites = async () => {
     try {
@@ -53,13 +87,18 @@ export default function SitesListPage() {
     setCreating(true);
     try {
       const token = localStorage.getItem('token');
+      const payload = {
+        ...newSite,
+        main_site_id: mainSite?.id || null
+      };
+      
       const res = await fetch(`${API}/api/sites`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(newSite)
+        body: JSON.stringify(payload)
       });
       
       if (res.ok) {
@@ -67,7 +106,8 @@ export default function SitesListPage() {
         toast.success('Site created');
         setShowCreateDialog(false);
         setNewSite({ name: '', slug: '' });
-        navigate(`/sites/${site.id}`);
+        const basePath = mainSiteSlug ? `/${mainSiteSlug}` : '';
+        navigate(`${basePath}/sites/${site.id}`);
       } else {
         const err = await res.json();
         toast.error(err.detail || 'Error creating site');
