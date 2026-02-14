@@ -725,7 +725,7 @@ export default function SiteDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <MessageSquare className="h-5 w-5 text-orange-400" />
-                <h2 className="text-lg font-semibold text-white">Contactformulier</h2>
+                <h2 className="text-lg font-semibold text-white">Contact Form</h2>
               </div>
               <Switch
                 checked={site.form_enabled || false}
@@ -736,7 +736,7 @@ export default function SiteDashboard() {
             {site.form_enabled && (
               <div className="space-y-4">
                 <p className="text-sm text-zinc-400">
-                  Configureer de velden die bezoekers kunnen invullen.
+                  Configure the fields that visitors can fill in.
                 </p>
 
                 <div className="space-y-3">
@@ -749,17 +749,17 @@ export default function SiteDashboard() {
                         value={field.label}
                         onChange={(e) => updateFormField(field.id, { label: e.target.value })}
                         className="bg-zinc-800 border-zinc-700 flex-1"
-                        placeholder="Veldnaam"
+                        placeholder="Field name"
                       />
                       <select
                         value={field.type}
                         onChange={(e) => updateFormField(field.id, { type: e.target.value })}
                         className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
                       >
-                        <option value="text">Tekst</option>
-                        <option value="email">E-mail</option>
-                        <option value="tel">Telefoon</option>
-                        <option value="textarea">Tekstvak</option>
+                        <option value="text">Text</option>
+                        <option value="email">Email</option>
+                        <option value="tel">Phone</option>
+                        <option value="textarea">Textarea</option>
                       </select>
                       <label className="flex items-center gap-2 text-sm whitespace-nowrap">
                         <input
@@ -768,7 +768,7 @@ export default function SiteDashboard() {
                           onChange={(e) => updateFormField(field.id, { required: e.target.checked })}
                           className="rounded"
                         />
-                        Verplicht
+                        Required
                       </label>
                       <Button
                         variant="ghost"
@@ -789,7 +789,7 @@ export default function SiteDashboard() {
                   className="w-full border-dashed"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Veld toevoegen
+                  Add field
                 </Button>
 
                 {/* File Upload Option */}
@@ -797,8 +797,8 @@ export default function SiteDashboard() {
                   <div className="flex items-center gap-3">
                     <FileUp className="h-5 w-5 text-zinc-400" />
                     <div>
-                      <p className="text-white font-medium">Bestandsuploads toestaan</p>
-                      <p className="text-sm text-zinc-400">Bezoekers kunnen afbeeldingen, audio en video uploaden</p>
+                      <p className="text-white font-medium">Allow file uploads</p>
+                      <p className="text-sm text-zinc-400">Visitors can upload images, audio and video</p>
                     </div>
                   </div>
                   <Switch
@@ -806,112 +806,117 @@ export default function SiteDashboard() {
                     onCheckedChange={(checked) => setSite(prev => ({ ...prev, form_file_upload_enabled: checked }))}
                   />
                 </div>
-
-                {/* Button Color */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Palette className="h-4 w-4 text-zinc-400" />
-                    <Label>Knop kleur</Label>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={site.button_color || '#f97316'}
-                      onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
-                      className="w-12 h-10 rounded cursor-pointer border border-zinc-700 bg-transparent"
-                    />
-                    <Input
-                      value={site.button_color || '#f97316'}
-                      onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
-                      placeholder="#f97316"
-                      className="bg-zinc-800 border-zinc-700 w-32"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSite(prev => ({ ...prev, button_color: null }))}
-                      className="text-zinc-400"
-                    >
-                      Reset
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Background Color */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Palette className="h-4 w-4 text-zinc-400" />
-                    <Label>Achtergrond kleur</Label>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={site.background_color || '#09090b'}
-                      onChange={(e) => setSite(prev => ({ ...prev, background_color: e.target.value }))}
-                      className="w-12 h-10 rounded cursor-pointer border border-zinc-700 bg-transparent"
-                    />
-                    <Input
-                      value={site.background_color || '#09090b'}
-                      onChange={(e) => setSite(prev => ({ ...prev, background_color: e.target.value }))}
-                      placeholder="#09090b"
-                      className="bg-zinc-800 border-zinc-700 w-32"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSite(prev => ({ ...prev, background_color: null }))}
-                      className="text-zinc-400"
-                    >
-                      Reset
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Container Color */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Palette className="h-4 w-4 text-zinc-400" />
-                    <Label>Kader kleur</Label>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={site.container_color || '#18181b'}
-                      onChange={(e) => setSite(prev => ({ ...prev, container_color: e.target.value }))}
-                      className="w-12 h-10 rounded cursor-pointer border border-zinc-700 bg-transparent"
-                    />
-                    <Input
-                      value={site.container_color || '#18181b'}
-                      onChange={(e) => setSite(prev => ({ ...prev, container_color: e.target.value }))}
-                      placeholder="#18181b"
-                      className="bg-zinc-800 border-zinc-700 w-32"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSite(prev => ({ ...prev, container_color: null }))}
-                      className="text-zinc-400"
-                    >
-                      Reset
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Color Preview */}
-                <div className="mt-4 p-4 rounded-lg border border-zinc-700" style={{ backgroundColor: site.background_color || '#09090b' }}>
-                  <p className="text-xs text-zinc-500 mb-2">Voorbeeld kleuren:</p>
-                  <div className="p-4 rounded-lg" style={{ backgroundColor: site.container_color || '#18181b' }}>
-                    <p className="text-white text-sm mb-2">Kader voorbeeld</p>
-                    <button
-                      className="px-4 py-2 rounded-lg text-white font-medium transition"
-                      style={{ backgroundColor: site.button_color || '#f97316' }}
-                    >
-                      Verstuur
-                    </button>
-                  </div>
-                </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Styling Tab */}
+      {activeTab === 'styling' && (
+        <div className="space-y-6">
+          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+            <div className="flex items-center gap-3 mb-6">
+              <Palette className="h-5 w-5 text-orange-400" />
+              <h2 className="text-lg font-semibold text-white">Page Styling</h2>
+            </div>
+
+            <div className="space-y-6">
+              {/* Button Color */}
+              <div className="space-y-2">
+                <Label>Button Color</Label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={site.button_color || '#f97316'}
+                    onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
+                    className="w-12 h-10 rounded cursor-pointer border border-zinc-700 bg-transparent"
+                  />
+                  <Input
+                    value={site.button_color || '#f97316'}
+                    onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
+                    placeholder="#f97316"
+                    className="bg-zinc-800 border-zinc-700 w-32"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSite(prev => ({ ...prev, button_color: null }))}
+                    className="text-zinc-400"
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </div>
+
+              {/* Background Color */}
+              <div className="space-y-2">
+                <Label>Background Color</Label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={site.background_color || '#09090b'}
+                    onChange={(e) => setSite(prev => ({ ...prev, background_color: e.target.value }))}
+                    className="w-12 h-10 rounded cursor-pointer border border-zinc-700 bg-transparent"
+                  />
+                  <Input
+                    value={site.background_color || '#09090b'}
+                    onChange={(e) => setSite(prev => ({ ...prev, background_color: e.target.value }))}
+                    placeholder="#09090b"
+                    className="bg-zinc-800 border-zinc-700 w-32"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSite(prev => ({ ...prev, background_color: null }))}
+                    className="text-zinc-400"
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </div>
+
+              {/* Container Color */}
+              <div className="space-y-2">
+                <Label>Container Color</Label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={site.container_color || '#18181b'}
+                    onChange={(e) => setSite(prev => ({ ...prev, container_color: e.target.value }))}
+                    className="w-12 h-10 rounded cursor-pointer border border-zinc-700 bg-transparent"
+                  />
+                  <Input
+                    value={site.container_color || '#18181b'}
+                    onChange={(e) => setSite(prev => ({ ...prev, container_color: e.target.value }))}
+                    placeholder="#18181b"
+                    className="bg-zinc-800 border-zinc-700 w-32"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSite(prev => ({ ...prev, container_color: null }))}
+                    className="text-zinc-400"
+                  >
+                    Reset
+                  </Button>
+                </div>
+              </div>
+
+              {/* Color Preview */}
+              <div className="mt-4 p-4 rounded-lg border border-zinc-700" style={{ backgroundColor: site.background_color || '#09090b' }}>
+                <p className="text-xs text-zinc-500 mb-2">Color preview:</p>
+                <div className="p-4 rounded-lg" style={{ backgroundColor: site.container_color || '#18181b' }}>
+                  <p className="text-white text-sm mb-2">Container preview</p>
+                  <button
+                    className="px-4 py-2 rounded-lg text-white font-medium transition"
+                    style={{ backgroundColor: site.button_color || '#f97316' }}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
