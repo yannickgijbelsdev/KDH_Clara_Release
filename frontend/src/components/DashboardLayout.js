@@ -481,6 +481,11 @@ const DashboardLayout = () => {
                               >
                                 <Icon className="w-4 h-4" />
                                 <span>{item.label}</span>
+                                {item.tab === 'submissions' && submissionCounts[currentSiteId] > 0 && (
+                                  <span className="ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center bg-orange-500 text-white">
+                                    {submissionCounts[currentSiteId] > 99 ? '99+' : submissionCounts[currentSiteId]}
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
