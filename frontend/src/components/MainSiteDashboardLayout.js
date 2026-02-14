@@ -749,22 +749,28 @@ const MainSiteDashboardLayout = () => {
                   </div>
                 </div>
                 <DropdownMenuSeparator className="bg-zinc-800" />
-                <DropdownMenuItem className="text-zinc-400">
+                <DropdownMenuItem className="text-zinc-400 cursor-default">
                   <RoleIcon className="w-4 h-4 mr-2" />
                   {roleLabels[userRole] || roleLabels[user?.role]}
                 </DropdownMenuItem>
-                {/* Main Sites Switcher */}
-                {myMainSites.length > 1 && (
+                {/* Main Sites Switcher - always show if there are sites */}
+                {myMainSites.length > 0 && (
                   <>
                     <DropdownMenuSeparator className="bg-zinc-800" />
+                    <div className="px-2 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                      Mijn Sites
+                    </div>
                     {myMainSites.map(site => (
                       <DropdownMenuItem
                         key={site.id}
                         onClick={() => navigate(`/${site.slug}`)}
-                        className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800' : ''}`}
+                        className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800/50 text-orange-500' : ''}`}
                       >
                         <Globe className="w-4 h-4 mr-2" />
                         {site.name}
+                        {site.slug === mainSiteSlug && (
+                          <span className="ml-auto text-xs text-zinc-500">actief</span>
+                        )}
                       </DropdownMenuItem>
                     ))}
                   </>
@@ -772,7 +778,7 @@ const MainSiteDashboardLayout = () => {
                 {user?.is_network_admin && (
                   <>
                     <DropdownMenuSeparator className="bg-zinc-800" />
-                    <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-400 focus:text-white focus:bg-zinc-800">
+                    <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer">
                       <Network className="w-4 h-4 mr-2" />
                       Network Admin
                     </DropdownMenuItem>
