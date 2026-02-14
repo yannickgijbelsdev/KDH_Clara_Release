@@ -417,6 +417,63 @@ const MainSiteDashboardLayout = () => {
     );
   };
 
+  // Render flat navigation (no groups)
+  const renderFlatNavigation = () => {
+    // Flatten all nav items from all groups
+    const allItems = navGroups.flatMap(group => group.items || []);
+    
+    return (
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        {/* Back button when in site context */}
+        {isInSiteContext && (
+          <button
+            onClick={() => navigate(`/${mainSiteSlug}/sites`)}
+            className="flex items-center gap-2 px-3 py-2 mb-4 text-zinc-400 hover:text-white transition-colors w-full"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="text-sm">Back to Sites</span>
+          </button>
+        )}
+
+        {/* Site context navigation */}
+        {isInSiteContext && currentSite && (
+          <div className="mb-4 space-y-1">
+            {getSiteNavGroup(currentSite).items.map(item => renderGroupedNavItem(item, false))}
+          </div>
+        )}
+
+        {/* All navigation items flat */}
+        <div className="space-y-1">
+          {allItems.map(item => renderGroupedNavItem(item, false))}
+        </div>
+        
+        {/* Sites submenu */}
+        {sites.length > 0 && !isInSiteContext && (
+          <div className="mt-4 pt-4 border-t border-zinc-800 space-y-1">
+            <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Sites</div>
+            {sites.map(site => (
+              <NavLink
+                key={site.id}
+                to={`/${mainSiteSlug}/sites/${site.id}`}
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                    isActive
+                      ? 'bg-orange-500/10 text-orange-500'
+                      : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                  }`
+                }
+              >
+                <Globe className="h-4 w-4" />
+                <span className="truncate">{site.name}</span>
+              </NavLink>
+            ))}
+          </div>
+        )}
+      </nav>
+    );
+  };
+
   // Render grouped navigation
   const renderGroupedNavigation = () => {
     const groupsToRender = isInSiteContext && currentSite
@@ -441,9 +498,9 @@ const MainSiteDashboardLayout = () => {
             key={group.id}
             open={expandedGroups.includes(group.id)}
             onOpenChange={() => toggleGroup(group.id)}
-            className="mb-2"
+            className="mb-3"
           >
-            <CollapsibleTrigger className="flex items-center gap-2 px-3 py-2 w-full text-left text-zinc-500 hover:text-zinc-300 transition-colors">
+            <CollapsibleTrigger className="flex items-center gap-2 px-3 py-2.5 w-full text-left text-zinc-500 hover:text-zinc-300 transition-colors">
               <group.icon className="h-4 w-4" />
               <span className="flex-1 text-xs font-semibold uppercase tracking-wider">{group.label}</span>
               {expandedGroups.includes(group.id) ? (
@@ -452,7 +509,7 @@ const MainSiteDashboardLayout = () => {
                 <ChevronRight className="h-4 w-4" />
               )}
             </CollapsibleTrigger>
-            <CollapsibleContent className="ml-2 space-y-1">
+            <CollapsibleContent className="ml-2 space-y-1 mt-1">
               {group.items.map(item => renderGroupedNavItem(item, true))}
               
               {/* Sites submenu */}
@@ -464,7 +521,7 @@ const MainSiteDashboardLayout = () => {
                       to={`/${mainSiteSlug}/sites/${site.id}`}
                       onClick={closeSidebar}
                       className={({ isActive }) =>
-                        `flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors ${
+                        `flex items-center gap-2 px-2 py-2 rounded text-xs transition-colors ${
                           isActive
                             ? 'bg-orange-500/10 text-orange-500'
                             : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
