@@ -27,6 +27,9 @@ class SiteUpdate(BaseModel):
     # Logo
     logo_url: Optional[str] = None
     
+    # Header image (shows above audio player if no video)
+    header_image_url: Optional[str] = None
+    
     # Audio settings
     audio_enabled: Optional[bool] = None
     audio_type: Optional[str] = None  # "stream" or "file"
