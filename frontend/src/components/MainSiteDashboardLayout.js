@@ -375,7 +375,11 @@ const MainSiteDashboardLayout = () => {
       return (
         <button
           key={item.tab}
-          onClick={() => setSiteTab(item.tab)}
+          onClick={() => {
+            setSiteTab(item.tab);
+            window.dispatchEvent(new CustomEvent('siteTabChange', { detail: item.tab }));
+          }}
+          data-testid={`site-nav-${item.tab}`}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors w-full text-left ${
             isActive
               ? 'bg-orange-500/10 text-orange-500'
