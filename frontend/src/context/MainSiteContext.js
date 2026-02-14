@@ -24,6 +24,35 @@ export const MainSiteProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const interceptorRef = useRef(null);
+
+  // Setup axios interceptor to add X-Main-Site-ID header to all requests
+  useEffect(() => {
+    // Remove previous interceptor if it exists
+    if (interceptorRef.current !== null) {
+      axios.interceptors.request.eject(interceptorRef.current);
+    }
+
+    // Add new interceptor when mainSite is available
+    if (mainSite?.id) {
+      interceptorRef.current = axios.interceptors.request.use(
+        (config) => {
+          // Add main site ID header to all API requests
+          config.headers['X-Main-Site-ID'] = mainSite.id;
+          return config;
+        },
+        (error) => Promise.reject(error)
+      );
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (interceptorRef.current !== null) {
+        axios.interceptors.request.eject(interceptorRef.current);
+        interceptorRef.current = null;
+      }
+    };
+  }, [mainSite?.id]);
 
   const fetchMainSite = useCallback(async () => {
     if (!mainSiteSlug || !token) {
