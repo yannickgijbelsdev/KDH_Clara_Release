@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
-  UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2
+  UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
+  ArrowLeft, Send
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
