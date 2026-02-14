@@ -12,6 +12,7 @@ import { Label } from '../../components/ui/label';
 import { Switch } from '../../components/ui/switch';
 import { Slider } from '../../components/ui/slider';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -40,13 +41,10 @@ export default function SiteDashboard() {
   const fetchSite = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${API}/api/sites/${siteId}`, {
+      const res = await axios.get(`${API}/api/sites/${siteId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) {
-        const data = await res.json();
-        setSite(data);
-      }
+      setSite(res.data);
     } catch (error) {
       console.error('Error fetching site:', error);
     } finally {
