@@ -313,7 +313,7 @@ export default function SiteDashboard() {
         <div className="flex items-center gap-4">
           {site.logo_url && (
             <img 
-              src={`${API}${site.logo_url}`} 
+              src={site.logo_url.startsWith('http') ? site.logo_url : `${API}${site.logo_url}`}
               alt={site.name}
               className="h-12 w-12 rounded-lg object-cover"
             />
