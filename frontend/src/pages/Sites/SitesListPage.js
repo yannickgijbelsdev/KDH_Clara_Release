@@ -215,12 +215,15 @@ export default function SitesListPage() {
                     <div>
                       <h3 className="font-semibold text-white">{site.name}</h3>
                       <a 
-                        href={`${window.location.origin}/${site.slug}`}
+                        href={mainSiteSlug 
+                          ? `${window.location.origin}/${mainSiteSlug}/${site.slug}`
+                          : `${window.location.origin}/${site.slug}`
+                        }
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-orange-400 hover:text-orange-300 flex items-center gap-1"
                       >
-                        /{site.slug}
+                        {mainSiteSlug ? `/${mainSiteSlug}/${site.slug}` : `/${site.slug}`}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </div>
