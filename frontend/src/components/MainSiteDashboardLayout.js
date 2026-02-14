@@ -601,8 +601,8 @@ const MainSiteDashboardLayout = () => {
             </DropdownMenu>
           </div>
 
-          {/* Navigation */}
-          {renderGroupedNavigation()}
+          {/* Navigation - respects user's menu preference */}
+          {useGroupedMenu ? renderGroupedNavigation() : renderFlatNavigation()}
 
           {/* User section */}
           <div className="p-4 border-t border-zinc-800">
