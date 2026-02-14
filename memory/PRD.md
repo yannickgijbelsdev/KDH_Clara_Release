@@ -1457,3 +1457,53 @@ clara.koodh.com/
 - [x] **System dependency ffmpeg** - Reinstalled for audio trigger functionality
 
 
+### February 14, 2026 - Critical Data Isolation Bug Fix (P0)
+
+**Problem:** Newly created Main Sites incorrectly inherited all content from existing Main Sites. A new site "DBNT" showed all 416 shows, 3 media items, etc. from "Radiogroep MFY/GRK" instead of being empty.
+
+**Root Cause:** The backend routers filtered content only by `team_id`, but in a multisite architecture each Main Site must have its own isolated content. The `main_site_id` was not being stored or filtered.
+
+**Solution:** Implemented `X-Main-Site-ID` header-based filtering across all content API endpoints.
+
+#### Backend Changes
+- **New Service: `/app/backend/services/main_site_context.py`**
+  - `get_main_site_id_from_header()` - Extract X-Main-Site-ID from request
+  - `get_required_main_site_id()` - Same but raises 400 if missing
+  - `validate_main_site_access()` - Verify user has access to main site
+  - `get_main_site_filter()` - Get MongoDB filter dict for main site
+
+- **Updated Routers with main_site_id support:**
+  - `/app/backend/routers/shows.py` - GET/POST shows, show_titles, studios
+  - `/app/backend/routers/media.py` - GET/POST media assets
+  - `/app/backend/routers/content.py` - GET/POST content items, categories
+  - `/app/backend/routers/series.py` - GET/POST show series
+  - `/app/backend/routers/occurrences.py` - GET/POST occurrences
+  - `/app/backend/routers/folders.py` - GET/POST media folders
+
+- **New Migration Endpoint:**
+  - `POST /api/main-sites/migrate-content/{main_site_id}` - Migrate existing team content to a main site
+  - Updates all content collections: shows, show_titles, studios, media_assets, content_items, categories, series
+
+#### Frontend Changes
+- **Updated: `/app/frontend/src/context/MainSiteContext.js`**
+  - Added axios interceptor that automatically adds `X-Main-Site-ID` header to all API requests
+  - Uses `useRef` to properly manage interceptor lifecycle
+  - Header is added only when a main site is selected
+
+- **Minor Fix: `/app/frontend/src/components/MainSiteDashboardLayout.js`**
+  - Fixed double slash in mobile nav routes (`/dbnt//dbnt/shows` → `/dbnt/shows`)
+  - Changed "Network Beheer" to "Network Management" in user dropdown
+
+#### Test Results
+- **Backend:** 21/21 tests passed (100% success rate)
+- **Frontend:** All UI features verified working
+- **Data Isolation Verified:**
+  - Radiogroep: 416 shows, 3 media items (existing content)
+  - DBNT: 0 shows, 0 media items (new empty site)
+
+#### New Test Files Created
+- `/app/backend/tests/test_data_isolation.py` - Comprehensive data isolation tests
+- `/app/backend/scripts/migrate_to_multisite.py` - Standalone migration script
+
+
+
