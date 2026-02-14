@@ -143,13 +143,13 @@ export default function PublicSitePage() {
     const newFiles = [];
     
     for (const file of files) {
-      const formData = new FormData();
-      formData.append('file', file);
+      const formDataObj = new FormData();
+      formDataObj.append('file', file);
       
       try {
-        const res = await fetch(`${API}/api/sites/public/${slug}/upload-file`, {
+        const res = await fetch(`${API}${apiPath}/upload-file`, {
           method: 'POST',
-          body: formData
+          body: formDataObj
         });
         
         if (res.ok) {
@@ -161,10 +161,10 @@ export default function PublicSitePage() {
           });
         } else {
           const err = await res.json();
-          toast.error(err.detail || `Fout bij uploaden: ${file.name}`);
+          toast.error(err.detail || `Upload error: ${file.name}`);
         }
       } catch (err) {
-        toast.error(`Fout bij uploaden: ${file.name}`);
+        toast.error(`Upload error: ${file.name}`);
       }
     }
     
