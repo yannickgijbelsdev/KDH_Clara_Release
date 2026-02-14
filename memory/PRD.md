@@ -1531,3 +1531,45 @@ clara.koodh.com/
 
 
 
+
+### February 14, 2026 - Extended Multisite Data Isolation (P0)
+
+**Problem:** User reported that Team Settings, WordPress, and Activity Logs were still showing shared data from Radiogroep MFY/GRK in the new DBNT Studio site.
+
+**Root Cause:** The previous data isolation fix only covered core content types (Shows, Media, Content). Other sections like Teams, WordPress Sites, Audit Logs, and Users were not filtering by `main_site_id`.
+
+**Solution:** Extended the `main_site_id` filtering to all remaining routers and performed a data migration.
+
+#### Backend Changes
+- **Updated `/app/backend/routers/teams.py`:**
+  - Added `Request` parameter and `get_main_site_id_from_header()` to GET/PUT endpoints
+  - Team settings are now isolated per main_site_id
+
+- **Updated `/app/backend/routers/wordpress.py`:**
+  - Added `main_site_id` filtering to all WordPress site CRUD operations
+  - New WordPress sites are stored with `main_site_id`
+  - Query filtering in GET/PUT/DELETE endpoints
+
+- **Updated `/app/backend/routers/logs.py`:**
+  - Added `main_site_id` filtering to all audit log endpoints
+  - Stats, archive dates, archive logs, and users filter endpoints all updated
+
+- **Updated `/app/backend/routers/users.py`:**
+  - GET /api/users now filters by users who have access to the current main_site
+  - POST /api/users/invite now also creates main_site_users access record
+
+- **Updated `/app/backend/services/audit.py`:**
+  - Added `main_site_id` parameter to `log_action()` function
+  - New audit logs are stored with the main_site_id context
+
+#### Data Migration
+- Ran migration script to add `main_site_id` to existing records:
+  - 2 WordPress sites migrated to Radiogroep main_site_id
+  - 842 audit logs migrated to Radiogroep main_site_id
+
+#### Verification Results (All Passing)
+- **WordPress Sites:** Radiogroep shows 2 sites (MFY, GRK), DBNT shows 0 sites ✅
+- **Activity Logs:** Radiogroep shows 842 logs, DBNT shows 0 logs ✅
+- **Team Members:** Radiogroep shows 2 members, DBNT shows 1 member ✅
+- **Log Stats:** Properly isolated per main_site ✅
+
