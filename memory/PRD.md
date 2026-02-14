@@ -1444,4 +1444,16 @@ clara.koodh.com/
 - Mini Sites: "MFY Ochtendshow", "GRK Middagshow"
 - Test user (test@test.com) set as network admin
 
+### February 14, 2026 - Multisite Bug Verification
+- [x] **Personal Settings Page** - Verified working correctly within MainSiteDashboardLayout
+  - Profile section shows user info correctly
+  - Navigation Display toggle works
+  - Save Settings saves preferences with toast confirmation
+- [x] **Network Admin Dashboard** - Works correctly for network admins
+- [x] **Site Selector** - Shows correctly for users with multiple main sites
+- [x] **Site Switcher Dropdown** - Works in sidebar for switching between sites
+- [x] **Role-based Access** - admin/editor/presenter/viewer roles work correctly
+- [x] **Auto-redirect** - Works when user has only 1 main site access
+- [x] **System dependency ffmpeg** - Reinstalled for audio trigger functionality
+
 
