@@ -1181,3 +1181,32 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
   - File: `SiteDashboard.js` lines 29-34 (event listener)
 
 - [x] **Testing**: All 9 navigation features tested with 100% success rate
+
+
+### February 14, 2026 - Sites Feature Enhancements
+- [x] **S3 Uploads for Site Assets**:
+  - Logo, header image, and audio files now upload to S3
+  - Fallback to local storage if S3 is not configured
+  - URL handling supports both S3 (http://) and local paths
+  - Files: `backend/routers/sites.py` lines 221-372 (upload endpoints)
+
+- [x] **Dynamic Browser Tab Titles**:
+  - Main pages: "Clara | [Team Name]"
+  - Site dashboard: "Clara | [Site Name]"
+  - Public pages: "[Site Name]" (no prefix)
+  - Files: `DashboardLayout.js` lines 203-212, `PublicSitePage.js` line 40
+
+- [x] **Dropdown Menu Cleanup**:
+  - Sites header with Globe icon
+  - Individual sites with Home icon (same as team)
+  - Proper alignment with pl-8 indentation
+  - File: `DashboardLayout.js` lines 658-686
+
+- [x] **Header Image for Public Pages**:
+  - New "Header Afbeelding" section in Media tab
+  - Upload endpoint: `POST /api/sites/{id}/header`
+  - Shows above audio player (only if video is disabled)
+  - Model field: `header_image_url` added to Site
+  - Files: `SiteDashboard.js` lines 439-479, `PublicSitePage.js` lines 287-295, `backend/models/sites.py`
+
+- [x] **Testing**: All 11 backend tests passed, all frontend features verified (100% success rate)
