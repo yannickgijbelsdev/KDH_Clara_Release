@@ -437,13 +437,13 @@ export default function PublicSitePage() {
 
         {/* Contact Form */}
         {site?.form_enabled && (
-          <div className="bg-zinc-900 rounded-xl p-5 border border-zinc-800 mt-4 mb-6">
+          <div className="rounded-xl p-5 border border-zinc-800 mt-4 mb-6" style={{ backgroundColor: containerColor }}>
             <h2 className="text-lg font-bold text-white mb-3">Neem contact op</h2>
             
             {submitted ? (
               <div className="text-center py-6">
-                <div className="h-14 w-14 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Send className="h-7 w-7 text-green-500" />
+                <div className="h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: `${buttonColor}33` }}>
+                  <Send className="h-7 w-7" style={{ color: buttonColor }} />
                 </div>
                 <p className="text-white font-medium">Bedankt voor je bericht!</p>
                 <p className="text-zinc-400 mt-1 text-sm">We nemen zo snel mogelijk contact op.</p>
@@ -462,7 +462,8 @@ export default function PublicSitePage() {
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
                         rows={3}
-                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none focus:border-orange-500"
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none"
+                        style={{ '--tw-ring-color': buttonColor }}
                       />
                     ) : (
                       <Input
