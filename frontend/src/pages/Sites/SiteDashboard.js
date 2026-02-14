@@ -153,6 +153,30 @@ export default function SiteDashboard() {
     }
   };
 
+  const handleHeaderImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/api/sites/${siteId}/header`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSite(prev => ({ ...prev, header_image_url: data.header_image_url }));
+        toast.success('Header afbeelding geüpload');
+      }
+    } catch (error) {
+      toast.error('Fout bij uploaden header afbeelding');
+    }
+  };
+
   const handleAudioUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
