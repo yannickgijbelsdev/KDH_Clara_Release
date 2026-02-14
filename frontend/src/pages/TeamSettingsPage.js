@@ -89,6 +89,7 @@ const roleLabels = {
 
 const TeamSettingsPage = () => {
   const { user, isAdmin, switchToUser } = useAuth();
+  const { mainSite } = useMainSite();
   const navigate = useNavigate();
   const [team, setTeam] = useState(null);
   const [users, setUsers] = useState([]);
