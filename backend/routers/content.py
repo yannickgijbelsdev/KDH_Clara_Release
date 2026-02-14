@@ -579,12 +579,15 @@ async def permanent_delete_content_item(
     request: Request,
     current_user: dict = Depends(require_admin)
 ):
-    """Admin: Permanently delete a soft-deleted content item."""
-    content = await db.content_items.find_one({
-        "id": content_id, 
-        "team_id": current_user.get('team_id'),
-        "deleted_at": {"$exists": True}
-    })
+    """Admin: Permanently delete a soft-deleted content item, with main_site_id isolation."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"id": content_id, "main_site_id": main_site_id, "deleted_at": {"$exists": True}}
+    else:
+        query = {"id": content_id, "team_id": current_user.get('team_id'), "deleted_at": {"$exists": True}}
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Deleted content item not found")
     
