@@ -1331,3 +1331,117 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
     - "can't help" → "Can't Help" ✅
     - "livin' la vida" → "Livin' La Vida" ✅
 
+
+### February 14, 2026 - Multisite Architecture Implementation
+
+**Major Feature: WordPress-style Multisite Architecture**
+
+This feature introduces a hierarchical organization structure similar to WordPress Multisite, allowing the management of multiple main sites (organizations) with nested mini sites.
+
+#### Architecture Overview
+```
+clara.koodh.com/
+├── (root)                        → Network Admin Dashboard (for network admins)
+│                                 → Site Selector (for regular users)
+├── /radiogroep/                  → Main Site Dashboard (configurable features)
+│   ├── /radiogroep/shows
+│   ├── /radiogroep/sites
+│   ├── /radiogroep/mfy-ochtendshow/  → Public Mini Site
+│   └── /radiogroep/grk-middagshow/   → Public Mini Site
+└── /network                      → Network Admin (manage all main sites)
+```
+
+#### Backend Changes
+- **New Model: `main_sites.py`**
+  - `MainSite`: id, name, slug, description, logo_url, enabled_features
+  - `MainSiteUser`: Links users to main sites with roles (admin/editor/presenter/viewer)
+  - `AVAILABLE_FEATURES`: 15 configurable features grouped by category
+
+- **New Router: `main_sites.py`**
+  - `GET /api/main-sites`: List all main sites (filtered by user access)
+  - `POST /api/main-sites`: Create main site (network admin only)
+  - `GET /api/main-sites/{id}`: Get main site details
+  - `GET /api/main-sites/by-slug/{slug}`: Get main site by URL slug
+  - `PUT /api/main-sites/{id}`: Update main site settings
+  - `DELETE /api/main-sites/{id}`: Delete main site
+  - `GET /api/main-sites/{id}/users`: List main site users
+  - `POST /api/main-sites/{id}/users`: Add user to main site
+  - `PUT/DELETE /api/main-sites/{id}/users/{user_id}`: Manage user access
+  - `GET /api/main-sites/{id}/sites`: List mini sites within main site
+  - `GET /api/main-sites/my/access`: Get current user's accessible main sites
+  - `GET /api/main-sites/features`: List all available features
+
+- **Updated Models:**
+  - `auth.py`: Added `is_network_admin` field to UserResponse
+  - `sites.py`: Added `main_site_id` to SiteCreate/SiteResponse
+
+- **Updated Router: `sites.py`**
+  - New multisite public endpoints:
+    - `GET /api/sites/public/{main_site_slug}/{site_slug}`
+    - `POST /api/sites/public/{main_site_slug}/{site_slug}/verify-password`
+    - `POST /api/sites/public/{main_site_slug}/{site_slug}/submit`
+    - `POST /api/sites/public/{main_site_slug}/{site_slug}/upload-file`
+
+#### Frontend Changes
+- **New Context: `MainSiteContext.js`**
+  - Manages current main site state
+  - Provides `hasFeature()`, `hasPermission()`, `isAdmin()` helpers
+
+- **New Pages:**
+  - `NetworkDashboard.js`: Overview of all main sites with create/edit/delete
+  - `MainSiteSelector.js`: Site selector for non-network-admin users
+
+- **New Layout: `MainSiteDashboardLayout.js`**
+  - Dynamic sidebar based on enabled features
+  - Main site dropdown switcher
+  - User profile dropdown
+
+- **Updated Routing (`App.js`):**
+  - `/`: Network Dashboard (admins) or Site Selector (users)
+  - `/network`: Network Admin Dashboard
+  - `/:mainSiteSlug/*`: Main Site Dashboard with nested routes
+  - `/:mainSiteSlug/:siteSlug`: Public mini site page
+  - `/legacy/*`: Legacy routes for backward compatibility
+
+- **Updated Pages:**
+  - `SitesListPage.js`: Works with main site context
+  - `PublicSitePage.js`: Supports both legacy and multisite URLs
+
+#### Available Features (15 total)
+1. **Shows Group:** shows, calendar, show_management
+2. **Content Group:** content_library, media_library, content_approval, trash
+3. **Communication Group:** team_chat
+4. **Streaming Group:** rds_settings, rds_builder, stream_monitor
+5. **Sites Group:** sites
+6. **Admin Group:** team_settings, wordpress, activity_logs
+
+#### Access Control
+- **Network Admin (`is_network_admin: true`):** Full access to all main sites
+- **Main Site Admin:** Full access within assigned main site
+- **Editor/Presenter/Viewer:** Role-based access within main site
+
+#### Files Created
+- `/app/backend/models/main_sites.py`
+- `/app/backend/routers/main_sites.py`
+- `/app/frontend/src/context/MainSiteContext.js`
+- `/app/frontend/src/pages/Network/NetworkDashboard.js`
+- `/app/frontend/src/pages/Network/MainSiteSelector.js`
+- `/app/frontend/src/components/MainSiteDashboardLayout.js`
+
+#### Files Modified
+- `/app/backend/server.py` - Added main_sites_router
+- `/app/backend/models/auth.py` - Added is_network_admin
+- `/app/backend/models/sites.py` - Added main_site_id
+- `/app/backend/services/auth.py` - Added require_network_admin
+- `/app/backend/routers/auth.py` - Include is_network_admin in responses
+- `/app/backend/routers/sites.py` - Multisite public endpoints + main_site_id in create
+- `/app/frontend/src/App.js` - New routing structure
+- `/app/frontend/src/pages/Sites/SitesListPage.js` - Main site context support
+- `/app/frontend/src/pages/Sites/PublicSitePage.js` - Multisite URL support
+
+#### Test Data Created
+- Main Site: "Radiogroep MFY/GRK" (slug: "radiogroep")
+- Mini Sites: "MFY Ochtendshow", "GRK Middagshow"
+- Test user (test@test.com) set as network admin
+
+
