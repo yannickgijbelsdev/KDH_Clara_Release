@@ -42,6 +42,7 @@ from routers.rds import rds_router
 from routers.rds_builder import rds_builder_router
 from routers.stream_proxy import stream_proxy_router
 from routers.audio_trigger import audio_trigger_router
+from routers.sites import sites_router
 from routers.wordpress import publish_content_to_wordpress
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
