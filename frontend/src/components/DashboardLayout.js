@@ -132,7 +132,7 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState(['shows', 'content']);
+  const [expandedGroups, setExpandedGroups] = useState(['shows', 'content', 'site']);
   const [menuCounts, setMenuCounts] = useState({});
   const [sites, setSites] = useState([]);
   const [currentSite, setCurrentSite] = useState(null);
