@@ -1252,3 +1252,47 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## Future Tasks (P2)
 - **Stream Monitor VU Meters** - Implement functional VU meters (blocked by browser security, needs WebSocket proxy)
+
+### February 14, 2026 - Sites Feature Updates (Phase 4)
+- [x] **Bijlagen Zichtbaar in Inzendingen**:
+  - Geüploade bestanden worden nu getoond in de inzendingen view
+  - Afbeeldingen tonen als thumbnails (klikbaar)
+  - Audio/video bestanden tonen als links met iconen
+  - Files: `SiteDashboard.js` lines 971-1017
+
+- [x] **Speaker Icon Hover Kleur**:
+  - Volume/mute icon krijgt button_color bij hover
+  - Gebruikt onMouseEnter/onMouseLeave voor smooth transition
+  - File: `PublicSitePage.js` lines 406-410
+
+- [x] **Achtergrond Kleur Configureerbaar**:
+  - Nieuwe kleurenkiezer voor pagina achtergrond
+  - Default: #09090b (donker)
+  - Model field: `background_color` (str, nullable)
+  - Files: `SiteDashboard.js` (Form tab), `PublicSitePage.js`
+
+- [x] **Kader Kleur Configureerbaar**:
+  - Aparte kleur voor containers/kaders
+  - Default: #18181b (iets lichter donker)
+  - Model field: `container_color` (str, nullable)
+  - Toegepast op audio player en contactformulier
+  - Files: `SiteDashboard.js`, `PublicSitePage.js`
+
+- [x] **Voorbeeld Kleuren Preview**:
+  - Gecombineerde preview van alle 3 kleuren in Form tab
+  - Toont achtergrond, kader en knop samen
+
+- [x] **Auto-Refresh Inzendingen**:
+  - Polling elke 10 seconden op inzendingen tab
+  - Toast notificatie bij nieuwe inzendingen
+  - Geen page reload nodig
+  - File: `SiteDashboard.js` (submissionsPollingRef)
+
+- [x] **Counter Badges voor Inzendingen**:
+  - Badge in sidebar toont aantal ongelezen inzendingen
+  - Badge verdwijnt na bekijken tab (mark-viewed)
+  - Polling elke 15 seconden voor badge updates
+  - New endpoints: `/api/sites/{id}/submissions/count`, `/api/sites/{id}/submissions/mark-viewed`
+  - Files: `DashboardLayout.js` (submissionCounts), `backend/routers/sites.py`
+
+- [x] **Testing**: 17/17 backend tests passed, all 11 frontend features verified (100% success rate)
