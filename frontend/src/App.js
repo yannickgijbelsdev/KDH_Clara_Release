@@ -1,9 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { MainSiteProvider } from './context/MainSiteContext';
 import { Toaster } from './components/ui/sonner';
 import SessionWarningModal from './components/SessionWarningModal';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
+import MainSiteDashboardLayout from './components/MainSiteDashboardLayout';
+import NetworkDashboard from './pages/Network/NetworkDashboard';
+import MainSiteSelector from './pages/Network/MainSiteSelector';
 import ShowsPage from './pages/ShowsPage';
 import ShowDetailPage from './pages/ShowDetailPage';
 import CalendarPage from './pages/CalendarPage';
