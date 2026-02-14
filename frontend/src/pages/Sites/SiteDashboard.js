@@ -592,7 +592,7 @@ export default function SiteDashboard() {
                     />
                     <div className="flex items-center gap-2">
                       <Upload className="h-4 w-4" />
-                      <span>Bestand uploaden</span>
+                      <span>Upload file</span>
                     </div>
                   </label>
                 </div>
@@ -631,7 +631,7 @@ export default function SiteDashboard() {
 
                 {site.audio_type === 'file' && (
                   <div>
-                    <Label>Audio bestand</Label>
+                    <Label>Audio file</Label>
                     <label className="mt-2 cursor-pointer block">
                       <input
                         type="file"
@@ -641,12 +641,12 @@ export default function SiteDashboard() {
                       />
                       <div className="flex items-center gap-2 px-4 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-600">
                         <Upload className="h-4 w-4" />
-                        <span>{site.audio_url ? 'Ander bestand uploaden' : 'MP3 of AAC uploaden'}</span>
+                        <span>{site.audio_url ? 'Upload different file' : 'Upload MP3 or AAC'}</span>
                       </div>
                     </label>
                     {site.audio_url && (
                       <p className="mt-2 text-sm text-zinc-400">
-                        Huidig bestand: {site.audio_url.split('/').pop()}
+                        Current file: {site.audio_url.split('/').pop()}
                       </p>
                     )}
                   </div>
