@@ -471,8 +471,8 @@ export default function SiteDashboard() {
                 <div className="flex items-center gap-3">
                   <Lock className="h-5 w-5 text-zinc-400" />
                   <div>
-                    <p className="text-white font-medium">Wachtwoordbeveiliging</p>
-                    <p className="text-sm text-zinc-400">Bezoekers moeten een wachtwoord invoeren</p>
+                    <p className="text-white font-medium">Password Protection</p>
+                    <p className="text-sm text-zinc-400">Visitors must enter a password</p>
                   </div>
                 </div>
                 <Switch
@@ -483,13 +483,13 @@ export default function SiteDashboard() {
 
               {site.password_protected && (
                 <div>
-                  <Label>Wachtwoord</Label>
+                  <Label>Password</Label>
                   <div className="relative">
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       value={site.password || ''}
                       onChange={(e) => setSite(prev => ({ ...prev, password: e.target.value }))}
-                      placeholder="Nieuw wachtwoord instellen"
+                      placeholder="Set new password"
                       className="bg-zinc-800 border-zinc-700 pr-10"
                     />
                     <button
@@ -515,8 +515,8 @@ export default function SiteDashboard() {
             <div className="flex items-center gap-3 mb-4">
               <ImageIcon className="h-5 w-5 text-orange-400" />
               <div>
-                <h2 className="text-lg font-semibold text-white">Header Afbeelding</h2>
-                <p className="text-sm text-zinc-400">Wordt getoond boven de audio player (als er geen video is)</p>
+                <h2 className="text-lg font-semibold text-white">Header Image</h2>
+                <p className="text-sm text-zinc-400">Displayed above the audio player (if no video)</p>
               </div>
             </div>
             
