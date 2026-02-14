@@ -111,9 +111,25 @@ export const MainSiteProvider = ({ children }) => {
     }
   }, [mainSiteSlug, token]);
 
+  // Clear interceptor and state when mainSiteSlug changes (before fetching new site)
   useEffect(() => {
+    // Clear the interceptor immediately when slug changes
+    // This prevents the old site's ID from being sent during the transition
+    setupInterceptor(interceptorRef, null);
+    setMainSite(null);
+    setLoading(true);
+    setError(null);
+    
+    // Fetch the new main site
     fetchMainSite();
-  }, [fetchMainSite]);
+  }, [mainSiteSlug]); // Only depend on mainSiteSlug, not fetchMainSite
+
+  // Also fetch when token changes (but don't reset state)
+  useEffect(() => {
+    if (token && mainSiteSlug && !mainSite) {
+      fetchMainSite();
+    }
+  }, [token]);
 
   // Check if a feature is enabled
   const hasFeature = useCallback((featureId) => {
