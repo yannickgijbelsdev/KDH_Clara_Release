@@ -290,7 +290,7 @@ export default function NetworkDashboard() {
         if (!open) {
           setShowCreateDialog(false);
           setEditingSite(null);
-          setFormData({ name: '', slug: '', description: '', enabled_features: [] });
+          setFormData({ name: '', slug: '', enabled_features: [] });
         }
       }}>
         <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[90vh] overflow-y-auto">
