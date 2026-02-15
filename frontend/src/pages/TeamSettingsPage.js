@@ -535,7 +535,9 @@ const TeamSettingsPage = () => {
                               try {
                                 await switchToUser(member.id);
                                 toast.success(`Switched to ${member.name}'s account`);
-                                navigate('/shows');
+                                // Navigate to shows page within current main site context
+                                const slug = mainSite?.slug || '';
+                                navigate(slug ? `/${slug}/shows` : '/shows');
                               } catch (error) {
                                 toast.error('Failed to switch user');
                               }
