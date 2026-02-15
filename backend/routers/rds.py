@@ -7,7 +7,7 @@ import uuid
 
 from database import db
 from services.auth import get_current_user, require_admin
-from routers.main_sites import get_main_site_id_from_header
+from services.main_site_context import get_main_site_id_from_header
 
 rds_router = APIRouter(prefix="/rds", tags=["RDS Integration"])
 
