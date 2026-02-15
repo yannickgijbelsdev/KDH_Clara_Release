@@ -299,6 +299,29 @@ export default function SitesListPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, siteId: null, siteName: '' })}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Site verwijderen</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              Weet je zeker dat je "{deleteDialog.siteName}" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+              Annuleren
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => deleteSite(deleteDialog.siteId)}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
