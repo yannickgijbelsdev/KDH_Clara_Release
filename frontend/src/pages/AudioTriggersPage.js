@@ -583,14 +583,18 @@ const AudioTriggersPage = () => {
   };
 
   const handleDelete = async (triggerId) => {
-    if (!window.confirm('Delete this audio trigger?')) return;
     try {
       await axios.delete(`${API}/audio-triggers/${triggerId}`);
       toast.success('Trigger deleted');
+      setDeleteDialog({ open: false, triggerId: null, triggerName: '' });
       fetchTriggers();
     } catch (error) {
       toast.error('Could not delete trigger');
     }
+  };
+
+  const handleDeleteClick = (triggerId, triggerName) => {
+    setDeleteDialog({ open: true, triggerId, triggerName });
   };
 
   const handleTest = async (triggerId, action) => {
