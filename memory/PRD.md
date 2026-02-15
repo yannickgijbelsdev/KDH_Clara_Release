@@ -1247,6 +1247,28 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 - [x] **Testing**: 16/16 backend tests passed, all 9 frontend features verified (100% success rate)
 
+### February 15, 2026 - UI Polish & Generalization
+- [x] **Login Page Generalization**:
+  - Changed hero text from "Plan Your Radio Shows Like a Pro" to "Manage Your Network With Ease"
+  - Updated subtitle to be more generic ("all-in-one dashboard" instead of "radio professionals")
+  - Changed sign-in text from "access your shows" to "access your dashboard"
+  - Replaced radio studio background image with abstract purple gradient waves
+  - Image: https://images.unsplash.com/photo-1654198340681-a2e0fc449f1b
+  
+- [x] **Browser Tab Title**:
+  - Changed from "Clara | Koodh Radio" to "Clara | Network"
+  - File: `frontend/public/index.html`
+  
+- [x] **Create Main Site Dialog - English Placeholders**:
+  - Changed "Mijn Radio Station" placeholder to "My Awesome Project"
+  - Changed "mijn-station" placeholder to "my-awesome-project"
+  - File: `frontend/src/pages/Network/NetworkDashboard.js`
+  
+- [x] **Network Dashboard AlertDialog**:
+  - Replaced window.confirm for delete main site with styled AlertDialog
+  - Consistent with AlertDialog pattern used elsewhere in the app
+  - File: `frontend/src/pages/Network/NetworkDashboard.js`
+
 ## Upcoming Tasks (P1)
 - **Configurable "Stale Now Playing" Timeout** - Make the 15-minute timeout in shoutcast_service.py configurable via API and UI
 
