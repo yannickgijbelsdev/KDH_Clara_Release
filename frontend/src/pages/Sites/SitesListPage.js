@@ -237,7 +237,7 @@ export default function SitesListPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => deleteSite(site.id)}
+                  onClick={() => handleDeleteClick(site.id, site.name)}
                   className="text-red-400 hover:text-red-300"
                 >
                   <Trash2 className="h-4 w-4" />
