@@ -607,7 +607,7 @@ const RDSSchedulerPage = () => {
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
           <Button
             variant="outline"
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             className="border-red-500/50 text-red-400 hover:bg-red-500/10"
           >
             <Trash2 className="w-4 h-4 mr-2" />
@@ -615,6 +615,29 @@ const RDSSchedulerPage = () => {
           </Button>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Scheduled Text</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              Are you sure you want to delete this scheduled text? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
