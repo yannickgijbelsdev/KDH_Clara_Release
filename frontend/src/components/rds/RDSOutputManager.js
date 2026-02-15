@@ -304,6 +304,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
 const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const copyUrl = () => {
     const url = `https://clara.koodh.com/api/rds-builder/output/${station}/${output.slug}.txt`;
@@ -314,12 +315,11 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(`Are you sure you want to delete '${output.name}'?`)) return;
-    
     setDeleting(true);
     try {
       await axios.delete(`${API}/rds-builder/outputs/${station}/${output.slug}`);
       toast.success('Output deleted');
+      setShowDeleteDialog(false);
       onRefresh();
     } catch (error) {
       toast.error('Could not delete output');
