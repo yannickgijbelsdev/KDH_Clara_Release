@@ -92,6 +92,7 @@ const ContentDetailPage = () => {
   const { contentId } = useParams();
   const navigate = useNavigate();
   const { isEditor, isAdmin } = useAuth();
+  const { mainSite } = useMainSite();
   const [content, setContent] = useState(null);
   const [wpSites, setWpSites] = useState([]);
   const [categories, setCategories] = useState([]);
