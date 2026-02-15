@@ -179,16 +179,23 @@ async def create_show_title(
 async def update_show_title(
     title_id: str,
     title_data: ShowTitleUpdate,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Update a show title. Admin only.
     
     When the name is changed, all shows with the old name will be updated to the new name.
     """
-    title = await db.show_titles.find_one({
-        "id": title_id,
-        "team_id": current_user.get('team_id')
-    })
+    main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
+    
+    # Build query based on context
+    if main_site_id:
+        query = {"id": title_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": title_id, "team_id": team_id}
+    
+    title = await db.show_titles.find_one(query)
     if not title:
         raise HTTPException(status_code=404, detail="Show title not found")
     
@@ -198,20 +205,23 @@ async def update_show_title(
     if "name" in update_dict:
         new_name = update_dict["name"]
         # Check for duplicates (case-insensitive)
-        existing = await db.show_titles.find_one({
-            "team_id": current_user.get('team_id'),
-            "name": {"$regex": f"^{new_name}$", "$options": "i"},
-            "id": {"$ne": title_id}
-        })
+        if main_site_id:
+            dup_query = {"main_site_id": main_site_id, "name": {"$regex": f"^{new_name}$", "$options": "i"}, "id": {"$ne": title_id}}
+        else:
+            dup_query = {"team_id": team_id, "name": {"$regex": f"^{new_name}$", "$options": "i"}, "id": {"$ne": title_id}}
+        
+        existing = await db.show_titles.find_one(dup_query)
         if existing:
             raise HTTPException(status_code=400, detail="A show title with this name already exists")
         
         # Update all shows with the old name to use the new name
         if old_name and new_name and old_name != new_name:
-            result = await db.shows.update_many(
-                {"title": old_name, "team_id": current_user.get('team_id')},
-                {"$set": {"title": new_name}}
-            )
+            if main_site_id:
+                show_query = {"title": old_name, "main_site_id": main_site_id}
+            else:
+                show_query = {"title": old_name, "team_id": team_id}
+            
+            result = await db.shows.update_many(show_query, {"$set": {"title": new_name}})
             logger.info(f"Updated {result.modified_count} shows from '{old_name}' to '{new_name}'")
             
             # Also update any cached rundowns with the old show title
@@ -227,10 +237,11 @@ async def update_show_title(
         # Also update all shows with this title to sync presenters
         old_title = await db.show_titles.find_one({"id": title_id}, {"name": 1})
         if old_title:
-            await db.shows.update_many(
-                {"title": old_title["name"], "team_id": current_user.get('team_id')},
-                {"$set": {"presenter_ids": title_data.default_presenter_ids}}
-            )
+            if main_site_id:
+                show_query = {"title": old_title["name"], "main_site_id": main_site_id}
+            else:
+                show_query = {"title": old_title["name"], "team_id": team_id}
+            await db.shows.update_many(show_query, {"$set": {"presenter_ids": title_data.default_presenter_ids}})
             logger.info(f"Synced presenter_ids to all shows with title '{old_title['name']}'")
     
     if update_dict:
@@ -243,7 +254,7 @@ async def update_show_title(
     
     # Add presenter info to response
     if updated.get("default_presenter_ids"):
-        updated["default_presenters"] = await get_presenters_info(updated["default_presenter_ids"], current_user.get('team_id'))
+        updated["default_presenters"] = await get_presenters_info(updated["default_presenter_ids"], main_site_id, team_id)
     
     return updated
 
