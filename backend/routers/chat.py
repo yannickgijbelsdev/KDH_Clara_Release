@@ -81,6 +81,7 @@ async def get_chat_threads(
     """Get all chat threads accessible to the current user."""
     query_filter = await get_chat_query_filter(request, current_user)
     user_id = current_user.get('id')
+    main_site_id = await get_main_site_id_from_header(request)
     
     if not query_filter:
         return []
@@ -105,10 +106,22 @@ async def get_chat_threads(
             thread["members"] = await get_member_info(thread["member_ids"])
         
         if thread.get("type") == "team":
-            all_members = await db.users.find(
-                {"team_id": team_id},
-                {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
-            ).to_list(100)
+            # Get team members based on context (main_site or legacy team)
+            if main_site_id:
+                user_accesses = await db.main_site_users.find(
+                    {"main_site_id": main_site_id},
+                    {"_id": 0, "user_id": 1}
+                ).to_list(100)
+                user_ids = [ua["user_id"] for ua in user_accesses]
+                all_members = await db.users.find(
+                    {"id": {"$in": user_ids}},
+                    {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+                ).to_list(100)
+            else:
+                all_members = await db.users.find(
+                    {"team_id": current_user.get('team_id')},
+                    {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+                ).to_list(100)
             thread["members"] = all_members
             thread["member_ids"] = [m["id"] for m in all_members]
         
