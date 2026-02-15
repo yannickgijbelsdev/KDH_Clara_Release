@@ -142,8 +142,6 @@ export default function NetworkDashboard() {
   };
 
   const handleDeleteSite = async (siteId) => {
-    if (!confirm('Are you sure you want to delete this main site?')) return;
-
     try {
       const res = await fetch(`${API}/api/main-sites/${siteId}`, {
         method: 'DELETE',
@@ -152,6 +150,7 @@ export default function NetworkDashboard() {
 
       if (res.ok) {
         toast.success('Main site deleted');
+        setDeleteDialog({ open: false, siteId: null, siteName: '' });
         fetchMainSites();
       } else {
         const err = await res.json();
@@ -160,6 +159,10 @@ export default function NetworkDashboard() {
     } catch (err) {
       toast.error('Failed to delete main site');
     }
+  };
+
+  const handleDeleteClick = (siteId, siteName) => {
+    setDeleteDialog({ open: true, siteId, siteName });
   };
 
   const openEditDialog = (site) => {
