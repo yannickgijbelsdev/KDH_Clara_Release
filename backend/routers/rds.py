@@ -53,14 +53,24 @@ class CachedRundown(BaseModel):
 
 
 @rds_router.get("/settings", response_model=RDSSettingsResponse)
-async def get_rds_settings(current_user: dict = Depends(require_admin)):
-    """Get RDS integration settings for the team."""
+async def get_rds_settings(request: Request, current_user: dict = Depends(require_admin)):
+    """Get RDS integration settings for the team/main site."""
+    main_site_id = await get_main_site_id_from_header(request)
     team_id = current_user.get('team_id')
     
-    settings = await db.rds_settings.find_one(
-        {"team_id": team_id},
-        {"_id": 0}
-    )
+    # Try to find by main_site_id first (multisite), then fallback to team_id
+    settings = None
+    if main_site_id:
+        settings = await db.rds_settings.find_one(
+            {"main_site_id": main_site_id},
+            {"_id": 0}
+        )
+    
+    if not settings and team_id:
+        settings = await db.rds_settings.find_one(
+            {"team_id": team_id},
+            {"_id": 0}
+        )
     
     if not settings:
         # Create default settings
@@ -68,6 +78,7 @@ async def get_rds_settings(current_user: dict = Depends(require_admin)):
         settings = {
             "id": str(uuid.uuid4()),
             "team_id": team_id,
+            "main_site_id": main_site_id,
             "production_base_url": "https://clara.koodh.com",
             "cache_refresh_interval": 5,
             "last_cache_refresh": None,
