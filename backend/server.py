@@ -744,6 +744,7 @@ async def show_rundown_websocket(
 # ============== INCLUDE MAIN ROUTER ==============
 
 app.include_router(api_router)
+app.include_router(migration_router)
 
 # CORS Middleware
 app.add_middleware(
