@@ -367,6 +367,7 @@ const RDSSchedulerPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [preselectedDate, setPreselectedDate] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Calculate calendar days - memoized to prevent infinite loops
   const monthStart = startOfMonth(currentMonth);
