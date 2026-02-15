@@ -16,19 +16,42 @@ export default function MigrationTool() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
+  const [detectedInfo, setDetectedInfo] = useState(null);
   const [migrationResult, setMigrationResult] = useState(null);
   const [formData, setFormData] = useState({
-    main_site_name: 'Radiogroep MFY/GRK',
+    main_site_name: '',
     main_site_slug: 'radiogroep'
   });
+
+  const fetchDetectedInfo = async () => {
+    try {
+      const response = await axios.get(`${API}/api/admin/migration/detect-site-info`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setDetectedInfo(response.data);
+      // Pre-fill form with detected values if empty
+      if (!formData.main_site_name || formData.main_site_name === '') {
+        setFormData(prev => ({
+          ...prev,
+          main_site_name: response.data.suggested_name || 'Radiogroep',
+          main_site_slug: 'radiogroep' // User requested fixed slug
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to detect site info:', error);
+    }
+  };
 
   const fetchStatus = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/api/admin/migration/status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setStatus(response.data);
+      const [statusRes] = await Promise.all([
+        axios.get(`${API}/api/admin/migration/status`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetchDetectedInfo()
+      ]);
+      setStatus(statusRes.data);
     } catch (error) {
       toast.error('Failed to fetch migration status');
       console.error(error);
