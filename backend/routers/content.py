@@ -267,10 +267,16 @@ async def create_content_item(
 @content_router.get("/{content_id}", response_model=ContentItemResponse)
 async def get_content_item(
     content_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get a single content item."""
-    content = await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
+    main_site_id = await get_main_site_id_from_header(request)
+    content = await get_content_with_publish_statuses(
+        content_id, 
+        team_id=current_user.get('team_id'),
+        main_site_id=main_site_id
+    )
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     return content
@@ -284,9 +290,16 @@ async def update_content_item(
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Update a content item."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
