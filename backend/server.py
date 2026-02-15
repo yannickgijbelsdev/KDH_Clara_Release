@@ -245,14 +245,28 @@ async def mark_logs_viewed(current_user: dict = Depends(require_admin)):
 @api_router.post("/admin/switch-user/{user_id}")
 async def switch_to_user(
     user_id: str,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Admin: Switch to another user's account for debugging."""
-    # Find target user in same team
-    target_user = await db.users.find_one(
-        {"id": user_id, "team_id": current_user['team_id']},
-        {"_id": 0, "password_hash": 0}
-    )
+    from services.main_site_context import get_main_site_id_from_header
+    
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # In multisite context, check if target user has access to this main site
+    if main_site_id:
+        user_access = await db.main_site_users.find_one({"user_id": user_id, "main_site_id": main_site_id})
+        if not user_access:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="User not found in this main site")
+        target_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    else:
+        # Legacy mode: check team_id
+        target_user = await db.users.find_one(
+            {"id": user_id, "team_id": current_user['team_id']},
+            {"_id": 0, "password_hash": 0}
+        )
+    
     if not target_user:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="User not found")
@@ -268,7 +282,7 @@ async def switch_to_user(
     new_token = jwt.encode(token_payload, JWT_SECRET, algorithm="HS256")
     
     # Get team name
-    team = await db.teams.find_one({"id": target_user['team_id']}, {"_id": 0})
+    team = await db.teams.find_one({"id": target_user.get('team_id')}, {"_id": 0})
     target_user['team_name'] = team['name'] if team else None
     
     return {
