@@ -470,7 +470,7 @@ const RDSSchedulerPage = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/rds-builder')}
+            onClick={() => navigate(navTo('/rds-builder'))}
             className="text-zinc-400 hover:text-white"
           >
             <ArrowLeft className="w-5 h-5" />
