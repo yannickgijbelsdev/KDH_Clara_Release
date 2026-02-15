@@ -254,7 +254,7 @@ export default function NetworkDashboard() {
                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(site)}>
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteSite(site.id)}>
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(site.id, site.name)}>
                         <Trash2 className="w-4 h-4 text-red-500" />
                       </Button>
                     </div>
