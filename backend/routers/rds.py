@@ -104,14 +104,17 @@ async def get_rds_settings(request: Request, current_user: dict = Depends(requir
 
 @rds_router.put("/settings", response_model=RDSSettingsResponse)
 async def update_rds_settings(
+    request: Request,
     settings_data: RDSSettings,
     current_user: dict = Depends(require_admin)
 ):
     """Update RDS integration settings."""
+    query_filter = await get_rds_query_filter(request, current_user)
+    main_site_id = await get_main_site_id_from_header(request)
     team_id = current_user.get('team_id')
     now = datetime.now(timezone.utc).isoformat()
     
-    existing = await db.rds_settings.find_one({"team_id": team_id})
+    existing = await db.rds_settings.find_one(query_filter) if query_filter else None
     
     update_data = {
         "production_base_url": settings_data.production_base_url.rstrip('/'),
@@ -121,32 +124,33 @@ async def update_rds_settings(
     
     if existing:
         await db.rds_settings.update_one(
-            {"team_id": team_id},
+            query_filter,
             {"$set": update_data}
         )
     else:
         update_data["id"] = str(uuid.uuid4())
         update_data["team_id"] = team_id
+        update_data["main_site_id"] = main_site_id
         update_data["created_at"] = now
         update_data["last_cache_refresh"] = None
         await db.rds_settings.insert_one(update_data)
     
     settings = await db.rds_settings.find_one(
-        {"team_id": team_id},
+        query_filter,
         {"_id": 0}
     )
     return settings
 
 
 @rds_router.get("/endpoints")
-async def get_rds_endpoints(current_user: dict = Depends(require_admin)):
+async def get_rds_endpoints(request: Request, current_user: dict = Depends(require_admin)):
     """Get all available RDS API endpoints with production URLs."""
-    team_id = current_user.get('team_id')
+    query_filter = await get_rds_query_filter(request, current_user)
     
     settings = await db.rds_settings.find_one(
-        {"team_id": team_id},
+        query_filter,
         {"_id": 0}
-    )
+    ) if query_filter else None
     
     base_url = settings.get("production_base_url", "https://clara.koodh.com") if settings else "https://clara.koodh.com"
     
