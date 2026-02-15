@@ -347,7 +347,7 @@ const DashboardLayout = () => {
           ? 'bg-orange-500 text-white' 
           : isActive 
             ? 'bg-orange-500/30 text-orange-300' 
-            : 'bg-zinc-700 text-zinc-300'
+            : 'bg-orange-500/80 text-white'
         }
       `}>
         {displayCount}
