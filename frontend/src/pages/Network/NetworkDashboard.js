@@ -306,7 +306,7 @@ export default function NetworkDashboard() {
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Radiogroep MFY/GRK"
+                  placeholder="Mijn Radio Station"
                   className="bg-zinc-800 border-zinc-700"
                 />
               </div>
@@ -317,21 +317,11 @@ export default function NetworkDashboard() {
                   <Input
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    placeholder="radiogroep"
+                    placeholder="mijn-station"
                     className="bg-zinc-800 border-zinc-700"
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Description (optional)</Label>
-              <Input
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Main site for Radio MFY and GRK"
-                className="bg-zinc-800 border-zinc-700"
-              />
             </div>
 
             <div className="space-y-3">
