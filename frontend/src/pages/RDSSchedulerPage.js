@@ -359,6 +359,7 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
 
 const RDSSchedulerPage = () => {
   const navigate = useNavigate();
+  const { mainSiteSlug } = useParams();
   const { isAdmin } = useAuth();
   const [station, setStation] = useState('mfy');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -368,6 +369,9 @@ const RDSSchedulerPage = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [preselectedDate, setPreselectedDate] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   // Calculate calendar days - memoized to prevent infinite loops
   const monthStart = startOfMonth(currentMonth);
