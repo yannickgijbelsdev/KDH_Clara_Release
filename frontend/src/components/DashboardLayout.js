@@ -384,6 +384,13 @@ const DashboardLayout = () => {
     return route;
   };
 
+  // Debug: log menuCounts when they change
+  useEffect(() => {
+    if (Object.keys(menuCounts).length > 0) {
+      console.log('DashboardLayout menuCounts updated:', menuCounts);
+    }
+  }, [menuCounts]);
+
   // Check if any item in a group is active
   const isGroupActive = (group) => group.items.some(item => location.pathname === getNavRoute(item.to) || location.pathname === item.to);
 
