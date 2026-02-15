@@ -153,6 +153,7 @@ const ShowDetailPage = () => {
   const { showId } = useParams();
   const navigate = useNavigate();
   const { isEditor, token } = useAuth();
+  const { mainSite } = useMainSite();
   const [show, setShow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
