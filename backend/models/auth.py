@@ -32,7 +32,7 @@ class UserResponse(BaseModel):
     email: str
     name: str
     role: str
-    team_id: str
+    team_id: Optional[str] = None
     created_at: str
     avatar: Optional[dict] = None
     is_network_admin: bool = False
@@ -44,8 +44,8 @@ class UserWithTeamResponse(BaseModel):
     email: str
     name: str
     role: str
-    team_id: str
-    team_name: str
+    team_id: Optional[str] = None
+    team_name: Optional[str] = None
     created_at: str
     avatar: Optional[dict] = None
     preferences: Optional[dict] = None
