@@ -764,7 +764,7 @@ async def startup_db_client():
     from services.auth import hash_password
     
     # Bootstrap: Ensure network admin account exists (for initial access)
-    bootstrap_email = "admkoodh@system.local"
+    bootstrap_email = "admkoodh@koodh.com"
     existing_bootstrap = await db.users.find_one({"email": bootstrap_email})
     if not existing_bootstrap:
         bootstrap_user = {
