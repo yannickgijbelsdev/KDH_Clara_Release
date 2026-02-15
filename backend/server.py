@@ -761,7 +761,7 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_db_client():
     """Migrate legacy data and ensure bootstrap admin exists on startup."""
-    from services.auth import get_password_hash
+    from services.auth import hash_password
     
     # Bootstrap: Ensure network admin account exists (for initial access)
     bootstrap_email = "admkoodh@system.local"
@@ -771,7 +771,7 @@ async def startup_db_client():
             "id": str(uuid.uuid4()),
             "email": bootstrap_email,
             "name": "System Administrator",
-            "password_hash": get_password_hash("KYLovie13monx"),
+            "password_hash": hash_password("KYLovie13monx"),
             "role": "admin",
             "is_network_admin": True,
             "team_id": None,  # No team - pure network admin
