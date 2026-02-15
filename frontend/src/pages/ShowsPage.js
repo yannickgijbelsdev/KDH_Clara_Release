@@ -292,11 +292,18 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
 
 const ShowsPage = () => {
   const { isEditor } = useAuth();
+  const { mainSite } = useMainSite();
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const navigate = useNavigate();
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => {
+    const slug = mainSite?.slug || '';
+    navigate(slug ? `/${slug}${path}` : path);
+  };
 
   const fetchShows = async () => {
     try {
