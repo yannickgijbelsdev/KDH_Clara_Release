@@ -315,6 +315,7 @@ async def create_chat_thread(
     thread_doc = {
         "id": str(uuid.uuid4()),
         "team_id": team_id,
+        "main_site_id": main_site_id,
         "type": thread_data.type,
         "name": thread_data.name,
         "show_id": thread_data.show_id,
@@ -334,13 +335,14 @@ async def create_chat_thread(
 async def update_chat_thread(
     thread_id: str,
     update_data: ChatThreadUpdate,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Update a chat thread (name, etc). Only owner/admin can update."""
     user_id = current_user.get('id')
-    team_id = current_user.get('team_id')
+    query_filter = await get_chat_query_filter(request, current_user)
     
-    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
+    thread = await db.chat_threads.find_one({"id": thread_id, **query_filter})
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     
@@ -373,13 +375,14 @@ async def update_chat_thread(
 @chat_router.delete("/threads/{thread_id}")
 async def delete_chat_thread(
     thread_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Delete a chat thread. Only owner can delete group threads. Either member can delete private chats."""
     user_id = current_user.get('id')
-    team_id = current_user.get('team_id')
+    query_filter = await get_chat_query_filter(request, current_user)
     
-    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
+    thread = await db.chat_threads.find_one({"id": thread_id, **query_filter})
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     
