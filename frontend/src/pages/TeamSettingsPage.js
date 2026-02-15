@@ -124,18 +124,28 @@ const TeamSettingsPage = () => {
       navigate('/shows');
       return;
     }
-    fetchData();
-  }, [isAdmin]);
+    // Wait for mainSite to be loaded before fetching data
+    if (mainSite) {
+      fetchData();
+    }
+  }, [isAdmin, mainSite]);
 
   const fetchData = async () => {
     try {
-      const [teamRes, usersRes] = await Promise.all([
-        axios.get(`${API}/teams/current`),
-        axios.get(`${API}/users`),
-      ]);
-      setTeam(teamRes.data);
+      // In multisite context, use mainSite info instead of team
+      // The main site name is the "organization name" shown
+      const usersRes = await axios.get(`${API}/users`);
+      
+      // Use mainSite as the "team" for display purposes
+      if (mainSite) {
+        setTeam({
+          id: mainSite.id,
+          name: mainSite.name
+        });
+      }
       setUsers(usersRes.data);
     } catch (error) {
+      console.error('Failed to load data:', error);
       toast.error('Failed to load team data');
     } finally {
       setLoading(false);
