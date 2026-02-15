@@ -95,4 +95,30 @@ async def get_main_site_filter(
         return {"main_site_id": main_site_id}
     else:
         # Fallback to team_id for backwards compatibility
-        return {"team_id": current_user.get('team_id')}
+        team_id = current_user.get('team_id')
+        if team_id:
+            return {"team_id": team_id}
+        else:
+            # User has no team_id (like system admin) - return empty filter
+            # This should be handled by caller
+            return {}
+
+
+async def get_flexible_data_filter(request: Request, current_user: dict) -> dict:
+    """Get a flexible filter that works with both multisite and legacy data.
+    
+    For multisite: prefers main_site_id from header
+    For legacy: falls back to team_id
+    Returns empty dict if neither is available (caller should handle this)
+    """
+    main_site_id = request.headers.get('X-Main-Site-ID')
+    
+    if main_site_id:
+        return {"main_site_id": main_site_id}
+    
+    team_id = current_user.get('team_id')
+    if team_id:
+        return {"team_id": team_id}
+    
+    return {}
+
