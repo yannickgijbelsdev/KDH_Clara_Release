@@ -104,6 +104,55 @@ async def require_network_admin(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
+@router.get("/detect-site-info")
+async def detect_existing_site_info(current_user: dict = Depends(require_network_admin)):
+    """
+    Auto-detect existing site information from the database.
+    Returns suggested name and slug based on existing team data.
+    """
+    # Try to detect from team name
+    teams = await db.teams.find({}, {"_id": 0}).to_list(100)
+    
+    suggested_name = "Radiogroep"
+    suggested_slug = "radiogroep"
+    detected_from = None
+    
+    if teams:
+        primary_team = teams[0]
+        team_name = primary_team.get("name", "")
+        
+        if team_name:
+            suggested_name = team_name
+            # Create slug from team name
+            import re
+            slug = team_name.lower()
+            slug = re.sub(r'[^a-z0-9\s-]', '', slug)  # Remove special chars
+            slug = re.sub(r'[\s]+', '-', slug)  # Replace spaces with dashes
+            slug = re.sub(r'-+', '-', slug).strip('-')  # Clean up multiple dashes
+            
+            if slug:
+                suggested_slug = slug
+            
+            detected_from = "team_name"
+    
+    # Also check if there are existing RDS settings with a station name
+    rds_settings = await db.rds_settings.find_one({}, {"_id": 0})
+    if rds_settings and rds_settings.get("station_name"):
+        station_name = rds_settings.get("station_name")
+        # If team name was generic, prefer RDS station name
+        if suggested_name in ["My Radio Station", "Radiogroep"] and station_name:
+            suggested_name = station_name
+            detected_from = "rds_settings"
+    
+    return {
+        "suggested_name": suggested_name,
+        "suggested_slug": suggested_slug,
+        "detected_from": detected_from,
+        "team_count": len(teams),
+        "team_name": teams[0].get("name") if teams else None
+    }
+
+
 @router.get("/status")
 async def get_migration_status(current_user: dict = Depends(require_network_admin)):
     """
