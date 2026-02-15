@@ -35,7 +35,6 @@ export default function NetworkDashboard() {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
-    description: '',
     enabled_features: []
   });
 
