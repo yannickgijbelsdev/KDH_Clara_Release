@@ -1615,3 +1615,23 @@ clara.koodh.com/
     - `frontend/src/components/MainSiteDashboardLayout.js` - Added siteTabChange event dispatch
   - Tested: All 6 sidebar tabs (General, Media, Form, Styling, Submissions, Users) now correctly update content when clicked
   - 100% frontend test success rate
+
+### February 15, 2026 - Sidebar Navigation & AlertDialog Improvements
+- [x] **P0 Bug Fix: Mini Site Dashboard Menu Still Not Working**:
+  - Bug: Despite previous fix, sidebar menu items still did not change content when clicked.
+  - Root cause: The window event-based communication between MainSiteDashboardLayout and SiteDashboard was unreliable due to React rendering lifecycle.
+  - Proper fix implemented:
+    - **SiteDashboard.js**: Now uses `useOutletContext()` from react-router-dom to get `siteTab` state directly from the layout component instead of relying on window events
+    - **DashboardLayout.js**: Now passes `siteTab` and `setSiteTab` via Outlet context when in site context
+  - This approach uses React's proper state management instead of browser events, making it more reliable.
+
+- [x] **UI Improvement: Replace Browser Confirm Dialogs with Styled AlertDialogs**:
+  - User requested styled confirmation dialogs instead of native browser `window.confirm()` dialogs
+  - Replaced all `window.confirm()` calls with shadcn/ui AlertDialog components
+  - Files updated:
+    1. **SitesListPage.js**: Delete site confirmation with Dutch text ("Site verwijderen", "Annuleren", "Verwijderen")
+    2. **RDSOutputManager.js**: Delete output confirmation
+    3. **AudioTriggersPage.js**: Delete audio trigger confirmation
+    4. **RDSSchedulerPage.js**: Delete scheduled text confirmation
+  - All dialogs match the app's dark theme (bg-zinc-900, border-zinc-800) and use red accent for destructive actions
+  - Tested and verified: 100% success rate
