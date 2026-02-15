@@ -8,18 +8,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
 import { Checkbox } from '../../components/ui/checkbox';
 import { toast } from 'sonner';
-import { Plus, Globe, Users, Layers, Settings, Trash2, Edit, ExternalLink } from 'lucide-react';
+import { 
+  Plus, Globe, Users, Layers, Settings, Trash2, Edit, ExternalLink,
+  Tv, FileText, MessageSquare, Radio, Cog
+} from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-// Feature groups for display
+// Feature groups for display with Lucide icons
 const FEATURE_GROUPS = {
-  shows: { name: 'Shows', icon: '📺' },
-  content: { name: 'Content', icon: '📝' },
-  communication: { name: 'Communication', icon: '💬' },
-  streaming: { name: 'Streaming & RDS', icon: '📻' },
-  sites: { name: 'Sites', icon: '🌐' },
-  admin: { name: 'Administration', icon: '⚙️' }
+  shows: { name: 'Shows', Icon: Tv },
+  content: { name: 'Content', Icon: FileText },
+  communication: { name: 'Communication', Icon: MessageSquare },
+  streaming: { name: 'Streaming & RDS', Icon: Radio },
+  sites: { name: 'Sites', Icon: Globe },
+  admin: { name: 'Administration', Icon: Cog }
 };
 
 export default function NetworkDashboard() {
