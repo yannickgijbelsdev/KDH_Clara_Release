@@ -534,6 +534,7 @@ const AudioTriggersPage = () => {
   const [editingTrigger, setEditingTrigger] = useState(null);
   const [logs, setLogs] = useState([]);
   const [showLogs, setShowLogs] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, triggerId: null, triggerName: '' });
 
   const fetchTriggers = useCallback(async () => {
     try {
