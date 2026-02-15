@@ -647,14 +647,15 @@ async def create_message(
 async def delete_message(
     thread_id: str,
     message_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Delete a message for everyone. Only the message sender can delete their message."""
     user_id = current_user.get('id')
-    team_id = current_user.get('team_id')
+    query_filter = await get_chat_query_filter(request, current_user)
     
     # Verify thread exists and user has access
-    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
+    thread = await db.chat_threads.find_one({"id": thread_id, **query_filter})
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     
@@ -680,10 +681,13 @@ async def delete_message(
 
 @chat_router.post("/upload")
 async def upload_chat_attachment(
+    request: Request,
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
     """Upload an attachment for chat to S3 (image, audio, video, file)."""
+    from services.main_site_context import get_storage_prefix
+    
     allowed_image_types = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/heic", "image/heif"]
     allowed_audio_types = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/webm", "audio/m4a", "audio/x-m4a"]
     allowed_video_types = ["video/mp4", "video/quicktime", "video/webm"]
@@ -709,9 +713,12 @@ async def upload_chat_attachment(
     ext = os.path.splitext(file.filename)[1] if file.filename else ""
     unique_filename = f"{uuid.uuid4()}{ext}"
     
+    # Get storage prefix based on context
+    storage_prefix = await get_storage_prefix(request, current_user)
+    
     # Upload to S3 if configured
     if is_s3_configured():
-        storage_key = f"chat/{current_user.get('team_id')}/{unique_filename}"
+        storage_key = f"chat/{storage_prefix}/{unique_filename}"
         try:
             result = await upload_file_to_s3(content, storage_key, content_type)
             return {
