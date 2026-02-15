@@ -61,15 +61,40 @@ def generate_occurrence_dates(start_date: str, interval_weeks: int, end_date: Op
 
 # ============== SHOW TITLES (Templates) ==============
 
-async def get_presenters_info(presenter_ids: List[str], team_id: str) -> List[dict]:
-    """Fetch presenter information for given IDs."""
+async def get_presenters_info(presenter_ids: List[str], main_site_id: str = None, team_id: str = None) -> List[dict]:
+    """Fetch presenter information for given IDs.
+    
+    In multisite context, gets users with access to the main site.
+    Falls back to team_id for legacy support.
+    """
     if not presenter_ids:
         return []
     
-    presenters = await db.users.find(
-        {"id": {"$in": presenter_ids}, "team_id": team_id},
-        {"_id": 0, "id": 1, "name": 1, "avatar": 1}
-    ).to_list(100)
+    if main_site_id:
+        # Get users from the presenter_ids list who have access to this main site
+        # First, get the user_ids that have access
+        user_accesses = await db.main_site_users.find(
+            {"main_site_id": main_site_id, "user_id": {"$in": presenter_ids}},
+            {"_id": 0, "user_id": 1}
+        ).to_list(100)
+        valid_user_ids = [ua["user_id"] for ua in user_accesses]
+        
+        # Then get user details
+        presenters = await db.users.find(
+            {"id": {"$in": valid_user_ids}},
+            {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+        ).to_list(100)
+    elif team_id:
+        presenters = await db.users.find(
+            {"id": {"$in": presenter_ids}, "team_id": team_id},
+            {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+        ).to_list(100)
+    else:
+        # Just get the users without team filter
+        presenters = await db.users.find(
+            {"id": {"$in": presenter_ids}},
+            {"_id": 0, "id": 1, "name": 1, "avatar": 1}
+        ).to_list(100)
     
     # Preserve order from presenter_ids
     presenter_map = {p["id"]: p for p in presenters}
@@ -84,11 +109,12 @@ async def get_show_titles(
     """Get all show titles for the main site or team. Available to all users."""
     # Check for main_site_id header (multisite context)
     main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
     
     if main_site_id:
         query = {"main_site_id": main_site_id}
     else:
-        query = {"team_id": current_user.get('team_id')}
+        query = {"team_id": team_id}
     
     titles = await db.show_titles.find(query, {"_id": 0}).sort("name", 1).to_list(100)
     
@@ -96,7 +122,7 @@ async def get_show_titles(
     for title in titles:
         presenter_ids = title.get("default_presenter_ids", [])
         if presenter_ids:
-            title["default_presenters"] = await get_presenters_info(presenter_ids, current_user.get('team_id'))
+            title["default_presenters"] = await get_presenters_info(presenter_ids, main_site_id, team_id)
     
     return titles
 
@@ -113,12 +139,13 @@ async def create_show_title(
     
     # Get main_site_id from header for multisite context
     main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
     
     # Check for duplicate name within the same context
     if main_site_id:
         dup_query = {"main_site_id": main_site_id, "name": {"$regex": f"^{title_data.name}$", "$options": "i"}}
     else:
-        dup_query = {"team_id": current_user.get('team_id'), "name": {"$regex": f"^{title_data.name}$", "$options": "i"}}
+        dup_query = {"team_id": team_id, "name": {"$regex": f"^{title_data.name}$", "$options": "i"}}
     
     existing = await db.show_titles.find_one(dup_query)
     if existing:
@@ -132,7 +159,7 @@ async def create_show_title(
         "default_end_time": title_data.default_end_time,
         "rds_station": title_data.rds_station or "none",
         "default_presenter_ids": title_data.default_presenter_ids or [],
-        "team_id": current_user.get('team_id'),
+        "team_id": team_id,
         "main_site_id": main_site_id,  # Store main_site_id for multisite isolation
         "created_by": current_user['id'],
         "created_at": now
@@ -143,7 +170,7 @@ async def create_show_title(
     
     # Add presenter info to response
     if title_doc.get("default_presenter_ids"):
-        title_doc["default_presenters"] = await get_presenters_info(title_doc["default_presenter_ids"], current_user.get('team_id'))
+        title_doc["default_presenters"] = await get_presenters_info(title_doc["default_presenter_ids"], main_site_id, team_id)
     
     return title_doc
 
