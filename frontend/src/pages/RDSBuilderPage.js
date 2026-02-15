@@ -598,7 +598,11 @@ const StationBuilder = ({ station, stationName, color }) => {
 // Main Page Component
 const RDSBuilderPage = () => {
   const navigate = useNavigate();
+  const { mainSiteSlug } = useParams();
   const [activeTab, setActiveTab] = useState('outputs');
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   return (
     <div data-testid="rds-builder-page" className="max-w-6xl mx-auto">
@@ -615,14 +619,14 @@ const RDSBuilderPage = () => {
         </div>
         <div className="flex gap-2">
           <Button
-            onClick={() => navigate('/audio-triggers')}
+            onClick={() => navigate(navTo('/audio-triggers'))}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             <Volume2 className="w-4 h-4 mr-2" />
             Audio Triggers
           </Button>
           <Button
-            onClick={() => navigate('/rds-scheduler')}
+            onClick={() => navigate(navTo('/rds-scheduler'))}
             className="bg-violet-500 hover:bg-violet-600 text-white"
           >
             <Calendar className="w-4 h-4 mr-2" />
