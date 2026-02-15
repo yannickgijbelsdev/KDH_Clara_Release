@@ -342,7 +342,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
           <Button variant="ghost" size="sm" onClick={() => onEdit(output)} className="text-zinc-400 hover:text-white h-8 w-8 p-0">
             <Pencil className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleDelete} disabled={deleting} className="text-red-400 hover:text-red-300 h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" onClick={() => setShowDeleteDialog(true)} disabled={deleting} className="text-red-400 hover:text-red-300 h-8 w-8 p-0">
             {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
           </Button>
         </div>
@@ -376,6 +376,29 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
           {copiedUrl ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
         </Button>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Output</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              Are you sure you want to delete "{output.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
