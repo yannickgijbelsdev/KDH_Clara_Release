@@ -48,7 +48,6 @@ from routers.migration import router as migration_router
 from routers.wordpress import publish_content_to_wordpress
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
-from fastapi import Depends
 
 # Create the main app
 app = FastAPI(title="Radio Show Planner API")
