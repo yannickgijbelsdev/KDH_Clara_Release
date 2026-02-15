@@ -52,6 +52,17 @@ class CachedRundown(BaseModel):
     cached_at: str
 
 
+async def get_rds_query_filter(request: Request, current_user: dict) -> dict:
+    """Helper to build query filter for RDS data - uses main_site_id if available, otherwise team_id."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if main_site_id:
+        return {"main_site_id": main_site_id}
+    team_id = current_user.get('team_id')
+    if team_id:
+        return {"team_id": team_id}
+    return {}
+
+
 @rds_router.get("/settings", response_model=RDSSettingsResponse)
 async def get_rds_settings(request: Request, current_user: dict = Depends(require_admin)):
     """Get RDS integration settings for the team/main site."""
