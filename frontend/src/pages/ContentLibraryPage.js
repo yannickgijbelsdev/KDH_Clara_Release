@@ -213,7 +213,7 @@ const ContentLibraryPage = () => {
         <div className="flex items-center gap-3">
           <Button
             data-testid="content-calendar-btn"
-            onClick={() => navigate('/content/calendar')}
+            onClick={() => navigate(buildPath('/content/calendar'))}
             variant="outline"
             className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
           >
