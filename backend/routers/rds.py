@@ -266,14 +266,18 @@ async def get_rds_endpoints(request: Request, current_user: dict = Depends(requi
 
 @rds_router.get("/logs", response_model=List[RDSCacheLog])
 async def get_rds_logs(
+    request: Request,
     limit: int = 50,
     current_user: dict = Depends(require_admin)
 ):
     """Get recent RDS cache refresh logs."""
-    team_id = current_user.get('team_id')
+    query_filter = await get_rds_query_filter(request, current_user)
+    
+    if not query_filter:
+        return []
     
     logs = await db.rds_cache_logs.find(
-        {"team_id": team_id},
+        query_filter,
         {"_id": 0}
     ).sort("timestamp", -1).limit(limit).to_list(limit)
     
@@ -281,18 +285,21 @@ async def get_rds_logs(
 
 
 @rds_router.post("/refresh-cache")
-async def manual_refresh_cache(current_user: dict = Depends(require_admin)):
+async def manual_refresh_cache(request: Request, current_user: dict = Depends(require_admin)):
     """Manually trigger a cache refresh for the current live show."""
     from services.rds_scheduler import refresh_live_show_cache
     
+    main_site_id = await get_main_site_id_from_header(request)
     team_id = current_user.get('team_id')
-    result = await refresh_live_show_cache(team_id)
+    
+    # Pass main_site_id if available, otherwise team_id
+    result = await refresh_live_show_cache(main_site_id or team_id)
     
     return result
 
 
 @rds_router.get("/debug-live-shows")
-async def debug_live_shows(current_user: dict = Depends(require_admin)):
+async def debug_live_shows(request: Request, current_user: dict = Depends(require_admin)):
     """Debug endpoint to see why a show might not be syncing.
     
     Shows the current time (UTC and CET), and any shows that match the current timeframe.
@@ -302,19 +309,19 @@ async def debug_live_shows(current_user: dict = Depends(require_admin)):
     now_utc = datetime.now(timezone.utc)
     now_cet = now_utc + timedelta(hours=1)
     
-    team_id = current_user.get('team_id')
+    query_filter = await get_rds_query_filter(request, current_user)
     
     # Find all shows for today (CET)
     today_cet = now_cet.strftime('%Y-%m-%d')
     today_utc = now_utc.strftime('%Y-%m-%d')
     
     shows_today_cet = await db.shows.find(
-        {"date": today_cet, "team_id": team_id},
+        {"date": today_cet, **query_filter},
         {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
     ).to_list(50)
     
     shows_today_utc = await db.shows.find(
-        {"date": today_utc, "team_id": team_id},
+        {"date": today_utc, **query_filter},
         {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
     ).to_list(50) if today_utc != today_cet else []
     
