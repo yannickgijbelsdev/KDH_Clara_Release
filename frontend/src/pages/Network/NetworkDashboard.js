@@ -327,10 +327,12 @@ export default function NetworkDashboard() {
             <div className="space-y-3">
               <Label>Enabled Features</Label>
               <div className="grid gap-4">
-                {Object.entries(groupedFeatures).map(([groupId, features]) => (
+                {Object.entries(groupedFeatures).map(([groupId, features]) => {
+                  const GroupIcon = FEATURE_GROUPS[groupId]?.Icon || Layers;
+                  return (
                   <div key={groupId} className="space-y-2">
                     <h4 className="text-sm font-medium text-zinc-400 flex items-center gap-2">
-                      <span>{FEATURE_GROUPS[groupId]?.icon || '📦'}</span>
+                      <GroupIcon className="w-4 h-4" />
                       {FEATURE_GROUPS[groupId]?.name || groupId}
                     </h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -353,7 +355,8 @@ export default function NetworkDashboard() {
                       ))}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
