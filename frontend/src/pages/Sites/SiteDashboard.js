@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { 
   Globe, Settings, Users, MessageSquare, Save, Trash2, 
   Plus, X, Music, Video, Image, Lock, Eye, EyeOff,
@@ -19,6 +19,16 @@ const API = process.env.REACT_APP_BACKEND_URL;
 export default function SiteDashboard() {
   const { siteId, mainSiteSlug } = useParams();
   const navigate = useNavigate();
+  
+  // Get siteTab from outlet context (passed by MainSiteDashboardLayout)
+  // Fallback to local state for routes without context (e.g. /sites/:siteId without main site)
+  const outletContext = useOutletContext();
+  const [localActiveTab, setLocalActiveTab] = useState('general');
+  
+  // Use context tab if available, otherwise use local state
+  const activeTab = outletContext?.siteTab ?? localActiveTab;
+  const setActiveTab = outletContext?.setSiteTab ?? setLocalActiveTab;
+  
   const [site, setSite] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,17 +36,19 @@ export default function SiteDashboard() {
   const [siteUsers, setSiteUsers] = useState([]);
   const [teamUsers, setTeamUsers] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState('general');
   const submissionsPollingRef = useRef(null);
 
-  // Listen for tab changes from sidebar
+  // Fallback: Listen for tab changes from sidebar (for DashboardLayout routes)
   useEffect(() => {
+    // Only use window events if there's no outlet context
+    if (outletContext?.siteTab !== undefined) return;
+    
     const handleTabChange = (e) => {
-      setActiveTab(e.detail);
+      setLocalActiveTab(e.detail);
     };
     window.addEventListener('siteTabChange', handleTabChange);
     return () => window.removeEventListener('siteTabChange', handleTabChange);
-  }, []);
+  }, [outletContext?.siteTab]);
 
   const fetchSite = useCallback(async () => {
     try {
