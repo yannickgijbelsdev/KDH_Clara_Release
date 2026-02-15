@@ -374,7 +374,8 @@ const ShowDetailPage = () => {
     try {
       await axios.delete(`${API}/shows/${showId}?delete_all=${deleteAll}`);
       toast.success(deleteAll ? 'All occurrences deleted' : 'Show deleted');
-      navigate('/shows');
+      const slug = mainSite?.slug || '';
+      navigate(slug ? `/${slug}/shows` : '/shows');
     } catch (error) {
       toast.error('Failed to delete show');
     }
