@@ -1657,3 +1657,25 @@ clara.koodh.com/
     4. **RDSSchedulerPage.js**: Delete scheduled text confirmation
   - All dialogs match the app's dark theme (bg-zinc-900, border-zinc-800) and use red accent for destructive actions
   - Tested and verified: 100% success rate
+
+
+### December 2025 - Multisite Database Migration Tool
+- [x] **In-App Migration Tool for Network Admins**:
+  - Feature: Safe, UI-based database migration from single-site to multisite architecture
+  - Auto-detection of existing site information from team data
+  - Migration status dashboard showing: total documents, already migrated, needs migration
+  - Collection-by-collection breakdown of migration status
+  - Dry-run mode to preview changes without applying them
+  - Full migration execution with confirmation
+  - Backend endpoints:
+    - `GET /api/admin/migration/detect-site-info` - Auto-detect site name from team data
+    - `GET /api/admin/migration/status` - Get current migration status
+    - `POST /api/admin/migration/run` - Execute migration (with dry_run option)
+  - Frontend component: `MigrationTool.js` in Network Admin dashboard
+  - Auto-fills Main Site name from detected team name ("Radiogroep MFY/GRK")
+  - Dutch localized UI text for auto-detection banner
+  - Files created/updated:
+    - `backend/routers/migration.py` - Added detect-site-info endpoint
+    - `frontend/src/pages/Network/MigrationTool.js` - Enhanced with auto-detection
+  - Tested: 20/20 backend tests passed, 100% frontend verification
+
