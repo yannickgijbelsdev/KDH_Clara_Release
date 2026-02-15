@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import uuid
 
 from database import db
-from auth import get_current_user
+from services.auth import get_current_user
 
 router = APIRouter(prefix="/api/admin/migration", tags=["migration"])
 
