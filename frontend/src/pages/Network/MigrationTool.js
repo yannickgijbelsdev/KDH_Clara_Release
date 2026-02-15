@@ -190,6 +190,17 @@ export default function MigrationTool() {
               {needsMigration && (
                 <div className="bg-zinc-800 rounded-lg p-4">
                   <h3 className="text-white font-medium mb-3">Migration Settings</h3>
+                  
+                  {/* Auto-detected info banner */}
+                  {detectedInfo && detectedInfo.detected_from && (
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-4">
+                      <p className="text-blue-400 text-sm">
+                        <CheckCircle className="w-4 h-4 inline mr-2" />
+                        Auto-gedetecteerd vanuit {detectedInfo.detected_from === 'team_name' ? 'team naam' : 'RDS instellingen'}: <strong>{detectedInfo.team_name || detectedInfo.suggested_name}</strong>
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="space-y-3">
                     <div>
                       <Label className="text-zinc-300">Main Site Name</Label>
@@ -199,6 +210,15 @@ export default function MigrationTool() {
                         className="bg-zinc-900 border-zinc-700"
                         placeholder="My Organization"
                       />
+                      {detectedInfo?.suggested_name && formData.main_site_name !== detectedInfo.suggested_name && (
+                        <button 
+                          type="button"
+                          className="text-xs text-blue-400 hover:text-blue-300 mt-1"
+                          onClick={() => setFormData(prev => ({ ...prev, main_site_name: detectedInfo.suggested_name }))}
+                        >
+                          Gebruik gedetecteerde naam: {detectedInfo.suggested_name}
+                        </button>
+                      )}
                     </div>
                     <div>
                       <Label className="text-zinc-300">URL Slug</Label>
