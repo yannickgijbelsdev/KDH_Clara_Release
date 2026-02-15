@@ -632,7 +632,7 @@ const MainSiteDashboardLayout = () => {
                 >
                   <Icon className="w-5 h-5" />
                   {badgeCount > 0 && (
-                    <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full ${isHighlight ? 'bg-orange-500 text-white' : 'bg-zinc-600 text-white'}`}>
+                    <span className="absolute -top-1 -right-2.5 min-w-[24px] h-[18px] px-1.5 flex items-center justify-center text-[10px] font-semibold rounded-full bg-zinc-600 text-white shadow-sm">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
