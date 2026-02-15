@@ -6,6 +6,7 @@ import { Plus, Calendar, Clock, ChevronRight, ChevronDown, Filter, Repeat, Layer
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { useMainSite } from '../context/MainSiteContext';
 import CreateShowDialog from '../components/CreateShowDialog';
 import {
   DropdownMenu,
