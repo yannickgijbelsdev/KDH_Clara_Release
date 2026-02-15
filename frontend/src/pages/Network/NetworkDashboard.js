@@ -366,7 +366,7 @@ export default function NetworkDashboard() {
               onClick={() => {
                 setShowCreateDialog(false);
                 setEditingSite(null);
-                setFormData({ name: '', slug: '', description: '', enabled_features: [] });
+                setFormData({ name: '', slug: '', enabled_features: [] });
               }}
             >
               Cancel
