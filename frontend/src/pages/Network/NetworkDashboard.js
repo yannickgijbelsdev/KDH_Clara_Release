@@ -221,17 +221,25 @@ export default function NetworkDashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         {mainSites.length === 0 ? (
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <Globe className="w-16 h-16 text-zinc-600 mb-4" />
-              <h3 className="text-xl font-semibold text-zinc-300 mb-2">No Main Sites Yet</h3>
-              <p className="text-zinc-500 mb-6">Create your first main site to get started</p>
-              <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-                <Plus className="w-4 h-4" />
-                Create Main Site
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            {/* Empty State */}
+            <Card className="bg-zinc-900 border-zinc-800">
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <Globe className="w-16 h-16 text-zinc-600 mb-4" />
+                <h3 className="text-xl font-semibold text-zinc-300 mb-2">No Main Sites Yet</h3>
+                <p className="text-zinc-500 mb-6">Use the Migration Tool below to migrate your existing data, or create a new main site</p>
+                <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Create Main Site
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* Migration Tool - always visible */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <MigrationTool />
+            </div>
+          </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {mainSites.map(site => (
