@@ -121,7 +121,8 @@ const TeamSettingsPage = () => {
 
   useEffect(() => {
     if (!isAdmin) {
-      navigate('/shows');
+      const slug = mainSite?.slug || '';
+      navigate(slug ? `/${slug}/shows` : '/shows');
       return;
     }
     // Wait for mainSite to be loaded before fetching data
