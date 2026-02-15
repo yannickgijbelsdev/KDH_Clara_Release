@@ -380,8 +380,16 @@ const DashboardLayout = () => {
     }))
     .filter(group => group.items.length > 0);
 
+  // Helper to get the correct route with mainSite slug prefix
+  const getNavRoute = (route) => {
+    if (mainSite?.slug) {
+      return `/${mainSite.slug}${route}`;
+    }
+    return route;
+  };
+
   // Check if any item in a group is active
-  const isGroupActive = (group) => group.items.some(item => location.pathname === item.to);
+  const isGroupActive = (group) => group.items.some(item => location.pathname === getNavRoute(item.to) || location.pathname === item.to);
 
   return (
     <TooltipProvider delayDuration={0}>
