@@ -305,7 +305,7 @@ export default function NetworkDashboard() {
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Mijn Radio Station"
+                  placeholder="My Awesome Project"
                   className="bg-zinc-800 border-zinc-700"
                 />
               </div>
@@ -316,7 +316,7 @@ export default function NetworkDashboard() {
                   <Input
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    placeholder="mijn-station"
+                    placeholder="my-awesome-project"
                     className="bg-zinc-800 border-zinc-700"
                   />
                 </div>

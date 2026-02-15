@@ -33,8 +33,8 @@ const LoginPage = () => {
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1561365789-e4cd39d6b21c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHw0fHxyYWRpbyUyMHN0dWRpbyUyMG1pY3JvcGhvbmV8ZW58MHx8fHwxNzY3NzI3OTA1fDA&ixlib=rb-4.1.0&q=85)',
-            filter: 'brightness(0.4)'
+            backgroundImage: 'url(https://images.unsplash.com/photo-1654198340681-a2e0fc449f1b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwxfHxkYXJrJTIwcHVycGxlJTIwZ3JhZGllbnQlMjBhYnN0cmFjdCUyMHdhdmVzfGVufDB8fHx8MTc3MTExNTk5Mnww&ixlib=rb-4.1.0&q=85)',
+            filter: 'brightness(0.6)'
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#09090b] via-transparent to-transparent" />
@@ -43,12 +43,12 @@ const LoginPage = () => {
             <span className="text-2xl font-bold text-white">Clara</span>
           </div>
           <h1 className="text-5xl font-black text-white leading-tight mb-4">
-            Plan Your<br />
-            <span className="text-orange-500">Radio Shows</span><br />
-            Like a Pro
+            Manage Your<br />
+            <span className="text-orange-500">Network</span><br />
+            With Ease
           </h1>
           <p className="text-zinc-400 text-lg max-w-md">
-            The editorial dashboard for radio professionals. Plan shows, manage rundowns, and stay organized.
+            The all-in-one dashboard for managing your sites, content, and broadcasts from a single place.
           </p>
         </div>
       </div>
@@ -66,7 +66,7 @@ const LoginPage = () => {
               Welcome back
             </h2>
             <p className="text-zinc-400 mb-8">
-              Sign in to access your shows
+              Sign in to access your dashboard
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-5">
