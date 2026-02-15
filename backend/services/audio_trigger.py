@@ -374,11 +374,20 @@ class AudioTriggerScheduler:
             # Invalidate cache if file changed
             if cache_entry.get("updated_at") == trigger.get("updated_at"):
                 return cache_entry.get("fingerprint")
+            # Also return None if we cached that this trigger has no valid path
+            if cache_entry.get("no_valid_path"):
+                return None
         
         # Load audio file
         in_sound_path = trigger.get("in_sound_path")
         if not in_sound_path or not os.path.exists(in_sound_path):
-            logger.warning(f"Trigger {trigger_id} has no valid in_sound_path")
+            # Cache this so we don't log repeatedly
+            self.trigger_cache[trigger_id] = {
+                "no_valid_path": True,
+                "updated_at": trigger.get("updated_at")
+            }
+            # Only log once per trigger, not every 3 seconds
+            logger.debug(f"Trigger {trigger_id} has no valid in_sound_path")
             return None
         
         try:
