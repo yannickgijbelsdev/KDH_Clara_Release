@@ -654,14 +654,15 @@ const DashboardLayout = () => {
                 {/* Normal navigation icons when not in site context */}
                 {!isInSiteContext && filteredFlatItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location.pathname === item.to;
+                  const navRoute = getNavRoute(item.to);
+                  const isActive = location.pathname === navRoute;
                   const badgeCount = getBadgeCount(item.to);
                   const isHighlight = ['/chat', '/approvals'].includes(item.to);
                   return (
                     <Tooltip key={item.to}>
                       <TooltipTrigger asChild>
                         <NavLink
-                          to={item.to}
+                          to={navRoute}
                           data-testid={`nav-${item.to.slice(1)}-link`}
                           className={`
                             w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
