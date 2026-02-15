@@ -334,7 +334,12 @@ const DashboardLayout = () => {
       '/chat': menuCounts.chat,
       '/logs': menuCounts.logs,
     };
-    return countMap[route] || 0;
+    const count = countMap[route] || 0;
+    // Debug: log when we have counts
+    if (Object.values(menuCounts).some(v => v > 0)) {
+      console.log(`Badge for ${route}:`, count, 'menuCounts:', menuCounts);
+    }
+    return count;
   };
 
   // Badge component
