@@ -1,0 +1,85 @@
+{
+  "summary": "Migration Tool testing completed successfully. All features verified: 1) Auto-detection returns 'Radiogroep MFY/GRK', 2) Status shows correct counts (803 total, 592 migrated, 211 pending), 3) UI displays auto-detected info banner, 4) Dry run previews changes correctly. All 20 backend API tests pass. All UI tests pass.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "backend": {
+      "detect_site_info_endpoint": {
+        "status": "PASS",
+        "returns_suggested_name": "Radiogroep MFY/GRK",
+        "returns_suggested_slug": "radiogroep-mfygrk",
+        "detected_from": "team_name",
+        "team_count": 3
+      },
+      "status_endpoint": {
+        "status": "PASS",
+        "total_documents": 803,
+        "already_migrated": 592,
+        "needs_migration": 211,
+        "main_sites_count": 4
+      },
+      "dry_run_endpoint": {
+        "status": "PASS",
+        "success": true,
+        "message": "Dry run completed successfully",
+        "collections_with_would_migrate": 24
+      },
+      "access_control": {
+        "status": "PASS",
+        "unauthenticated_blocked": true
+      }
+    },
+    "frontend": {
+      "migration_card_visible": "PASS",
+      "open_migration_tool_button": "PASS",
+      "auto_detected_banner": "PASS - Shows 'Auto-gedetecteerd vanuit team naam: Radiogroep MFY/GRK'",
+      "migration_status_display": {
+        "total_documents": "PASS - Shows 803",
+        "already_migrated": "PASS - Shows 592",
+        "needs_migration": "PASS - Shows 211"
+      },
+      "main_site_name_prefilled": "PASS - Pre-filled with 'Radiogroep MFY/GRK'",
+      "url_slug_field": "PASS - Shows 'radiogroep'",
+      "dry_run_button": "PASS - Button visible and clickable",
+      "dry_run_execution": "PASS - Shows 'Dry run completed successfully' message",
+      "run_actual_migration_button": "PASS - Appears after successful dry run"
+    }
+  },
+  "features_verified": [
+    "Auto-detection endpoint returns 'Radiogroep MFY/GRK' from team data",
+    "Migration status endpoint returns correct counts (803 total, 592 migrated, 211 pending)",
+    "Migration Tool UI opens and shows auto-detected site name in info banner",
+    "Dry run preview works without making changes - shows 'would_migrate' status for collections",
+    "UI correctly shows 'Run Actual Migration' button after successful dry run"
+  ],
+  "test_credentials": {
+    "network_admin_email": "yannick.gijbels@koodh.com",
+    "network_admin_password": "test"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_migration_tool.py",
+    "/app/test_reports/pytest/migration_tool_results.xml"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/backend/tests/test_migration_tool.py"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)",
+    "frontend": "100%"
+  },
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Migration Tool is fully functional. Auto-detection works from team_name. Status endpoint shows 4 main sites exist with 211 documents still needing migration. Dry run works correctly. Full migration execution NOT tested (as per instructions - only test if dry run succeeds, which it did). The UI text is in Dutch (Auto-gedetecteerd vanuit team naam).",
+  "critical_code_review_comments": [
+    "Minor: The slug '/radiogroep' is already in use by existing main site as mentioned in requirements. The dry run shows it would use existing main_site_id rather than creating new one."
+  ]
+}
