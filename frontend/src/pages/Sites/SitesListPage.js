@@ -11,6 +11,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from '../../components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../../components/ui/alert-dialog';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { useMainSite } from '../../context/MainSiteContext';
@@ -26,6 +36,7 @@ export default function SitesListPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newSite, setNewSite] = useState({ name: '', slug: '' });
   const [creating, setCreating] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, siteId: null, siteName: '' });
 
   // Use mainSite from context when available
   const mainSite = contextMainSite;
