@@ -139,13 +139,20 @@ async def get_chat_threads(
 
 @chat_router.get("/threads/team", response_model=ChatThreadResponse)
 async def get_or_create_team_thread(
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get or create the default team chat thread."""
+    query_filter = await get_chat_query_filter(request, current_user)
+    main_site_id = await get_main_site_id_from_header(request)
     team_id = current_user.get('team_id')
     
+    if not query_filter:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="No context available")
+    
     thread = await db.chat_threads.find_one(
-        {"team_id": team_id, "type": "team"},
+        {**query_filter, "type": "team"},
         {"_id": 0}
     )
     
@@ -154,6 +161,7 @@ async def get_or_create_team_thread(
         thread = {
             "id": str(uuid.uuid4()),
             "team_id": team_id,
+            "main_site_id": main_site_id,
             "type": "team",
             "name": None,
             "show_id": None,
@@ -166,10 +174,23 @@ async def get_or_create_team_thread(
         await db.chat_threads.insert_one(thread)
         thread.pop("_id", None)
     
-    all_members = await db.users.find(
-        {"team_id": team_id},
-        {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
-    ).to_list(100)
+    # Get all members based on context
+    if main_site_id:
+        user_accesses = await db.main_site_users.find(
+            {"main_site_id": main_site_id},
+            {"_id": 0, "user_id": 1}
+        ).to_list(100)
+        user_ids = [ua["user_id"] for ua in user_accesses]
+        all_members = await db.users.find(
+            {"id": {"$in": user_ids}},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+        ).to_list(100)
+    else:
+        all_members = await db.users.find(
+            {"team_id": team_id},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+        ).to_list(100)
+    
     thread["members"] = all_members
     thread["member_ids"] = [m["id"] for m in all_members]
     
@@ -179,17 +200,20 @@ async def get_or_create_team_thread(
 @chat_router.post("/threads", response_model=ChatThreadResponse, status_code=status.HTTP_201_CREATED)
 async def create_chat_thread(
     thread_data: ChatThreadCreate,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Create a new chat thread."""
+    query_filter = await get_chat_query_filter(request, current_user)
+    main_site_id = await get_main_site_id_from_header(request)
     team_id = current_user.get('team_id')
     user_id = current_user.get('id')
     
     if thread_data.type == "team":
-        return await get_or_create_team_thread(current_user)
+        return await get_or_create_team_thread(request, current_user)
     
     if thread_data.type == "show" and thread_data.show_id:
-        show = await db.shows.find_one({"id": thread_data.show_id, "team_id": team_id})
+        show = await db.shows.find_one({"id": thread_data.show_id, **query_filter})
         if not show:
             raise HTTPException(status_code=404, detail="Show not found")
         
