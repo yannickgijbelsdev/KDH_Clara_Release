@@ -1,6 +1,6 @@
 """Main Site Context - Extract and validate main_site_id from requests."""
 from fastapi import Request, HTTPException, Depends
-from typing import Optional
+from typing import Optional, Tuple
 from database import db
 from services.auth import get_current_user
 
@@ -12,6 +12,52 @@ async def get_main_site_id_from_header(request: Request) -> Optional[str]:
     This allows existing code to work without the header.
     """
     return request.headers.get('X-Main-Site-ID')
+
+
+async def get_data_isolation_filter(request: Request, current_user: dict) -> dict:
+    """Get the appropriate filter for data isolation.
+    
+    This is the PRIMARY function for multisite data isolation.
+    It checks X-Main-Site-ID header first, then falls back to team_id.
+    
+    Returns:
+        dict: Filter to use in MongoDB queries for data isolation
+              {"main_site_id": ...} if header present
+              {"team_id": ...} if no header but user has team_id
+              {} if neither (caller must handle this case)
+    """
+    main_site_id = request.headers.get('X-Main-Site-ID')
+    
+    if main_site_id:
+        return {"main_site_id": main_site_id}
+    
+    team_id = current_user.get('team_id')
+    if team_id:
+        return {"team_id": team_id}
+    
+    return {}
+
+
+async def get_context_ids(request: Request, current_user: dict) -> Tuple[Optional[str], Optional[str]]:
+    """Get both main_site_id and team_id from context.
+    
+    Returns:
+        Tuple[main_site_id, team_id]: Both values, either may be None
+    """
+    main_site_id = request.headers.get('X-Main-Site-ID')
+    team_id = current_user.get('team_id')
+    return main_site_id, team_id
+
+
+async def get_storage_prefix(request: Request, current_user: dict) -> str:
+    """Get a storage prefix for file uploads that works with multisite.
+    
+    Uses main_site_id if available, otherwise team_id.
+    """
+    main_site_id = request.headers.get('X-Main-Site-ID')
+    if main_site_id:
+        return main_site_id
+    return current_user.get('team_id', 'default')
 
 
 async def get_required_main_site_id(request: Request) -> str:
