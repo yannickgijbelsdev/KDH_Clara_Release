@@ -766,7 +766,7 @@ const AudioTriggersPage = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(trigger.id)}
+                      onClick={() => handleDeleteClick(trigger.id, trigger.name)}
                       className="text-red-400 hover:text-red-300"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -778,6 +778,29 @@ const AudioTriggersPage = () => {
           })
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, triggerId: null, triggerName: '' })}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Delete Audio Trigger</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              Are you sure you want to delete "{deleteDialog.triggerName}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => handleDelete(deleteDialog.triggerId)}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Logs Section */}
       {showLogs && (
