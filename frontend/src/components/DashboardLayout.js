@@ -334,10 +334,6 @@ const DashboardLayout = () => {
       '/chat': menuCounts.chat,
       '/logs': menuCounts.logs,
     };
-    // Debug logging
-    if (route === '/content' && menuCounts.content > 0) {
-      console.log('Content badge count:', menuCounts.content);
-    }
     return countMap[route] || 0;
   };
 
