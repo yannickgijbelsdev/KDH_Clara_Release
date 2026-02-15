@@ -47,6 +47,7 @@ export default function NetworkDashboard() {
     slug: '',
     enabled_features: []
   });
+  const [deleteDialog, setDeleteDialog] = useState({ open: false, siteId: null, siteName: '' });
 
   useEffect(() => {
     fetchMainSites();
