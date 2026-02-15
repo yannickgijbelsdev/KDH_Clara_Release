@@ -296,6 +296,9 @@ export default function NetworkDashboard() {
                 </CardContent>
               </Card>
             ))}
+            
+            {/* Migration Tool Card */}
+            <MigrationTool />
           </div>
         )}
       </main>
