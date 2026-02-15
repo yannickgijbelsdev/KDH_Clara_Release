@@ -952,7 +952,11 @@ const DashboardLayout = () => {
           </div>
           
           <div className="p-4 sm:p-6 lg:p-8">
-            <Outlet />
+            {isInSiteContext && currentSite ? (
+              <Outlet context={{ siteTab, setSiteTab, currentSite, fetchCurrentSite }} />
+            ) : (
+              <Outlet />
+            )}
           </div>
         </main>
       </div>
