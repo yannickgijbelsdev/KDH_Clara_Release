@@ -15,11 +15,23 @@ from models.chat import (
 from services.auth import get_current_user
 from services.audit import log_action, get_client_ip
 from services.s3_storage import upload_file_to_s3, is_s3_configured
+from routers.main_sites import get_main_site_id_from_header
 
 chat_router = APIRouter(prefix="/chat", tags=["Chat"])
 
 UPLOAD_DIR = "/app/backend/uploads/chat"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+async def get_chat_query_filter(request: Request, current_user: dict) -> dict:
+    """Helper to build query filter for chat data - uses main_site_id if available, otherwise team_id."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if main_site_id:
+        return {"main_site_id": main_site_id}
+    team_id = current_user.get('team_id')
+    if team_id:
+        return {"team_id": team_id}
+    return {}
 
 
 async def get_member_info(user_ids: List[str]) -> List[dict]:
@@ -34,27 +46,48 @@ async def get_member_info(user_ids: List[str]) -> List[dict]:
 
 @chat_router.get("/members", response_model=List[TeamMemberResponse])
 async def get_team_members(
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get all team members for starting chats."""
-    members = await db.users.find(
-        {"team_id": current_user.get('team_id')},
-        {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
-    ).to_list(100)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        # Get users from main_site_users
+        user_accesses = await db.main_site_users.find(
+            {"main_site_id": main_site_id},
+            {"_id": 0, "user_id": 1}
+        ).to_list(100)
+        user_ids = [ua["user_id"] for ua in user_accesses]
+        
+        members = await db.users.find(
+            {"id": {"$in": user_ids}},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+        ).to_list(100)
+    else:
+        members = await db.users.find(
+            {"team_id": current_user.get('team_id')},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+        ).to_list(100)
+    
     return members
 
 
 @chat_router.get("/threads", response_model=List[ChatThreadResponse])
 async def get_chat_threads(
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get all chat threads accessible to the current user."""
-    team_id = current_user.get('team_id')
+    query_filter = await get_chat_query_filter(request, current_user)
     user_id = current_user.get('id')
+    
+    if not query_filter:
+        return []
     
     threads = await db.chat_threads.find(
         {
-            "team_id": team_id,
+            **query_filter,
             "$or": [
                 {"type": {"$in": ["team", "show"]}},
                 {"member_ids": user_id}
