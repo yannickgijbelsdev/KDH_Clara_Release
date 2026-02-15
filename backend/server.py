@@ -764,28 +764,31 @@ async def startup_db_client():
     from services.auth import hash_password
     
     # Bootstrap: Ensure network admin account exists (for initial access)
-    bootstrap_email = "admkoodh@koodh.com"
-    existing_bootstrap = await db.users.find_one({"email": bootstrap_email})
-    if not existing_bootstrap:
-        bootstrap_user = {
-            "id": str(uuid.uuid4()),
-            "email": bootstrap_email,
-            "name": "System Administrator",
-            "password_hash": hash_password("KYLovie13monx"),
-            "role": "admin",
-            "is_network_admin": True,
-            "team_id": None,  # No team - pure network admin
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "is_system_account": True  # Flag to hide from user lists
-        }
-        await db.users.insert_one(bootstrap_user)
-        logger.info("Bootstrap network admin account created")
-    else:
-        # Ensure it stays a network admin
-        await db.users.update_one(
-            {"email": bootstrap_email},
-            {"$set": {"is_network_admin": True, "is_system_account": True}}
-        )
+    try:
+        bootstrap_email = "admkoodh@koodh.com"
+        existing_bootstrap = await db.users.find_one({"email": bootstrap_email})
+        if not existing_bootstrap:
+            bootstrap_user = {
+                "id": str(uuid.uuid4()),
+                "email": bootstrap_email,
+                "name": "System Administrator",
+                "password_hash": hash_password("KYLovie13monx"),
+                "role": "admin",
+                "is_network_admin": True,
+                "team_id": None,  # No team - pure network admin
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "is_system_account": True  # Flag to hide from user lists
+            }
+            await db.users.insert_one(bootstrap_user)
+            logger.info("Bootstrap network admin account created")
+        else:
+            # Ensure it stays a network admin
+            await db.users.update_one(
+                {"email": bootstrap_email},
+                {"$set": {"is_network_admin": True, "is_system_account": True}}
+            )
+    except Exception as e:
+        logger.warning(f"Could not create/update bootstrap admin: {e}")
     
     # Migrate legacy users without role/team_id
     legacy_users = await db.users.find({"team_id": {"$exists": False}}).to_list(100)
