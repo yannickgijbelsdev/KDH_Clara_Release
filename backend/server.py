@@ -790,8 +790,11 @@ async def startup_db_client():
     except Exception as e:
         logger.warning(f"Could not create/update bootstrap admin: {e}")
     
-    # Migrate legacy users without role/team_id
-    legacy_users = await db.users.find({"team_id": {"$exists": False}}).to_list(100)
+    # Migrate legacy users without role/team_id (exclude system accounts)
+    legacy_users = await db.users.find({
+        "team_id": {"$exists": False},
+        "is_system_account": {"$ne": True}
+    }).to_list(100)
     for user in legacy_users:
         team_id = str(uuid.uuid4())
         now = datetime.now(timezone.utc).isoformat()
