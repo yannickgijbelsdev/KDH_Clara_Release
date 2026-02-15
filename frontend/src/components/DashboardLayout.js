@@ -228,15 +228,8 @@ const DashboardLayout = () => {
 
   // Fetch counts on mount and periodically
   useEffect(() => {
-    console.log('DashboardLayout useEffect triggered:', {
-      user: !!user,
-      mainSiteLoading,
-      mainSiteId: mainSite?.id,
-      mainSiteSlug: mainSite?.slug
-    });
     // Wait for mainSite to be loaded to ensure X-Main-Site-ID header is available
     if (user && !mainSiteLoading && mainSite?.id) {
-      console.log('DashboardLayout: Fetching menu counts...');
       fetchMenuCounts();
       fetchSites();
       const interval = setInterval(fetchMenuCounts, 30000); // Refresh every 30 seconds
