@@ -162,7 +162,6 @@ const DashboardLayout = () => {
   const fetchMenuCounts = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/menu/counts`);
-      console.log('Menu counts fetched:', response.data);
       setMenuCounts(response.data);
     } catch (error) {
       console.error('Failed to fetch menu counts:', error);
