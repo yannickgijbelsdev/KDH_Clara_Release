@@ -335,12 +335,21 @@ const DashboardLayout = () => {
 
   // Get badge count for a route
   const getBadgeCount = (route) => {
+    // Debug: Force show badges for testing
+    const testCounts = {
+      '/content': 132,
+      '/trash': 14,
+      '/approvals': 0,
+      '/chat': 0,
+      '/logs': 5,
+    };
+    
     const countMap = {
-      '/content': menuCounts.content,
-      '/trash': menuCounts.trash,
+      '/content': menuCounts.content || testCounts['/content'],
+      '/trash': menuCounts.trash || testCounts['/trash'],
       '/approvals': menuCounts.approvals,
       '/chat': menuCounts.chat,
-      '/logs': menuCounts.logs,
+      '/logs': menuCounts.logs || testCounts['/logs'],
     };
     return countMap[route] || 0;
   };
