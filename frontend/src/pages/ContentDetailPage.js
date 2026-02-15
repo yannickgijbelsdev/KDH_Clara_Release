@@ -192,7 +192,8 @@ const ContentDetailPage = () => {
       setFeaturedImages(images);
     } catch (error) {
       toast.error('Failed to load content');
-      navigate('/content');
+      const slug = mainSite?.slug || '';
+      navigate(slug ? `/${slug}/content` : '/content');
     } finally {
       setLoading(false);
     }
