@@ -228,13 +228,14 @@ const DashboardLayout = () => {
 
   // Fetch counts on mount and periodically
   useEffect(() => {
-    if (user) {
+    // Wait for mainSite to be loaded to ensure X-Main-Site-ID header is available
+    if (user && !mainSiteLoading && mainSite?.id) {
       fetchMenuCounts();
       fetchSites();
       const interval = setInterval(fetchMenuCounts, 30000); // Refresh every 30 seconds
       return () => clearInterval(interval);
     }
-  }, [user, fetchMenuCounts, fetchSites]);
+  }, [user, mainSite?.id, mainSiteLoading, fetchMenuCounts, fetchSites]);
 
   // Fetch current site when entering site context
   useEffect(() => {
