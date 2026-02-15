@@ -567,13 +567,14 @@ const DashboardLayout = () => {
                         <div className="ml-2 mt-1 space-y-1 border-l border-zinc-800 pl-3">
                           {group.items.map((item) => {
                             const Icon = item.icon;
-                            const isActive = location.pathname === item.to;
+                            const navRoute = getNavRoute(item.to);
+                            const isActive = location.pathname === navRoute;
                             const badgeCount = getBadgeCount(item.to);
                             const isHighlight = ['/chat', '/approvals'].includes(item.to);
                             return (
                               <NavLink
                                 key={item.to}
-                                to={item.to}
+                                to={navRoute}
                                 data-testid={`nav-${item.to.slice(1)}-link`}
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                                   isActive
