@@ -244,7 +244,8 @@ const ContentDetailPage = () => {
     try {
       await axios.delete(`${API}/content/${contentId}`);
       toast.success('Content deleted');
-      navigate('/content');
+      const slug = mainSite?.slug || '';
+      navigate(slug ? `/${slug}/content` : '/content');
     } catch (error) {
       toast.error('Failed to delete content');
     }
