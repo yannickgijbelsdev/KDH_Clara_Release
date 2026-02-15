@@ -91,8 +91,6 @@ export default function SitesListPage() {
   };
 
   const deleteSite = async (siteId) => {
-    if (!window.confirm('Weet u zeker dat u deze site wilt verwijderen?')) return;
-    
     try {
       const token = localStorage.getItem('token');
       // Use axios which automatically includes the X-Main-Site-ID header via interceptor
@@ -101,10 +99,15 @@ export default function SitesListPage() {
       });
       
       toast.success('Site verwijderd');
+      setDeleteDialog({ open: false, siteId: null, siteName: '' });
       fetchSites();
     } catch (error) {
       toast.error('Fout bij verwijderen site');
     }
+  };
+
+  const handleDeleteClick = (siteId, siteName) => {
+    setDeleteDialog({ open: true, siteId, siteName });
   };
 
   // Helper to get correct image URL
