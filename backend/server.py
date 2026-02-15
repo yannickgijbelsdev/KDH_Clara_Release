@@ -13,7 +13,7 @@ Architecture:
 - Real-time: WebSocket for rundown collaboration
 """
 
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, Depends, Request
 from fastapi.responses import PlainTextResponse, FileResponse
 from starlette.middleware.cors import CORSMiddleware
 import os
