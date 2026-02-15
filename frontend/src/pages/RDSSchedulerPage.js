@@ -430,15 +430,19 @@ const RDSSchedulerPage = () => {
     fetchCalendarItems();
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!editingItem) return;
-    if (!window.confirm('Are you sure you want to delete this scheduled text?')) return;
+    setShowDeleteDialog(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!editingItem) return;
     try {
       // Use the station from the editing item for deletion
       const itemStation = editingItem.station === 'both' ? 'mfy' : editingItem.station;
       await axios.delete(`${API}/rds-builder/scheduled-texts/${itemStation}/${editingItem.id}`);
       toast.success('Scheduled text deleted');
+      setShowDeleteDialog(false);
       setDialogOpen(false);
       fetchCalendarItems();
     } catch (error) {
