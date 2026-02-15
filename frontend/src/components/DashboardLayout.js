@@ -440,7 +440,7 @@ const DashboardLayout = () => {
           </div>
 
           {/* Navigation */}
-          <nav className={`flex-1 overflow-y-auto ${useGroupedMenu ? 'px-3' : 'flex flex-col items-center gap-2'}`}>
+          <nav className={`flex-1 overflow-y-auto ${useGroupedMenu ? 'px-3' : 'flex flex-col items-center gap-1'}`}>
             {useGroupedMenu ? (
               // Grouped Navigation
               <div className="space-y-4">
