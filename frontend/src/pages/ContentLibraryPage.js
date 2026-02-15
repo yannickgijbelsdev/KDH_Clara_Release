@@ -445,7 +445,7 @@ const ContentLibraryPage = () => {
               <div
                 key={item.id}
                 data-testid={`content-item-${index}`}
-                onClick={() => navigate(`/content/${item.id}`)}
+                onClick={() => navigate(buildPath(`/content/${item.id}`))}
                 className="bg-[#18181b] border border-zinc-800 rounded-xl p-5 cursor-pointer hover:border-zinc-700 transition-colors group"
               >
                 <div className="flex items-start justify-between">
