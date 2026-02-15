@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta
 
 class RadioShowAPITester:
-    def __init__(self, base_url="https://site-builder-1341.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://site-migration-prep.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
