@@ -228,13 +228,20 @@ async def create_chat_thread(
             raise HTTPException(status_code=400, detail="Private chat requires exactly one other member")
         
         other_user_id = thread_data.member_ids[0]
-        other_user = await db.users.find_one({"id": other_user_id, "team_id": team_id})
+        # In multisite context, check if user has access to this main site
+        if main_site_id:
+            user_access = await db.main_site_users.find_one({"user_id": other_user_id, "main_site_id": main_site_id})
+            if not user_access:
+                raise HTTPException(status_code=404, detail="User not found")
+            other_user = await db.users.find_one({"id": other_user_id})
+        else:
+            other_user = await db.users.find_one({"id": other_user_id, "team_id": team_id})
         if not other_user:
             raise HTTPException(status_code=404, detail="User not found")
         
         member_ids_sorted = sorted([user_id, other_user_id])
         existing = await db.chat_threads.find_one({
-            "team_id": team_id,
+            **query_filter,
             "type": "private",
             "member_ids": member_ids_sorted
         })
@@ -247,6 +254,7 @@ async def create_chat_thread(
         thread_doc = {
             "id": str(uuid.uuid4()),
             "team_id": team_id,
+            "main_site_id": main_site_id,
             "type": "private",
             "name": None,
             "show_id": None,
@@ -268,10 +276,16 @@ async def create_chat_thread(
         if not thread_data.name:
             raise HTTPException(status_code=400, detail="Group chat requires a name")
         
+        # Validate all members exist in this context
         for member_id in thread_data.member_ids:
-            member = await db.users.find_one({"id": member_id, "team_id": team_id})
-            if not member:
-                raise HTTPException(status_code=404, detail=f"User {member_id} not found")
+            if main_site_id:
+                user_access = await db.main_site_users.find_one({"user_id": member_id, "main_site_id": main_site_id})
+                if not user_access:
+                    raise HTTPException(status_code=404, detail=f"User {member_id} not found")
+            else:
+                member = await db.users.find_one({"id": member_id, "team_id": team_id})
+                if not member:
+                    raise HTTPException(status_code=404, detail=f"User {member_id} not found")
         
         all_member_ids = list(set([user_id] + thread_data.member_ids))
         member_roles = {user_id: "owner"}
@@ -282,6 +296,7 @@ async def create_chat_thread(
         thread_doc = {
             "id": str(uuid.uuid4()),
             "team_id": team_id,
+            "main_site_id": main_site_id,
             "type": "group",
             "name": thread_data.name,
             "show_id": None,
