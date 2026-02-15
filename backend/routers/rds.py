@@ -1,5 +1,5 @@
 """RDS Integration routes for MagicRDS and external systems."""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import List, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel
@@ -7,6 +7,7 @@ import uuid
 
 from database import db
 from services.auth import get_current_user, require_admin
+from routers.main_sites import get_main_site_id_from_header
 
 rds_router = APIRouter(prefix="/rds", tags=["RDS Integration"])
 
