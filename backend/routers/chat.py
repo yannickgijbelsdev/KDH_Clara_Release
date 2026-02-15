@@ -415,13 +415,16 @@ async def delete_chat_thread(
 async def manage_thread_members(
     thread_id: str,
     member_update: ChatThreadMemberUpdate,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Add, remove, or change role of thread members. Only owner/admin can manage."""
     user_id = current_user.get('id')
+    query_filter = await get_chat_query_filter(request, current_user)
+    main_site_id = await get_main_site_id_from_header(request)
     team_id = current_user.get('team_id')
     
-    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id})
+    thread = await db.chat_threads.find_one({"id": thread_id, **query_filter})
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     
@@ -437,8 +440,12 @@ async def manage_thread_members(
     target_id = member_update.member_id
     
     if member_update.action == "add":
-        # Verify user exists and is on the same team
-        target_user = await db.users.find_one({"id": target_id, "team_id": team_id})
+        # Verify user exists in the same context
+        if main_site_id:
+            user_access = await db.main_site_users.find_one({"user_id": target_id, "main_site_id": main_site_id})
+            target_user = await db.users.find_one({"id": target_id}) if user_access else None
+        else:
+            target_user = await db.users.find_one({"id": target_id, "team_id": team_id})
         if not target_user:
             raise HTTPException(status_code=404, detail="User not found")
         
@@ -489,13 +496,14 @@ async def manage_thread_members(
 @chat_router.get("/threads/{thread_id}", response_model=ChatThreadResponse)
 async def get_thread(
     thread_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get a single thread with full details."""
     user_id = current_user.get('id')
-    team_id = current_user.get('team_id')
+    query_filter = await get_chat_query_filter(request, current_user)
     
-    thread = await db.chat_threads.find_one({"id": thread_id, "team_id": team_id}, {"_id": 0})
+    thread = await db.chat_threads.find_one({"id": thread_id, **query_filter}, {"_id": 0})
     if not thread:
         raise HTTPException(status_code=404, detail="Thread not found")
     
