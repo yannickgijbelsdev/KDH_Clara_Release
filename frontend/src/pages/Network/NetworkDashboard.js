@@ -92,7 +92,7 @@ export default function NetworkDashboard() {
       if (res.ok) {
         toast.success('Main site created successfully');
         setShowCreateDialog(false);
-        setFormData({ name: '', slug: '', description: '', enabled_features: [] });
+        setFormData({ name: '', slug: '', enabled_features: [] });
         fetchMainSites();
       } else {
         const err = await res.json();
@@ -119,7 +119,7 @@ export default function NetworkDashboard() {
       if (res.ok) {
         toast.success('Main site updated successfully');
         setEditingSite(null);
-        setFormData({ name: '', slug: '', description: '', enabled_features: [] });
+        setFormData({ name: '', slug: '', enabled_features: [] });
         fetchMainSites();
       } else {
         const err = await res.json();
