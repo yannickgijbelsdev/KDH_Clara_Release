@@ -22,6 +22,7 @@ import {
   Plus, Globe, Users, Layers, Settings, Trash2, Edit, ExternalLink,
   Tv, FileText, MessageSquare, Radio, Cog
 } from 'lucide-react';
+import MigrationTool from './MigrationTool';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
