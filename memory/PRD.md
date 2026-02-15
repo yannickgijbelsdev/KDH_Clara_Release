@@ -1679,3 +1679,68 @@ clara.koodh.com/
     - `frontend/src/pages/Network/MigrationTool.js` - Enhanced with auto-detection
   - Tested: 20/20 backend tests passed, 100% frontend verification
 
+
+### February 15, 2026 - Critical Multisite Post-Migration Hotfix
+- [x] **P0 Critical Bug Fix: Application broken after multisite migration**:
+  - Bug: Multiple critical features stopped working after database migration to multisite architecture:
+    - RDS Settings page failed to load
+    - Team Chat failed to load  
+    - Content Library navigation links were broken
+    - Creating new content failed
+    - Site Settings showed "Failed to load team data" error
+    - Admin user switching didn't work
+  - Root causes identified and fixed:
+    1. **Backend**: Many API endpoints still used `team_id` from user token instead of `main_site_id` from `X-Main-Site-ID` header
+    2. **Frontend**: Navigation calls used absolute paths without `mainSiteSlug` prefix (e.g., `/shows` instead of `/radiogroep/shows`)
+    3. **User switching**: Backend API only searched users by `team_id`, not by `main_site_id`
+  
+  - **Backend Fixes**:
+    - Added `get_data_isolation_filter()` helper in `/app/backend/services/main_site_context.py`
+    - Updated `/app/backend/routers/chat.py`:
+      - `get_chat_threads()` - Now uses main_site_id from header
+      - `get_or_create_team_thread()` - Added Request parameter and main_site_id lookup
+      - `create_chat_thread()` - Uses query_filter with main_site_id
+      - All member validation checks main_site_users collection
+    - Updated `/app/backend/server.py`:
+      - `switch_to_user()` - Now checks main_site_users collection for target user access
+      - `exit_impersonation()` - Returns to network admin or site admin based on context
+    - Updated `/app/backend/routers/shows.py`:
+      - `get_presenters_info()` - Now accepts main_site_id parameter
+      - `update_show_title()` - Added Request parameter for main_site_id context
+  
+  - **Frontend Fixes**:
+    - Updated `/app/frontend/src/pages/TeamSettingsPage.js`:
+      - `switchToUser()` onClick now navigates to `/${mainSiteSlug}/shows`
+      - Admin redirect uses mainSite context
+    - Updated `/app/frontend/src/pages/ShowDetailPage.js`:
+      - Added `useMainSite` hook
+      - All `navigate()` calls use mainSite slug prefix
+    - Updated `/app/frontend/src/pages/ShowsPage.js`:
+      - Added `navTo()` helper function
+      - Show card clicks use `navTo('/shows/${id}')`
+    - Updated `/app/frontend/src/pages/ContentDetailPage.js`:
+      - Added `useMainSite` hook
+      - Back button and delete redirect use mainSite context
+    - Updated `/app/frontend/src/pages/RDSBuilderPage.js`:
+      - Added `useParams` for mainSiteSlug
+      - Navigation to audio-triggers and rds-scheduler use mainSite prefix
+    - Updated `/app/frontend/src/pages/RDSSchedulerPage.js`:
+      - Added `navTo()` helper
+      - Back button uses mainSite prefix
+    - Updated `/app/frontend/src/pages/LogsPage.js`:
+      - Added `navTo()` helper
+      - Admin redirect uses mainSite context
+
+  - **Test Results** (All Passing):
+    - Login flow: Network admin login works ✅
+    - Main sites list: 4 sites found (Radiogroep, DBNT Studio, etc.) ✅
+    - RDS Settings: Loads at `/radiogroep/rds` with configuration ✅
+    - Chat: Loads at `/radiogroep/chat` with team messages ✅
+    - Content Library: Shows 132 items at `/radiogroep/content` ✅
+    - Site Settings: Shows 8 team members at `/radiogroep/team` ✅
+    - User Switching: Works and preserves URL prefix ✅
+    - Data Isolation: Radiogroep has 132 items, DBNT Studio has 0 ✅
+  
+  - **11/11 Backend API tests passed**
+  - **100% Frontend verification success**
+  - Test report: `/app/test_reports/iteration_44.json`
