@@ -1161,7 +1161,8 @@ const ShowDetailPage = () => {
                   const response = await axios.post(`${API}/shows/${showId}/stop-recurrence?delete_future=false`);
                   if (response.data.deleted) {
                     toast.success('Recurrence stopped.');
-                    navigate('/calendar');
+                    const slug = mainSite?.slug || '';
+                    navigate(slug ? `/${slug}/calendar` : '/calendar');
                   } else {
                     setShow(response.data);
                     setStopRecurrenceDialogOpen(false);
@@ -1181,7 +1182,8 @@ const ShowDetailPage = () => {
                   const response = await axios.post(`${API}/shows/${showId}/stop-recurrence?delete_future=true`);
                   if (response.data.deleted) {
                     toast.success('Recurrence stopped and this show was deleted (it was a future occurrence).');
-                    navigate('/calendar');
+                    const slug = mainSite?.slug || '';
+                    navigate(slug ? `/${slug}/calendar` : '/calendar');
                   } else {
                     setShow(response.data);
                     setStopRecurrenceDialogOpen(false);
