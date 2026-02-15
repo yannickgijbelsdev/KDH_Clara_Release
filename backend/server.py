@@ -298,53 +298,60 @@ async def switch_to_user(
 
 
 @api_router.post("/admin/exit-impersonation")
-async def exit_impersonation(current_user: dict = Depends(get_current_user)):
+async def exit_impersonation(request: Request, current_user: dict = Depends(get_current_user)):
     """Exit impersonation and return to original admin account."""
-    from fastapi import Request, HTTPException
+    from fastapi import HTTPException
+    from services.main_site_context import get_main_site_id_from_header
     
-    # Get the impersonated_by from the current token
-    token = None
-    # We need to access the raw token to check impersonation
-    # The current_user doesn't have this info, so we'll use a workaround
-    
-    # Find the original admin based on who might be impersonating
-    # For now, we'll require the frontend to pass the original user info
-    # Or we can check if the current user is being impersonated
+    main_site_id = await get_main_site_id_from_header(request)
     
     # Get current user's full data
     user = await db.users.find_one({"id": current_user['id']}, {"_id": 0, "password_hash": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # The frontend should have stored the original admin info
-    # We'll create a new token for the original admin
-    # Since we can't get the original admin from the token easily here,
-    # the frontend will need to provide it or we check team admins
+    # Find admin to return to - try network admin first, then site admin, then team admin
+    admin_user = None
     
-    # Find team admin
-    team_admin = await db.users.find_one(
-        {"team_id": current_user['team_id'], "role": "admin"},
+    # Check for network admin first
+    admin_user = await db.users.find_one(
+        {"is_network_admin": True},
         {"_id": 0, "password_hash": 0}
     )
-    if not team_admin:
+    
+    # If in multisite context and no network admin, find main site admin
+    if not admin_user and main_site_id:
+        admin_access = await db.main_site_users.find_one({"main_site_id": main_site_id, "role": "admin"})
+        if admin_access:
+            admin_user = await db.users.find_one({"id": admin_access["user_id"]}, {"_id": 0, "password_hash": 0})
+    
+    # Fallback to team admin
+    if not admin_user and current_user.get('team_id'):
+        admin_user = await db.users.find_one(
+            {"team_id": current_user['team_id'], "role": "admin"},
+            {"_id": 0, "password_hash": 0}
+        )
+    
+    if not admin_user:
         raise HTTPException(status_code=404, detail="Admin not found")
     
     # Create token for admin with 4 hour expiry
     exp_timestamp = datetime.now(timezone.utc).timestamp() + 3600 * 4
     token_payload = {
-        "user_id": team_admin['id'],
-        "email": team_admin['email'],
+        "user_id": admin_user['id'],
+        "email": admin_user['email'],
         "exp": exp_timestamp
     }
     new_token = jwt.encode(token_payload, JWT_SECRET, algorithm="HS256")
     
-    # Get team name
-    team = await db.teams.find_one({"id": team_admin['team_id']}, {"_id": 0})
-    team_admin['team_name'] = team['name'] if team else None
+    # Get team name if available
+    if admin_user.get('team_id'):
+        team = await db.teams.find_one({"id": admin_user['team_id']}, {"_id": 0})
+        admin_user['team_name'] = team['name'] if team else None
     
     return {
         "token": new_token,
-        "user": team_admin,
+        "user": admin_user,
         "expires_at": exp_timestamp
     }
 
