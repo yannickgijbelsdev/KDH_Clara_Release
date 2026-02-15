@@ -33,6 +33,9 @@ async def get_team_users(
     """Get all users, filtered by main_site access if in multisite context."""
     main_site_id = await get_main_site_id_from_header(request)
     
+    # Base filter to exclude system accounts
+    base_filter = {"is_system_account": {"$ne": True}}
+    
     if main_site_id:
         # Get users who have access to this main site
         user_accesses = await db.main_site_users.find(
@@ -46,13 +49,13 @@ async def get_team_users(
             user_ids.append(current_user['id'])
         
         users = await db.users.find(
-            {"id": {"$in": user_ids}},
+            {"id": {"$in": user_ids}, **base_filter},
             {"_id": 0, "password_hash": 0}
         ).to_list(100)
     else:
         # Fallback to team_id for backwards compatibility
         users = await db.users.find(
-            {"team_id": current_user['team_id']},
+            {"team_id": current_user['team_id'], **base_filter},
             {"_id": 0, "password_hash": 0}
         ).to_list(100)
     
