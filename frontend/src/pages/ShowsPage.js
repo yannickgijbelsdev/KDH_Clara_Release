@@ -483,7 +483,7 @@ const ShowsPage = () => {
                     key={idx}
                     seriesName={s.name}
                     shows={s.shows}
-                    onShowClick={(id) => navigate(`/shows/${id}`)}
+                    onShowClick={(id) => navTo(`/shows/${id}`)}
                     onDeleteSeries={handleDeleteSeries}
                     isEditor={isEditor}
                   />
@@ -506,7 +506,7 @@ const ShowsPage = () => {
                     key={show.id}
                     show={show}
                     index={index}
-                    onClick={() => navigate(`/shows/${show.id}`)}
+                    onClick={() => navTo(`/shows/${show.id}`)}
                   />
                 ))}
               </div>
