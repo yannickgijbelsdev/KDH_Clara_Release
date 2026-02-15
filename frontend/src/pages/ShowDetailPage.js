@@ -298,7 +298,8 @@ const ShowDetailPage = () => {
       setEditData(response.data);
     } catch (error) {
       toast.error('Failed to load show');
-      navigate('/shows');
+      const slug = mainSite?.slug || '';
+      navigate(slug ? `/${slug}/shows` : '/shows');
     } finally {
       setLoading(false);
     }
