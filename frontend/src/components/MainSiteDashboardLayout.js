@@ -303,9 +303,11 @@ const MainSiteDashboardLayout = () => {
 
   // Get badge count for a route
   const getBadgeCount = (route) => {
-    if (route === 'chat') return menuCounts.chat || 0;
-    if (route === 'approvals') return menuCounts.pending_approvals || 0;
-    if (route === 'logs') return menuCounts.logs || 0;
+    if (route === 'content' || route === 'content_library') return menuCounts.content || 0;
+    if (route === 'trash') return menuCounts.trash || 0;
+    if (route === 'chat' || route === 'team_chat') return menuCounts.chat || 0;
+    if (route === 'approvals' || route === 'content_approval') return menuCounts.approvals || menuCounts.pending_approvals || 0;
+    if (route === 'logs' || route === 'activity_logs') return menuCounts.logs || 0;
     return 0;
   };
 
