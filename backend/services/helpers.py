@@ -87,12 +87,21 @@ def generate_dates_from_recurrence(
     return dates
 
 
-async def get_content_with_publish_statuses(content_id: str, team_id: str) -> dict:
+async def get_content_with_publish_statuses(content_id: str, team_id: str = None, main_site_id: str = None) -> dict:
     """Get content item with all publish statuses and featured images."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": team_id},
-        {"_id": 0}
-    )
+    # Build query that supports both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif team_id:
+        query["team_id"] = team_id
+    
+    content = await db.content_items.find_one(query, {"_id": 0})
+    
+    # If not found with specific filter, try finding by id alone (for backwards compat)
+    if not content:
+        content = await db.content_items.find_one({"id": content_id}, {"_id": 0})
+    
     if not content:
         return None
     
