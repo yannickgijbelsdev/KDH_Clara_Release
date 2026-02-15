@@ -44,20 +44,29 @@ async def get_team_users(
         ).to_list(100)
         user_ids = [ua["user_id"] for ua in user_accesses]
         
-        # Also include the current user if they have access (network admin might not be in main_site_users)
-        if current_user['id'] not in user_ids:
+        # Network admins can see all users in a main site even if not in main_site_users
+        if current_user.get('is_network_admin') and current_user['id'] not in user_ids:
             user_ids.append(current_user['id'])
         
-        users = await db.users.find(
-            {"id": {"$in": user_ids}, **base_filter},
-            {"_id": 0, "password_hash": 0}
-        ).to_list(100)
+        if user_ids:
+            users = await db.users.find(
+                {"id": {"$in": user_ids}, **base_filter},
+                {"_id": 0, "password_hash": 0}
+            ).to_list(100)
+        else:
+            # No users linked to this main site yet - return empty list
+            users = []
     else:
         # Fallback to team_id for backwards compatibility
-        users = await db.users.find(
-            {"team_id": current_user['team_id'], **base_filter},
-            {"_id": 0, "password_hash": 0}
-        ).to_list(100)
+        team_id = current_user.get('team_id')
+        if team_id:
+            users = await db.users.find(
+                {"team_id": team_id, **base_filter},
+                {"_id": 0, "password_hash": 0}
+            ).to_list(100)
+        else:
+            # User has no team_id (like bootstrap admin) - return empty
+            users = []
     
     return users
 
