@@ -79,6 +79,10 @@ const categoryColors = {
 const LogsPage = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { mainSiteSlug } = useParams();
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
   
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +108,7 @@ const LogsPage = () => {
 
   useEffect(() => {
     if (!isAdmin) {
-      navigate('/shows');
+      navigate(navTo('/shows'));
       return;
     }
     fetchCategories();
