@@ -99,6 +99,7 @@ const ContentLibraryPage = () => {
   const { isEditor } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { mainSiteSlug } = useParams();
   const [allContent, setAllContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -109,6 +110,9 @@ const ContentLibraryPage = () => {
   const [sourceFilter, setSourceFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  // Helper to build paths with main site slug
+  const buildPath = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   const fetchContent = useCallback(async () => {
     try {
