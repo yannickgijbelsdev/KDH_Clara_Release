@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
   Globe,
@@ -46,13 +46,12 @@ import {
 } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { useMainSite } from '../context/MainSiteContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const WordPressSettingsPage = () => {
   const { isAdmin } = useAuth();
-  const { mainSite } = useMainSite();
+  const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,11 +72,8 @@ const WordPressSettingsPage = () => {
     is_active: true,
   });
   
-  // Helper for context-aware navigation
-  const navTo = (path) => {
-    const slug = mainSite?.slug || '';
-    return slug ? `/${slug}${path}` : path;
-  };
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   useEffect(() => {
     if (!isAdmin) {
@@ -85,7 +81,7 @@ const WordPressSettingsPage = () => {
       return;
     }
     fetchSites();
-  }, [isAdmin, navigate, mainSite]);
+  }, [isAdmin, navigate, mainSiteSlug]);
 
   const fetchSites = async () => {
     try {
