@@ -204,31 +204,90 @@ async def get_content_items(
     
     items = await db.content_items.find(query, {"_id": 0}).sort("updated_at", -1).to_list(1000)
     
+    if not items:
+        return []
+    
+    # Batch fetch all related data to avoid N+1 queries
+    content_ids = [item["id"] for item in items]
+    
+    # 1. Batch fetch all publish statuses
+    all_publish_statuses = await db.content_item_publishes.find(
+        {"content_item_id": {"$in": content_ids}},
+        {"_id": 0}
+    ).to_list(None)
+    
+    # Group publish statuses by content_item_id
+    publish_statuses_map = {}
+    wordpress_site_ids = set()
+    for ps in all_publish_statuses:
+        cid = ps["content_item_id"]
+        if cid not in publish_statuses_map:
+            publish_statuses_map[cid] = []
+        publish_statuses_map[cid].append(ps)
+        wordpress_site_ids.add(ps["wordpress_site_id"])
+    
+    # 2. Batch fetch all wordpress sites
+    wordpress_sites_map = {}
+    if wordpress_site_ids:
+        wp_sites = await db.wordpress_sites.find(
+            {"id": {"$in": list(wordpress_site_ids)}},
+            {"_id": 0}
+        ).to_list(None)
+        for site in wp_sites:
+            wordpress_sites_map[site["id"]] = site
+    
+    # 3. Batch fetch all featured images
+    all_featured_images = await db.content_item_featured_images.find(
+        {"content_item_id": {"$in": content_ids}},
+        {"_id": 0}
+    ).to_list(None)
+    
+    # Create a lookup map for featured images: (content_id, site_id) -> featured_image
+    featured_images_map = {}
+    for fi in all_featured_images:
+        key = (fi["content_item_id"], fi.get("wordpress_site_id"))
+        featured_images_map[key] = fi
+    
+    # 4. Batch fetch categories and creators
+    category_ids = list(set(item.get("category_id") for item in items if item.get("category_id")))
+    creator_ids = list(set(item.get("created_by") for item in items if item.get("created_by")))
+    
+    categories_map = {}
+    if category_ids:
+        categories = await db.categories.find({"id": {"$in": category_ids}}, {"_id": 0}).to_list(None)
+        for cat in categories:
+            categories_map[cat["id"]] = cat
+    
+    creators_map = {}
+    if creator_ids:
+        creators = await db.users.find({"id": {"$in": creator_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(None)
+        for creator in creators:
+            creators_map[creator["id"]] = creator
+    
+    # Build result with all related data
     result = []
     for item in items:
-        # Enrich with category and creator info
-        item = await enrich_content_item(item)
+        # Add category info
+        if item.get("category_id") and item["category_id"] in categories_map:
+            item["category"] = categories_map[item["category_id"]]
         
-        # Add publish statuses
-        publish_statuses = await db.content_item_publishes.find(
-            {"content_item_id": item["id"]},
-            {"_id": 0}
-        ).to_list(100)
+        # Add creator name
+        if item.get("created_by") and item["created_by"] in creators_map:
+            item["created_by_name"] = creators_map[item["created_by"]].get("name", "Unknown")
         
-        for ps in publish_statuses:
-            site = await db.wordpress_sites.find_one({"id": ps["wordpress_site_id"]}, {"_id": 0})
+        # Add publish statuses with site names and featured images
+        item_publish_statuses = publish_statuses_map.get(item["id"], [])
+        for ps in item_publish_statuses:
+            site = wordpress_sites_map.get(ps["wordpress_site_id"])
             ps["wordpress_site_name"] = site["name"] if site else "Unknown"
             
             # Add featured image for this publish status
-            featured_image = await db.content_item_featured_images.find_one(
-                {"content_item_id": item["id"], "wordpress_site_id": ps["wordpress_site_id"]},
-                {"_id": 0}
-            )
+            featured_image = featured_images_map.get((item["id"], ps["wordpress_site_id"]))
             if featured_image:
                 featured_image["wordpress_site_name"] = ps["wordpress_site_name"]
             ps["featured_image"] = featured_image
         
-        item["publish_statuses"] = publish_statuses
+        item["publish_statuses"] = item_publish_statuses
         result.append(item)
     
     return result
