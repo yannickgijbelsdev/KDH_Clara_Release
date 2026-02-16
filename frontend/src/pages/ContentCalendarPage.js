@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { useMainSite } from '../context/MainSiteContext';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -135,17 +134,14 @@ const CustomToolbar = ({ label, onNavigate, onView, view }) => {
 
 const ContentCalendarPage = () => {
   const navigate = useNavigate();
-  const { mainSite } = useMainSite();
+  const { mainSiteSlug } = useParams();
   const [loading, setLoading] = useState(true);
   const [contentItems, setContentItems] = useState([]);
   const [view, setView] = useState('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   
-  // Helper for context-aware navigation
-  const navTo = (path) => {
-    const slug = mainSite?.slug || '';
-    return slug ? `/${slug}${path}` : path;
-  };
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   useEffect(() => {
     fetchContent();
