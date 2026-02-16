@@ -446,15 +446,25 @@ async def get_pending_approval_content(
     """Admin/News Admin: Get all content pending approval."""
     # Support multisite context
     main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
+    is_network_admin = current_user.get('is_network_admin', False)
     
-    # Build base query with multisite support - use $or to support both main_site_id and team_id
+    # Build base query with multisite support
     if main_site_id:
-        base_query = {"$or": [
-            {"main_site_id": main_site_id},
-            {"team_id": current_user.get('team_id')}
-        ]}
+        if team_id:
+            base_query = {"$or": [
+                {"main_site_id": main_site_id},
+                {"team_id": team_id}
+            ]}
+        else:
+            base_query = {"main_site_id": main_site_id}
+    elif team_id:
+        base_query = {"team_id": team_id}
+    elif is_network_admin:
+        # Network admin without team - show all pending content
+        base_query = {}
     else:
-        base_query = {"team_id": current_user.get('team_id')}
+        return []
     
     items = await db.content_items.find(
         {
