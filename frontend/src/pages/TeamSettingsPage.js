@@ -88,7 +88,7 @@ const roleLabels = {
 
 const TeamSettingsPage = () => {
   const { user, isAdmin, switchToUser } = useAuth();
-  const { mainSite } = useMainSite();
+  const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [team, setTeam] = useState(null);
   const [users, setUsers] = useState([]);
@@ -101,6 +101,9 @@ const TeamSettingsPage = () => {
   const [tempPassword, setTempPassword] = useState('');
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
   
   // Edit user state
   const [editUserDialogOpen, setEditUserDialogOpen] = useState(false);
@@ -120,14 +123,11 @@ const TeamSettingsPage = () => {
 
   useEffect(() => {
     if (!isAdmin) {
-      const slug = mainSite?.slug || '';
-      navigate(slug ? `/${slug}/shows` : '/shows');
+      navigate(navTo('/shows'));
       return;
     }
-    // Wait for mainSite to be loaded before fetching data
-    if (mainSite) {
-      fetchData();
-    }
+    fetchData();
+  }, [isAdmin, mainSiteSlug]);
   }, [isAdmin, mainSite]);
 
   const fetchData = async () => {
