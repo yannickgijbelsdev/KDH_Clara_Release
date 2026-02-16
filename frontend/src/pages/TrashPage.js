@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 import {
@@ -22,7 +22,6 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { useMainSite } from '../context/MainSiteContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,7 +50,7 @@ const getFeaturedImageUrl = (featuredImage) => {
 
 const TrashPage = () => {
   const { isAdmin } = useAuth();
-  const { mainSite } = useMainSite();
+  const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [deletedContent, setDeletedContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
@@ -61,11 +60,8 @@ const TrashPage = () => {
   const [permanentDeleteItem, setPermanentDeleteItem] = useState(null);
   const [permanentDeleting, setPermanentDeleting] = useState(false);
   
-  // Helper for context-aware navigation
-  const navTo = (path) => {
-    const slug = mainSite?.slug || '';
-    return slug ? `/${slug}${path}` : path;
-  };
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   useEffect(() => {
     if (!isAdmin) {
@@ -73,7 +69,7 @@ const TrashPage = () => {
       return;
     }
     fetchDeletedContent();
-  }, [isAdmin, navigate, mainSite]);
+  }, [isAdmin, navigate, mainSiteSlug]);
 
   const fetchDeletedContent = async () => {
     setLoading(true);
