@@ -20,10 +20,11 @@ async def get_current_team(
     if not team_id:
         # Network admin without team - return a default team object
         if current_user.get('is_network_admin'):
+            from datetime import datetime, timezone
             return {
                 "id": "network",
                 "name": "Network Administration",
-                "created_at": None
+                "created_at": datetime.now(timezone.utc).isoformat()
             }
         raise HTTPException(status_code=404, detail="Team not found")
     
