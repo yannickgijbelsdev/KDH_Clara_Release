@@ -136,7 +136,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
           </div>
         </div>
         <Button
-          onClick={() => navigate('/rds-scheduler')}
+          onClick={() => navigate(navTo('/rds-scheduler'))}
           variant="outline"
           size="sm"
           className="border-zinc-700 text-zinc-300 hover:text-white"
