@@ -149,10 +149,9 @@ const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
 };
 
 const ShowDetailPage = () => {
-  const { showId } = useParams();
+  const { showId, mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const { isEditor, token } = useAuth();
-  const { mainSite } = useMainSite();
   const [show, setShow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -161,6 +160,9 @@ const ShowDetailPage = () => {
   const [recurringDeleteDialogOpen, setRecurringDeleteDialogOpen] = useState(false);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
+  
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
   
   // Team users for presenter selection
   const [teamUsers, setTeamUsers] = useState([]);
