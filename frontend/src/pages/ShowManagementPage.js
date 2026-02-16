@@ -58,9 +58,16 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ShowManagementPage = () => {
   const { isAdmin } = useAuth();
+  const { mainSite } = useMainSite();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('titles');
   const [loading, setLoading] = useState(true);
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => {
+    const slug = mainSite?.slug || '';
+    return slug ? `/${slug}${path}` : path;
+  };
   
   // Team users for presenter selection
   const [teamUsers, setTeamUsers] = useState([]);
@@ -101,11 +108,11 @@ const ShowManagementPage = () => {
 
   useEffect(() => {
     if (!isAdmin) {
-      navigate('/shows');
+      navigate(navTo('/shows'));
       return;
     }
     fetchData();
-  }, [isAdmin]);
+  }, [isAdmin, mainSite]);
 
   const fetchData = async () => {
     try {
