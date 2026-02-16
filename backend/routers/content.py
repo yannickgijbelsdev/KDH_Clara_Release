@@ -810,13 +810,22 @@ async def export_content_audit_logs_pdf(
 @content_router.post("/{content_id}/featured-image")
 async def upload_content_featured_image(
     content_id: str,
+    request: Request,
     file: UploadFile = File(...),
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Upload a featured image for the content item to S3."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
@@ -881,12 +890,21 @@ async def upload_content_featured_image(
 @content_router.delete("/{content_id}/featured-image")
 async def delete_content_featured_image(
     content_id: str,
+    request: Request,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Delete the featured image from a content item."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
@@ -916,12 +934,21 @@ async def delete_content_featured_image(
 @content_router.get("/{content_id}/featured-images", response_model=List[FeaturedImageResponse])
 async def get_featured_images(
     content_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get all featured images for a content item."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
@@ -941,19 +968,33 @@ async def get_featured_images(
 async def upload_featured_image(
     content_id: str,
     site_id: str,
+    request: Request,
     file: UploadFile = File(...),
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Upload a featured image for a specific WordPress site to S3."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
-    site = await db.wordpress_sites.find_one(
-        {"id": site_id, "team_id": current_user.get('team_id')}
-    )
+    # WordPress site query - support multisite
+    site_query = {"id": site_id}
+    if main_site_id:
+        site_query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        site_query["team_id"] = current_user.get('team_id')
+    
+    site = await db.wordpress_sites.find_one(site_query)
     if not site:
         raise HTTPException(status_code=404, detail="WordPress site not found")
     
@@ -1032,12 +1073,21 @@ async def upload_featured_image(
 async def delete_featured_image(
     content_id: str,
     site_id: str,
+    request: Request,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Delete a featured image for a specific WordPress site."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
@@ -1068,12 +1118,21 @@ async def delete_featured_image(
 async def get_publish_status(
     content_id: str,
     site_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get publish status for a content item on a specific site."""
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
