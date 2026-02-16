@@ -156,17 +156,28 @@ async def get_content_items(
     """Get all content items for the main site or team. Deleted items only visible to admins."""
     # Check for main_site_id header (multisite context)
     main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
+    is_network_admin = current_user.get('is_network_admin', False)
     
-    # Support both main_site_id AND team_id filtering
-    # This ensures backward compatibility with existing data
+    # Build query based on context
     if main_site_id:
         # In multisite context, search for content with EITHER main_site_id OR team_id
-        query = {"$or": [
-            {"main_site_id": main_site_id},
-            {"team_id": current_user.get('team_id')}
-        ]}
+        if team_id:
+            query = {"$or": [
+                {"main_site_id": main_site_id},
+                {"team_id": team_id}
+            ]}
+        else:
+            # Network admin without team - only filter by main_site_id
+            query = {"main_site_id": main_site_id}
+    elif team_id:
+        query = {"team_id": team_id}
+    elif is_network_admin:
+        # Network admin without team or main_site context - show all content
+        query = {}
     else:
-        query = {"team_id": current_user.get('team_id')}
+        # No team and not network admin - return empty
+        return []
     
     # Filter out deleted items for non-admins
     is_admin = current_user.get('role') == 'admin'
