@@ -52,6 +52,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const WordPressSettingsPage = () => {
   const { isAdmin } = useAuth();
+  const { mainSite } = useMainSite();
   const navigate = useNavigate();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,14 +72,20 @@ const WordPressSettingsPage = () => {
     default_publish_status: 'draft',
     is_active: true,
   });
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => {
+    const slug = mainSite?.slug || '';
+    return slug ? `/${slug}${path}` : path;
+  };
 
   useEffect(() => {
     if (!isAdmin) {
-      navigate('/shows');
+      navigate(navTo('/shows'));
       return;
     }
     fetchSites();
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, mainSite]);
 
   const fetchSites = async () => {
     try {
