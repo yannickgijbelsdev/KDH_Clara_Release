@@ -999,13 +999,19 @@ async def update_show(
 @shows_router.delete("/{show_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_show(
     show_id: str,
+    request: Request,
     delete_all: bool = Query(default=False, description="Delete all occurrences of recurring show"),
     current_user: dict = Depends(require_admin)
 ):
     """Delete a show. Admin only. For recurring shows, can delete just this one or all occurrences."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')}
-    )
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        show = await db.shows.find_one({"id": show_id, "main_site_id": main_site_id})
+    else:
+        show = await db.shows.find_one({"id": show_id, "team_id": current_user.get('team_id')})
+    
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
@@ -1013,17 +1019,26 @@ async def delete_show(
         # Delete this show and all related occurrences
         parent_id = show.get('parent_show_id') or show_id
         
-        # Get all show IDs to delete
-        shows_to_delete = await db.shows.find(
-            {
+        # Build query based on context
+        if main_site_id:
+            context_query = {
+                "main_site_id": main_site_id,
+                "$or": [
+                    {"id": parent_id},
+                    {"parent_show_id": parent_id}
+                ]
+            }
+        else:
+            context_query = {
                 "team_id": current_user.get('team_id'),
                 "$or": [
                     {"id": parent_id},
                     {"parent_show_id": parent_id}
                 ]
-            },
-            {"id": 1}
-        ).to_list(1000)
+            }
+        
+        # Get all show IDs to delete
+        shows_to_delete = await db.shows.find(context_query, {"id": 1}).to_list(1000)
         
         show_ids = [s['id'] for s in shows_to_delete]
         
@@ -1031,15 +1046,7 @@ async def delete_show(
         await db.rundown_items.delete_many({"show_id": {"$in": show_ids}})
         
         # Delete all shows
-        await db.shows.delete_many(
-            {
-                "team_id": current_user.get('team_id'),
-                "$or": [
-                    {"id": parent_id},
-                    {"parent_show_id": parent_id}
-                ]
-            }
-        )
+        await db.shows.delete_many(context_query)
     else:
         # Delete only this show
         await db.shows.delete_one({"id": show_id})
