@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
   format,
@@ -27,7 +27,6 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { useMainSite } from '../context/MainSiteContext';
 import CreateShowDialog from '../components/CreateShowDialog';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -51,13 +50,10 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const navigate = useNavigate();
-  const { mainSite } = useMainSite();
+  const { mainSiteSlug } = useParams();
   
-  // Helper for context-aware navigation
-  const navTo = (path) => {
-    const slug = mainSite?.slug || '';
-    return slug ? `/${slug}${path}` : path;
-  };
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   // Fetch shows on mount and when window regains focus
   useEffect(() => {
