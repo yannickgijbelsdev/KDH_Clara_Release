@@ -46,6 +46,7 @@ import {
 } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { useMainSite } from '../context/MainSiteContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
