@@ -1911,3 +1911,33 @@ Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header
 - Content Approval shows 119 pending items ✅
 - RDS Settings page loads with configuration ✅
 - Shoutcast Logs display now playing tracks ✅
+
+### February 16, 2026 - Network Admin Support Fix (P0)
+
+**Problem:** After initial multisite fixes, user still reported "Failed to load team data" and "Failed to load content" errors.
+
+**Root Cause:** The logged-in user (`admkoodh@koodh.com`) is a **Network Admin** with `team_id: None`. The backend code assumed all users have a `team_id`, causing:
+1. Teams endpoint to fail because it couldn't find a team with `id: null`
+2. Content endpoints to return empty arrays when filtering by `team_id: null`
+
+**Solution:**
+
+#### teams.py Fix
+- Added check for network admins without team_id
+- Returns default "Network Administration" team object for network admins
+- Ensures response model validation passes with valid `created_at` timestamp
+
+#### content.py Fixes
+- Added `is_network_admin` check to content queries
+- Network admins without team_id now see ALL content (not filtered by team)
+- Pending approval endpoint also supports network admins
+
+**Files Updated:**
+- `/app/backend/routers/teams.py`
+- `/app/backend/routers/content.py`
+
+**Verified Working:**
+- Team Settings: Shows "Network Administration" with 8 team members ✅
+- Content Library: Shows 132 items ✅
+- Content Approval: Shows 119 pending items ✅
+- All API endpoints return correct data ✅
