@@ -251,7 +251,7 @@ const ContentCalendarPage = () => {
         </div>
         <Button
           variant="outline"
-          onClick={() => navigate('/content')}
+          onClick={() => navigate(navTo('/content'))}
           className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
         >
           <List className="w-4 h-4 mr-2" />
