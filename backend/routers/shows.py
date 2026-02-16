@@ -923,14 +923,20 @@ async def get_show(
 @shows_router.put("/{show_id}", response_model=ShowResponse)
 async def update_show(
     show_id: str,
+    request: Request,
     show_data: ShowUpdate,
     update_all: bool = Query(default=False, description="Update all occurrences of recurring show"),
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Update a show. For recurring shows, can update just this one or all occurrences."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')}
-    )
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        show = await db.shows.find_one({"id": show_id, "main_site_id": main_site_id})
+    else:
+        show = await db.shows.find_one({"id": show_id, "team_id": current_user.get('team_id')})
+    
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
@@ -949,17 +955,25 @@ async def update_show(
         # Update this show and all related occurrences
         parent_id = show.get('parent_show_id') or show_id
         
-        # Update parent and all children
-        await db.shows.update_many(
-            {
+        # Build query based on context
+        if main_site_id:
+            update_query = {
+                "main_site_id": main_site_id,
+                "$or": [
+                    {"id": parent_id},
+                    {"parent_show_id": parent_id}
+                ]
+            }
+        else:
+            update_query = {
                 "team_id": current_user.get('team_id'),
                 "$or": [
                     {"id": parent_id},
                     {"parent_show_id": parent_id}
                 ]
-            },
-            {"$set": update_dict}
-        )
+            }
+        
+        await db.shows.update_many(update_query, {"$set": update_dict})
     else:
         # Update only this show
         await db.shows.update_one(
@@ -977,7 +991,7 @@ async def update_show(
     
     # Get presenter info
     if updated_show.get('presenter_ids'):
-        updated_show['presenters'] = await get_presenters_info(updated_show['presenter_ids'], current_user.get('team_id'))
+        updated_show['presenters'] = await get_presenters_info(updated_show['presenter_ids'], main_site_id, current_user.get('team_id'))
     
     return updated_show
 
