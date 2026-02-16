@@ -36,8 +36,9 @@ def get_auth_token():
         })
         assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
-        auth_token = data.get('access_token')
-        assert auth_token, "No access token in response"
+        # API returns 'token' not 'access_token'
+        auth_token = data.get('token') or data.get('access_token')
+        assert auth_token, f"No token in response: {data.keys()}"
     return auth_token
 
 
@@ -71,7 +72,7 @@ class TestShowsEndpointsWithMultisite:
         })
         assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
-        assert "access_token" in data
+        assert "token" in data, f"No token in response: {data.keys()}"
         assert data.get("user", {}).get("is_network_admin") == True
         print(f"✓ Login successful, is_network_admin: {data['user'].get('is_network_admin')}")
 
