@@ -1744,3 +1744,76 @@ clara.koodh.com/
   - **11/11 Backend API tests passed**
   - **100% Frontend verification success**
   - Test report: `/app/test_reports/iteration_44.json`
+
+
+
+### February 16, 2026 - Multisite Navigation & Backend API Fixes (P0)
+
+**Problem:** Production deployment at `clara.koodh.com` reported broken links and navigation. Show links were generated without the required `/radiogroep/` slug prefix (e.g., `/shows/some-id` instead of `/radiogroep/shows/some-id`). Additionally, show detail pages failed to load with "Show not found" errors.
+
+**Root Cause:** Two separate issues:
+1. **Frontend:** Several pages (CalendarPage, ContentCalendarPage, AdminApprovalPage, TrashPage, ShowManagementPage, WordPressSettingsPage, RDSBuilderPage) had hardcoded `navigate()` calls without the `mainSiteSlug` prefix.
+2. **Backend:** The `get_show`, `update_show`, `delete_show`, `get_rundown`, and `create_rundown_item` endpoints in `/app/backend/routers/shows.py` were still using `team_id` filtering instead of the new `main_site_id` from the `X-Main-Site-ID` header.
+
+**Solution:**
+
+#### Frontend Fixes
+- **Updated `/app/frontend/src/pages/CalendarPage.js`:**
+  - Added `useMainSite` import and hook
+  - Added `navTo()` helper function for context-aware navigation
+  - Changed `navigate(\`/shows/${show.id}\`)` to `navigate(navTo(\`/shows/${show.id}\`))`
+
+- **Updated `/app/frontend/src/pages/ContentCalendarPage.js`:**
+  - Added `useMainSite` import and hook
+  - Added `navTo()` helper function
+  - Fixed `handleSelectEvent()` to use `navTo()` for content detail navigation
+  - Fixed "List View" button to use `navTo('/content')`
+
+- **Updated `/app/frontend/src/pages/AdminApprovalPage.js`:**
+  - Added `useMainSite` import and hook
+  - Added `navTo()` helper function
+  - Fixed redirect after admin approval check
+  - Fixed "View" button link for content items
+
+- **Updated `/app/frontend/src/pages/TrashPage.js`:**
+  - Added `useMainSite` import and hook
+  - Added `navTo()` helper function
+  - Fixed redirect for non-admin users
+  - Fixed "View" button link for deleted content items
+
+- **Updated `/app/frontend/src/pages/ShowManagementPage.js`:**
+  - Added `useMainSite` import and hook
+  - Added `navTo()` helper function
+  - Fixed redirect for non-admin users
+
+- **Updated `/app/frontend/src/pages/WordPressSettingsPage.js`:**
+  - Added `useMainSite` import and hook
+  - Added `navTo()` helper function
+  - Fixed redirect for non-admin users
+
+- **Updated `/app/frontend/src/pages/RDSBuilderPage.js`:**
+  - Added `navTo` prop to `ScheduledTextsManager` component
+  - Fixed "Open Full Scheduler" button to use `navTo('/rds-scheduler')`
+
+#### Backend Fixes
+- **Updated `/app/backend/routers/shows.py`:**
+  - `get_show()` - Now checks `X-Main-Site-ID` header and uses `main_site_id` for query
+  - `update_show()` - Added Request parameter, uses `main_site_id` for finding show
+  - `delete_show()` - Added Request parameter, uses `main_site_id` for finding and deleting shows
+  - `get_rundown()` - Added Request parameter, uses `main_site_id` for show validation
+  - `create_rundown_item()` - Added Request parameter, uses `main_site_id` for show validation
+  - `get_presenters_info()` - Updated to accept `main_site_id` parameter
+
+#### Test Results (All Passing)
+- **Backend:** 11/11 tests passed (100%)
+- **Frontend:** All critical navigation flows working (100%)
+
+**Verified Features:**
+- Shows page navigation: Clicking show navigates to `/radiogroep/shows/{id}` ✅
+- Show detail page: Loads correctly with main_site_id filtering ✅
+- Calendar show links: Navigate to correct prefixed URLs ✅
+- Content Library navigation: Clicking content navigates to `/radiogroep/content/{id}` ✅
+- Rundown API: GET/POST endpoints work with `X-Main-Site-ID` header ✅
+- Data isolation: Wrong `X-Main-Site-ID` returns 404 as expected ✅
+
+**Test Report:** `/app/test_reports/iteration_45.json`
