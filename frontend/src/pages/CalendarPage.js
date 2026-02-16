@@ -330,7 +330,7 @@ const CalendarPage = () => {
                       <button
                         key={show.id}
                         data-testid={`sidebar-show-${show.id}`}
-                        onClick={() => navigate(`/shows/${show.id}`)}
+                        onClick={() => navigate(navTo(`/shows/${show.id}`))}
                         className="w-full text-left p-3 bg-[#27272a] rounded-lg hover:bg-zinc-700 transition-colors group"
                       >
                         <div className="flex gap-3">
