@@ -1747,6 +1747,53 @@ clara.koodh.com/
 
 
 
+### February 16, 2026 - Multisite Navigation Fix ROUND 2 (CRITICAL)
+
+**Problem:** After previous deployment, user reported the same issues persisting:
+- Links still missing `/radiogroep/` prefix
+- Content not loading
+- Navigation broken on shows and content pages
+
+**Root Cause Analysis:**
+The previous fix used `useMainSite()` context hook to get `mainSite?.slug`. However, the `mainSite` object is loaded **asynchronously** and can be `null` when the user clicks on a link. This caused the slug to be empty (`''`), resulting in links without the prefix.
+
+**Final Solution:**
+Replace `useMainSite()` with `useParams()` to get `mainSiteSlug` directly from the URL. The URL parameter is **always available immediately** since the user is already on the page.
+
+**Pattern Change:**
+```javascript
+// OLD (unreliable - async loading)
+const { mainSite } = useMainSite();
+const navTo = (path) => {
+  const slug = mainSite?.slug || '';  // CAN BE NULL!
+  return slug ? `/${slug}${path}` : path;
+};
+
+// NEW (reliable - from URL)
+const { mainSiteSlug } = useParams();
+const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
+```
+
+**Files Updated:**
+- `/app/frontend/src/pages/ShowsPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/ShowDetailPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/ContentDetailPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/ContentLibraryPage.js` - Removed unused `useMainSite`
+- `/app/frontend/src/pages/CalendarPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/ContentCalendarPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/AdminApprovalPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/TrashPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/ShowManagementPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/WordPressSettingsPage.js` - Changed to `useParams`
+- `/app/frontend/src/pages/TeamSettingsPage.js` - Changed to `useParams`
+
+**Verified Working:**
+- Shows navigation: `/radiogroep/shows/03a9e943-...` ✅
+- Content navigation: `/radiogroep/content/8301110f-...` ✅
+- All links now correctly include the mainSiteSlug prefix
+
+---
+
 ### February 16, 2026 - Multisite Navigation & Backend API Fixes (P0)
 
 **Problem:** Production deployment at `clara.koodh.com` reported broken links and navigation. Show links were generated without the required `/radiogroep/` slug prefix (e.g., `/shows/some-id` instead of `/radiogroep/shows/some-id`). Additionally, show detail pages failed to load with "Show not found" errors.
