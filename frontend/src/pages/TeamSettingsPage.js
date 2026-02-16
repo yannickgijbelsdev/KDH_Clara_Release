@@ -91,6 +91,7 @@ const TeamSettingsPage = () => {
   const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [team, setTeam] = useState(null);
+  const [mainSite, setMainSite] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -131,14 +132,25 @@ const TeamSettingsPage = () => {
 
   const fetchData = async () => {
     try {
-      // In multisite context, use mainSite info instead of team
-      // The main site name is the "organization name" shown
+      // Fetch users and team data
       const usersRes = await axios.get(`${API}/users`);
-      
-      // Use team data for display
       const teamRes = await axios.get(`${API}/teams/current`);
       setTeam(teamRes.data);
       setUsers(usersRes.data);
+      
+      // In multisite context, fetch main site info for display
+      if (mainSiteSlug) {
+        try {
+          const mainSitesRes = await axios.get(`${API}/network/main-sites`);
+          const currentMainSite = mainSitesRes.data.find(s => s.slug === mainSiteSlug);
+          if (currentMainSite) {
+            setMainSite(currentMainSite);
+          }
+        } catch (msErr) {
+          console.error('Failed to load main site info:', msErr);
+          // Not critical, we can still show team info
+        }
+      }
     } catch (error) {
       console.error('Failed to load data:', error);
       toast.error('Failed to load team data');
