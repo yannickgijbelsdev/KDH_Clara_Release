@@ -466,7 +466,17 @@ async def delete_content_item(
     import httpx
     import base64
     
-    content = await db.content_items.find_one({"id": content_id, "team_id": current_user.get('team_id')})
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
@@ -654,13 +664,21 @@ async def permanent_delete_content_item(
 @content_router.get("/{content_id}/audit-logs")
 async def get_content_audit_logs(
     content_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Get audit logs for a specific content item."""
-    # Verify content exists and user has access
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
@@ -675,6 +693,7 @@ async def get_content_audit_logs(
 @content_router.get("/{content_id}/audit-logs/export-pdf")
 async def export_content_audit_logs_pdf(
     content_id: str,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Export audit logs for a content item as PDF."""
@@ -684,10 +703,17 @@ async def export_content_audit_logs_pdf(
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
     from reportlab.lib.units import inch
     
-    # Verify content exists and user has access
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
