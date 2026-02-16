@@ -436,9 +436,12 @@ async def get_pending_approval_content(
     # Support multisite context
     main_site_id = await get_main_site_id_from_header(request)
     
-    # Build base query with multisite support
+    # Build base query with multisite support - use $or to support both main_site_id and team_id
     if main_site_id:
-        base_query = {"main_site_id": main_site_id}
+        base_query = {"$or": [
+            {"main_site_id": main_site_id},
+            {"team_id": current_user.get('team_id')}
+        ]}
     else:
         base_query = {"team_id": current_user.get('team_id')}
     
