@@ -316,9 +316,9 @@ const TeamSettingsPage = () => {
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-2xl font-bold text-white">{mainSite?.name || team?.name}</p>
+            <p className="text-2xl font-bold text-white">{team?.name}</p>
             <p className="text-sm text-zinc-500 mt-1">
-              {mainSite?.slug ? `/${mainSite.slug}` : `Created ${new Date(team?.created_at).toLocaleDateString()}`}
+              {mainSiteSlug ? `/${mainSiteSlug}` : `Created ${new Date(team?.created_at).toLocaleDateString()}`}
             </p>
           </div>
         </div>
