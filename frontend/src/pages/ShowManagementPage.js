@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { useMainSite } from '../context/MainSiteContext';
 import {
   Radio,
   Building2,
@@ -58,16 +57,13 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ShowManagementPage = () => {
   const { isAdmin } = useAuth();
-  const { mainSite } = useMainSite();
+  const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('titles');
   const [loading, setLoading] = useState(true);
   
-  // Helper for context-aware navigation
-  const navTo = (path) => {
-    const slug = mainSite?.slug || '';
-    return slug ? `/${slug}${path}` : path;
-  };
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
   
   // Team users for presenter selection
   const [teamUsers, setTeamUsers] = useState([]);
@@ -112,7 +108,7 @@ const ShowManagementPage = () => {
       return;
     }
     fetchData();
-  }, [isAdmin, mainSite]);
+  }, [isAdmin, mainSiteSlug]);
 
   const fetchData = async () => {
     try {
