@@ -14,10 +14,20 @@ async def get_current_team(
     request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get the current user's team. Works in both single-team and multisite context."""
-    # In multisite context, we still return the user's base team
-    # The main site context is handled separately via MainSiteContext
-    team = await db.teams.find_one({"id": current_user.get('team_id')}, {"_id": 0})
+    """Get the current user's team. For network admins without team, return a default team object."""
+    team_id = current_user.get('team_id')
+    
+    if not team_id:
+        # Network admin without team - return a default team object
+        if current_user.get('is_network_admin'):
+            return {
+                "id": "network",
+                "name": "Network Administration",
+                "created_at": None
+            }
+        raise HTTPException(status_code=404, detail="Team not found")
+    
+    team = await db.teams.find_one({"id": team_id}, {"_id": 0})
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
     return team
