@@ -51,6 +51,7 @@ const getFeaturedImageUrl = (featuredImage) => {
 
 const TrashPage = () => {
   const { isAdmin } = useAuth();
+  const { mainSite } = useMainSite();
   const navigate = useNavigate();
   const [deletedContent, setDeletedContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
@@ -59,14 +60,20 @@ const TrashPage = () => {
   const [restoring, setRestoring] = useState(null);
   const [permanentDeleteItem, setPermanentDeleteItem] = useState(null);
   const [permanentDeleting, setPermanentDeleting] = useState(false);
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => {
+    const slug = mainSite?.slug || '';
+    return slug ? `/${slug}${path}` : path;
+  };
 
   useEffect(() => {
     if (!isAdmin) {
-      navigate('/');
+      navigate(navTo('/'));
       return;
     }
     fetchDeletedContent();
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, mainSite]);
 
   const fetchDeletedContent = async () => {
     setLoading(true);
