@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 import {
@@ -26,7 +26,6 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { useMainSite } from '../context/MainSiteContext';
 import {
   Dialog,
   DialogContent,
@@ -64,7 +63,7 @@ const getFeaturedImageUrl = (featuredImage) => {
 
 const AdminApprovalPage = () => {
   const { canApproveContent } = useAuth();
-  const { mainSite } = useMainSite();
+  const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [allContent, setAllContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
@@ -77,11 +76,8 @@ const AdminApprovalPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [approvalAction, setApprovalAction] = useState(null);
   
-  // Helper for context-aware navigation
-  const navTo = (path) => {
-    const slug = mainSite?.slug || '';
-    return slug ? `/${slug}${path}` : path;
-  };
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   useEffect(() => {
     if (!canApproveContent) {
@@ -89,7 +85,7 @@ const AdminApprovalPage = () => {
       return;
     }
     fetchContent();
-  }, [canApproveContent, navigate, mainSite]);
+  }, [canApproveContent, navigate, mainSiteSlug]);
 
   const fetchContent = async () => {
     setLoading(true);
