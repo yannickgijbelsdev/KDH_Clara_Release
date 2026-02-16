@@ -135,10 +135,17 @@ const CustomToolbar = ({ label, onNavigate, onView, view }) => {
 
 const ContentCalendarPage = () => {
   const navigate = useNavigate();
+  const { mainSite } = useMainSite();
   const [loading, setLoading] = useState(true);
   const [contentItems, setContentItems] = useState([]);
   const [view, setView] = useState('month');
   const [currentDate, setCurrentDate] = useState(new Date());
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => {
+    const slug = mainSite?.slug || '';
+    return slug ? `/${slug}${path}` : path;
+  };
 
   useEffect(() => {
     fetchContent();
