@@ -886,13 +886,24 @@ async def create_show(
 @shows_router.get("/{show_id}", response_model=ShowResponse)
 async def get_show(
     show_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Get a single show (must be in user's team)."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')},
-        {"_id": 0}
-    )
+    """Get a single show (must be in user's main site or team)."""
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        show = await db.shows.find_one(
+            {"id": show_id, "main_site_id": main_site_id},
+            {"_id": 0}
+        )
+    else:
+        show = await db.shows.find_one(
+            {"id": show_id, "team_id": current_user.get('team_id')},
+            {"_id": 0}
+        )
+    
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
@@ -904,7 +915,7 @@ async def get_show(
     
     # Get presenter info
     if show.get('presenter_ids'):
-        show['presenters'] = await get_presenters_info(show['presenter_ids'], current_user.get('team_id'))
+        show['presenters'] = await get_presenters_info(show['presenter_ids'], main_site_id, current_user.get('team_id'))
     
     return show
 
