@@ -157,8 +157,14 @@ async def get_content_items(
     # Check for main_site_id header (multisite context)
     main_site_id = await get_main_site_id_from_header(request)
     
+    # Support both main_site_id AND team_id filtering
+    # This ensures backward compatibility with existing data
     if main_site_id:
-        query = {"main_site_id": main_site_id}
+        # In multisite context, search for content with EITHER main_site_id OR team_id
+        query = {"$or": [
+            {"main_site_id": main_site_id},
+            {"team_id": current_user.get('team_id')}
+        ]}
     else:
         query = {"team_id": current_user.get('team_id')}
     
