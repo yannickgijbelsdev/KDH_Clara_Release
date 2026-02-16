@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 import { Plus, Calendar, Clock, ChevronRight, ChevronDown, Filter, Repeat, Layers, Trash2, Loader2, Radio } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
-import { useMainSite } from '../context/MainSiteContext';
 import CreateShowDialog from '../components/CreateShowDialog';
 import {
   DropdownMenu,
@@ -292,17 +291,16 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
 
 const ShowsPage = () => {
   const { isEditor } = useAuth();
-  const { mainSite } = useMainSite();
+  const { mainSiteSlug } = useParams();
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const navigate = useNavigate();
   
-  // Helper for context-aware navigation
+  // Helper for context-aware navigation - uses URL param directly
   const navTo = (path) => {
-    const slug = mainSite?.slug || '';
-    navigate(slug ? `/${slug}${path}` : path);
+    navigate(mainSiteSlug ? `/${mainSiteSlug}${path}` : path);
   };
 
   const fetchShows = async () => {
