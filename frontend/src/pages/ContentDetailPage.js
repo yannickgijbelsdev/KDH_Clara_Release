@@ -194,8 +194,7 @@ const ContentDetailPage = () => {
       setFeaturedImages(images);
     } catch (error) {
       toast.error('Failed to load content');
-      const slug = mainSite?.slug || '';
-      navigate(slug ? `/${slug}/content` : '/content');
+      navigate(navTo('/content'));
     } finally {
       setLoading(false);
     }
@@ -246,8 +245,7 @@ const ContentDetailPage = () => {
     try {
       await axios.delete(`${API}/content/${contentId}`);
       toast.success('Content deleted');
-      const slug = mainSite?.slug || '';
-      navigate(slug ? `/${slug}/content` : '/content');
+      navigate(navTo('/content'));
     } catch (error) {
       toast.error('Failed to delete content');
     }
