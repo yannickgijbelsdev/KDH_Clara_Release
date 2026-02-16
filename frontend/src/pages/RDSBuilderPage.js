@@ -671,8 +671,8 @@ const RDSBuilderPage = () => {
 
           {/* Scheduled Texts Section */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-            <ScheduledTextsManager station="mfy" stationName="Radio MFY" color="orange" />
-            <ScheduledTextsManager station="grk" stationName="Radio GRK" color="violet" />
+            <ScheduledTextsManager station="mfy" stationName="Radio MFY" color="orange" navTo={navTo} />
+            <ScheduledTextsManager station="grk" stationName="Radio GRK" color="violet" navTo={navTo} />
           </div>
 
           {/* Output Managers */}
