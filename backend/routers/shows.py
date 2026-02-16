@@ -1301,13 +1301,19 @@ async def get_rundown(
 @shows_router.post("/{show_id}/rundown", response_model=RundownItemResponse, status_code=status.HTTP_201_CREATED)
 async def create_rundown_item(
     show_id: str,
+    request: Request,
     item_data: RundownItemCreate,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Add a rundown item (editor or admin only)."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')}
-    )
+    # Check for main_site_id header (multisite context)
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        show = await db.shows.find_one({"id": show_id, "main_site_id": main_site_id})
+    else:
+        show = await db.shows.find_one({"id": show_id, "team_id": current_user.get('team_id')})
+    
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
