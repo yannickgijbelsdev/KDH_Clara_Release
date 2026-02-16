@@ -51,6 +51,13 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const navigate = useNavigate();
+  const { mainSite } = useMainSite();
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => {
+    const slug = mainSite?.slug || '';
+    return slug ? `/${slug}${path}` : path;
+  };
 
   // Fetch shows on mount and when window regains focus
   useEffect(() => {
