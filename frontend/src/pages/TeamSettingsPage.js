@@ -128,7 +128,6 @@ const TeamSettingsPage = () => {
     }
     fetchData();
   }, [isAdmin, mainSiteSlug]);
-  }, [isAdmin, mainSite]);
 
   const fetchData = async () => {
     try {
@@ -136,13 +135,9 @@ const TeamSettingsPage = () => {
       // The main site name is the "organization name" shown
       const usersRes = await axios.get(`${API}/users`);
       
-      // Use mainSite as the "team" for display purposes
-      if (mainSite) {
-        setTeam({
-          id: mainSite.id,
-          name: mainSite.name
-        });
-      }
+      // Use team data for display
+      const teamRes = await axios.get(`${API}/teams/current`);
+      setTeam(teamRes.data);
       setUsers(usersRes.data);
     } catch (error) {
       console.error('Failed to load data:', error);
