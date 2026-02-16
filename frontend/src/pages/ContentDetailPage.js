@@ -89,10 +89,9 @@ const syncStatusConfig = {
 };
 
 const ContentDetailPage = () => {
-  const { contentId } = useParams();
+  const { contentId, mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const { isEditor, isAdmin } = useAuth();
-  const { mainSite } = useMainSite();
   const [content, setContent] = useState(null);
   const [wpSites, setWpSites] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -115,6 +114,9 @@ const ContentDetailPage = () => {
   const [auditLogsExpanded, setAuditLogsExpanded] = useState(false);
   const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  
+  // Helper for context-aware navigation - uses URL param directly
+  const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   useEffect(() => {
     fetchContent();
