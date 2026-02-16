@@ -64,6 +64,7 @@ const getFeaturedImageUrl = (featuredImage) => {
 
 const AdminApprovalPage = () => {
   const { canApproveContent } = useAuth();
+  const { mainSite } = useMainSite();
   const navigate = useNavigate();
   const [allContent, setAllContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
@@ -75,14 +76,20 @@ const AdminApprovalPage = () => {
   const [approvalNotes, setApprovalNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [approvalAction, setApprovalAction] = useState(null);
+  
+  // Helper for context-aware navigation
+  const navTo = (path) => {
+    const slug = mainSite?.slug || '';
+    return slug ? `/${slug}${path}` : path;
+  };
 
   useEffect(() => {
     if (!canApproveContent) {
-      navigate('/');
+      navigate(navTo('/'));
       return;
     }
     fetchContent();
-  }, [canApproveContent, navigate]);
+  }, [canApproveContent, navigate, mainSite]);
 
   const fetchContent = async () => {
     setLoading(true);
