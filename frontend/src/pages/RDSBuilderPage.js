@@ -39,7 +39,7 @@ import { Users } from 'lucide-react';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Scheduled Texts Manager Component - Shows scheduled texts with toggle functionality
-const ScheduledTextsManager = ({ station, stationName, color }) => {
+const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
   const navigate = useNavigate();
   const [scheduledTexts, setScheduledTexts] = useState([]);
   const [loading, setLoading] = useState(true);
