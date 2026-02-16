@@ -1864,3 +1864,50 @@ const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 - Data isolation: Wrong `X-Main-Site-ID` returns 404 as expected ✅
 
 **Test Report:** `/app/test_reports/iteration_45.json`
+
+### February 16, 2026 - Backend Multisite API Fixes (P0)
+
+**Problem:** Production deployment (`clara.koodh.com`) reported:
+1. Content Library showing "content not loaded" errors
+2. Content Approval page not loading
+3. RDS Cache Logs not working
+4. Team Settings page showing blank screen
+
+**Root Cause:** Backend API routers (`content.py`, `rds.py`) were still using old `team_id` logic instead of `main_site_id` from `X-Main-Site-ID` header.
+
+**Solution:**
+
+#### Frontend Fix - TeamSettingsPage.js
+- Added missing `mainSite` state variable
+- Added fetch for main site info to display site name correctly
+- Fixed "undefined" error that caused blank page
+
+#### Backend Fixes - content.py
+Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header:
+- `PUT /{content_id}/approval` - Content approval endpoint
+- `GET /admin/pending-approval` - Pending approval list
+- `DELETE /{content_id}` - Delete content
+- `GET /{content_id}/audit-logs` - Content audit logs
+- `GET /{content_id}/audit-logs/export-pdf` - PDF export
+- `POST /{content_id}/featured-image` - Featured image upload
+- `DELETE /{content_id}/featured-image` - Featured image delete
+- `GET /{content_id}/featured-images` - Get featured images
+- `POST /{content_id}/featured-images/{site_id}` - Upload per-site featured image
+- `DELETE /{content_id}/featured-images/{site_id}` - Delete per-site featured image
+- `GET /{content_id}/publish/{site_id}` - Get publish status
+
+#### Backend Fix - rds.py
+- Fixed `debug-live-shows` endpoint that referenced undefined `team_id` variable
+- Added missing `@rds_router.get("/cached-rundown")` decorator
+
+**Files Updated:**
+- `/app/frontend/src/pages/TeamSettingsPage.js`
+- `/app/backend/routers/content.py`
+- `/app/backend/routers/rds.py`
+
+**Verified Working:**
+- Team Settings page loads correctly ✅
+- Content Library shows 132 items ✅
+- Content Approval shows 119 pending items ✅
+- RDS Settings page loads with configuration ✅
+- Shoutcast Logs display now playing tracks ✅
