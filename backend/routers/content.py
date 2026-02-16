@@ -159,39 +159,48 @@ async def get_content_items(
     team_id = current_user.get('team_id')
     is_network_admin = current_user.get('is_network_admin', False)
     
-    # Build query based on context
+    # Build scope filter based on context
+    scope_conditions = []
+    
     if main_site_id:
-        # In multisite context, search for content with EITHER main_site_id OR team_id
-        if team_id:
-            query = {"$or": [
-                {"main_site_id": main_site_id},
-                {"team_id": team_id}
-            ]}
-        else:
-            # Network admin without team - only filter by main_site_id
-            query = {"main_site_id": main_site_id}
-    elif team_id:
-        query = {"team_id": team_id}
-    elif is_network_admin:
-        # Network admin without team or main_site context - show all content
-        query = {}
-    else:
-        # No team and not network admin - return empty
+        scope_conditions.append({"main_site_id": main_site_id})
+    if team_id:
+        scope_conditions.append({"team_id": team_id})
+    
+    # If no scope conditions and not network admin, return empty
+    if not scope_conditions and not is_network_admin:
         return []
+    
+    # Build the final query
+    query_conditions = []
+    
+    # Add scope filter (if any)
+    if scope_conditions:
+        if len(scope_conditions) == 1:
+            query_conditions.append(scope_conditions[0])
+        else:
+            query_conditions.append({"$or": scope_conditions})
     
     # Filter out deleted items for non-admins
     is_admin = current_user.get('role') == 'admin'
     if not is_admin or not include_deleted:
-        query["deleted_at"] = {"$exists": False}
+        query_conditions.append({"deleted_at": {"$exists": False}})
     
+    # Add optional filters
     if type:
-        query["type"] = type
+        query_conditions.append({"type": type})
     if status:
-        query["status"] = status
+        query_conditions.append({"status": status})
     if category_id:
-        query["category_id"] = category_id
+        query_conditions.append({"category_id": category_id})
     if search:
-        query["title"] = {"$regex": search, "$options": "i"}
+        query_conditions.append({"title": {"$regex": search, "$options": "i"}})
+    
+    # Build final query
+    if query_conditions:
+        query = {"$and": query_conditions} if len(query_conditions) > 1 else query_conditions[0]
+    else:
+        query = {}
     
     items = await db.content_items.find(query, {"_id": 0}).sort("updated_at", -1).to_list(1000)
     
