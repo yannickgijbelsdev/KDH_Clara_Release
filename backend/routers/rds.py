@@ -335,9 +335,9 @@ async def debug_live_shows(request: Request, current_user: dict = Depends(requir
         and s.get('status') == 'scheduled'
     ]
     
-    # Check cached rundown
+    # Check cached rundown - use query_filter for multisite context
     cached = await db.rds_cached_rundowns.find_one(
-        {"team_id": team_id},
+        query_filter if query_filter else {"is_active": True},
         {"_id": 0}
     )
     
@@ -361,6 +361,9 @@ async def debug_live_shows(request: Request, current_user: dict = Depends(requir
             "cached_at": cached.get('cached_at') if cached else None,
         }
     }
+
+
+@rds_router.get("/cached-rundown")
 async def get_cached_rundown():
     """Public endpoint: Get the cached rundown for the current live show.
     
