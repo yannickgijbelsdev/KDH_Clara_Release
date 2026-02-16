@@ -1,0 +1,142 @@
+<analysis>**original_problem_statement:**
+The user's primary goal is to fix their multisite production application (), which remains broken after a major refactoring effort. The core symptoms reported by the user are:
+1.  Content is not loading in the Content Library and Content Approval pages.
+2.  Navigation links are generated incorrectly, missing the required site-specific slug (e.g., ).
+3.  RDS Cache logs are not working.
+4.  The ability for an administrator to switch between users is non-functional.
+
+PRODUCT REQUIREMENTS:
+1.  Fix all user-reported issues to make the production application fully functional in its multisite architecture.
+2.  Ensure navigation links, data loading (content, RDS, chat), and admin functionalities work correctly for all main sites.
+3.  The fixes must be correctly reflected in the deployed production environment.
+
+**User's preferred language**: Dutch. The next agent MUST respond in Dutch.
+
+**what currently exists?**
+The application has undergone two major refactoring waves to support a multisite architecture.
+-   **Backend:** Most API endpoints were intended to be modified to use a  from the  request header for data isolation. The previous agent successfully fixed this for endpoints in , but it appears this fix was not applied to other modules like  or .
+-   **Frontend:** The agent initially tried fixing navigation by using a React Context (), which failed due to a race condition. In the last session, the agent implemented a much more robust solution by refactoring numerous pages (, , , , , etc.) to get the  directly from the URL path using the  hook from . This should have fixed the URL prefixing issue.
+
+**Last working item**:
+-   **Last item agent was working:** The agent had just implemented and tested a robust frontend navigation fix using  instead of an unreliable async context. The agent's own tests confirmed this worked. However, the user's final message reported that other critical parts of the application—specifically the Content Library, Content Approval, and RDS Cache Logs—are still broken, with content not loaded errors. The agent was acknowledging this new feedback when the session ended.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** Y (for the frontend navigation fix via screenshots, which was successful).
+-   **Which testing method agent to use?** both. The backend requires targeted fixes and testing via , and the frontend needs a full regression test using the  to confirm all user-reported issues are resolved.
+-   **User Testing Done:** Y (and it FAILED. The user confirmed the latest deployment is still broken).
+
+**All Pending/In progress Issue list**:
+*   **Issue 1: Incomplete Backend Multisite Migration (P0)**
+    *   **Description:** The user reports content not loaded errors in the Content Library and Content Approval sections, and that RDS Cache Logs are broken. This strongly suggests that the backend refactor to make APIs multisite-aware was incomplete. While  was fixed, other routers likely still contain the old -based logic.
+    *   **Attempted fixes:** The agent fixed this issue in  but did not apply the same fix to other routers.
+    *   **Next debug checklist:**
+        1.  **Audit :** Systematically review all endpoints.  for  and replace the logic with  filtering using the  header, mirroring the pattern used in the fixed .
+        2.  **Audit :** Perform the same audit for the endpoints related to RDS, especially the one that serves cache logs.
+        3.  **Audit :** Perform the same audit for endpoints related to content approval.
+    *   **Why fix this issue and what will be achieved with the fix?** This is the user's primary blocker. Fixing this will restore core functionality (viewing content, approvals, logs) and make the application usable.
+    *   **Status:** IN PROGRESS
+    *   **Is recurring issue?** Y
+    *   **Should Test frontend/backend/both after fix?** Both.
+    *   **Blocked on other issue:** None.
+
+**In progress Task List**:
+*   **Task 1: Complete Backend Multisite Refactor (P0)**
+    *   **Where to resume:** Start by auditing and fixing the backend routers as described in Issue 1. Focus on  and  first, as they are directly mentioned by the user.
+    *   **What will be achieved with this?** A fully functional backend where all data access is correctly scoped to the active main site.
+    *   **Status:** IN PROGRESS
+    *   **Should Test frontend/backend/both after fix?** Both.
+    *   **Blocked on something:** None.
+
+**Upcoming and Future Tasks**
+*   **Upcoming Tasks:**
+    *   **(P1) Configurable Stale Now Playing Timeout:** Implement a UI and API to allow users to configure the 15-minute hardcoded timeout in .
+*   **Future Tasks:**
+    *   **(P2) Site Cloning/Copying:** Implement the user's request to be able to copy/clone Main and Mini sites.
+    *   **(P2) Stream Monitor VU Meters:** Implement functional VU meters.
+
+**Completed work in this session**
+-   **Robust Frontend Navigation Refactor (DONE):** Systematically replaced the unreliable  context for navigation with the  hook across all relevant frontend pages. This ensures the  is always available from the URL for constructing links.
+-   **Partial Backend Refactor (DONE for ):** Identified and fixed all endpoints in  to correctly use  for data scoping, resolving the Failed to load show error.
+-   **Frontend Code Cleanup:** Removed unused  imports from multiple components after the refactor.
+
+**Earlier issues found/mentioned but not fixed**
+*   All are consolidated into the main pending issue: the incomplete backend refactor for , , and .
+
+**Known issue recurrence from previous fork**
+*   **Issue:** Incomplete Refactoring. The core theme is that a large-scale refactor is attempted, but edge cases or entire modules are missed, leading to failure in production. The previous agent fixed frontend navigation but missed the backend data-loading part of the user's complaint.
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Backend Data Scoping:** The critical pattern is fetching the  from the  request header and using it in all MongoDB queries to ensure data isolation. This pattern must be applied universally.
+-   **Reliable Frontend Routing:** The correct pattern is using  from  to get the  from the URL. This avoids race conditions associated with asynchronous React Contexts.
+
+**key DB schema**
+-   **:**  linking most data collections to the  collection. This is the correct field for data scoping.
+
+**changes in tech stack**
+-   None.
+
+**All files of reference**
+-   **Files Requiring Immediate Investigation:**
+    -   
+    -   
+    -   
+-   **Reference File for Correct Pattern:**
+    -    (Contains the correct, working implementation for multisite APIs).
+-   **Key Frontend Files (Already Refactored):**
+    -   
+    -   
+    -   
+    -   
+
+**Areas that need refactoring**:
+-   The backend API routers (, , ) must be systematically refactored to replace all remaining  logic with the  pattern.
+
+**key api endpoints**
+-   Endpoints within  (e.g., , ).
+-   Endpoints within  (e.g., for cache logs).
+-   Endpoints within  (for content approval).
+
+**Critical Info for New Agent**
+-   **The frontend navigation issue is likely fixed.** The  refactor was the correct approach. Do not spend time re-investigating why URL prefixes are missing; focus on the new backend-related errors.
+-   **The user's latest feedback is your top priority.** Address the content not loaded and RDS cache logs errors first.
+-   **The root cause is an incomplete backend refactor.** The bug fixed in  (old  logic) almost certainly exists in , , and .
+-   **Your Strategy:**
+    1.  Do not touch the frontend navigation logic.
+    2.  Start by auditing . Use  to find all uses of .
+    3.  Replace the old logic with the correct  filtering based on the  header. Use the fixed  as your template.
+    4.  Repeat this process for  and .
+    5.  After applying the backend fixes, use the  and provide a specific test plan: verify loading the content library, navigating to a content item, the approval workflow, and viewing RDS cache logs.
+
+**documents and test reports created in this job**
+-    (Outdated, as it reported success before the user's latest feedback).
+-    (Updated, but needs another update after the next set of fixes).
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User (LATEST):** Some things are still not working in the live environment: the content library and content approval (I get content not loaded), and the Cache logs in RDS settings. I can't see if the cache itself is working.
+2.  **Agent:** I will investigate and fix these remaining issues.
+3.  **User:** After deployment, I still see links without prefixes and content loading errors on the shows and content pages.
+4.  **Agent:** I am going to thoroughly search for any hardcoded links or navigate calls that I might have missed.
+5.  **Agent:** (Discovers the race condition with  context) The problem is inconsistency and the fact that  can be  when the user clicks. The fix is to use  to get the slug directly from the URL.
+
+**Project Health Check:**
+*   **Broken:** Yes, the application remains critically broken in production due to an incomplete backend migration, despite frontend fixes.
+
+**3rd Party Integrations**
+*   boto3
+*   WordPress
+*   ffmpeg
+
+**Testing status**
+-   **Testing agent used after significant changes:** YES, but it was run *before* the user reported the latest set of backend-related bugs. It must be run again after the next fix.
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None.
+-   **Known regressions:** Content loading, content approval, and RDS cache log functionality are regressed/broken.
+
+**Credentials to test flow:**
+*   **Network Admin:** 
+*   **Password:** 
+
+**What agent forgot to execute**
+The previous agent's backend refactor was not comprehensive. It fixed the  API but failed to apply the same critical multisite logic to other data modules like , , and , leading directly to the user's currently reported errors.</analysis>
