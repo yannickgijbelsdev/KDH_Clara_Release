@@ -452,31 +452,43 @@ async def get_pending_approval_content(
     # Build base query with multisite support
     if main_site_id:
         if team_id:
-            base_query = {"$or": [
+            scope_filter = {"$or": [
                 {"main_site_id": main_site_id},
                 {"team_id": team_id}
             ]}
         else:
-            base_query = {"main_site_id": main_site_id}
+            scope_filter = {"main_site_id": main_site_id}
     elif team_id:
-        base_query = {"team_id": team_id}
+        scope_filter = {"team_id": team_id}
     elif is_network_admin:
         # Network admin without team - show all pending content
-        base_query = {}
+        scope_filter = {}
     else:
         return []
     
-    items = await db.content_items.find(
-        {
-            **base_query,
+    # Build the full query - use $and to combine filters properly
+    query = {
+        "$and": [
+            scope_filter if scope_filter else {},
+            {"status": "ready"},
+            {"$or": [
+                {"approval_status": {"$exists": False}},
+                {"approval_status": "pending"}
+            ]}
+        ]
+    }
+    
+    # Remove empty filter from $and if scope_filter is empty
+    if not scope_filter:
+        query = {
             "status": "ready",
             "$or": [
                 {"approval_status": {"$exists": False}},
                 {"approval_status": "pending"}
             ]
-        },
-        {"_id": 0}
-    ).sort("updated_at", -1).to_list(500)
+        }
+    
+    items = await db.content_items.find(query, {"_id": 0}).sort("updated_at", -1).to_list(500)
     
     result = []
     for item in items:
