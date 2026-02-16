@@ -209,7 +209,7 @@ const ContentCalendarPage = () => {
   }, [contentItems]);
 
   const handleSelectEvent = (event) => {
-    navigate(`/content/${event.resource.id}`);
+    navigate(navTo(`/content/${event.resource.id}`));
   };
 
   const handleNavigate = (newDate) => {
