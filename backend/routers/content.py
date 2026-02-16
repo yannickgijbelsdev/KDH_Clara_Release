@@ -349,9 +349,17 @@ async def update_content_approval(
     from services.email_service import send_content_approval_notification
     import os
     
-    content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
-    )
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build query supporting both team_id and main_site_id
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
@@ -415,12 +423,22 @@ async def update_content_approval(
 
 @content_router.get("/admin/pending-approval")
 async def get_pending_approval_content(
+    request: Request,
     current_user: dict = Depends(require_can_approve_content)
 ):
     """Admin/News Admin: Get all content pending approval."""
+    # Support multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Build base query with multisite support
+    if main_site_id:
+        base_query = {"main_site_id": main_site_id}
+    else:
+        base_query = {"team_id": current_user.get('team_id')}
+    
     items = await db.content_items.find(
         {
-            "team_id": current_user.get('team_id'),
+            **base_query,
             "status": "ready",
             "$or": [
                 {"approval_status": {"$exists": False}},
