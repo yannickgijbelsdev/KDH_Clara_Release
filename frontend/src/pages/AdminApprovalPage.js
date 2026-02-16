@@ -405,7 +405,7 @@ const AdminApprovalPage = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => navigate(`/content/${item.id}`)}
+                      onClick={() => navigate(navTo(`/content/${item.id}`))}
                       className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1"
                     >
                       <Eye className="w-4 h-4" />
