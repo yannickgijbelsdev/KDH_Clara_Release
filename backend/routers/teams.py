@@ -29,24 +29,10 @@ async def update_team(
     team_data: TeamCreate,
     current_user: dict = Depends(require_admin)
 ):
-    """Update team name (admin only), isolated by main_site_id if in multisite context."""
-    main_site_id = await get_main_site_id_from_header(request)
-    
-    if main_site_id:
-        # In multisite context, update or create site-specific team settings
-        await db.teams.update_one(
-            {"id": current_user['team_id'], "main_site_id": main_site_id},
-            {"$set": {"name": team_data.name, "main_site_id": main_site_id}},
-            upsert=True
-        )
-        team = await db.teams.find_one(
-            {"id": current_user['team_id'], "main_site_id": main_site_id}, 
-            {"_id": 0}
-        )
-    else:
-        await db.teams.update_one(
-            {"id": current_user['team_id']},
-            {"$set": {"name": team_data.name}}
-        )
-        team = await db.teams.find_one({"id": current_user['team_id']}, {"_id": 0})
+    """Update team name (admin only)."""
+    await db.teams.update_one(
+        {"id": current_user['team_id']},
+        {"$set": {"name": team_data.name}}
+    )
+    team = await db.teams.find_one({"id": current_user['team_id']}, {"_id": 0})
     return team
