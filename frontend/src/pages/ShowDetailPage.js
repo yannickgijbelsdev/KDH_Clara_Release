@@ -457,10 +457,7 @@ const ShowDetailPage = () => {
           variant="ghost"
           size="icon"
           data-testid="back-btn"
-          onClick={() => {
-            const slug = mainSite?.slug || '';
-            navigate(slug ? `/${slug}/shows` : '/shows');
-          }}
+          onClick={() => navigate(navTo('/shows'))}
           className="text-zinc-400 hover:text-white hover:bg-white/5"
         >
           <ArrowLeft className="w-5 h-5" />
