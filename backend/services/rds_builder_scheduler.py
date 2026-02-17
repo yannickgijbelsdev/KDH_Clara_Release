@@ -426,6 +426,9 @@ async def process_rds_sequence(db, station: str):
             upsert=True
         )
         
+        # Log to history
+        await log_text_change(db, station, active_scheduled["text"], "scheduled_text", "Scheduled text activated")
+        
         logger.debug(f"RDS Builder [{station}]: Scheduled text active: '{active_scheduled['text'][:50]}...'")
         return
     
