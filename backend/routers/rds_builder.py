@@ -217,6 +217,159 @@ async def get_rds_builder_status(
 # ============== RDS MONITORING DASHBOARD ==============
 # Real-time monitoring of RDS outputs with history
 
+
+async def check_live_shows_from_calendar():
+    """Directly check the shows collection for currently live shows.
+    
+    This is a forced check that bypasses the cache to get real-time data.
+    Returns dict with live show info per station.
+    """
+    now_brussels = datetime.now(BRUSSELS_TZ)
+    now_utc = datetime.now(timezone.utc)
+    
+    live_shows_by_station = {"mfy": None, "grk": None}
+    
+    for check_time in [now_brussels, now_utc]:
+        current_date = check_time.strftime('%Y-%m-%d')
+        current_time = check_time.strftime('%H:%M')
+        yesterday_date = (check_time - timedelta(days=1)).strftime('%Y-%m-%d')
+        
+        # Get all scheduled shows for today and yesterday
+        all_shows = await db.shows.find({
+            "status": "scheduled",
+            "date": {"$in": [current_date, yesterday_date]}
+        }, {"_id": 0}).to_list(500)
+        
+        for show in all_shows:
+            start = show.get("start_time", "00:00")
+            end = show.get("end_time", "23:59")
+            show_date = show.get("date", "")
+            rds_station = show.get("rds_station", "none")
+            
+            # Skip shows not assigned to RDS
+            if rds_station == "none":
+                # Try to get rds_station from show_titles
+                show_title_doc = await db.show_titles.find_one(
+                    {"name": show.get("title")},
+                    {"_id": 0, "rds_station": 1}
+                )
+                if show_title_doc:
+                    rds_station = show_title_doc.get("rds_station", "none")
+            
+            if rds_station == "none":
+                continue
+            
+            is_live = False
+            crosses_midnight = start > end
+            
+            if show_date == current_date:
+                if crosses_midnight:
+                    is_live = current_time >= start
+                else:
+                    is_live = start <= current_time < end
+            elif show_date == yesterday_date and crosses_midnight:
+                is_live = current_time < end
+            
+            if is_live:
+                # Calculate seconds until show ends
+                try:
+                    end_parts = end.split(":")
+                    end_hour, end_min = int(end_parts[0]), int(end_parts[1])
+                    now_hour, now_min = check_time.hour, check_time.minute
+                    
+                    if crosses_midnight and show_date == current_date:
+                        # Show crosses midnight, ends tomorrow
+                        end_datetime = check_time.replace(hour=end_hour, minute=end_min, second=0) + timedelta(days=1)
+                    else:
+                        end_datetime = check_time.replace(hour=end_hour, minute=end_min, second=0)
+                    
+                    seconds_until_end = (end_datetime - check_time).total_seconds()
+                except:
+                    seconds_until_end = None
+                
+                show_info = {
+                    "id": show.get("id"),
+                    "title": show.get("title"),
+                    "start_time": start,
+                    "end_time": end,
+                    "date": show_date,
+                    "rds_station": rds_station,
+                    "is_live": True,
+                    "seconds_until_end": seconds_until_end,
+                    "checked_at": now_brussels.isoformat()
+                }
+                
+                # Assign to appropriate station(s)
+                if rds_station == "both":
+                    live_shows_by_station["mfy"] = show_info
+                    live_shows_by_station["grk"] = show_info
+                elif rds_station in ["mfy", "grk"]:
+                    live_shows_by_station[rds_station] = show_info
+        
+        # If we found shows, break out of the loop
+        if live_shows_by_station["mfy"] or live_shows_by_station["grk"]:
+            break
+    
+    return live_shows_by_station
+
+
+@rds_builder_router.post("/monitor/force-refresh")
+async def force_refresh_rds():
+    """Force refresh all RDS caches and outputs immediately.
+    
+    This bypasses the scheduler and forces an immediate update.
+    Useful when shows are not updating properly.
+    """
+    from services.rds_scheduler import refresh_live_show_cache, run_scheduled_cache_refresh
+    
+    now_brussels = datetime.now(BRUSSELS_TZ)
+    
+    # 1. Force refresh all RDS caches
+    await run_scheduled_cache_refresh()
+    
+    # 2. Get fresh live show data directly from calendar
+    live_shows = await check_live_shows_from_calendar()
+    
+    # 3. For each station, update the cached rundowns if needed
+    for station in ["mfy", "grk"]:
+        live_show = live_shows.get(station)
+        
+        if not live_show:
+            # No live show - mark cached rundowns as inactive for this station
+            await db.rds_cached_rundowns.update_many(
+                {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+                {"$set": {"is_active": False, "updated_at": now_brussels.isoformat()}}
+            )
+        else:
+            # There's a live show - make sure it's marked active
+            await db.rds_cached_rundowns.update_one(
+                {"show_id": live_show["id"]},
+                {"$set": {
+                    "is_active": True, 
+                    "show_title": live_show["title"],
+                    "rds_station": live_show["rds_station"],
+                    "updated_at": now_brussels.isoformat()
+                }},
+                upsert=True
+            )
+    
+    # 4. Log the force refresh
+    await db.rds_cache_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "timestamp": now_brussels.isoformat(),
+        "status": "force_refresh",
+        "message": f"Force refresh uitgevoerd - MFY: {live_shows['mfy']['title'] if live_shows['mfy'] else 'geen'}, GRK: {live_shows['grk']['title'] if live_shows['grk'] else 'geen'}",
+        "live_shows": live_shows
+    })
+    
+    return {
+        "status": "success",
+        "timestamp": now_brussels.isoformat(),
+        "live_shows": live_shows,
+        "message": "RDS cache geforceerd vernieuwd"
+    }
+
+
 @rds_builder_router.get("/monitor")
 async def get_rds_monitor_data():
     """Public endpoint: Get real-time RDS monitoring data for all stations.
