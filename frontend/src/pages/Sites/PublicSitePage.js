@@ -312,7 +312,7 @@ export default function PublicSitePage() {
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
               placeholder="Wachtwoord"
-              className="bg-zinc-800 border-zinc-700 mb-4"
+              className="bg-zinc-800 border-transparent mb-4"
             />
             <Button type="submit" className="w-full text-white hover:opacity-90" style={{ backgroundColor: buttonColor }}>
               Toegang krijgen
@@ -469,7 +469,7 @@ export default function PublicSitePage() {
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
                         rows={3}
-                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none"
+                        className="w-full bg-zinc-800 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none"
                         style={{ '--tw-ring-color': buttonColor }}
                       />
                     ) : (
@@ -478,7 +478,7 @@ export default function PublicSitePage() {
                         value={formData[field.id] || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
-                        className="bg-zinc-800 border-zinc-700 text-sm"
+                        className="bg-zinc-800 border-transparent text-sm"
                       />
                     )}
                   </div>
@@ -527,7 +527,7 @@ export default function PublicSitePage() {
                           className="hidden"
                           disabled={uploading}
                         />
-                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-600 text-sm text-zinc-400">
+                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-700/50 text-sm text-zinc-400">
                           {uploading ? (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin" />
