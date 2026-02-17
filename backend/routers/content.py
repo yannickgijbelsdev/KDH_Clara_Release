@@ -154,13 +154,10 @@ async def get_content_items(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all content items for the main site or team."""
-    # Ultra-simple version to debug production issues
     try:
-        # Get main_site_id from header
         main_site_id = request.headers.get('X-Main-Site-ID')
         team_id = current_user.get('team_id')
         
-        # Simple query - just use team_id or main_site_id
         if main_site_id and team_id:
             query = {"$or": [{"main_site_id": main_site_id}, {"team_id": team_id}]}
         elif main_site_id:
@@ -168,14 +165,11 @@ async def get_content_items(
         elif team_id:
             query = {"team_id": team_id}
         else:
-            # Network admin - show all
             query = {}
         
-        # Add deleted filter
         if not include_deleted:
             query["deleted_at"] = {"$exists": False}
         
-        # Simple filters
         if type:
             query["type"] = type
         if status:
@@ -183,18 +177,56 @@ async def get_content_items(
         if category_id:
             query["category_id"] = category_id
         
-        # Fetch items
         items = await db.content_items.find(query, {"_id": 0}).sort("updated_at", -1).to_list(500)
         
-        # Return with empty publish_statuses
+        # Batch-enrich: fetch all publish_statuses and featured images in bulk
+        content_ids = [item["id"] for item in items]
+        
+        all_publishes = await db.content_item_publishes.find(
+            {"content_item_id": {"$in": content_ids}},
+            {"_id": 0}
+        ).to_list(2000)
+        
+        all_featured_imgs = await db.content_item_featured_images.find(
+            {"content_item_id": {"$in": content_ids}},
+            {"_id": 0}
+        ).to_list(2000)
+        
+        # Build lookup dicts
+        wp_site_ids = list(set(
+            p.get("wordpress_site_id") for p in all_publishes if p.get("wordpress_site_id")
+        ))
+        wp_sites = {}
+        if wp_site_ids:
+            sites = await db.wordpress_sites.find(
+                {"id": {"$in": wp_site_ids}}, {"_id": 0, "id": 1, "name": 1}
+            ).to_list(100)
+            wp_sites = {s["id"]: s["name"] for s in sites}
+        
+        fi_lookup = {}
+        for fi in all_featured_imgs:
+            key = (fi["content_item_id"], fi.get("wordpress_site_id"))
+            fi_lookup[key] = fi
+        
+        pub_lookup = {}
+        for p in all_publishes:
+            cid = p["content_item_id"]
+            wp_sid = p.get("wordpress_site_id")
+            p["wordpress_site_name"] = wp_sites.get(wp_sid, "Unknown")
+            fi = fi_lookup.get((cid, wp_sid))
+            if fi:
+                fi["wordpress_site_name"] = p["wordpress_site_name"]
+            p["featured_image"] = fi
+            pub_lookup.setdefault(cid, []).append(p)
+        
         for item in items:
-            if "publish_statuses" not in item:
-                item["publish_statuses"] = []
+            item["publish_statuses"] = pub_lookup.get(item["id"], [])
         
         return items
         
     except Exception as e:
-        # Return empty list on error to avoid 500
+        import traceback
+        traceback.print_exc()
         return []
 
 
