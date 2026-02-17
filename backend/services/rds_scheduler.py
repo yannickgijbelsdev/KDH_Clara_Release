@@ -104,12 +104,12 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                     # Show crosses midnight, live if we're past start time
                     is_live = current_time >= start
                 else:
-                    # Normal show, live if between start and end
-                    is_live = start <= current_time <= end
+                    # Normal show, live if between start and end (exclusive end)
+                    is_live = start <= current_time < end
             elif show_date == yesterday_date and crosses_midnight:
                 # Show from yesterday that crosses midnight
-                # Live if current time is before the end time (which is on "today")
-                is_live = current_time <= end
+                # Live if current time is BEFORE the end time (exclusive, use < not <=)
+                is_live = current_time < end
             
             if is_live:
                 live_shows.append(show)
