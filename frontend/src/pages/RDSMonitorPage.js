@@ -315,6 +315,7 @@ const RDSMonitorPage = () => {
                     <th className="pb-3 pr-4">Station</th>
                     <th className="pb-3 pr-4">Type</th>
                     <th className="pb-3 pr-4">Text</th>
+                    <th className="pb-3 pr-4">Presenters</th>
                     <th className="pb-3">Reason</th>
                   </tr>
                 </thead>
@@ -341,6 +342,9 @@ const RDSMonitorPage = () => {
                       </td>
                       <td className="py-3 pr-4 text-white max-w-xs truncate">
                         {entry.text}
+                      </td>
+                      <td className="py-3 pr-4 text-zinc-400 max-w-xs truncate">
+                        {entry.presenters?.length > 0 ? entry.presenters.join(', ') : '-'}
                       </td>
                       <td className="py-3 text-zinc-500">
                         {entry.reason}
