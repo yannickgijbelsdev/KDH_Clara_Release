@@ -358,12 +358,12 @@ async def debug_live_shows(request: Request, current_user: dict = Depends(requir
     today_utc = now_utc.strftime('%Y-%m-%d')
     
     shows_today_cet = await db.shows.find(
-        {"date": today_brussels, **query_filter},
+        {"date": today_brussels, **show_query},
         {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
     ).to_list(50)
     
     shows_today_utc = await db.shows.find(
-        {"date": today_utc, **query_filter},
+        {"date": today_utc, **show_query},
         {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
     ).to_list(50) if today_utc != today_brussels else []
     
