@@ -26,7 +26,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     # Use proper Europe/Brussels timezone (handles CET/CEST automatically)
     now_brussels = datetime.now(BRUSSELS_TZ)
     
-    timestamp = now_utc.isoformat()
+    timestamp = datetime.now(BRUSSELS_TZ).isoformat()
     
     # Use Brussels local time for finding live shows (shows are stored in local time)
     queries_to_try = [
