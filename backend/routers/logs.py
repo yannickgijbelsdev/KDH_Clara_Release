@@ -119,11 +119,16 @@ async def get_archive_dates(
 ):
     """Get dates that have activity logs for archive calendar, filtered by main_site_id."""
     main_site_id = await get_main_site_id_from_header(request)
+    is_network_admin = current_user.get("is_network_admin", False)
     
     if main_site_id:
         match_query = {"main_site_id": main_site_id}
-    else:
+    elif current_user.get("team_id"):
         match_query = {"team_id": current_user.get("team_id")}
+    elif is_network_admin:
+        match_query = {}
+    else:
+        match_query = {"team_id": None}
     
     # Aggregate logs by date
     pipeline = [
