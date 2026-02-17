@@ -5,6 +5,7 @@ import uuid
 import os
 import io
 import tempfile
+import shutil
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, List, Tuple
 import httpx
@@ -20,6 +21,15 @@ try:
 except ImportError:
     AUDIO_LIBS_AVAILABLE = False
     logger.warning("Audio libraries not available. Install librosa and soundfile.")
+
+
+def is_ffmpeg_available() -> bool:
+    """Check if ffmpeg is installed and accessible."""
+    return shutil.which("ffmpeg") is not None
+
+
+# Cache ffmpeg availability at module load
+FFMPEG_AVAILABLE = is_ffmpeg_available()
 
 # Stream configurations
 STREAM_URLS = {
