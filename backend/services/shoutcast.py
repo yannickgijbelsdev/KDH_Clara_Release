@@ -23,6 +23,7 @@ SHOUTCAST_SERVERS = {
 
 # Stale now playing settings
 STALE_TIMEOUT_MINUTES = 15  # Show fallback after this many minutes of same song
+STALE_RECOVERY_THRESHOLD_SECONDS = 30  # Song must be different for at least this many seconds to recover from stale
 STALE_FALLBACK_TEXT = {
     "mfy": "altijd dichtbij",
     "grk": "the feelgood station"
