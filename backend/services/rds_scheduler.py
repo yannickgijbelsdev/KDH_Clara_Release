@@ -108,21 +108,32 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
             {"$set": {"is_active": False, "updated_at": timestamp}}
         )
         
-        # Log for each team that has RDS settings
+        # Always update last_cache_refresh so frontend sees activity
         if team_id:
-            log_entry = {
-                "id": str(uuid.uuid4()),
-                "team_id": team_id,
-                "timestamp": timestamp,
-                "status": "no_show",
-                "show_id": None,
-                "show_title": None,
-                "message": "Geen live show gevonden voor de huidige tijd",
-                "cached_data": None
-            }
-            await db.rds_cache_logs.insert_one(log_entry)
-            log_entry.pop("_id", None)  # Remove MongoDB ObjectId before returning
-            results.append(log_entry)
+            await db.rds_settings.update_many(
+                {"team_id": team_id},
+                {"$set": {"last_cache_refresh": timestamp}}
+            )
+        else:
+            await db.rds_settings.update_many(
+                {},
+                {"$set": {"last_cache_refresh": timestamp}}
+            )
+        
+        # Always log - even when no shows found
+        log_entry = {
+            "id": str(uuid.uuid4()),
+            "team_id": team_id,
+            "timestamp": timestamp,
+            "status": "no_show",
+            "show_id": None,
+            "show_title": None,
+            "message": "Geen live show gevonden voor de huidige tijd",
+            "cached_data": None
+        }
+        await db.rds_cache_logs.insert_one(log_entry)
+        log_entry.pop("_id", None)
+        results.append(log_entry)
         
         return {
             "status": "no_show",
