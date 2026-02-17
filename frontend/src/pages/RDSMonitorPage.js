@@ -82,11 +82,24 @@ const RDSMonitorPage = () => {
           mfy: getSecondsUntilStale(monitorData.stations.mfy?.now_playing?.stale_at),
           grk: getSecondsUntilStale(monitorData.stations.grk?.now_playing?.stale_at),
         });
+        
+        // Update show end countdowns from calendar data
+        setShowEndCountdowns({
+          mfy: monitorData.stations.mfy?.calendar_live_show?.seconds_until_end || null,
+          grk: monitorData.stations.grk?.calendar_live_show?.seconds_until_end || null,
+        });
       }
     };
 
     updateCountdowns();
-    countdownRef.current = setInterval(updateCountdowns, 1000);
+    countdownRef.current = setInterval(() => {
+      updateCountdowns();
+      // Also decrement local show countdowns
+      setShowEndCountdowns(prev => ({
+        mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
+        grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
+      }));
+    }, 1000);
 
     return () => {
       if (countdownRef.current) {
