@@ -201,17 +201,6 @@ const RDSMonitorPage = () => {
             </p>
           </div>
 
-          {/* Listeners */}
-          <div className="bg-zinc-800/30 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
-              <Users className="w-3 h-3" />
-              Listeners
-            </div>
-            <p className="text-xl font-bold text-white">
-              {data?.now_playing?.listeners || 0}
-            </p>
-          </div>
-
           {/* Sequence Status */}
           <div className="bg-zinc-800/30 rounded-lg p-3">
             <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
