@@ -312,27 +312,27 @@ async def debug_live_shows(request: Request, current_user: dict = Depends(requir
     
     query_filter = await get_rds_query_filter(request, current_user)
     
-    # Find all shows for today (CET)
-    today_cet = now_cet.strftime('%Y-%m-%d')
+    # Find all shows for today (Brussels)
+    today_brussels = now_brussels.strftime('%Y-%m-%d')
     today_utc = now_utc.strftime('%Y-%m-%d')
     
     shows_today_cet = await db.shows.find(
-        {"date": today_cet, **query_filter},
+        {"date": today_brussels, **query_filter},
         {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
     ).to_list(50)
     
     shows_today_utc = await db.shows.find(
         {"date": today_utc, **query_filter},
         {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
-    ).to_list(50) if today_utc != today_cet else []
+    ).to_list(50) if today_utc != today_brussels else []
     
     # Check which shows would be considered "live" right now
-    current_time_cet = now_cet.strftime('%H:%M')
+    current_time_brussels = now_brussels.strftime('%H:%M')
     current_time_utc = now_utc.strftime('%H:%M')
     
     live_shows_cet = [
         s for s in shows_today_cet 
-        if s.get('start_time', '99:99') <= current_time_cet <= s.get('end_time', '00:00')
+        if s.get('start_time', '99:99') <= current_time_brussels <= s.get('end_time', '00:00')
         and s.get('status') == 'scheduled'
     ]
     
