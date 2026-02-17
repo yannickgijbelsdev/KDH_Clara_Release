@@ -419,8 +419,21 @@ async def process_rds_sequence(db, station: str):
         was_scheduled_text = output.get("scheduled_text_active", False)
         was_audio_trigger = output.get("audio_trigger_active", False)
         
+        # ALSO check if output is stale from an ENDED scheduled text or audio trigger
+        # This handles the race condition where the flag is already False but we're still showing old content
+        current_item_type = output.get("current_item_type", "")
+        stored_index = output.get("current_index", 0)
+        if not was_scheduled_text and current_item_type == "scheduled_text" and stored_index == -1:
+            # The scheduled text ended but we haven't switched back to normal sequence yet
+            was_scheduled_text = True
+            logger.debug(f"RDS Builder [{station}]: Detected stale scheduled text state, forcing refresh")
+        if not was_audio_trigger and current_item_type == "audio_trigger" and stored_index == -2:
+            # The audio trigger ended but we haven't switched back to normal sequence yet
+            was_audio_trigger = True
+            logger.debug(f"RDS Builder [{station}]: Detected stale audio trigger state, forcing refresh")
+        
         if not was_scheduled_text and not was_audio_trigger:
-            current_index = output.get("current_index", 0)
+            current_index = stored_index
             # Reset if index was negative (scheduled text or audio trigger marker)
             if current_index < 0:
                 current_index = 0
