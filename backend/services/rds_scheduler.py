@@ -23,23 +23,20 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
         Dict with refresh status and details.
     """
     now_utc = datetime.now(timezone.utc)
-    # Also calculate CET/CEST time (UTC+1 in winter, UTC+2 in summer)
-    # Belgium/Netherlands use CET, so add 1 hour (or 2 for summer time)
-    # For simplicity, try both UTC and CET (UTC+1)
-    now_cet = now_utc + timedelta(hours=1)
+    # Use proper Europe/Brussels timezone (handles CET/CEST automatically)
+    now_brussels = datetime.now(BRUSSELS_TZ)
     
     timestamp = now_utc.isoformat()
     
-    # Try to find live shows using both UTC and local (CET) time
-    # This handles cases where shows are stored in local time
+    # Use Brussels local time for finding live shows (shows are stored in local time)
     queries_to_try = [
-        # Try CET time first (most likely for European users)
+        # Brussels time (primary - shows are in local time)
         {
-            "now": now_cet,
-            "date": now_cet.strftime('%Y-%m-%d'),
-            "time": now_cet.strftime('%H:%M')
+            "now": now_brussels,
+            "date": now_brussels.strftime('%Y-%m-%d'),
+            "time": now_brussels.strftime('%H:%M')
         },
-        # Also try UTC
+        # Also try UTC as fallback
         {
             "now": now_utc,
             "date": now_utc.strftime('%Y-%m-%d'),
