@@ -2,10 +2,57 @@
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 import uuid
 
 logger = logging.getLogger(__name__)
+
+BRUSSELS_TZ = ZoneInfo('Europe/Brussels')
+
+# Track last text per station to detect changes
+_last_text_tracker = {}
+
+
+async def log_text_change(db, station: str, new_text: str, item_type: str, reason: str = None):
+    """Log a text change to history if the text actually changed.
+    
+    Only logs when the text is different from the previous one to avoid spam.
+    """
+    global _last_text_tracker
+    
+    last_text = _last_text_tracker.get(station, "")
+    
+    if new_text != last_text:
+        _last_text_tracker[station] = new_text
+        
+        now_brussels = datetime.now(BRUSSELS_TZ)
+        
+        history_entry = {
+            "id": str(uuid.uuid4()),
+            "station": station,
+            "text": new_text,
+            "item_type": item_type,
+            "reason": reason,
+            "timestamp": now_brussels.isoformat(),
+            "timestamp_formatted": now_brussels.strftime("%H:%M:%S"),
+        }
+        
+        try:
+            await db.rds_output_history.insert_one(history_entry)
+            
+            # Keep only last 500 entries per station to prevent unbounded growth
+            count = await db.rds_output_history.count_documents({"station": station})
+            if count > 500:
+                # Delete oldest entries
+                oldest = await db.rds_output_history.find(
+                    {"station": station}
+                ).sort("timestamp", 1).limit(count - 500).to_list(count - 500)
+                if oldest:
+                    oldest_ids = [o["id"] for o in oldest]
+                    await db.rds_output_history.delete_many({"id": {"$in": oldest_ids}})
+        except Exception as e:
+            logger.error(f"Failed to log RDS history: {e}")
 
 
 async def get_now_playing_station_for(db, station: str) -> str:
