@@ -162,6 +162,7 @@ async def get_logs_by_date(
 ):
     """Get logs for a specific date (archive view), filtered by main_site_id."""
     main_site_id = await get_main_site_id_from_header(request)
+    is_network_admin = current_user.get("is_network_admin", False)
     
     # Build query for the specific date
     start_of_day = f"{date}T00:00:00"
@@ -172,9 +173,18 @@ async def get_logs_by_date(
             "main_site_id": main_site_id,
             "timestamp": {"$gte": start_of_day, "$lte": end_of_day}
         }
-    else:
+    elif current_user.get("team_id"):
         query = {
             "team_id": current_user.get("team_id"),
+            "timestamp": {"$gte": start_of_day, "$lte": end_of_day}
+        }
+    elif is_network_admin:
+        query = {
+            "timestamp": {"$gte": start_of_day, "$lte": end_of_day}
+        }
+    else:
+        query = {
+            "team_id": None,
             "timestamp": {"$gte": start_of_day, "$lte": end_of_day}
         }
     
