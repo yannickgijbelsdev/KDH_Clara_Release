@@ -154,32 +154,39 @@ async def get_content_items(
     current_user: dict = Depends(get_current_user)
 ):
     """Get all content items for the main site or team. Deleted items only visible to admins."""
-    # Check for main_site_id header (multisite context)
-    main_site_id = await get_main_site_id_from_header(request)
-    team_id = current_user.get('team_id')
-    is_network_admin = current_user.get('is_network_admin', False)
+    import logging
+    logger = logging.getLogger(__name__)
     
-    # Build scope filter based on context
-    scope_conditions = []
-    
-    if main_site_id:
-        scope_conditions.append({"main_site_id": main_site_id})
-    if team_id:
-        scope_conditions.append({"team_id": team_id})
-    
-    # If no scope conditions and not network admin, return empty
-    if not scope_conditions and not is_network_admin:
-        return []
-    
-    # Build the final query
-    query_conditions = []
-    
-    # Add scope filter (if any)
-    if scope_conditions:
-        if len(scope_conditions) == 1:
-            query_conditions.append(scope_conditions[0])
-        else:
-            query_conditions.append({"$or": scope_conditions})
+    try:
+        # Check for main_site_id header (multisite context)
+        main_site_id = await get_main_site_id_from_header(request)
+        team_id = current_user.get('team_id')
+        is_network_admin = current_user.get('is_network_admin', False)
+        
+        logger.info(f"Content query - main_site_id: {main_site_id}, team_id: {team_id}, is_network_admin: {is_network_admin}")
+        
+        # Build scope filter based on context
+        scope_conditions = []
+        
+        if main_site_id:
+            scope_conditions.append({"main_site_id": main_site_id})
+        if team_id:
+            scope_conditions.append({"team_id": team_id})
+        
+        # If no scope conditions and not network admin, return empty
+        if not scope_conditions and not is_network_admin:
+            logger.info("No scope conditions and not network admin - returning empty")
+            return []
+        
+        # Build the final query
+        query_conditions = []
+        
+        # Add scope filter (if any)
+        if scope_conditions:
+            if len(scope_conditions) == 1:
+                query_conditions.append(scope_conditions[0])
+            else:
+                query_conditions.append({"$or": scope_conditions})
     
     # Filter out deleted items for non-admins
     is_admin = current_user.get('role') == 'admin'
