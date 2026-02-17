@@ -271,11 +271,16 @@ async def get_log_stats(
 ):
     """Get audit log statistics, filtered by main_site_id."""
     main_site_id = await get_main_site_id_from_header(request)
+    is_network_admin = current_user.get("is_network_admin", False)
     
     if main_site_id:
         base_query = {"main_site_id": main_site_id}
-    else:
+    elif current_user.get("team_id"):
         base_query = {"team_id": current_user.get("team_id")}
+    elif is_network_admin:
+        base_query = {}
+    else:
+        base_query = {"team_id": None}
     
     # Get counts by category
     category_pipeline = [
