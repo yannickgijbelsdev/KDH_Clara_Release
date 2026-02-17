@@ -594,6 +594,9 @@ async def process_rds_sequence(db, station: str):
             upsert=True
         )
         
+        # Log to history (only logs if text actually changed)
+        await log_text_change(db, station, current_text, current_item.get("type"), "Sequence rotation")
+        
         logger.debug(f"RDS Builder [{station}]: '{current_text}' (next change in {duration}s)")
 
 
