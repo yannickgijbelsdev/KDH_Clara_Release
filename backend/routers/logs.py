@@ -234,6 +234,7 @@ async def get_log_users(
 ):
     """Get all team users for the filter dropdown, filtered by main_site_id access."""
     main_site_id = await get_main_site_id_from_header(request)
+    is_network_admin = current_user.get("is_network_admin", False)
     
     if main_site_id:
         # Get users who have access to this main site
@@ -247,6 +248,12 @@ async def get_log_users(
             {"id": {"$in": user_ids}},
             {"_id": 0, "id": 1, "name": 1, "email": 1}
         ).to_list(100)
+    elif is_network_admin and not current_user.get("team_id"):
+        # Network admin sees all users
+        users = await db.users.find(
+            {},
+            {"_id": 0, "id": 1, "name": 1, "email": 1}
+        ).to_list(500)
     else:
         # Fetch ALL users in the team
         users = await db.users.find(
