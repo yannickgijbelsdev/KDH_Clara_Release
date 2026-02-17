@@ -28,12 +28,36 @@ async def log_text_change(db, station: str, new_text: str, item_type: str, reaso
         
         now_brussels = datetime.now(BRUSSELS_TZ)
         
+        # Get presenter info if there's an active show
+        presenters = []
+        try:
+            cached_rundown = await db.rds_cached_rundowns.find_one(
+                {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+                {"_id": 0, "presenter_names": 1, "show_id": 1}
+            )
+            if cached_rundown:
+                presenters = cached_rundown.get("presenter_names", [])
+                if not presenters and cached_rundown.get("show_id"):
+                    show = await db.shows.find_one(
+                        {"id": cached_rundown["show_id"]},
+                        {"_id": 0, "presenter_ids": 1}
+                    )
+                    if show and show.get("presenter_ids"):
+                        presenter_docs = await db.users.find(
+                            {"id": {"$in": show["presenter_ids"]}},
+                            {"_id": 0, "name": 1}
+                        ).to_list(10)
+                        presenters = [p.get("name", "") for p in presenter_docs if p.get("name")]
+        except Exception as e:
+            logger.debug(f"Could not fetch presenter info: {e}")
+        
         history_entry = {
             "id": str(uuid.uuid4()),
             "station": station,
             "text": new_text,
             "item_type": item_type,
             "reason": reason,
+            "presenters": presenters,
             "timestamp": now_brussels.isoformat(),
             "timestamp_formatted": now_brussels.strftime("%H:%M:%S"),
         }
