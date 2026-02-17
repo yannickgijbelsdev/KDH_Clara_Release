@@ -494,3 +494,45 @@ async def get_active_trigger_for_station(
         "action_text": state.get("action_text"),
         "activated_at": state.get("activated_at")
     }
+
+
+@audio_trigger_router.get("/system/status")
+async def get_audio_trigger_system_status(
+    db=Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the status of the audio trigger system (ffmpeg, libraries, etc.)."""
+    import shutil
+    
+    # Check ffmpeg
+    ffmpeg_available = shutil.which("ffmpeg") is not None
+    
+    # Check audio libraries
+    try:
+        import librosa
+        import soundfile
+        audio_libs_available = True
+    except ImportError:
+        audio_libs_available = False
+    
+    # Check if scheduler is running (via global variable in server.py)
+    scheduler_running = False
+    try:
+        from server import audio_trigger_scheduler
+        scheduler_running = audio_trigger_scheduler is not None and audio_trigger_scheduler.running
+    except:
+        pass
+    
+    return {
+        "ffmpeg_available": ffmpeg_available,
+        "audio_libs_available": audio_libs_available,
+        "scheduler_running": scheduler_running,
+        "fully_operational": ffmpeg_available and audio_libs_available and scheduler_running,
+        "issues": [
+            issue for issue in [
+                None if ffmpeg_available else "FFmpeg is not installed - audio stream analysis will not work",
+                None if audio_libs_available else "Audio libraries (librosa/soundfile) are missing",
+                None if scheduler_running else "Audio trigger scheduler is not running"
+            ] if issue
+        ]
+    }
