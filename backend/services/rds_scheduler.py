@@ -54,10 +54,11 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
         
         # Query for shows today AND yesterday (for midnight-crossing shows)
         if team_id:
+            # Search by both team_id and main_site_id since the identifier could be either
             base_query = {
                 "status": "scheduled",
                 "date": {"$in": [current_date, yesterday_date]},
-                "team_id": team_id
+                "$or": [{"team_id": team_id}, {"main_site_id": team_id}]
             }
         else:
             base_query = {
