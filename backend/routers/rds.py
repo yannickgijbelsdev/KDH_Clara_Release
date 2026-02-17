@@ -345,9 +345,9 @@ async def debug_live_shows(request: Request, current_user: dict = Depends(requir
     return {
         "debug_info": {
             "current_time_utc": now_utc.isoformat(),
-            "current_time_cet": now_cet.isoformat(),
-            "current_time_cet_formatted": current_time_cet,
-            "today_date_cet": today_cet,
+            "current_time_brussels": now_brussels.isoformat(),
+            "current_time_brussels_formatted": current_time_brussels,
+            "today_date_brussels": today_brussels,
         },
         "shows_today": shows_today_cet + shows_today_utc,
         "shows_that_should_be_live": live_shows_cet,
