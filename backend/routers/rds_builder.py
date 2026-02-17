@@ -267,7 +267,7 @@ async def get_rds_monitor_data():
         # Get shoutcast now playing
         shoutcast = await db.shoutcast_cache.find_one(
             {"station": station},
-            {"_id": 0, "song_title": 1, "current_listeners": 1, "stream_online": 1, "is_stale": 1}
+            {"_id": 0, "song_title": 1, "current_listeners": 1, "stream_online": 1, "is_stale": 1, "song_started_at": 1, "stale_at": 1}
         )
         
         stations_data[station] = {
@@ -289,6 +289,8 @@ async def get_rds_monitor_data():
                 "listeners": shoutcast.get("current_listeners", 0) if shoutcast else 0,
                 "online": shoutcast.get("stream_online", False) if shoutcast else False,
                 "is_stale": shoutcast.get("is_stale", False) if shoutcast else False,
+                "song_started_at": shoutcast.get("song_started_at", "") if shoutcast else "",
+                "stale_at": shoutcast.get("stale_at", "") if shoutcast else "",
             }
         }
     
