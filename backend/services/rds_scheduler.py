@@ -258,6 +258,16 @@ class RDSScheduler:
             return
         
         self.running = True
+        
+        # Force all existing RDS settings to 1 minute interval
+        try:
+            await db.rds_settings.update_many(
+                {"cache_refresh_interval": {"$ne": 1}},
+                {"$set": {"cache_refresh_interval": 1}}
+            )
+        except Exception as e:
+            logger.warning(f"Could not update RDS intervals: {e}")
+        
         self.task = asyncio.create_task(self._run_loop())
         logger.info("RDS cache scheduler started (1 min interval)")
     
