@@ -394,6 +394,9 @@ async def process_rds_sequence(db, station: str):
             upsert=True
         )
         
+        # Log to history
+        await log_text_change(db, station, active_audio_trigger["text"], "audio_trigger", "Audio trigger activated")
+        
         logger.debug(f"RDS Builder [{station}]: Audio trigger active: '{active_audio_trigger['text'][:50]}...'")
         return
     
