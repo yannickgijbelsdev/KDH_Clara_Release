@@ -1994,6 +1994,18 @@ Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header
 
 **Fix 3: Mini Sites container outlines verwijderd**
 - `SitesListPage.js`: Removed `border border-zinc-800` from site cards and empty state
+
+### February 17, 2026 - RDS Live Show Detection Fix
+
+**Root Cause:** The scheduler queried shows by `team_id: main_site_id`, but shows have `team_id` from child sites. The main_site_id and child site team_ids are different UUIDs.
+
+**Fix Applied:**
+- `refresh_live_show_cache()` now resolves `main_site_id` → fetches all child site `team_ids` from `sites` collection → queries shows with ALL resolved team_ids using `$in`
+- `get_rds_query_filter()` now returns `$or` query matching both `team_id` and `main_site_id` fields
+- Debug endpoint also resolves child site team_ids for accurate show detection
+- show_titles lookup uses fallback search without team filter
+- Enhanced log messages show how many team_ids were searched
+
 - `SiteDashboard.js`: Removed `border border-zinc-800` from all 8 content containers
 
 - Network Admins with `team_id: null` now see ALL logs across all teams
