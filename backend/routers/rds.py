@@ -333,6 +333,26 @@ async def debug_live_shows(request: Request, current_user: dict = Depends(requir
     
     query_filter = await get_rds_query_filter(request, current_user)
     
+    # Also resolve child site team_ids for main_site context
+    main_site_id = await get_main_site_id_from_header(request)
+    show_query = {}
+    if main_site_id:
+        team_ids_set = {main_site_id}
+        child_sites = await db.sites.find(
+            {"main_site_id": main_site_id},
+            {"_id": 0, "team_id": 1}
+        ).to_list(50)
+        for site in child_sites:
+            if site.get("team_id"):
+                team_ids_set.add(site["team_id"])
+        team_id = current_user.get('team_id')
+        if team_id:
+            team_ids_set.add(team_id)
+        team_ids_list = list(team_ids_set)
+        show_query = {"$or": [{"team_id": {"$in": team_ids_list}}, {"main_site_id": {"$in": team_ids_list}}]}
+    elif current_user.get('team_id'):
+        show_query = {"team_id": current_user.get('team_id')}
+    
     # Find all shows for today (Brussels)
     today_brussels = now_brussels.strftime('%Y-%m-%d')
     today_utc = now_utc.strftime('%Y-%m-%d')
