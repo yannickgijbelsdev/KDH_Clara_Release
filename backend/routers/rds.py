@@ -271,10 +271,22 @@ async def get_rds_logs(
     current_user: dict = Depends(require_admin)
 ):
     """Get recent RDS cache refresh logs."""
-    query_filter = await get_rds_query_filter(request, current_user)
+    main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
     
-    if not query_filter:
-        return []
+    # Build an $or query since logs may have team_id or main_site_id
+    or_conditions = []
+    if main_site_id:
+        or_conditions.append({"main_site_id": main_site_id})
+        or_conditions.append({"team_id": main_site_id})
+    if team_id:
+        or_conditions.append({"team_id": team_id})
+    
+    if not or_conditions:
+        # Network admin - show all logs
+        query_filter = {}
+    else:
+        query_filter = {"$or": or_conditions} if len(or_conditions) > 1 else or_conditions[0]
     
     logs = await db.rds_cache_logs.find(
         query_filter,
