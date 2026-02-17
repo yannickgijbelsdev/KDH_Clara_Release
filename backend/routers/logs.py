@@ -55,11 +55,16 @@ async def get_audit_logs(
 ):
     """Get audit logs with filters (admin only), filtered by main_site_id if in multisite context."""
     main_site_id = await get_main_site_id_from_header(request)
+    is_network_admin = current_user.get("is_network_admin", False)
     
     if main_site_id:
         query = {"main_site_id": main_site_id}
-    else:
+    elif current_user.get("team_id"):
         query = {"team_id": current_user.get("team_id")}
+    elif is_network_admin:
+        query = {}  # Network admin sees all logs
+    else:
+        query = {"team_id": None}  # Fallback - match nothing
     
     if category:
         query["category"] = category
