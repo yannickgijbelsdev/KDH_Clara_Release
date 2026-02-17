@@ -394,7 +394,7 @@ export default function SiteDashboard() {
       {/* General Tab */}
       {activeTab === 'general' && (
         <div className="space-y-6">
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+          <div className="bg-zinc-900/50 rounded-xl p-6">
             <h2 className="text-lg font-semibold text-white mb-4">Page settings</h2>
             
             <div className="grid gap-4">
@@ -525,7 +525,7 @@ export default function SiteDashboard() {
       {activeTab === 'media' && (
         <div className="space-y-6">
           {/* Header Image Section */}
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+          <div className="bg-zinc-900/50 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
               <ImageIcon className="h-5 w-5 text-orange-400" />
               <div>
@@ -568,7 +568,7 @@ export default function SiteDashboard() {
           </div>
 
           {/* Audio Section */}
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+          <div className="bg-zinc-900/50 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Music className="h-5 w-5 text-orange-400" />
@@ -670,7 +670,7 @@ export default function SiteDashboard() {
           </div>
 
           {/* Video Section */}
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+          <div className="bg-zinc-900/50 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Video className="h-5 w-5 text-orange-400" />
@@ -735,7 +735,7 @@ export default function SiteDashboard() {
       {/* Form Tab */}
       {activeTab === 'form' && (
         <div className="space-y-6">
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+          <div className="bg-zinc-900/50 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <MessageSquare className="h-5 w-5 text-orange-400" />
@@ -829,7 +829,7 @@ export default function SiteDashboard() {
       {/* Styling Tab */}
       {activeTab === 'styling' && (
         <div className="space-y-6">
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+          <div className="bg-zinc-900/50 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-6">
               <Palette className="h-5 w-5 text-orange-400" />
               <h2 className="text-lg font-semibold text-white">Page Styling</h2>
@@ -938,7 +938,7 @@ export default function SiteDashboard() {
       {/* Submissions Tab */}
       {activeTab === 'submissions' && (
         <div className="space-y-4">
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+          <div className="bg-zinc-900/50 rounded-xl p-6">
             <h2 className="text-lg font-semibold text-white mb-4">Submissions</h2>
             
             {submissions.length === 0 ? (
@@ -1045,7 +1045,7 @@ export default function SiteDashboard() {
       {/* Users Tab */}
       {activeTab === 'users' && (
         <div className="space-y-4">
-          <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800">
+          <div className="bg-zinc-900/50 rounded-xl p-6">
             <h2 className="text-lg font-semibold text-white mb-4">User Access</h2>
             
             <div className="space-y-4">
