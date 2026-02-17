@@ -91,6 +91,15 @@ const RDSMonitorPage = () => {
   const StationCard = ({ station, data, stationName }) => {
     const isLive = data?.live_show?.title;
     const isOnline = data?.now_playing?.online;
+    
+    // Skip custom_text - show live show, now_playing, or fallback
+    const shouldSkipCustom = data?.current_item_type === 'custom_text';
+    const displayType = shouldSkipCustom 
+      ? (isLive ? 'show_name' : 'now_playing')
+      : data?.current_item_type;
+    const displayText = shouldSkipCustom
+      ? (isLive ? data.live_show.title : (data?.now_playing?.song || '-'))
+      : data?.current_text;
 
     return (
       <div className="bg-zinc-900 rounded-xl p-6 space-y-4">
@@ -125,9 +134,9 @@ const RDSMonitorPage = () => {
         {/* Current Output - Large Display */}
         <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
           <div className="flex items-center gap-2 mb-2">
-            {getItemTypeIcon(data?.current_item_type)}
+            {getItemTypeIcon(displayType)}
             <span className="text-xs text-zinc-400 uppercase tracking-wider">
-              {getItemTypeLabel(data?.current_item_type)}
+              {getItemTypeLabel(displayType)}
             </span>
             {data?.scheduled_text_active && (
               <span className="ml-auto px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded">
