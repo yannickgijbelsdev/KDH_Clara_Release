@@ -147,7 +147,7 @@ export default function SitesListPage() {
 
       {/* Sites Grid */}
       {sites.length === 0 ? (
-        <div className="text-center py-16 bg-zinc-900/50 rounded-xl border border-zinc-800">
+        <div className="text-center py-16 bg-zinc-900/50 rounded-xl">
           <Globe className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">No sites yet</h3>
           <p className="text-zinc-400 mb-6">
@@ -166,7 +166,7 @@ export default function SitesListPage() {
           {sites.map(site => (
             <div 
               key={site.id}
-              className="bg-zinc-900/50 rounded-xl border border-zinc-800 overflow-hidden hover:border-zinc-700 transition group"
+              className="bg-zinc-900/50 rounded-xl overflow-hidden hover:bg-zinc-900/80 transition group"
             >
               <div className="p-6">
                 <div className="flex items-start justify-between">
@@ -224,7 +224,7 @@ export default function SitesListPage() {
                 </div>
               </div>
 
-              <div className="px-6 py-3 bg-zinc-800/50 border-t border-zinc-800 flex justify-between">
+              <div className="px-6 py-3 bg-zinc-800/30 flex justify-between">
                 <Button
                   variant="ghost"
                   size="sm"
