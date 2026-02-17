@@ -152,9 +152,15 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
         try:
             # Fetch the show title template to get the rds_station setting
             show_title_doc = await db.show_titles.find_one(
-                {"name": show_title, "team_id": show_team_id},
+                {"name": show_title, "$or": [{"team_id": show_team_id}, {"main_site_id": show_team_id}]},
                 {"_id": 0, "rds_station": 1}
             )
+            if not show_title_doc:
+                # Fallback: search without team filter
+                show_title_doc = await db.show_titles.find_one(
+                    {"name": show_title},
+                    {"_id": 0, "rds_station": 1}
+                )
             rds_station = show_title_doc.get("rds_station", "none") if show_title_doc else "none"
             
             # Fetch rundown items for this show
