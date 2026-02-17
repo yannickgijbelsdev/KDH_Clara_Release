@@ -1,51 +1,51 @@
 <analysis>**original_problem_statement:**
-The user's primary goal is to fix their multisite production application (), which remains broken after a major refactoring effort. The core symptoms reported by the user are:
-1.  Content is not loading in the Content Library and Content Approval pages, showing errors like Failed to load content or 0 items when there should be many.
-2.  Navigation links are generated incorrectly, missing the required site-specific slug (e.g., ). (This part was likely fixed but the main data-loading issues persist).
-3.  RDS Cache logs are not working.
-4.  The ability for an administrator to switch between users is non-functional.
-
-PRODUCT REQUIREMENTS:
-1.  Fix all user-reported issues to make the production application fully functional in its multisite architecture.
-2.  Ensure data loading (content, approvals, team members) works correctly for all user roles (especially Network Admins) across all main sites.
-3.  The fixes must be correctly deployed and reflected in the live production environment.
+The user's production application was non-functional due to a deployment failure causing  on key data-loading endpoints. After resolving this initial blocker, the user reported a series of subsequent issues and feature requests:
+1.  Featured images were not loading in the content library.
+2.  RDS Cache logs were not working, the update interval was too long (5 minutes), and the timezone was incorrect (not Brussels).
+3.  Activity logs were not visible to Network Admins.
+4.  Last cache refresh timestamp was not updating correctly.
+5.  Outlines/borders on various UI components (mini sites, public pages) needed to be removed for a cleaner look.
+6.  A scheduled show was not appearing on the RDS, and the RDS was showing stale data from the previous hour.
+7.  Add Test and Debug tools to the Network Admin dashboard to check the health and status of each main site.
 
 **User's preferred language**: Dutch. The next agent MUST respond in Dutch.
 
 **what currently exists?**
-The application is a full-stack system (React, FastAPI, MongoDB) designed for a multisite architecture. The previous agent performed an extensive series of modifications primarily in  and  to make the API multisite-aware. These fixes included:
-- Rewriting MongoDB queries to correctly handle  operator conflicts.
-- Optimizing N+1 query patterns to improve performance.
-- Adding robust error handling and logging.
-- Handling a special case for Network Admins who have .
-- Cleaning up the  file to resolve a deployment issue.
+The agent has successfully resolved the critical production deployment failure by fixing a Pydantic validation error where  for Network Admins was not being handled correctly. Following that, the agent addressed a series of bugs and implemented new features:
+-   Fixed featured image loading by correctly enriching content with publishing status.
+-   Corrected the RDS scheduler to run every 60 seconds and use the  timezone throughout the backend.
+-   Fixed Activity Log visibility for Network Admins by adjusting the database query.
+-   Resolved issues with cache logs and the last refresh timestamp by ensuring logs are always created and timestamps updated on every scheduler run.
+-   Implemented the requested Network Admin tools: a Test button that shows a health-check modal with site statistics, and a Debug button that displays a detailed debug panel with logs and operational data, saving a snapshot to the database.
+-   Removed borders and shadows from UI components on multiple pages for a cleaner design.
+-   Refactored the RDS scheduler logic to correctly find shows in a multi-site context by resolving a  to its constituent child s.
 
-All these changes have been tested in the preview environment and work correctly. However, the user repeatedly reports that the production environment is still broken, with API endpoints like  returning a . This strongly indicates that the code changes are not being successfully deployed to or activated in the production environment.
+The application is now largely functional, but a final bug related to stale RDS data remains.
 
 **Last working item**:
--   **Last item agent was working:** The agent was trying to diagnose a persistent production deployment failure. Despite numerous code fixes that worked perfectly in the local preview environment (confirmed via  and screenshots), the user's production app remained broken, consistently throwing a  on key data endpoints. The agent concluded that the problem is not the code's logic but a failure in the deployment pipeline itself. The last action taken was to call the  with user-provided logs to identify the root cause of the deployment failure.
--   **Status:** BLOCKED
--   **Agent Testing Done:** Y (in the preview environment only. All tests passed.)
--   **Which testing method agent to use?** The  must be used first. The user has provided logs (in Message 183) that need to be analyzed to find and fix the code-level issue preventing a successful build. After a successful deployment,  frontend and backend testing will be required.
--   **User Testing Done:** Y (and it has repeatedly FAILED in production).
+-   **Last item agent was working:** The agent is debugging a subtle but critical bug where the RDS output () displays the show from the previous hour, even when the cache logs correctly indicate that no show is currently live. This points to a stale cache or timezone issue somewhere in the data-serving pipeline for the RDS.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N (Investigation in progress)
+-   **Which testing method agent to use?** backend testing agent. The agent should first use  to inspect the output of the RDS builder endpoints (e.g., ) and check the active rundown data in the  MongoDB collection. The fix will likely be in , , or .
+-   **User Testing Done:** Y (User reported the issue).
 
 **All Pending/In progress Issue list**:
-*   **Issue 1: Production Deployment Failure (P0 - CRITICAL BLOCKER)**
-    *   **Description:** All code fixes, despite working in the preview environment, are not being reflected in production. The  and  endpoints consistently return a  in production. This is the sole blocker preventing any progress.
-    *   **Attempted fixes:** The agent has tried multiple strategies: simplifying queries, adding extensive logging, optimizing performance, and fixing . None have solved the production issue because they are not being deployed. The agent correctly identified this as a deployment problem, not a logic problem.
+*   **Issue 1: Stale RDS Data (P0 - HIGHEST)**
+    *   **Description:** The RDS is serving data for a show that has already ended. For example, at 02:42, when no show is live, the RDS still displays the show that ran from 01:00-02:00. This happens despite the cache logs correctly stating No live show found. This indicates that the final step of generating the RDS output file is using stale data.
+    *   **Attempted fixes:** The agent has started investigating the code in , , and . No fix has been implemented yet.
     *   **Next debug checklist:**
-        1.  **Re-run :** The user provided logs in Message 183 and asked the agent to use the deployment tool. This was the last action attempted. The agent must call the  with these logs immediately to get a diagnosis.
-        2.  **Analyze Agent Output:** Carefully review the output from the . It will identify the specific code-level issue (e.g., dependency conflict, syntax error in a specific environment, build script failure) that is causing the deployment to fail.
-        3.  **Fix ONLY the Deployment Blocker:** Implement the precise fix recommended by the . Do NOT add any other improvements or refactors. The goal is to get a successful deployment.
-        4.  **Confirm with User:** After applying the fix, ask the user to redeploy and confirm if the  is gone.
-    *   **Why fix this issue and what will be achieved with the fix?** This is the ultimate blocker. The entire application is unusable in production. Fixing this will finally make the application functional for the user.
-    *   **Status:** BLOCKED
-    *   **Is recurring issue?** Y
-    *   **Should Test frontend/backend/both after fix?** Both. A full regression test is mandatory once production is accessible.
-    *   **Blocked on other issue:** None. This is the root of all current problems.
+        1.  Examine . This router is responsible for generating the final text file outputs. Check the query it uses to find the active rundown from the  collection.
+        2.  Verify that the query in  correctly uses the  timezone and filters for rundowns where .
+        3.  Check if there's any other caching layer involved (e.g., in-memory or file-based) that isn't being properly invalidated.
+        4.  Inspect  again. When a show ends, does the  flag for its corresponding rundown get set to  reliably?
+    *   **Why fix this issue and what will be achieved with the fix?** This is critical for the product's core functionality. The RDS must reflect the currently live show accurately. Fixing this will ensure the correct now playing information is broadcast.
+    *   **Status:** IN PROGRESS
+    *   **Is recurring issue?** Y (It's a more subtle version of a previously addressed RDS logic issue).
+    *   **Should Test frontend/backend/both after fix?** Backend. The fix can be verified by -ing the RDS output endpoint and checking the database.
+    *   **Blocked on other issue:** None.
 
 **In progress Task List**:
-*   None. All work is blocked by the P0 deployment issue.
+*   None.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
@@ -55,69 +55,76 @@ All these changes have been tested in the preview environment and work correctly
     *   (P2) Stream Monitor VU Meters: Implement functional VU meters.
 
 **Completed work in this session**
--   **Backend Multisite Refactor (Locally Complete):** Made extensive changes to  and  to handle multisite logic.
--   **MongoDB Query Refactor:** Rewrote complex queries in  to use  to resolve conflicting  operators.
--   **N+1 Query Optimization:** Optimized the  and  endpoints in  by batching database calls.
--   **Robust Error Handling:** Added  blocks with detailed logging to the main content endpoints.
--   ** Cleanup:** Removed ~96 duplicate lines from  that were blocking  files from being included in deployments.
--   **Frontend  Fix:** Added the missing  state variable to prevent the page from crashing.
-
-**Earlier issues found/mentioned but not fixed**
-*   All current issues are symptoms of the single, unresolved production deployment failure.
+-   **Production Deployment Failure (RESOLVED):** Fixed a critical Pydantic  by changing  to  in 12 backend models, unblocking production deployments.
+-   **Featured Images Display (DONE):** Fixed the  endpoint to enrich items with their publishing status, allowing featured images to be displayed.
+-   **RDS Scheduler & Timezone (DONE):** Changed the scheduler interval to 1 minute and standardized the entire backend to use the  timezone.
+-   **Network Admin Log Visibility (DONE):** Corrected the database query for activity logs so Network Admins can see all logs across all sites.
+-   **Cache Logging & Timestamp (DONE):** Reworked the RDS scheduler to always create a log entry and update the last refresh timestamp on every run, even if no live show is found.
+-   **Multi-Site Show Lookup Logic (DONE):** Refactored the scheduler to correctly find shows by resolving a  to all its child s before querying the  collection.
+-   **Network Admin Health-Check & Debug Tools (DONE):** Created backend endpoints and a frontend UI with modals on the  dashboard for testing site health and viewing detailed debug information.
+-   **UI Cleanup (DONE):** Removed borders and shadows from containers on the mini-site and public-facing site pages.
 
 **Known issue recurrence from previous fork**
-*   **Incomplete Refactoring / Deployment Failure:** The core issue has evolved from incomplete code refactoring to a complete deployment failure. The pattern of fixes work locally but not in production has persisted, and the root cause has now been isolated to the deployment pipeline.
+*   **RDS Logic Complexity:** Issues related to the RDS scheduler, timezones, and multi-site data fetching have appeared multiple times. The current Stale RDS Data bug is another manifestation of this complexity. The core logic in  and  is fragile and requires careful attention.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Deployment Pipeline Failure:** The central problem is diagnosing and fixing a build/deployment failure that prevents code changes from reaching the production Kubernetes environment.
--   **Environment Discrepancy:** The behavior differs critically between the preview (works) and production (fails) environments.
--   **MongoDB Query Construction:** The agent fixed issues related to conflicting  operators and optimized N+1 query patterns.
+-   **Pydantic Validation:** The initial blocker was a strict Pydantic model () failing to serialize  values from MongoDB.
+-   **Timezone Handling:** Correctly managing timezones () is critical, especially for scheduling. The solution uses  and .
+-   **MongoDB Multi-Site Queries:** The application uses a  to group multiple s. Queries for cross-site data (like shows for an RDS) must first resolve the  to a list of s and then use a  query.
+-   **Stale Data:** The current bug is a classic stale data problem, where a data generation process () is using an old or incorrect cache instead of the latest information.
 
 **All files of reference**
--   **File causing deployment failure:** Unknown, but likely a code-level issue in the Python backend that the  needs to identify.
--   **Primary file with fixes:** .
--   **User-provided logs for analysis:** The logs in Message 183 must be passed to the .
+-   : **Primary suspect** for the current stale data issue.
+-   : Contains the core scheduling logic and might be failing to invalidate the old rundown correctly.
+-   : Defines how RDS data is fetched and might have incorrect query filters.
+-   : Contains the new Debug/Test feature code.
 
 **key api endpoints**
--   : **FAILS IN PROD (500 Internal Server Error)**. Works in preview.
--   : **FAILS IN PROD (500 Internal Server Error)**. Works in preview.
--   : Status in production is unknown but likely fails if it depends on the same broken deployment. Works in preview.
+-   : **FIXED**.
+-   : **NEW & WORKING**.
+-   : **NEW & WORKING**.
+-   : **FIXED & WORKING**.
+-   : **BUGGED** - Serves stale data.
 
 **Critical Info for New Agent**
--   **DO NOT MODIFY THE BACKEND LOGIC FURTHER.** The previous agent spent over 200 messages trying to fix the application by changing the code logic in . The code now works perfectly in the preview environment. The problem is **NOT** the code's logic; it is a **DEPLOYMENT FAILURE**.
--   **Your only priority is to fix the deployment.** Do not attempt any other refactoring, bug fixing, or feature implementation.
--   **Your Strategy:**
-    1.  Immediately acknowledge the user's report and explain that you will focus exclusively on fixing the deployment issue that is preventing the already-developed fixes from going live.
-    2.  Call the  as your first action. Provide it with the logs the user shared in **Message 183** to analyze the build failure.
-    3.  Carefully analyze the agent's response. It will point to a specific code issue blocking deployment.
-    4.  Fix **only** the single, specific issue identified by the .
-    5.  Once the fix is applied, inform the user that the deployment blocker has been resolved and ask them to **redeploy to production**. Do not proceed until the user confirms the deployment is successful and the 500 errors are gone.
+-   Your immediate and only priority is to fix the **Stale RDS Data** bug (Issue #1).
+-   Do not work on any other features or refactors.
+-   The root cause is likely in the backend logic that generates the final RDS output files. The scheduler () seems to be working correctly, but the component that reads from the cache () is likely using old information.
+-   Focus your investigation on how the active rundown is queried from the database in  and . Ensure all time-based queries correctly use the  timezone and that the  flag on rundowns is being respected.
+
+**documents and test reports created in this job**
+-   A new MongoDB collection  was created to store snapshots from the Network Admin debug tool.
 
 **Last 10 User Messages and any pending HUMAN messages**
--   The user has repeatedly stated that the Content library blijft dezelfde fout geven (Content library still gives the same error).
--   They have provided multiple screenshots of the broken frontend and browser console errors.
--   The most critical message is from **Message 183**, where the user explicitly provides logs and asks the agent to use the  to debug and fix the deployment. This instruction was not fully completed in the last session.
+1.  **User:** There are no borders (referring to public site). (Agent fixed this).
+2.  **User:** The cache log correctly shows no program, but the RDS is showing the program from the previous hour. Something is still not right. Check if everything has the Brussels timezone. (**This is the current active issue**).
+3.  **User:** Add Test and Debug buttons to the Network Admin page for each main site. (Agent implemented this).
+4.  **User:** Clarification on where to add the buttons: on the main sites overview when logged in as network admin. (Agent followed this).
+5.  **User:** The cache log says there's no show, but I have one scheduled and don't see it on the RDS. (Agent fixed the multi-site lookup logic).
+6.  **User:** The Last refresh timestamp is stuck, and cache logs are empty. Also, remove outlines from mini-sites. (Agent fixed all three).
+7.  **User:** It's finally working again! Now, can you add featured images, fix cache logs/interval, fix the timezone to Brussels, and fix the empty activity logs? (Agent fixed all four).
 
 **Project Health Check:**
-*   **Broken:** Yes, the application is critically broken and unusable in production.
+-   **Broken:** Partially. The core application is functional, but a critical feature (RDS now playing) is unreliable due to the stale data bug.
 
 **3rd Party Integrations**
-*   boto3
-*   WordPress
-*   ffmpeg
+-   boto3
+-   WordPress
+-   ffmpeg
+-   pytz (newly added)
 
 **Testing status**
--   **Testing agent used after significant changes:** NO (not recently).
+-   **Testing agent used after significant changes:** NO
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** None.
--   **Known regressions:** The entire content loading and approval functionality is non-operational in production.
+-   **Known regressions:** The RDS functionality is currently regressed, showing stale data.
 
 **Credentials to test flow:**
-*   **Network Admin:** 
-*   **Password:** 
+-   **Network Admin:** 
+-   **Password:** 
 
 **What agent forgot to execute**
-The previous agent correctly identified that the issue was with deployment but got stuck in a loop of making minor code changes and asking the user to redeploy, rather than escalating the deployment failure as the single point of failure. The crucial next step is to act on the user's request from Message 183 and use the  to get a definitive cause for the build failure.</analysis>
+The agent has been thorough. The current situation is not something forgotten, but rather a new, more subtle bug that emerged after previous layers of issues were fixed. The agent correctly identified the need to investigate the full RDS data pipeline.</analysis>
