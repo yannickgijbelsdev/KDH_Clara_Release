@@ -2052,3 +2052,48 @@ Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header
 - GRK Output: "the feelgood station" ✅
 - All `/api/rds/{station}/live` endpoints show correct fallback text ✅
 - Cache logs correctly show "Geen live show gevonden" with Brussels timezone ✅
+
+### February 17, 2026 - RDS Monitor Dashboard (Improvement)
+
+**New Feature: Real-time RDS Monitoring Dashboard**
+
+Located at `/rds-monitor` - a standalone page accessible without authentication for monitoring displays.
+
+**Backend Endpoints:**
+- `GET /api/rds-builder/monitor` - Returns real-time data for both stations + history
+- `GET /api/rds-builder/monitor/history` - Returns detailed change history (up to 500 entries)
+
+**Frontend Page: RDSMonitorPage.js**
+- Real-time station cards showing:
+  - Current RDS output text (large display)
+  - Live show info (if active)
+  - Now Playing song from Shoutcast
+  - Listener count
+  - Sequence enabled/disabled status
+  - Online/Offline stream status
+- History table showing all recent text changes with:
+  - Timestamp
+  - Station badge (MFY/GRK)
+  - Item type icon (Show, Now Playing, Custom, Scheduled, Audio Trigger)
+  - Text content
+  - Reason for change
+- Auto-refresh toggle (2 second interval)
+- Manual refresh button
+
+**Backend History Logging:**
+- Added `log_text_change()` function to `rds_builder_scheduler.py`
+- Logs to `rds_output_history` collection
+- Only logs when text actually changes (prevents spam)
+- Auto-cleanup keeps max 500 entries per station
+
+**Navigation:**
+- Added to sidebar under "Streaming & RDS" group
+- Uses Activity icon from lucide-react
+
+**Files Created/Modified:**
+- `/app/frontend/src/pages/RDSMonitorPage.js` (NEW)
+- `/app/backend/routers/rds_builder.py` (added monitor endpoints)
+- `/app/backend/services/rds_builder_scheduler.py` (added history logging)
+- `/app/frontend/src/components/DashboardLayout.js` (added nav item)
+- `/app/frontend/src/components/MainSiteDashboardLayout.js` (added nav item)
+- `/app/frontend/src/App.js` (added standalone route)
