@@ -318,9 +318,17 @@ const MainSiteDashboardLayout = () => {
     
     const enabledFeatures = mainSite.enabled_features || [];
     
+    // Features that are always available for admins (not dependent on enabled_features)
+    const alwaysAvailableForAdmin = ['rds_monitor'];
+    
     return NAV_GROUPS.map(group => {
       const items = group.features
-        .filter(featureId => enabledFeatures.includes(featureId))
+        .filter(featureId => {
+          // Always show certain features for admins
+          if (alwaysAvailableForAdmin.includes(featureId) && userIsAdmin) return true;
+          // Otherwise check enabled features
+          return enabledFeatures.includes(featureId);
+        })
         .map(featureId => {
           const navItem = FEATURE_NAV_ITEMS[featureId];
           if (!navItem) return null;
