@@ -379,7 +379,8 @@ async def cache_now_playing(db, station: str) -> Dict:
         "song_title": effective_song_title,  # This is what gets displayed
         "original_song_title": current_song,  # Keep the original for reference
         "is_stale": is_stale,
-        "stale_since": tracker["last_change_time"].isoformat() if is_stale else None,
+        "song_started_at": tracker["last_change_time"].isoformat(),
+        "stale_at": (tracker["last_change_time"] + timedelta(minutes=STALE_TIMEOUT_MINUTES)).isoformat(),
         "cached_at": timestamp,
         "updated_at": timestamp
     }
