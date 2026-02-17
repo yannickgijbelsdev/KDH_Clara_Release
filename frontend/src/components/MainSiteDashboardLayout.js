@@ -94,7 +94,7 @@ const NAV_GROUPS = [
     id: 'streaming',
     label: 'Streaming & RDS',
     icon: Radio,
-    features: ['rds_settings', 'rds_builder', 'stream_monitor']
+    features: ['rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor']
   },
   {
     id: 'sites',
