@@ -214,6 +214,105 @@ async def get_rds_builder_status(
     }
 
 
+# ============== RDS MONITORING DASHBOARD ==============
+# Real-time monitoring of RDS outputs with history
+
+@rds_builder_router.get("/monitor")
+async def get_rds_monitor_data():
+    """Public endpoint: Get real-time RDS monitoring data for all stations.
+    
+    Returns current output for both stations plus recent change history.
+    No authentication required for monitoring displays.
+    """
+    now_brussels = datetime.now(BRUSSELS_TZ)
+    
+    # Get current outputs for both stations
+    stations_data = {}
+    for station in ["mfy", "grk"]:
+        output = await db.rds_builder_output.find_one(
+            {"station": station},
+            {"_id": 0}
+        )
+        
+        # Get sequence config
+        sequence = await db.rds_sequences.find_one(
+            {"station": station},
+            {"_id": 0, "enabled": 1}
+        )
+        
+        # Get cached rundown (live show info)
+        cached_rundown = await db.rds_cached_rundowns.find_one(
+            {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+            {"_id": 0, "show_title": 1, "show_start_time": 1, "show_end_time": 1}
+        )
+        
+        # Get shoutcast now playing
+        shoutcast = await db.shoutcast_cache.find_one(
+            {"station": station},
+            {"_id": 0, "song_title": 1, "current_listeners": 1, "stream_online": 1, "is_stale": 1}
+        )
+        
+        stations_data[station] = {
+            "current_text": output.get("current_text", "") if output else "",
+            "current_item_type": output.get("current_item_type", "") if output else "",
+            "sequence_enabled": sequence.get("enabled", False) if sequence else False,
+            "scheduled_text_active": output.get("scheduled_text_active", False) if output else False,
+            "audio_trigger_active": output.get("audio_trigger_active", False) if output else False,
+            "next_change_at": output.get("next_change_at", "") if output else "",
+            "updated_at": output.get("updated_at", "") if output else "",
+            "live_show": {
+                "title": cached_rundown.get("show_title") if cached_rundown else None,
+                "start_time": cached_rundown.get("show_start_time") if cached_rundown else None,
+                "end_time": cached_rundown.get("show_end_time") if cached_rundown else None,
+            } if cached_rundown else None,
+            "now_playing": {
+                "song": shoutcast.get("song_title", "") if shoutcast else "",
+                "listeners": shoutcast.get("current_listeners", 0) if shoutcast else 0,
+                "online": shoutcast.get("stream_online", False) if shoutcast else False,
+                "is_stale": shoutcast.get("is_stale", False) if shoutcast else False,
+            }
+        }
+    
+    # Get recent RDS output history (last 50 changes)
+    history = await db.rds_output_history.find(
+        {},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(50).to_list(50)
+    
+    return {
+        "timestamp": now_brussels.isoformat(),
+        "timestamp_formatted": now_brussels.strftime("%H:%M:%S"),
+        "date_formatted": now_brussels.strftime("%d-%m-%Y"),
+        "stations": stations_data,
+        "history": history
+    }
+
+
+@rds_builder_router.get("/monitor/history")
+async def get_rds_output_history(
+    station: Optional[str] = None,
+    limit: int = 100
+):
+    """Get RDS output change history.
+    
+    Args:
+        station: Optional filter by station (mfy/grk)
+        limit: Number of records to return (default 100, max 500)
+    """
+    limit = min(limit, 500)
+    
+    query = {}
+    if station and station in ["mfy", "grk"]:
+        query["station"] = station
+    
+    history = await db.rds_output_history.find(
+        query,
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    
+    return history
+
+
 # ============== MULTI-OUTPUT SYSTEM ==============
 # Allows creating multiple named outputs per station (e.g., Streaming, DAB, FM)
 # Each output has its own configurable items (now_playing, show_name, custom_text)
