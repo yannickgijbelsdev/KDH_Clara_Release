@@ -127,6 +127,7 @@ const flatNavItems = [
   { to: '/wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
   { to: '/rds', icon: Radio, label: 'RDS Settings', adminOnly: true },
   { to: '/rds-builder', icon: Wand2, label: 'RDS Builder', adminOnly: true },
+  { to: '/rds-monitor', icon: Activity, label: 'RDS Monitor', adminOnly: true },
   { to: '/streams', icon: Headphones, label: 'Stream Monitor', adminOnly: true },
 ];
 
