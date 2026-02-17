@@ -62,6 +62,7 @@ const FEATURE_NAV_ITEMS = {
   team_chat: { to: 'chat', icon: MessageSquare, label: 'Team Chat' },
   rds_settings: { to: 'rds', icon: Radio, label: 'RDS Settings', adminOnly: true },
   rds_builder: { to: 'rds-builder', icon: Wand2, label: 'RDS Builder', adminOnly: true },
+  rds_monitor: { to: 'rds-monitor', icon: Activity, label: 'RDS Monitor', adminOnly: true },
   stream_monitor: { to: 'streams', icon: Headphones, label: 'Stream Monitor', adminOnly: true },
   sites: { to: 'sites', icon: Globe, label: 'Sites', adminOnly: true, hasSitesList: true },
   team_settings: { to: 'team', icon: Users, label: 'Team Settings', adminOnly: true },
