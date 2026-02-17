@@ -2032,3 +2032,23 @@ Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header
 - Network Admins with `team_id: null` now see ALL logs across all teams
 
 - No more ResponseValidationError ✅
+
+### February 17, 2026 - RDS Stale Data Bug Fix (P0 Critical)
+
+**Root Cause:** When a scheduled text ended, the RDS Builder would set `scheduled_text_active: false` but keep showing the old `current_text`. If the main sequence was disabled, the scheduler would return early without clearing the stale content.
+
+**Symptoms:**
+- `/api/rds-builder/output/{station}.txt` showed "Nieuws update elk uur" (ended scheduled text) at 03:21 Brussels time
+- `scheduled_text_ends_at` was "02:03:00" (over an hour ago)
+- `scheduled_text_active: false` but `current_item_type: "scheduled_text"` and `current_index: -1`
+
+**Fix Applied in `rds_builder_scheduler.py`:**
+1. **Stale State Detection:** Added check for `current_item_type == "scheduled_text" && current_index == -1` when `scheduled_text_active: false` → force refresh
+2. **Disabled Sequence Handling:** When sequence is disabled AND output has stale scheduled text, clear it with default text ("altijd dichtbij" / "the feelgood station")
+3. **Same fix applied to `process_named_output()` for named RDS outputs (streaming, dab, fm)**
+
+**Verified Working:**
+- MFY Output: "altijd dichtbij" ✅ (instead of stale "Nieuws update elk uur")
+- GRK Output: "the feelgood station" ✅
+- All `/api/rds/{station}/live` endpoints show correct fallback text ✅
+- Cache logs correctly show "Geen live show gevonden" with Brussels timezone ✅
