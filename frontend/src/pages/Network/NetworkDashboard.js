@@ -37,6 +37,168 @@ const FEATURE_GROUPS = {
   admin: { name: 'Administration', Icon: Cog }
 };
 
+// Debug Content Component
+function DebugContent({ data }) {
+  const [expandedSections, setExpandedSections] = useState({});
+  
+  const toggle = (section) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const Section = ({ id, title, icon: Icon, color, count, children }) => (
+    <div className="bg-zinc-800/50 rounded-lg overflow-hidden">
+      <button
+        onClick={() => toggle(id)}
+        className="w-full flex items-center gap-3 p-3 hover:bg-zinc-800/80 transition"
+      >
+        <Icon className={`w-4 h-4 ${color}`} />
+        <span className="text-sm font-medium text-white flex-1 text-left">{title}</span>
+        {count !== undefined && <span className="text-xs text-zinc-500 font-mono">{count}</span>}
+        {expandedSections[id] ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
+      </button>
+      {expandedSections[id] && <div className="px-3 pb-3">{children}</div>}
+    </div>
+  );
+
+  return (
+    <div className="space-y-3">
+      {/* Header info */}
+      <div className="flex items-center gap-4 p-3 bg-zinc-800/30 rounded-lg text-xs text-zinc-400">
+        <span><Clock className="w-3 h-3 inline mr-1" />{data.brussels_time}</span>
+        <span>Team IDs: {data.team_ids_resolved?.length || 0}</span>
+        <span>Sites: {data.child_sites?.length || 0}</span>
+      </div>
+
+      {/* Today's Shows */}
+      <Section id="shows" title="Shows Vandaag" icon={Tv} color="text-orange-400" count={data.todays_shows?.length || 0}>
+        {data.todays_shows?.length > 0 ? (
+          <div className="space-y-1">
+            {data.todays_shows.map((show, i) => (
+              <div key={i} className={`flex items-center gap-2 text-xs p-2 rounded ${show.is_live ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-zinc-800/50'}`}>
+                {show.is_live && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
+                <span className="text-white font-medium">{show.title}</span>
+                <span className="text-zinc-500">{show.start_time}–{show.end_time}</span>
+                <span className="text-zinc-600">{show.rds_station || 'no rds'}</span>
+                <span className={`ml-auto text-xs ${show.status === 'scheduled' ? 'text-emerald-400' : 'text-zinc-500'}`}>{show.status}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-zinc-500 p-2">Geen shows vandaag</p>
+        )}
+      </Section>
+
+      {/* Traffic last hour */}
+      <Section id="traffic" title="Traffic (laatste uur)" icon={Activity} color="text-blue-400" count={data.traffic_last_hour?.reduce((s, t) => s + t.count, 0) || 0}>
+        {data.traffic_last_hour?.length > 0 ? (
+          <div className="space-y-1">
+            {data.traffic_last_hour.map((t, i) => (
+              <div key={i} className="flex items-center justify-between text-xs p-1.5">
+                <span className="text-zinc-300">{t.action}</span>
+                <span className="text-zinc-500 font-mono">{t.count}x</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-zinc-500 p-2">Geen traffic</p>
+        )}
+      </Section>
+
+      {/* RDS Cache Logs */}
+      <Section id="rds" title="RDS Cache Logs" icon={Radio} color="text-violet-400" count={data.rds_cache_logs?.length || 0}>
+        {data.rds_cache_logs?.length > 0 ? (
+          <div className="space-y-1 max-h-48 overflow-y-auto">
+            {data.rds_cache_logs.map((log, i) => (
+              <div key={i} className={`text-xs p-2 rounded ${log.status === 'success' ? 'bg-emerald-500/10' : log.status === 'no_show' ? 'bg-zinc-800/50' : 'bg-red-500/10'}`}>
+                <div className="flex justify-between">
+                  <span className={`font-medium ${log.status === 'success' ? 'text-emerald-400' : log.status === 'no_show' ? 'text-amber-400' : 'text-red-400'}`}>
+                    {log.status}
+                  </span>
+                  <span className="text-zinc-500">{log.timestamp?.slice(11, 19)}</span>
+                </div>
+                <p className="text-zinc-400 mt-0.5">{log.message}</p>
+                {log.show_title && <p className="text-zinc-300 mt-0.5">{log.show_title}</p>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-zinc-500 p-2">Geen cache logs</p>
+        )}
+      </Section>
+
+      {/* Active Rundowns */}
+      <Section id="rundowns" title="Actieve Rundowns" icon={FileText} color="text-emerald-400" count={data.active_rundowns?.length || 0}>
+        {data.active_rundowns?.length > 0 ? (
+          <div className="space-y-1">
+            {data.active_rundowns.map((r, i) => (
+              <div key={i} className="text-xs p-2 bg-zinc-800/50 rounded">
+                <span className="text-white">{r.show_title}</span>
+                <span className="text-zinc-500 ml-2">{r.show_start_time}–{r.show_end_time}</span>
+                <span className="text-zinc-600 ml-2">{r.rds_station}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-zinc-500 p-2">Geen actieve rundowns</p>
+        )}
+      </Section>
+
+      {/* Shoutcast Logs */}
+      <Section id="shoutcast" title="Shoutcast Logs" icon={Radio} color="text-pink-400" count={data.shoutcast_logs?.length || 0}>
+        {data.shoutcast_logs?.length > 0 ? (
+          <div className="space-y-1 max-h-48 overflow-y-auto">
+            {data.shoutcast_logs.map((log, i) => (
+              <div key={i} className="text-xs p-1.5 flex items-center gap-2">
+                <span className="text-zinc-500">{log.timestamp?.slice(11, 19)}</span>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${log.station === 'grk' ? 'bg-violet-500/20 text-violet-300' : 'bg-orange-500/20 text-orange-300'}`}>
+                  {log.station?.toUpperCase()}
+                </span>
+                <span className="text-zinc-300 truncate">{log.title || log.current_song}</span>
+                <span className="text-zinc-600 ml-auto">{log.listeners} listeners</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-zinc-500 p-2">Geen shoutcast logs</p>
+        )}
+      </Section>
+
+      {/* Recent Audit Logs */}
+      <Section id="audit" title="Recente Activiteit" icon={Clock} color="text-amber-400" count={data.recent_logs?.length || 0}>
+        {data.recent_logs?.length > 0 ? (
+          <div className="space-y-1 max-h-60 overflow-y-auto">
+            {data.recent_logs.slice(0, 20).map((log, i) => (
+              <div key={i} className="text-xs p-1.5 flex items-center gap-2 border-b border-zinc-800/50 last:border-0">
+                <span className="text-zinc-500 w-14 flex-shrink-0">{log.timestamp?.slice(11, 19)}</span>
+                <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px]">{log.category}</span>
+                <span className="text-zinc-300">{log.action}</span>
+                <span className="text-zinc-500 truncate ml-auto">{log.user_name}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-zinc-500 p-2">Geen activiteit</p>
+        )}
+      </Section>
+
+      {/* Child Sites */}
+      <Section id="sites" title="Child Sites & Team IDs" icon={Globe} color="text-cyan-400" count={data.child_sites?.length || 0}>
+        <div className="space-y-1">
+          {data.child_sites?.map((s, i) => (
+            <div key={i} className="text-xs p-1.5 flex justify-between">
+              <span className="text-zinc-300">{s.name}</span>
+              <span className="text-zinc-600 font-mono text-[10px]">{s.team_id}</span>
+            </div>
+          ))}
+          <div className="text-[10px] text-zinc-600 pt-2">
+            All IDs: {data.team_ids_resolved?.join(', ')}
+          </div>
+        </div>
+      </Section>
+    </div>
+  );
+}
+
 export default function NetworkDashboard() {
   const { user, token } = useAuth();
   const [mainSites, setMainSites] = useState([]);
