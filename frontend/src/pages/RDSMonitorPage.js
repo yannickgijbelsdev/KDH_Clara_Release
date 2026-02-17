@@ -43,6 +43,8 @@ const RDSMonitorPage = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [countdowns, setCountdowns] = useState({ mfy: null, grk: null });
+  const [showEndCountdowns, setShowEndCountdowns] = useState({ mfy: null, grk: null });
+  const [forceRefreshing, setForceRefreshing] = useState(false);
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
 
@@ -57,6 +59,20 @@ const RDSMonitorPage = () => {
       setLoading(false);
     }
   }, []);
+
+  const forceRefresh = useCallback(async () => {
+    setForceRefreshing(true);
+    try {
+      await axios.post(`${API}/rds-builder/monitor/force-refresh`);
+      // Wait a moment, then fetch updated data
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await fetchMonitorData();
+    } catch (error) {
+      console.error('Force refresh failed:', error);
+    } finally {
+      setForceRefreshing(false);
+    }
+  }, [fetchMonitorData]);
 
   // Update countdowns every second
   useEffect(() => {
