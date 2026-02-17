@@ -312,7 +312,7 @@ const RDSSettingsPage = () => {
               <p className="text-zinc-500 text-sm mb-1">Last Cache Refresh</p>
               <p className="text-white">
                 {settings?.last_cache_refresh
-                  ? format(new Date(settings.last_cache_refresh), 'MMM dd yyyy HH:mm:ss', { locale: enUS })
+                  ? formatInTimeZone(new Date(settings.last_cache_refresh), 'Europe/Brussels', 'MMM dd yyyy HH:mm:ss')
                   : 'Not yet run'}
               </p>
             </div>
