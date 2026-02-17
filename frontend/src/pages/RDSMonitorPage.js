@@ -421,12 +421,14 @@ const RDSMonitorPage = () => {
             stationName="Radio MFY"
             data={monitorData?.stations?.mfy}
             staleCountdown={countdowns.mfy}
+            showEndCountdown={showEndCountdowns.mfy}
           />
           <StationCard
             station="grk"
             stationName="Radio GRK"
             data={monitorData?.stations?.grk}
             staleCountdown={countdowns.grk}
+            showEndCountdown={showEndCountdowns.grk}
           />
         </div>
 
