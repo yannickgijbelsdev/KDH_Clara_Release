@@ -42,6 +42,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 team_ids_to_search.add(site["team_id"])
     
     team_ids_list = list(team_ids_to_search)
+    logger.info(f"RDS refresh for identifier={team_id}, resolved team_ids={team_ids_list}, brussels={now_brussels.strftime('%Y-%m-%d %H:%M')}")
     
     # Use Brussels local time for finding live shows (shows are stored in local time)
     queries_to_try = [
