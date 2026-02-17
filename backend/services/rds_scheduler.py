@@ -16,7 +16,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     """Refresh the cached rundown for the current live show.
     
     Args:
-        team_id: Optional team_id to refresh cache for specific team.
+        team_id: Optional identifier (team_id or main_site_id) to refresh cache for.
                 If None, refreshes for all teams with active live shows.
     
     Returns:
@@ -27,6 +27,21 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     now_brussels = datetime.now(BRUSSELS_TZ)
     
     timestamp = datetime.now(BRUSSELS_TZ).isoformat()
+    
+    # Resolve all team_ids: if identifier is a main_site_id, get all child site team_ids
+    team_ids_to_search = set()
+    if team_id:
+        team_ids_to_search.add(team_id)
+        # Check if this is a main_site_id and get child site team_ids
+        child_sites = await db.sites.find(
+            {"main_site_id": team_id},
+            {"_id": 0, "team_id": 1}
+        ).to_list(50)
+        for site in child_sites:
+            if site.get("team_id"):
+                team_ids_to_search.add(site["team_id"])
+    
+    team_ids_list = list(team_ids_to_search)
     
     # Use Brussels local time for finding live shows (shows are stored in local time)
     queries_to_try = [
