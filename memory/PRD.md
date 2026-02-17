@@ -1941,3 +1941,23 @@ Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header
 - Content Library: Shows 132 items ✅
 - Content Approval: Shows 119 pending items ✅
 - All API endpoints return correct data ✅
+
+### February 17, 2026 - Production Deployment Fix (P0 Critical)
+**Root Cause:** Pydantic `ResponseValidationError` - `team_id: str` in response models rejected `None` values from MongoDB for Network Admin content items.
+
+**Error:** `{'type': 'string_type', 'loc': ('response', 0, 'team_id'), 'msg': 'Input should be a valid string', 'input': None}`
+
+**Fix Applied:** Changed `team_id: str` to `team_id: Optional[str] = None` across ALL Pydantic response models:
+- `models/content.py` - ContentItemResponse
+- `models/shows.py` - ShowTitleResponse, StudioResponse
+- `models/sites.py` - SiteResponse
+- `models/series.py` - ShowSeriesResponse, ShowOccurrenceResponse
+- `models/media.py` - MediaAssetResponse, MediaFolderResponse
+- `models/chat.py` - ChatThreadResponse
+- `models/wordpress.py` - WordPressSiteResponse
+- `routers/rds.py` - RDSSettingsResponse, RDSCacheLog
+
+**Verified Working in Preview:**
+- `/api/content` returns 132 items ✅
+- `/api/content/admin/pending-approval` returns correctly ✅
+- No more ResponseValidationError ✅
