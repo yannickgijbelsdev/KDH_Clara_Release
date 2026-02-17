@@ -2006,6 +2006,27 @@ Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header
 - show_titles lookup uses fallback search without team filter
 - Enhanced log messages show how many team_ids were searched
 
+
+### February 17, 2026 - Network Admin Test & Debug Features
+
+**New Feature: Health Check (Test) Button**
+- `POST /api/main-sites/{id}/health-check` - Runs comprehensive checks per main site
+- Checks: Mini Sites count, Content Items, Shows (today + total), Users, RDS Cache, WordPress Sites, Media Assets
+- Resolves child site team_ids automatically
+- Results saved to `health_checks` collection with history
+- Frontend modal with green/amber/red status indicators
+
+**New Feature: Debug Panel Button**
+- `GET /api/main-sites/{id}/debug` - Returns live debug snapshot
+- Shows: Today's shows (with live indicator), Traffic last hour, RDS cache logs, Active rundowns, Shoutcast logs, Recent audit logs, Child sites & team IDs
+- Results saved to `debug_snapshots` collection
+- Frontend collapsible sections with Refresh button
+
+**Fix: RDS Show Detection**
+- Scheduler now resolves `main_site_id` → child site `team_ids` from `sites` collection
+- Queries shows with `$in` over all resolved team_ids
+- `get_rds_query_filter` returns `$or` query matching both fields
+
 - `SiteDashboard.js`: Removed `border border-zinc-800` from all 8 content containers
 
 - Network Admins with `team_id: null` now see ALL logs across all teams
