@@ -172,7 +172,8 @@ async def get_active_scheduled_text_for_station(db, station: str) -> dict | None
             start = show.get("start_time", "00:00")
             end = show.get("end_time", "23:59")
             # Check if show crosses midnight AND we're still in the "after midnight" part
-            if start > end and current_time_str <= end:
+            # Use < instead of <= to ensure show ends exactly at end_time
+            if start > end and current_time_str < end:
                 return None  # Midnight-crossing show still active
     
     # Also check cached rundowns (more reliable than direct show check)
