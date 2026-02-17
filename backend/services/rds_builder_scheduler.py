@@ -387,16 +387,47 @@ async def process_rds_sequence(db, station: str):
     )
     
     if not sequence or not sequence.get("enabled"):
-        # Clear flags if sequence is disabled
+        # Get current output to check if we need to clear stale data
+        current_output = await db.rds_builder_output.find_one(
+            {"station": station},
+            {"_id": 0}
+        )
+        
+        # Determine if output has stale scheduled text or audio trigger
+        needs_clear = False
+        if current_output:
+            item_type = current_output.get("current_item_type", "")
+            stored_index = current_output.get("current_index", 0)
+            # Stale if we're showing scheduled text (index -1) or audio trigger (index -2)
+            if (item_type == "scheduled_text" and stored_index == -1) or \
+               (item_type == "audio_trigger" and stored_index == -2):
+                needs_clear = True
+        
+        # Clear flags and reset to default if sequence is disabled
+        # Also clear stale scheduled text/audio trigger content
+        default_names = {
+            "grk": "the feelgood station",
+            "mfy": "altijd dichtbij"
+        }
+        default_text = default_names.get(station, "") if needs_clear else (current_output.get("current_text", "") if current_output else "")
+        
         await db.rds_builder_output.update_one(
             {"station": station},
             {"$set": {
                 "scheduled_text_active": False, 
                 "audio_trigger_active": False,
+                "current_text": default_text if needs_clear else (current_output.get("current_text", "") if current_output else ""),
+                "current_index": 0 if needs_clear else (current_output.get("current_index", 0) if current_output else 0),
+                "current_item_type": "show_name" if needs_clear else (current_output.get("current_item_type", "") if current_output else ""),
+                "scheduled_text_ends_at": None,
                 "updated_at": timestamp
             }},
             upsert=True
         )
+        
+        if needs_clear:
+            logger.info(f"RDS Builder [{station}]: Cleared stale scheduled text/audio trigger (sequence disabled)")
+        
         return
     
     items = sequence.get("items", [])
