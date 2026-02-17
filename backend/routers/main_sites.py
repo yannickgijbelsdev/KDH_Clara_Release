@@ -610,3 +610,259 @@ async def migrate_team_content_to_main_site(
         "main_site_name": main_site.get("name"),
         "migration_results": results
     }
+
+
+# ============== HEALTH CHECK & DEBUG (Network Admin) ==============
+
+@main_sites_router.post("/{main_site_id}/health-check")
+async def run_health_check(
+    main_site_id: str,
+    current_user: dict = Depends(require_network_admin)
+):
+    """Run health checks for a main site: API endpoints, content counts, site reachability."""
+    main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0})
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+    
+    timestamp = datetime.now(timezone.utc).isoformat()
+    checks = []
+    
+    # 1. Get child sites and team_ids
+    child_sites = await db.sites.find(
+        {"main_site_id": main_site_id}, {"_id": 0, "id": 1, "name": 1, "slug": 1, "team_id": 1}
+    ).to_list(50)
+    team_ids = list(set(
+        [s["team_id"] for s in child_sites if s.get("team_id")] + [main_site_id]
+    ))
+    
+    checks.append({
+        "name": "Mini Sites",
+        "status": "ok" if child_sites else "warning",
+        "message": f"{len(child_sites)} mini sites gevonden",
+        "details": [{"name": s.get("name", "?"), "slug": s.get("slug", "?")} for s in child_sites]
+    })
+    
+    # 2. Content count
+    content_count = await db.content_items.count_documents({
+        "$or": [{"main_site_id": main_site_id}, {"team_id": {"$in": team_ids}}],
+        "deleted_at": {"$exists": False}
+    })
+    checks.append({
+        "name": "Content Items",
+        "status": "ok" if content_count > 0 else "warning",
+        "message": f"{content_count} content items",
+        "count": content_count
+    })
+    
+    # 3. Shows count (today and total)
+    from zoneinfo import ZoneInfo
+    now_brussels = datetime.now(ZoneInfo('Europe/Brussels'))
+    today = now_brussels.strftime('%Y-%m-%d')
+    
+    shows_today = await db.shows.count_documents({
+        "$or": [{"team_id": {"$in": team_ids}}, {"main_site_id": main_site_id}],
+        "date": today
+    })
+    shows_total = await db.shows.count_documents({
+        "$or": [{"team_id": {"$in": team_ids}}, {"main_site_id": main_site_id}]
+    })
+    checks.append({
+        "name": "Shows",
+        "status": "ok" if shows_today > 0 else "warning",
+        "message": f"{shows_today} shows vandaag, {shows_total} totaal",
+        "today": shows_today,
+        "total": shows_total
+    })
+    
+    # 4. Users count
+    users = await db.main_site_users.count_documents({"main_site_id": main_site_id})
+    checks.append({
+        "name": "Users",
+        "status": "ok" if users > 0 else "warning",
+        "message": f"{users} gebruikers",
+        "count": users
+    })
+    
+    # 5. RDS settings check
+    rds_settings = await db.rds_settings.find_one(
+        {"$or": [{"main_site_id": main_site_id}, {"team_id": {"$in": team_ids}}]},
+        {"_id": 0}
+    )
+    if rds_settings:
+        last_refresh = rds_settings.get("last_cache_refresh")
+        checks.append({
+            "name": "RDS Cache",
+            "status": "ok" if last_refresh else "warning",
+            "message": f"Laatste refresh: {last_refresh[:19] if last_refresh else 'Nooit'}",
+            "interval": rds_settings.get("cache_refresh_interval", "?")
+        })
+    else:
+        checks.append({
+            "name": "RDS Cache",
+            "status": "warning",
+            "message": "Geen RDS instellingen"
+        })
+    
+    # 6. WordPress sites
+    wp_sites = await db.wordpress_sites.count_documents({
+        "$or": [{"team_id": {"$in": team_ids}}, {"main_site_id": main_site_id}]
+    })
+    checks.append({
+        "name": "WordPress Sites",
+        "status": "ok" if wp_sites > 0 else "info",
+        "message": f"{wp_sites} WordPress sites",
+        "count": wp_sites
+    })
+    
+    # 7. Media count
+    media_count = await db.media_assets.count_documents({
+        "$or": [{"team_id": {"$in": team_ids}}, {"main_site_id": main_site_id}]
+    })
+    checks.append({
+        "name": "Media Assets",
+        "status": "ok" if media_count > 0 else "info",
+        "message": f"{media_count} media bestanden",
+        "count": media_count
+    })
+    
+    # Calculate overall status
+    statuses = [c["status"] for c in checks]
+    overall = "ok" if all(s == "ok" for s in statuses) else ("error" if "error" in statuses else "warning")
+    
+    # Save to DB
+    result = {
+        "id": str(uuid.uuid4()),
+        "main_site_id": main_site_id,
+        "main_site_name": main_site.get("name"),
+        "timestamp": timestamp,
+        "overall_status": overall,
+        "checks": checks,
+        "team_ids_resolved": team_ids
+    }
+    await db.health_checks.insert_one(result)
+    result.pop("_id", None)
+    
+    return result
+
+
+@main_sites_router.get("/{main_site_id}/health-history")
+async def get_health_history(
+    main_site_id: str,
+    limit: int = 20,
+    current_user: dict = Depends(require_network_admin)
+):
+    """Get stored health check history for a main site."""
+    checks = await db.health_checks.find(
+        {"main_site_id": main_site_id},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+    return checks
+
+
+@main_sites_router.get("/{main_site_id}/debug")
+async def get_debug_info(
+    main_site_id: str,
+    current_user: dict = Depends(require_network_admin)
+):
+    """Get live debug info for a main site: recent logs, traffic, RDS status."""
+    from zoneinfo import ZoneInfo
+    
+    main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0})
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+    
+    now_brussels = datetime.now(ZoneInfo('Europe/Brussels'))
+    timestamp = now_brussels.isoformat()
+    
+    # Get child site team_ids
+    child_sites = await db.sites.find(
+        {"main_site_id": main_site_id}, {"_id": 0, "id": 1, "name": 1, "team_id": 1}
+    ).to_list(50)
+    team_ids = list(set(
+        [s["team_id"] for s in child_sites if s.get("team_id")] + [main_site_id]
+    ))
+    
+    # 1. Recent audit logs (last 50)
+    recent_logs = await db.audit_logs.find(
+        {"$or": [{"main_site_id": main_site_id}, {"team_id": {"$in": team_ids}}]},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(50).to_list(50)
+    
+    # 2. Recent RDS cache logs
+    rds_logs = await db.rds_cache_logs.find(
+        {"$or": [{"team_id": {"$in": team_ids}}, {"main_site_id": main_site_id}]},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(20).to_list(20)
+    
+    # 3. RDS cached rundowns (active shows)
+    active_rundowns = await db.rds_cached_rundowns.find(
+        {"$or": [{"team_id": {"$in": team_ids}}, {"is_active": True}]},
+        {"_id": 0}
+    ).to_list(10)
+    
+    # 4. Shoutcast logs (recent)
+    shoutcast_logs = await db.shoutcast_logs.find(
+        {}, {"_id": 0}
+    ).sort("timestamp", -1).limit(20).to_list(20)
+    
+    # 5. Today's shows
+    today = now_brussels.strftime('%Y-%m-%d')
+    current_time = now_brussels.strftime('%H:%M')
+    todays_shows = await db.shows.find(
+        {"$or": [{"team_id": {"$in": team_ids}}, {"main_site_id": main_site_id}], "date": today},
+        {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1, "status": 1, "rds_station": 1}
+    ).to_list(50)
+    
+    # Mark which shows are live
+    for show in todays_shows:
+        start = show.get("start_time", "00:00")
+        end = show.get("end_time", "23:59")
+        crosses_midnight = start > end
+        if crosses_midnight:
+            show["is_live"] = current_time >= start or current_time <= end
+        else:
+            show["is_live"] = start <= current_time <= end
+    
+    # 6. Traffic summary - count recent activities by category
+    one_hour_ago = (now_brussels - __import__('datetime').timedelta(hours=1)).isoformat()
+    traffic_pipeline = [
+        {"$match": {
+            "$or": [{"main_site_id": main_site_id}, {"team_id": {"$in": team_ids}}],
+            "timestamp": {"$gte": one_hour_ago}
+        }},
+        {"$group": {"_id": "$action", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 20}
+    ]
+    traffic = await db.audit_logs.aggregate(traffic_pipeline).to_list(20)
+    
+    # Save debug snapshot
+    debug_result = {
+        "id": str(uuid.uuid4()),
+        "main_site_id": main_site_id,
+        "main_site_name": main_site.get("name"),
+        "timestamp": timestamp,
+        "brussels_time": now_brussels.strftime('%Y-%m-%d %H:%M:%S'),
+        "team_ids_resolved": team_ids,
+        "child_sites": [{"name": s.get("name"), "team_id": s.get("team_id")} for s in child_sites],
+        "recent_logs": recent_logs[:20],
+        "rds_cache_logs": rds_logs,
+        "active_rundowns": [{
+            "show_title": r.get("show_title"),
+            "show_date": r.get("show_date"),
+            "show_start_time": r.get("show_start_time"),
+            "show_end_time": r.get("show_end_time"),
+            "rds_station": r.get("rds_station"),
+            "is_active": r.get("is_active"),
+            "cached_at": r.get("cached_at")
+        } for r in active_rundowns],
+        "shoutcast_logs": shoutcast_logs[:10],
+        "todays_shows": todays_shows,
+        "traffic_last_hour": [{"action": t["_id"], "count": t["count"]} for t in traffic]
+    }
+    
+    await db.debug_snapshots.insert_one(debug_result)
+    debug_result.pop("_id", None)
+    
+    return debug_result
+
