@@ -129,9 +129,10 @@ const RDSMonitorPage = () => {
     }
   };
 
-  const StationCard = ({ station, data, stationName }) => {
+  const StationCard = ({ station, data, stationName, staleCountdown }) => {
     const isLive = data?.live_show?.title;
     const isOnline = data?.now_playing?.online;
+    const isStale = data?.now_playing?.is_stale;
     
     // Skip custom_text - show live show, now_playing, or fallback
     const shouldSkipCustom = data?.current_item_type === 'custom_text';
