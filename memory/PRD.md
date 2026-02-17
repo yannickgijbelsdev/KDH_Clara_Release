@@ -1960,4 +1960,26 @@ Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header
 **Verified Working in Preview:**
 - `/api/content` returns 132 items ✅
 - `/api/content/admin/pending-approval` returns correctly ✅
+
+### February 17, 2026 - Four Bug Fixes
+
+**Fix 1: Featured Images in Content Library**
+- Added batch enrichment of `publish_statuses` with featured images to `get_content_items` endpoint
+- Fetches `content_item_publishes`, `content_item_featured_images`, and `wordpress_sites` in bulk queries
+- All 132 items now display featured images correctly
+
+**Fix 2: RDS Cache Interval → 1 minute**
+- Changed scheduler interval from 300s (5min) to 60s (1min)
+- Default `cache_refresh_interval` in settings changed from 5 to 1
+- Scheduler forces all existing DB settings to 1 minute on startup
+
+**Fix 3: Brussels Timezone (Europe/Brussels)**
+- Replaced hardcoded UTC+1 with proper `zoneinfo.ZoneInfo('Europe/Brussels')` (handles CET/CEST automatically)
+- Updated all timestamp formatting in scheduler and debug endpoints
+- Frontend uses `date-fns-tz` `formatInTimeZone` for Brussels timezone display
+
+**Fix 4: Activity Logs for Network Admin**
+- Added `is_network_admin` check to all log endpoints (GET /logs, /logs/stats, /logs/users, /logs/archive-dates, /logs/archive/{date})
+- Network Admins with `team_id: null` now see ALL logs across all teams
+
 - No more ResponseValidationError ✅
