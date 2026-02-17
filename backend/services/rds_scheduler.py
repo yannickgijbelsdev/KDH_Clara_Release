@@ -111,7 +111,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
         # Always update last_cache_refresh so frontend sees activity
         if team_id:
             await db.rds_settings.update_many(
-                {"team_id": team_id},
+                {"$or": [{"team_id": team_id}, {"main_site_id": team_id}]},
                 {"$set": {"last_cache_refresh": timestamp}}
             )
         else:
