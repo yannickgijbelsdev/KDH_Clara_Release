@@ -129,16 +129,21 @@ async def get_content_with_publish_statuses(content_id: str, team_id: str = None
     ).to_list(100)
     
     for ps in publish_statuses:
-        site = await db.wordpress_sites.find_one({"id": ps["wordpress_site_id"]}, {"_id": 0})
-        ps["wordpress_site_name"] = site["name"] if site else "Unknown"
-        
-        featured_image = await db.content_item_featured_images.find_one(
-            {"content_item_id": content_id, "wordpress_site_id": ps["wordpress_site_id"]},
-            {"_id": 0}
-        )
-        if featured_image:
-            featured_image["wordpress_site_name"] = ps["wordpress_site_name"]
-        ps["featured_image"] = featured_image
+        wp_site_id = ps.get("wordpress_site_id")
+        if wp_site_id:
+            site = await db.wordpress_sites.find_one({"id": wp_site_id}, {"_id": 0})
+            ps["wordpress_site_name"] = site.get("name", "Unknown") if site else "Unknown"
+            
+            featured_image = await db.content_item_featured_images.find_one(
+                {"content_item_id": content_id, "wordpress_site_id": wp_site_id},
+                {"_id": 0}
+            )
+            if featured_image:
+                featured_image["wordpress_site_name"] = ps["wordpress_site_name"]
+            ps["featured_image"] = featured_image
+        else:
+            ps["wordpress_site_name"] = "Unknown"
+            ps["featured_image"] = None
     
     content["publish_statuses"] = publish_statuses
     return content
