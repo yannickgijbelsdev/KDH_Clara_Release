@@ -14,17 +14,37 @@ import {
   Calendar,
   History,
   Volume2,
+  Timer,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Helper to format countdown
+const formatCountdown = (seconds) => {
+  if (seconds <= 0) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+// Helper to calculate seconds until stale
+const getSecondsUntilStale = (staleAt) => {
+  if (!staleAt) return null;
+  const staleTime = new Date(staleAt);
+  const now = new Date();
+  const diff = (staleTime - now) / 1000;
+  return diff;
+};
 
 const RDSMonitorPage = () => {
   const [monitorData, setMonitorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [countdowns, setCountdowns] = useState({ mfy: null, grk: null });
   const intervalRef = useRef(null);
+  const countdownRef = useRef(null);
 
   const fetchMonitorData = useCallback(async () => {
     try {
