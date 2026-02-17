@@ -245,6 +245,10 @@ async def analyze_stream_for_trigger(station: str, trigger_fingerprint: np.ndarr
     if not AUDIO_LIBS_AVAILABLE:
         return False, 0.0
     
+    if not FFMPEG_AVAILABLE:
+        logger.warning(f"[{trigger_name}] FFmpeg not available - cannot process audio stream")
+        return False, 0.0
+    
     # Fetch stream chunk
     logger.debug(f"[{trigger_name}] Fetching {CHUNK_DURATION}s audio from {station} stream...")
     audio_bytes = await fetch_stream_chunk(station)
