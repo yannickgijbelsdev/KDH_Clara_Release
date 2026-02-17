@@ -243,8 +243,26 @@ async def get_rds_monitor_data():
         # Get cached rundown (live show info)
         cached_rundown = await db.rds_cached_rundowns.find_one(
             {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-            {"_id": 0, "show_title": 1, "show_start_time": 1, "show_end_time": 1}
+            {"_id": 0, "show_title": 1, "show_start_time": 1, "show_end_time": 1, "presenter_names": 1, "show_id": 1}
         )
+        
+        # If we have a cached rundown but no presenter_names, try to get from the show
+        presenter_names = []
+        if cached_rundown:
+            presenter_names = cached_rundown.get("presenter_names", [])
+            if not presenter_names and cached_rundown.get("show_id"):
+                # Try to get presenter info from the show directly
+                show = await db.shows.find_one(
+                    {"id": cached_rundown["show_id"]},
+                    {"_id": 0, "presenter_ids": 1}
+                )
+                if show and show.get("presenter_ids"):
+                    # Get presenter names
+                    presenters = await db.users.find(
+                        {"id": {"$in": show["presenter_ids"]}},
+                        {"_id": 0, "name": 1}
+                    ).to_list(10)
+                    presenter_names = [p.get("name", "") for p in presenters if p.get("name")]
         
         # Get shoutcast now playing
         shoutcast = await db.shoutcast_cache.find_one(
@@ -264,6 +282,7 @@ async def get_rds_monitor_data():
                 "title": cached_rundown.get("show_title") if cached_rundown else None,
                 "start_time": cached_rundown.get("show_start_time") if cached_rundown else None,
                 "end_time": cached_rundown.get("show_end_time") if cached_rundown else None,
+                "presenters": presenter_names,
             } if cached_rundown else None,
             "now_playing": {
                 "song": shoutcast.get("song_title", "") if shoutcast else "",
