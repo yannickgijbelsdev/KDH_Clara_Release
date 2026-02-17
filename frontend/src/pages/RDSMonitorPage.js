@@ -168,6 +168,12 @@ const RDSMonitorPage = () => {
                 <p className="text-xs text-zinc-500">
                   {data.live_show.start_time} - {data.live_show.end_time}
                 </p>
+                {data.live_show.presenters?.length > 0 && (
+                  <p className="text-xs text-zinc-400 mt-1">
+                    <Mic className="w-3 h-3 inline mr-1" />
+                    {data.live_show.presenters.join(', ')}
+                  </p>
+                )}
               </div>
             ) : (
               <p className="text-sm text-zinc-500">No live show</p>
