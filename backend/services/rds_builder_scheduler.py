@@ -610,6 +610,30 @@ async def process_named_output(db, output_config: dict):
     enabled_items = [item for item in items if item.get("enabled", True)]
     
     if not enabled_items:
+        # Check if we need to clear stale scheduled text data
+        state = await db.rds_output_states.find_one(
+            {"output_id": output_id},
+            {"_id": 0}
+        )
+        if state:
+            item_type = state.get("current_item_type", "")
+            stored_index = state.get("current_index", 0)
+            if item_type == "scheduled_text" and stored_index == -1:
+                # Clear stale scheduled text
+                default_names = {"grk": "the feelgood station", "mfy": "altijd dichtbij"}
+                await db.rds_output_states.update_one(
+                    {"output_id": output_id},
+                    {"$set": {
+                        "current_text": default_names.get(station, ""),
+                        "current_index": 0,
+                        "current_item_type": "show_name",
+                        "scheduled_text_active": False,
+                        "scheduled_text_id": None,
+                        "updated_at": timestamp
+                    }},
+                    upsert=True
+                )
+                logger.info(f"RDS Output [{output_config.get('slug')}]: Cleared stale scheduled text (no enabled items)")
         return
     
     # Get current output state
