@@ -349,6 +349,13 @@ const RDSMonitorPage = () => {
     );
   };
 
+  // Listen for force refresh events from StationCard
+  useEffect(() => {
+    const handleForceRefresh = () => forceRefresh();
+    window.addEventListener('force-refresh', handleForceRefresh);
+    return () => window.removeEventListener('force-refresh', handleForceRefresh);
+  }, [forceRefresh]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -375,6 +382,17 @@ const RDSMonitorPage = () => {
               <Clock className="w-4 h-4" />
               {monitorData?.timestamp_formatted} ({monitorData?.date_formatted})
             </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={forceRefresh}
+              disabled={forceRefreshing}
+              className="gap-2 bg-amber-600 hover:bg-amber-700"
+              data-testid="force-refresh-btn"
+            >
+              <RefreshCw className={`w-4 h-4 ${forceRefreshing ? 'animate-spin' : ''}`} />
+              Force Refresh
+            </Button>
             <Button
               variant={autoRefresh ? "default" : "outline"}
               size="sm"
