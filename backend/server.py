@@ -783,6 +783,17 @@ async def startup_db_client():
     """Migrate legacy data and ensure bootstrap admin exists on startup."""
     from services.auth import hash_password
     
+    # Ensure ffmpeg is installed for audio trigger functionality
+    try:
+        from scripts.ensure_ffmpeg import ensure_ffmpeg, reset_ffmpeg_cache
+        if ensure_ffmpeg():
+            logger.info("FFmpeg is available for audio processing")
+        else:
+            logger.warning("FFmpeg is NOT available - Audio Triggers will not work")
+        reset_ffmpeg_cache()
+    except Exception as e:
+        logger.warning(f"Could not check/install ffmpeg: {e}")
+    
     # Bootstrap: Ensure network admin account exists (for initial access)
     try:
         bootstrap_email = "admkoodh@koodh.com"
