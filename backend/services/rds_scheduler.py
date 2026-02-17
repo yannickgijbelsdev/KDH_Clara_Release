@@ -248,7 +248,7 @@ class RDSScheduler:
     
     def __init__(self):
         self.running = False
-        self.check_interval = 300  # 5 minutes in seconds
+        self.check_interval = 60  # 1 minute in seconds
         self.task = None
     
     async def start(self):
@@ -259,7 +259,7 @@ class RDSScheduler:
         
         self.running = True
         self.task = asyncio.create_task(self._run_loop())
-        logger.info("RDS cache scheduler started (5 min interval)")
+        logger.info("RDS cache scheduler started (1 min interval)")
     
     async def stop(self):
         """Stop the RDS cache scheduler."""
