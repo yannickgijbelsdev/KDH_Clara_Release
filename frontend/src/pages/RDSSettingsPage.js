@@ -424,7 +424,7 @@ const RDSSettingsPage = () => {
                   </div>
                   <p className="text-zinc-500 text-sm">{log.message}</p>
                   <p className="text-zinc-600 text-xs mt-1">
-                    {format(new Date(log.timestamp), 'MMM dd yyyy HH:mm:ss', { locale: enUS })}
+                    {formatInTimeZone(new Date(log.timestamp), 'Europe/Brussels', 'MMM dd yyyy HH:mm:ss')}
                   </p>
                 </div>
               </div>
