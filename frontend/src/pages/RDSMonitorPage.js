@@ -58,6 +58,27 @@ const RDSMonitorPage = () => {
     }
   }, []);
 
+  // Update countdowns every second
+  useEffect(() => {
+    const updateCountdowns = () => {
+      if (monitorData?.stations) {
+        setCountdowns({
+          mfy: getSecondsUntilStale(monitorData.stations.mfy?.now_playing?.stale_at),
+          grk: getSecondsUntilStale(monitorData.stations.grk?.now_playing?.stale_at),
+        });
+      }
+    };
+
+    updateCountdowns();
+    countdownRef.current = setInterval(updateCountdowns, 1000);
+
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
+  }, [monitorData]);
+
   useEffect(() => {
     fetchMonitorData();
 
