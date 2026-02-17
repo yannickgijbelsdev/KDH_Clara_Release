@@ -21,7 +21,7 @@ class RDSSettings(BaseModel):
 class RDSSettingsResponse(BaseModel):
     """Response model for RDS settings."""
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     production_base_url: str
     cache_refresh_interval: int
     last_cache_refresh: Optional[str] = None
@@ -32,7 +32,7 @@ class RDSSettingsResponse(BaseModel):
 class RDSCacheLog(BaseModel):
     """Log entry for RDS cache refresh."""
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     timestamp: str
     status: str  # 'success', 'failed', 'no_show'
     show_id: Optional[str] = None

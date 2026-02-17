@@ -34,7 +34,7 @@ class ShowSeriesUpdate(BaseModel):
 class ShowSeriesResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     title: str
     description: str
     default_start_time: str
@@ -71,7 +71,7 @@ class ShowOccurrenceUpdate(BaseModel):
 class ShowOccurrenceResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     show_series_id: Optional[str] = None
     title: str
     date: str

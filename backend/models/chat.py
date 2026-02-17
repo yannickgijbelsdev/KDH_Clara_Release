@@ -23,7 +23,7 @@ class ChatThreadMemberUpdate(BaseModel):
 class ChatThreadResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     type: str
     name: Optional[str] = None
     show_id: Optional[str] = None

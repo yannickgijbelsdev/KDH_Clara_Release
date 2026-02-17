@@ -39,7 +39,7 @@ class ShowTitleResponse(BaseModel):
     default_start_time: Optional[str] = None
     default_end_time: Optional[str] = None
     rds_station: Optional[str] = "none"
-    team_id: str
+    team_id: Optional[str] = None
     created_by: str
     created_at: str
     image: Optional[dict] = None
@@ -64,7 +64,7 @@ class StudioResponse(BaseModel):
     id: str
     name: str
     description: str
-    team_id: str
+    team_id: Optional[str] = None
     created_by: str
     created_at: str
 

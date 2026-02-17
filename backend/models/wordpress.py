@@ -36,7 +36,7 @@ class WordPressSiteResponse(BaseModel):
     """WordPress site info. Note: app_password is NEVER returned."""
     model_config = ConfigDict(extra="ignore")
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     name: str
     wp_base_url: str
     username: str

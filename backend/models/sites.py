@@ -63,7 +63,7 @@ class SiteUpdate(BaseModel):
 class SiteResponse(BaseModel):
     """Model for site response."""
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     main_site_id: Optional[str] = None  # Parent main site
     name: str
     slug: str

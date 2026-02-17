@@ -6,7 +6,7 @@ from typing import Optional, List
 class MediaAssetResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     uploaded_by: str
     uploaded_by_name: Optional[str] = None
     kind: str
@@ -67,7 +67,7 @@ class MediaFolderUpdate(BaseModel):
 class MediaFolderResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
-    team_id: str
+    team_id: Optional[str] = None
     name: str
     parent_id: Optional[str] = None
     color: Optional[str] = None
