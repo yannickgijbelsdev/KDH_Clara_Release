@@ -132,7 +132,16 @@ async def get_archive_dates(
     is_network_admin = current_user.get("is_network_admin", False)
     
     if main_site_id:
-        match_query = {"main_site_id": main_site_id}
+        # Get all team_ids belonging to this main_site
+        main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "team_ids": 1})
+        team_ids = main_site.get("team_ids", []) if main_site else []
+        
+        match_query = {
+            "$or": [
+                {"main_site_id": main_site_id},
+                {"team_id": {"$in": team_ids}} if team_ids else {"team_id": None}
+            ]
+        }
     elif current_user.get("team_id"):
         match_query = {"team_id": current_user.get("team_id")}
     elif is_network_admin:
