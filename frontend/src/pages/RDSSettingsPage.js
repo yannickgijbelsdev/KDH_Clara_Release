@@ -698,7 +698,7 @@ const RDSSettingsPage = () => {
                   {log.current_listeners} listeners
                 </span>
                 <span className="text-zinc-700 text-[10px]">
-                  {format(new Date(log.timestamp), 'HH:mm:ss', { locale: enUS })}
+                  {formatInTimeZone(new Date(log.timestamp), 'Europe/Brussels', 'HH:mm:ss')}
                 </span>
               </div>
             ))}
