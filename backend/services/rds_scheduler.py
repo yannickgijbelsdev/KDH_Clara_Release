@@ -1,12 +1,15 @@
-"""RDS Cache Scheduler - Refreshes live show cache every 5 minutes."""
+"""RDS Cache Scheduler - Refreshes live show cache every minute."""
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 import uuid
 
 from database import db
 
 logger = logging.getLogger(__name__)
+
+BRUSSELS_TZ = ZoneInfo('Europe/Brussels')
 
 
 async def refresh_live_show_cache(team_id: str = None) -> dict:
