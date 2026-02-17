@@ -186,7 +186,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
             
             # Update RDS settings with last refresh time
             await db.rds_settings.update_one(
-                {"team_id": show_team_id},
+                {"$or": [{"team_id": show_team_id}, {"main_site_id": show_team_id}]},
                 {"$set": {"last_cache_refresh": timestamp}}
             )
             
