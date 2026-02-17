@@ -158,10 +158,12 @@ const RDSMonitorPage = () => {
     }
   };
 
-  const StationCard = ({ station, data, stationName, staleCountdown }) => {
+  const StationCard = ({ station, data, stationName, staleCountdown, showEndCountdown }) => {
     const isLive = data?.live_show?.title;
+    const calendarLive = data?.calendar_live_show;
     const isOnline = data?.now_playing?.online;
     const isStale = data?.now_playing?.is_stale;
+    const cacheStale = data?.cache_stale;
     
     // Skip custom_text - show live show, now_playing, or fallback
     const shouldSkipCustom = data?.current_item_type === 'custom_text';
@@ -174,6 +176,25 @@ const RDSMonitorPage = () => {
 
     return (
       <div className="bg-zinc-900 rounded-xl p-6 space-y-4">
+        {/* Cache Stale Warning */}
+        {cacheStale && (
+          <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-amber-400" />
+            <div className="flex-1">
+              <p className="text-amber-400 text-sm font-medium">Cache out of sync!</p>
+              <p className="text-amber-400/70 text-xs">{data?.cache_stale_reason}</p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-amber-500/50 text-amber-400 hover:bg-amber-500/20"
+              onClick={() => window.dispatchEvent(new CustomEvent('force-refresh'))}
+            >
+              Fix
+            </Button>
+          </div>
+        )}
+        
         {/* Station Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -236,22 +257,44 @@ const RDSMonitorPage = () => {
         <div className="grid grid-cols-2 gap-3">
           {/* Live Show */}
           <div className="bg-zinc-800/30 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
-              <Mic className="w-3 h-3" />
-              Live Show
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
+              <div className="flex items-center gap-2">
+                <Mic className="w-3 h-3" />
+                Live Show
+              </div>
+              {/* Show end countdown timer */}
+              {showEndCountdown !== null && showEndCountdown > 0 && (
+                <div className={`flex items-center gap-1 ${
+                  showEndCountdown < 300 ? 'text-amber-400' : 'text-zinc-500'
+                }`}>
+                  <Timer className="w-3 h-3" />
+                  <span>ends in {formatCountdown(showEndCountdown)}</span>
+                </div>
+              )}
             </div>
-            {isLive ? (
+            {calendarLive ? (
+              <div>
+                <p className="text-sm font-medium text-white truncate">{calendarLive.title}</p>
+                <p className="text-xs text-zinc-500">
+                  {calendarLive.start_time} - {calendarLive.end_time}
+                </p>
+                {!isLive && (
+                  <p className="text-xs text-amber-400 mt-1">
+                    <AlertCircle className="w-3 h-3 inline mr-1" />
+                    Cache not updated
+                  </p>
+                )}
+              </div>
+            ) : isLive ? (
               <div>
                 <p className="text-sm font-medium text-white truncate">{data.live_show.title}</p>
                 <p className="text-xs text-zinc-500">
                   {data.live_show.start_time} - {data.live_show.end_time}
                 </p>
-                {data.live_show.presenters?.length > 0 && (
-                  <p className="text-xs text-zinc-400 mt-1">
-                    <Mic className="w-3 h-3 inline mr-1" />
-                    {data.live_show.presenters.join(', ')}
-                  </p>
-                )}
+                <p className="text-xs text-amber-400 mt-1">
+                  <AlertCircle className="w-3 h-3 inline mr-1" />
+                  Show ended (cache stale)
+                </p>
               </div>
             ) : (
               <p className="text-sm text-zinc-500">No live show</p>
