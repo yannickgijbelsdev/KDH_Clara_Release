@@ -119,6 +119,7 @@ const AppRoutes = () => {
         <Route path="rds" element={<RDSSettingsPage />} />
         <Route path="rds-builder" element={<RDSBuilderPage />} />
         <Route path="rds-scheduler" element={<RDSSchedulerPage />} />
+        <Route path="rds-monitor" element={<RDSMonitorPage />} />
         <Route path="audio-triggers" element={<AudioTriggersPage />} />
         <Route path="streams" element={<StreamMonitorPage />} />
         <Route path="sites" element={<SitesListPage />} />
