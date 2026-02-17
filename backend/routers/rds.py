@@ -53,14 +53,23 @@ class CachedRundown(BaseModel):
 
 
 async def get_rds_query_filter(request: Request, current_user: dict) -> dict:
-    """Helper to build query filter for RDS data - uses main_site_id if available, otherwise team_id."""
+    """Helper to build query filter for RDS data - searches both team_id and main_site_id."""
     main_site_id = await get_main_site_id_from_header(request)
-    if main_site_id:
-        return {"main_site_id": main_site_id}
     team_id = current_user.get('team_id')
+    
+    # Build $or query to match on either field
+    or_conditions = []
+    if main_site_id:
+        or_conditions.append({"main_site_id": main_site_id})
+        or_conditions.append({"team_id": main_site_id})
     if team_id:
-        return {"team_id": team_id}
-    return {}
+        or_conditions.append({"team_id": team_id})
+    
+    if not or_conditions:
+        return {}
+    if len(or_conditions) == 1:
+        return or_conditions[0]
+    return {"$or": or_conditions}
 
 
 @rds_router.get("/settings", response_model=RDSSettingsResponse)
