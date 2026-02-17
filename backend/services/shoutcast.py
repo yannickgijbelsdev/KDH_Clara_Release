@@ -315,20 +315,48 @@ async def cache_now_playing(db, station: str) -> Dict:
         _song_change_tracker[station] = {
             "last_song": current_song,
             "last_change_time": now,
-            "is_stale": False
+            "is_stale": False,
+            "pending_new_song": None,
+            "pending_song_first_seen": None
         }
     
     tracker = _song_change_tracker[station]
     
     # Check if song changed
     if current_song != tracker["last_song"] and current_song:
-        # Song changed - reset tracker
-        tracker["last_song"] = current_song
-        tracker["last_change_time"] = now
-        tracker["is_stale"] = False
-        logger.info(f"[{station}] Song changed to: {current_song}")
+        # Song is different from what we were tracking
+        if tracker["is_stale"]:
+            # Currently stale - apply threshold before recovering
+            if tracker["pending_new_song"] == current_song:
+                # Same new song as before - check if threshold passed
+                time_since_first_seen = now - tracker["pending_song_first_seen"]
+                if time_since_first_seen >= timedelta(seconds=STALE_RECOVERY_THRESHOLD_SECONDS):
+                    # Threshold passed - actually recover from stale
+                    tracker["last_song"] = current_song
+                    tracker["last_change_time"] = now
+                    tracker["is_stale"] = False
+                    tracker["pending_new_song"] = None
+                    tracker["pending_song_first_seen"] = None
+                    logger.info(f"[{station}] Recovered from stale - new song confirmed: {current_song}")
+                # else: still waiting for threshold
+            else:
+                # New song detected while stale - start tracking it
+                tracker["pending_new_song"] = current_song
+                tracker["pending_song_first_seen"] = now
+                logger.debug(f"[{station}] Potential new song while stale: {current_song} - waiting for threshold")
+        else:
+            # Not stale - immediate song change
+            tracker["last_song"] = current_song
+            tracker["last_change_time"] = now
+            tracker["is_stale"] = False
+            logger.info(f"[{station}] Song changed to: {current_song}")
     else:
-        # Same song - check if stale
+        # Same song (or empty) - check if stale
+        # Also reset pending song if we're back to the old song
+        if tracker["pending_new_song"] and current_song == tracker["last_song"]:
+            tracker["pending_new_song"] = None
+            tracker["pending_song_first_seen"] = None
+        
         time_since_change = now - tracker["last_change_time"]
         stale_threshold = timedelta(minutes=STALE_TIMEOUT_MINUTES)
         
