@@ -15,7 +15,7 @@ rds_router = APIRouter(prefix="/rds", tags=["RDS Integration"])
 class RDSSettings(BaseModel):
     """RDS integration settings."""
     production_base_url: str = "https://clara.koodh.com"
-    cache_refresh_interval: int = 5  # minutes
+    cache_refresh_interval: int = 1  # minutes
 
 
 class RDSSettingsResponse(BaseModel):
