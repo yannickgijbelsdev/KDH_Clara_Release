@@ -20,7 +20,8 @@ import { Checkbox } from '../../components/ui/checkbox';
 import { toast } from 'sonner';
 import { 
   Plus, Globe, Users, Layers, Settings, Trash2, Edit, ExternalLink,
-  Tv, FileText, MessageSquare, Radio, Cog
+  Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
+  AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp
 } from 'lucide-react';
 import MigrationTool from './MigrationTool';
 
