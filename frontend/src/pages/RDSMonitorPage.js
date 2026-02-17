@@ -330,6 +330,7 @@ const RDSMonitorPage = () => {
             station="mfy"
             stationName="Radio MFY"
             data={monitorData?.stations?.mfy}
+            staleCountdown={countdowns.mfy}
           />
           <StationCard
             station="grk"
