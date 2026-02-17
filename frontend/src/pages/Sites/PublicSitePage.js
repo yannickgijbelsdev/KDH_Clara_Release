@@ -289,7 +289,7 @@ export default function PublicSitePage() {
   if (passwordRequired && !passwordVerified) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor }}>
-        <div className="rounded-2xl p-8 max-w-md w-full border border-zinc-800" style={{ backgroundColor: containerColor }}>
+        <div className="rounded-2xl p-8 max-w-md w-full" style={{ backgroundColor: containerColor }}>
           {site?.logo_url && (
             <img 
               src={site.logo_url.startsWith('http') ? site.logo_url : `${API}${site.logo_url}`}
@@ -347,7 +347,7 @@ export default function PublicSitePage() {
 
         {/* Video Player - shown first if enabled, directly under header */}
         {site?.video_enabled && site?.video_url && (
-          <div className="rounded-xl overflow-hidden border border-zinc-800" style={{ backgroundColor: containerColor }}>
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: containerColor }}>
             {site.video_type === 'hls' ? (
               <video
                 ref={videoRef}
@@ -383,7 +383,7 @@ export default function PublicSitePage() {
 
         {/* Audio Player - directly against header/video */}
         {site?.audio_enabled && site?.audio_url && (
-          <div className="rounded-xl p-4 border border-zinc-800 mt-0" style={{ backgroundColor: containerColor }}>
+          <div className="rounded-xl p-4 mt-0" style={{ backgroundColor: containerColor }}>
             <audio
               ref={audioRef}
               src={site.audio_type === 'file' 
@@ -444,7 +444,7 @@ export default function PublicSitePage() {
 
         {/* Contact Form */}
         {site?.form_enabled && (
-          <div className="rounded-xl p-5 border border-zinc-800 mt-4 mb-6" style={{ backgroundColor: containerColor }}>
+          <div className="rounded-xl p-5 mt-4 mb-6" style={{ backgroundColor: containerColor }}>
             <h2 className="text-lg font-bold text-white mb-3">Neem contact op</h2>
             
             {submitted ? (
