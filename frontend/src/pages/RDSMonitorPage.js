@@ -231,11 +231,22 @@ const RDSMonitorPage = () => {
 
           {/* Now Playing */}
           <div className="bg-zinc-800/30 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
-              <Music className="w-3 h-3" />
-              Now Playing
-              {data?.now_playing?.is_stale && (
-                <span className="text-amber-400">(stale)</span>
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
+              <div className="flex items-center gap-2">
+                <Music className="w-3 h-3" />
+                Now Playing
+                {isStale && (
+                  <span className="text-amber-400">(stale)</span>
+                )}
+              </div>
+              {/* Stale countdown timer */}
+              {!isStale && staleCountdown !== null && staleCountdown > 0 && (
+                <div className={`flex items-center gap-1 ${
+                  staleCountdown < 120 ? 'text-amber-400' : 'text-zinc-500'
+                }`}>
+                  <Timer className="w-3 h-3" />
+                  <span>{formatCountdown(staleCountdown)}</span>
+                </div>
               )}
             </div>
             <p className="text-sm text-white truncate">
