@@ -1980,6 +1980,22 @@ Updated ALL endpoints to support multisite context using `X-Main-Site-ID` header
 
 **Fix 4: Activity Logs for Network Admin**
 - Added `is_network_admin` check to all log endpoints (GET /logs, /logs/stats, /logs/users, /logs/archive-dates, /logs/archive/{date})
+
+### February 17, 2026 - RDS Cache Refresh & Mini Sites UI Fix
+
+**Fix 1: Last Cache Refresh hangt**
+- `last_cache_refresh` wordt nu ALTIJD bijgewerkt, ook als er geen live shows zijn
+- Updated `rds_settings` query to use `$or` for both `team_id` and `main_site_id` matching
+
+**Fix 2: Cache Logs leeg**
+- Logs worden nu altijd aangemaakt (ook "no_show" status)
+- `/api/rds/logs` endpoint query updated met `$or` filter voor multisite context
+- `run_scheduled_cache_refresh` gebruikt nu `main_site_id` OR `team_id` als identifier
+
+**Fix 3: Mini Sites container outlines verwijderd**
+- `SitesListPage.js`: Removed `border border-zinc-800` from site cards and empty state
+- `SiteDashboard.js`: Removed `border border-zinc-800` from all 8 content containers
+
 - Network Admins with `team_id: null` now see ALL logs across all teams
 
 - No more ResponseValidationError ✅
