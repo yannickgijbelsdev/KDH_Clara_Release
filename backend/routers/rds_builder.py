@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional, Literal
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from pydantic import BaseModel
 import uuid
 import asyncio
@@ -10,6 +11,8 @@ from database import db
 from services.auth import require_admin
 
 rds_builder_router = APIRouter(prefix="/rds-builder", tags=["RDS Builder"])
+
+BRUSSELS_TZ = ZoneInfo('Europe/Brussels')
 
 
 class RDSItem(BaseModel):
