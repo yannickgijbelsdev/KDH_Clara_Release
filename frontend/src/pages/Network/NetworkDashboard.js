@@ -188,6 +188,45 @@ export default function NetworkDashboard() {
     }));
   };
 
+  const runHealthCheck = async (siteId, siteName) => {
+    setHealthCheck({ open: true, siteId, siteName, loading: true, result: null, history: [] });
+    try {
+      const [checkRes, historyRes] = await Promise.all([
+        fetch(`${API}/api/main-sites/${siteId}/health-check`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        fetch(`${API}/api/main-sites/${siteId}/health-history?limit=10`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      const result = checkRes.ok ? await checkRes.json() : null;
+      const history = historyRes.ok ? await historyRes.json() : [];
+      setHealthCheck(prev => ({ ...prev, loading: false, result, history }));
+    } catch (err) {
+      toast.error('Health check mislukt');
+      setHealthCheck(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const openDebugPanel = async (siteId, siteName) => {
+    setDebugPanel({ open: true, siteId, siteName, loading: true, data: null });
+    try {
+      const res = await fetch(`${API}/api/main-sites/${siteId}/debug`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = res.ok ? await res.json() : null;
+      setDebugPanel(prev => ({ ...prev, loading: false, data }));
+    } catch (err) {
+      toast.error('Debug info ophalen mislukt');
+      setDebugPanel(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const refreshDebug = () => {
+    if (debugPanel.siteId) openDebugPanel(debugPanel.siteId, debugPanel.siteName);
+  };
+
   const groupedFeatures = availableFeatures.reduce((acc, feature) => {
     const group = feature.group || 'other';
     if (!acc[group]) acc[group] = [];
