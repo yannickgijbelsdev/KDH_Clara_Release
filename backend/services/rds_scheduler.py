@@ -140,6 +140,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
             )
         
         # Always log - even when no shows found
+        brussels_time = now_brussels.strftime('%H:%M')
         log_entry = {
             "id": str(uuid.uuid4()),
             "team_id": team_id,
@@ -147,7 +148,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
             "status": "no_show",
             "show_id": None,
             "show_title": None,
-            "message": "Geen live show gevonden voor de huidige tijd",
+            "message": f"Geen live show gevonden voor {brussels_time} (Brussels) | IDs doorzocht: {len(team_ids_list)}",
             "cached_data": None
         }
         await db.rds_cache_logs.insert_one(log_entry)
