@@ -315,7 +315,7 @@ const RDSSettingsPage = () => {
               </p>
             </div>
           </div>
-        )}}
+        )}
       </div>
 
       {/* API Endpoints Section */}
