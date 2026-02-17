@@ -50,6 +50,8 @@ export default function NetworkDashboard() {
     enabled_features: []
   });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, siteId: null, siteName: '' });
+  const [healthCheck, setHealthCheck] = useState({ open: false, siteId: null, siteName: '', loading: false, result: null, history: [] });
+  const [debugPanel, setDebugPanel] = useState({ open: false, siteId: null, siteName: '', loading: false, data: null });
 
   useEffect(() => {
     fetchMainSites();
