@@ -336,6 +336,7 @@ const RDSMonitorPage = () => {
             station="grk"
             stationName="Radio GRK"
             data={monitorData?.stations?.grk}
+            staleCountdown={countdowns.grk}
           />
         </div>
 
