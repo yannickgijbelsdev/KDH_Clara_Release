@@ -594,8 +594,15 @@ async def process_named_output(db, output_config: dict):
     if state:
         was_scheduled_text = state.get("scheduled_text_active", False)
         
+        # ALSO check if output is stale from an ENDED scheduled text
+        current_item_type = state.get("current_item_type", "")
+        stored_index = state.get("current_index", 0)
+        if not was_scheduled_text and current_item_type == "scheduled_text" and stored_index == -1:
+            was_scheduled_text = True
+            logger.debug(f"RDS Output [{output_config.get('slug')}]: Detected stale scheduled text state, forcing refresh")
+        
         if not was_scheduled_text:
-            current_index = state.get("current_index", 0)
+            current_index = stored_index
             if current_index < 0:
                 current_index = 0
             next_change_str = state.get("next_change_at")
