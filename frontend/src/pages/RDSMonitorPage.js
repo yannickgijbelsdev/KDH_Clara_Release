@@ -289,11 +289,11 @@ const RDSMonitorPage = () => {
             <History className="w-5 h-5 text-zinc-400" />
             <h2 className="text-lg font-semibold text-white">Recent Changes</h2>
             <span className="text-sm text-zinc-500">
-              ({monitorData?.history?.length || 0} entries)
+              ({monitorData?.history?.filter(h => h.item_type !== 'custom_text')?.length || 0} entries)
             </span>
           </div>
 
-          {monitorData?.history?.length > 0 ? (
+          {monitorData?.history?.filter(h => h.item_type !== 'custom_text')?.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -306,7 +306,7 @@ const RDSMonitorPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
-                  {monitorData.history.slice(0, 20).map((entry, index) => (
+                  {monitorData.history.filter(h => h.item_type !== 'custom_text').slice(0, 20).map((entry, index) => (
                     <tr key={entry.id || index} className="text-sm">
                       <td className="py-3 pr-4 text-zinc-400 whitespace-nowrap">
                         {entry.timestamp_formatted}
