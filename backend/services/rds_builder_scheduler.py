@@ -479,6 +479,8 @@ async def process_rds_sequence(db, station: str):
         )
         
         if needs_clear:
+            # Log to history
+            await log_text_change(db, station, default_text, "show_name", "Stale content cleared (sequence disabled)")
             logger.info(f"RDS Builder [{station}]: Cleared stale scheduled text/audio trigger (sequence disabled)")
         
         return
