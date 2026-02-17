@@ -453,12 +453,32 @@ async def get_rds_monitor_data():
         {"_id": 0}
     ).sort("timestamp", -1).limit(50).to_list(50)
     
+    # Also get live shows directly from calendar (bypass cache)
+    calendar_live_shows = await check_live_shows_from_calendar()
+    
+    # Add calendar check data to each station
+    for station in ["mfy", "grk"]:
+        calendar_show = calendar_live_shows.get(station)
+        stations_data[station]["calendar_live_show"] = calendar_show
+        
+        # If there's a mismatch between cache and calendar, flag it
+        cached_show = stations_data[station]["live_show"]
+        if calendar_show and not cached_show:
+            stations_data[station]["cache_stale"] = True
+            stations_data[station]["cache_stale_reason"] = "Calendar shows live show but cache is empty"
+        elif not calendar_show and cached_show:
+            stations_data[station]["cache_stale"] = True
+            stations_data[station]["cache_stale_reason"] = "Cache shows live show but calendar says no show"
+        else:
+            stations_data[station]["cache_stale"] = False
+    
     return {
         "timestamp": now_brussels.isoformat(),
         "timestamp_formatted": now_brussels.strftime("%H:%M:%S"),
         "date_formatted": now_brussels.strftime("%d-%m-%Y"),
         "stations": stations_data,
-        "history": history
+        "history": history,
+        "calendar_live_shows": calendar_live_shows
     }
 
 
