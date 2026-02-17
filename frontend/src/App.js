@@ -91,6 +91,12 @@ const AppRoutes = () => {
         } 
       />
       
+      {/* RDS Monitor - Standalone public-ish page */}
+      <Route 
+        path="/rds-monitor" 
+        element={<RDSMonitorPage />} 
+      />
+      
       {/* Legacy routes (for backward compatibility) */}
       <Route
         path="/legacy"
