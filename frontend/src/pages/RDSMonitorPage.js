@@ -152,6 +152,13 @@ const RDSMonitorPage = () => {
           <p className="text-2xl font-bold text-white leading-tight" data-testid={`${station}-current-text`}>
             {displayText || '-'}
           </p>
+          {/* Show presenters in main display when live show is active */}
+          {isLive && data.live_show.presenters?.length > 0 && (
+            <p className="text-sm text-zinc-400 mt-2">
+              <Mic className="w-4 h-4 inline mr-1" />
+              {data.live_show.presenters.join(', ')}
+            </p>
+          )}
         </div>
 
         {/* Status Grid */}
