@@ -91,7 +91,7 @@ async def get_rds_settings(request: Request, current_user: dict = Depends(requir
             "team_id": team_id,
             "main_site_id": main_site_id,
             "production_base_url": "https://clara.koodh.com",
-            "cache_refresh_interval": 5,
+            "cache_refresh_interval": 1,
             "last_cache_refresh": None,
             "created_at": now,
             "updated_at": now
