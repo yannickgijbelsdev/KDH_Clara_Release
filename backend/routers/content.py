@@ -285,11 +285,11 @@ async def get_content_items(
         # Add publish statuses with site names and featured images
         item_publish_statuses = publish_statuses_map.get(item["id"], [])
         for ps in item_publish_statuses:
-            site = wordpress_sites_map.get(ps["wordpress_site_id"])
-            ps["wordpress_site_name"] = site["name"] if site else "Unknown"
+            site = wordpress_sites_map.get(ps.get("wordpress_site_id"))
+            ps["wordpress_site_name"] = site.get("name", "Unknown") if site else "Unknown"
             
             # Add featured image for this publish status
-            featured_image = featured_images_map.get((item["id"], ps["wordpress_site_id"]))
+            featured_image = featured_images_map.get((item["id"], ps.get("wordpress_site_id")))
             if featured_image:
                 featured_image["wordpress_site_name"] = ps["wordpress_site_name"]
             ps["featured_image"] = featured_image
@@ -297,7 +297,14 @@ async def get_content_items(
         item["publish_statuses"] = item_publish_statuses
         result.append(item)
     
+    logger.info(f"Returning {len(result)} content items")
     return result
+    
+    except Exception as e:
+        import traceback
+        logger.error(f"Error in get_content_items: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error loading content: {str(e)}")
 
 
 @content_router.post("", response_model=ContentItemResponse, status_code=status.HTTP_201_CREATED)
