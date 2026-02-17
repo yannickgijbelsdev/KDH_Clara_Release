@@ -337,8 +337,30 @@ export default function NetworkDashboard() {
                       </span>
                     )}
                   </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1.5 text-xs"
+                      data-testid={`health-check-${site.slug}`}
+                      onClick={() => runHealthCheck(site.id, site.name)}
+                    >
+                      <Activity className="w-3.5 h-3.5" />
+                      Test
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1.5 text-xs"
+                      data-testid={`debug-${site.slug}`}
+                      onClick={() => openDebugPanel(site.id, site.name)}
+                    >
+                      <Bug className="w-3.5 h-3.5" />
+                      Debug
+                    </Button>
+                  </div>
                   <Link to={`/${site.slug}`}>
-                    <Button variant="outline" className="w-full gap-2">
+                    <Button variant="outline" className="w-full gap-2 mt-2">
                       <ExternalLink className="w-4 h-4" />
                       Open Dashboard
                     </Button>
