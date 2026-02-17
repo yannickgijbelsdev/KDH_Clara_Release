@@ -241,17 +241,18 @@ async def run_scheduled_cache_refresh():
     """Scheduled job that refreshes cache for all teams."""
     logger.info("Running scheduled RDS cache refresh...")
     
-    # Get all teams with RDS settings
-    settings_list = await db.rds_settings.find({}, {"_id": 0, "team_id": 1}).to_list(100)
+    # Get all teams/sites with RDS settings
+    settings_list = await db.rds_settings.find({}, {"_id": 0, "team_id": 1, "main_site_id": 1}).to_list(100)
     
     if not settings_list:
         # No teams have RDS settings - still refresh for any live shows
         await refresh_live_show_cache()
     else:
-        # Refresh for each team
+        # Refresh for each team/main_site
         for settings in settings_list:
-            team_id = settings.get("team_id")
-            await refresh_live_show_cache(team_id)
+            identifier = settings.get("main_site_id") or settings.get("team_id")
+            if identifier:
+                await refresh_live_show_cache(identifier)
 
 
 class RDSScheduler:
