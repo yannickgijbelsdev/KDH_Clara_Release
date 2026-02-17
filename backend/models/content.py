@@ -106,7 +106,7 @@ class ContentItemResponse(BaseModel):
     approved_by_name: Optional[str] = None
     approved_at: Optional[str] = None
     # Other fields
-    team_id: str
+    team_id: Optional[str] = None
     created_by: str
     created_by_name: Optional[str] = None  # Creator's display name
     created_at: str
