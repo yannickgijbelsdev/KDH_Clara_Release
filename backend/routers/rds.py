@@ -302,12 +302,13 @@ async def manual_refresh_cache(request: Request, current_user: dict = Depends(re
 async def debug_live_shows(request: Request, current_user: dict = Depends(require_admin)):
     """Debug endpoint to see why a show might not be syncing.
     
-    Shows the current time (UTC and CET), and any shows that match the current timeframe.
+    Shows the current time (UTC and Brussels), and any shows that match the current timeframe.
     """
     from datetime import timedelta
+    from zoneinfo import ZoneInfo
     
     now_utc = datetime.now(timezone.utc)
-    now_cet = now_utc + timedelta(hours=1)
+    now_brussels = datetime.now(ZoneInfo('Europe/Brussels'))
     
     query_filter = await get_rds_query_filter(request, current_user)
     
