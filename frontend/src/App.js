@@ -27,6 +27,7 @@ import PersonalSettingsPage from './pages/PersonalSettingsPage';
 import RDSSettingsPage from './pages/RDSSettingsPage';
 import RDSBuilderPage from './pages/RDSBuilderPage';
 import RDSSchedulerPage from './pages/RDSSchedulerPage';
+import RDSMonitorPage from './pages/RDSMonitorPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
 import AudioTriggersPage from './pages/AudioTriggersPage';
 import SitesListPage from './pages/Sites/SitesListPage';
