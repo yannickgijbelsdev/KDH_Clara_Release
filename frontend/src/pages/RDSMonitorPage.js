@@ -150,7 +150,7 @@ const RDSMonitorPage = () => {
             )}
           </div>
           <p className="text-2xl font-bold text-white leading-tight" data-testid={`${station}-current-text`}>
-            {data?.current_text || '-'}
+            {displayText || '-'}
           </p>
         </div>
 
