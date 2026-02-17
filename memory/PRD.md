@@ -2097,3 +2097,54 @@ Located at `/rds-monitor` - a standalone page accessible without authentication 
 - `/app/frontend/src/components/DashboardLayout.js` (added nav item)
 - `/app/frontend/src/components/MainSiteDashboardLayout.js` (added nav item)
 - `/app/frontend/src/App.js` (added standalone route)
+
+### February 18, 2026 - FFmpeg Persistent Installation Fix
+
+**Critical Fix: FFmpeg Auto-Installation on Startup**
+
+**Problem:** FFmpeg was installed manually via `apt-get` but was lost after every container restart, causing Audio Triggers to fail silently.
+
+**Solution:**
+- Created `/app/backend/scripts/ensure_ffmpeg.py` - Script that checks and installs ffmpeg if missing
+- Modified `server.py` startup to call `ensure_ffmpeg()` before starting schedulers
+- Added graceful error handling in `audio_trigger.py` - checks `FFMPEG_AVAILABLE` before processing streams
+- New status endpoint: `GET /api/audio-triggers/system/status` - returns ffmpeg/libs/scheduler status
+
+**Implementation Details:**
+1. **ensure_ffmpeg.py**: 
+   - `check_ffmpeg_installed()` - Uses `shutil.which("ffmpeg")`
+   - `install_ffmpeg()` - Runs `apt-get update && apt-get install -y ffmpeg`
+   - `ensure_ffmpeg()` - Combined check + install
+   - Cached availability to avoid repeated system calls
+
+2. **server.py startup**:
+   - FFmpeg check runs before `AudioTriggerScheduler.start()`
+   - Logs "FFmpeg is available for audio processing" or warning if not
+
+3. **audio_trigger.py**:
+   - Module-level `FFMPEG_AVAILABLE = is_ffmpeg_available()`
+   - `analyze_stream_for_trigger()` returns `(False, 0.0)` gracefully if ffmpeg missing
+   - Clear warning logged: "FFmpeg not available - cannot process audio stream"
+
+4. **Status Endpoint Response**:
+```json
+{
+  "ffmpeg_available": true,
+  "audio_libs_available": true,
+  "scheduler_running": true,
+  "fully_operational": true,
+  "issues": []
+}
+```
+
+**Files Modified:**
+- `/app/backend/scripts/ensure_ffmpeg.py` (NEW)
+- `/app/backend/server.py` (startup ffmpeg check)
+- `/app/backend/services/audio_trigger.py` (graceful degradation)
+- `/app/backend/routers/audio_trigger.py` (status endpoint)
+
+**Testing:**
+- Backend restarted successfully
+- FFmpeg installation verified via logs
+- `/api/audio-triggers/system/status` returns `fully_operational: true`
+
