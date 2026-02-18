@@ -748,6 +748,120 @@ const TeamSettingsPage = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Add Existing User Dialog */}
+      <Dialog open={addExistingUserDialogOpen} onOpenChange={setAddExistingUserDialogOpen}>
+        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2">
+              <ArrowLeftRight className="w-5 h-5 text-violet-400" />
+              Add Existing User
+            </DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Add a user from another main site to {mainSite?.name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 space-y-4">
+            {/* Search */}
+            <div>
+              <Label className="text-zinc-300 mb-2 block">Search Users</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search by name or email..."
+                  value={userSearchQuery}
+                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && searchAvailableUsers(userSearchQuery)}
+                  className="bg-[#27272a] border-zinc-700 text-white"
+                />
+                <Button
+                  onClick={() => searchAvailableUsers(userSearchQuery)}
+                  disabled={searchingUsers}
+                  className="bg-zinc-700 hover:bg-zinc-600"
+                >
+                  {searchingUsers ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
+                </Button>
+              </div>
+            </div>
+
+            {/* Available Users List */}
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {availableUsers.length === 0 && !searchingUsers && (
+                <p className="text-zinc-500 text-sm text-center py-4">
+                  {userSearchQuery ? 'No users found' : 'Search for users to add'}
+                </p>
+              )}
+              {availableUsers.map((availableUser) => (
+                <div
+                  key={availableUser.id}
+                  onClick={() => setSelectedExistingUser(availableUser)}
+                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                    selectedExistingUser?.id === availableUser.id
+                      ? 'bg-violet-500/20 border border-violet-500/50'
+                      : 'bg-[#27272a] hover:bg-zinc-700'
+                  }`}
+                >
+                  <div>
+                    <p className="text-white font-medium">{availableUser.name}</p>
+                    <p className="text-sm text-zinc-500">{availableUser.email}</p>
+                    {availableUser.other_main_sites?.length > 0 && (
+                      <p className="text-xs text-zinc-600 mt-1">
+                        Also in: {availableUser.other_main_sites.join(', ')}
+                      </p>
+                    )}
+                  </div>
+                  {selectedExistingUser?.id === availableUser.id && (
+                    <Check className="w-5 h-5 text-violet-400" />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Role Selection */}
+            {selectedExistingUser && (
+              <div>
+                <Label className="text-zinc-300 mb-2 block">
+                  Role for {selectedExistingUser.name}
+                </Label>
+                <Select value={existingUserRole} onValueChange={setExistingUserRole}>
+                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#18181b] border-zinc-800">
+                    <SelectItem value="admin" className="text-zinc-300">Admin</SelectItem>
+                    <SelectItem value="news_admin" className="text-zinc-300">News Admin</SelectItem>
+                    <SelectItem value="editor" className="text-zinc-300">Editor</SelectItem>
+                    <SelectItem value="presenter" className="text-zinc-300">Presenter</SelectItem>
+                    <SelectItem value="viewer" className="text-zinc-300">Viewer</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAddExistingUserDialogOpen(false);
+                  setSelectedExistingUser(null);
+                  setUserSearchQuery('');
+                  setAvailableUsers([]);
+                }}
+                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleAddExistingUser}
+                disabled={!selectedExistingUser || addingExistingUser}
+                className="flex-1 bg-violet-500 hover:bg-violet-600 text-white"
+              >
+                {addingExistingUser ? 'Adding...' : 'Add User'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Temporary Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
         <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
