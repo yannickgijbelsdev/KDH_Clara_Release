@@ -350,6 +350,29 @@ const RDSMonitorPage = () => {
             </p>
           </div>
 
+          {/* Scheduled Text */}
+          <div className="bg-zinc-800/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
+              <Calendar className="w-3 h-3" />
+              Scheduled Text
+            </div>
+            {data?.active_scheduled_text ? (
+              <div>
+                <p className="text-sm font-medium text-purple-400 truncate">{data.active_scheduled_text.text}</p>
+                <p className="text-xs text-zinc-500">Active now</p>
+              </div>
+            ) : data?.next_scheduled_text ? (
+              <div>
+                <p className="text-sm text-zinc-400 truncate">{data.next_scheduled_text.text}</p>
+                <p className="text-xs text-zinc-500">
+                  in {Math.floor(data.next_scheduled_text.seconds_until / 60)}m ({data.next_scheduled_text.recurrence})
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-zinc-500">None scheduled</p>
+            )}
+          </div>
+
           {/* Sequence Status */}
           <div className="bg-zinc-800/30 rounded-lg p-3">
             <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
