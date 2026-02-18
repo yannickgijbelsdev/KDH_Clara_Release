@@ -196,12 +196,14 @@ async def get_site(
 async def update_site(
     site_id: str,
     site_data: SiteUpdate,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Update a site."""
     team_id = current_user.get('team_id')
     user_id = current_user.get('id')
     is_admin = current_user.get('role') == 'admin'
+    main_site_id = request.headers.get('X-Main-Site-ID')
     
     # Check if user has editor access
     if not is_admin:
@@ -213,7 +215,14 @@ async def update_site(
         if not access:
             raise HTTPException(status_code=403, detail="Geen bewerkingsrechten")
     
-    site = await db.sites.find_one({"id": site_id, "team_id": team_id})
+    # Build query to find site - use main_site_id if available
+    if main_site_id:
+        site = await db.sites.find_one({"id": site_id, "main_site_id": main_site_id})
+    elif team_id:
+        site = await db.sites.find_one({"id": site_id, "team_id": team_id})
+    else:
+        site = await db.sites.find_one({"id": site_id})
+    
     if not site:
         raise HTTPException(status_code=404, detail="Site niet gevonden")
     
