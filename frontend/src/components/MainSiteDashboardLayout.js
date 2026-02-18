@@ -319,7 +319,8 @@ const MainSiteDashboardLayout = () => {
     const enabledFeatures = mainSite.enabled_features || [];
     
     // Features that are always available for admins (not dependent on enabled_features)
-    const alwaysAvailableForAdmin = ['rds_monitor'];
+    // RDS Monitor should only be available if rds_monitor or rds_builder is enabled
+    const alwaysAvailableForAdmin = [];
     
     return NAV_GROUPS.map(group => {
       const items = group.features
