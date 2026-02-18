@@ -2,11 +2,17 @@
 
 This service syncs shows from Clara to ProRadio WordPress plugin.
 Shows are pushed based on their rds_station setting (mfy, grk, both).
+
+ProRadio Structure:
+- 'shows' post type: Individual show definitions
+- 'schedule' post type: One post per weekday (maandag, dinsdag, etc.)
+  - Each schedule post has a 'shows' meta field with time slots
+  - Format: [{"show_id": ["123"], "show_time": "15:00", "show_time_end": "16:00"}, ...]
 """
 import httpx
 import base64
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Optional, Dict, List, Any
 from zoneinfo import ZoneInfo
 
@@ -17,9 +23,26 @@ logger = logging.getLogger(__name__)
 BRUSSELS_TZ = ZoneInfo('Europe/Brussels')
 
 # WordPress site URL to station mapping
-STATION_TO_WP_NAME = {
-    'mfy': 'MFY',
-    'grk': 'GRK'
+STATION_CONFIG = {
+    'mfy': {
+        'wp_name': 'MFY',
+        'wp_url': 'https://mfy.be'
+    },
+    'grk': {
+        'wp_name': 'GRK',
+        'wp_url': 'https://grk.fm'
+    }
+}
+
+# Dutch day names for schedule posts
+WEEKDAY_NAMES = {
+    0: 'maandag',
+    1: 'dinsdag',
+    2: 'woensdag',
+    3: 'donderdag',
+    4: 'vrijdag',
+    5: 'zaterdag',
+    6: 'zondag'
 }
 
 
@@ -33,10 +56,12 @@ async def get_wordpress_credentials(station: str, main_site_id: str) -> Optional
     Returns:
         Dict with wp_base_url, username, app_password or None if not found
     """
-    wp_name = STATION_TO_WP_NAME.get(station)
-    if not wp_name:
+    config = STATION_CONFIG.get(station)
+    if not config:
         logger.warning(f"Unknown station: {station}")
         return None
+    
+    wp_name = config['wp_name']
     
     # Find WordPress site by name and main_site_id
     wp_site = await db.wordpress_sites.find_one({
@@ -64,16 +89,7 @@ async def get_wordpress_credentials(station: str, main_site_id: str) -> Optional
 
 
 async def get_show_title_info(show_title: str, main_site_id: str, team_id: str) -> Optional[Dict]:
-    """Get show title document including rds_station setting.
-    
-    Args:
-        show_title: The title/name of the show
-        main_site_id: Main site ID for context
-        team_id: Team ID for context
-        
-    Returns:
-        Show title document or None
-    """
+    """Get show title document including rds_station setting."""
     query = {"name": show_title}
     if main_site_id:
         query["main_site_id"] = main_site_id
@@ -83,53 +99,51 @@ async def get_show_title_info(show_title: str, main_site_id: str, team_id: str) 
     return await db.show_titles.find_one(query, {"_id": 0})
 
 
-def format_datetime_for_proradio(date_str: str, time_str: str) -> str:
-    """Convert date and time strings to ProRadio datetime format.
+def get_weekday_name(date_str: str) -> str:
+    """Get Dutch weekday name from date string.
     
     Args:
         date_str: Date in YYYY-MM-DD format
-        time_str: Time in HH:MM format
         
     Returns:
-        ISO 8601 datetime string with Brussels timezone (e.g., 2026-02-18T15:00:00+01:00)
+        Dutch weekday name (maandag, dinsdag, etc.)
     """
-    try:
-        dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
-        dt_brussels = dt.replace(tzinfo=BRUSSELS_TZ)
-        return dt_brussels.isoformat()
-    except Exception as e:
-        logger.error(f"Error formatting datetime: {e}")
-        return f"{date_str}T{time_str}:00+01:00"
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    return WEEKDAY_NAMES[dt.weekday()]
 
 
-async def find_or_create_proradio_show(
+def get_auth_headers(credentials: Dict) -> Dict:
+    """Create authorization headers for WordPress API."""
+    auth_string = f"{credentials['username']}:{credentials['app_password']}"
+    auth_bytes = base64.b64encode(auth_string.encode()).decode()
+    return {
+        "Authorization": f"Basic {auth_bytes}",
+        "Content-Type": "application/json"
+    }
+
+
+async def find_or_create_wp_show(
     credentials: Dict,
     show_name: str,
-    thumbnail_url: Optional[str] = None
+    description: str = ""
 ) -> Optional[int]:
-    """Find existing ProRadio show by name or create a new one.
+    """Find existing WordPress show by name or create a new one.
     
     Args:
         credentials: WordPress API credentials
         show_name: Name of the show
-        thumbnail_url: Optional thumbnail image URL
+        description: Optional show description
         
     Returns:
-        ProRadio show post ID or None if failed
+        WordPress show post ID or None if failed
     """
     wp_url = credentials["wp_base_url"]
-    auth_string = f"{credentials['username']}:{credentials['app_password']}"
-    auth_bytes = base64.b64encode(auth_string.encode()).decode()
-    
-    headers = {
-        "Authorization": f"Basic {auth_bytes}",
-        "Content-Type": "application/json"
-    }
+    headers = get_auth_headers(credentials)
     
     try:
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            # First, search for existing show by name
-            search_url = f"{wp_url}/wp-json/wp/v2/proradio-show"
+            # Search for existing show by name
+            search_url = f"{wp_url}/wp-json/wp/v2/shows"
             search_params = {"search": show_name, "per_page": 100}
             
             response = await client.get(search_url, headers=headers, params=search_params)
@@ -138,188 +152,157 @@ async def find_or_create_proradio_show(
                 shows = response.json()
                 # Find exact match (case-insensitive)
                 for show in shows:
-                    if show.get("title", {}).get("rendered", "").lower() == show_name.lower():
-                        logger.info(f"Found existing ProRadio show: {show_name} (ID: {show['id']})")
+                    rendered_title = show.get("title", {}).get("rendered", "")
+                    if rendered_title.lower().strip() == show_name.lower().strip():
+                        logger.info(f"Found existing WP show: {show_name} (ID: {show['id']})")
                         return show["id"]
             
             # Show doesn't exist, create it
-            logger.info(f"Creating new ProRadio show: {show_name}")
-            create_url = f"{wp_url}/wp-json/wp/v2/proradio-show"
+            logger.info(f"Creating new WP show: {show_name}")
             
             show_data = {
                 "title": show_name,
-                "status": "publish"
+                "status": "publish",
+                "content": description
             }
             
-            response = await client.post(create_url, headers=headers, json=show_data)
+            response = await client.post(search_url, headers=headers, json=show_data)
             
             if response.status_code in [200, 201]:
                 new_show = response.json()
-                logger.info(f"Created ProRadio show: {show_name} (ID: {new_show['id']})")
+                logger.info(f"Created WP show: {show_name} (ID: {new_show['id']})")
                 return new_show["id"]
             else:
-                logger.error(f"Failed to create ProRadio show: {response.status_code} - {response.text}")
+                logger.error(f"Failed to create WP show: {response.status_code} - {response.text[:500]}")
                 return None
                 
     except Exception as e:
-        logger.error(f"Error finding/creating ProRadio show: {e}")
+        logger.error(f"Error finding/creating WP show: {e}")
         return None
 
 
-async def create_proradio_schedule(
-    credentials: Dict,
-    show_id: int,
-    broadcast_start: str,
-    broadcast_end: str,
-    clara_show_id: str
-) -> Optional[int]:
-    """Create a schedule entry in ProRadio.
+async def get_schedule_post(credentials: Dict, weekday_name: str) -> Optional[Dict]:
+    """Get the schedule post for a specific weekday.
     
     Args:
         credentials: WordPress API credentials
-        show_id: ProRadio show post ID
-        broadcast_start: ISO 8601 datetime string
-        broadcast_end: ISO 8601 datetime string
-        clara_show_id: Clara show ID for reference
+        weekday_name: Dutch day name (maandag, dinsdag, etc.)
         
     Returns:
-        ProRadio schedule post ID or None if failed
+        Schedule post data or None
     """
     wp_url = credentials["wp_base_url"]
-    auth_string = f"{credentials['username']}:{credentials['app_password']}"
-    auth_bytes = base64.b64encode(auth_string.encode()).decode()
-    
-    headers = {
-        "Authorization": f"Basic {auth_bytes}",
-        "Content-Type": "application/json"
-    }
+    headers = get_auth_headers(credentials)
     
     try:
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            # Check if schedule already exists for this Clara show
-            existing = await db.proradio_sync.find_one({
-                "clara_show_id": clara_show_id,
-                "wp_url": wp_url
-            })
+            # Get all schedule posts
+            response = await client.get(
+                f"{wp_url}/wp-json/wp/v2/schedule",
+                headers=headers,
+                params={"per_page": 10}
+            )
             
-            if existing and existing.get("proradio_schedule_id"):
-                # Update existing schedule
-                schedule_id = existing["proradio_schedule_id"]
-                update_url = f"{wp_url}/wp-json/wp/v2/proradio-schedule/{schedule_id}"
-                
-                schedule_data = {
-                    "meta": {
-                        "_proradio_show": str(show_id),
-                        "_proradio_broadcaststart": broadcast_start,
-                        "_proradio_broadcastend": broadcast_end
-                    }
-                }
-                
-                response = await client.post(update_url, headers=headers, json=schedule_data)
-                
-                if response.status_code in [200, 201]:
-                    logger.info(f"Updated ProRadio schedule {schedule_id}")
-                    return schedule_id
-                else:
-                    logger.warning(f"Failed to update schedule, creating new: {response.status_code}")
+            if response.status_code == 200:
+                schedules = response.json()
+                for sched in schedules:
+                    title = sched.get("title", {}).get("rendered", "").lower()
+                    if title == weekday_name.lower():
+                        return sched
             
-            # Create new schedule
-            create_url = f"{wp_url}/wp-json/wp/v2/proradio-schedule"
+            logger.warning(f"Schedule post not found for {weekday_name}")
+            return None
             
-            schedule_data = {
-                "title": f"Schedule - {clara_show_id[:8]}",
-                "status": "publish",
+    except Exception as e:
+        logger.error(f"Error getting schedule post: {e}")
+        return None
+
+
+async def get_schedule_shows_meta(credentials: Dict, schedule_id: int) -> List[Dict]:
+    """Get the shows meta field from ProRadio schedule API.
+    
+    Args:
+        credentials: WordPress API credentials
+        schedule_id: Schedule post ID
+        
+    Returns:
+        List of show slots
+    """
+    wp_url = credentials["wp_base_url"]
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            # Use ProRadio API to get full schedule data
+            response = await client.get(f"{wp_url}/wp-json/proradio/v1/schedule/")
+            
+            if response.status_code == 200:
+                data = response.json()
+                for post in data.get("posts", []):
+                    if post.get("ID") == schedule_id:
+                        return post.get("shows", [])
+            
+            return []
+            
+    except Exception as e:
+        logger.error(f"Error getting schedule shows meta: {e}")
+        return []
+
+
+async def update_schedule_shows(
+    credentials: Dict,
+    schedule_id: int,
+    shows_data: List[Dict]
+) -> bool:
+    """Update the shows meta field on a schedule post.
+    
+    Args:
+        credentials: WordPress API credentials
+        schedule_id: Schedule post ID
+        shows_data: List of show slot dictionaries
+        
+    Returns:
+        True if successful
+    """
+    wp_url = credentials["wp_base_url"]
+    headers = get_auth_headers(credentials)
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            # ProRadio stores shows in a custom meta field
+            # We need to update via the schedule post endpoint with ACF/meta support
+            update_url = f"{wp_url}/wp-json/wp/v2/schedule/{schedule_id}"
+            
+            # The shows field in ProRadio is typically stored as post meta
+            # Format needs to match ProRadio's expected structure
+            update_data = {
                 "meta": {
-                    "_proradio_show": str(show_id),
-                    "_proradio_broadcaststart": broadcast_start,
-                    "_proradio_broadcastend": broadcast_end
+                    "shows": shows_data
                 }
             }
             
-            response = await client.post(create_url, headers=headers, json=schedule_data)
+            response = await client.post(update_url, headers=headers, json=update_data)
             
             if response.status_code in [200, 201]:
-                schedule = response.json()
-                schedule_id = schedule["id"]
-                
-                # Store sync record
-                await db.proradio_sync.update_one(
-                    {"clara_show_id": clara_show_id, "wp_url": wp_url},
-                    {
-                        "$set": {
-                            "proradio_schedule_id": schedule_id,
-                            "proradio_show_id": show_id,
-                            "synced_at": datetime.now(timezone.utc).isoformat()
-                        }
-                    },
-                    upsert=True
-                )
-                
-                logger.info(f"Created ProRadio schedule {schedule_id}")
-                return schedule_id
-            else:
-                logger.error(f"Failed to create schedule: {response.status_code} - {response.text}")
-                return None
-                
-    except Exception as e:
-        logger.error(f"Error creating ProRadio schedule: {e}")
-        return None
-
-
-async def delete_proradio_schedule(
-    credentials: Dict,
-    clara_show_id: str
-) -> bool:
-    """Delete a schedule entry from ProRadio.
-    
-    Args:
-        credentials: WordPress API credentials
-        clara_show_id: Clara show ID
-        
-    Returns:
-        True if deleted successfully
-    """
-    wp_url = credentials["wp_base_url"]
-    
-    # Find sync record
-    sync_record = await db.proradio_sync.find_one({
-        "clara_show_id": clara_show_id,
-        "wp_url": wp_url
-    })
-    
-    if not sync_record or not sync_record.get("proradio_schedule_id"):
-        logger.info(f"No ProRadio schedule found for Clara show {clara_show_id}")
-        return True
-    
-    schedule_id = sync_record["proradio_schedule_id"]
-    
-    auth_string = f"{credentials['username']}:{credentials['app_password']}"
-    auth_bytes = base64.b64encode(auth_string.encode()).decode()
-    
-    headers = {
-        "Authorization": f"Basic {auth_bytes}"
-    }
-    
-    try:
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            delete_url = f"{wp_url}/wp-json/wp/v2/proradio-schedule/{schedule_id}?force=true"
-            
-            response = await client.delete(delete_url, headers=headers)
-            
-            if response.status_code in [200, 204]:
-                # Remove sync record
-                await db.proradio_sync.delete_one({
-                    "clara_show_id": clara_show_id,
-                    "wp_url": wp_url
-                })
-                logger.info(f"Deleted ProRadio schedule {schedule_id}")
+                logger.info(f"Updated schedule {schedule_id} with {len(shows_data)} show slots")
                 return True
             else:
-                logger.error(f"Failed to delete schedule: {response.status_code}")
+                # Try alternative field name
+                update_data = {
+                    "acf": {
+                        "shows": shows_data
+                    }
+                }
+                response = await client.post(update_url, headers=headers, json=update_data)
+                
+                if response.status_code in [200, 201]:
+                    logger.info(f"Updated schedule {schedule_id} via ACF")
+                    return True
+                    
+                logger.error(f"Failed to update schedule: {response.status_code} - {response.text[:500]}")
                 return False
                 
     except Exception as e:
-        logger.error(f"Error deleting ProRadio schedule: {e}")
+        logger.error(f"Error updating schedule: {e}")
         return False
 
 
@@ -338,7 +321,7 @@ async def sync_show_to_proradio(
     Returns:
         Dict with sync results per station
     """
-    results = {"mfy": None, "grk": None}
+    results = {"mfy": None, "grk": None, "synced": False}
     
     show_title = show.get("title", "")
     show_id = show.get("id", "")
@@ -372,14 +355,9 @@ async def sync_show_to_proradio(
     elif rds_station == "both":
         stations_to_sync = ["mfy", "grk"]
     
-    # Format broadcast times
-    broadcast_start = format_datetime_for_proradio(show_date, start_time)
-    broadcast_end = format_datetime_for_proradio(show_date, end_time)
-    
-    # Get thumbnail URL if available
-    thumbnail_url = None
-    if title_info.get("image") and title_info["image"].get("s3_url"):
-        thumbnail_url = title_info["image"]["s3_url"]
+    # Get weekday name for schedule lookup
+    weekday_name = get_weekday_name(show_date)
+    description = title_info.get("description", "")
     
     # Sync to each station
     for station in stations_to_sync:
@@ -390,32 +368,75 @@ async def sync_show_to_proradio(
             continue
         
         try:
-            # Find or create ProRadio show
-            proradio_show_id = await find_or_create_proradio_show(
-                credentials, show_title, thumbnail_url
-            )
+            # Step 1: Find or create the show in WordPress
+            wp_show_id = await find_or_create_wp_show(credentials, show_title, description)
             
-            if not proradio_show_id:
+            if not wp_show_id:
                 results[station] = {"status": "error", "message": "Failed to find/create show"}
                 continue
             
-            # Create/update schedule
-            schedule_id = await create_proradio_schedule(
-                credentials,
-                proradio_show_id,
-                broadcast_start,
-                broadcast_end,
-                show_id
-            )
+            # Step 2: Get the schedule post for the weekday
+            schedule_post = await get_schedule_post(credentials, weekday_name)
             
-            if schedule_id:
+            if not schedule_post:
+                results[station] = {"status": "error", "message": f"No schedule post for {weekday_name}"}
+                continue
+            
+            schedule_id = schedule_post["id"]
+            
+            # Step 3: Get current shows from schedule
+            current_shows = await get_schedule_shows_meta(credentials, schedule_id)
+            
+            # Step 4: Add or update our show slot
+            new_slot = {
+                "show_id": [str(wp_show_id)],
+                "show_time": start_time,
+                "show_time_end": end_time
+            }
+            
+            # Remove any existing slot with the same time or same show
+            updated_shows = [
+                s for s in current_shows
+                if not (s.get("show_time") == start_time and s.get("show_time_end") == end_time)
+                and not (str(wp_show_id) in s.get("show_id", []) and s.get("show_time") == start_time)
+            ]
+            
+            # Add the new slot
+            updated_shows.append(new_slot)
+            
+            # Sort by start time
+            updated_shows.sort(key=lambda x: x.get("show_time", "00:00"))
+            
+            # Step 5: Update the schedule post
+            success = await update_schedule_shows(credentials, schedule_id, updated_shows)
+            
+            if success:
+                # Store sync record for tracking
+                await db.proradio_sync.update_one(
+                    {"clara_show_id": show_id, "station": station},
+                    {
+                        "$set": {
+                            "wp_show_id": wp_show_id,
+                            "schedule_id": schedule_id,
+                            "weekday": weekday_name,
+                            "start_time": start_time,
+                            "end_time": end_time,
+                            "synced_at": datetime.now(timezone.utc).isoformat(),
+                            "main_site_id": main_site_id
+                        }
+                    },
+                    upsert=True
+                )
+                
                 results[station] = {
                     "status": "success",
-                    "proradio_show_id": proradio_show_id,
-                    "proradio_schedule_id": schedule_id
+                    "wp_show_id": wp_show_id,
+                    "schedule_id": schedule_id,
+                    "weekday": weekday_name
                 }
+                results["synced"] = True
             else:
-                results[station] = {"status": "error", "message": "Failed to create schedule"}
+                results[station] = {"status": "error", "message": "Failed to update schedule"}
                 
         except Exception as e:
             logger.error(f"Error syncing to {station}: {e}")
@@ -427,14 +448,20 @@ async def sync_show_to_proradio(
 async def delete_show_from_proradio(
     show_id: str,
     show_title: str,
+    show_date: str,
+    start_time: str,
+    end_time: str,
     main_site_id: str,
     team_id: str
 ) -> Dict[str, Any]:
-    """Delete a show's schedule from ProRadio.
+    """Delete a show's schedule slot from ProRadio.
     
     Args:
         show_id: Clara show ID
-        show_title: Show title to determine stations
+        show_title: Show title
+        show_date: Show date (YYYY-MM-DD)
+        start_time: Start time (HH:MM)
+        end_time: End time (HH:MM)
         main_site_id: Main site ID for context
         team_id: Team ID for context
         
@@ -443,20 +470,20 @@ async def delete_show_from_proradio(
     """
     results = {"mfy": None, "grk": None}
     
+    # Find sync records for this show
+    sync_records = await db.proradio_sync.find({"clara_show_id": show_id}).to_list(10)
+    
+    weekday_name = get_weekday_name(show_date) if show_date else None
+    
     # Get show title info to determine rds_station
     title_info = await get_show_title_info(show_title, main_site_id, team_id)
+    rds_station = title_info.get("rds_station", "both") if title_info else "both"
     
-    rds_station = title_info.get("rds_station", "none") if title_info else "both"
-    
-    # If we can't determine the station, try both
     stations_to_delete = []
     if rds_station in ["mfy", "both"]:
         stations_to_delete.append("mfy")
     if rds_station in ["grk", "both"]:
         stations_to_delete.append("grk")
-    
-    # Also check if there are any sync records for this show
-    sync_records = await db.proradio_sync.find({"clara_show_id": show_id}).to_list(10)
     
     for station in stations_to_delete:
         credentials = await get_wordpress_credentials(station, main_site_id)
@@ -464,8 +491,62 @@ async def delete_show_from_proradio(
         if not credentials:
             continue
         
-        success = await delete_proradio_schedule(credentials, show_id)
-        results[station] = {"status": "success" if success else "error"}
+        try:
+            # Find the sync record for this station
+            sync_record = next(
+                (r for r in sync_records if r.get("station") == station),
+                None
+            )
+            
+            if sync_record:
+                schedule_id = sync_record.get("schedule_id")
+                wp_show_id = sync_record.get("wp_show_id")
+            elif weekday_name:
+                # Try to find by weekday
+                schedule_post = await get_schedule_post(credentials, weekday_name)
+                schedule_id = schedule_post["id"] if schedule_post else None
+                wp_show_id = None
+            else:
+                continue
+            
+            if not schedule_id:
+                continue
+            
+            # Get current shows from schedule
+            current_shows = await get_schedule_shows_meta(credentials, schedule_id)
+            
+            # Remove the show slot matching our time
+            updated_shows = [
+                s for s in current_shows
+                if not (s.get("show_time") == start_time and s.get("show_time_end") == end_time)
+            ]
+            
+            # Also remove by wp_show_id if we have it
+            if wp_show_id:
+                updated_shows = [
+                    s for s in updated_shows
+                    if str(wp_show_id) not in s.get("show_id", [])
+                ]
+            
+            if len(updated_shows) < len(current_shows):
+                # Something was removed, update the schedule
+                success = await update_schedule_shows(credentials, schedule_id, updated_shows)
+                
+                if success:
+                    # Remove sync record
+                    await db.proradio_sync.delete_one({
+                        "clara_show_id": show_id,
+                        "station": station
+                    })
+                    results[station] = {"status": "success"}
+                else:
+                    results[station] = {"status": "error", "message": "Failed to update schedule"}
+            else:
+                results[station] = {"status": "not_found"}
+                
+        except Exception as e:
+            logger.error(f"Error deleting from {station}: {e}")
+            results[station] = {"status": "error", "message": str(e)}
     
     return results
 
@@ -495,6 +576,8 @@ async def sync_shows_for_date(
     shows = await db.shows.find(query, {"_id": 0}).to_list(100)
     
     results = {
+        "date": date_str,
+        "weekday": get_weekday_name(date_str),
         "total": len(shows),
         "synced": 0,
         "skipped": 0,
@@ -505,17 +588,25 @@ async def sync_shows_for_date(
     for show in shows:
         sync_result = await sync_show_to_proradio(show, main_site_id, team_id)
         
-        if any(r and r.get("status") == "success" for r in sync_result.values()):
+        if sync_result.get("synced"):
             results["synced"] += 1
-        elif all(r is None for r in sync_result.values()):
+        elif all(r is None for r in [sync_result.get("mfy"), sync_result.get("grk")]):
             results["skipped"] += 1
         else:
-            results["errors"] += 1
+            has_error = any(
+                r and r.get("status") == "error" 
+                for r in [sync_result.get("mfy"), sync_result.get("grk")]
+            )
+            if has_error:
+                results["errors"] += 1
+            else:
+                results["skipped"] += 1
         
         results["details"].append({
             "show_id": show.get("id"),
             "show_title": show.get("title"),
-            "result": sync_result
+            "time": f"{show.get('start_time')} - {show.get('end_time')}",
+            "result": {k: v for k, v in sync_result.items() if k != "synced"}
         })
     
     return results
