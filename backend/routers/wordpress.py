@@ -207,7 +207,31 @@ async def test_wordpress_site(
             )
             
             if response.status_code == 200:
-                user_data = response.json()
+                # Try to parse JSON response
+                try:
+                    user_data = response.json()
+                except Exception as json_error:
+                    # Response is not valid JSON - likely HTML error page
+                    response_preview = response.text[:500] if response.text else "(empty response)"
+                    
+                    # Check if it's an HTML page
+                    if response.text and ('<html' in response.text.lower() or '<!doctype' in response.text.lower()):
+                        return WordPressConnectionTestResponse(
+                            success=False,
+                            message="WordPress REST API returned HTML instead of JSON",
+                            error=f"The WordPress site returned an HTML page instead of JSON. This usually means:\n"
+                                  f"1. The REST API is disabled or blocked by a security plugin\n"
+                                  f"2. The site is behind a login wall or maintenance mode\n"
+                                  f"3. A redirect is occurring to a different URL\n\n"
+                                  f"Response preview: {response_preview[:200]}..."
+                        )
+                    else:
+                        return WordPressConnectionTestResponse(
+                            success=False,
+                            message=f"Invalid JSON response from WordPress",
+                            error=f"Parse error: {str(json_error)}. Response: {response_preview[:200]}"
+                        )
+                
                 wp_user_name = user_data.get('name', 'Unknown')
                 wp_user_roles = user_data.get('roles', [])
                 wp_capabilities = user_data.get('capabilities', {})
