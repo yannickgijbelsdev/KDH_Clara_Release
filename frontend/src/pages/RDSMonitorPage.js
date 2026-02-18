@@ -99,38 +99,39 @@ const RDSMonitorPage = () => {
     }
   }, [monitorData, forceRefreshing, forceRefresh, autoSync]);
 
-  // Update countdowns every second
+  // Optimized countdown timer - updates every second but with minimal state changes
   useEffect(() => {
-    const updateCountdowns = () => {
-      if (monitorData?.stations) {
-        setCountdowns({
-          mfy: getSecondsUntilStale(monitorData.stations.mfy?.now_playing?.stale_at),
-          grk: getSecondsUntilStale(monitorData.stations.grk?.now_playing?.stale_at),
-        });
-        
-        // Update show end countdowns from calendar data
-        setShowEndCountdowns({
-          mfy: monitorData.stations.mfy?.calendar_live_show?.seconds_until_end || null,
-          grk: monitorData.stations.grk?.calendar_live_show?.seconds_until_end || null,
-        });
-        
-        // Update scheduled text countdowns
-        setScheduledTextCountdowns({
-          mfy: monitorData.stations.mfy?.next_scheduled_text?.seconds_until || null,
-          grk: monitorData.stations.grk?.next_scheduled_text?.seconds_until || null,
-        });
-      }
+    if (!monitorData?.stations) return;
+    
+    // Initialize countdowns from server data
+    const initCountdowns = () => {
+      setCountdowns({
+        mfy: getSecondsUntilStale(monitorData.stations.mfy?.now_playing?.stale_at),
+        grk: getSecondsUntilStale(monitorData.stations.grk?.now_playing?.stale_at),
+      });
+      setShowEndCountdowns({
+        mfy: monitorData.stations.mfy?.calendar_live_show?.seconds_until_end || null,
+        grk: monitorData.stations.grk?.calendar_live_show?.seconds_until_end || null,
+      });
+      setScheduledTextCountdowns({
+        mfy: monitorData.stations.mfy?.next_scheduled_text?.seconds_until || null,
+        grk: monitorData.stations.grk?.next_scheduled_text?.seconds_until || null,
+      });
     };
-
-    updateCountdowns();
+    
+    initCountdowns();
+    
+    // Single interval for all countdown decrements - runs every second
     countdownRef.current = setInterval(() => {
-      updateCountdowns();
-      // Also decrement local show countdowns
+      // Batch all countdown decrements in one update cycle
+      setCountdowns(prev => ({
+        mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
+        grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
+      }));
       setShowEndCountdowns(prev => ({
         mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
         grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
       }));
-      // Also decrement scheduled text countdowns
       setScheduledTextCountdowns(prev => ({
         mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
         grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
@@ -144,11 +145,12 @@ const RDSMonitorPage = () => {
     };
   }, [monitorData]);
 
+  // Data refresh - reduced from 2s to 10s to lower CPU/network load
   useEffect(() => {
     fetchMonitorData();
 
     if (autoRefresh) {
-      intervalRef.current = setInterval(fetchMonitorData, 2000); // Refresh every 2 seconds
+      intervalRef.current = setInterval(fetchMonitorData, 10000); // Refresh every 10 seconds
     }
 
     return () => {
