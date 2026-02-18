@@ -199,6 +199,18 @@ const WordPressSettingsPage = () => {
     setDeleteDialogOpen(true);
   };
 
+  const handleSyncCategories = async (siteId) => {
+    setSyncingCategoriesId(siteId);
+    try {
+      const response = await axios.post(`${API}/wordpress/sites/${siteId}/sync-categories`);
+      toast.success(`Synced ${response.data.synced} categories (${response.data.created} new, ${response.data.updated} updated)`);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to sync categories');
+    } finally {
+      setSyncingCategoriesId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse">
