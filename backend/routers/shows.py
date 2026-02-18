@@ -892,6 +892,9 @@ async def create_show(
         if show_doc.get("presenter_ids"):
             show_doc["presenters"] = await get_presenters_info(show_doc["presenter_ids"], team_id)
         
+        # Sync to ProRadio in background
+        background_tasks.add_task(sync_show_to_proradio, show_doc, main_site_id, team_id)
+        
         return show_doc
 
 
