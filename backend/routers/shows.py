@@ -849,6 +849,16 @@ async def create_show(
         if parent_doc.get("presenter_ids"):
             parent_doc["presenters"] = await get_presenters_info(parent_doc["presenter_ids"], team_id)
         
+        # Sync to ProRadio in background (for parent and all occurrences)
+        async def sync_recurring_shows():
+            all_shows = await db.shows.find({
+                "$or": [{"id": parent_id}, {"parent_show_id": parent_id}]
+            }, {"_id": 0}).to_list(100)
+            for show in all_shows:
+                await sync_show_to_proradio(show, main_site_id, team_id)
+        
+        background_tasks.add_task(sync_recurring_shows)
+        
         return parent_doc
     else:
         # Non-recurring show
