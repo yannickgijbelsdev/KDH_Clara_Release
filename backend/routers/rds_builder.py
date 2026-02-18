@@ -362,6 +362,10 @@ async def force_refresh_rds():
         "live_shows": live_shows
     })
     
+    # Invalidate monitor cache after force refresh
+    global _monitor_cache
+    _monitor_cache = {"data": None, "timestamp": None}
+    
     return {
         "status": "success",
         "timestamp": now_brussels.isoformat(),
@@ -370,14 +374,36 @@ async def force_refresh_rds():
     }
 
 
+# Simple in-memory cache for monitor endpoint (5 second TTL)
+_monitor_cache = {"data": None, "timestamp": None}
+MONITOR_CACHE_TTL_SECONDS = 5
+
+
 @rds_builder_router.get("/monitor")
 async def get_rds_monitor_data():
     """Public endpoint: Get real-time RDS monitoring data for all stations.
     
     Returns current output for both stations plus recent change history.
     No authentication required for monitoring displays.
+    Uses 5-second cache to reduce CPU load from frequent polling.
     """
+    global _monitor_cache
+    
     now_brussels = datetime.now(BRUSSELS_TZ)
+    now_utc = datetime.now(timezone.utc)
+    
+    # Check if cached data is still valid
+    if (_monitor_cache["data"] is not None and 
+        _monitor_cache["timestamp"] is not None and
+        (now_utc - _monitor_cache["timestamp"]).total_seconds() < MONITOR_CACHE_TTL_SECONDS):
+        # Return cached data with updated timestamp display
+        cached = _monitor_cache["data"].copy()
+        cached["timestamp"] = now_brussels.isoformat()
+        cached["timestamp_formatted"] = now_brussels.strftime("%H:%M:%S")
+        cached["cached"] = True
+        return cached
+    
+    # Generate fresh data
     
     # Get current outputs for both stations
     stations_data = {}
