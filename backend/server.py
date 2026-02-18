@@ -210,13 +210,16 @@ async def get_menu_counts(request: Request, current_user: dict = Depends(get_cur
         })
         last_viewed = user_log_status.get("last_viewed_at") if user_log_status else None
         
+        # Filter logs by main_site_id if provided
+        log_filter = {"main_site_id": main_site_id} if main_site_id else {"team_id": team_id}
+        
         if last_viewed:
             logs_count = await db.audit_logs.count_documents({
-                "team_id": team_id,
+                **log_filter,
                 "timestamp": {"$gt": last_viewed}
             })
         else:
-            logs_count = await db.audit_logs.count_documents({"team_id": team_id})
+            logs_count = await db.audit_logs.count_documents(log_filter)
         counts["logs"] = logs_count
     
     return counts
