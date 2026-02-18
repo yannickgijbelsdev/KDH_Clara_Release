@@ -45,6 +45,7 @@ const RDSMonitorPage = () => {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [countdowns, setCountdowns] = useState({ mfy: null, grk: null });
   const [showEndCountdowns, setShowEndCountdowns] = useState({ mfy: null, grk: null });
+  const [scheduledTextCountdowns, setScheduledTextCountdowns] = useState({ mfy: null, grk: null });
   const [forceRefreshing, setForceRefreshing] = useState(false);
   const [lastAutoSync, setLastAutoSync] = useState(null); // Track last auto-sync time
   const intervalRef = useRef(null);
