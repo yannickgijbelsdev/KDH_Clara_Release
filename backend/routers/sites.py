@@ -203,10 +203,11 @@ async def update_site(
     team_id = current_user.get('team_id')
     user_id = current_user.get('id')
     is_admin = current_user.get('role') == 'admin'
+    is_network_admin = current_user.get('is_network_admin', False)
     main_site_id = request.headers.get('X-Main-Site-ID')
     
-    # Check if user has editor access
-    if not is_admin:
+    # Check if user has editor access (skip for admins and network admins)
+    if not is_admin and not is_network_admin:
         access = await db.site_users.find_one({
             "site_id": site_id,
             "user_id": user_id,
@@ -215,15 +216,38 @@ async def update_site(
         if not access:
             raise HTTPException(status_code=403, detail="Geen bewerkingsrechten")
     
-    # Build query to find site - use main_site_id if available
-    if main_site_id:
-        site = await db.sites.find_one({"id": site_id, "main_site_id": main_site_id})
-    elif team_id:
-        site = await db.sites.find_one({"id": site_id, "team_id": team_id})
-    else:
-        site = await db.sites.find_one({"id": site_id})
+    # First, find the site by ID
+    site = await db.sites.find_one({"id": site_id})
     
     if not site:
+        raise HTTPException(status_code=404, detail="Site niet gevonden")
+    
+    # Verify authorization: user must have access to this site
+    has_access = False
+    
+    # Check 1: main_site_id header matches site's main_site_id
+    if main_site_id and site.get("main_site_id") == main_site_id:
+        has_access = True
+    
+    # Check 2: user's team_id matches site's team_id
+    if not has_access and team_id and site.get("team_id") == team_id:
+        has_access = True
+    
+    # Check 3: network admin with access to the site's main_site
+    if not has_access and is_network_admin and site.get("main_site_id"):
+        # Check if network admin has access to this main site
+        main_site_access = await db.main_site_users.find_one({
+            "main_site_id": site.get("main_site_id"),
+            "user_id": user_id
+        })
+        if main_site_access:
+            has_access = True
+    
+    # Check 4: admin role with matching team
+    if not has_access and is_admin and team_id and site.get("team_id") == team_id:
+        has_access = True
+    
+    if not has_access:
         raise HTTPException(status_code=404, detail="Site niet gevonden")
     
     # If slug is being changed, check uniqueness
