@@ -225,26 +225,26 @@ async def check_live_shows_from_calendar():
     Returns dict with live show info per station.
     """
     now_brussels = datetime.now(BRUSSELS_TZ)
-    now_utc = datetime.now(timezone.utc)
     
     live_shows_by_station = {"mfy": None, "grk": None}
     
-    for check_time in [now_brussels, now_utc]:
-        current_date = check_time.strftime('%Y-%m-%d')
-        current_time = check_time.strftime('%H:%M')
-        yesterday_date = (check_time - timedelta(days=1)).strftime('%Y-%m-%d')
-        
-        # Get all scheduled shows for today and yesterday
-        all_shows = await db.shows.find({
-            "status": "scheduled",
-            "date": {"$in": [current_date, yesterday_date]}
-        }, {"_id": 0}).to_list(500)
-        
-        for show in all_shows:
-            start = show.get("start_time", "00:00")
-            end = show.get("end_time", "23:59")
-            show_date = show.get("date", "")
-            rds_station = show.get("rds_station", "none")
+    # Shows are stored in Brussels time, so only check with Brussels time
+    check_time = now_brussels
+    current_date = check_time.strftime('%Y-%m-%d')
+    current_time = check_time.strftime('%H:%M')
+    yesterday_date = (check_time - timedelta(days=1)).strftime('%Y-%m-%d')
+    
+    # Get all scheduled shows for today and yesterday
+    all_shows = await db.shows.find({
+        "status": "scheduled",
+        "date": {"$in": [current_date, yesterday_date]}
+    }, {"_id": 0}).to_list(500)
+    
+    for show in all_shows:
+        start = show.get("start_time", "00:00")
+        end = show.get("end_time", "23:59")
+        show_date = show.get("date", "")
+        rds_station = show.get("rds_station", "none")
             
             # Skip shows not assigned to RDS
             if rds_station == "none":
