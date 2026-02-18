@@ -372,7 +372,7 @@ async def publish_content_to_wordpress(
         now = datetime.now(timezone.utc).isoformat()
         
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
                 auth_string = f"{site['username']}:{site['app_password']}"
                 auth_bytes = base64.b64encode(auth_string.encode()).decode()
                 headers = {
