@@ -423,11 +423,30 @@ async def get_rds_monitor_data():
             {"_id": 0, "song_title": 1, "current_listeners": 1, "stream_online": 1, "is_stale": 1, "song_started_at": 1, "stale_at": 1}
         )
         
+        # Get active scheduled text info from output
+        scheduled_text_info = None
+        if output and output.get("scheduled_text_active"):
+            scheduled_text_info = {
+                "text": output.get("current_text", ""),
+                "ends_at": output.get("scheduled_text_ends_at"),
+                "item_id": output.get("current_item_id")
+            }
+        
+        # Get next scheduled text
+        from services.rds_builder_scheduler import get_active_scheduled_text_for_station
+        active_scheduled = await get_active_scheduled_text_for_station(db, station)
+        
         stations_data[station] = {
             "current_text": output.get("current_text", "") if output else "",
             "current_item_type": output.get("current_item_type", "") if output else "",
             "sequence_enabled": sequence.get("enabled", False) if sequence else False,
             "scheduled_text_active": output.get("scheduled_text_active", False) if output else False,
+            "scheduled_text_info": scheduled_text_info,
+            "active_scheduled_text": {
+                "text": active_scheduled["text"],
+                "ends_at": active_scheduled["ends_at"].isoformat() if active_scheduled.get("ends_at") else None,
+                "is_recurring": active_scheduled.get("is_recurring", False)
+            } if active_scheduled else None,
             "audio_trigger_active": output.get("audio_trigger_active", False) if output else False,
             "next_change_at": output.get("next_change_at", "") if output else "",
             "updated_at": output.get("updated_at", "") if output else "",
