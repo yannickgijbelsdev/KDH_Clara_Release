@@ -150,7 +150,7 @@ const TeamSettingsPage = () => {
       // In multisite context, fetch main site info for display
       if (mainSiteSlug) {
         try {
-          const mainSitesRes = await axios.get(`${API}/network/main-sites`);
+          const mainSitesRes = await axios.get(`${API}/main-sites`);
           const currentMainSite = mainSitesRes.data.find(s => s.slug === mainSiteSlug);
           if (currentMainSite) {
             setMainSite(currentMainSite);
