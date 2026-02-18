@@ -23,6 +23,7 @@ AVAILABLE_FEATURES = [
     # RDS & Streaming group
     {"id": "rds_settings", "name": "RDS Settings", "group": "streaming"},
     {"id": "rds_builder", "name": "RDS Builder", "group": "streaming"},
+    {"id": "rds_monitor", "name": "RDS Monitor", "group": "streaming"},
     {"id": "stream_monitor", "name": "Stream Monitor", "group": "streaming"},
     
     # Sites group (mini sites)
