@@ -109,9 +109,12 @@ const RDSMonitorPage = () => {
         mfy: getSecondsUntilStale(monitorData.stations.mfy?.now_playing?.stale_at),
         grk: getSecondsUntilStale(monitorData.stations.grk?.now_playing?.stale_at),
       });
+      // Only set show end countdown if there's actually a live show
       setShowEndCountdowns({
-        mfy: monitorData.stations.mfy?.calendar_live_show?.seconds_until_end || null,
-        grk: monitorData.stations.grk?.calendar_live_show?.seconds_until_end || null,
+        mfy: monitorData.stations.mfy?.calendar_live_show ? 
+             (monitorData.stations.mfy.calendar_live_show.seconds_until_end || null) : null,
+        grk: monitorData.stations.grk?.calendar_live_show ? 
+             (monitorData.stations.grk.calendar_live_show.seconds_until_end || null) : null,
       });
       setScheduledTextCountdowns({
         mfy: monitorData.stations.mfy?.next_scheduled_text?.seconds_until || null,
