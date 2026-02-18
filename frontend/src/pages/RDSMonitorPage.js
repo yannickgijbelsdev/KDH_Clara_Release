@@ -375,7 +375,7 @@ const RDSMonitorPage = () => {
 
   // Listen for force refresh events from StationCard
   useEffect(() => {
-    const handleForceRefresh = () => forceRefresh();
+    const handleForceRefresh = () => forceRefresh(false);
     window.addEventListener('force-refresh', handleForceRefresh);
     return () => window.removeEventListener('force-refresh', handleForceRefresh);
   }, [forceRefresh]);
@@ -388,20 +388,28 @@ const RDSMonitorPage = () => {
     );
   }
 
+  // Check if any station has stale cache
+  const hasStaleCache = monitorData?.stations?.mfy?.cache_stale || monitorData?.stations?.grk?.cache_stale;
+
   return (
     <div className="min-h-screen bg-zinc-950 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white" data-testid="rds-monitor-title">
               RDS Monitor
             </h1>
             <p className="text-zinc-400 text-sm">
               Real-time RDS output monitoring
+              {lastAutoSync && (
+                <span className="ml-2 text-green-400">
+                  • Last auto-sync: {lastAutoSync.toLocaleTimeString()}
+                </span>
+              )}
             </p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 text-sm text-zinc-400">
               <Clock className="w-4 h-4" />
               {monitorData?.timestamp_formatted} ({monitorData?.date_formatted})
@@ -409,13 +417,23 @@ const RDSMonitorPage = () => {
             <Button
               variant="destructive"
               size="sm"
-              onClick={forceRefresh}
+              onClick={() => forceRefresh(false)}
               disabled={forceRefreshing}
               className="gap-2 bg-amber-600 hover:bg-amber-700"
               data-testid="force-refresh-btn"
             >
               <RefreshCw className={`w-4 h-4 ${forceRefreshing ? 'animate-spin' : ''}`} />
               Force Refresh
+            </Button>
+            <Button
+              variant={autoSync ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAutoSync(!autoSync)}
+              className={`gap-2 ${autoSync ? 'bg-green-600 hover:bg-green-700' : ''}`}
+              data-testid="auto-sync-toggle"
+            >
+              <CheckCircle className={`w-4 h-4 ${hasStaleCache && autoSync ? 'animate-pulse' : ''}`} />
+              Auto-Sync {autoSync ? 'ON' : 'OFF'}
             </Button>
             <Button
               variant={autoRefresh ? "default" : "outline"}
