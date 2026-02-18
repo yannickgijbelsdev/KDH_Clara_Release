@@ -324,6 +324,136 @@ async def test_wordpress_site(
         return WordPressConnectionTestResponse(success=False, message=f"Connection error: {str(e)}")
 
 
+@wordpress_router.post("/sites/{site_id}/sync-categories")
+async def sync_wordpress_categories(
+    site_id: str,
+    request: Request,
+    current_user: dict = Depends(require_admin)
+):
+    """Sync categories from WordPress to Clara for a specific site.
+    
+    Fetches all categories from the WordPress site and creates/updates them in Clara's
+    categories collection, linking them to the current main site.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"id": site_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": site_id, "team_id": current_user.get('team_id')}
+    
+    site = await db.wordpress_sites.find_one(query)
+    if not site:
+        raise HTTPException(status_code=404, detail="WordPress site not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            auth_string = f"{site['username']}:{site['app_password']}"
+            auth_bytes = base64.b64encode(auth_string.encode()).decode()
+            headers = {
+                "Authorization": f"Basic {auth_bytes}",
+                "Accept": "application/json"
+            }
+            
+            # Fetch all categories from WordPress (paginate if needed)
+            all_wp_categories = []
+            page = 1
+            per_page = 100
+            
+            while True:
+                response = await client.get(
+                    f"{site['wp_base_url']}/wp-json/wp/v2/categories",
+                    headers=headers,
+                    params={"per_page": per_page, "page": page}
+                )
+                
+                if response.status_code != 200:
+                    raise HTTPException(
+                        status_code=response.status_code,
+                        detail=f"Failed to fetch WordPress categories: {response.text[:200]}"
+                    )
+                
+                categories = response.json()
+                if not categories:
+                    break
+                
+                all_wp_categories.extend(categories)
+                
+                # Check if there are more pages
+                total_pages = int(response.headers.get('X-WP-TotalPages', 1))
+                if page >= total_pages:
+                    break
+                page += 1
+            
+            # Sync categories to Clara
+            synced = 0
+            created = 0
+            updated = 0
+            
+            for wp_cat in all_wp_categories:
+                wp_cat_name = wp_cat.get('name', '').strip()
+                wp_cat_slug = wp_cat.get('slug', '')
+                wp_cat_id = wp_cat.get('id')
+                
+                if not wp_cat_name:
+                    continue
+                
+                # Check if category already exists for this main site
+                existing = await db.categories.find_one({
+                    "main_site_id": main_site_id,
+                    "$or": [
+                        {"name": {"$regex": f"^{wp_cat_name}$", "$options": "i"}},
+                        {"wp_category_id": wp_cat_id}
+                    ]
+                })
+                
+                if existing:
+                    # Update existing category with WordPress ID
+                    await db.categories.update_one(
+                        {"id": existing["id"]},
+                        {"$set": {
+                            "wp_category_id": wp_cat_id,
+                            "wp_category_slug": wp_cat_slug,
+                            "updated_at": now
+                        }}
+                    )
+                    updated += 1
+                else:
+                    # Create new category
+                    new_category = {
+                        "id": str(uuid.uuid4()),
+                        "name": wp_cat_name,
+                        "slug": wp_cat_slug,
+                        "main_site_id": main_site_id,
+                        "team_id": current_user.get('team_id'),
+                        "wp_category_id": wp_cat_id,
+                        "wp_category_slug": wp_cat_slug,
+                        "created_by": current_user['id'],
+                        "created_at": now,
+                        "updated_at": now
+                    }
+                    await db.categories.insert_one(new_category)
+                    created += 1
+                
+                synced += 1
+            
+            return {
+                "success": True,
+                "message": f"Synced {synced} categories from WordPress",
+                "synced": synced,
+                "created": created,
+                "updated": updated,
+                "wp_categories_found": len(all_wp_categories)
+            }
+            
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=408, detail="WordPress connection timed out")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync categories: {str(e)}")
+
+
 @wordpress_router.get("/connection")
 async def get_legacy_connection(
     request: Request,
