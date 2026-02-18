@@ -1,130 +1,140 @@
 <analysis>**original_problem_statement:**
-The user's production application was non-functional due to a deployment failure causing  on key data-loading endpoints. After resolving this initial blocker, the user reported a series of subsequent issues and feature requests:
-1.  Featured images were not loading in the content library.
-2.  RDS Cache logs were not working, the update interval was too long (5 minutes), and the timezone was incorrect (not Brussels).
-3.  Activity logs were not visible to Network Admins.
-4.  Last cache refresh timestamp was not updating correctly.
-5.  Outlines/borders on various UI components (mini sites, public pages) needed to be removed for a cleaner look.
-6.  A scheduled show was not appearing on the RDS, and the RDS was showing stale data from the previous hour.
-7.  Add Test and Debug tools to the Network Admin dashboard to check the health and status of each main site.
+The user initially reported a could not load RDS settings error. After this was resolved, a cascade of new issues and feature requests emerged throughout the session. The user requested fixes for shows remaining active after their end time, performance issues with the RDS monitor, broken WordPress integrations (301 errors, category syncing), incorrect data isolation between different 'main sites', and incorrect menu badge counts. They also requested several new features, including the ability to assign existing users to multiple main sites and making the RDS Monitor an optional, configurable feature per main site.
 
 **User's preferred language**: Dutch. The next agent MUST respond in Dutch.
 
 **what currently exists?**
-The agent has successfully resolved the critical production deployment failure by fixing a Pydantic validation error where  for Network Admins was not being handled correctly. Following that, the agent addressed a series of bugs and implemented new features:
--   Fixed featured image loading by correctly enriching content with publishing status.
--   Corrected the RDS scheduler to run every 60 seconds and use the  timezone throughout the backend.
--   Fixed Activity Log visibility for Network Admins by adjusting the database query.
--   Resolved issues with cache logs and the last refresh timestamp by ensuring logs are always created and timestamps updated on every scheduler run.
--   Implemented the requested Network Admin tools: a Test button that shows a health-check modal with site statistics, and a Debug button that displays a detailed debug panel with logs and operational data, saving a snapshot to the database.
--   Removed borders and shadows from UI components on multiple pages for a cleaner design.
--   Refactored the RDS scheduler logic to correctly find shows in a multi-site context by resolving a  to its constituent child s.
-
-The application is now largely functional, but a final bug related to stale RDS data remains.
+The agent has implemented a significant number of fixes and features. The critical bug causing shows to remain active after their scheduled end time due to a timezone mismatch has been resolved. The **RDS Monitoring Dashboard** has been heavily enhanced with forced refresh, an auto-sync mechanism for stale data, countdown timers for shows and scheduled text, and has been optimized to reduce CPU load on both frontend and backend. WordPress integration is now more robust, with fixes for 301 redirect errors and a new feature to sync categories. Core multi-tenancy issues have been addressed by enforcing strict data isolation between main sites for content and menu counts. A new feature allows network admins to assign existing users to multiple main sites. Finally, the RDS monitor has been converted into an optional feature that can be enabled or disabled per main site.
 
 **Last working item**:
--   **Last item agent was working:** The agent is debugging a subtle but critical bug where the RDS output () displays the show from the previous hour, even when the cache logs correctly indicate that no show is currently live. This points to a stale cache or timezone issue somewhere in the data-serving pipeline for the RDS.
+-   **Last item agent was working:** The user reported an error when trying to set a password for a mini-site (Site niet gevonden). The agent investigated and found that the backend endpoint () was incorrectly using the user's  for authorization, which fails for network admins who may have .
 -   **Status:** IN PROGRESS
--   **Agent Testing Done:** N (Investigation in progress)
--   **Which testing method agent to use?** backend testing agent. The agent should first use  to inspect the output of the RDS builder endpoints (e.g., ) and check the active rundown data in the  MongoDB collection. The fix will likely be in , , or .
--   **User Testing Done:** Y (User reported the issue).
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** backend testing agent or  to test the  endpoint after fixing the query logic in .
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-*   **Issue 1: Stale RDS Data (P0 - HIGHEST)**
-    *   **Description:** The RDS is serving data for a show that has already ended. For example, at 02:42, when no show is live, the RDS still displays the show that ran from 01:00-02:00. This happens despite the cache logs correctly stating No live show found. This indicates that the final step of generating the RDS output file is using stale data.
-    *   **Attempted fixes:** The agent has started investigating the code in , , and . No fix has been implemented yet.
+*   **Issue 1: Mini-site password update fails (P0 - HIGHEST)**
+    *   **Description:** When attempting to set a password for a mini-site, the user receives a Site niet gevonden (Site not found) error.
+    *   **Attempted fixes:** The agent identified the root cause in the backend but has not yet implemented a fix.
     *   **Next debug checklist:**
-        1.  Examine . This router is responsible for generating the final text file outputs. Check the query it uses to find the active rundown from the  collection.
-        2.  Verify that the query in  correctly uses the  timezone and filters for rundowns where .
-        3.  Check if there's any other caching layer involved (e.g., in-memory or file-based) that isn't being properly invalidated.
-        4.  Inspect  again. When a show ends, does the  flag for its corresponding rundown get set to  reliably?
-    *   **Why fix this issue and what will be achieved with the fix?** This is critical for the product's core functionality. The RDS must reflect the currently live show accurately. Fixing this will ensure the correct now playing information is broadcast.
+        1.  Open .
+        2.  Locate the  function and the database query: .
+        3.  Modify this authorization logic. Instead of just checking , the query must also allow access if the user is a network admin or if the site's  is one the user has access to. A more robust check is needed that doesn't rely solely on .
+        4.  Test the fix by making a  request to the  endpoint.
+    *   **Why fix this issue and what will be achieved with the fix?** This is a basic site management function that is currently broken, preventing users from securing their mini-sites.
     *   **Status:** IN PROGRESS
-    *   **Is recurring issue?** Y (It's a more subtle version of a previously addressed RDS logic issue).
-    *   **Should Test frontend/backend/both after fix?** Backend. The fix can be verified by -ing the RDS output endpoint and checking the database.
-    *   **Blocked on other issue:** None.
+    *   **Is recurring issue?** N
+    *   **Should Test frontend/backend/both after fix?** Backend
+    *   **Blocked on other issue:** None
 
 **In progress Task List**:
 *   None.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   (P1) Configurable Stale Now Playing Timeout: Implement a UI and API to allow users to configure the 15-minute hardcoded timeout in .
+    *   **(P1) Configurable Stale Now Playing Timeout:** Implement a UI and API to allow users to configure the 15-minute hardcoded timeout currently in .
 *   **Future Tasks:**
-    *   (P2) Site Cloning/Copying: Implement the user's request to be able to copy/clone Main and Mini sites.
-    *   (P2) Stream Monitor VU Meters: Implement functional VU meters.
+    *   **(P2) Site Cloning/Copying:** Implement the user's request to be able to copy/clone Main and Mini sites.
+    *   **(P2) Stream Monitor VU Meters:** Implement functional VU meters on the stream monitor page.
 
 **Completed work in this session**
--   **Production Deployment Failure (RESOLVED):** Fixed a critical Pydantic  by changing  to  in 12 backend models, unblocking production deployments.
--   **Featured Images Display (DONE):** Fixed the  endpoint to enrich items with their publishing status, allowing featured images to be displayed.
--   **RDS Scheduler & Timezone (DONE):** Changed the scheduler interval to 1 minute and standardized the entire backend to use the  timezone.
--   **Network Admin Log Visibility (DONE):** Corrected the database query for activity logs so Network Admins can see all logs across all sites.
--   **Cache Logging & Timestamp (DONE):** Reworked the RDS scheduler to always create a log entry and update the last refresh timestamp on every run, even if no live show is found.
--   **Multi-Site Show Lookup Logic (DONE):** Refactored the scheduler to correctly find shows by resolving a  to all its child s before querying the  collection.
--   **Network Admin Health-Check & Debug Tools (DONE):** Created backend endpoints and a frontend UI with modals on the  dashboard for testing site health and viewing detailed debug information.
--   **UI Cleanup (DONE):** Removed borders and shadows from containers on the mini-site and public-facing site pages.
+-   **Show End-Time Bug (RESOLVED):** Fixed a critical timezone bug in  that caused shows to appear live long after they had finished. The fix involved removing a dual-timezone check and exclusively using Brussels time.
+-   **Content & Menu Count Isolation (RESOLVED):** Fixed bugs in  and  where queries used  instead of , causing data from different sites to leak and badge counts to be incorrect.
+-   **RDS Monitor as a Feature (DONE):** Made the RDS Monitor an optional feature that can be toggled per main site. This involved updating  to add  to the available features and  to respect the feature flag.
+-   **Multi-Site User Assignment (DONE):** Implemented a feature to assign existing users to multiple main sites. This included a new endpoint  and UI changes in .
+-   **WordPress Category Sync (DONE):** Added a Sync Categories feature. This included a new endpoint  in  and a button in the  frontend component.
+-   **WordPress Connection Fixes (DONE):**
+    -   Resolved a 301 Redirect error by adding  to  clients in .
+    -   Improved error handling in  to give clearer feedback when a WordPress site's REST API returns HTML instead of JSON.
+-   **RDS Monitor Performance Optimization (DONE):**
+    -   **Backend:** Implemented a 5-second in-memory cache for the  endpoint to reduce database load.
+    -   **Frontend:** Reduced the data refresh interval from 2 seconds to 10 seconds and consolidated countdown timer logic to lower CPU usage.
+-   **Persistent  Installation (DONE):** Fixed the ephemeral  installation by adding a check-and-install script to  that runs on startup.
+
+**Earlier issues found/mentioned but not fixed**
+*   None. All reported issues in this session were either resolved or are listed in the pending/upcoming sections.
 
 **Known issue recurrence from previous fork**
-*   **RDS Logic Complexity:** Issues related to the RDS scheduler, timezones, and multi-site data fetching have appeared multiple times. The current Stale RDS Data bug is another manifestation of this complexity. The core logic in  and  is fragile and requires careful attention.
+*   **RDS Logic Complexity:** The RDS scheduling logic continues to be a source of subtle bugs, as demonstrated by the critical timezone/show-end-time bug fixed in this session.
+*   **Data Scoping (team_id vs main_site_id):** Multiple bugs were caused by incorrect data scoping using  instead of the more specific . This pattern is a recurring source of data isolation problems.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Pydantic Validation:** The initial blocker was a strict Pydantic model () failing to serialize  values from MongoDB.
--   **Timezone Handling:** Correctly managing timezones () is critical, especially for scheduling. The solution uses  and .
--   **MongoDB Multi-Site Queries:** The application uses a  to group multiple s. Queries for cross-site data (like shows for an RDS) must first resolve the  to a list of s and then use a  query.
--   **Stale Data:** The current bug is a classic stale data problem, where a data generation process () is using an old or incorrect cache instead of the latest information.
+-   **Timezone-Aware Programming:** The critical importance of standardizing on a single timezone (e.g., 'Europe/Brussels') for all application logic, especially when dealing with schedules, to prevent bugs related to UTC offsets.
+-   **Multi-Tenancy & Data Scoping:** Enforcing strict data isolation in a multi-tenant application by using the correct identifier () in database queries instead of a broader one ().
+-   **API Caching:** Using simple in-memory, time-based caching on the backend to reduce database load from frequent frontend polling.
+-   **Frontend Performance:** Reducing CPU load by decreasing API call frequency and consolidating UI update logic (e.g., combining multiple  into one).
+-   **Robust Dependency Management:** Implementing a startup script in  to ensure system-level dependencies like  are present in environments where direct  modification is not possible.
+
+**key DB schema**
+-   No new collections were added. Logic heavily depends on , , , , , and . The relationship between users and sites via  was leveraged for the multi-site user assignment feature.
+
+**changes in tech stack**
+-   None. The existing stack (FastAPI, React, MongoDB) was maintained.
 
 **All files of reference**
--   : **Primary suspect** for the current stale data issue.
--   : Contains the core scheduling logic and might be failing to invalidate the old rundown correctly.
--   : Defines how RDS data is fetched and might have incorrect query filters.
--   : Contains the new Debug/Test feature code.
+-   : Contains the **pending bug** for the mini-site password update.
+-   : Contains the critical timezone fix for shows ending.
+-   : Contains the fix for data isolation.
+-   : Contains the fix for incorrect menu badge counts.
+-   : Contains all the new RDS monitor features and performance optimizations.
+-   : Contains the UI for adding existing users to a main site.
+
+**Areas that need refactoring**:
+-   The authorization logic across various backend endpoints needs a systematic review. The recurring bugs related to  vs.  suggest that the authorization model is not consistently applied, creating security and data-scoping vulnerabilities. The current pending issue in  is a direct symptom of this.
 
 **key api endpoints**
--   : **FIXED**.
+-   : **BROKEN**. Fails with Site niet gevonden when setting a password due to incorrect authorization logic.
 -   : **NEW & WORKING**.
 -   : **NEW & WORKING**.
--   : **FIXED & WORKING**.
--   : **BUGGED** - Serves stale data.
+-   : **FIXED**. Now correctly isolates content per main site.
+-   : **FIXED**. Now returns correct counts per main site.
+-   : **OPTIMIZED**. Now uses a 5-second in-memory cache.
+-   : **IMPROVED**. Now handles redirects and has better error reporting for non-JSON responses.
 
 **Critical Info for New Agent**
--   Your immediate and only priority is to fix the **Stale RDS Data** bug (Issue #1).
--   Do not work on any other features or refactors.
--   The root cause is likely in the backend logic that generates the final RDS output files. The scheduler () seems to be working correctly, but the component that reads from the cache () is likely using old information.
--   Focus your investigation on how the active rundown is queried from the database in  and . Ensure all time-based queries correctly use the  timezone and that the  flag on rundowns is being respected.
+-   **Top Priority:** Your first task is to fix the Site niet gevonden error when a user tries to set a password on a mini-site. The bug is in the authorization logic of the  function in .
+-   **Language:** The user is Dutch. All communication MUST be in Dutch.
+-   **Data Isolation:** Be extremely careful with data scoping. Multiple critical bugs have been fixed by changing database queries to filter by  instead of the more generic . Assume this is the correct pattern for all data-related features.
+-   **RDS Timezones:** All scheduling logic must exclusively use the  timezone. Do not introduce any checks against UTC, as this was the source of a major bug.
 
 **documents and test reports created in this job**
--   A new MongoDB collection  was created to store snapshots from the Network Admin debug tool.
+-    was updated.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** There are no borders (referring to public site). (Agent fixed this).
-2.  **User:** The cache log correctly shows no program, but the RDS is showing the program from the previous hour. Something is still not right. Check if everything has the Brussels timezone. (**This is the current active issue**).
-3.  **User:** Add Test and Debug buttons to the Network Admin page for each main site. (Agent implemented this).
-4.  **User:** Clarification on where to add the buttons: on the main sites overview when logged in as network admin. (Agent followed this).
-5.  **User:** The cache log says there's no show, but I have one scheduled and don't see it on the RDS. (Agent fixed the multi-site lookup logic).
-6.  **User:** The Last refresh timestamp is stuck, and cache logs are empty. Also, remove outlines from mini-sites. (Agent fixed all three).
-7.  **User:** It's finally working again! Now, can you add featured images, fix cache logs/interval, fix the timezone to Brussels, and fix the empty activity logs? (Agent fixed all four).
+1.  **User:** I can't set a password for a mini-site, I get an error. (Current P0 issue)
+2.  **User:** The counter badges in the menu are not correct per main site; Koodh shows 144 but has no content. (Fixed)
+3.  **User:** The RDS monitor shouldn't be on by default for all main sites. Also, a user on one main site can see content from another. (Fixed)
+4.  **User:** I'm referring to WordPress categories. (Clarification)
+5.  **User:** The categories on other main sites aren't being fetched/updated. (Fixed by adding sync feature)
+6.  **User:** (Sends screenshot) The show end timer is still broken; it's 22:47 but it says a show that ended at 22:00 is still active. (Fixed)
+7.  **User:** The show end timer is still there. The show ended at 22:00 and it's still showing for another half hour. Something is really wrong with the end times. (Fixed)
+8.  **User:** (Sends screenshot) I'm getting a Connection error: Expecting value error with WordPress. (Fixed with better error handling)
+9.  **User:** Reports three issues: 1) Show end timer is wrong, 2) WordPress connection gives 301 error, 3) I want to assign users to multiple main sites. (All three addressed)
+10. **User:** The server CPU is being heavily loaded by the timers. Can we make them less resource-intensive? (Fixed)
 
 **Project Health Check:**
--   **Broken:** Partially. The core application is functional, but a critical feature (RDS now playing) is unreliable due to the stale data bug.
+-   **Broken:**
+    -   The ability to set/update a password for a mini-site is non-functional.
+-   **Mocked:**
+    -   None.
 
 **3rd Party Integrations**
--   boto3
--   WordPress
--   ffmpeg
--   pytz (newly added)
+-   **WordPress:** Core integration for content.
+-   **ffmpeg:** System dependency for audio triggers, now installed persistently.
 
 **Testing status**
 -   **Testing agent used after significant changes:** NO
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None.
--   **Known regressions:** The RDS functionality is currently regressed, showing stale data.
+-   **Test files created:** None
+-   **Known regressions:** None
 
 **Credentials to test flow:**
 -   **Network Admin:** 
 -   **Password:** 
 
 **What agent forgot to execute**
-The agent has been thorough. The current situation is not something forgotten, but rather a new, more subtle bug that emerged after previous layers of issues were fixed. The agent correctly identified the need to investigate the full RDS data pipeline.</analysis>
+-   The agent correctly diagnosed the root cause of the mini-site password update failure but did not proceed to implement the code change to fix it. This is the most immediate pending action item.</analysis>
