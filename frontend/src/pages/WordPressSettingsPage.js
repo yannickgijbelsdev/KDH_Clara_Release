@@ -332,6 +332,23 @@ const WordPressSettingsPage = () => {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => handleSyncCategories(site.id)}
+                      disabled={syncingCategoriesId === site.id || !site.is_active}
+                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      title="Sync categories from WordPress"
+                    >
+                      {syncingCategoriesId === site.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Syncing...
+                        </>
+                      ) : (
+                        'Sync Categories'
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       data-testid={`edit-site-${site.id}`}
                       onClick={() => openEditDialog(site)}
                       className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
