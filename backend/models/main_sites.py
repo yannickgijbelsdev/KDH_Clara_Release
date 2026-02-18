@@ -72,7 +72,9 @@ class MainSiteListResponse(BaseModel):
     id: str
     name: str
     slug: str
+    description: Optional[str] = None
     logo_url: Optional[str] = None
+    enabled_features: List[str] = []
     site_count: int = 0
     user_count: int = 0
 
