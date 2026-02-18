@@ -364,20 +364,35 @@ const RDSMonitorPage = () => {
 
           {/* Scheduled Text */}
           <div className="bg-zinc-800/30 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
-              <Calendar className="w-3 h-3" />
-              Scheduled Text
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-3 h-3" />
+                Scheduled Text
+              </div>
+              {/* Countdown timer for scheduled text */}
+              {scheduledTextCountdown !== null && scheduledTextCountdown > 0 && !data?.active_scheduled_text && (
+                <div className={`flex items-center gap-1 ${
+                  scheduledTextCountdown < 60 ? 'text-purple-400 animate-pulse' : 'text-zinc-500'
+                }`}>
+                  <Timer className="w-3 h-3" />
+                  <span>{formatCountdown(scheduledTextCountdown)}</span>
+                </div>
+              )}
             </div>
             {data?.active_scheduled_text ? (
               <div>
-                <p className="text-sm font-medium text-purple-400 truncate">{data.active_scheduled_text.text}</p>
-                <p className="text-xs text-zinc-500">Active now</p>
+                <p className="text-sm font-medium text-purple-400 truncate animate-pulse">
+                  {data.active_scheduled_text.text}
+                </p>
+                <p className="text-xs text-green-400">
+                  LIVE NOW
+                </p>
               </div>
             ) : data?.next_scheduled_text ? (
               <div>
                 <p className="text-sm text-zinc-400 truncate">{data.next_scheduled_text.text}</p>
                 <p className="text-xs text-zinc-500">
-                  in {Math.floor(data.next_scheduled_text.seconds_until / 60)}m ({data.next_scheduled_text.recurrence})
+                  {data.next_scheduled_text.recurrence}
                 </p>
               </div>
             ) : (
