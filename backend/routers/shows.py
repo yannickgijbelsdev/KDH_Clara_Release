@@ -1064,15 +1064,15 @@ async def delete_show(
             }
         else:
             context_query = {
-                "team_id": current_user.get('team_id'),
+                "team_id": team_id,
                 "$or": [
                     {"id": parent_id},
                     {"parent_show_id": parent_id}
                 ]
             }
         
-        # Get all show IDs to delete
-        shows_to_delete = await db.shows.find(context_query, {"id": 1}).to_list(1000)
+        # Get all shows to delete (for ProRadio sync)
+        shows_to_delete = await db.shows.find(context_query, {"_id": 0}).to_list(1000)
         
         show_ids = [s['id'] for s in shows_to_delete]
         
@@ -1081,10 +1081,28 @@ async def delete_show(
         
         # Delete all shows
         await db.shows.delete_many(context_query)
+        
+        # Delete from ProRadio in background
+        async def delete_recurring_from_proradio():
+            for s in shows_to_delete:
+                await delete_show_from_proradio(
+                    s.get("id"), s.get("title"), s.get("date"),
+                    s.get("start_time"), s.get("end_time"),
+                    main_site_id, team_id
+                )
+        background_tasks.add_task(delete_recurring_from_proradio)
     else:
         # Delete only this show
         await db.shows.delete_one({"id": show_id})
         await db.rundown_items.delete_many({"show_id": show_id})
+        
+        # Delete from ProRadio in background
+        background_tasks.add_task(
+            delete_show_from_proradio,
+            show_id, show.get("title"), show.get("date"),
+            show.get("start_time"), show.get("end_time"),
+            main_site_id, team_id
+        )
 
 
 # ============== RECURRENCE SETTINGS ==============
