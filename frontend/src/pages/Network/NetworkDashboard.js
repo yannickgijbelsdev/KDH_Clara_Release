@@ -32,8 +32,28 @@ import {
   DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu';
 import MigrationTool from './MigrationTool';
+import { useNavigate } from 'react-router-dom';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+
+// Role icons and labels for user dropdown
+const roleIcons = {
+  admin: Crown,
+  network_admin: Network,
+  news_admin: FileCheck,
+  editor: Pencil,
+  presenter: Mic,
+  viewer: Eye,
+};
+
+const roleLabels = {
+  admin: 'Admin',
+  network_admin: 'Network Admin',
+  news_admin: 'News Admin',
+  editor: 'Editor',
+  presenter: 'Presenter',
+  viewer: 'Viewer',
+};
 
 // Feature groups for display with Lucide icons
 const FEATURE_GROUPS = {
