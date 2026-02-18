@@ -2148,3 +2148,26 @@ Located at `/rds-monitor` - a standalone page accessible without authentication 
 - FFmpeg installation verified via logs
 - `/api/audio-triggers/system/status` returns `fully_operational: true`
 
+### December 2025 - Mini Site Password Update Authorization Fix (P0)
+
+**Problem:** When attempting to set a password for a mini-site, the user received a "Site niet gevonden" (Site not found) error.
+
+**Root Cause:** The `update_site` function in `backend/routers/sites.py` used `team_id` from the user object for authorization. Network admins have `team_id: None`, which caused the database query to fail even though they should have access.
+
+**Fix Applied:**
+The authorization logic was completely rewritten to use a multi-step access check:
+1. First finds the site by ID (without team restriction)
+2. Then verifies user has access via one of these methods:
+   - `X-Main-Site-ID` header matches site's `main_site_id`
+   - User's `team_id` matches site's `team_id`
+   - Network admin has access via `main_site_users` collection
+   - Admin role with matching team
+
+**File Updated:**
+- `/app/backend/routers/sites.py` - `update_site` function (PUT /api/sites/{site_id})
+
+**Verified Working:**
+- Password update for mini-site: ✅
+- Password verification on public page: ✅
+- Tested with network admin account `admkoodh@koodh.com`
+
