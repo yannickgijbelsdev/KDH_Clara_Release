@@ -128,16 +128,17 @@ const RDSMonitorPage = () => {
     countdownRef.current = setInterval(() => {
       // Batch all countdown decrements in one update cycle
       setCountdowns(prev => ({
-        mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
-        grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
+        mfy: prev.mfy !== null && prev.mfy > 0 ? prev.mfy - 1 : null,
+        grk: prev.grk !== null && prev.grk > 0 ? prev.grk - 1 : null,
       }));
+      // Reset show end countdown to null when it reaches 0
       setShowEndCountdowns(prev => ({
-        mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
-        grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
+        mfy: prev.mfy !== null && prev.mfy > 0 ? prev.mfy - 1 : null,
+        grk: prev.grk !== null && prev.grk > 0 ? prev.grk - 1 : null,
       }));
       setScheduledTextCountdowns(prev => ({
-        mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
-        grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
+        mfy: prev.mfy !== null && prev.mfy > 0 ? prev.mfy - 1 : null,
+        grk: prev.grk !== null && prev.grk > 0 ? prev.grk - 1 : null,
       }));
     }, 1000);
 
