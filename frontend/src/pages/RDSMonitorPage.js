@@ -514,6 +514,7 @@ const RDSMonitorPage = () => {
             data={monitorData?.stations?.mfy}
             staleCountdown={countdowns.mfy}
             showEndCountdown={showEndCountdowns.mfy}
+            scheduledTextCountdown={scheduledTextCountdowns.mfy}
           />
           <StationCard
             station="grk"
