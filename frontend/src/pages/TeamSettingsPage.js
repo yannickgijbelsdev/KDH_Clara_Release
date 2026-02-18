@@ -213,7 +213,7 @@ const TeamSettingsPage = () => {
     if (!selectedExistingUser || !mainSite) return;
     setAddingExistingUser(true);
     try {
-      await axios.post(`${API}/network/main-sites/${mainSite.id}/users`, {
+      await axios.post(`${API}/main-sites/${mainSite.id}/users`, {
         user_id: selectedExistingUser.id,
         role: existingUserRole
       });
