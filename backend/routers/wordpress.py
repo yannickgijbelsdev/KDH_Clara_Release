@@ -195,15 +195,32 @@ async def test_wordpress_site(
     now = datetime.now(timezone.utc).isoformat()
     
     try:
-        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             auth_string = f"{site['username']}:{site['app_password']}"
             auth_bytes = base64.b64encode(auth_string.encode()).decode()
-            headers = {"Authorization": f"Basic {auth_bytes}"}
+            headers = {
+                "Authorization": f"Basic {auth_bytes}",
+                "Accept": "application/json",
+                "User-Agent": "Clara-WordPress-Integration/1.0"
+            }
+            
+            # Normalize the URL (ensure no double slashes, proper format)
+            base_url = site['wp_base_url'].rstrip('/')
+            api_url = f"{base_url}/wp-json/wp/v2/users/me?context=edit"
+            
+            # Log the attempt
+            wp_audit_logger.info(
+                f"WordPress connection test: attempting {api_url} for site={site['name']}"
+            )
             
             # Test authentication and get user info
-            response = await client.get(
-                f"{site['wp_base_url']}/wp-json/wp/v2/users/me?context=edit",
-                headers=headers
+            response = await client.get(api_url, headers=headers)
+            
+            # Log response details for debugging
+            wp_audit_logger.info(
+                f"WordPress response: status={response.status_code}, "
+                f"content_type={response.headers.get('content-type', 'unknown')}, "
+                f"final_url={response.url}"
             )
             
             if response.status_code == 200:
