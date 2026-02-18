@@ -395,14 +395,30 @@ const TeamSettingsPage = () => {
               <p className="text-sm text-zinc-500">{users.length} members</p>
             </div>
           </div>
-          <Button
-            data-testid="invite-user-btn"
-            onClick={() => setInviteDialogOpen(true)}
-            className="gap-2 bg-violet-500 hover:bg-violet-600 text-white"
-          >
-            <UserPlus className="w-4 h-4" />
-            Invite User
-          </Button>
+          <div className="flex items-center gap-2">
+            {mainSite && user?.is_network_admin && (
+              <Button
+                data-testid="add-existing-user-btn"
+                onClick={() => {
+                  setAddExistingUserDialogOpen(true);
+                  searchAvailableUsers();
+                }}
+                variant="outline"
+                className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              >
+                <ArrowLeftRight className="w-4 h-4" />
+                Add Existing User
+              </Button>
+            )}
+            <Button
+              data-testid="invite-user-btn"
+              onClick={() => setInviteDialogOpen(true)}
+              className="gap-2 bg-violet-500 hover:bg-violet-600 text-white"
+            >
+              <UserPlus className="w-4 h-4" />
+              Invite User
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-3">
