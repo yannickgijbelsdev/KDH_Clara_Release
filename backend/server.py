@@ -132,17 +132,24 @@ async def publish_to_wordpress(
 # ============== MENU BADGE COUNTS ==============
 
 @api_router.get("/menu/counts")
-async def get_menu_counts(current_user: dict = Depends(get_current_user)):
-    """Get counts for menu badges."""
+async def get_menu_counts(request: Request, current_user: dict = Depends(get_current_user)):
+    """Get counts for menu badges, filtered by main site if specified."""
     team_id = current_user.get('team_id')
     user_id = current_user.get('id')
     is_admin = current_user.get('role') == 'admin'
+    main_site_id = request.headers.get('X-Main-Site-ID')
     
     counts = {}
     
+    # Build query filter - use main_site_id if available, otherwise team_id
+    if main_site_id:
+        content_filter = {"main_site_id": main_site_id}
+    else:
+        content_filter = {"team_id": team_id}
+    
     # Content Library - total active content
     content_count = await db.content_items.count_documents({
-        "team_id": team_id,
+        **content_filter,
         "deleted_at": {"$exists": False}
     })
     counts["content"] = content_count
@@ -150,7 +157,7 @@ async def get_menu_counts(current_user: dict = Depends(get_current_user)):
     # Trash - deleted items (admin only)
     if is_admin:
         trash_count = await db.content_items.count_documents({
-            "team_id": team_id,
+            **content_filter,
             "deleted_at": {"$exists": True}
         })
         counts["trash"] = trash_count
@@ -158,14 +165,14 @@ async def get_menu_counts(current_user: dict = Depends(get_current_user)):
     # Content Approval - pending approvals (admin only)
     if is_admin:
         approval_count = await db.content_items.count_documents({
-            "team_id": team_id,
+            **content_filter,
             "status": "ready",
             "approval_status": "pending",
             "deleted_at": {"$exists": False}
         })
         counts["approvals"] = approval_count
     
-    # Team Chat - unread messages
+    # Team Chat - unread messages (use team_id since chat is team-wide)
     # First get all threads the user is part of
     team_thread = await db.chat_threads.find_one({
         "team_id": team_id,
