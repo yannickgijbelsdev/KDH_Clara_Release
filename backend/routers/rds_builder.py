@@ -245,59 +245,59 @@ async def check_live_shows_from_calendar():
         end = show.get("end_time", "23:59")
         show_date = show.get("date", "")
         rds_station = show.get("rds_station", "none")
-            
-            # Skip shows not assigned to RDS
-            if rds_station == "none":
-                # Try to get rds_station from show_titles
-                show_title_doc = await db.show_titles.find_one(
-                    {"name": show.get("title")},
-                    {"_id": 0, "rds_station": 1}
-                )
-                if show_title_doc:
-                    rds_station = show_title_doc.get("rds_station", "none")
-            
-            if rds_station == "none":
-                continue
-            
-            is_live = False
-            crosses_midnight = start > end
-            
-            if show_date == current_date:
-                if crosses_midnight:
-                    is_live = current_time >= start
-                else:
-                    is_live = start <= current_time < end
-            elif show_date == yesterday_date and crosses_midnight:
-                is_live = current_time < end
-            
-            if is_live:
-                # Calculate seconds until show ends
-                try:
-                    end_parts = end.split(":")
-                    end_hour, end_min = int(end_parts[0]), int(end_parts[1])
-                    now_hour, now_min = check_time.hour, check_time.minute
-                    
-                    if crosses_midnight and show_date == current_date:
-                        # Show crosses midnight, ends tomorrow
-                        end_datetime = check_time.replace(hour=end_hour, minute=end_min, second=0) + timedelta(days=1)
-                    else:
-                        end_datetime = check_time.replace(hour=end_hour, minute=end_min, second=0)
-                    
-                    seconds_until_end = (end_datetime - check_time).total_seconds()
-                except:
-                    seconds_until_end = None
+        
+        # Skip shows not assigned to RDS
+        if rds_station == "none":
+            # Try to get rds_station from show_titles
+            show_title_doc = await db.show_titles.find_one(
+                {"name": show.get("title")},
+                {"_id": 0, "rds_station": 1}
+            )
+            if show_title_doc:
+                rds_station = show_title_doc.get("rds_station", "none")
+        
+        if rds_station == "none":
+            continue
+        
+        is_live = False
+        crosses_midnight = start > end
+        
+        if show_date == current_date:
+            if crosses_midnight:
+                is_live = current_time >= start
+            else:
+                is_live = start <= current_time < end
+        elif show_date == yesterday_date and crosses_midnight:
+            is_live = current_time < end
+        
+        if is_live:
+            # Calculate seconds until show ends
+            try:
+                end_parts = end.split(":")
+                end_hour, end_min = int(end_parts[0]), int(end_parts[1])
+                now_hour, now_min = check_time.hour, check_time.minute
                 
-                show_info = {
-                    "id": show.get("id"),
-                    "title": show.get("title"),
-                    "start_time": start,
-                    "end_time": end,
-                    "date": show_date,
-                    "rds_station": rds_station,
-                    "is_live": True,
-                    "seconds_until_end": seconds_until_end,
-                    "checked_at": now_brussels.isoformat()
-                }
+                if crosses_midnight and show_date == current_date:
+                    # Show crosses midnight, ends tomorrow
+                    end_datetime = check_time.replace(hour=end_hour, minute=end_min, second=0) + timedelta(days=1)
+                else:
+                    end_datetime = check_time.replace(hour=end_hour, minute=end_min, second=0)
+                
+                seconds_until_end = (end_datetime - check_time).total_seconds()
+            except:
+                seconds_until_end = None
+            
+            show_info = {
+                "id": show.get("id"),
+                "title": show.get("title"),
+                "start_time": start,
+                "end_time": end,
+                "date": show_date,
+                "rds_station": rds_station,
+                "is_live": True,
+                "seconds_until_end": seconds_until_end,
+                "checked_at": now_brussels.isoformat()
+            }
                 
                 # Assign to appropriate station(s)
                 if rds_station == "both":
