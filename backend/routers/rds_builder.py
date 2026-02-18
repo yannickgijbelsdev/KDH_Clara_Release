@@ -305,10 +305,6 @@ async def check_live_shows_from_calendar():
                     live_shows_by_station["grk"] = show_info
                 elif rds_station in ["mfy", "grk"]:
                     live_shows_by_station[rds_station] = show_info
-        
-        # If we found shows, break out of the loop
-        if live_shows_by_station["mfy"] or live_shows_by_station["grk"]:
-            break
     
     return live_shows_by_station
 
