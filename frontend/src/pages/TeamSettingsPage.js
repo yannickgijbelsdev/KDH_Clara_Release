@@ -191,6 +191,49 @@ const TeamSettingsPage = () => {
     }
   };
 
+  // Search for available users (from other main sites)
+  const searchAvailableUsers = async (query = '') => {
+    if (!mainSite) return;
+    setSearchingUsers(true);
+    try {
+      const response = await axios.get(
+        `${API}/network/main-sites/${mainSite.id}/users/available${query ? `?search=${encodeURIComponent(query)}` : ''}`
+      );
+      setAvailableUsers(response.data);
+    } catch (error) {
+      console.error('Failed to search available users:', error);
+      toast.error('Failed to search users');
+    } finally {
+      setSearchingUsers(false);
+    }
+  };
+
+  // Add existing user to this main site
+  const handleAddExistingUser = async () => {
+    if (!selectedExistingUser || !mainSite) return;
+    setAddingExistingUser(true);
+    try {
+      await axios.post(`${API}/network/main-sites/${mainSite.id}/users`, {
+        user_id: selectedExistingUser.id,
+        role: existingUserRole
+      });
+      
+      // Refresh users list
+      await fetchData();
+      
+      setAddExistingUserDialogOpen(false);
+      setSelectedExistingUser(null);
+      setExistingUserRole('editor');
+      setUserSearchQuery('');
+      setAvailableUsers([]);
+      toast.success(`${selectedExistingUser.name} added to ${mainSite.name}`);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to add user');
+    } finally {
+      setAddingExistingUser(false);
+    }
+  };
+
   const handleUpdateRole = async (userId, newRole) => {
     try {
       await axios.put(`${API}/users/${userId}/role`, { role: newRole });
