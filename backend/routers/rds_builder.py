@@ -579,15 +579,23 @@ async def get_rds_monitor_data():
         else:
             stations_data[station]["cache_stale"] = False
     
-    return {
+    # Build response
+    response_data = {
         "timestamp": now_brussels.isoformat(),
         "timestamp_formatted": now_brussels.strftime("%H:%M:%S"),
         "date_formatted": now_brussels.strftime("%d-%m-%Y"),
         "stations": stations_data,
         "history": history,
         "calendar_live_shows": calendar_live_shows,
-        "scheduled_texts_info": scheduled_texts_info
+        "scheduled_texts_info": scheduled_texts_info,
+        "cached": False
     }
+    
+    # Store in cache
+    _monitor_cache["data"] = response_data
+    _monitor_cache["timestamp"] = now_utc
+    
+    return response_data
 
 
 @rds_builder_router.get("/monitor/history")
