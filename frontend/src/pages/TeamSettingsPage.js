@@ -103,6 +103,15 @@ const TeamSettingsPage = () => {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   
+  // Add existing user state
+  const [addExistingUserDialogOpen, setAddExistingUserDialogOpen] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [selectedExistingUser, setSelectedExistingUser] = useState(null);
+  const [addingExistingUser, setAddingExistingUser] = useState(false);
+  const [existingUserRole, setExistingUserRole] = useState('editor');
+  
   // Helper for context-aware navigation - uses URL param directly
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
   
