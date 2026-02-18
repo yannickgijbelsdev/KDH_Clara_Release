@@ -197,7 +197,7 @@ const TeamSettingsPage = () => {
     setSearchingUsers(true);
     try {
       const response = await axios.get(
-        `${API}/network/main-sites/${mainSite.id}/users/available${query ? `?search=${encodeURIComponent(query)}` : ''}`
+        `${API}/main-sites/${mainSite.id}/users/available${query ? `?search=${encodeURIComponent(query)}` : ''}`
       );
       setAvailableUsers(response.data);
     } catch (error) {
