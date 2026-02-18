@@ -183,11 +183,26 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
 
               {/* Text content */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate font-medium">{text.text}</p>
+                <p className="text-sm text-white truncate font-medium">
+                  {text.text}
+                  {text.is_active_now && (
+                    <span className="ml-2 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full animate-pulse">
+                      LIVE NOW
+                    </span>
+                  )}
+                </p>
                 <div className="flex items-center gap-2 text-xs text-zinc-500">
                   <span>{formatDateTime(text.start_datetime)}</span>
                   <span>•</span>
                   <span>{getRecurrenceLabel(text.recurrence_type)}</span>
+                  {text.seconds_until_next && text.enabled && (
+                    <>
+                      <span>•</span>
+                      <span className="text-amber-400">
+                        Next in {Math.floor(text.seconds_until_next / 60)}m
+                      </span>
+                    </>
+                  )}
                   {!text.recurrence_end_date && text.recurrence_type !== 'none' && (
                     <>
                       <span>•</span>
