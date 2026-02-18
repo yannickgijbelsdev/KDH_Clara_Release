@@ -298,13 +298,13 @@ async def check_live_shows_from_calendar():
                 "seconds_until_end": seconds_until_end,
                 "checked_at": now_brussels.isoformat()
             }
-                
-                # Assign to appropriate station(s)
-                if rds_station == "both":
-                    live_shows_by_station["mfy"] = show_info
-                    live_shows_by_station["grk"] = show_info
-                elif rds_station in ["mfy", "grk"]:
-                    live_shows_by_station[rds_station] = show_info
+            
+            # Assign to appropriate station(s)
+            if rds_station == "both":
+                live_shows_by_station["mfy"] = show_info
+                live_shows_by_station["grk"] = show_info
+            elif rds_station in ["mfy", "grk"]:
+                live_shows_by_station[rds_station] = show_info
     
     return live_shows_by_station
 
