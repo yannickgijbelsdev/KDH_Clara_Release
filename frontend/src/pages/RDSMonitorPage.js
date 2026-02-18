@@ -194,7 +194,7 @@ const RDSMonitorPage = () => {
     }
   };
 
-  const StationCard = ({ station, data, stationName, staleCountdown, showEndCountdown }) => {
+  const StationCard = ({ station, data, stationName, staleCountdown, showEndCountdown, scheduledTextCountdown }) => {
     const isLive = data?.live_show?.title;
     const calendarLive = data?.calendar_live_show;
     const isOnline = data?.now_playing?.online;
