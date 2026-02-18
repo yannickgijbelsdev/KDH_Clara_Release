@@ -41,10 +41,12 @@ const RDSMonitorPage = () => {
   const [monitorData, setMonitorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoSync, setAutoSync] = useState(true); // Auto-fix sync issues
   const [lastUpdate, setLastUpdate] = useState(null);
   const [countdowns, setCountdowns] = useState({ mfy: null, grk: null });
   const [showEndCountdowns, setShowEndCountdowns] = useState({ mfy: null, grk: null });
   const [forceRefreshing, setForceRefreshing] = useState(false);
+  const [lastAutoSync, setLastAutoSync] = useState(null); // Track last auto-sync time
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
 
@@ -60,8 +62,11 @@ const RDSMonitorPage = () => {
     }
   }, []);
 
-  const forceRefresh = useCallback(async () => {
+  const forceRefresh = useCallback(async (isAutomatic = false) => {
     setForceRefreshing(true);
+    if (isAutomatic) {
+      setLastAutoSync(new Date());
+    }
     try {
       await axios.post(`${API}/rds-builder/monitor/force-refresh`);
       // Wait a moment, then fetch updated data
