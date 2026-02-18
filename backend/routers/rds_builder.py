@@ -475,10 +475,72 @@ async def get_rds_monitor_data():
     # Also get live shows directly from calendar (bypass cache)
     calendar_live_shows = await check_live_shows_from_calendar()
     
+    # Get next scheduled texts for each station
+    scheduled_texts_info = {}
+    for station in ["mfy", "grk"]:
+        texts = await db.rds_scheduled_texts.find(
+            {"$or": [{"station": station}, {"station": "both"}], "enabled": True},
+            {"_id": 0}
+        ).to_list(100)
+        
+        next_occurrence = None
+        for text in texts:
+            try:
+                start_dt_str = text["start_datetime"].replace("Z", "+00:00")
+                try:
+                    text_start = datetime.fromisoformat(start_dt_str)
+                except ValueError:
+                    text_start = datetime.fromisoformat(start_dt_str.split("+")[0])
+                    text_start = text_start.replace(tzinfo=timezone.utc)
+                
+                if text_start.tzinfo is None:
+                    text_start = text_start.replace(tzinfo=timezone.utc)
+                
+                recurrence = text.get("recurrence_type", "none")
+                duration_minutes = text.get("duration_minutes", 5) or 5
+                now_utc = datetime.now(timezone.utc)
+                
+                # Find next occurrence
+                current = text_start
+                max_iter = 10000
+                iter_count = 0
+                
+                while current <= now_utc and iter_count < max_iter:
+                    if recurrence == "hourly":
+                        current = current + timedelta(hours=1)
+                    elif recurrence == "daily":
+                        current = current + timedelta(days=1)
+                    elif recurrence == "weekly":
+                        current = current + timedelta(weeks=1)
+                    elif recurrence == "monthly":
+                        from dateutil.relativedelta import relativedelta
+                        current = current + relativedelta(months=1)
+                    else:
+                        break
+                    iter_count += 1
+                
+                if current > now_utc:
+                    seconds_until = (current - now_utc).total_seconds()
+                    if next_occurrence is None or seconds_until < next_occurrence["seconds_until"]:
+                        next_occurrence = {
+                            "text": text["text"],
+                            "starts_at": current.isoformat(),
+                            "seconds_until": seconds_until,
+                            "duration_minutes": duration_minutes,
+                            "recurrence": recurrence
+                        }
+            except Exception as e:
+                pass
+        
+        scheduled_texts_info[station] = {
+            "next": next_occurrence
+        }
+    
     # Add calendar check data to each station
     for station in ["mfy", "grk"]:
         calendar_show = calendar_live_shows.get(station)
         stations_data[station]["calendar_live_show"] = calendar_show
+        stations_data[station]["next_scheduled_text"] = scheduled_texts_info[station]["next"]
         
         # If there's a mismatch between cache and calendar, flag it
         cached_show = stations_data[station]["live_show"]
@@ -497,7 +559,8 @@ async def get_rds_monitor_data():
         "date_formatted": now_brussels.strftime("%d-%m-%Y"),
         "stations": stations_data,
         "history": history,
-        "calendar_live_shows": calendar_live_shows
+        "calendar_live_shows": calendar_live_shows,
+        "scheduled_texts_info": scheduled_texts_info
     }
 
 
