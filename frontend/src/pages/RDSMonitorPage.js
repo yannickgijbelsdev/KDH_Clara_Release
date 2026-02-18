@@ -113,6 +113,12 @@ const RDSMonitorPage = () => {
           mfy: monitorData.stations.mfy?.calendar_live_show?.seconds_until_end || null,
           grk: monitorData.stations.grk?.calendar_live_show?.seconds_until_end || null,
         });
+        
+        // Update scheduled text countdowns
+        setScheduledTextCountdowns({
+          mfy: monitorData.stations.mfy?.next_scheduled_text?.seconds_until || null,
+          grk: monitorData.stations.grk?.next_scheduled_text?.seconds_until || null,
+        });
       }
     };
 
@@ -121,6 +127,11 @@ const RDSMonitorPage = () => {
       updateCountdowns();
       // Also decrement local show countdowns
       setShowEndCountdowns(prev => ({
+        mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
+        grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
+      }));
+      // Also decrement scheduled text countdowns
+      setScheduledTextCountdowns(prev => ({
         mfy: prev.mfy !== null ? Math.max(0, prev.mfy - 1) : null,
         grk: prev.grk !== null ? Math.max(0, prev.grk - 1) : null,
       }));
