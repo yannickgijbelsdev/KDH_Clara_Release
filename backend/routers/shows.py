@@ -940,12 +940,14 @@ async def update_show(
     show_id: str,
     request: Request,
     show_data: ShowUpdate,
+    background_tasks: BackgroundTasks,
     update_all: bool = Query(default=False, description="Update all occurrences of recurring show"),
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Update a show. For recurring shows, can update just this one or all occurrences."""
     # Check for main_site_id header (multisite context)
     main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id', '')
     
     if main_site_id:
         show = await db.shows.find_one({"id": show_id, "main_site_id": main_site_id})
