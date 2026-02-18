@@ -754,6 +754,7 @@ async def get_shows(
 async def create_show(
     request: Request,
     show_data: ShowCreate,
+    background_tasks: BackgroundTasks,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Create a new show. If recurring, also creates future occurrences."""
