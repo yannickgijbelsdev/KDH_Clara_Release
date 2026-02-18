@@ -82,7 +82,7 @@ const RDSMonitorPage = () => {
   // Auto-sync: Automatically force refresh when cache is stale
   const lastAutoSyncRef = useRef(0);
   useEffect(() => {
-    if (!monitorData?.stations) return;
+    if (!autoSync || !monitorData?.stations) return;
     
     const mfyStale = monitorData.stations.mfy?.cache_stale;
     const grkStale = monitorData.stations.grk?.cache_stale;
@@ -93,10 +93,10 @@ const RDSMonitorPage = () => {
       if (now - lastAutoSyncRef.current > 10000) {
         console.log('Auto-sync triggered: cache stale detected', { mfyStale, grkStale });
         lastAutoSyncRef.current = now;
-        forceRefresh();
+        forceRefresh(true); // Pass true to indicate automatic
       }
     }
-  }, [monitorData, forceRefreshing, forceRefresh]);
+  }, [monitorData, forceRefreshing, forceRefresh, autoSync]);
 
   // Update countdowns every second
   useEffect(() => {
