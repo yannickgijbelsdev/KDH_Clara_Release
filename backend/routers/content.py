@@ -158,11 +158,12 @@ async def get_content_items(
         main_site_id = request.headers.get('X-Main-Site-ID')
         team_id = current_user.get('team_id')
         
-        if main_site_id and team_id:
-            query = {"$or": [{"main_site_id": main_site_id}, {"team_id": team_id}]}
-        elif main_site_id:
+        # IMPORTANT: When main_site_id is provided, ONLY filter by that site
+        # This ensures content isolation between main sites
+        if main_site_id:
             query = {"main_site_id": main_site_id}
         elif team_id:
+            # Fallback to team_id only if no main_site_id is provided
             query = {"team_id": team_id}
         else:
             query = {}
