@@ -317,6 +317,75 @@ async def get_main_site_users(
     return result
 
 
+@main_sites_router.get("/{main_site_id}/users/available")
+async def get_available_users_for_main_site(
+    main_site_id: str,
+    search: str = "",
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all users that are NOT yet assigned to this main site.
+    
+    Network admins can search across all users in the system.
+    Useful for adding existing users from other main sites.
+    """
+    # Check access (network admin only for now)
+    is_network_admin = current_user.get('is_network_admin', False)
+    if not is_network_admin:
+        role = await get_main_site_user_role(current_user['id'], main_site_id)
+        if role != 'admin':
+            raise HTTPException(status_code=403, detail="Admin access required")
+    
+    main_site = await db.main_sites.find_one({"id": main_site_id})
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+    
+    # Get users already assigned to this main site
+    assigned_users = await db.main_site_users.find(
+        {"main_site_id": main_site_id},
+        {"_id": 0, "user_id": 1}
+    ).to_list(1000)
+    assigned_user_ids = [u["user_id"] for u in assigned_users]
+    
+    # Build query for available users
+    query = {
+        "id": {"$nin": assigned_user_ids},
+        "is_system_account": {"$ne": True}
+    }
+    
+    # Add search filter if provided
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Get available users
+    available_users = await db.users.find(
+        query,
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}
+    ).limit(50).to_list(50)
+    
+    # For each user, also get which other main sites they have access to
+    for user in available_users:
+        user_sites = await db.main_site_users.find(
+            {"user_id": user["id"]},
+            {"_id": 0, "main_site_id": 1, "role": 1}
+        ).to_list(10)
+        
+        site_names = []
+        for us in user_sites:
+            site = await db.main_sites.find_one(
+                {"id": us["main_site_id"]},
+                {"_id": 0, "name": 1}
+            )
+            if site:
+                site_names.append(site.get("name", "Unknown"))
+        
+        user["other_main_sites"] = site_names
+    
+    return available_users
+
+
 @main_sites_router.post("/{main_site_id}/users", response_model=MainSiteUserResponse)
 async def add_main_site_user(
     main_site_id: str,
