@@ -522,6 +522,7 @@ const RDSMonitorPage = () => {
             data={monitorData?.stations?.grk}
             staleCountdown={countdowns.grk}
             showEndCountdown={showEndCountdowns.grk}
+            scheduledTextCountdown={scheduledTextCountdowns.grk}
           />
         </div>
 
