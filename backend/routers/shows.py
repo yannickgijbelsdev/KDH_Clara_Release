@@ -1008,7 +1008,22 @@ async def update_show(
     
     # Get presenter info
     if updated_show.get('presenter_ids'):
-        updated_show['presenters'] = await get_presenters_info(updated_show['presenter_ids'], main_site_id, current_user.get('team_id'))
+        updated_show['presenters'] = await get_presenters_info(updated_show['presenter_ids'], main_site_id, team_id)
+    
+    # Sync to ProRadio in background
+    if update_all and show.get('is_recurring'):
+        # Sync all occurrences
+        parent_id = show.get('parent_show_id') or show_id
+        async def sync_updated_recurring():
+            all_shows = await db.shows.find({
+                "$or": [{"id": parent_id}, {"parent_show_id": parent_id}]
+            }, {"_id": 0}).to_list(100)
+            for s in all_shows:
+                await sync_show_to_proradio(s, main_site_id, team_id)
+        background_tasks.add_task(sync_updated_recurring)
+    else:
+        # Sync just this show
+        background_tasks.add_task(sync_show_to_proradio, updated_show, main_site_id, team_id)
     
     return updated_show
 
