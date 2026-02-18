@@ -442,24 +442,106 @@ export default function NetworkDashboard() {
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white">
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-zinc-900/50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">Network Admin</h1>
-              <p className="text-sm text-zinc-400">Manage all main sites</p>
-            </div>
-            <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              New Main Site
-            </Button>
+      {/* Header - matches MainSiteDashboardLayout style */}
+      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+        <div className="flex items-center justify-between px-6 py-3">
+          {/* Left: Clara Global branding */}
+          <div className="flex items-center gap-3">
+            <span className="text-white font-black text-lg">Clara Global</span>
           </div>
+
+          {/* Right: User dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="flex items-center gap-3 px-3 h-11 rounded-xl hover:bg-orange-500/10"
+              >
+                {user?.avatar?.url || user?.avatar?.file_key ? (
+                  <img 
+                    src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
+                    alt={user?.name}
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="text-left hidden sm:block">
+                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-xs text-zinc-500">{roleLabels[user?.role]}</p>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-[#18181b] border-zinc-800">
+              <div className="px-3 py-2 flex items-center gap-3">
+                {user?.avatar?.url || user?.avatar?.file_key ? (
+                  <img 
+                    src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
+                    alt={user?.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-xs text-zinc-500">{user?.email}</p>
+                </div>
+              </div>
+              <DropdownMenuSeparator className="bg-zinc-800" />
+              <DropdownMenuItem className="text-zinc-400 cursor-default">
+                <RoleIcon className="w-4 h-4 mr-2" />
+                {roleLabels[user?.role]}
+              </DropdownMenuItem>
+              {/* Main Sites quick access */}
+              {mainSites.length > 0 && (
+                <>
+                  <DropdownMenuSeparator className="bg-zinc-800" />
+                  <div className="px-2 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                    Main Sites
+                  </div>
+                  {mainSites.slice(0, 5).map(site => (
+                    <DropdownMenuItem
+                      key={site.id}
+                      onClick={() => navigate(`/${site.slug}`)}
+                      className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    >
+                      <Globe className="w-4 h-4 mr-2" />
+                      {site.name}
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
+              <DropdownMenuSeparator className="bg-zinc-800" />
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      {/* Main Content - with padding for fixed header */}
+      <main className="max-w-7xl mx-auto px-6 py-8 pt-24">
+        {/* Page Title */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-bold">Network Admin</h1>
+            <p className="text-sm text-zinc-400">Manage all main sites</p>
+          </div>
+          <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            New Main Site
+          </Button>
+        </div>
         {mainSites.length === 0 ? (
           <div className="space-y-6">
             {/* Empty State */}
