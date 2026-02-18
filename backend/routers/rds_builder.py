@@ -507,6 +507,92 @@ async def get_rds_output_history(
     return history
 
 
+@rds_builder_router.get("/scheduled-texts-status")
+async def get_scheduled_texts_status():
+    """Get the current status of scheduled texts for all stations.
+    
+    Returns active scheduled text (if any) and next upcoming scheduled text for each station.
+    This is used by the RDS Monitor to show scheduled text status.
+    """
+    from services.rds_builder_scheduler import get_active_scheduled_text_for_station
+    
+    now_brussels = datetime.now(BRUSSELS_TZ)
+    now_utc = datetime.now(timezone.utc)
+    
+    result = {}
+    
+    for station in ["mfy", "grk"]:
+        # Get currently active scheduled text
+        active = await get_active_scheduled_text_for_station(db, station)
+        
+        # Get all enabled scheduled texts for this station
+        texts = await db.rds_scheduled_texts.find(
+            {"$or": [{"station": station}, {"station": "both"}], "enabled": True},
+            {"_id": 0}
+        ).to_list(100)
+        
+        # Calculate next occurrence for each text
+        next_occurrences = []
+        for text in texts:
+            try:
+                start_dt_str = text["start_datetime"].replace("Z", "+00:00")
+                try:
+                    text_start = datetime.fromisoformat(start_dt_str)
+                except ValueError:
+                    text_start = datetime.fromisoformat(start_dt_str.split("+")[0])
+                    text_start = text_start.replace(tzinfo=timezone.utc)
+                
+                if text_start.tzinfo is None:
+                    text_start = text_start.replace(tzinfo=timezone.utc)
+                
+                recurrence = text.get("recurrence_type", "none")
+                duration_minutes = text.get("duration_minutes", 5) or 5
+                
+                # Find next occurrence
+                current = text_start
+                max_iter = 10000
+                iter_count = 0
+                
+                while current <= now_utc and iter_count < max_iter:
+                    if recurrence == "hourly":
+                        current = current + timedelta(hours=1)
+                    elif recurrence == "daily":
+                        current = current + timedelta(days=1)
+                    elif recurrence == "weekly":
+                        current = current + timedelta(weeks=1)
+                    elif recurrence == "monthly":
+                        from dateutil.relativedelta import relativedelta
+                        current = current + relativedelta(months=1)
+                    else:
+                        break
+                    iter_count += 1
+                
+                if current > now_utc:
+                    next_occurrences.append({
+                        "id": text["id"],
+                        "text": text["text"],
+                        "next_start": current.isoformat(),
+                        "duration_minutes": duration_minutes,
+                        "recurrence": recurrence
+                    })
+            except Exception as e:
+                pass
+        
+        # Sort by next_start
+        next_occurrences.sort(key=lambda x: x["next_start"])
+        
+        result[station] = {
+            "active": active,
+            "next_scheduled": next_occurrences[0] if next_occurrences else None,
+            "upcoming_count": len(next_occurrences)
+        }
+    
+    return {
+        "timestamp": now_brussels.isoformat(),
+        "stations": result
+    }
+
+
 # ============== MULTI-OUTPUT SYSTEM ==============
 # Allows creating multiple named outputs per station (e.g., Streaming, DAB, FM)
 # Each output has its own configurable items (now_playing, show_name, custom_text)
