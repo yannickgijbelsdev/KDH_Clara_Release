@@ -61,8 +61,8 @@ async def log_text_change(db, station: str, new_text: str, item_type: str, reaso
             "item_type": item_type,
             "reason": reason,
             "presenters": presenters,
-            "timestamp": now_brussels.isoformat(),
-            "timestamp_formatted": now_brussels.strftime("%H:%M:%S"),
+            "timestamp": now_brussels_dt.isoformat(),
+            "timestamp_formatted": now_brussels_dt.strftime("%H:%M:%S"),
         }
         
         try:
