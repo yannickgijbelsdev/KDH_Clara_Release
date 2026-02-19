@@ -6,10 +6,12 @@ from zoneinfo import ZoneInfo
 import uuid
 
 from database import db
+from services.timezone_utils import (
+    BRUSSELS_TZ, now_brussels as get_now_brussels, today_brussels,
+    current_time_brussels, yesterday_brussels
+)
 
 logger = logging.getLogger(__name__)
-
-BRUSSELS_TZ = ZoneInfo('Europe/Brussels')
 
 
 async def refresh_live_show_cache(team_id: str = None) -> dict:
@@ -21,12 +23,16 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     
     Returns:
         Dict with refresh status and details.
+        
+    ALL times are in Brussels timezone (Europe/Brussels).
     """
-    now_utc = datetime.now(timezone.utc)
-    # Use proper Europe/Brussels timezone (handles CET/CEST automatically)
-    now_brussels = datetime.now(BRUSSELS_TZ)
+    # Use ONLY Brussels timezone - no UTC fallback needed
+    now_brussels_dt = get_now_brussels()
+    current_date = today_brussels()
+    current_time = current_time_brussels()
+    yesterday_date = yesterday_brussels()
     
-    timestamp = datetime.now(BRUSSELS_TZ).isoformat()
+    timestamp = now_brussels_dt.isoformat()
     
     # Resolve all team_ids: if identifier is a main_site_id, get all child site team_ids
     team_ids_to_search = set()
@@ -42,31 +48,9 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 team_ids_to_search.add(site["team_id"])
     
     team_ids_list = list(team_ids_to_search)
-    logger.info(f"RDS refresh for identifier={team_id}, resolved team_ids={team_ids_list}, brussels={now_brussels.strftime('%Y-%m-%d %H:%M')}")
-    
-    # Use Brussels local time for finding live shows (shows are stored in local time)
-    queries_to_try = [
-        # Brussels time (primary - shows are in local time)
-        {
-            "now": now_brussels,
-            "date": now_brussels.strftime('%Y-%m-%d'),
-            "time": now_brussels.strftime('%H:%M')
-        },
-        # Also try UTC as fallback
-        {
-            "now": now_utc,
-            "date": now_utc.strftime('%Y-%m-%d'),
-            "time": now_utc.strftime('%H:%M')
-        }
-    ]
+    logger.info(f"RDS refresh for identifier={team_id}, resolved team_ids={team_ids_list}, brussels={now_brussels_dt.strftime('%Y-%m-%d %H:%M')}")
     
     live_shows = []
-    
-    for q in queries_to_try:
-        current_time = q["time"]
-        current_date = q["date"]
-        current_now = q["now"]
-        yesterday_date = (current_now - timedelta(days=1)).strftime('%Y-%m-%d')
         
         # Query for shows today AND yesterday (for midnight-crossing shows)
         if team_ids_list:
