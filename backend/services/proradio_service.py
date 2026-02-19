@@ -420,40 +420,19 @@ async def sync_show_to_proradio(
                 results[station] = {"status": "error", "message": "Failed to find/create show"}
                 continue
             
-            # Step 2: Get the schedule post for the weekday
+            # Step 2: Get the schedule post for the weekday (for tracking purposes)
             schedule_post = await get_schedule_post(credentials, weekday_name)
+            schedule_id = schedule_post["id"] if schedule_post else None
             
-            if not schedule_post:
-                results[station] = {"status": "error", "message": f"No schedule post for {weekday_name}"}
-                continue
-            
-            schedule_id = schedule_post["id"]
-            
-            # Step 3: Get current shows from schedule
-            current_shows = await get_schedule_shows_meta(credentials, schedule_id)
-            
-            # Step 4: Add or update our show slot
-            new_slot = {
-                "show_id": [str(wp_show_id)],
-                "show_time": start_time,
-                "show_time_end": end_time
-            }
-            
-            # Remove any existing slot with the same time or same show
-            updated_shows = [
-                s for s in current_shows
-                if not (s.get("show_time") == start_time and s.get("show_time_end") == end_time)
-                and not (str(wp_show_id) in s.get("show_id", []) and s.get("show_time") == start_time)
-            ]
-            
-            # Add the new slot
-            updated_shows.append(new_slot)
-            
-            # Sort by start time
-            updated_shows.sort(key=lambda x: x.get("show_time", "00:00"))
-            
-            # Step 5: Update the schedule post
-            success = await update_schedule_shows(credentials, schedule_id, updated_shows)
+            # Step 3: Update the schedule using the Clara plugin
+            success = await update_schedule_shows(
+                credentials, 
+                schedule_id,
+                wp_show_id,
+                start_time,
+                end_time,
+                weekday_name
+            )
             
             if success:
                 # Store sync record for tracking
