@@ -631,11 +631,12 @@ async def get_scheduled_texts_status():
     
     Returns active scheduled text (if any) and next upcoming scheduled text for each station.
     This is used by the RDS Monitor to show scheduled text status.
+    
+    ALL times are in Brussels timezone (Europe/Brussels).
     """
     from services.rds_builder_scheduler import get_active_scheduled_text_for_station
     
-    now_brussels = datetime.now(BRUSSELS_TZ)
-    now_utc = datetime.now(timezone.utc)
+    now_bru = now_brussels()
     
     result = {}
     
@@ -653,15 +654,17 @@ async def get_scheduled_texts_status():
         next_occurrences = []
         for text in texts:
             try:
-                start_dt_str = text["start_datetime"].replace("Z", "+00:00")
+                # Parse datetime - assume Brussels timezone
+                start_dt_str = text["start_datetime"].replace("Z", "")
                 try:
                     text_start = datetime.fromisoformat(start_dt_str)
                 except ValueError:
                     text_start = datetime.fromisoformat(start_dt_str.split("+")[0])
-                    text_start = text_start.replace(tzinfo=timezone.utc)
                 
                 if text_start.tzinfo is None:
-                    text_start = text_start.replace(tzinfo=timezone.utc)
+                    text_start = text_start.replace(tzinfo=BRUSSELS_TZ)
+                else:
+                    text_start = text_start.astimezone(BRUSSELS_TZ)
                 
                 recurrence = text.get("recurrence_type", "none")
                 duration_minutes = text.get("duration_minutes", 5) or 5
@@ -671,7 +674,7 @@ async def get_scheduled_texts_status():
                 max_iter = 10000
                 iter_count = 0
                 
-                while current <= now_utc and iter_count < max_iter:
+                while current <= now_bru and iter_count < max_iter:
                     if recurrence == "hourly":
                         current = current + timedelta(hours=1)
                     elif recurrence == "daily":
@@ -685,7 +688,7 @@ async def get_scheduled_texts_status():
                         break
                     iter_count += 1
                 
-                if current > now_utc:
+                if current > now_bru:
                     next_occurrences.append({
                         "id": text["id"],
                         "text": text["text"],
@@ -706,7 +709,7 @@ async def get_scheduled_texts_status():
         }
     
     return {
-        "timestamp": now_brussels.isoformat(),
+        "timestamp": now_bru.isoformat(),
         "stations": result
     }
 
