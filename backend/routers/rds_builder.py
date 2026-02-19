@@ -9,10 +9,12 @@ import asyncio
 
 from database import db
 from services.auth import require_admin
+from services.timezone_utils import (
+    BRUSSELS_TZ, now_brussels, today_brussels, current_time_brussels,
+    format_datetime_brussels
+)
 
 rds_builder_router = APIRouter(prefix="/rds-builder", tags=["RDS Builder"])
-
-BRUSSELS_TZ = ZoneInfo('Europe/Brussels')
 
 
 class RDSItem(BaseModel):
