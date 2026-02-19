@@ -6,22 +6,11 @@ from zoneinfo import ZoneInfo
 import logging
 
 from database import db
+from services.timezone_utils import BRUSSELS_TZ, now_brussels, WEEKDAY_NAMES_NL
 
 logger = logging.getLogger(__name__)
 
 public_schedule_router = APIRouter(prefix="/public", tags=["Public Schedule"])
-
-BRUSSELS_TZ = ZoneInfo('Europe/Brussels')
-
-WEEKDAY_NAMES = {
-    0: 'maandag',
-    1: 'dinsdag',
-    2: 'woensdag',
-    3: 'donderdag',
-    4: 'vrijdag',
-    5: 'zaterdag',
-    6: 'zondag'
-}
 
 
 async def get_shows_for_week(main_site_id: str, station: str) -> dict:
@@ -33,9 +22,11 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
         
     Returns:
         Dict with day names as keys and list of shows as values
+        
+    ALL times are in Brussels timezone (Europe/Brussels).
     """
     # Calculate date range for current week (Monday to Sunday)
-    today = datetime.now(BRUSSELS_TZ).date()
+    today = now_brussels().date()
     monday = today - timedelta(days=today.weekday())
     sunday = monday + timedelta(days=6)
     
