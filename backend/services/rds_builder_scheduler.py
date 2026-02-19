@@ -136,48 +136,45 @@ async def get_active_scheduled_text_for_station(db, station: str) -> dict | None
     
     Scheduled texts have priority over sequence items.
     Shows have priority over scheduled texts.
+    
+    ALL times are in Brussels timezone (Europe/Brussels).
     """
-    now = datetime.now(timezone.utc)
+    # Use Brussels timezone for ALL time operations
+    now = now_brussels()
+    current_date = today_brussels()
+    current_time_str = current_time_brussels()
+    yesterday_date = yesterday_brussels()
     
     # First check if there's an active show - shows have priority
-    # Check both UTC and CET time for show matching
-    now_cet = now + timedelta(hours=1)
+    # Check for shows today that are currently live
+    active_show = await db.shows.find_one({
+        "date": current_date,
+        "start_time": {"$lte": current_time_str},
+        "end_time": {"$gte": current_time_str},
+        "$or": [
+            {"rds_station": station},
+            {"rds_station": "both"}
+        ]
+    })
+    if active_show:
+        return None  # Show is active, no scheduled text should override
     
-    for check_time in [now_cet, now]:
-        current_date = check_time.strftime("%Y-%m-%d")
-        current_time_str = check_time.strftime("%H:%M")
-        yesterday_date = (check_time - timedelta(days=1)).strftime("%Y-%m-%d")
-        
-        # Check for shows today that are currently live
-        active_show = await db.shows.find_one({
-            "date": current_date,
-            "start_time": {"$lte": current_time_str},
-            "end_time": {"$gte": current_time_str},
-            "$or": [
-                {"rds_station": station},
-                {"rds_station": "both"}
-            ]
-        })
-        if active_show:
-            return None  # Show is active, no scheduled text should override
-        
-        # Also check for midnight-crossing shows from yesterday
-        # These have start_time > end_time (e.g., 22:00 - 01:00)
-        yesterday_shows = await db.shows.find({
-            "date": yesterday_date,
-            "$or": [
-                {"rds_station": station},
-                {"rds_station": "both"}
-            ]
-        }, {"_id": 0}).to_list(50)
-        
-        for show in yesterday_shows:
-            start = show.get("start_time", "00:00")
-            end = show.get("end_time", "23:59")
-            # Check if show crosses midnight AND we're still in the "after midnight" part
-            # Use < instead of <= to ensure show ends exactly at end_time
-            if start > end and current_time_str < end:
-                return None  # Midnight-crossing show still active
+    # Also check for midnight-crossing shows from yesterday
+    # These have start_time > end_time (e.g., 22:00 - 01:00)
+    yesterday_shows = await db.shows.find({
+        "date": yesterday_date,
+        "$or": [
+            {"rds_station": station},
+            {"rds_station": "both"}
+        ]
+    }, {"_id": 0}).to_list(50)
+    
+    for show in yesterday_shows:
+        start = show.get("start_time", "00:00")
+        end = show.get("end_time", "23:59")
+        # Check if show crosses midnight AND we're still in the "after midnight" part
+        if start > end and current_time_str < end:
+            return None  # Midnight-crossing show still active
     
     # Also check cached rundowns (more reliable than direct show check)
     cached_rundown = await db.rds_cached_rundowns.find_one(
@@ -195,18 +192,18 @@ async def get_active_scheduled_text_for_station(db, station: str) -> dict | None
     
     # Find which scheduled text is currently active
     for text in texts:
-        # Parse start_datetime and ensure it's timezone-aware
-        start_dt_str = text["start_datetime"].replace("Z", "+00:00")
+        # Parse start_datetime - assume Brussels timezone for stored datetimes
+        start_dt_str = text["start_datetime"].replace("Z", "")
         try:
             text_start = datetime.fromisoformat(start_dt_str)
         except ValueError:
-            # Handle datetime without timezone
             text_start = datetime.fromisoformat(start_dt_str.split("+")[0])
-            text_start = text_start.replace(tzinfo=timezone.utc)
         
-        # If naive datetime, assume UTC
+        # If naive datetime, assume Brussels time (NOT UTC!)
         if text_start.tzinfo is None:
-            text_start = text_start.replace(tzinfo=timezone.utc)
+            text_start = text_start.replace(tzinfo=BRUSSELS_TZ)
+        else:
+            text_start = text_start.astimezone(BRUSSELS_TZ)
         
         recurrence = text.get("recurrence_type", "none")
         recurrence_end = text.get("recurrence_end_date")
@@ -216,7 +213,9 @@ async def get_active_scheduled_text_for_station(db, station: str) -> dict | None
         # Check recurrence end date (only if explicitly set)
         if recurrence_end:
             try:
-                recurrence_end_dt = datetime.fromisoformat(recurrence_end + "T23:59:59+00:00")
+                recurrence_end_dt = datetime.strptime(recurrence_end, "%Y-%m-%d").replace(
+                    hour=23, minute=59, second=59, tzinfo=BRUSSELS_TZ
+                )
                 if now > recurrence_end_dt:
                     continue  # This scheduled text has expired
             except ValueError:
