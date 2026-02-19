@@ -658,8 +658,11 @@ async def process_named_outputs(db):
 
 
 async def process_named_output(db, output_config: dict):
-    """Process a single named RDS output and update its state."""
-    now = datetime.now(timezone.utc)
+    """Process a single named RDS output and update its state.
+    
+    ALL times are in Brussels timezone (Europe/Brussels).
+    """
+    now = now_brussels()
     timestamp = now.isoformat()
     
     output_id = output_config.get("id")
