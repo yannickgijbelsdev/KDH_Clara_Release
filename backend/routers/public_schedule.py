@@ -75,7 +75,7 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
         # Get weekday name
         try:
             show_date = datetime.strptime(show.get("date", ""), "%Y-%m-%d")
-            weekday = WEEKDAY_NAMES[show_date.weekday()]
+            weekday = WEEKDAY_NAMES_NL[show_date.weekday()]
         except:
             continue
         
