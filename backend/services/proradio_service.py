@@ -251,14 +251,20 @@ async def get_schedule_shows_meta(credentials: Dict, schedule_id: int) -> List[D
 async def update_schedule_shows(
     credentials: Dict,
     schedule_id: int,
-    shows_data: List[Dict]
+    show_id: int,
+    start_time: str,
+    end_time: str,
+    weekday_name: str
 ) -> bool:
-    """Update the shows meta field on a schedule post.
+    """Update a schedule using the Clara ProRadio Sync plugin.
     
     Args:
         credentials: WordPress API credentials
-        schedule_id: Schedule post ID
-        shows_data: List of show slot dictionaries
+        schedule_id: Schedule post ID (not used with new plugin, kept for compatibility)
+        show_id: WordPress show post ID
+        start_time: Start time (HH:MM)
+        end_time: End time (HH:MM)
+        weekday_name: Dutch day name (maandag, dinsdag, etc.)
         
     Returns:
         True if successful
@@ -268,41 +274,80 @@ async def update_schedule_shows(
     
     try:
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            # ProRadio stores shows in a custom meta field
-            # We need to update via the schedule post endpoint with ACF/meta support
-            update_url = f"{wp_url}/wp-json/wp/v2/schedule/{schedule_id}"
+            # Use the Clara ProRadio Sync plugin endpoint
+            update_url = f"{wp_url}/wp-json/clara/v1/schedule/update"
             
-            # The shows field in ProRadio is typically stored as post meta
-            # Format needs to match ProRadio's expected structure
             update_data = {
-                "meta": {
-                    "shows": shows_data
-                }
+                "day": weekday_name,
+                "mode": "add",
+                "show_id": show_id,
+                "start_time": start_time,
+                "end_time": end_time
             }
             
             response = await client.post(update_url, headers=headers, json=update_data)
             
             if response.status_code in [200, 201]:
-                logger.info(f"Updated schedule {schedule_id} with {len(shows_data)} show slots")
+                result = response.json()
+                logger.info(f"Updated schedule via Clara plugin: {result.get('message')}")
                 return True
             else:
-                # Try alternative field name
-                update_data = {
-                    "acf": {
-                        "shows": shows_data
-                    }
-                }
-                response = await client.post(update_url, headers=headers, json=update_data)
-                
-                if response.status_code in [200, 201]:
-                    logger.info(f"Updated schedule {schedule_id} via ACF")
-                    return True
-                    
                 logger.error(f"Failed to update schedule: {response.status_code} - {response.text[:500]}")
                 return False
                 
     except Exception as e:
         logger.error(f"Error updating schedule: {e}")
+        return False
+
+
+async def remove_from_schedule(
+    credentials: Dict,
+    start_time: str,
+    end_time: str,
+    weekday_name: str,
+    show_id: Optional[int] = None
+) -> bool:
+    """Remove a show slot from schedule using the Clara ProRadio Sync plugin.
+    
+    Args:
+        credentials: WordPress API credentials
+        start_time: Start time (HH:MM)
+        end_time: End time (HH:MM)
+        weekday_name: Dutch day name
+        show_id: Optional WordPress show ID
+        
+    Returns:
+        True if successful
+    """
+    wp_url = credentials["wp_base_url"]
+    headers = get_auth_headers(credentials)
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            update_url = f"{wp_url}/wp-json/clara/v1/schedule/update"
+            
+            update_data = {
+                "day": weekday_name,
+                "mode": "remove",
+                "start_time": start_time,
+                "end_time": end_time
+            }
+            
+            if show_id:
+                update_data["show_id"] = show_id
+            
+            response = await client.post(update_url, headers=headers, json=update_data)
+            
+            if response.status_code in [200, 201]:
+                result = response.json()
+                logger.info(f"Removed from schedule: {result.get('message')}")
+                return True
+            else:
+                logger.error(f"Failed to remove from schedule: {response.status_code}")
+                return False
+                
+    except Exception as e:
+        logger.error(f"Error removing from schedule: {e}")
         return False
 
 
