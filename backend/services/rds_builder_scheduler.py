@@ -6,9 +6,12 @@ from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 import uuid
 
-logger = logging.getLogger(__name__)
+from services.timezone_utils import (
+    BRUSSELS_TZ, now_brussels, today_brussels, current_time_brussels,
+    yesterday_brussels, is_time_between
+)
 
-BRUSSELS_TZ = ZoneInfo('Europe/Brussels')
+logger = logging.getLogger(__name__)
 
 # Track last text per station to detect changes
 _last_text_tracker = {}
