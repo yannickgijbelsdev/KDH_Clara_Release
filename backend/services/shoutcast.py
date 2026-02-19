@@ -302,11 +302,13 @@ async def cache_now_playing(db, station: str) -> Dict:
     
     Also tracks if the song has been playing too long (stale) and
     replaces it with fallback text if needed.
+    
+    ALL times are in Brussels timezone (Europe/Brussels).
     """
     global _song_change_tracker
     
-    timestamp = datetime.now(timezone.utc).isoformat()
-    now = datetime.now(timezone.utc)
+    now = now_brussels()
+    timestamp = now.isoformat()
     
     data = await get_now_playing(station, db, apply_filter=True)
     
