@@ -1,35 +1,46 @@
 <analysis>**original_problem_statement:**
-The user initially reported a could not load RDS settings error. After this was resolved, a cascade of new issues and feature requests emerged throughout the session. The user requested fixes for shows remaining active after their end time, performance issues with the RDS monitor, broken WordPress integrations (301 errors, category syncing), incorrect data isolation between different 'main sites', and incorrect menu badge counts. They also requested several new features, including the ability to assign existing users to multiple main sites and making the RDS Monitor an optional, configurable feature per main site.
+The user initially reported a could not load RDS settings error. After this was resolved, a cascade of new issues and feature requests emerged. The main goals were to fix bugs related to show scheduling, data isolation between sites, and WordPress integration, while also adding new features like multi-site user assignment and making the RDS monitor optional.
+
+During this session, several of these were resolved, but a major new feature was requested: syncing the Clara application's calendar with a ProRadio-powered schedule on two WordPress sites (mfy.be and grk.fm). After a lengthy and complex attempt to integrate directly with ProRadio's internal data structures (which use ACF), the user and agent agreed to pivot to a more robust, decoupled solution: creating a brand new, custom WordPress plugin that will pull schedule data from a new public API endpoint in the Clara backend, effectively replacing the ProRadio schedule viewer.
+
+PRODUCT REQUIREMENTS:
+1.  **Bugfix:** Mini-site password updates must work for network admins. (DONE)
+2.  **UI:** The Network Admin dashboard header should be styled like the main site dashboards, with the title Clara Global. (DONE)
+3.  **Bugfix:** Enabled features for a Main Site must be saved correctly. (DONE)
+4.  **Feature:** The Clara calendar must be displayed on the WordPress sites (mfy.be, grk.fm), replacing the existing ProRadio schedule display. This involves creating a custom WordPress plugin and a new public API endpoint in the Clara backend.
 
 **User's preferred language**: Dutch. The next agent MUST respond in Dutch.
 
 **what currently exists?**
-The agent has implemented a significant number of fixes and features. The critical bug causing shows to remain active after their scheduled end time due to a timezone mismatch has been resolved. The **RDS Monitoring Dashboard** has been heavily enhanced with forced refresh, an auto-sync mechanism for stale data, countdown timers for shows and scheduled text, and has been optimized to reduce CPU load on both frontend and backend. WordPress integration is now more robust, with fixes for 301 redirect errors and a new feature to sync categories. Core multi-tenancy issues have been addressed by enforcing strict data isolation between main sites for content and menu counts. A new feature allows network admins to assign existing users to multiple main sites. Finally, the RDS monitor has been converted into an optional feature that can be enabled or disabled per main site.
+The application is largely functional. The agent successfully resolved three key issues in this session: a critical authorization bug preventing network admins from updating mini-site passwords, a UI request to update the network admin header, and a bug where main site feature settings weren't being saved.
+
+The agent is now in the middle of a major new feature: creating a full-fledged WordPress plugin to display the Clara schedule. The previous approach of syncing directly with the existing ProRadio plugin was abandoned due to its complexity and brittleness. The agent has already written the PHP and CSS code for the new WordPress plugin and is about to create the required public API endpoint in the Clara backend to serve the schedule data.
 
 **Last working item**:
--   **Last item agent was working:** The user reported an error when trying to set a password for a mini-site (Site niet gevonden). The agent investigated and found that the backend endpoint () was incorrectly using the user's  for authorization, which fails for network admins who may have .
+-   **Last item agent was working:** The user requested a new, custom WordPress plugin to handle both displaying the schedule and syncing with Clara, abandoning the complex ProRadio integration. The agent provided the complete PHP and CSS code for this new plugin and confirmed with the user that the next step is to create the public API endpoint in the Clara backend that the plugin will consume.
 -   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** backend testing agent or  to test the  endpoint after fixing the query logic in .
+-   **Which testing method agent to use?** This is a multi-step integration task.
+    1.  **Backend:** After creating the public API endpoint, test it with  to ensure it returns the correct schedule data without authentication (but respecting the  header).
+    2.  **Integration:** Guide the user to create the new plugin files ( and ) on their WordPress instances, configure the plugin with the new Clara API endpoint URL, and use the plugin's built-in Test Connection feature.
+    3.  **Frontend:** Once the integration is confirmed, verify the final result by having the user add the  shortcode to a WordPress page and visually checking if the schedule appears correctly.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-*   **Issue 1: Mini-site password update fails (P0 - HIGHEST)**
-    *   **Description:** When attempting to set a password for a mini-site, the user receives a Site niet gevonden (Site not found) error.
-    *   **Attempted fixes:** The agent identified the root cause in the backend but has not yet implemented a fix.
-    *   **Next debug checklist:**
-        1.  Open .
-        2.  Locate the  function and the database query: .
-        3.  Modify this authorization logic. Instead of just checking , the query must also allow access if the user is a network admin or if the site's  is one the user has access to. A more robust check is needed that doesn't rely solely on .
-        4.  Test the fix by making a  request to the  endpoint.
-    *   **Why fix this issue and what will be achieved with the fix?** This is a basic site management function that is currently broken, preventing users from securing their mini-sites.
-    *   **Status:** IN PROGRESS
-    *   **Is recurring issue?** N
-    *   **Should Test frontend/backend/both after fix?** Backend
-    *   **Blocked on other issue:** None
+*   None. All reported bugs have been resolved. The current work is a new feature implementation.
 
 **In progress Task List**:
-*   None.
+*   **Task 1: Implement ProRadio Sync via Custom WordPress Plugin and Public Clara API (P0 - HIGHEST)**
+    *   **Where to resume:**
+        1.  **Clara Backend:** Create a new, public, unauthenticated API endpoint. A new file like  would be appropriate. The endpoint (e.g., ) should accept a  parameter (, , ) and require an  header for data scoping. It must return the schedule data (show title, start/end times, etc.) for the specified station(s) in a JSON format that the new WordPress plugin expects.
+        2.  **WordPress Frontend:** Guide the user to create two new files in their WordPress plugins directory ():
+            *    (code already provided in chat history)
+            *    (code already provided in chat history)
+        3.  **Cleanup:** Once the new system is verified and working, remove the now-obsolete ProRadio integration code from the Clara backend (, , and the background sync tasks in ).
+    *   **What will be achieved with this?** A robust, real-time sync and display of the Clara schedule on the WordPress websites, replacing the problematic ProRadio integration with a custom-built, maintainable solution.
+    *   **Status:** IN PROGRESS
+    *   **Should Test frontend/backend/both after fix?** Both
+    *   **Blocked on something:** The Clara backend public API endpoint must be created first.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
@@ -39,92 +50,70 @@ The agent has implemented a significant number of fixes and features. The critic
     *   **(P2) Stream Monitor VU Meters:** Implement functional VU meters on the stream monitor page.
 
 **Completed work in this session**
--   **Show End-Time Bug (RESOLVED):** Fixed a critical timezone bug in  that caused shows to appear live long after they had finished. The fix involved removing a dual-timezone check and exclusively using Brussels time.
--   **Content & Menu Count Isolation (RESOLVED):** Fixed bugs in  and  where queries used  instead of , causing data from different sites to leak and badge counts to be incorrect.
--   **RDS Monitor as a Feature (DONE):** Made the RDS Monitor an optional feature that can be toggled per main site. This involved updating  to add  to the available features and  to respect the feature flag.
--   **Multi-Site User Assignment (DONE):** Implemented a feature to assign existing users to multiple main sites. This included a new endpoint  and UI changes in .
--   **WordPress Category Sync (DONE):** Added a Sync Categories feature. This included a new endpoint  in  and a button in the  frontend component.
--   **WordPress Connection Fixes (DONE):**
-    -   Resolved a 301 Redirect error by adding  to  clients in .
-    -   Improved error handling in  to give clearer feedback when a WordPress site's REST API returns HTML instead of JSON.
--   **RDS Monitor Performance Optimization (DONE):**
-    -   **Backend:** Implemented a 5-second in-memory cache for the  endpoint to reduce database load.
-    -   **Frontend:** Reduced the data refresh interval from 2 seconds to 10 seconds and consolidated countdown timer logic to lower CPU usage.
--   **Persistent  Installation (DONE):** Fixed the ephemeral  installation by adding a check-and-install script to  that runs on startup.
+-   **Mini-site Password Update (RESOLVED):** Fixed the Site niet gevonden authorization bug in  that prevented network admins from setting mini-site passwords.
+-   **Network Admin Header UI (DONE):** Modified  to display a Clara Global header consistent with the main site dashboard style.
+-   **Main Site Feature Toggles (RESOLVED):** Fixed a bug where main site feature settings were not being saved by adding the  field to the  model in .
 
 **Earlier issues found/mentioned but not fixed**
-*   None. All reported issues in this session were either resolved or are listed in the pending/upcoming sections.
+*   None.
 
 **Known issue recurrence from previous fork**
-*   **RDS Logic Complexity:** The RDS scheduling logic continues to be a source of subtle bugs, as demonstrated by the critical timezone/show-end-time bug fixed in this session.
-*   **Data Scoping (team_id vs main_site_id):** Multiple bugs were caused by incorrect data scoping using  instead of the more specific . This pattern is a recurring source of data isolation problems.
+*   **Data Scoping (team_id vs main_site_id):** This pattern remains a risk. The mini-site password bug was another symptom of incorrect data scoping logic. Future data-related endpoints must prioritize .
+*   **WordPress/ACF Integration Complexity:** A new key learning from this session. Direct integration with third-party WordPress plugins that use ACF without a clean REST API is extremely brittle. The pivot to a decoupled approach (public API + custom plugin) is the correct pattern to avoid this in the future.
 
 **Code Architecture**
-
+enabled_features
 
 **Key Technical Concepts**
--   **Timezone-Aware Programming:** The critical importance of standardizing on a single timezone (e.g., 'Europe/Brussels') for all application logic, especially when dealing with schedules, to prevent bugs related to UTC offsets.
--   **Multi-Tenancy & Data Scoping:** Enforcing strict data isolation in a multi-tenant application by using the correct identifier () in database queries instead of a broader one ().
--   **API Caching:** Using simple in-memory, time-based caching on the backend to reduce database load from frequent frontend polling.
--   **Frontend Performance:** Reducing CPU load by decreasing API call frequency and consolidating UI update logic (e.g., combining multiple  into one).
--   **Robust Dependency Management:** Implementing a startup script in  to ensure system-level dependencies like  are present in environments where direct  modification is not possible.
+-   **API-First Decoupling:** When a 3rd-party integration is too complex (like ProRadio/ACF), the best practice is to pivot. Create a stable, public API on the source system (Clara) and build a simple consumer for it on the target system (a new WordPress plugin). This creates a clean contract and avoids brittle dependencies.
+-   **WordPress Plugin Development:** The agent created a complete WordPress plugin, demonstrating knowledge of admin pages, settings API, REST API endpoints, shortcodes, and asset enqueuing.
+-   **WordPress Transients API:** Used  and  for server-side caching of API responses within the WordPress plugin, reducing load on the Clara backend.
 
 **key DB schema**
--   No new collections were added. Logic heavily depends on , , , , , and . The relationship between users and sites via  was leveraged for the multi-site user assignment feature.
+-   No changes to the MongoDB schema in this session.
 
 **changes in tech stack**
--   None. The existing stack (FastAPI, React, MongoDB) was maintained.
+-   None.
 
 **All files of reference**
--   : Contains the **pending bug** for the mini-site password update.
--   : Contains the critical timezone fix for shows ending.
--   : Contains the fix for data isolation.
--   : Contains the fix for incorrect menu badge counts.
--   : Contains all the new RDS monitor features and performance optimizations.
--   : Contains the UI for adding existing users to a main site.
+-   : Contains the fix for the mini-site password update.
+-   : Contains the updated Network Admin header UI.
+-   : Contains the fix for the main site feature toggles bug.
+-   , , : These files contain the logic for the **abandoned** ProRadio sync attempt and should be cleaned up once the new solution is implemented.
 
 **Areas that need refactoring**:
--   The authorization logic across various backend endpoints needs a systematic review. The recurring bugs related to  vs.  suggest that the authorization model is not consistently applied, creating security and data-scoping vulnerabilities. The current pending issue in  is a direct symptom of this.
+-   Once the new public API and custom WordPress plugin are verified, the obsolete ProRadio sync code must be removed. This includes the service (), the router (), its registration in , and all background task calls within .
 
 **key api endpoints**
--   : **BROKEN**. Fails with Site niet gevonden when setting a password due to incorrect authorization logic.
--   : **NEW & WORKING**.
--   : **NEW & WORKING**.
--   : **FIXED**. Now correctly isolates content per main site.
--   : **FIXED**. Now returns correct counts per main site.
--   : **OPTIMIZED**. Now uses a 5-second in-memory cache.
--   : **IMPROVED**. Now handles redirects and has better error reporting for non-JSON responses.
+-   : **FIXED**.
+-   **TO BE CREATED:** : New unauthenticated endpoint in the Clara backend for the WordPress plugin to consume.
+-   **NEW (in WordPress):** The custom plugin will create its own endpoints, including  and  to act as a drop-in replacement for any themes relying on the old ProRadio API structure.
 
 **Critical Info for New Agent**
--   **Top Priority:** Your first task is to fix the Site niet gevonden error when a user tries to set a password on a mini-site. The bug is in the authorization logic of the  function in .
 -   **Language:** The user is Dutch. All communication MUST be in Dutch.
--   **Data Isolation:** Be extremely careful with data scoping. Multiple critical bugs have been fixed by changing database queries to filter by  instead of the more generic . Assume this is the correct pattern for all data-related features.
--   **RDS Timezones:** All scheduling logic must exclusively use the  timezone. Do not introduce any checks against UTC, as this was the source of a major bug.
+-   **Top Priority:** Your first task is to build the backend component of the new schedule sync solution. Create the public API endpoint () in the Clara application.
+-   **New Approach:** Do not try to fix the old ProRadio integration. The agreed-upon plan is to use a new custom WordPress plugin that consumes a new public API from Clara. The user already has the code for the plugin.
+-   **Guidance:** After creating the backend endpoint, you will need to guide the user on how to create the plugin files ( and ) on their WordPress server and configure it.
+-   **Cleanup:** After the new feature is working, remember to plan for the cleanup of the old, unused ProRadio integration code in the backend.
 
 **documents and test reports created in this job**
--    was updated.
+-    was read and updated.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** I can't set a password for a mini-site, I get an error. (Current P0 issue)
-2.  **User:** The counter badges in the menu are not correct per main site; Koodh shows 144 but has no content. (Fixed)
-3.  **User:** The RDS monitor shouldn't be on by default for all main sites. Also, a user on one main site can see content from another. (Fixed)
-4.  **User:** I'm referring to WordPress categories. (Clarification)
-5.  **User:** The categories on other main sites aren't being fetched/updated. (Fixed by adding sync feature)
-6.  **User:** (Sends screenshot) The show end timer is still broken; it's 22:47 but it says a show that ended at 22:00 is still active. (Fixed)
-7.  **User:** The show end timer is still there. The show ended at 22:00 and it's still showing for another half hour. Something is really wrong with the end times. (Fixed)
-8.  **User:** (Sends screenshot) I'm getting a Connection error: Expecting value error with WordPress. (Fixed with better error handling)
-9.  **User:** Reports three issues: 1) Show end timer is wrong, 2) WordPress connection gives 301 error, 3) I want to assign users to multiple main sites. (All three addressed)
-10. **User:** The server CPU is being heavily loaded by the timers. Can we make them less resource-intensive? (Fixed)
+1.  **User:** Requests a new WordPress plugin to be created that handles both the schedule view and the sync with Clara.
+2.  **Agent:** Agrees and provides the full PHP code for the new plugin () and the accompanying CSS.
+3.  **User:** Asks if they can replace the old plugin code with the new one and tells the agent to create the necessary backend endpoint.
+4.  **Agent:** Confirms they can, and states they will create the backend endpoint first and then provide complete instructions.
 
 **Project Health Check:**
 -   **Broken:**
-    -   The ability to set/update a password for a mini-site is non-functional.
+    -   None.
 -   **Mocked:**
     -   None.
 
 **3rd Party Integrations**
--   **WordPress:** Core integration for content.
--   **ffmpeg:** System dependency for audio triggers, now installed persistently.
+-   **WordPress:** The integration is being rebuilt to be more robust via a custom plugin and a public API, decoupling it from the ProRadio theme's internal implementation.
+-   **ffmpeg:** System dependency for audio triggers.
 
 **Testing status**
 -   **Testing agent used after significant changes:** NO
@@ -137,4 +126,4 @@ The agent has implemented a significant number of fixes and features. The critic
 -   **Password:** 
 
 **What agent forgot to execute**
--   The agent correctly diagnosed the root cause of the mini-site password update failure but did not proceed to implement the code change to fix it. This is the most immediate pending action item.</analysis>
+-   The agent has not yet created the promised public API endpoint in the Clara backend (), which is the critical next step required to unblock the user and complete the new feature.</analysis>
