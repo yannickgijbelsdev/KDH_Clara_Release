@@ -583,9 +583,9 @@ async def get_rds_monitor_data():
     
     # Build response
     response_data = {
-        "timestamp": now_brussels.isoformat(),
-        "timestamp_formatted": now_brussels.strftime("%H:%M:%S"),
-        "date_formatted": now_brussels.strftime("%d-%m-%Y"),
+        "timestamp": now_brussels_dt.isoformat(),
+        "timestamp_formatted": now_brussels_dt.strftime("%H:%M:%S"),
+        "date_formatted": now_brussels_dt.strftime("%d-%m-%Y"),
         "stations": stations_data,
         "history": history,
         "calendar_live_shows": calendar_live_shows,
@@ -595,7 +595,7 @@ async def get_rds_monitor_data():
     
     # Store in cache
     _monitor_cache["data"] = response_data
-    _monitor_cache["timestamp"] = now_utc
+    _monitor_cache["timestamp"] = now_brussels_dt
     
     return response_data
 
