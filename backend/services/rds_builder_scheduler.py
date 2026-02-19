@@ -393,8 +393,11 @@ async def get_item_text(db, station: str, item: dict) -> str:
 
 
 async def process_rds_sequence(db, station: str):
-    """Process the RDS sequence for a station and update the output."""
-    now = datetime.now(timezone.utc)
+    """Process the RDS sequence for a station and update the output.
+    
+    ALL times are in Brussels timezone (Europe/Brussels).
+    """
+    now = now_brussels()
     timestamp = now.isoformat()
     
     # PRIORITY 0: Check for active audio trigger
