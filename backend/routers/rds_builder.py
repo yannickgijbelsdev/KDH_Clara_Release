@@ -1123,7 +1123,7 @@ async def get_scheduled_texts(
                     text["is_active_now"] = False
                     if current_occurrence > now_bru:
                         text["next_activation"] = current_occurrence.isoformat()
-                        text["seconds_until_next"] = (current_occurrence - now_utc).total_seconds()
+                        text["seconds_until_next"] = (current_occurrence - now_bru).total_seconds()
                     else:
                         text["next_activation"] = None
         except Exception as e:
