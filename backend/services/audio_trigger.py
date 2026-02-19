@@ -358,12 +358,15 @@ class AudioTriggerScheduler:
         logger.info("Audio trigger scheduler stopped")
     
     def _is_in_time_window(self, windows: List[Dict]) -> bool:
-        """Check if current time is within any of the configured windows."""
-        now = datetime.now(timezone.utc)
-        # Also check CET (UTC+1)
-        now_cet = now + timedelta(hours=1)
-        current_time = now_cet.strftime("%H:%M")
-        current_weekday = now_cet.weekday()  # 0=Monday
+        """Check if current time is within any of the configured windows.
+        
+        ALL times are in Brussels timezone (Europe/Brussels).
+        """
+        from services.timezone_utils import now_brussels as get_now_brussels
+        
+        now = get_now_brussels()
+        current_time = now.strftime("%H:%M")
+        current_weekday = now.weekday()  # 0=Monday
         
         for window in windows:
             start_time = window.get("start_time", "00:00")
