@@ -384,20 +384,21 @@ async def get_rds_monitor_data():
     Returns current output for both stations plus recent change history.
     No authentication required for monitoring displays.
     Uses 5-second cache to reduce CPU load from frequent polling.
+    
+    ALL times are in Brussels timezone (Europe/Brussels).
     """
     global _monitor_cache
     
-    now_brussels = datetime.now(BRUSSELS_TZ)
-    now_utc = datetime.now(timezone.utc)
+    now_brussels_dt = now_brussels()
     
     # Check if cached data is still valid
     if (_monitor_cache["data"] is not None and 
         _monitor_cache["timestamp"] is not None and
-        (now_utc - _monitor_cache["timestamp"]).total_seconds() < MONITOR_CACHE_TTL_SECONDS):
+        (now_brussels_dt - _monitor_cache["timestamp"]).total_seconds() < MONITOR_CACHE_TTL_SECONDS):
         # Return cached data with updated timestamp display
         cached = _monitor_cache["data"].copy()
-        cached["timestamp"] = now_brussels.isoformat()
-        cached["timestamp_formatted"] = now_brussels.strftime("%H:%M:%S")
+        cached["timestamp"] = now_brussels_dt.isoformat()
+        cached["timestamp_formatted"] = now_brussels_dt.strftime("%H:%M:%S")
         cached["cached"] = True
         return cached
     
