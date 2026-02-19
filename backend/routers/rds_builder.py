@@ -511,26 +511,29 @@ async def get_rds_monitor_data():
         next_occurrence = None
         for text in texts:
             try:
-                start_dt_str = text["start_datetime"].replace("Z", "+00:00")
+                # Parse start datetime - assume Brussels timezone
+                start_dt_str = text["start_datetime"].replace("Z", "")
                 try:
                     text_start = datetime.fromisoformat(start_dt_str)
                 except ValueError:
                     text_start = datetime.fromisoformat(start_dt_str.split("+")[0])
-                    text_start = text_start.replace(tzinfo=timezone.utc)
                 
+                # If naive datetime, assume Brussels time
                 if text_start.tzinfo is None:
-                    text_start = text_start.replace(tzinfo=timezone.utc)
+                    text_start = text_start.replace(tzinfo=BRUSSELS_TZ)
+                else:
+                    text_start = text_start.astimezone(BRUSSELS_TZ)
                 
                 recurrence = text.get("recurrence_type", "none")
                 duration_minutes = text.get("duration_minutes", 5) or 5
-                now_utc = datetime.now(timezone.utc)
+                now_bru = now_brussels()
                 
                 # Find next occurrence
                 current = text_start
                 max_iter = 10000
                 iter_count = 0
                 
-                while current <= now_utc and iter_count < max_iter:
+                while current <= now_bru and iter_count < max_iter:
                     if recurrence == "hourly":
                         current = current + timedelta(hours=1)
                     elif recurrence == "daily":
@@ -544,8 +547,8 @@ async def get_rds_monitor_data():
                         break
                     iter_count += 1
                 
-                if current > now_utc:
-                    seconds_until = (current - now_utc).total_seconds()
+                if current > now_bru:
+                    seconds_until = (current - now_bru).total_seconds()
                     if next_occurrence is None or seconds_until < next_occurrence["seconds_until"]:
                         next_occurrence = {
                             "text": text["text"],
