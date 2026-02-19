@@ -51,56 +51,55 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     logger.info(f"RDS refresh for identifier={team_id}, resolved team_ids={team_ids_list}, brussels={now_brussels_dt.strftime('%Y-%m-%d %H:%M')}")
     
     live_shows = []
+    
+    # Query for shows today AND yesterday (for midnight-crossing shows)
+    if team_ids_list:
+        base_query = {
+            "status": "scheduled",
+            "date": {"$in": [current_date, yesterday_date]},
+            "$or": [
+                {"team_id": {"$in": team_ids_list}},
+                {"main_site_id": {"$in": team_ids_list}}
+            ]
+        }
+    else:
+        base_query = {
+            "status": "scheduled",
+            "date": {"$in": [current_date, yesterday_date]}
+        }
+    
+    # Get all shows for today and yesterday
+    all_shows = await db.shows.find(base_query, {"_id": 0}).to_list(200)
+    
+    # Filter to find which shows are currently live
+    for show in all_shows:
+        start = show.get("start_time", "00:00")
+        end = show.get("end_time", "23:59")
+        show_date = show.get("date", "")
         
-        # Query for shows today AND yesterday (for midnight-crossing shows)
-        if team_ids_list:
-            base_query = {
-                "status": "scheduled",
-                "date": {"$in": [current_date, yesterday_date]},
-                "$or": [
-                    {"team_id": {"$in": team_ids_list}},
-                    {"main_site_id": {"$in": team_ids_list}}
-                ]
-            }
-        else:
-            base_query = {
-                "status": "scheduled",
-                "date": {"$in": [current_date, yesterday_date]}
-            }
+        is_live = False
         
-        # Get all shows for today and yesterday
-        all_shows = await db.shows.find(base_query, {"_id": 0}).to_list(200)
+        # Check if show crosses midnight (start > end, e.g., 22:00 - 01:00)
+        crosses_midnight = start > end
         
-        # Filter to find which shows are currently live
-        for show in all_shows:
-            start = show.get("start_time", "00:00")
-            end = show.get("end_time", "23:59")
-            show_date = show.get("date", "")
-            
-            is_live = False
-            
-            # Check if show crosses midnight (start > end, e.g., 22:00 - 01:00)
-            crosses_midnight = start > end
-            
-            if show_date == current_date:
-                # Show is scheduled for today
-                if crosses_midnight:
-                    # Show crosses midnight, live if we're past start time
-                    is_live = current_time >= start
-                else:
-                    # Normal show, live if between start and end (exclusive end)
-                    is_live = start <= current_time < end
-            elif show_date == yesterday_date and crosses_midnight:
-                # Show from yesterday that crosses midnight
-                # Live if current time is BEFORE the end time (exclusive, use < not <=)
-                is_live = current_time < end
-            
-            if is_live:
-                live_shows.append(show)
+        if show_date == current_date:
+            # Show is scheduled for today
+            if crosses_midnight:
+                # Show crosses midnight, live if we're past start time
+                is_live = current_time >= start
+            else:
+                # Normal show, live if between start and end (exclusive end)
+                is_live = start <= current_time < end
+        elif show_date == yesterday_date and crosses_midnight:
+            # Show from yesterday that crosses midnight
+            # Live if current time is BEFORE the end time (exclusive, use < not <=)
+            is_live = current_time < end
         
-        if live_shows:
-            logger.info(f"Found {len(live_shows)} live shows using time {current_time} on {current_date}")
-            break
+        if is_live:
+            live_shows.append(show)
+    
+    if live_shows:
+        logger.info(f"Found {len(live_shows)} live shows using time {current_time} on {current_date}")
     
     results = []
     
@@ -124,7 +123,7 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
             )
         
         # Always log - even when no shows found
-        brussels_time = now_brussels.strftime('%H:%M')
+        brussels_time = now_brussels_dt.strftime('%H:%M')
         log_entry = {
             "id": str(uuid.uuid4()),
             "team_id": team_id,
