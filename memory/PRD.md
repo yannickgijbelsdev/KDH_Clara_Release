@@ -2221,3 +2221,44 @@ The authorization logic was completely rewritten to use a multi-step access chec
 - User needs to create WordPress plugin that consumes this API
 - Plugin code was provided in previous session chat history
 - Cleanup of old ProRadio sync code recommended after verification
+
+### Timezone Fix - GMT+1 Enforcement (February 2026)
+
+**Issue:** Incorrect times were displayed throughout the application due to inconsistent timezone handling (using UTC + timedelta(hours=1) instead of proper Europe/Brussels timezone).
+
+**Solution:** Created a centralized timezone utility module and updated ALL time-related code to use Brussels timezone.
+
+**New Module:** `/app/backend/services/timezone_utils.py`
+- `BRUSSELS_TZ` - ZoneInfo('Europe/Brussels')
+- `now_brussels()` - Get current time in Brussels
+- `today_brussels()` - Get today's date in Brussels (YYYY-MM-DD)
+- `current_time_brussels()` - Get current time as HH:MM
+- `yesterday_brussels()` - Get yesterday's date
+- `is_time_between()` - Check if time is in range (handles midnight-crossing)
+- `format_datetime_brussels()` - Format datetime with Brussels TZ
+
+**Files Modified:**
+- `/app/backend/services/rds_scheduler.py` - Live show detection
+- `/app/backend/services/rds_builder_scheduler.py` - Scheduled text timing
+- `/app/backend/services/shoutcast.py` - Now playing timestamps
+- `/app/backend/services/audio_trigger.py` - Time window checking
+- `/app/backend/routers/rds_builder.py` - Monitor and scheduled texts
+- `/app/backend/routers/public_schedule.py` - Public schedule API
+- `/app/backend/routers/shows.py` - Show management
+- `/app/backend/server.py` - RDS live endpoints
+
+**Key Pattern:**
+```python
+# OLD (Wrong)
+now = datetime.now(timezone.utc)
+now_cet = now + timedelta(hours=1)  # Doesn't handle DST!
+
+# NEW (Correct)
+from services.timezone_utils import now_brussels, BRUSSELS_TZ
+now = now_brussels()  # Automatically handles CET/CEST
+```
+
+**Testing:**
+- RDS Monitor now shows correct Brussels time ✅
+- Public Schedule API returns correct schedule ✅
+- All timestamps in API responses are GMT+1 ✅
