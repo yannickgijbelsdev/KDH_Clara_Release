@@ -617,10 +617,14 @@ async def send_test_email(current_user: dict = Depends(require_admin)):
 
 @api_router.get("/rds/live")
 async def get_rds_live():
-    """Clean endpoint for MagicRDS - returns only the current live show title."""
-    now = datetime.now(timezone.utc)
-    today = now.strftime('%Y-%m-%d')
-    current_time = now.strftime('%H:%M')
+    """Clean endpoint for MagicRDS - returns only the current live show title.
+    
+    Uses Brussels timezone (Europe/Brussels) for show time matching.
+    """
+    from services.timezone_utils import today_brussels, current_time_brussels
+    
+    today = today_brussels()
+    current_time = current_time_brussels()
     
     live_show = await db.shows.find_one(
         {
@@ -640,10 +644,14 @@ async def get_rds_live():
 
 @api_router.get("/rds/live.txt")
 async def get_rds_live_text():
-    """Plain text endpoint for MagicRDS."""
-    now = datetime.now(timezone.utc)
-    today = now.strftime('%Y-%m-%d')
-    current_time = now.strftime('%H:%M')
+    """Plain text endpoint for MagicRDS.
+    
+    Uses Brussels timezone (Europe/Brussels) for show time matching.
+    """
+    from services.timezone_utils import today_brussels, current_time_brussels
+    
+    today = today_brussels()
+    current_time = current_time_brussels()
     
     live_show = await db.shows.find_one(
         {
