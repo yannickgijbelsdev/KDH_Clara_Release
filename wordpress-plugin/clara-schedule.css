@@ -1,0 +1,184 @@
+/**
+ * Clara Radio Schedule - Frontend Styles
+ * 
+ * These styles can be customized to match your theme.
+ * Override in your theme's stylesheet if needed.
+ */
+
+.clara-schedule {
+    font-family: inherit;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.clara-schedule-error {
+    padding: 20px;
+    background: #fee;
+    border: 1px solid #c00;
+    border-radius: 4px;
+    color: #900;
+    text-align: center;
+}
+
+/* Day sections */
+.clara-schedule-day {
+    margin-bottom: 30px;
+}
+
+.clara-schedule-day-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 15px;
+}
+
+.clara-schedule-empty {
+    color: #999;
+    font-style: italic;
+    padding: 10px 0;
+}
+
+/* Shows container */
+.clara-schedule-shows {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Individual show */
+.clara-schedule-show {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.clara-schedule-show:hover {
+    background: #f0f0f0;
+}
+
+/* Show image */
+.clara-schedule-show-image {
+    flex-shrink: 0;
+    width: 100px;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.clara-schedule-show-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Show info */
+.clara-schedule-show-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.clara-schedule-show-time {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.clara-schedule-show-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 4px;
+}
+
+.clara-schedule-show-presenter {
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.clara-schedule-show-description {
+    font-size: 0.85rem;
+    color: #777;
+    margin-top: 6px;
+    line-height: 1.4;
+}
+
+/* Station badge (optional) */
+.clara-schedule-show-station {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-radius: 3px;
+    margin-top: 6px;
+}
+
+.clara-schedule-show-station.mfy {
+    background: #f97316;
+    color: white;
+}
+
+.clara-schedule-show-station.grk {
+    background: #8b5cf6;
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .clara-schedule-show {
+        flex-direction: column;
+    }
+    
+    .clara-schedule-show-image {
+        width: 100%;
+        height: 150px;
+    }
+    
+    .clara-schedule-day-title {
+        font-size: 1.3rem;
+    }
+}
+
+/* Dark theme support (if your theme uses it) */
+@media (prefers-color-scheme: dark) {
+    .clara-schedule-day-title {
+        color: #eee;
+        border-bottom-color: #444;
+    }
+    
+    .clara-schedule-show {
+        background: #2a2a2a;
+    }
+    
+    .clara-schedule-show:hover {
+        background: #333;
+    }
+    
+    .clara-schedule-show-title {
+        color: #eee;
+    }
+    
+    .clara-schedule-show-time {
+        color: #aaa;
+    }
+    
+    .clara-schedule-show-presenter {
+        color: #bbb;
+    }
+    
+    .clara-schedule-show-description {
+        color: #999;
+    }
+    
+    .clara-schedule-empty {
+        color: #666;
+    }
+}
