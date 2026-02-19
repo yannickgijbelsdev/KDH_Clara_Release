@@ -1172,8 +1172,8 @@ async def stop_recurrence(
         raise HTTPException(status_code=400, detail="This show is not recurring")
     
     parent_id = show.get('parent_show_id') or show_id
-    now = datetime.now(timezone.utc).isoformat()
-    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+    now = format_datetime_brussels()
+    today = today_brussels()
     
     current_show_deleted = False
     
