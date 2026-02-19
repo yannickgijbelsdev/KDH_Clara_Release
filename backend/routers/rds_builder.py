@@ -1038,7 +1038,10 @@ async def get_scheduled_texts(
     station: str,
     current_user: dict = Depends(require_admin)
 ):
-    """Get all scheduled custom texts for a station, with next activation time."""
+    """Get all scheduled custom texts for a station, with next activation time.
+    
+    ALL times are in Brussels timezone (Europe/Brussels).
+    """
     if station not in ["mfy", "grk"]:
         raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
     
@@ -1049,7 +1052,7 @@ async def get_scheduled_texts(
     ).sort("start_datetime", 1).to_list(1000)
     
     # Add next activation time and active status for each text
-    now_utc = datetime.now(timezone.utc)
+    now_bru = now_brussels()
     
     for text in texts:
         if not text.get("enabled"):
@@ -1058,15 +1061,16 @@ async def get_scheduled_texts(
             continue
             
         try:
-            start_dt_str = text["start_datetime"].replace("Z", "+00:00")
+            start_dt_str = text["start_datetime"].replace("Z", "")
             try:
                 text_start = datetime.fromisoformat(start_dt_str)
             except ValueError:
                 text_start = datetime.fromisoformat(start_dt_str.split("+")[0])
-                text_start = text_start.replace(tzinfo=timezone.utc)
             
             if text_start.tzinfo is None:
-                text_start = text_start.replace(tzinfo=timezone.utc)
+                text_start = text_start.replace(tzinfo=BRUSSELS_TZ)
+            else:
+                text_start = text_start.astimezone(BRUSSELS_TZ)
             
             recurrence = text.get("recurrence_type", "none")
             duration_minutes = text.get("duration_minutes", 5) or 5
@@ -1075,14 +1079,14 @@ async def get_scheduled_texts(
             if recurrence == "none":
                 # One-time event
                 end_time = text_start + timedelta(minutes=duration_minutes)
-                if text_start <= now_utc <= end_time:
+                if text_start <= now_bru <= end_time:
                     text["is_active_now"] = True
                     text["next_activation"] = None
                     text["ends_at"] = end_time.isoformat()
-                elif text_start > now_utc:
+                elif text_start > now_bru:
                     text["is_active_now"] = False
                     text["next_activation"] = text_start.isoformat()
-                    text["seconds_until_next"] = (text_start - now_utc).total_seconds()
+                    text["seconds_until_next"] = (text_start - now_bru).total_seconds()
                 else:
                     text["is_active_now"] = False
                     text["next_activation"] = None  # Past event
@@ -1092,11 +1096,11 @@ async def get_scheduled_texts(
                 max_iter = 10000
                 iter_count = 0
                 
-                while current_occurrence <= now_utc and iter_count < max_iter:
+                while current_occurrence <= now_bru and iter_count < max_iter:
                     end_time = current_occurrence + timedelta(minutes=duration_minutes)
                     
                     # Check if we're in the active window
-                    if current_occurrence <= now_utc <= end_time:
+                    if current_occurrence <= now_bru <= end_time:
                         text["is_active_now"] = True
                         text["next_activation"] = None
                         text["ends_at"] = end_time.isoformat()
@@ -1117,7 +1121,7 @@ async def get_scheduled_texts(
                 else:
                     # Not currently active, calculate next activation
                     text["is_active_now"] = False
-                    if current_occurrence > now_utc:
+                    if current_occurrence > now_bru:
                         text["next_activation"] = current_occurrence.isoformat()
                         text["seconds_until_next"] = (current_occurrence - now_utc).total_seconds()
                     else:
