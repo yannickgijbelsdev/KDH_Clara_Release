@@ -29,7 +29,7 @@ async def log_text_change(db, station: str, new_text: str, item_type: str, reaso
     if new_text != last_text:
         _last_text_tracker[station] = new_text
         
-        now_brussels = datetime.now(BRUSSELS_TZ)
+        now_brussels_dt = datetime.now(BRUSSELS_TZ)
         
         # Get presenter info if there's an active show
         presenters = []
