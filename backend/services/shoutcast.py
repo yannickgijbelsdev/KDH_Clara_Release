@@ -5,7 +5,9 @@ import xml.etree.ElementTree as ET
 import logging
 import uuid
 from typing import Optional, Dict, List
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
+
+from services.timezone_utils import now_brussels, BRUSSELS_TZ
 
 logger = logging.getLogger(__name__)
 
