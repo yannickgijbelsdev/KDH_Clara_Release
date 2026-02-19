@@ -522,39 +522,35 @@ async def delete_show_from_proradio(
                 None
             )
             
-            if sync_record:
-                schedule_id = sync_record.get("schedule_id")
-                wp_show_id = sync_record.get("wp_show_id")
-            elif weekday_name:
-                # Try to find by weekday
-                schedule_post = await get_schedule_post(credentials, weekday_name)
-                schedule_id = schedule_post["id"] if schedule_post else None
-                wp_show_id = None
+            wp_show_id = sync_record.get("wp_show_id") if sync_record else None
+            
+            if not weekday_name:
+                continue
+            
+            # Use the Clara plugin to remove from schedule
+            success = await remove_from_schedule(
+                credentials,
+                start_time,
+                end_time,
+                weekday_name,
+                wp_show_id
+            )
+            
+            if success:
+                # Remove sync record
+                await db.proradio_sync.delete_one({
+                    "clara_show_id": show_id,
+                    "station": station
+                })
+                results[station] = {"status": "success"}
             else:
-                continue
-            
-            if not schedule_id:
-                continue
-            
-            # Get current shows from schedule
-            current_shows = await get_schedule_shows_meta(credentials, schedule_id)
-            
-            # Remove the show slot matching our time
-            updated_shows = [
-                s for s in current_shows
-                if not (s.get("show_time") == start_time and s.get("show_time_end") == end_time)
-            ]
-            
-            # Also remove by wp_show_id if we have it
-            if wp_show_id:
-                updated_shows = [
-                    s for s in updated_shows
-                    if str(wp_show_id) not in s.get("show_id", [])
-                ]
-            
-            if len(updated_shows) < len(current_shows):
-                # Something was removed, update the schedule
-                success = await update_schedule_shows(credentials, schedule_id, updated_shows)
+                results[station] = {"status": "error", "message": "Failed to remove from schedule"}
+                
+        except Exception as e:
+            logger.error(f"Error deleting from {station}: {e}")
+            results[station] = {"status": "error", "message": str(e)}
+    
+    return results
                 
                 if success:
                     # Remove sync record
