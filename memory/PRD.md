@@ -2171,3 +2171,53 @@ The authorization logic was completely rewritten to use a multi-step access chec
 - Password verification on public page: ✅
 - Tested with network admin account `admkoodh@koodh.com`
 
+
+### December 2025 - Public Schedule API for WordPress Integration
+
+**Feature:** Created a public, unauthenticated API endpoint to serve Clara schedule data to WordPress websites.
+
+**Implementation:**
+- **New Router:** `/app/backend/routers/public_schedule.py` (already existed)
+- **Router Registration:** Added `public_schedule_router` to `server.py`
+- **Endpoint:** `GET /api/public/schedule/{station}` 
+  - `station` can be: `mfy`, `grk`, or `both`
+  - Requires `X-Main-Site-ID` header OR `main_site_id` query parameter
+  - Returns weekly schedule grouped by day (maandag, dinsdag, etc.)
+
+**API Response Format:**
+```json
+{
+  "maandag": [
+    {
+      "id": "uuid",
+      "title": "Show Name",
+      "description": "Show description",
+      "start_time": "19:00",
+      "end_time": "20:00",
+      "date": "2026-02-16",
+      "presenter": "Presenter Name",
+      "image": "https://s3.url/image.jpg",
+      "rds_station": "mfy"
+    }
+  ],
+  "dinsdag": [],
+  ...
+}
+```
+
+**Additional Endpoints:**
+- `GET /api/public/schedule/{station}/today` - Returns today's shows only
+- `GET /api/public/schedule/{station}/day/{day}` - Returns shows for specific day
+
+**Files Modified:**
+- `/app/backend/server.py` - Added `public_schedule_router` import and registration
+
+**Testing:**
+- Endpoint tested with curl and returns correct schedule data ✅
+- Works with both header and query parameter ✅
+- Station filtering works correctly (mfy, grk, both) ✅
+
+**Next Steps:**
+- User needs to create WordPress plugin that consumes this API
+- Plugin code was provided in previous session chat history
+- Cleanup of old ProRadio sync code recommended after verification
