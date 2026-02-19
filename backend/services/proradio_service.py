@@ -551,24 +551,6 @@ async def delete_show_from_proradio(
             results[station] = {"status": "error", "message": str(e)}
     
     return results
-                
-                if success:
-                    # Remove sync record
-                    await db.proradio_sync.delete_one({
-                        "clara_show_id": show_id,
-                        "station": station
-                    })
-                    results[station] = {"status": "success"}
-                else:
-                    results[station] = {"status": "error", "message": "Failed to update schedule"}
-            else:
-                results[station] = {"status": "not_found"}
-                
-        except Exception as e:
-            logger.error(f"Error deleting from {station}: {e}")
-            results[station] = {"status": "error", "message": str(e)}
-    
-    return results
 
 
 async def sync_shows_for_date(
