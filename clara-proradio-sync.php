@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Clara ProRadio Sync
  * Description: Allows Clara to sync show schedules to ProRadio via REST API
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Koodh
  */
 
@@ -34,21 +34,40 @@ class Clara_ProRadio_Sync {
             'callback' => array($this, 'get_shows'),
             'permission_callback' => '__return_true',
         ));
+        
+        register_rest_route('clara/v1', '/debug/meta/(?P<post_id>\d+)', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'debug_meta'),
+            'permission_callback' => array($this, 'check_permission'),
+        ));
     }
     
     public function check_permission($request) {
-        // Check for Application Password authentication
         $user = wp_get_current_user();
         if ($user->ID === 0) {
             return new WP_Error('unauthorized', 'Authentication required', array('status' => 401));
         }
-        
-        // User must be able to edit posts
         if (!current_user_can('edit_posts')) {
             return new WP_Error('forbidden', 'Insufficient permissions', array('status' => 403));
         }
-        
         return true;
+    }
+    
+    public function debug_meta($request) {
+        $post_id = intval($request['post_id']);
+        $all_meta = get_post_meta($post_id);
+        
+        // Also try ACF if available
+        $acf_data = array();
+        if (function_exists('get_fields')) {
+            $acf_data = get_fields($post_id);
+        }
+        
+        return rest_ensure_response(array(
+            'post_id' => $post_id,
+            'all_meta' => $all_meta,
+            'acf_fields' => $acf_data,
+        ));
     }
     
     public function get_shows($request) {
@@ -72,10 +91,7 @@ class Clara_ProRadio_Sync {
         return rest_ensure_response($result);
     }
     
-    public function get_schedule($request) {
-        $day = sanitize_text_field($request['day']);
-        
-        // Map day names
+    private function get_day_name($day) {
         $day_map = array(
             'maandag' => 'maandag',
             'dinsdag' => 'dinsdag', 
@@ -92,30 +108,136 @@ class Clara_ProRadio_Sync {
             'saturday' => 'zaterdag',
             'sunday' => 'zondag',
         );
+        return isset($day_map[strtolower($day)]) ? $day_map[strtolower($day)] : $day;
+    }
+    
+    private function find_schedule_post($day_name) {
+        global $wpdb;
+        $schedule_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT ID FROM $wpdb->posts WHERE post_type = 'schedule' AND post_status = 'publish' AND LOWER(post_title) = %s",
+            strtolower($day_name)
+        ));
+        return $schedule_id ? intval($schedule_id) : null;
+    }
+    
+    private function get_schedule_shows($schedule_id) {
+        // ProRadio stores shows in 'shows' meta key as serialized array
+        // But it might also use ACF repeater format
         
-        $day_name = isset($day_map[strtolower($day)]) ? $day_map[strtolower($day)] : $day;
+        // Try standard meta first
+        $shows = get_post_meta($schedule_id, 'shows', true);
+        if (!empty($shows) && is_array($shows)) {
+            return $shows;
+        }
         
-        // Find schedule post
-        $args = array(
-            'post_type' => 'schedule',
-            'posts_per_page' => 1,
-            'title' => $day_name,
-            'post_status' => 'publish',
-        );
+        // Try ACF repeater format (shows_X_show_id, shows_X_show_time, etc.)
+        $shows = array();
+        $count = intval(get_post_meta($schedule_id, 'shows', true));
         
-        $schedules = get_posts($args);
+        if ($count > 0) {
+            for ($i = 0; $i < $count; $i++) {
+                $show_id = get_post_meta($schedule_id, 'shows_' . $i . '_show_id', true);
+                $show_time = get_post_meta($schedule_id, 'shows_' . $i . '_show_time', true);
+                $show_time_end = get_post_meta($schedule_id, 'shows_' . $i . '_show_time_end', true);
+                
+                if ($show_id || $show_time) {
+                    $shows[] = array(
+                        'show_id' => is_array($show_id) ? $show_id : array($show_id),
+                        'show_time' => $show_time,
+                        'show_time_end' => $show_time_end,
+                    );
+                }
+            }
+        }
         
-        if (empty($schedules)) {
+        // If still empty, try to get all meta and parse manually
+        if (empty($shows)) {
+            $all_meta = get_post_meta($schedule_id);
+            $temp_shows = array();
+            
+            foreach ($all_meta as $key => $value) {
+                if (preg_match('/^shows_(\d+)_(.+)$/', $key, $matches)) {
+                    $index = intval($matches[1]);
+                    $field = $matches[2];
+                    
+                    if (!isset($temp_shows[$index])) {
+                        $temp_shows[$index] = array();
+                    }
+                    
+                    $val = maybe_unserialize($value[0]);
+                    $temp_shows[$index][$field] = $val;
+                }
+            }
+            
+            ksort($temp_shows);
+            foreach ($temp_shows as $show) {
+                $show_id = isset($show['show_id']) ? $show['show_id'] : (isset($show['show']) ? $show['show'] : null);
+                $shows[] = array(
+                    'show_id' => is_array($show_id) ? $show_id : array($show_id),
+                    'show_time' => isset($show['show_time']) ? $show['show_time'] : '',
+                    'show_time_end' => isset($show['show_time_end']) ? $show['show_time_end'] : '',
+                );
+            }
+        }
+        
+        return $shows;
+    }
+    
+    private function save_schedule_shows($schedule_id, $shows) {
+        // First, delete all existing show meta
+        global $wpdb;
+        $wpdb->query($wpdb->prepare(
+            "DELETE FROM $wpdb->postmeta WHERE post_id = %d AND meta_key LIKE 'shows%%'",
+            $schedule_id
+        ));
+        
+        // Save the count
+        update_post_meta($schedule_id, 'shows', count($shows));
+        
+        // Save each show in ACF repeater format
+        foreach ($shows as $index => $show) {
+            $show_id = isset($show['show_id']) ? $show['show_id'] : array();
+            if (!is_array($show_id)) {
+                $show_id = array($show_id);
+            }
+            
+            update_post_meta($schedule_id, 'shows_' . $index . '_show_id', $show_id);
+            update_post_meta($schedule_id, 'shows_' . $index . '_show_time', $show['show_time']);
+            update_post_meta($schedule_id, 'shows_' . $index . '_show_time_end', $show['show_time_end']);
+        }
+        
+        // Also save as serialized array for compatibility
+        update_post_meta($schedule_id, '_shows_data', $shows);
+        
+        // Update the post modified time to trigger cache clear
+        wp_update_post(array(
+            'ID' => $schedule_id,
+            'post_modified' => current_time('mysql'),
+            'post_modified_gmt' => current_time('mysql', 1),
+        ));
+        
+        // Clear any caches
+        clean_post_cache($schedule_id);
+        
+        return true;
+    }
+    
+    public function get_schedule($request) {
+        $day = sanitize_text_field($request['day']);
+        $day_name = $this->get_day_name($day);
+        
+        $schedule_id = $this->find_schedule_post($day_name);
+        
+        if (!$schedule_id) {
             return new WP_Error('not_found', 'Schedule not found for ' . $day_name, array('status' => 404));
         }
         
-        $schedule = $schedules[0];
-        $shows = get_post_meta($schedule->ID, 'shows', true);
+        $shows = $this->get_schedule_shows($schedule_id);
         
         return rest_ensure_response(array(
-            'id' => $schedule->ID,
+            'id' => $schedule_id,
             'day' => $day_name,
-            'shows' => $shows ? $shows : array(),
+            'shows' => $shows,
         ));
     }
     
@@ -127,68 +249,17 @@ class Clara_ProRadio_Sync {
         }
         
         $day = sanitize_text_field($params['day']);
+        $day_name = $this->get_day_name($day);
+        $schedule_id = $this->find_schedule_post($day_name);
         
-        // Map day names
-        $day_map = array(
-            'maandag' => 'maandag',
-            'dinsdag' => 'dinsdag', 
-            'woensdag' => 'woensdag',
-            'donderdag' => 'donderdag',
-            'vrijdag' => 'vrijdag',
-            'zaterdag' => 'zaterdag',
-            'zondag' => 'zondag',
-            'monday' => 'maandag',
-            'tuesday' => 'dinsdag',
-            'wednesday' => 'woensdag',
-            'thursday' => 'donderdag',
-            'friday' => 'vrijdag',
-            'saturday' => 'zaterdag',
-            'sunday' => 'zondag',
-        );
-        
-        $day_name = isset($day_map[strtolower($day)]) ? $day_map[strtolower($day)] : $day;
-        
-        // Find schedule post
-        $args = array(
-            'post_type' => 'schedule',
-            'posts_per_page' => 1,
-            'post_status' => 'publish',
-            's' => $day_name,
-        );
-        
-        $schedules = get_posts($args);
-        
-        // Also try by exact title match
-        if (empty($schedules)) {
-            global $wpdb;
-            $schedule_id = $wpdb->get_var($wpdb->prepare(
-                "SELECT ID FROM $wpdb->posts WHERE post_type = 'schedule' AND post_status = 'publish' AND LOWER(post_title) = %s",
-                strtolower($day_name)
-            ));
-            
-            if ($schedule_id) {
-                $schedules = array(get_post($schedule_id));
-            }
-        }
-        
-        if (empty($schedules)) {
+        if (!$schedule_id) {
             return new WP_Error('not_found', 'Schedule not found for ' . $day_name, array('status' => 404));
         }
         
-        $schedule = $schedules[0];
-        $schedule_id = $schedule->ID;
-        
-        // Handle different update modes
         $mode = isset($params['mode']) ? $params['mode'] : 'add';
-        
-        // Get current shows
-        $current_shows = get_post_meta($schedule_id, 'shows', true);
-        if (!is_array($current_shows)) {
-            $current_shows = array();
-        }
+        $current_shows = $this->get_schedule_shows($schedule_id);
         
         if ($mode === 'replace') {
-            // Replace entire schedule
             if (!isset($params['shows']) || !is_array($params['shows'])) {
                 return new WP_Error('missing_shows', 'Shows array is required for replace mode', array('status' => 400));
             }
@@ -202,7 +273,7 @@ class Clara_ProRadio_Sync {
                 );
             }
             
-            update_post_meta($schedule_id, 'shows', $new_shows);
+            $this->save_schedule_shows($schedule_id, $new_shows);
             
             return rest_ensure_response(array(
                 'success' => true,
@@ -213,7 +284,6 @@ class Clara_ProRadio_Sync {
             ));
             
         } else if ($mode === 'add' || $mode === 'update') {
-            // Add or update a single show slot
             if (!isset($params['show_id']) || !isset($params['start_time']) || !isset($params['end_time'])) {
                 return new WP_Error('missing_params', 'show_id, start_time, and end_time are required', array('status' => 400));
             }
@@ -222,21 +292,15 @@ class Clara_ProRadio_Sync {
             $start_time = sanitize_text_field($params['start_time']);
             $end_time = sanitize_text_field($params['end_time']);
             
-            // Remove existing slot with same time or same show at same time
+            // Remove existing slot with same time
             $updated_shows = array();
-            $found = false;
-            
             foreach ($current_shows as $show) {
                 $existing_start = isset($show['show_time']) ? $show['show_time'] : '';
                 $existing_end = isset($show['show_time_end']) ? $show['show_time_end'] : '';
-                $existing_id = isset($show['show_id']) ? (is_array($show['show_id']) ? $show['show_id'][0] : $show['show_id']) : '';
                 
-                // Skip if same time slot (we'll add the new one)
                 if ($existing_start === $start_time && $existing_end === $end_time) {
-                    $found = true;
                     continue;
                 }
-                
                 $updated_shows[] = $show;
             }
             
@@ -254,11 +318,11 @@ class Clara_ProRadio_Sync {
                 return strcmp($time_a, $time_b);
             });
             
-            update_post_meta($schedule_id, 'shows', $updated_shows);
+            $this->save_schedule_shows($schedule_id, $updated_shows);
             
             return rest_ensure_response(array(
                 'success' => true,
-                'message' => $found ? 'Show slot updated' : 'Show slot added',
+                'message' => 'Show slot added/updated',
                 'schedule_id' => $schedule_id,
                 'day' => $day_name,
                 'show_id' => $show_id,
@@ -268,7 +332,6 @@ class Clara_ProRadio_Sync {
             ));
             
         } else if ($mode === 'remove') {
-            // Remove a show slot
             $start_time = isset($params['start_time']) ? sanitize_text_field($params['start_time']) : null;
             $end_time = isset($params['end_time']) ? sanitize_text_field($params['end_time']) : null;
             $show_id = isset($params['show_id']) ? strval($params['show_id']) : null;
@@ -279,14 +342,13 @@ class Clara_ProRadio_Sync {
             foreach ($current_shows as $show) {
                 $existing_start = isset($show['show_time']) ? $show['show_time'] : '';
                 $existing_end = isset($show['show_time_end']) ? $show['show_time_end'] : '';
-                $existing_id = isset($show['show_id']) ? (is_array($show['show_id']) ? $show['show_id'][0] : $show['show_id']) : '';
+                $existing_ids = isset($show['show_id']) ? (is_array($show['show_id']) ? $show['show_id'] : array($show['show_id'])) : array();
                 
-                // Check if this is the slot to remove
                 $should_remove = false;
                 
                 if ($start_time && $end_time && $existing_start === $start_time && $existing_end === $end_time) {
                     $should_remove = true;
-                } else if ($show_id && $existing_id === $show_id && (!$start_time || $existing_start === $start_time)) {
+                } else if ($show_id && in_array($show_id, $existing_ids) && (!$start_time || $existing_start === $start_time)) {
                     $should_remove = true;
                 }
                 
@@ -299,7 +361,7 @@ class Clara_ProRadio_Sync {
             }
             
             if ($removed) {
-                update_post_meta($schedule_id, 'shows', $updated_shows);
+                $this->save_schedule_shows($schedule_id, $updated_shows);
             }
             
             return rest_ensure_response(array(
@@ -316,5 +378,4 @@ class Clara_ProRadio_Sync {
     }
 }
 
-// Initialize the plugin
 new Clara_ProRadio_Sync();
