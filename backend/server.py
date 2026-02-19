@@ -98,6 +98,7 @@ api_router.include_router(audio_trigger_router)
 api_router.include_router(sites_router)
 api_router.include_router(main_sites_router)
 api_router.include_router(proradio_router)
+api_router.include_router(public_schedule_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
