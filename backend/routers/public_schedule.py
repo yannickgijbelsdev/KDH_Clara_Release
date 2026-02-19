@@ -124,9 +124,11 @@ async def get_shows_for_today(main_site_id: str, station: str) -> list:
         
     Returns:
         List of shows for today
+        
+    ALL times are in Brussels timezone (Europe/Brussels).
     """
-    today = datetime.now(BRUSSELS_TZ).strftime("%Y-%m-%d")
-    weekday = WEEKDAY_NAMES[datetime.now(BRUSSELS_TZ).weekday()]
+    now = now_brussels()
+    weekday = WEEKDAY_NAMES_NL[now.weekday()]
     
     week_schedule = await get_shows_for_week(main_site_id, station)
     return week_schedule.get(weekday, [])
