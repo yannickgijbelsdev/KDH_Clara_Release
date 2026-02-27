@@ -2262,3 +2262,22 @@ now = now_brussels()  # Automatically handles CET/CEST
 - RDS Monitor now shows correct Brussels time ✅
 - Public Schedule API returns correct schedule ✅
 - All timestamps in API responses are GMT+1 ✅
+
+### Scheduled Text Priority Change (February 2026)
+
+**Change:** Scheduled texts now have priority OVER live shows.
+
+**New Priority Order (high to low):**
+1. Audio triggers (highest - e.g., commercial break detection)
+2. Scheduled texts (e.g., news updates)
+3. Live shows
+4. Normal sequence (lowest)
+
+**Rationale:** User requested that scheduled texts (like news updates) should always be shown, even when a live show is active.
+
+**Code Changed:**
+- `/app/backend/services/rds_builder_scheduler.py`: Removed live show checks from `get_active_scheduled_text_for_station()` function
+
+**Testing:**
+- Verified: Scheduled text appears on station even with active live show ✅
+- Audio triggers still have highest priority ✅
