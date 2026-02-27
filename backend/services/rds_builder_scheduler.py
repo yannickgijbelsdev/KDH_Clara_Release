@@ -134,55 +134,21 @@ async def get_active_scheduled_text_for_station(db, station: str) -> dict | None
     Returns the active scheduled text dict if one is currently active,
     or None if no scheduled text is active.
     
-    Scheduled texts have priority over sequence items.
-    Shows have priority over scheduled texts.
+    Priority order (high to low):
+    1. Audio triggers (checked in process_rds_sequence, not here)
+    2. Scheduled texts (THIS function)
+    3. Live shows
+    4. Normal sequence
+    
+    Scheduled texts ALWAYS have priority over live shows.
     
     ALL times are in Brussels timezone (Europe/Brussels).
     """
     # Use Brussels timezone for ALL time operations
     now = now_brussels()
-    current_date = today_brussels()
-    current_time_str = current_time_brussels()
-    yesterday_date = yesterday_brussels()
     
-    # First check if there's an active show - shows have priority
-    # Check for shows today that are currently live
-    active_show = await db.shows.find_one({
-        "date": current_date,
-        "start_time": {"$lte": current_time_str},
-        "end_time": {"$gte": current_time_str},
-        "$or": [
-            {"rds_station": station},
-            {"rds_station": "both"}
-        ]
-    })
-    if active_show:
-        return None  # Show is active, no scheduled text should override
-    
-    # Also check for midnight-crossing shows from yesterday
-    # These have start_time > end_time (e.g., 22:00 - 01:00)
-    yesterday_shows = await db.shows.find({
-        "date": yesterday_date,
-        "$or": [
-            {"rds_station": station},
-            {"rds_station": "both"}
-        ]
-    }, {"_id": 0}).to_list(50)
-    
-    for show in yesterday_shows:
-        start = show.get("start_time", "00:00")
-        end = show.get("end_time", "23:59")
-        # Check if show crosses midnight AND we're still in the "after midnight" part
-        if start > end and current_time_str < end:
-            return None  # Midnight-crossing show still active
-    
-    # Also check cached rundowns (more reliable than direct show check)
-    cached_rundown = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-        {"_id": 0, "show_title": 1}
-    )
-    if cached_rundown and cached_rundown.get("show_title"):
-        return None  # Show is active via cache
+    # NOTE: Live show checks removed - scheduled texts now have priority over shows
+    # Audio triggers still have highest priority (checked in process_rds_sequence)
     
     # Get enabled scheduled texts for this station OR texts set to "both"
     texts = await db.rds_scheduled_texts.find(
