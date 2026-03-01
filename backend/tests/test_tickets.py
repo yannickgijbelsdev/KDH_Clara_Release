@@ -80,7 +80,7 @@ class TestTicketSystem:
         }
         
         response = session.post(
-            f"{BASE_URL}/api/tickets",
+            f"{BASE_URL}/api/tickets/",
             headers=headers,
             json=payload
         )
@@ -117,7 +117,7 @@ class TestTicketSystem:
         }
         
         response = session.post(
-            f"{BASE_URL}/api/tickets",
+            f"{BASE_URL}/api/tickets/",
             headers=headers,
             json=payload
         )
@@ -135,7 +135,7 @@ class TestTicketSystem:
         }
         
         response = session.post(
-            f"{BASE_URL}/api/tickets",
+            f"{BASE_URL}/api/tickets/",
             headers=headers,
             json=payload
         )
