@@ -2389,3 +2389,20 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 ### March 1, 2026 - Login Page Language Fix
 - [x] Reverted login page text from Dutch back to English
+
+
+### March 1, 2026 - Image Resize Fix (PNG→JPEG) & Avatar Multi-Site Fix
+- [x] **Image resize now works for all formats (including PNG)**:
+  - Root cause: PNG is lossless, canvas quality parameter has no effect
+  - Fix: Always convert to JPEG for compression, white background for transparency
+  - More aggressive: 10 attempts (was 6), quality down to 0.3, 75% dimension reduction
+  - File: `utils/imageResize.js`
+- [x] **Avatar upload/delete works on all main sites**:
+  - Root cause: `require_admin` only checked global role, user lookup only by admin's team_id
+  - Fix: `get_effective_role()` for site admin check + `main_site_users` fallback for user lookup
+  - File: `backend/routers/users.py` (upload + delete endpoints)
+- Tested: 10/10 tests passed (7 backend + 3 frontend, 100%)
+
+### March 1, 2026 - Media Share Links S3 Fix
+- [x] Share endpoint now redirects to S3 URL for S3-stored files
+- File: `backend/server.py`
