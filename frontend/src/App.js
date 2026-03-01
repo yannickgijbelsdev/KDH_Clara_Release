@@ -245,6 +245,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <TwoFactorEnforcementWrapper />
         <AppRoutes />
         <SessionWarningModal />
         <Toaster position="bottom-right" richColors />
@@ -252,5 +253,32 @@ function App() {
     </BrowserRouter>
   );
 }
+
+const TwoFactorEnforcementWrapper = () => {
+  const { user, refreshUser } = useAuth();
+  const [dismissed, setDismissed] = useState(false);
+
+  // Reset dismissed state when user changes (new login)
+  useEffect(() => {
+    setDismissed(false);
+  }, [user?.id]);
+
+  // Don't show if: no user, already enabled, or dismissed this session
+  if (!user || user.totp_enabled || dismissed) return null;
+
+  return (
+    <TwoFactorEnforcement
+      user={user}
+      onComplete={() => {
+        refreshUser();
+        setDismissed(true);
+      }}
+      onSkipped={() => {
+        refreshUser();
+        setDismissed(true);
+      }}
+    />
+  );
+};
 
 export default App;
