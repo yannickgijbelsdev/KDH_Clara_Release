@@ -146,8 +146,7 @@ async def create_backup(
         "created_by": created_by,
         "expires_at": (now + timedelta(days=BACKUP_RETENTION_DAYS)).isoformat(),
     }
-    await db.backups.insert_one({**backup_meta, "_id": None})
-    await db.backups.update_one({"id": backup_id}, {"$unset": {"_id": ""}})
+    await db.backups.insert_one({**backup_meta})
 
     try:
         # Collect data
