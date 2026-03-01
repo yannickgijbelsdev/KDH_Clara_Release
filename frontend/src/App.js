@@ -92,6 +92,26 @@ const AppRoutes = () => {
         } 
       />
       
+      {/* Clara Global / Network Admin */}
+      <Route 
+        path="/clara-global" 
+        element={
+          <ProtectedRoute>
+            <NetworkDashboard />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* API Explorer - Network Admin only */}
+      <Route 
+        path="/api-explorer" 
+        element={
+          <ProtectedRoute>
+            <ApiExplorerPage />
+          </ProtectedRoute>
+        } 
+      />
+      
       {/* RDS Monitor - Standalone public-ish page */}
       <Route 
         path="/rds-monitor" 
