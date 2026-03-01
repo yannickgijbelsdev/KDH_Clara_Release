@@ -784,6 +784,7 @@ export default function NetworkDashboard() {
               </div>
             </div>
           )}
+          </>
         )}
       </main>
 
