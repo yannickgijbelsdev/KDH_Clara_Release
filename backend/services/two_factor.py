@@ -8,7 +8,7 @@ import string
 from typing import Optional, List, Tuple
 
 # App name shown in authenticator apps
-APP_NAME = "Clara Radio"
+APP_NAME = "Clara Global Protect"
 
 
 def generate_totp_secret() -> str:
