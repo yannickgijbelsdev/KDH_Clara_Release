@@ -48,13 +48,15 @@ class TestTicketSystem:
         return data.get("id")
     
     @pytest.fixture(scope="class")
-    def headers(self, auth_token, main_site_id):
+    def headers(self, session, auth_token, main_site_id):
         """Get headers with auth and main site"""
-        return {
+        h = {
             "Authorization": f"Bearer {auth_token}",
             "Content-Type": "application/json",
             "X-Main-Site-ID": main_site_id or ""
         }
+        session.headers.update(h)
+        return h
     
     # ===================
     # Ticket Creation Tests
