@@ -18,7 +18,7 @@ from services.auth import get_current_user, require_editor_or_admin, require_adm
 from services.helpers import get_content_with_publish_statuses
 from services.audit import log_action, get_client_ip
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
-from services.main_site_context import get_main_site_id_from_header
+from services.main_site_context import get_main_site_id_from_header, get_effective_role
 
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
 
