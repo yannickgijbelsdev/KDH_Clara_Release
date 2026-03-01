@@ -1580,6 +1580,14 @@ const MediaLibraryPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Image Resize Dialog */}
+      <ImageResizeDialog
+        file={resizeFile}
+        open={!!resizeFile}
+        onClose={() => { setResizeFile(null); setPendingFiles([]); }}
+        onResized={handleResized}
+      />
     </div>
   );
 };
