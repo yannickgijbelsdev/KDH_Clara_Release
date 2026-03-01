@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainSiteProvider, useMainSite } from './context/MainSiteContext';
 import { Toaster } from './components/ui/sonner';
 import SessionWarningModal from './components/SessionWarningModal';
+import TwoFactorEnforcement from './components/TwoFactorEnforcement';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
 import MainSiteDashboardLayout from './components/MainSiteDashboardLayout';
