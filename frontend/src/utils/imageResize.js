@@ -35,14 +35,18 @@ export async function resizeImage(file, onProgress) {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
+        // White background for transparency (PNG→JPEG conversion)
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
         onProgress?.(40);
 
-        const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        // Always use JPEG for compression (PNG is lossless, quality param has no effect)
+        const outputType = 'image/jpeg';
         let quality = 0.85;
         let blob = null;
         let attempts = 0;
-        const maxAttempts = 6;
+        const maxAttempts = 10;
 
         while (attempts < maxAttempts) {
           blob = await new Promise(res => canvas.toBlob(res, outputType, quality));
