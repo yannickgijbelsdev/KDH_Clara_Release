@@ -301,12 +301,17 @@ const ContentDetailPage = () => {
       return;
     }
     
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File too large. Maximum size is 5MB.');
+    // Check if file needs resizing
+    if (isOversized(file) && isImageFile(file)) {
+      setResizeFile(file);
+      setResizeSiteId(siteId);
       return;
     }
     
+    await uploadFeaturedImage(siteId, file);
+  };
+
+  const uploadFeaturedImage = async (siteId, file) => {
     setUploadingSiteId(siteId);
     
     try {
@@ -330,6 +335,13 @@ const ContentDetailPage = () => {
     } finally {
       setUploadingSiteId(null);
     }
+  };
+
+  const handleResized = (resizedFile) => {
+    const siteId = resizeSiteId;
+    setResizeFile(null);
+    setResizeSiteId(null);
+    uploadFeaturedImage(siteId, resizedFile);
   };
 
   const handleRemoveImage = async (siteId) => {
