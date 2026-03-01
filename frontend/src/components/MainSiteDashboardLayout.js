@@ -985,6 +985,7 @@ const MainSiteDashboardLayout = () => {
     </TooltipProvider>
     {isClone && <DevToolsPanel />}
     {isClone && <DevToolsInspector />}
+    <HelpButton />
     </DevToolsProvider>
   );
 };
