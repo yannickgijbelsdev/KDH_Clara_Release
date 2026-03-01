@@ -470,11 +470,31 @@ async def update_content_approval(
 @content_router.get("/admin/pending-approval")
 async def get_pending_approval_content(
     request: Request,
-    current_user: dict = Depends(require_can_approve_content)
+    current_user: dict = Depends(get_current_user)
 ):
     """Admin/News Admin: Get all content pending approval."""
     # Support multisite context
     main_site_id = await get_main_site_id_from_header(request)
+    
+    # Check approval permission: global role OR site-specific role
+    global_role = current_user.get('role', '')
+    has_global_permission = global_role in ['admin', 'news_admin']
+    has_site_permission = False
+    
+    if main_site_id and not has_global_permission:
+        if current_user.get('is_network_admin'):
+            has_site_permission = True
+        else:
+            site_access = await db.main_site_users.find_one({
+                "user_id": current_user['id'],
+                "main_site_id": main_site_id
+            }, {"_id": 0})
+            if site_access and site_access.get('role') in ['admin', 'news_admin']:
+                has_site_permission = True
+    
+    if not has_global_permission and not has_site_permission:
+        raise HTTPException(status_code=403, detail="Content approval access required")
+    
     team_id = current_user.get('team_id')
     is_network_admin = current_user.get('is_network_admin', False)
     
