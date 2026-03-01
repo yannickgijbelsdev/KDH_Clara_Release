@@ -207,7 +207,7 @@ const LoginPage = () => {
                     disabled={isLoading || (!useBackupCode && totpCode.length !== 6)}
                     className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg shadow-orange-500/20"
                   >
-                    {isLoading ? 'Verifiëren...' : 'Verifiëren'}
+                    {isLoading ? 'Verifying...' : 'Verify'}
                   </Button>
 
                   <button
@@ -220,7 +220,7 @@ const LoginPage = () => {
                     className="w-full text-center text-sm text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-2"
                   >
                     <KeyRound className="w-4 h-4" />
-                    {useBackupCode ? 'Authenticator code gebruiken' : 'Backup code gebruiken'}
+                    {useBackupCode ? 'Use authenticator code' : 'Use backup code'}
                   </button>
                 </form>
               </>
