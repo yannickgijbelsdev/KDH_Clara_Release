@@ -173,7 +173,7 @@ class TestTicketSystem:
     def test_list_tickets_with_status_filter(self, session, headers):
         """Test filtering tickets by status"""
         response = session.get(
-            f"{BASE_URL}/api/tickets?status=open",
+            f"{BASE_URL}/api/tickets/?status=open",
             headers=headers
         )
         
