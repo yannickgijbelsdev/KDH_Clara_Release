@@ -340,8 +340,12 @@ async def test_wordpress_site(
 async def sync_wordpress_categories(
     site_id: str,
     request: Request,
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(get_current_user)
 ):
+    """Sync categories from WordPress to Clara for a specific site."""
+    effective_role = await get_effective_role(request, current_user)
+    if effective_role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin access required")
     """Sync categories from WordPress to Clara for a specific site.
     
     Fetches all categories from the WordPress site and creates/updates them in Clara's
