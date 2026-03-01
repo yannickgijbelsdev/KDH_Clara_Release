@@ -35,6 +35,7 @@ import AudioTriggersPage from './pages/AudioTriggersPage';
 import SitesListPage from './pages/Sites/SitesListPage';
 import SiteDashboard from './pages/Sites/SiteDashboard';
 import PublicSitePage from './pages/Sites/PublicSitePage';
+import StatisticsPage from './pages/Network/StatisticsPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
