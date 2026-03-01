@@ -340,3 +340,39 @@ async def get_per_site_monthly(
         "months": monthly_data,
         "site_names": [s["name"] for s in wp_sites],
     }
+
+
+@statistics_router.get("/{main_site_id}/export-pdf")
+async def export_pdf(
+    main_site_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate and download a PDF report for a main site's content statistics."""
+    require_network_admin(current_user)
+
+    from services.pdf_report import generate_statistics_pdf
+
+    # Gather all data (reuse existing logic)
+    overview_data = await get_overview(main_site_id, current_user)
+    monthly_data = await get_monthly_stats(main_site_id, months=12, current_user=current_user)
+    authors_data = await get_top_authors(main_site_id, limit=10, current_user=current_user)
+    per_site_data = await get_per_site_monthly(main_site_id, months=12, current_user=current_user)
+    weekly_data = await get_weekly_activity(main_site_id, weeks=12, current_user=current_user)
+
+    pdf_buffer = generate_statistics_pdf(
+        overview=overview_data,
+        monthly=monthly_data,
+        authors_data=authors_data,
+        per_site=per_site_data,
+        weekly_activity=weekly_data,
+    )
+
+    site_name = overview_data.get('main_site_name', 'statistics').replace(' ', '_')
+    date_str = datetime.now().strftime('%Y-%m-%d')
+    filename = f"{site_name}-report-{date_str}.pdf"
+
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
