@@ -116,6 +116,10 @@ const MediaLibraryPage = () => {
   // Drag and drop state
   const [activeAsset, setActiveAsset] = useState(null);
   
+  // Image resize state
+  const [resizeFile, setResizeFile] = useState(null);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
 
