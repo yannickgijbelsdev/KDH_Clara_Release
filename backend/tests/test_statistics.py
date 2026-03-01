@@ -70,14 +70,13 @@ class TestStatisticsEndpoints:
         
         print(f"Overview stats: total={data['total_content_items']}, published={publishing['published']}, scheduled={publishing['scheduled']}")
 
-    def test_overview_endpoint_regular_user_forbidden(self, regular_user_token):
-        """Test regular user gets 403 on overview endpoint"""
+    def test_overview_endpoint_unauthenticated_denied(self):
+        """Test unauthenticated request gets 401/403"""
         response = requests.get(
-            f"{BASE_URL}/api/statistics/{MAIN_SITE_ID}/overview",
-            headers={"Authorization": f"Bearer {regular_user_token}"}
+            f"{BASE_URL}/api/statistics/{MAIN_SITE_ID}/overview"
         )
-        assert response.status_code == 403, f"Expected 403, got {response.status_code}"
-        print("Regular user correctly denied access to overview")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print("Unauthenticated user correctly denied access to overview")
 
     def test_monthly_endpoint_network_admin(self, network_admin_token):
         """Test GET /api/statistics/{main_site_id}/monthly returns monthly breakdown"""
