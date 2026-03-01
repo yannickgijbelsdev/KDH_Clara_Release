@@ -13,6 +13,14 @@ from services.backup_service import (
 backup_router = APIRouter(prefix="/backups", tags=["backups"])
 
 
+class RestoreRequest(BaseModel):
+    backup_id: str
+
+
+class CloneRequest(BaseModel):
+    clone_name: str
+
+
 def require_network_admin(current_user: dict):
     if not current_user.get("is_network_admin"):
         raise HTTPException(status_code=403, detail="Network admin only")
