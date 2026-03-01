@@ -640,6 +640,7 @@ export default function NetworkDashboard() {
             </div>
           </div>
         ) : (
+          <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {mainSites.filter(s => !s.cloned_from).map(site => (
               <Card key={site.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
