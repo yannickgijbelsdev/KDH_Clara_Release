@@ -102,6 +102,7 @@ api_router.include_router(main_sites_router)
 api_router.include_router(proradio_router)
 api_router.include_router(public_schedule_router)
 api_router.include_router(statistics_router)
+api_router.include_router(backup_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
