@@ -485,6 +485,251 @@ async def sync_wordpress_categories(
         raise HTTPException(status_code=500, detail=f"Failed to sync categories: {str(e)}")
 
 
+
+@wordpress_router.post("/sites/{site_id}/import-posts")
+async def import_wordpress_posts(
+    site_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Import published and scheduled posts from a WordPress site into Clara content library."""
+    effective_role = await get_effective_role(request, current_user)
+    if effective_role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        query = {"id": site_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": site_id, "team_id": current_user.get('team_id')}
+    
+    site = await db.wordpress_sites.find_one(query)
+    if not site:
+        raise HTTPException(status_code=404, detail="WordPress site not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    try:
+        async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+            auth_string = f"{site['username']}:{site['app_password']}"
+            auth_bytes = base64.b64encode(auth_string.encode()).decode()
+            headers = {
+                "Authorization": f"Basic {auth_bytes}",
+                "Accept": "application/json"
+            }
+            
+            # Fetch published + scheduled posts (paginate)
+            all_posts = []
+            for wp_status in ['publish', 'future']:
+                page = 1
+                while True:
+                    response = await client.get(
+                        f"{site['wp_base_url']}/wp-json/wp/v2/posts",
+                        headers=headers,
+                        params={
+                            "per_page": 100,
+                            "page": page,
+                            "status": wp_status,
+                            "_embed": "wp:featuredmedia,wp:term",
+                        }
+                    )
+                    
+                    if response.status_code == 400:
+                        break  # No more pages
+                    if response.status_code != 200:
+                        wp_audit_logger.warning(f"Failed to fetch {wp_status} posts from {site['name']}: {response.status_code}")
+                        break
+                    
+                    posts = response.json()
+                    if not posts:
+                        break
+                    
+                    all_posts.extend(posts)
+                    
+                    total_pages = int(response.headers.get('X-WP-TotalPages', 1))
+                    if page >= total_pages:
+                        break
+                    page += 1
+            
+            if not all_posts:
+                return {
+                    "success": True,
+                    "message": "No posts found to import",
+                    "imported": 0,
+                    "updated": 0,
+                    "skipped": 0
+                }
+            
+            # Fetch WP categories for mapping
+            wp_categories = {}
+            cat_resp = await client.get(
+                f"{site['wp_base_url']}/wp-json/wp/v2/categories",
+                headers=headers,
+                params={"per_page": 100}
+            )
+            if cat_resp.status_code == 200:
+                for cat in cat_resp.json():
+                    wp_categories[cat['id']] = cat['name']
+            
+            imported = 0
+            updated = 0
+            skipped = 0
+            
+            for post in all_posts:
+                wp_post_id = post.get('id')
+                title = post.get('title', {}).get('rendered', 'Untitled')
+                # Clean HTML entities from title
+                import html as html_module
+                title = html_module.unescape(title)
+                
+                body = post.get('content', {}).get('rendered', '')
+                excerpt_raw = post.get('excerpt', {}).get('rendered', '')
+                excerpt = html_module.unescape(excerpt_raw).replace('<p>', '').replace('</p>', '').strip()
+                
+                wp_date = post.get('date', '')
+                wp_date_gmt = post.get('date_gmt', '')
+                wp_modified = post.get('modified_gmt', '')
+                wp_status_str = post.get('status', 'publish')
+                wp_link = post.get('link', '')
+                wp_categories_ids = post.get('categories', [])
+                
+                # Get featured image URL from embedded data
+                featured_image_url = None
+                embedded = post.get('_embedded', {})
+                featured_media = embedded.get('wp:featuredmedia', [])
+                if featured_media and len(featured_media) > 0:
+                    media_item = featured_media[0]
+                    featured_image_url = media_item.get('source_url', '')
+                
+                # Get category name
+                category_name = ''
+                if wp_categories_ids:
+                    category_name = wp_categories.get(wp_categories_ids[0], '')
+                
+                # Map WP status to Clara status
+                clara_status = 'published' if wp_status_str == 'publish' else 'scheduled'
+                
+                # Check if already imported (by wp_post_id + site_id)
+                existing_record = await db.publish_records.find_one({
+                    "wp_post_id": wp_post_id,
+                    "wp_site_id": site_id
+                })
+                
+                if existing_record:
+                    # Update existing content item and publish record
+                    content_id = existing_record.get('content_id')
+                    await db.content_items.update_one(
+                        {"id": content_id},
+                        {"$set": {
+                            "title": title,
+                            "body": body,
+                            "excerpt": excerpt[:500] if excerpt else '',
+                            "external_featured_image": featured_image_url,
+                            "updated_at": now,
+                            "source_url": wp_link,
+                            "category_name": category_name,
+                        }}
+                    )
+                    await db.publish_records.update_one(
+                        {"id": existing_record['id']},
+                        {"$set": {
+                            "status": clara_status,
+                            "published_at": wp_date_gmt + '+00:00' if wp_status_str == 'publish' else None,
+                            "scheduled_at": wp_date_gmt + '+00:00' if wp_status_str == 'future' else None,
+                            "wp_post_url": wp_link,
+                            "updated_at": now,
+                        }}
+                    )
+                    updated += 1
+                    continue
+                
+                # Also check if content with same title + source_url exists
+                existing_content = await db.content_items.find_one({
+                    "source_url": wp_link,
+                    "main_site_id": main_site_id or site.get('main_site_id')
+                })
+                
+                if existing_content:
+                    content_id = existing_content['id']
+                    # Just update and add publish record
+                    await db.content_items.update_one(
+                        {"id": content_id},
+                        {"$set": {
+                            "title": title,
+                            "body": body,
+                            "excerpt": excerpt[:500] if excerpt else '',
+                            "external_featured_image": featured_image_url,
+                            "updated_at": now,
+                            "category_name": category_name,
+                        }}
+                    )
+                else:
+                    # Create new content item
+                    content_id = str(uuid.uuid4())
+                    content_doc = {
+                        "id": content_id,
+                        "team_id": current_user.get('team_id'),
+                        "main_site_id": main_site_id or site.get('main_site_id'),
+                        "title": title,
+                        "body": body,
+                        "body_text": excerpt,
+                        "excerpt": excerpt[:500] if excerpt else '',
+                        "type": "article",
+                        "source": site.get('name', 'WordPress'),
+                        "source_url": wp_link,
+                        "external_featured_image": featured_image_url,
+                        "category_name": category_name,
+                        "tags": [],
+                        "status": "ready",
+                        "approval_status": "approved",
+                        "created_by": current_user['id'],
+                        "created_at": now,
+                        "updated_at": now,
+                        "original_date": wp_date,
+                        "wp_imported": True,
+                    }
+                    await db.content_items.insert_one(content_doc)
+                
+                # Create publish record
+                publish_record = {
+                    "id": str(uuid.uuid4()),
+                    "content_id": content_id,
+                    "wp_site_id": site_id,
+                    "wp_site_name": site.get('name', ''),
+                    "wp_post_id": wp_post_id,
+                    "wp_post_url": wp_link,
+                    "wp_post_type": "post",
+                    "status": clara_status,
+                    "published_at": wp_date_gmt + '+00:00' if wp_status_str == 'publish' else None,
+                    "scheduled_at": wp_date_gmt + '+00:00' if wp_status_str == 'future' else None,
+                    "published_by": current_user['id'],
+                    "created_at": now,
+                    "updated_at": now,
+                }
+                await db.publish_records.insert_one(publish_record)
+                imported += 1
+            
+            return {
+                "success": True,
+                "message": f"Imported {imported} new, updated {updated}, from {len(all_posts)} WordPress posts",
+                "imported": imported,
+                "updated": updated,
+                "skipped": skipped,
+                "total_wp_posts": len(all_posts),
+                "site_name": site.get('name', '')
+            }
+    
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=408, detail="WordPress connection timed out")
+    except HTTPException:
+        raise
+    except Exception as e:
+        wp_audit_logger.error(f"Import posts failed for site {site_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to import posts: {str(e)}")
+
+
+
 @wordpress_router.get("/connection")
 async def get_legacy_connection(
     request: Request,
