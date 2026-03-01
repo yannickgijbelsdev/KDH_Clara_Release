@@ -3,6 +3,9 @@ import { Outlet, NavLink, useNavigate, useLocation, useParams } from 'react-rout
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
+import { DevToolsProvider } from '../context/DevToolsContext';
+import DevToolsPanel from './DevTools/DevToolsPanel';
+import DevToolsInspector from './DevTools/DevToolsInspector';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
