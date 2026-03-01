@@ -83,60 +83,21 @@ export default function StatisticsPage() {
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
   const exportPDF = async () => {
-    if (!reportRef.current) return;
     setExporting(true);
     try {
-      // Temporarily constrain the width for better PDF scaling
-      const el = reportRef.current;
-      const origMaxWidth = el.style.maxWidth;
-      const origPadding = el.style.padding;
-      el.style.maxWidth = '900px';
-      el.style.padding = '24px';
-
-      const canvas = await html2canvas(el, {
-        backgroundColor: '#09090b',
-        scale: 3,
-        useCORS: true,
-        logging: false,
-        width: 900,
-        windowWidth: 900,
-      });
-
-      // Restore original styles
-      el.style.maxWidth = origMaxWidth;
-      el.style.padding = origPadding;
-
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      // Landscape A4 for more reading space
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth(); // 297mm
-      const pageHeight = pdf.internal.pageSize.getHeight(); // 210mm
-
-      // Fill each page with dark background
-      const fillDark = () => {
-        pdf.setFillColor(9, 9, 11); // #09090b
-        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
-      };
-
-      const margin = 6;
-      const usableWidth = pageWidth - margin * 2;
-      const usableHeight = pageHeight - margin * 2;
-      const imgAspect = canvas.height / canvas.width;
-      const totalImgHeight = usableWidth * imgAspect;
-
-      let yOffset = 0;
-      let page = 0;
-      while (yOffset < totalImgHeight) {
-        if (page > 0) pdf.addPage();
-        fillDark();
-        pdf.addImage(imgData, 'JPEG', margin, margin - yOffset, usableWidth, totalImgHeight);
-        yOffset += usableHeight;
-        page++;
-      }
-
+      const res = await fetch(`${API}/api/statistics/${mainSiteId}/export-pdf`, { headers });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
       const siteName = overview?.main_site_name || 'statistics';
       const dateStr = new Date().toISOString().split('T')[0];
-      pdf.save(`${siteName}-statistics-${dateStr}.pdf`);
+      a.download = `${siteName}-report-${dateStr}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       toast.success('PDF exported');
     } catch (err) {
       toast.error('PDF export failed');
