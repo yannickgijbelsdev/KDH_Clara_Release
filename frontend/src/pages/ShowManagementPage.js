@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import ImageResizeDialog from '../components/ImageResizeDialog';
+import { isImageFile, isOversized } from '../utils/imageResize';
 import {
   Radio,
   Building2,
