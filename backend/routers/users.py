@@ -355,13 +355,30 @@ async def upload_avatar(
     user_id: str,
     request: Request,
     file: UploadFile = File(...),
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(get_current_user)
 ):
-    """Upload avatar for a user to S3 (admin only)."""
-    # Verify user exists and belongs to team
+    """Upload avatar for a user to S3 (admin only, supports site-specific admin)."""
+    # Check admin permission (global or site-specific)
+    effective_role = await get_effective_role(request, current_user)
+    if effective_role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get main site context
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    # Find user - try by team first, then by main site membership
     user = await db.users.find_one(
         {"id": user_id, "team_id": current_user['team_id']}
     )
+    
+    if not user and main_site_id:
+        # Check if user belongs to this main site
+        site_user = await db.main_site_users.find_one({
+            "user_id": user_id, "main_site_id": main_site_id
+        })
+        if site_user:
+            user = await db.users.find_one({"id": user_id})
+    
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
