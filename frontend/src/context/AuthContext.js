@@ -191,6 +191,18 @@ export const AuthProvider = ({ children }) => {
     setShowSessionWarning(false);
   };
 
+  // Refresh user data from API
+  const refreshUser = async () => {
+    if (!token) return;
+    try {
+      const response = await axios.get(`${API}/auth/me`);
+      setUser(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  };
+
   // Admin: Switch to another user's account
   const switchToUser = async (userId) => {
     try {
