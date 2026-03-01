@@ -36,6 +36,7 @@ import SitesListPage from './pages/Sites/SitesListPage';
 import SiteDashboard from './pages/Sites/SiteDashboard';
 import PublicSitePage from './pages/Sites/PublicSitePage';
 import StatisticsPage from './pages/Network/StatisticsPage';
+import BackupManagementPage from './pages/Network/BackupManagementPage';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
