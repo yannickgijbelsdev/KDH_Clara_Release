@@ -2489,3 +2489,30 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Frontend: `/app/frontend/src/pages/Network/BackupManagementPage.js`
 - Collections backed up: main_sites, teams, sites, main_site_users, content_items, content_item_publishes, wordpress_sites, shows, show_titles, show_series, show_occurrences, categories, studios, media_assets, media_folders, rundowns, rds_settings
 - Tested: 100% backend + 100% frontend (iteration_54.json)
+
+
+### March 1, 2026 - Clone DevTools System (Network Admin)
+- [x] **New Feature: Clone Sites are Navigable**:
+  - Clone sites appear in NetworkDashboard with [CLONE] badge and "Open Clone (DevTools)" button
+  - Full navigation within clone works identically to regular sites
+  - `cloned_from` field added to MainSiteResponse model
+- [x] **New Feature: DevTools Panel (Clone-only)**:
+  - Floating panel in bottom-right corner, only on clone sites
+  - **Network tab**: Real-time API call interceptor — logs all fetch() calls with method, status, URL, duration, request/response bodies
+  - **Inspect tab**: Element inspection mode — hover over elements to see data-testid, component file, API endpoints; click to pin tooltip; view source code
+  - **Snapshots tab**: Create/restore snapshots within a clone (uses backup service)
+  - Expandable/collapsible panel with maximize mode
+  - Click any API call to see full request/response detail in modal
+- [x] **New Feature: Source Code Viewer**:
+  - Backend endpoint `GET /api/devtools/source?file=path` serves frontend source files
+  - Security: only `src/pages/`, `src/components/`, `src/context/`, `src/utils/` paths allowed
+  - Path traversal protection
+  - Line-numbered code display with basic syntax highlighting
+- [x] **Clone Mode Banner**: Cyan banner at top "CLONE MODE — DevTools active"
+- Files:
+  - `frontend/src/context/DevToolsContext.js` — Fetch interceptor context/provider
+  - `frontend/src/components/DevTools/DevToolsPanel.js` — Panel with tabs
+  - `frontend/src/components/DevTools/DevToolsInspector.js` — Element hover inspection + code viewer
+  - `backend/routers/devtools.py` — Source code endpoint
+  - `backend/models/main_sites.py` — Added cloned_from field
+- Tested: 100% backend (15/15) + 100% frontend (iteration_55.json)
