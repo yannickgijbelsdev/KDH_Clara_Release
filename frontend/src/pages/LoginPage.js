@@ -147,7 +147,7 @@ const LoginPage = () => {
                   className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Terug
+                  Back
                 </button>
 
                 <div className="flex items-center gap-3 mb-2">
@@ -155,13 +155,13 @@ const LoginPage = () => {
                     <Shield className="w-6 h-6 text-orange-500" />
                   </div>
                   <h2 className="text-2xl font-bold text-white">
-                    Twee-factor authenticatie
+                    Two-factor authentication
                   </h2>
                 </div>
                 <p className="text-zinc-400 mb-8">
                   {useBackupCode 
-                    ? 'Voer een van je backup codes in'
-                    : 'Voer de 6-cijferige code in van je authenticator app'
+                    ? 'Enter one of your backup codes'
+                    : 'Enter the 6-digit code from your authenticator app'
                   }
                 </p>
 
