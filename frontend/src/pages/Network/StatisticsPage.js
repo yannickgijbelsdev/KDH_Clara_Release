@@ -12,8 +12,6 @@ import {
   BarChart3, CheckCircle, Clock, AlertTriangle, Loader2,
   Globe, Award, ChevronDown,
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
