@@ -2328,3 +2328,16 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Backup codes are hashed before storage
 - Temporary tokens (5 min) for 2FA verification step
 - Audit logging for 2FA enable/disable events
+
+
+### March 1, 2026 - Global 2FA Settings on Network Dashboard
+- [x] **Security Dialog on Clara Global Dashboard**:
+  - Network Admins can now manage 2FA directly from the Network Dashboard
+  - "Beveiliging" button in header opens "Account Beveiliging" dialog
+  - "2FA Instellen" button in warning banner also opens the dialog
+  - Dialog renders the existing TwoFactorSetup component
+  - Warning banner shown when 2FA is not yet enabled
+  - Button shows green "2FA Actief" state when 2FA is enabled
+  - Added DialogDescription for accessibility compliance
+  - File: `/app/frontend/src/pages/Network/NetworkDashboard.js`
+  - Tested: 8/8 frontend tests passed (100% success rate)
