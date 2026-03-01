@@ -2354,3 +2354,23 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Updated endpoints: `PUT /api/content/{id}/approval`, `GET /api/content/admin/pending-approval`
   - Files: `backend/services/main_site_context.py`, `backend/routers/content.py`
   - Tested: 11/11 backend tests passed (100% success rate)
+
+### March 1, 2026 - WordPress & Permission Fixes for DBNT
+- [x] **WordPress page access for site-specific admins**:
+  - Changed from `useAuth().isAdmin` (global) to `useMainSite().isAdmin()` (site-specific)
+  - Site admins on DBNT can now access WordPress settings
+- [x] **"Geen toegang" message instead of redirect to shows**:
+  - WordPressSettingsPage: Shows access denied message with ShieldAlert icon
+  - TeamSettingsPage: Same "Geen toegang" message + fixed loading state bug
+- [x] **WordPress backend endpoints - site-specific roles**:
+  - All WordPress endpoints (CRUD, test, sync) now use `get_effective_role()` 
+  - Site admins can manage WordPress settings for their site
+- [x] **Category sync improvements**:
+  - Sync now updates category names (not just WP IDs)
+  - Removes categories that no longer exist in WordPress
+  - Response includes removed count
+- [x] **Category creation - site-specific roles**:
+  - `POST /api/content/categories` now uses `get_effective_role()` 
+- Files modified: `WordPressSettingsPage.js`, `TeamSettingsPage.js`, `wordpress.py`, `content.py`
+- Tested: 9/9 backend + 6/6 frontend tests passed (100%)
+
