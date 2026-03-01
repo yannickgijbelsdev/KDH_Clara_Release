@@ -166,9 +166,11 @@ const TeamSettingsPage = () => {
     if (!adminCheckDone) return;
     
     if (!isMainSiteAdmin) {
-      return; // Show access denied message instead of redirect
+      setLoading(false); // Stop loading to show access denied message
+      return;
     }
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMainSiteAdmin, adminCheckDone, mainSiteSlug]);
 
   const fetchData = async () => {
