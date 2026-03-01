@@ -1,0 +1,91 @@
+{
+  "summary": "Backend testing for site-specific role content approval bug fix. All 11 tests passed - the fix for Deborah Baeten's issue (user with site-specific admin role unable to approve content) is working correctly.",
+  "bug_description": "Users with site-specific 'admin' role (in main_site_users collection) but lower global role (in users collection) could not approve content because the approval endpoint only checked global role.",
+  "fix_verified": "The get_effective_role() function in main_site_context.py correctly checks both global and site-specific roles, returning the higher-privilege role when X-Main-Site-ID header is present.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "test_eddy_login_and_global_role": {
+      "status": "PASS",
+      "description": "Eddy Thijs (eddy.thijs@grk.fm) global role confirmed as 'presenter'"
+    },
+    "test_pending_approval_without_site_header_returns_403": {
+      "status": "PASS",
+      "description": "GET /api/content/admin/pending-approval WITHOUT X-Main-Site-ID returns 403 (presenter cannot approve)"
+    },
+    "test_pending_approval_with_site_header_returns_200": {
+      "status": "PASS",
+      "description": "GET /api/content/admin/pending-approval WITH X-Main-Site-ID: fc37cb22-b93e-4fc8-9d77-818b3af45d35 returns 200 (site admin can approve)"
+    },
+    "test_approval_without_site_header_returns_403": {
+      "status": "PASS",
+      "description": "PUT /api/content/{id}/approval WITHOUT X-Main-Site-ID returns 403"
+    },
+    "test_approval_with_site_header_returns_200": {
+      "status": "PASS",
+      "description": "PUT /api/content/{id}/approval WITH X-Main-Site-ID returns 200 and approval_status updated to 'approved'"
+    },
+    "test_network_admin_can_approve_any_site": {
+      "status": "PASS",
+      "description": "Network admin (admkoodh@koodh.com) can approve content from any site"
+    },
+    "test_network_admin_approve_without_header": {
+      "status": "PASS",
+      "description": "Network admin can access pending-approval without X-Main-Site-ID header"
+    },
+    "test_rejection_with_site_header": {
+      "status": "PASS",
+      "description": "Site admin can reject content when X-Main-Site-ID header is present"
+    },
+    "test_effective_role_returns_higher_privilege": {
+      "status": "PASS",
+      "description": "get_effective_role() returns site role (admin) over global role (presenter) when header present"
+    },
+    "test_invalid_site_id_header": {
+      "status": "PASS",
+      "description": "Invalid site ID in header falls back to global role (403 for presenter)"
+    },
+    "test_user_without_site_access": {
+      "status": "PASS",
+      "description": "User without site access uses global role correctly"
+    }
+  },
+  "test_credentials": {
+    "site_admin_on_dbnt": {
+      "email": "eddy.thijs@grk.fm",
+      "password": "8aP7QiJAKuouw-SM",
+      "global_role": "presenter",
+      "dbnt_site_role": "admin"
+    },
+    "network_admin": {
+      "email": "admkoodh@koodh.com",
+      "password": "KYLovie13monx"
+    },
+    "dbnt_main_site_id": "fc37cb22-b93e-4fc8-9d77-818b3af45d35"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_site_specific_role_approval.py",
+    "/app/test_reports/pytest/site_specific_role_approval_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_site_specific_role_approval.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "N/A - skipped per request"
+  },
+  "seed_data_creation": "Test content items created and cleaned up during tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Site-specific role approval is working correctly. The fix uses get_effective_role() in content.py to check both global and site-specific roles. When X-Main-Site-ID header is provided, it looks up the user's site role in main_site_users collection and returns the higher-privilege role.",
+  "rca_of_the_issue": "The root cause was that content approval endpoints (PUT /api/content/{id}/approval and GET /api/content/admin/pending-approval) only checked the global role from the users collection via require_can_approve_content dependency. Users like Deborah Baeten who had 'presenter' globally but 'admin' on a specific site were denied access. The fix adds get_effective_role() helper that checks both global role and site-specific role (from main_site_users collection) and returns the higher-privilege role."
+}
