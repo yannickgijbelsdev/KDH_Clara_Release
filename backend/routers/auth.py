@@ -224,7 +224,8 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         "token": token,
         "user": user_response,
         "expires_at": expires_at,
-        "temp_token": None
+        "temp_token": None,
+        "totp_skip_count": user.get('totp_skip_count', 0)
     }
 
 
