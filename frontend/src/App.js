@@ -124,6 +124,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+      {/* Backups - Network Admin only */}
+      <Route
+        path="/backups"
+        element={
+          <ProtectedRoute>
+            <BackupManagementPage />
+          </ProtectedRoute>
+        }
+      />
       
       {/* RDS Monitor - Standalone public-ish page */}
       <Route 
