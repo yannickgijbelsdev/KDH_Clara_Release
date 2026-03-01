@@ -224,6 +224,18 @@ const ShowManagementPage = () => {
 
   const handleImageUpload = async (file, titleId) => {
     if (!file) return;
+    
+    // Check if image needs resizing
+    if (isImageFile(file) && isOversized(file)) {
+      setImageTargetTitleId(titleId);
+      setResizeFile(file);
+      return;
+    }
+    
+    await doImageUpload(file, titleId);
+  };
+
+  const doImageUpload = async (file, titleId) => {
     setUploadingImage(true);
     
     try {
@@ -245,6 +257,12 @@ const ShowManagementPage = () => {
         imageInputRef.current.value = '';
       }
     }
+  };
+
+  const handleResized = (resizedFile) => {
+    const titleId = imageTargetTitleId;
+    setResizeFile(null);
+    doImageUpload(resizedFile, titleId);
   };
 
   const handleRemoveImage = async (titleId) => {
