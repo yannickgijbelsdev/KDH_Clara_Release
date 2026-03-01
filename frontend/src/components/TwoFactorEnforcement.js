@@ -69,6 +69,7 @@ const TwoFactorEnforcement = ({ user, onComplete, onSkipped }) => {
       <DialogContent
         className="bg-zinc-900 border-zinc-800 max-w-md"
         data-testid="2fa-enforcement-dialog"
+        hideClose
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
