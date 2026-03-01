@@ -111,11 +111,18 @@ async def register(user_data: UserCreate, request: Request):
     return TokenResponse(token=token, user=user_response, expires_at=expires_at)
 
 
-@auth_router.post("/login", response_model=TokenResponse)
-async def login(credentials: UserLogin, request: Request):
+@auth_router.post("/login")
+async def login(credentials: TwoFactorLoginRequest, request: Request):
+    """Login with optional 2FA support.
+    
+    Flow:
+    1. Validate email/password
+    2. If 2FA enabled and no code provided: return requires_2fa=True with temp_token
+    3. If 2FA enabled and code provided: verify code and return full token
+    4. If 2FA not enabled: return full token with warning flag
+    """
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not verify_password(credentials.password, user['password_hash']):
-        # Log failed login attempt
         await log_action(
             action="Login Failed",
             category="auth",
@@ -131,6 +138,62 @@ async def login(credentials: UserLogin, request: Request):
     role = user.get('role', 'editor')
     team_id = user.get('team_id', '')
     
+    # Check if 2FA is enabled
+    totp_enabled = user.get('totp_enabled', False)
+    totp_secret = user.get('totp_secret')
+    
+    if totp_enabled and totp_secret:
+        # 2FA is enabled - check if code was provided
+        if not credentials.totp_code and not credentials.backup_code:
+            # No code provided - return temp token for 2FA step
+            temp_token, _ = create_token(user['id'], expires_minutes=5)  # Short-lived token
+            return {
+                "requires_2fa": True,
+                "temp_token": temp_token,
+                "token": None,
+                "user": None,
+                "expires_at": None
+            }
+        
+        # Verify the provided code
+        code_valid = False
+        used_backup = False
+        
+        if credentials.totp_code:
+            code_valid = verify_totp(totp_secret, credentials.totp_code)
+        elif credentials.backup_code:
+            backup_codes = user.get('backup_codes_hashed', [])
+            code_valid, matched_hash = verify_backup_code(credentials.backup_code, backup_codes)
+            if code_valid and matched_hash:
+                used_backup = True
+                # Remove used backup code
+                await db.users.update_one(
+                    {"id": user['id']},
+                    {"$pull": {"backup_codes_hashed": matched_hash}}
+                )
+        
+        if not code_valid:
+            await log_action(
+                action="Login Failed - Invalid 2FA",
+                category="auth",
+                user_id=user['id'],
+                user_email=credentials.email,
+                ip_address=get_client_ip(request),
+                details={"reason": "Invalid 2FA code", "used_backup": credentials.backup_code is not None}
+            )
+            raise HTTPException(status_code=401, detail="Invalid 2FA code")
+        
+        # Log if backup code was used
+        if used_backup:
+            await log_action(
+                action="Backup Code Used",
+                category="auth",
+                user_id=user['id'],
+                user_name=user['name'],
+                user_email=user['email'],
+                ip_address=get_client_ip(request)
+            )
+    
     # Log successful login
     await log_action(
         action="Login",
@@ -140,7 +203,7 @@ async def login(credentials: UserLogin, request: Request):
         user_email=user['email'],
         team_id=team_id,
         ip_address=get_client_ip(request),
-        details={"role": role}
+        details={"role": role, "2fa_enabled": totp_enabled}
     )
     
     token, expires_at = create_token(user['id'])
@@ -152,10 +215,17 @@ async def login(credentials: UserLogin, request: Request):
         team_id=team_id,
         team_name=team_name,
         created_at=user['created_at'],
-        is_network_admin=user.get('is_network_admin', False)
+        is_network_admin=user.get('is_network_admin', False),
+        totp_enabled=totp_enabled
     )
     
-    return TokenResponse(token=token, user=user_response, expires_at=expires_at)
+    return {
+        "requires_2fa": False,
+        "token": token,
+        "user": user_response,
+        "expires_at": expires_at,
+        "temp_token": None
+    }
 
 
 @auth_router.post("/logout")
