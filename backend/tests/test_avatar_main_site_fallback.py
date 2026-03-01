@@ -42,7 +42,7 @@ def auth_token():
     )
     if response.status_code != 200:
         pytest.skip(f"Failed to authenticate network admin: {response.text}")
-    return response.json().get("access_token")
+    return response.json().get("token")
 
 
 @pytest.fixture(scope="module")
