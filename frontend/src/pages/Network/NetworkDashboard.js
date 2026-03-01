@@ -22,7 +22,7 @@ import {
   Plus, Globe, Users, Layers, Settings, Trash2, Edit, ExternalLink,
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
-  Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code
+  Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu';
 import MigrationTool from './MigrationTool';
+import TwoFactorSetup from '../../components/TwoFactorSetup';
 import { useNavigate } from 'react-router-dom';
 
 const API = process.env.REACT_APP_BACKEND_URL;
