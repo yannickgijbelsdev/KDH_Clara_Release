@@ -149,8 +149,8 @@ const MainSiteDashboardLayout = () => {
   const isInSiteContext = !!siteMatch;
   const currentSiteId = siteMatch ? siteMatch[1] : siteId;
 
-  // Check if user can approve content (admin or news_admin or network_admin)
-  const canApprove = isAdmin() || user?.role === 'news_admin';
+  // Check if user can approve content (admin or news_admin for this site, or network_admin)
+  const canApprove = isAdmin() || userRole === 'news_admin';
   
   // Check if user is admin for this main site
   const userIsAdmin = isAdmin();
