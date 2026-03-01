@@ -52,8 +52,8 @@ function TicketList() {
   const fetchTickets = useCallback(async () => {
     try {
       const url = filter === 'all'
-        ? `${API}/api/tickets`
-        : `${API}/api/tickets?status=${filter}`;
+        ? `${API}/api/tickets/`
+        : `${API}/api/tickets/?status=${filter}`;
       const res = await fetch(url, { headers });
       if (res.ok) setTickets((await res.json()).tickets || []);
     } catch { /* ignore */ }
