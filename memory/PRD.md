@@ -2341,3 +2341,16 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Added DialogDescription for accessibility compliance
   - File: `/app/frontend/src/pages/Network/NetworkDashboard.js`
   - Tested: 8/8 frontend tests passed (100% success rate)
+
+
+### March 1, 2026 - Site-Specific Role Permission Fix (Content Approval)
+- [x] **Bug Fix: Content Approval denied for site-specific admins**:
+  - Root cause: `require_can_approve_content` only checked global role, not site-specific role
+  - Users with 'presenter' globally but 'admin' on a specific site were blocked from approving content
+  - Fix: Created `get_effective_role()` helper in `services/main_site_context.py`
+    - Checks both global role and site-specific role (from `main_site_users` collection)
+    - Returns the higher-privilege role when `X-Main-Site-ID` header is present
+    - Falls back to global role when no site context
+  - Updated endpoints: `PUT /api/content/{id}/approval`, `GET /api/content/admin/pending-approval`
+  - Files: `backend/services/main_site_context.py`, `backend/routers/content.py`
+  - Tested: 11/11 backend tests passed (100% success rate)
