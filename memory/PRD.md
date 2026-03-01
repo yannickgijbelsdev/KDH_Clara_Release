@@ -2419,4 +2419,19 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Session-based dismissal: reappears on next login
 - Backend: `POST /api/auth/2fa/skip` endpoint, `totp_skip_count` in user model + responses
 - Frontend: `TwoFactorEnforcement.js` component, integrated via `TwoFactorEnforcementWrapper` in App.js
+
+### March 1, 2026 - Content Calendar Rewrite
+- [x] **Content Calendar matched to Shows Calendar layout**:
+  - Completely rewritten from react-big-calendar to custom grid layout
+  - Same styling: month grid, day cells with dots, sidebar with details
+  - Shows published articles (green dots) and scheduled articles (orange dots)
+  - Click a date → sidebar shows articles with title, time, site name, category, featured image
+  - Click an article → navigates to content detail page
+  - "Back to list" button returns to content library
+  - File: `ContentCalendarPage.js`
+  - Tested: Layout verified identical to CalendarPage.js, all UI elements present
+- [x] **2FA enforcement dialog - hideClose prop**:
+  - Removed X (close) button from 2FA enforcement dialogs
+  - Added `hideClose` prop to Dialog component
+
 - Tested: 14/14 tests passed (6 backend + 8 frontend, 100%)
