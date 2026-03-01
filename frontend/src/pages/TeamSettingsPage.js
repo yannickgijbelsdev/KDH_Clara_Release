@@ -166,8 +166,7 @@ const TeamSettingsPage = () => {
     if (!adminCheckDone) return;
     
     if (!isMainSiteAdmin) {
-      navigate(navTo('/shows'));
-      return;
+      return; // Show access denied message instead of redirect
     }
     fetchData();
   }, [isMainSiteAdmin, adminCheckDone, mainSiteSlug]);
