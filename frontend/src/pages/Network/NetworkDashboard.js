@@ -1072,6 +1072,9 @@ export default function NetworkDashboard() {
               <Shield className="w-5 h-5 text-emerald-500" />
               Account Beveiliging
             </DialogTitle>
+            <DialogDescription>
+              Beheer je twee-factor authenticatie instellingen.
+            </DialogDescription>
           </DialogHeader>
           <TwoFactorSetup user={user} onUpdate={refreshUser} />
         </DialogContent>
