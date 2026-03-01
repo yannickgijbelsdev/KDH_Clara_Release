@@ -458,12 +458,26 @@ async def upload_avatar(
 async def delete_avatar(
     user_id: str,
     request: Request,
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(get_current_user)
 ):
-    """Delete avatar for a user (admin only)."""
+    """Delete avatar for a user (admin only, supports site-specific admin)."""
+    effective_role = await get_effective_role(request, current_user)
+    if effective_role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    main_site_id = await get_main_site_id_from_header(request)
+    
     user = await db.users.find_one(
         {"id": user_id, "team_id": current_user['team_id']}
     )
+    
+    if not user and main_site_id:
+        site_user = await db.main_site_users.find_one({
+            "user_id": user_id, "main_site_id": main_site_id
+        })
+        if site_user:
+            user = await db.users.find_one({"id": user_id})
+    
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
