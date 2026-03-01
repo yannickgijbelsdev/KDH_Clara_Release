@@ -57,12 +57,12 @@ def build_styles():
     """Create paragraph styles for the dark theme."""
     styles = {}
     styles['title'] = ParagraphStyle(
-        'Title', fontName='Helvetica-Bold', fontSize=20,
-        textColor=TEXT_WHITE, spaceAfter=2*mm,
+        'Title', fontName='Helvetica-Bold', fontSize=22,
+        textColor=TEXT_WHITE, spaceAfter=1*mm,
     )
     styles['subtitle'] = ParagraphStyle(
         'Subtitle', fontName='Helvetica', fontSize=10,
-        textColor=TEXT_MUTED, spaceAfter=8*mm,
+        textColor=TEXT_MUTED, spaceAfter=10*mm,
     )
     styles['h2'] = ParagraphStyle(
         'H2', fontName='Helvetica-Bold', fontSize=13,
