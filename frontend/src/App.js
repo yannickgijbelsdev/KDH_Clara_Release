@@ -39,7 +39,6 @@ import StatisticsPage from './pages/Network/StatisticsPage';
 import BackupManagementPage from './pages/Network/BackupManagementPage';
 import TicketsPage from './pages/Tickets/TicketsPage';
 import { JourneyProvider } from './context/JourneyContext';
-import HelpButton from './components/Tickets/HelpButton';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -275,7 +274,6 @@ function App() {
         <JourneyProvider>
           <TwoFactorEnforcementWrapper />
           <AppRoutes />
-          <HelpButton />
           <SessionWarningModal />
           <Toaster position="bottom-right" richColors />
         </JourneyProvider>
