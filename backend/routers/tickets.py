@@ -36,7 +36,7 @@ async def create_ticket(
     current_user: dict = Depends(get_current_user),
 ):
     """Create a new support ticket. Available to all authenticated users."""
-    main_site_id = get_main_site_id_from_header(request)
+    main_site_id = await get_main_site_id_from_header(request)
 
     # Get client IP
     ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "unknown")
@@ -110,7 +110,7 @@ async def list_tickets(
     current_user: dict = Depends(get_current_user),
 ):
     """List tickets. Admins see all for the site, regular users see their own."""
-    main_site_id = get_main_site_id_from_header(request)
+    main_site_id = await get_main_site_id_from_header(request)
 
     query = {}
     if main_site_id:
