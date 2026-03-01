@@ -884,6 +884,14 @@ const ShowManagementPage = () => {
           }
         }}
       />
+
+      {/* Image Resize Dialog */}
+      <ImageResizeDialog
+        file={resizeFile}
+        open={!!resizeFile}
+        onClose={() => setResizeFile(null)}
+        onResized={handleResized}
+      />
     </div>
   );
 };
