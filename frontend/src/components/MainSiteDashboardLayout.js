@@ -72,6 +72,7 @@ const FEATURE_NAV_ITEMS = {
   team_settings: { to: 'team', icon: Users, label: 'Team Settings', adminOnly: true },
   wordpress: { to: 'wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
   activity_logs: { to: 'logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
+  support_tickets: { to: 'tickets', icon: LifeBuoy, label: 'Support Tickets' },
 };
 
 // Navigation groups with feature mapping
@@ -111,6 +112,12 @@ const NAV_GROUPS = [
     label: 'Administration',
     icon: Settings,
     features: ['team_settings', 'wordpress', 'activity_logs']
+  },
+  {
+    id: 'support',
+    label: 'Support',
+    icon: LifeBuoy,
+    features: ['support_tickets']
   },
 ];
 
