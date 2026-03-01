@@ -166,7 +166,7 @@ export default function StatisticsPage() {
       </header>
 
       {/* Report Content */}
-      <main className="pt-20 pb-12 px-6 max-w-7xl mx-auto" ref={reportRef}>
+      <main className="pt-20 pb-12 px-6 max-w-7xl mx-auto">
         {/* Report Title (visible in PDF) */}
         <div className="mb-8" data-testid="report-header">
           <h2 className="text-2xl font-bold">{overview?.main_site_name} — Content Report</h2>
