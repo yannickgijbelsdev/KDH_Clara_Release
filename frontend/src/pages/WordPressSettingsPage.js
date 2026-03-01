@@ -393,6 +393,24 @@ const WordPressSettingsPage = () => {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => handleImportPosts(site.id)}
+                      disabled={importingPostsId === site.id || !site.is_active}
+                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      data-testid={`import-posts-${site.id}`}
+                      title="Import published and scheduled posts from WordPress"
+                    >
+                      {importingPostsId === site.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        'Import Posts'
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       data-testid={`edit-site-${site.id}`}
                       onClick={() => openEditDialog(site)}
                       className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
