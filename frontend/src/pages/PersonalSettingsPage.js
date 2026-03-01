@@ -19,7 +19,7 @@ import TwoFactorSetup from '../components/TwoFactorSetup';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const PersonalSettingsPage = () => {
-  const { user, updateUserPreferences } = useAuth();
+  const { user, updateUserPreferences, refreshUser } = useAuth();
   const [saving, setSaving] = useState(false);
   const [preferences, setPreferences] = useState({
     grouped_menu: true,
