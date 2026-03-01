@@ -549,6 +549,30 @@ export default function NetworkDashboard() {
 
       {/* Main Content - with padding for fixed header */}
       <main className="max-w-7xl mx-auto px-6 py-8 pt-24">
+        {/* Security Warning Banner - shown if 2FA not enabled */}
+        {!user?.totp_enabled && (
+          <div className="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-500/20 rounded-lg">
+                <Shield className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-amber-200 font-medium">Beveilig je account met 2FA</p>
+                <p className="text-amber-200/70 text-sm">
+                  Twee-factor authenticatie is nog niet ingesteld. Stel dit in voor extra beveiliging.
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setSecurityPanelOpen(true)}
+              className="bg-amber-500 hover:bg-amber-600 text-black gap-2"
+            >
+              <Shield className="w-4 h-4" />
+              2FA Instellen
+            </Button>
+          </div>
+        )}
+
         {/* Page Title */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -556,6 +580,14 @@ export default function NetworkDashboard() {
             <p className="text-sm text-zinc-400">Manage all main sites</p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setSecurityPanelOpen(true)} 
+              className={`gap-2 ${user?.totp_enabled ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700'}`}
+            >
+              <Shield className="w-4 h-4" />
+              {user?.totp_enabled ? '2FA Actief' : 'Beveiliging'}
+            </Button>
             <Button 
               variant="outline" 
               onClick={() => navigate('/explorer')} 
