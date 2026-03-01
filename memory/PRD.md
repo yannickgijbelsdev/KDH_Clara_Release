@@ -2406,3 +2406,17 @@ now = now_brussels()  # Automatically handles CET/CEST
 ### March 1, 2026 - Media Share Links S3 Fix
 - [x] Share endpoint now redirects to S3 URL for S3-stored files
 - File: `backend/server.py`
+
+
+### March 1, 2026 - 2FA Enforcement After Login
+- [x] **2FA enforcement dialog after login**:
+  - Shows "Secure your account" dialog when user has no 2FA enabled
+  - "Set up 2FA now" button opens TwoFactorSetup component
+  - "Skip for now (X times remaining)" button allows up to 3 skips
+  - After 3 skips: "Two-factor authentication required" - no skip button, mandatory setup
+  - Skip count persists in database (`totp_skip_count` field on user)
+  - Dialog prevents closing via click-outside or escape key
+  - Session-based dismissal: reappears on next login
+- Backend: `POST /api/auth/2fa/skip` endpoint, `totp_skip_count` in user model + responses
+- Frontend: `TwoFactorEnforcement.js` component, integrated via `TwoFactorEnforcementWrapper` in App.js
+- Tested: 14/14 tests passed (6 backend + 8 frontend, 100%)
