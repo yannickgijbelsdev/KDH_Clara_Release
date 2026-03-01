@@ -9,6 +9,7 @@ import DashboardLayout from './components/DashboardLayout';
 import MainSiteDashboardLayout from './components/MainSiteDashboardLayout';
 import NetworkDashboard from './pages/Network/NetworkDashboard';
 import MainSiteSelector from './pages/Network/MainSiteSelector';
+import ApiExplorerPage from './pages/Network/ApiExplorerPage';
 import ShowsPage from './pages/ShowsPage';
 import ShowDetailPage from './pages/ShowDetailPage';
 import CalendarPage from './pages/CalendarPage';
