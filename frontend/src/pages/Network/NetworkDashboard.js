@@ -1063,6 +1063,19 @@ export default function NetworkDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Security / 2FA Panel */}
+      <Dialog open={securityPanelOpen} onOpenChange={setSecurityPanelOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg" data-testid="security-panel-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-emerald-500" />
+              Account Beveiliging
+            </DialogTitle>
+          </DialogHeader>
+          <TwoFactorSetup user={user} onUpdate={refreshUser} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
