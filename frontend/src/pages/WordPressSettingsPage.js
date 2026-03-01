@@ -46,13 +46,28 @@ import {
 } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { useMainSite } from '../context/MainSiteContext';
+import { ShieldAlert } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const WordPressSettingsPage = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin: isGlobalAdmin } = useAuth();
   const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
+  
+  // Use site-specific permission when in main site context
+  let hasSiteAdmin = false;
+  try {
+    const mainSiteCtx = useMainSite();
+    hasSiteAdmin = mainSiteCtx?.isAdmin?.() || false;
+  } catch (e) {
+    // Not in MainSiteProvider context (legacy route)
+    hasSiteAdmin = false;
+  }
+  
+  const hasAccess = isGlobalAdmin || hasSiteAdmin;
+  
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -77,12 +92,12 @@ const WordPressSettingsPage = () => {
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   useEffect(() => {
-    if (!isAdmin) {
-      navigate(navTo('/shows'));
-      return;
+    if (hasAccess) {
+      fetchSites();
+    } else {
+      setLoading(false);
     }
-    fetchSites();
-  }, [isAdmin, navigate, mainSiteSlug]);
+  }, [hasAccess, mainSiteSlug]);
 
   const fetchSites = async () => {
     try {
