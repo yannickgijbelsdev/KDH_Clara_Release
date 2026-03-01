@@ -227,6 +227,19 @@ const WordPressSettingsPage = () => {
     }
   };
 
+  const handleImportPosts = async (siteId) => {
+    setImportingPostsId(siteId);
+    try {
+      const response = await axios.post(`${API}/wordpress/sites/${siteId}/import-posts`);
+      const { imported, updated, total_wp_posts, site_name } = response.data;
+      toast.success(`${site_name}: ${imported} imported, ${updated} updated (from ${total_wp_posts} posts)`);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to import posts');
+    } finally {
+      setImportingPostsId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="animate-pulse">
