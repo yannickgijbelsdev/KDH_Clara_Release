@@ -440,6 +440,7 @@ async def get_avatar_file(file_key: str):
 async def get_shared_file(share_token: str):
     """Serve a publicly shared media file (no authentication required)."""
     from fastapi import HTTPException
+    from fastapi.responses import RedirectResponse
     
     # Find the share link
     share = await db.media_share_links.find_one({"share_token": share_token})
@@ -451,6 +452,12 @@ async def get_shared_file(share_token: str):
     if not asset:
         raise HTTPException(status_code=404, detail="Media file not found")
     
+    # Try S3 first (redirect to S3 URL)
+    s3_url = asset.get("s3_url")
+    if s3_url:
+        return RedirectResponse(url=s3_url)
+    
+    # Fall back to local file
     file_path = MEDIA_UPLOADS_DIR / asset.get("file_storage_key", "")
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
