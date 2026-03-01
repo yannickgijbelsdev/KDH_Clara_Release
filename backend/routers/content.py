@@ -101,9 +101,12 @@ async def get_categories(
 async def create_category(
     request: Request,
     name: str,
-    current_user: dict = Depends(require_editor_or_admin)
+    current_user: dict = Depends(get_current_user)
 ):
     """Create a new category."""
+    effective_role = await get_effective_role(request, current_user)
+    if effective_role not in ['admin', 'news_admin', 'editor']:
+        raise HTTPException(status_code=403, detail="Editor or admin access required")
     # Get main_site_id from header for multisite context
     main_site_id = await get_main_site_id_from_header(request)
     
