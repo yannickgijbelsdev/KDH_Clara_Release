@@ -925,6 +925,11 @@ async def startup_db_client():
     await audio_trigger_scheduler.start()
     logger.info("Audio Trigger scheduler started (3s interval)")
 
+    # Start daily backup scheduler
+    from services.backup_scheduler import start_backup_scheduler
+    await start_backup_scheduler()
+    logger.info("Daily backup scheduler started")
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
