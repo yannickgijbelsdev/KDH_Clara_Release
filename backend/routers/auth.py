@@ -216,7 +216,8 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         team_name=team_name,
         created_at=user['created_at'],
         is_network_admin=user.get('is_network_admin', False),
-        totp_enabled=totp_enabled
+        totp_enabled=totp_enabled,
+        totp_skip_count=user.get('totp_skip_count', 0)
     )
     
     return {
