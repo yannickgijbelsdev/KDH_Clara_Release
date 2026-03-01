@@ -214,6 +214,8 @@ const AppRoutes = () => {
         <Route path="streams" element={<StreamMonitorPage />} />
         <Route path="sites" element={<SitesListPage />} />
         <Route path="sites/:siteId" element={<SiteDashboard />} />
+        <Route path="tickets" element={<TicketsPage />} />
+        <Route path="tickets/:ticketId" element={<TicketsPage />} />
       </Route>
 
       {/* Public mini site pages - /:mainSiteSlug/:siteSlug */}
@@ -270,10 +272,13 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <TwoFactorEnforcementWrapper />
-        <AppRoutes />
-        <SessionWarningModal />
-        <Toaster position="bottom-right" richColors />
+        <JourneyProvider>
+          <TwoFactorEnforcementWrapper />
+          <AppRoutes />
+          <HelpButton />
+          <SessionWarningModal />
+          <Toaster position="bottom-right" richColors />
+        </JourneyProvider>
       </AuthProvider>
     </BrowserRouter>
   );
