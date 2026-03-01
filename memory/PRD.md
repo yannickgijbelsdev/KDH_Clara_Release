@@ -2461,3 +2461,31 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Frontend: `/app/frontend/src/pages/Network/StatisticsPage.js`
   - Dependencies added: recharts (frontend), reportlab (backend)
   - Tested: 100% backend + 100% frontend (iteration_53.json)
+
+
+### March 1, 2026 - Backup Management & Site Cloning System (Network Admin)
+- [x] **New Feature: Backup Management Dashboard** (`/backups`):
+  - Network admin only — accessible from "Backups" button in Clara Global header
+  - **Per-site backup list** with status indicators (completed/failed/in-progress)
+  - **Manual backup creation** — dumps all site data to gzipped JSON, uploads to S3
+  - **Automatic daily backups** at 03:00 UTC via background scheduler
+  - **Restore from backup** with automatic safety backup (pre-restore)
+  - **30-day retention** — expired backups auto-cleaned
+  - **Status cards**: Total Backups, Last Backup, Failed count, Storage Used
+- [x] **New Feature: Site Cloning**:
+  - Clone any main site with all data (content, shows, WordPress config, settings)
+  - Child sites get `[CLONE]` prefix, clone site gets unique slug
+  - Delete clones when done testing
+  - Clone listing per source site
+- Backend: `/app/backend/routers/backups.py`, `/app/backend/services/backup_service.py`, `/app/backend/services/backup_scheduler.py`
+  - `GET /api/backups/{main_site_id}` — list backups
+  - `POST /api/backups/{main_site_id}` — create manual backup
+  - `POST /api/backups/{main_site_id}/restore` — restore with safety net
+  - `DELETE /api/backups/single/{backup_id}` — delete backup
+  - `POST /api/backups/{main_site_id}/clone` — clone site
+  - `GET /api/backups/{main_site_id}/clones` — list clones
+  - `DELETE /api/backups/clone/{clone_id}` — delete clone
+  - `POST /api/backups/system/run-daily` — trigger daily backup manually
+- Frontend: `/app/frontend/src/pages/Network/BackupManagementPage.js`
+- Collections backed up: main_sites, teams, sites, main_site_users, content_items, content_item_publishes, wordpress_sites, shows, show_titles, show_series, show_occurrences, categories, studios, media_assets, media_folders, rundowns, rds_settings
+- Tested: 100% backend + 100% frontend (iteration_54.json)
