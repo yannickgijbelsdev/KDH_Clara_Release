@@ -611,14 +611,14 @@ async def import_wordpress_posts(
                 clara_status = 'published' if wp_status_str == 'publish' else 'scheduled'
                 
                 # Check if already imported (by wp_post_id + site_id)
-                existing_record = await db.publish_records.find_one({
+                existing_record = await db.content_item_publishes.find_one({
                     "wp_post_id": wp_post_id,
-                    "wp_site_id": site_id
+                    "wordpress_site_id": site_id
                 })
                 
                 if existing_record:
                     # Update existing content item and publish record
-                    content_id = existing_record.get('content_id')
+                    content_id = existing_record.get('content_item_id')
                     await db.content_items.update_one(
                         {"id": content_id},
                         {"$set": {
@@ -631,20 +631,21 @@ async def import_wordpress_posts(
                             "category_name": category_name,
                         }}
                     )
-                    await db.publish_records.update_one(
+                    await db.content_item_publishes.update_one(
                         {"id": existing_record['id']},
                         {"$set": {
-                            "status": clara_status,
-                            "published_at": wp_date_gmt + '+00:00' if wp_status_str == 'publish' else None,
-                            "scheduled_at": wp_date_gmt + '+00:00' if wp_status_str == 'future' else None,
-                            "wp_post_url": wp_link,
+                            "wp_status": wp_status_str,
+                            "sync_status": "scheduled" if wp_status_str == 'future' else "synced",
+                            "wp_permalink": wp_link,
+                            "wp_scheduled_date": wp_date if wp_status_str == 'future' else None,
+                            "last_synced_at": now,
                             "updated_at": now,
                         }}
                     )
                     updated += 1
                     continue
                 
-                # Also check if content with same title + source_url exists
+                # Also check if content with same source_url exists
                 existing_content = await db.content_items.find_one({
                     "source_url": wp_link,
                     "main_site_id": main_site_id or site.get('main_site_id')
@@ -652,7 +653,6 @@ async def import_wordpress_posts(
                 
                 if existing_content:
                     content_id = existing_content['id']
-                    # Just update and add publish record
                     await db.content_items.update_one(
                         {"id": content_id},
                         {"$set": {
@@ -691,23 +691,23 @@ async def import_wordpress_posts(
                     }
                     await db.content_items.insert_one(content_doc)
                 
-                # Create publish record
-                publish_record = {
+                # Create publish record in content_item_publishes
+                publish_doc = {
                     "id": str(uuid.uuid4()),
-                    "content_id": content_id,
-                    "wp_site_id": site_id,
-                    "wp_site_name": site.get('name', ''),
+                    "content_item_id": content_id,
+                    "wordpress_site_id": site_id,
                     "wp_post_id": wp_post_id,
-                    "wp_post_url": wp_link,
                     "wp_post_type": "post",
-                    "status": clara_status,
-                    "published_at": wp_date_gmt + '+00:00' if wp_status_str == 'publish' else None,
-                    "scheduled_at": wp_date_gmt + '+00:00' if wp_status_str == 'future' else None,
-                    "published_by": current_user['id'],
+                    "wp_status": wp_status_str,
+                    "wp_permalink": wp_link,
+                    "wp_scheduled_date": wp_date if wp_status_str == 'future' else None,
+                    "sync_status": "scheduled" if wp_status_str == 'future' else "synced",
+                    "sync_error_message": None,
+                    "last_synced_at": now,
                     "created_at": now,
                     "updated_at": now,
                 }
-                await db.publish_records.insert_one(publish_record)
+                await db.content_item_publishes.insert_one(publish_doc)
                 imported += 1
             
             return {
