@@ -556,6 +556,14 @@ export default function NetworkDashboard() {
           <div className="flex gap-2">
             <Button 
               variant="outline" 
+              onClick={() => navigate('/api-explorer')} 
+              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+            >
+              <Code className="w-4 h-4" />
+              API Explorer
+            </Button>
+            <Button 
+              variant="outline" 
               onClick={openUserAccessPanel} 
               className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
             >
