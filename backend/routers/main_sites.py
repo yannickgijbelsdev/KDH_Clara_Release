@@ -663,6 +663,125 @@ async def get_all_user_access(current_user: dict = Depends(require_network_admin
     }
 
 
+@main_sites_router.get("/debug/api-endpoints")
+async def get_api_endpoints(current_user: dict = Depends(require_network_admin)):
+    """Get all API endpoints for documentation/debugging.
+    
+    Returns all registered routes grouped by category/router.
+    Only accessible by network admins.
+    """
+    from server import app
+    
+    # Category mapping based on route prefix
+    category_map = {
+        '/api/auth': {'name': 'Authentication', 'icon': 'shield', 'description': 'Login, registration, 2FA'},
+        '/api/users': {'name': 'Users', 'icon': 'users', 'description': 'User management'},
+        '/api/teams': {'name': 'Teams', 'icon': 'building', 'description': 'Team management'},
+        '/api/shows': {'name': 'Shows', 'icon': 'calendar', 'description': 'Show scheduling and rundowns'},
+        '/api/content': {'name': 'Content', 'icon': 'file-text', 'description': 'Content items and media'},
+        '/api/media': {'name': 'Media', 'icon': 'image', 'description': 'Media assets and uploads'},
+        '/api/rds': {'name': 'RDS', 'icon': 'radio', 'description': 'RDS/Now Playing'},
+        '/api/rds-builder': {'name': 'RDS Builder', 'icon': 'settings', 'description': 'RDS text sequences'},
+        '/api/sites': {'name': 'Sites', 'icon': 'globe', 'description': 'Mini-sites management'},
+        '/api/main-sites': {'name': 'Main Sites', 'icon': 'globe-2', 'description': 'Main sites and network'},
+        '/api/chat': {'name': 'Chat', 'icon': 'message-circle', 'description': 'Team chat'},
+        '/api/wordpress': {'name': 'WordPress', 'icon': 'rss', 'description': 'WordPress integration'},
+        '/api/series': {'name': 'Series', 'icon': 'layers', 'description': 'Content series'},
+        '/api/folders': {'name': 'Folders', 'icon': 'folder', 'description': 'Media folders'},
+        '/api/logs': {'name': 'Logs', 'icon': 'list', 'description': 'Audit logs'},
+        '/api/audio-triggers': {'name': 'Audio Triggers', 'icon': 'volume-2', 'description': 'Audio detection triggers'},
+        '/api/stream': {'name': 'Stream', 'icon': 'radio', 'description': 'Stream proxy'},
+        '/api/public': {'name': 'Public', 'icon': 'external-link', 'description': 'Public endpoints (no auth)'},
+        '/api/proradio': {'name': 'ProRadio', 'icon': 'refresh-cw', 'description': 'ProRadio sync'},
+        '/api/migration': {'name': 'Migration', 'icon': 'database', 'description': 'Data migration tools'},
+    }
+    
+    # Method colors for UI
+    method_colors = {
+        'GET': 'emerald',
+        'POST': 'blue',
+        'PUT': 'amber',
+        'PATCH': 'orange',
+        'DELETE': 'red',
+        'OPTIONS': 'zinc',
+        'HEAD': 'zinc',
+        'WEBSOCKET': 'violet'
+    }
+    
+    endpoints_by_category = {}
+    
+    for route in app.routes:
+        # Skip internal routes
+        if hasattr(route, 'path'):
+            path = route.path
+            
+            # Skip health checks and root
+            if path in ['/', '/health', '/openapi.json', '/docs', '/redoc']:
+                continue
+            
+            # Get methods
+            methods = []
+            if hasattr(route, 'methods'):
+                methods = list(route.methods - {'HEAD', 'OPTIONS'})
+            elif 'websocket' in str(type(route)).lower():
+                methods = ['WEBSOCKET']
+            
+            if not methods:
+                continue
+            
+            # Find category
+            category_key = None
+            for prefix in category_map.keys():
+                if path.startswith(prefix):
+                    category_key = prefix
+                    break
+            
+            if not category_key:
+                category_key = '/api/other'
+                if category_key not in category_map:
+                    category_map[category_key] = {'name': 'Other', 'icon': 'code', 'description': 'Other endpoints'}
+            
+            category = category_map[category_key]
+            
+            if category['name'] not in endpoints_by_category:
+                endpoints_by_category[category['name']] = {
+                    'icon': category['icon'],
+                    'description': category['description'],
+                    'endpoints': []
+                }
+            
+            # Get endpoint description from docstring
+            description = ""
+            if hasattr(route, 'endpoint') and route.endpoint.__doc__:
+                doc = route.endpoint.__doc__.strip()
+                # Get first line only
+                description = doc.split('\n')[0].strip()
+            
+            for method in methods:
+                endpoints_by_category[category['name']]['endpoints'].append({
+                    'method': method,
+                    'path': path,
+                    'description': description,
+                    'method_color': method_colors.get(method, 'zinc')
+                })
+    
+    # Sort endpoints within each category
+    for cat in endpoints_by_category.values():
+        cat['endpoints'].sort(key=lambda x: (x['path'], x['method']))
+    
+    # Sort categories alphabetically
+    sorted_categories = dict(sorted(endpoints_by_category.items()))
+    
+    # Count totals
+    total_endpoints = sum(len(cat['endpoints']) for cat in sorted_categories.values())
+    
+    return {
+        'total_endpoints': total_endpoints,
+        'total_categories': len(sorted_categories),
+        'categories': sorted_categories
+    }
+
+
 # ============== CONTENT MIGRATION ==============
 
 CONTENT_COLLECTIONS = [
