@@ -2281,3 +2281,50 @@ now = now_brussels()  # Automatically handles CET/CEST
 **Testing:**
 - Verified: Scheduled text appears on station even with active live show ✅
 - Audio triggers still have highest priority ✅
+
+### Two-Factor Authentication (2FA) Implementation (March 2026)
+
+**Feature:** TOTP-based Two-Factor Authentication for enhanced account security.
+
+**How it works:**
+1. User sets up 2FA in Personal Settings by scanning QR code with authenticator app
+2. On next login, user must enter 6-digit code from authenticator app
+3. 10 backup codes are generated for emergency access
+4. Each backup code can only be used once
+
+**Supported Authenticator Apps:**
+- Google Authenticator
+- Microsoft Authenticator
+- Authy
+- 1Password
+- Any TOTP-compatible app
+
+**Backend Endpoints:**
+- `POST /api/auth/login` - Modified to support 2FA (returns `requires_2fa: true` if enabled)
+- `POST /api/auth/2fa/setup` - Generate secret and QR code
+- `POST /api/auth/2fa/verify-setup` - Verify and activate 2FA
+- `POST /api/auth/2fa/disable` - Disable 2FA (requires current code)
+- `GET /api/auth/2fa/status` - Get 2FA status and remaining backup codes
+- `POST /api/auth/2fa/regenerate-backup-codes` - Generate new backup codes
+
+**Files Created:**
+- `/app/backend/services/two_factor.py` - TOTP generation, verification, backup codes
+- `/app/frontend/src/components/TwoFactorSetup.js` - 2FA setup UI component
+
+**Files Modified:**
+- `/app/backend/routers/auth.py` - Added 2FA endpoints and login flow
+- `/app/backend/models/auth.py` - Added `totp_enabled` field
+- `/app/backend/services/auth.py` - Added `expires_minutes` parameter to `create_token()`
+- `/app/frontend/src/pages/LoginPage.js` - 2FA login flow
+- `/app/frontend/src/context/AuthContext.js` - Updated login function, added `refreshUser`
+- `/app/frontend/src/pages/PersonalSettingsPage.js` - Added 2FA setup section
+
+**Dependencies Added:**
+- `pyotp==2.9.0` - TOTP generation/verification
+- `qrcode[pil]==8.2` - QR code generation
+
+**Security Features:**
+- TOTP codes valid for 30 seconds (with 1 window tolerance for time drift)
+- Backup codes are hashed before storage
+- Temporary tokens (5 min) for 2FA verification step
+- Audit logging for 2FA enable/disable events
