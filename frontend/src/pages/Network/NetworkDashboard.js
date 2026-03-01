@@ -553,10 +553,20 @@ export default function NetworkDashboard() {
             <h1 className="text-2xl font-bold">Network Admin</h1>
             <p className="text-sm text-zinc-400">Manage all main sites</p>
           </div>
-          <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            New Main Site
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={openUserAccessPanel} 
+              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+            >
+              <UserCog className="w-4 h-4" />
+              User Access Debug
+            </Button>
+            <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              New Main Site
+            </Button>
+          </div>
         </div>
         {mainSites.length === 0 ? (
           <div className="space-y-6">
