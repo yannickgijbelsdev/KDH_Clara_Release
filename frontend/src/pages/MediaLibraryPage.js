@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { toast } from 'sonner';
+import ImageResizeDialog from '../components/ImageResizeDialog';
+import { isImageFile, isOversized } from '../utils/imageResize';
 import {
   DndContext,
   DragOverlay,
