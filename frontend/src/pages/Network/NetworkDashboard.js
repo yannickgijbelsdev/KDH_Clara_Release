@@ -22,7 +22,8 @@ import {
   Plus, Globe, Users, Layers, Settings, Trash2, Edit, ExternalLink,
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
-  Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, BarChart3
+  Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, BarChart3,
+  HardDrive
 } from 'lucide-react';
 import {
   DropdownMenu,
