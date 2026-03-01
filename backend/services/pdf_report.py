@@ -245,7 +245,6 @@ def make_per_site_chart(per_site_data, page_width):
     chart.bars.strokeWidth = 0
     chart.barWidth = 4*mm
     chart.groupSpacing = 4*mm
-    chart.style = 'stacked'
 
     chart.categoryAxis.labels.fontName = 'Helvetica'
     chart.categoryAxis.labels.fontSize = 7
