@@ -95,38 +95,54 @@ const ContentCalendarPage = () => {
     contentItems.forEach(item => {
       if (item.publish_statuses?.length > 0) {
         item.publish_statuses.forEach(ps => {
-          if (ps.status === 'published' || ps.status === 'scheduled') {
-            const date = ps.published_at || ps.scheduled_at;
-            if (date) {
-              entries.push({
-                id: `${item.id}-${ps.site_id}`,
-                contentId: item.id,
-                title: item.title,
-                date: format(parseISO(date), 'yyyy-MM-dd'),
-                time: format(parseISO(date), 'HH:mm'),
-                status: ps.status,
-                siteName: ps.site_name || ps.wp_site_name || 'WordPress',
-                siteId: ps.site_id,
-                imageUrl: getBestFeaturedImage(item),
-                excerpt: item.excerpt || '',
-                category: item.category_name || '',
-                item,
-              });
-            }
+          const isPublished = ps.sync_status === 'synced' || ps.wp_status === 'publish';
+          const isScheduled = ps.sync_status === 'scheduled' || ps.wp_status === 'future';
+          
+          if (isPublished || isScheduled) {
+            // Determine the date to display
+            const dateStr = isScheduled 
+              ? (ps.wp_scheduled_date || ps.last_synced_at || ps.created_at)
+              : (ps.last_synced_at || ps.created_at);
+            
+            if (!dateStr) return;
+            
+            let parsedDate;
+            try { parsedDate = parseISO(dateStr); } catch { return; }
+            
+            entries.push({
+              id: `${item.id}-${ps.wordpress_site_id || ps.id}`,
+              contentId: item.id,
+              title: item.title,
+              date: format(parsedDate, 'yyyy-MM-dd'),
+              time: format(parsedDate, 'HH:mm'),
+              status: isScheduled ? 'scheduled' : 'published',
+              siteName: ps.wordpress_site_name || 'WordPress',
+              siteId: ps.wordpress_site_id,
+              wpUrl: ps.wp_permalink,
+              imageUrl: getBestFeaturedImage(item),
+              excerpt: item.excerpt || '',
+              category: item.category_name || item.category?.name || '',
+              item,
+            });
           }
         });
       }
-      // Also show items with a scheduled_publish_date but no publish_statuses yet
-      if (item.scheduled_publish_date && (!item.publish_statuses || item.publish_statuses.length === 0)) {
+      
+      // Items with original_date from WP import but no publish_statuses yet
+      if (item.original_date && (!item.publish_statuses || item.publish_statuses.length === 0)) {
+        let parsedDate;
+        try { parsedDate = parseISO(item.original_date); } catch { return; }
+        
         entries.push({
-          id: `${item.id}-scheduled`,
+          id: `${item.id}-imported`,
           contentId: item.id,
           title: item.title,
-          date: format(parseISO(item.scheduled_publish_date), 'yyyy-MM-dd'),
-          time: format(parseISO(item.scheduled_publish_date), 'HH:mm'),
-          status: 'scheduled',
-          siteName: 'Pending',
+          date: format(parsedDate, 'yyyy-MM-dd'),
+          time: format(parsedDate, 'HH:mm'),
+          status: 'published',
+          siteName: item.source || 'WordPress',
           siteId: null,
+          wpUrl: item.source_url,
           imageUrl: getBestFeaturedImage(item),
           excerpt: item.excerpt || '',
           category: item.category_name || '',
