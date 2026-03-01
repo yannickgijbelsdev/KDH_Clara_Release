@@ -37,6 +37,9 @@ import SiteDashboard from './pages/Sites/SiteDashboard';
 import PublicSitePage from './pages/Sites/PublicSitePage';
 import StatisticsPage from './pages/Network/StatisticsPage';
 import BackupManagementPage from './pages/Network/BackupManagementPage';
+import TicketsPage from './pages/Tickets/TicketsPage';
+import { JourneyProvider } from './context/JourneyContext';
+import HelpButton from './components/Tickets/HelpButton';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
