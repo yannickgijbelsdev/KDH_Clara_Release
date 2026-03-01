@@ -275,19 +275,25 @@ def make_per_site_chart(per_site_data, page_width):
 
 
 def make_category_table(categories, page_width):
-    """Build a horizontal bar chart table for categories."""
+    """Build a horizontal bar chart for categories."""
     if not categories:
         return None
 
     max_count = categories[0]['count'] if categories else 1
+    bar_max_width = page_width * 0.55
+
     rows = []
     for i, cat in enumerate(categories):
-        pct = int((cat['count'] / max_count) * 100)
-        bar_str = f"{'█' * (pct // 5)}"
-        rows.append([cat['name'].title(), bar_str, str(cat['count'])])
+        pct = cat['count'] / max_count
+        bar_width = max(4, pct * bar_max_width)
+        color = CHART_COLORS[i % len(CHART_COLORS)]
 
-    col_widths = [page_width * 0.25, page_width * 0.6, page_width * 0.15]
-    t = Table(rows, colWidths=col_widths, rowHeights=[7*mm]*len(rows))
+        d = Drawing(bar_max_width, 12)
+        d.add(Rect(0, 1, bar_width, 10, fillColor=color, strokeWidth=0, rx=2, ry=2))
+        rows.append([cat['name'].title(), d, str(cat['count'])])
+
+    col_widths = [page_width * 0.22, page_width * 0.60, page_width * 0.18]
+    t = Table(rows, colWidths=col_widths, rowHeights=[8*mm]*len(rows))
 
     style_cmds = [
         ('BACKGROUND', (0, 0), (-1, -1), BG_CARD),
@@ -295,21 +301,14 @@ def make_category_table(categories, page_width):
         ('TEXTCOLOR', (2, 0), (2, -1), TEXT_LIGHT),
         ('FONTNAME', (0, 0), (0, -1), 'Helvetica'),
         ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('FONTSIZE', (0, 0), (0, -1), 10),
+        ('FONTSIZE', (2, 0), (2, -1), 11),
         ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('LEFTPADDING', (0, 0), (-1, -1), 4*mm),
         ('RIGHTPADDING', (0, 0), (-1, -1), 4*mm),
         ('BOX', (0, 0), (-1, -1), 0.5, BORDER),
     ]
-
-    # Color bars
-    for i, cat in enumerate(categories):
-        color = CHART_COLORS[i % len(CHART_COLORS)]
-        style_cmds.append(('TEXTCOLOR', (1, i), (1, i), color))
-        style_cmds.append(('FONTNAME', (1, i), (1, i), 'Helvetica-Bold'))
-        style_cmds.append(('FONTSIZE', (1, i), (1, i), 10))
-
     t.setStyle(TableStyle(style_cmds))
     return t
 
