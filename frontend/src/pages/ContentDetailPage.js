@@ -1301,6 +1301,14 @@ const ContentDetailPage = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Image Resize Dialog */}
+      <ImageResizeDialog
+        file={resizeFile}
+        open={!!resizeFile}
+        onClose={() => { setResizeFile(null); setResizeSiteId(null); }}
+        onResized={handleResized}
+      />
     </div>
   );
 };
