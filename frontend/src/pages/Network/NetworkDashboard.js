@@ -919,6 +919,108 @@ export default function NetworkDashboard() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* User Access Debug Panel */}
+      <Dialog open={userAccessPanel.open} onOpenChange={(open) => !open && setUserAccessPanel({ open: false, loading: false, data: null })}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <UserCog className="w-5 h-5 text-blue-400" />
+                User Access Debug
+              </DialogTitle>
+              <Button variant="ghost" size="sm" onClick={openUserAccessPanel} className="gap-1.5">
+                <Activity className="w-3.5 h-3.5" />
+                Refresh
+              </Button>
+            </div>
+          </DialogHeader>
+          
+          {userAccessPanel.loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+              <span className="ml-3 text-zinc-400">User access info ophalen...</span>
+            </div>
+          ) : userAccessPanel.data ? (
+            <div className="space-y-6">
+              {/* Summary */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-zinc-800/50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-white">{userAccessPanel.data.total_users}</div>
+                  <div className="text-xs text-zinc-400">Totaal Users</div>
+                </div>
+                <div className="bg-zinc-800/50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-white">{userAccessPanel.data.total_main_sites}</div>
+                  <div className="text-xs text-zinc-400">Main Sites</div>
+                </div>
+                <div className="bg-zinc-800/50 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-white">{userAccessPanel.data.total_access_records}</div>
+                  <div className="text-xs text-zinc-400">Access Records</div>
+                </div>
+              </div>
+
+              {/* Users without access */}
+              {userAccessPanel.data.users_without_site_access?.length > 0 && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                  <h3 className="text-amber-400 font-semibold mb-3 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    Users ZONDER site access ({userAccessPanel.data.users_without_site_access.length})
+                  </h3>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {userAccessPanel.data.users_without_site_access.map((user, idx) => (
+                      <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-800/50 rounded p-2">
+                        <span className="text-white font-medium">{user.user_name}</span>
+                        <span className="text-zinc-500">{user.user_email}</span>
+                        <span className="text-xs bg-zinc-700 px-2 py-0.5 rounded">{user.user_global_role}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Access by Site */}
+              <div>
+                <h3 className="text-white font-semibold mb-3">Access per Main Site</h3>
+                <div className="space-y-4">
+                  {Object.entries(userAccessPanel.data.access_by_site || {}).map(([siteName, users]) => (
+                    <div key={siteName} className="bg-zinc-800/50 rounded-lg p-4">
+                      <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-blue-400" />
+                        {siteName}
+                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
+                          {users.length} users
+                        </span>
+                      </h4>
+                      <div className="space-y-2">
+                        {users.map((access, idx) => {
+                          const RIcon = roleIcons[access.site_role] || Eye;
+                          return (
+                            <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-900/50 rounded p-2">
+                              <RIcon className="w-4 h-4 text-zinc-400" />
+                              <span className="text-white font-medium min-w-[150px]">{access.user_name}</span>
+                              <span className="text-zinc-500 min-w-[200px]">{access.user_email}</span>
+                              <span className={`text-xs px-2 py-0.5 rounded ${
+                                access.site_role === 'admin' ? 'bg-orange-500/20 text-orange-400' :
+                                access.site_role === 'news_admin' ? 'bg-emerald-500/20 text-emerald-400' :
+                                access.site_role === 'editor' ? 'bg-violet-500/20 text-violet-400' :
+                                'bg-zinc-700 text-zinc-400'
+                              }`}>
+                                {roleLabels[access.site_role] || access.site_role}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-zinc-500 text-center py-8">Geen data</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
