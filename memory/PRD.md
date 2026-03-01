@@ -2435,3 +2435,27 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Added `hideClose` prop to Dialog component
 
 - Tested: 14/14 tests passed (6 backend + 8 frontend, 100%)
+
+
+### March 1, 2026 - Content Statistics & Analytics Dashboard (Network Admin)
+- [x] **New Feature: Comprehensive Statistics Page per Main Site**:
+  - Network admin only — accessible from Clara Global Dashboard via "Stats" button on each site card
+  - Route: `/statistics/:mainSiteId`
+  - **KPI Cards**: Total Articles, Published, Scheduled, Failed
+  - **Per WordPress Site Stats**: Published/Scheduled counts per WP site (MFY, GRK, etc.)
+  - **Monthly Trend Chart**: Area chart showing Created/Published/Scheduled over 12 months (recharts)
+  - **Approval Status**: Donut chart (Approved/Pending/Rejected)
+  - **Publishing per WordPress Site**: Stacked bar chart per month per WP site
+  - **Weekly Content Activity**: Bar chart showing weekly content creation
+  - **Content per Category**: Horizontal progress bars with counts
+  - **Top Content Creators**: Ranked table with avatars, total items, approved, published to WP, pending
+  - **PDF Export**: Export entire report as PDF using html2canvas + jsPDF
+  - Backend: 5 new endpoints in `/app/backend/routers/statistics.py`
+    - `GET /api/statistics/{main_site_id}/overview`
+    - `GET /api/statistics/{main_site_id}/monthly`
+    - `GET /api/statistics/{main_site_id}/top-authors`
+    - `GET /api/statistics/{main_site_id}/per-site-monthly`
+    - `GET /api/statistics/{main_site_id}/weekly-activity`
+  - Frontend: `/app/frontend/src/pages/Network/StatisticsPage.js`
+  - Dependencies added: recharts, jspdf, html2canvas (frontend)
+  - Tested: 100% backend + 100% frontend (iteration_53.json)
