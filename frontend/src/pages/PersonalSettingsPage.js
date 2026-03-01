@@ -7,12 +7,14 @@ import {
   User,
   Loader2,
   Check,
+  Shield,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
 import { Switch } from '../components/ui/switch';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import TwoFactorSetup from '../components/TwoFactorSetup';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
