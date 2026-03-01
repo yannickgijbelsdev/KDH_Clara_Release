@@ -79,10 +79,9 @@ export async function resizeImage(file, onProgress) {
           return;
         }
 
-        const ext = outputType === 'image/png' ? '.png' : '.jpg';
         const baseName = file.name.replace(/\.[^.]+$/, '');
-        const resizedFile = new File([blob], `${baseName}_resized${ext}`, {
-          type: outputType,
+        const resizedFile = new File([blob], `${baseName}_resized.jpg`, {
+          type: 'image/jpeg',
           lastModified: Date.now(),
         });
 
