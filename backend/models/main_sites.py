@@ -78,6 +78,7 @@ class MainSiteListResponse(BaseModel):
     enabled_features: List[str] = []
     site_count: int = 0
     user_count: int = 0
+    cloned_from: Optional[str] = None
 
 
 class MainSiteUserCreate(BaseModel):
