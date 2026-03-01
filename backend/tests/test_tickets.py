@@ -150,7 +150,7 @@ class TestTicketSystem:
     def test_list_tickets(self, session, headers):
         """Test listing all tickets"""
         response = session.get(
-            f"{BASE_URL}/api/tickets",
+            f"{BASE_URL}/api/tickets/",
             headers=headers
         )
         
@@ -384,7 +384,7 @@ class TestTicketSystem:
     def test_list_tickets_sorted_by_date(self, session, headers):
         """Test that tickets are sorted by created_at descending"""
         response = session.get(
-            f"{BASE_URL}/api/tickets",
+            f"{BASE_URL}/api/tickets/",
             headers=headers
         )
         
