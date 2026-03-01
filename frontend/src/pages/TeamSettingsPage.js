@@ -87,7 +87,7 @@ const roleLabels = {
 };
 
 const TeamSettingsPage = () => {
-  const { user, isAdmin, switchToUser } = useAuth();
+  const { user, isAdmin: isGlobalAdmin, switchToUser } = useAuth();
   const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [team, setTeam] = useState(null);
@@ -130,14 +130,46 @@ const TeamSettingsPage = () => {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarTargetUserId, setAvatarTargetUserId] = useState(null);
   const avatarInputRef = useRef(null);
+  
+  // State for main site admin check
+  const [isMainSiteAdmin, setIsMainSiteAdmin] = useState(false);
+  const [adminCheckDone, setAdminCheckDone] = useState(false);
+
+  // Check if user is admin for this main site
+  useEffect(() => {
+    const checkMainSiteAdmin = async () => {
+      if (!mainSiteSlug) {
+        // Not in main site context, use global admin
+        setIsMainSiteAdmin(isGlobalAdmin);
+        setAdminCheckDone(true);
+        return;
+      }
+      
+      try {
+        const response = await axios.get(`${API}/main-sites/my/access`);
+        const siteAccess = response.data.main_sites?.find(s => s.slug === mainSiteSlug);
+        const hasAdminAccess = response.data.is_network_admin || siteAccess?.role === 'admin';
+        setIsMainSiteAdmin(hasAdminAccess);
+      } catch (error) {
+        console.error('Failed to check admin access:', error);
+        setIsMainSiteAdmin(false);
+      } finally {
+        setAdminCheckDone(true);
+      }
+    };
+    
+    checkMainSiteAdmin();
+  }, [mainSiteSlug, isGlobalAdmin]);
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (!adminCheckDone) return;
+    
+    if (!isMainSiteAdmin) {
       navigate(navTo('/shows'));
       return;
     }
     fetchData();
-  }, [isAdmin, mainSiteSlug]);
+  }, [isMainSiteAdmin, adminCheckDone, mainSiteSlug]);
 
   const fetchData = async () => {
     try {
