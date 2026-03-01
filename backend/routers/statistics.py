@@ -310,10 +310,12 @@ async def get_per_site_monthly(
     monthly_data = []
 
     for i in range(months - 1, -1, -1):
-        target = now - timedelta(days=i * 30)
-        year = target.year
-        month = target.month
-        month_label = target.strftime("%b %Y")
+        year = now.year
+        month = now.month - i
+        while month <= 0:
+            month += 12
+            year -= 1
+        month_label = datetime(year, month, 1).strftime("%b %Y")
 
         entry = {"month": f"{year}-{month:02d}", "label": month_label}
         for wp_site in wp_sites:
