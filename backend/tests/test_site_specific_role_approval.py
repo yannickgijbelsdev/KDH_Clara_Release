@@ -89,7 +89,7 @@ class TestSiteSpecificRoleApproval:
         }
         response = self.session.post(f"{BASE_URL}/api/content", json={
             "title": title,
-            "type": "news",
+            "type": "text",  # Valid types: text, link, reference
             "body": "Test content body for approval testing",
             "status": "ready"
         }, headers=headers)
