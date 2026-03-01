@@ -55,17 +55,19 @@ export async function resizeImage(file, onProgress) {
 
           if (blob.size <= MAX_FILE_SIZE) break;
 
-          // Reduce quality or dimensions
-          if (quality > 0.4) {
-            quality -= 0.1;
+          // Reduce quality first, then dimensions
+          if (quality > 0.3) {
+            quality -= 0.08;
           } else {
             // Further reduce dimensions
-            width = Math.round(width * 0.8);
-            height = Math.round(height * 0.8);
+            width = Math.round(width * 0.75);
+            height = Math.round(height * 0.75);
             canvas.width = width;
             canvas.height = height;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
             ctx.drawImage(img, 0, 0, width, height);
-            quality = 0.7;
+            quality = 0.6;
           }
           attempts++;
         }
