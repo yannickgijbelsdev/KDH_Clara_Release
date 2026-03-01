@@ -104,7 +104,7 @@ const AppRoutes = () => {
       
       {/* API Explorer - Network Admin only */}
       <Route 
-        path="/api-explorer" 
+        path="/explorer" 
         element={
           <ProtectedRoute>
             <ApiExplorerPage />
