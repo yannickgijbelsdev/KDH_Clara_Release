@@ -50,6 +50,7 @@ class UserWithTeamResponse(BaseModel):
     avatar: Optional[dict] = None
     preferences: Optional[dict] = None
     is_network_admin: bool = False
+    totp_enabled: bool = False
 
 
 class TokenResponse(BaseModel):
