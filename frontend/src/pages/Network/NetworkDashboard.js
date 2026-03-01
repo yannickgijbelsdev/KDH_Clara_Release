@@ -740,6 +740,49 @@ export default function NetworkDashboard() {
             {/* Migration Tool Card */}
             <MigrationTool />
           </div>
+
+          {/* Clone Sites Section */}
+          {mainSites.some(s => s.cloned_from) && (
+            <div className="mt-8" data-testid="clone-sites-section">
+              <h2 className="text-sm font-semibold text-zinc-400 mb-3 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-cyan-400" />
+                Clone Sites (DevTools Enabled)
+              </h2>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {mainSites.filter(s => s.cloned_from).map(clone => (
+                  <Card key={clone.id} className="bg-zinc-900 border-cyan-800/30 hover:border-cyan-700/50 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                            <Layers className="w-5 h-5 text-cyan-400" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              {clone.name}
+                              <span className="text-[10px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full font-normal">CLONE</span>
+                            </CardTitle>
+                            <CardDescription className="text-zinc-500">/{clone.slug}</CardDescription>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0 space-y-3">
+                      <p className="text-xs text-zinc-500">
+                        DevTools active — API inspector, code viewer, snapshots
+                      </p>
+                      <Link to={`/${clone.slug}`}>
+                        <Button size="sm" className="w-full gap-2 bg-cyan-600 hover:bg-cyan-700" data-testid={`open-clone-${clone.slug}`}>
+                          <Activity className="w-4 h-4" />
+                          Open Clone (DevTools)
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         )}
       </main>
 
