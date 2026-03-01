@@ -58,7 +58,7 @@ export default function HelpButton() {
     setSubmitting(true);
     try {
       const journey = getJourney();
-      const res = await fetch(`${API}/api/tickets`, {
+      const res = await fetch(`${API}/api/tickets/`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
