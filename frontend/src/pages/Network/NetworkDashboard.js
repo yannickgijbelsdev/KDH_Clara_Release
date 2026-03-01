@@ -426,6 +426,21 @@ export default function NetworkDashboard() {
     if (debugPanel.siteId) openDebugPanel(debugPanel.siteId, debugPanel.siteName);
   };
 
+  // Fetch all user access records
+  const openUserAccessPanel = async () => {
+    setUserAccessPanel({ open: true, loading: true, data: null });
+    try {
+      const res = await fetch(`${API}/api/main-sites/debug/all-user-access`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = res.ok ? await res.json() : null;
+      setUserAccessPanel(prev => ({ ...prev, loading: false, data }));
+    } catch (err) {
+      toast.error('User access info ophalen mislukt');
+      setUserAccessPanel(prev => ({ ...prev, loading: false }));
+    }
+  };
+
   const groupedFeatures = availableFeatures.reduce((acc, feature) => {
     const group = feature.group || 'other';
     if (!acc[group]) acc[group] = [];
