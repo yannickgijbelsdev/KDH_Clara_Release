@@ -268,7 +268,21 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     )
 
 
-@auth_router.put("/change-password")
+@auth_router.post("/2fa/skip")
+async def skip_2fa_setup(current_user: dict = Depends(get_current_user)):
+    """Skip 2FA setup. Users can skip up to 3 times, then it becomes mandatory."""
+    current_skips = current_user.get('totp_skip_count', 0)
+    
+    if current_skips >= 3:
+        raise HTTPException(status_code=400, detail="Maximum skips reached. 2FA setup is now required.")
+    
+    new_count = current_skips + 1
+    await db.users.update_one(
+        {"id": current_user['id']},
+        {"$set": {"totp_skip_count": new_count}}
+    )
+    
+    return {"totp_skip_count": new_count, "skips_remaining": 3 - new_count}
 async def change_password(
     password_data: dict,
     request: Request,
