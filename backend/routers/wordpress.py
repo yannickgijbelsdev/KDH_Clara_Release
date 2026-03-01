@@ -26,7 +26,7 @@ from models.wordpress import (
     WordPressConnectionTestResponse
 )
 from services.auth import get_current_user, require_admin
-from services.main_site_context import get_main_site_id_from_header
+from services.main_site_context import get_main_site_id_from_header, get_effective_role
 
 # Security audit logger for WordPress integration
 wp_audit_logger = logging.getLogger("wordpress.audit")
