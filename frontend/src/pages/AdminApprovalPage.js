@@ -62,7 +62,7 @@ const getFeaturedImageUrl = (featuredImage) => {
 };
 
 const AdminApprovalPage = () => {
-  const { canApproveContent } = useAuth();
+  const { canApproveContent: globalCanApprove } = useAuth();
   const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [allContent, setAllContent] = useState([]);
@@ -76,16 +76,51 @@ const AdminApprovalPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [approvalAction, setApprovalAction] = useState(null);
   
+  // State for main site approval permission check
+  const [canApproveForSite, setCanApproveForSite] = useState(false);
+  const [permissionCheckDone, setPermissionCheckDone] = useState(false);
+  
   // Helper for context-aware navigation - uses URL param directly
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
+  // Check if user can approve content for this main site
   useEffect(() => {
-    if (!canApproveContent) {
+    const checkApprovalPermission = async () => {
+      if (!mainSiteSlug) {
+        // Not in main site context, use global permission
+        setCanApproveForSite(globalCanApprove);
+        setPermissionCheckDone(true);
+        return;
+      }
+      
+      try {
+        const response = await axios.get(`${API}/main-sites/my/access`);
+        const siteAccess = response.data.main_sites?.find(s => s.slug === mainSiteSlug);
+        // Can approve if network admin, or site admin, or site news_admin
+        const hasApprovalAccess = response.data.is_network_admin || 
+          siteAccess?.role === 'admin' || 
+          siteAccess?.role === 'news_admin';
+        setCanApproveForSite(hasApprovalAccess);
+      } catch (error) {
+        console.error('Failed to check approval permission:', error);
+        setCanApproveForSite(false);
+      } finally {
+        setPermissionCheckDone(true);
+      }
+    };
+    
+    checkApprovalPermission();
+  }, [mainSiteSlug, globalCanApprove]);
+
+  useEffect(() => {
+    if (!permissionCheckDone) return;
+    
+    if (!canApproveForSite) {
       navigate(navTo('/'));
       return;
     }
     fetchContent();
-  }, [canApproveContent, navigate, mainSiteSlug]);
+  }, [canApproveForSite, permissionCheckDone, navigate, mainSiteSlug]);
 
   const fetchContent = async () => {
     setLoading(true);
