@@ -17,7 +17,7 @@ from services.auth import (
 )
 from services.audit import log_action, get_client_ip
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
-from services.main_site_context import get_main_site_id_from_header
+from services.main_site_context import get_main_site_id_from_header, get_effective_role
 
 users_router = APIRouter(prefix="/users", tags=["Users"])
 
