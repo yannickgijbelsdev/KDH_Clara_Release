@@ -595,6 +595,74 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
 
 
 
+# ============== DEBUG ENDPOINTS ==============
+
+@main_sites_router.get("/debug/all-user-access")
+async def get_all_user_access(current_user: dict = Depends(require_network_admin)):
+    """Get all user access records for debugging purposes.
+    
+    Returns all main_site_users records with user and site details.
+    Only accessible by network admins.
+    """
+    # Get all main_site_users records
+    access_records = await db.main_site_users.find({}, {"_id": 0}).to_list(1000)
+    
+    # Get all users and main sites for lookup
+    all_users = await db.users.find({}, {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1}).to_list(1000)
+    all_main_sites = await db.main_sites.find({}, {"_id": 0, "id": 1, "name": 1, "slug": 1}).to_list(100)
+    
+    users_by_id = {u["id"]: u for u in all_users}
+    sites_by_id = {s["id"]: s for s in all_main_sites}
+    
+    # Build enriched access list
+    enriched_access = []
+    for record in access_records:
+        user = users_by_id.get(record.get("user_id"), {})
+        site = sites_by_id.get(record.get("main_site_id"), {})
+        
+        enriched_access.append({
+            "user_id": record.get("user_id"),
+            "user_name": user.get("name", "Unknown"),
+            "user_email": user.get("email", "Unknown"),
+            "user_global_role": user.get("role", "Unknown"),
+            "main_site_id": record.get("main_site_id"),
+            "main_site_name": site.get("name", "Unknown"),
+            "main_site_slug": site.get("slug", "Unknown"),
+            "site_role": record.get("role", "Unknown"),
+            "created_at": record.get("created_at"),
+        })
+    
+    # Group by main site for easier viewing
+    by_site = {}
+    for access in enriched_access:
+        site_name = access["main_site_name"]
+        if site_name not in by_site:
+            by_site[site_name] = []
+        by_site[site_name].append(access)
+    
+    # Also find users WITHOUT any main_site_users records
+    users_with_access = set(r.get("user_id") for r in access_records)
+    users_without_access = [
+        {
+            "user_id": u["id"],
+            "user_name": u.get("name", "Unknown"),
+            "user_email": u.get("email", "Unknown"),
+            "user_global_role": u.get("role", "Unknown"),
+        }
+        for u in all_users
+        if u["id"] not in users_with_access
+    ]
+    
+    return {
+        "total_access_records": len(access_records),
+        "total_users": len(all_users),
+        "total_main_sites": len(all_main_sites),
+        "users_without_site_access": users_without_access,
+        "access_by_site": by_site,
+        "all_access_records": enriched_access
+    }
+
+
 # ============== CONTENT MIGRATION ==============
 
 CONTENT_COLLECTIONS = [
