@@ -88,26 +88,51 @@ export default function StatisticsPage() {
     if (!reportRef.current) return;
     setExporting(true);
     try {
-      const canvas = await html2canvas(reportRef.current, {
+      // Temporarily constrain the width for better PDF scaling
+      const el = reportRef.current;
+      const origMaxWidth = el.style.maxWidth;
+      const origPadding = el.style.padding;
+      el.style.maxWidth = '900px';
+      el.style.padding = '24px';
+
+      const canvas = await html2canvas(el, {
         backgroundColor: '#09090b',
-        scale: 2,
+        scale: 3,
         useCORS: true,
         logging: false,
+        width: 900,
+        windowWidth: 900,
       });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
+
+      // Restore original styles
+      el.style.maxWidth = origMaxWidth;
+      el.style.padding = origPadding;
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      // Landscape A4 for more reading space
+      const pdf = new jsPDF('l', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth(); // 297mm
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 210mm
+
+      // Fill each page with dark background
+      const fillDark = () => {
+        pdf.setFillColor(9, 9, 11); // #09090b
+        pdf.rect(0, 0, pageWidth, pageHeight, 'F');
+      };
+
+      const margin = 6;
       const usableWidth = pageWidth - margin * 2;
-      const imgHeight = (canvas.height * usableWidth) / canvas.width;
+      const usableHeight = pageHeight - margin * 2;
+      const imgAspect = canvas.height / canvas.width;
+      const totalImgHeight = usableWidth * imgAspect;
 
       let yOffset = 0;
       let page = 0;
-      while (yOffset < imgHeight) {
+      while (yOffset < totalImgHeight) {
         if (page > 0) pdf.addPage();
-        pdf.addImage(imgData, 'PNG', margin, margin - yOffset, usableWidth, imgHeight);
-        yOffset += pageHeight - margin * 2;
+        fillDark();
+        pdf.addImage(imgData, 'JPEG', margin, margin - yOffset, usableWidth, totalImgHeight);
+        yOffset += usableHeight;
         page++;
       }
 
