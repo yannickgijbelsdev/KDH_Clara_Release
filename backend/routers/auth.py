@@ -262,7 +262,8 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         created_at=current_user['created_at'],
         avatar=avatar,
         preferences=preferences,
-        is_network_admin=current_user.get('is_network_admin', False)
+        is_network_admin=current_user.get('is_network_admin', False),
+        totp_enabled=current_user.get('totp_enabled', False)
     )
 
 
