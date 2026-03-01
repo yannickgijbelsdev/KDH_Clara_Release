@@ -106,6 +106,7 @@ api_router.include_router(public_schedule_router)
 api_router.include_router(statistics_router)
 api_router.include_router(backup_router)
 api_router.include_router(devtools_router)
+api_router.include_router(ticket_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
