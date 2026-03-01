@@ -79,9 +79,12 @@ async def get_wordpress_site(
 async def create_wordpress_site(
     request: Request,
     site_data: WordPressSiteCreate,
-    current_user: dict = Depends(require_admin)
+    current_user: dict = Depends(get_current_user)
 ):
     """Create a new WordPress site connection (admin only), with main_site_id isolation."""
+    effective_role = await get_effective_role(request, current_user)
+    if effective_role != 'admin':
+        raise HTTPException(status_code=403, detail="Admin access required")
     site_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
