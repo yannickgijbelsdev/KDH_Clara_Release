@@ -243,6 +243,7 @@ export default function NetworkDashboard() {
   const [deleteDialog, setDeleteDialog] = useState({ open: false, siteId: null, siteName: '' });
   const [healthCheck, setHealthCheck] = useState({ open: false, siteId: null, siteName: '', loading: false, result: null, history: [] });
   const [debugPanel, setDebugPanel] = useState({ open: false, siteId: null, siteName: '', loading: false, data: null });
+  const [userAccessPanel, setUserAccessPanel] = useState({ open: false, loading: false, data: null });
 
   const RoleIcon = roleIcons[user?.role] || Network;
 
