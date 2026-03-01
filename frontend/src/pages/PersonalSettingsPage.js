@@ -85,6 +85,16 @@ const PersonalSettingsPage = () => {
         </div>
       </div>
 
+      {/* Security Section */}
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <Shield className="w-5 h-5 text-orange-400" />
+          Beveiliging
+        </h2>
+        
+        <TwoFactorSetup user={user} onUpdate={refreshUser} />
+      </div>
+
       {/* Menu Display Section */}
       <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
