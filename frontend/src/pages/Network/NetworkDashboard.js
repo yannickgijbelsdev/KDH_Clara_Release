@@ -229,7 +229,7 @@ function DebugContent({ data }) {
 }
 
 export default function NetworkDashboard() {
-  const { user, token, logout } = useAuth();
+  const { user, token, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [mainSites, setMainSites] = useState([]);
   const [availableFeatures, setAvailableFeatures] = useState([]);
@@ -245,6 +245,7 @@ export default function NetworkDashboard() {
   const [healthCheck, setHealthCheck] = useState({ open: false, siteId: null, siteName: '', loading: false, result: null, history: [] });
   const [debugPanel, setDebugPanel] = useState({ open: false, siteId: null, siteName: '', loading: false, data: null });
   const [userAccessPanel, setUserAccessPanel] = useState({ open: false, loading: false, data: null });
+  const [securityPanelOpen, setSecurityPanelOpen] = useState(false);
 
   const RoleIcon = roleIcons[user?.role] || Network;
 
