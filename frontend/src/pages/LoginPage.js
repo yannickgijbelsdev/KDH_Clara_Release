@@ -28,12 +28,12 @@ const LoginPage = () => {
       
       if (result?.requires_2fa) {
         setRequires2FA(true);
-        toast.info('Voer je 2FA code in');
+        toast.info('Enter your 2FA code');
       } else {
-        toast.success('Welkom terug!');
+        toast.success('Welcome back!');
       }
     } catch (error) {
-      const message = error.response?.data?.detail || 'Er is iets misgegaan';
+      const message = error.response?.data?.detail || 'Something went wrong';
       toast.error(message);
       
       // If 2FA code was wrong, don't reset the form
