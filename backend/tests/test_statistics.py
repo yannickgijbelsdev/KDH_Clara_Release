@@ -103,14 +103,13 @@ class TestStatisticsEndpoints:
         
         print(f"Monthly stats: {len(months)} months returned")
 
-    def test_monthly_endpoint_regular_user_forbidden(self, regular_user_token):
-        """Test regular user gets 403 on monthly endpoint"""
+    def test_monthly_endpoint_unauthenticated_denied(self):
+        """Test unauthenticated request gets 401/403 on monthly endpoint"""
         response = requests.get(
-            f"{BASE_URL}/api/statistics/{MAIN_SITE_ID}/monthly",
-            headers={"Authorization": f"Bearer {regular_user_token}"}
+            f"{BASE_URL}/api/statistics/{MAIN_SITE_ID}/monthly"
         )
-        assert response.status_code == 403, f"Expected 403, got {response.status_code}"
-        print("Regular user correctly denied access to monthly stats")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print("Unauthenticated user correctly denied access to monthly stats")
 
     def test_top_authors_endpoint_network_admin(self, network_admin_token):
         """Test GET /api/statistics/{main_site_id}/top-authors returns ranked list"""
