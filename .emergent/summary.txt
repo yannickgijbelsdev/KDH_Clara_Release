@@ -1,119 +1,142 @@
 <analysis>**original_problem_statement:**
-The user initially reported a could not load RDS settings error. After this was resolved, a cascade of new issues and feature requests emerged. The main goals were to fix bugs related to show scheduling, data isolation between sites, and WordPress integration, while also adding new features like multi-site user assignment and making the RDS monitor optional.
+The user's initial goal was to fix bugs and integrate the Clara application's schedule with two WordPress sites (mfy.be, grk.fm) using a custom plugin and a public API, abandoning a previous complex approach.
 
-During this session, several of these were resolved, but a major new feature was requested: syncing the Clara application's calendar with a ProRadio-powered schedule on two WordPress sites (mfy.be and grk.fm). After a lengthy and complex attempt to integrate directly with ProRadio's internal data structures (which use ACF), the user and agent agreed to pivot to a more robust, decoupled solution: creating a brand new, custom WordPress plugin that will pull schedule data from a new public API endpoint in the Clara backend, effectively replacing the ProRadio schedule viewer.
-
-PRODUCT REQUIREMENTS:
-1.  **Bugfix:** Mini-site password updates must work for network admins. (DONE)
-2.  **UI:** The Network Admin dashboard header should be styled like the main site dashboards, with the title Clara Global. (DONE)
-3.  **Bugfix:** Enabled features for a Main Site must be saved correctly. (DONE)
-4.  **Feature:** The Clara calendar must be displayed on the WordPress sites (mfy.be, grk.fm), replacing the existing ProRadio schedule display. This involves creating a custom WordPress plugin and a new public API endpoint in the Clara backend.
+During the session, the scope expanded significantly to include:
+1.  **Timezone Correction:** A critical bug where times were incorrect. The user requested that the  (GMT+1) timezone be strictly enforced everywhere.
+2.  **RDS Scheduler Logic:** A bug where scheduled items for both stations didn't appear correctly on one station, and a feature request to ensure scheduled texts have priority over live shows.
+3.  **Permissions Bug:** A user ('Deborah Baeten') with an 'admin' role on the 'DBNT' site was unable to access admin-only areas (Content Approval, Team Settings).
+4.  **Security Feature (2FA):** A request to implement two-factor authentication using an authenticator app (TOTP), not email OTP. This should be configurable globally by network admins.
+5.  **Admin/Debug Tools:** Requests for a debug tool to view user permissions per site and an API Explorer page to list all backend endpoints, both accessible from the Network Admin dashboard.
 
 **User's preferred language**: Dutch. The next agent MUST respond in Dutch.
 
 **what currently exists?**
-The application is largely functional. The agent successfully resolved three key issues in this session: a critical authorization bug preventing network admins from updating mini-site passwords, a UI request to update the network admin header, and a bug where main site feature settings weren't being saved.
-
-The agent is now in the middle of a major new feature: creating a full-fledged WordPress plugin to display the Clara schedule. The previous approach of syncing directly with the existing ProRadio plugin was abandoned due to its complexity and brittleness. The agent has already written the PHP and CSS code for the new WordPress plugin and is about to create the required public API endpoint in the Clara backend to serve the schedule data.
+The application is a full-stack React/FastAPI radio management tool. In this session, the agent made substantial progress on multiple fronts:
+-   **Public API:** The public schedule API endpoint for the WordPress plugin was activated and tested.
+-   **Timezone Refactor:** A major refactoring was completed to enforce the  timezone across the entire backend, creating a new  utility and updating dozens of files to use it. This resolved a critical time-related bug.
+-   **RDS Scheduler Fixes:** The logic in  was updated to give scheduled texts priority over live shows. The agent also investigated and proved that the both station logic was working correctly, with the user's issue being caused by higher-priority audio triggers.
+-   **Permissions Fix:** The frontend was corrected to use site-specific permission checks ( context) instead of global checks ( context). To help diagnose the underlying data issue, a **User Access Debug Tool** was built and added to the Network Admin dashboard.
+-   **2FA (TOTP) Implementation:** A complete 2FA system using authenticator apps was implemented. This included new backend services (), dependencies (, ), API endpoints for setup/verification, and a full frontend flow for login and setup in the user's personal settings.
+-   **API Explorer:** A new page was created for Network Admins that dynamically fetches and displays all 290+ backend endpoints, categorized for clarity.
 
 **Last working item**:
--   **Last item agent was working:** The user requested a new, custom WordPress plugin to handle both displaying the schedule and syncing with Clara, abandoning the complex ProRadio integration. The agent provided the complete PHP and CSS code for this new plugin and confirmed with the user that the next step is to create the public API endpoint in the Clara backend that the plugin will consume.
+-   **Last item agent was working:** Implementing the user's request to make 2FA settings accessible directly from the Clara Global (Network Admin) dashboard, so they don't have to navigate into a specific site's settings to manage their own global account security.
 -   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** This is a multi-step integration task.
-    1.  **Backend:** After creating the public API endpoint, test it with  to ensure it returns the correct schedule data without authentication (but respecting the  header).
-    2.  **Integration:** Guide the user to create the new plugin files ( and ) on their WordPress instances, configure the plugin with the new Clara API endpoint URL, and use the plugin's built-in Test Connection feature.
-    3.  **Frontend:** Once the integration is confirmed, verify the final result by having the user add the  shortcode to a WordPress page and visually checking if the schedule appears correctly.
+-   **Which testing method agent to use?** frontend testing agent. The agent should instruct the testing agent to log in as the network admin, navigate to the Clara Global dashboard, click the new Security button, and verify that the 2FA management panel appears and is functional.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-*   None. All reported bugs have been resolved. The current work is a new feature implementation.
+-   **Issue 1: DBNT Permissions Bug (P0)**
+    -   **Description:** An admin user ('Deborah Baeten') for the 'DBNT' site cannot access admin sections. The investigation revealed the frontend code was using incorrect global permission checks (now fixed), but the root cause is that the DBNT site has **zero users** assigned to it in the  database collection.
+    -   **Attempted fixes:** The agent correctly refactored the frontend permission checks in  and . A debug tool was also created to make this data visibility issue clear to the user.
+    -   **Next debug checklist:**
+        1.  Guide the user to the Network Admin dashboard and have them use the User Access Debug tool to confirm DBNT Studio has 0 users.
+        2.  Instruct the user on how to add 'Deborah Baeten' (or a test user) with the 'admin' role to the DBNT site.
+        3.  Once the data is corrected, verify that the user can access the admin pages (e.g., ).
+    -   **Why fix this issue and what will be achieved with the fix?** This will unblock the admin user for the DBNT site and validate that the Role-Based Access Control is working correctly.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** Y (Data scoping and multi-tenancy permissions are a recurring theme.)
+    -   **Should Test frontend/backend/both after fix?** Frontend
 
 **In progress Task List**:
-*   **Task 1: Implement ProRadio Sync via Custom WordPress Plugin and Public Clara API (P0 - HIGHEST)**
-    *   **Where to resume:**
-        1.  **Clara Backend:** Create a new, public, unauthenticated API endpoint. A new file like  would be appropriate. The endpoint (e.g., ) should accept a  parameter (, , ) and require an  header for data scoping. It must return the schedule data (show title, start/end times, etc.) for the specified station(s) in a JSON format that the new WordPress plugin expects.
-        2.  **WordPress Frontend:** Guide the user to create two new files in their WordPress plugins directory ():
-            *    (code already provided in chat history)
-            *    (code already provided in chat history)
-        3.  **Cleanup:** Once the new system is verified and working, remove the now-obsolete ProRadio integration code from the Clara backend (, , and the background sync tasks in ).
-    *   **What will be achieved with this?** A robust, real-time sync and display of the Clara schedule on the WordPress websites, replacing the problematic ProRadio integration with a custom-built, maintainable solution.
-    *   **Status:** IN PROGRESS
-    *   **Should Test frontend/backend/both after fix?** Both
-    *   **Blocked on something:** The Clara backend public API endpoint must be created first.
+-   **Task 1: Finalize Global 2FA Settings for Network Admins (P0)**
+    -   **Where to resume:** Resume in . The agent has added the state and the header button. The task is to finalize the implementation to render the  component inside a dialog when the Security button is clicked.
+    -   **What will be achieved with this?** Network admins will be able to manage their own account's 2FA settings from the main global dashboard, improving usability.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on something:** None
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   **(P1) Configurable Stale Now Playing Timeout:** Implement a UI and API to allow users to configure the 15-minute hardcoded timeout currently in .
+    *   **(P1) Finalize WordPress Plugin Integration:** Guide the user through installing, configuring, and testing the custom WordPress plugin () on their live sites. The backend API is ready and the plugin code has been provided.
+    *   **(P1) Cleanup Obsolete ProRadio Sync Code:** Once the new plugin is working, remove the old ProRadio integration code (, , and related calls).
+    *   **(P1) Configurable Stale Now Playing Timeout:** Add a UI and API to configure the 15-minute hardcoded timeout in .
 *   **Future Tasks:**
-    *   **(P2) Site Cloning/Copying:** Implement the user's request to be able to copy/clone Main and Mini sites.
+    *   **(P2) Site Cloning/Copying:** Implement the ability to copy/clone Main and Mini sites.
     *   **(P2) Stream Monitor VU Meters:** Implement functional VU meters on the stream monitor page.
 
 **Completed work in this session**
--   **Mini-site Password Update (RESOLVED):** Fixed the Site niet gevonden authorization bug in  that prevented network admins from setting mini-site passwords.
--   **Network Admin Header UI (DONE):** Modified  to display a Clara Global header consistent with the main site dashboard style.
--   **Main Site Feature Toggles (RESOLVED):** Fixed a bug where main site feature settings were not being saved by adding the  field to the  model in .
+-   **Timezone Refactor (DONE):** Forced  timezone across the entire backend, fixing all time-related bugs.
+-   **RDS Scheduler Priority Fix (DONE):** Logic updated to ensure scheduled texts correctly override live shows.
+-   **Permissions Logic Fix (DONE):** Refactored frontend pages to use correct site-specific permission contexts.
+-   **User Access Debug Tool (DONE):** Built a tool for network admins to view all user-site role assignments.
+-   **2FA (TOTP) Security Feature (DONE):** Implemented a complete 2FA system using authenticator apps for login and user settings.
+-   **API Explorer Page (DONE):** Created a new page for network admins to browse all available backend API endpoints.
 
 **Earlier issues found/mentioned but not fixed**
 *   None.
 
 **Known issue recurrence from previous fork**
-*   **Data Scoping (team_id vs main_site_id):** This pattern remains a risk. The mini-site password bug was another symptom of incorrect data scoping logic. Future data-related endpoints must prioritize .
-*   **WordPress/ACF Integration Complexity:** A new key learning from this session. Direct integration with third-party WordPress plugins that use ACF without a clean REST API is extremely brittle. The pivot to a decoupled approach (public API + custom plugin) is the correct pattern to avoid this in the future.
+*   **Data Scoping:** The DBNT permission issue was another symptom of problems in the multi-tenant data architecture. The issue was not a code bug this time but a lack of data in the database for a specific tenant. The new debug tool helps diagnose this.
 
 **Code Architecture**
-enabled_features
+
 
 **Key Technical Concepts**
--   **API-First Decoupling:** When a 3rd-party integration is too complex (like ProRadio/ACF), the best practice is to pivot. Create a stable, public API on the source system (Clara) and build a simple consumer for it on the target system (a new WordPress plugin). This creates a clean contract and avoids brittle dependencies.
--   **WordPress Plugin Development:** The agent created a complete WordPress plugin, demonstrating knowledge of admin pages, settings API, REST API endpoints, shortcodes, and asset enqueuing.
--   **WordPress Transients API:** Used  and  for server-side caching of API responses within the WordPress plugin, reducing load on the Clara backend.
+-   **Timezone Management:** Consistent use of  with a specific timezone () for all datetime operations to avoid bugs related to DST and offsets.
+-   **2FA (TOTP):** Implementation of Time-based One-Time Passwords using  on the backend and  on the frontend for a secure login flow.
+-   **React Context for Permissions:** Correctly using a scoped  for site-specific roles vs. a  for global roles, a key pattern for multi-tenant applications.
+-   **Dynamic Route Introspection:** Using FastAPI's internal  property to dynamically build a developer-facing tool (the API Explorer).
 
 **key DB schema**
--   No changes to the MongoDB schema in this session.
+-   **users** collection:
+    -   Added 
+    -   Added 
 
 **changes in tech stack**
--   None.
+-   **Backend:** Added  dependency for 2FA.
+-   **Frontend:** Added  dependency for 2FA QR codes.
 
 **All files of reference**
--   : Contains the fix for the mini-site password update.
--   : Contains the updated Network Admin header UI.
--   : Contains the fix for the main site feature toggles bug.
--   , , : These files contain the logic for the **abandoned** ProRadio sync attempt and should be cleaned up once the new solution is implemented.
+-   : The new source of truth for all timezone-related logic.
+-   : Contains the critical priority logic for what gets displayed on the radio stream.
+-   : Example of the corrected site-specific permission check.
+-   : Location of the new admin tools and the in-progress global 2FA task.
+-   : Contains the new 2FA API logic.
+-   : Contains the updated login flow with the 2FA step.
+-   : The reusable component for managing 2FA.
 
 **Areas that need refactoring**:
--   Once the new public API and custom WordPress plugin are verified, the obsolete ProRadio sync code must be removed. This includes the service (), the router (), its registration in , and all background task calls within .
+-   The obsolete ProRadio sync code (, ) must be removed after the new WordPress plugin solution is verified by the user.
 
 **key api endpoints**
--   : **FIXED**.
--   **TO BE CREATED:** : New unauthenticated endpoint in the Clara backend for the WordPress plugin to consume.
--   **NEW (in WordPress):** The custom plugin will create its own endpoints, including  and  to act as a drop-in replacement for any themes relying on the old ProRadio API structure.
+-   , , : New endpoints for managing 2FA.
+-   : Modified to return a  flag and handle the verification step.
+-   : New debug endpoint to view all user-site role assignments.
+-   : New debug endpoint that powers the API Explorer page.
 
 **Critical Info for New Agent**
--   **Language:** The user is Dutch. All communication MUST be in Dutch.
--   **Top Priority:** Your first task is to build the backend component of the new schedule sync solution. Create the public API endpoint () in the Clara application.
--   **New Approach:** Do not try to fix the old ProRadio integration. The agreed-upon plan is to use a new custom WordPress plugin that consumes a new public API from Clara. The user already has the code for the plugin.
--   **Guidance:** After creating the backend endpoint, you will need to guide the user on how to create the plugin files ( and ) on their WordPress server and configure it.
--   **Cleanup:** After the new feature is working, remember to plan for the cleanup of the old, unused ProRadio integration code in the backend.
+-   **Taal:** De gebruiker is Nederlands. Alle communicatie MOET in het Nederlands.
+-   **Prioriteiten:** Focus eerst op het voltooien van de globale 2FA-instelling op het Network Dashboard. Begeleid daarna de gebruiker bij het oplossen van het DBNT-permissieprobleem door de juiste gebruikersgegevens toe te voegen met behulp van de nieuwe debug-tool.
+-   **Permissies Context:** De code voor permissies is gerefactord en zou correct moeten zijn. Het resterende probleem is een **data-issue** (de gebruiker is niet toegewezen aan de site in de database). Gebruik de User Access Debug tool om dit aan te tonen.
+-   **2FA Context:** De 2FA-kernfunctionaliteit is volledig geïmplementeerd en getest. De huidige taak is puur een UI/UX-verbetering om de instellingen toegankelijker te maken voor netwerkbeheerders.
 
 **documents and test reports created in this job**
--    was read and updated.
+-    was updated.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Requests a new WordPress plugin to be created that handles both the schedule view and the sync with Clara.
-2.  **Agent:** Agrees and provides the full PHP code for the new plugin () and the accompanying CSS.
-3.  **User:** Asks if they can replace the old plugin code with the new one and tells the agent to create the necessary backend endpoint.
-4.  **Agent:** Confirms they can, and states they will create the backend endpoint first and then provide complete instructions.
+1.  **User:** Asks for a page where Network Admins can see all backend endpoints. (DONE)
+2.  **User:** States that a Network Admin should be able to set up their 2FA globally, not from within a specific site's settings. (IN PROGRESS)
+3.  **User:** Clarifies they want 2FA with an authenticator app, not email OTP. (DONE)
+4.  **User:** Reports the DBNT permissions issue for user Deborah Baeten. (Partially resolved, pending data fix)
+5.  **User:** Confirms live show was active during the RDS bug, but it also happens when it's not.
+6.  **User:** Reports the RDS scheduled text issue for both stations still persists.
+7.  **User:** Clarifies the RDS bug: when a both text is scheduled, it works on MFY but not GRK, where the normal sequence just resets.
+8.  **User:** Asks for scheduled texts to always have priority over live shows. (DONE)
+9.  **User:** Reports that the time is still wrong and asks for the timezone to be forced to GMT+1 everywhere. (DONE)
+10. **User:** Asks to receive the WordPress plugin code and installation instructions again. (DONE)
 
 **Project Health Check:**
 -   **Broken:**
-    -   None.
+    -   User access for the 'DBNT' site is non-functional for admins due to missing records in the  collection. The code-level fix is complete, but the data must be populated to fix the user-facing bug.
 -   **Mocked:**
     -   None.
 
 **3rd Party Integrations**
--   **WordPress:** The integration is being rebuilt to be more robust via a custom plugin and a public API, decoupling it from the ProRadio theme's internal implementation.
--   **ffmpeg:** System dependency for audio triggers.
+-   **pyotp:** Backend library for TOTP generation and verification.
+-   **qrcode.react:** Frontend library to display QR codes for 2FA setup.
+-   **WordPress:** Integration is ready for user-side deployment. A custom plugin and public API have been created.
 
 **Testing status**
 -   **Testing agent used after significant changes:** NO
@@ -126,4 +149,5 @@ enabled_features
 -   **Password:** 
 
 **What agent forgot to execute**
--   The agent has not yet created the promised public API endpoint in the Clara backend (), which is the critical next step required to unblock the user and complete the new feature.</analysis>
+-   The agent has not yet guided the user to add the required data to the  collection to fully resolve and verify the DBNT permissions bug.
+-   The cleanup of the old ProRadio code has been identified but not yet executed.</analysis>
