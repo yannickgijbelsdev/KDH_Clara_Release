@@ -96,32 +96,31 @@ def make_kpi_table(overview, page_width):
     failed = pub.get('failed', 0)
 
     data = [
-        [str(total), str(published), str(scheduled), str(failed)],
         ['Total Articles', 'Published', 'Scheduled', 'Failed'],
+        [str(total), str(published), str(scheduled), str(failed)],
     ]
 
     col_w = (page_width - 12*mm) / 4
-    t = Table(data, colWidths=[col_w]*4, rowHeights=[14*mm, 6*mm])
+    t = Table(data, colWidths=[col_w]*4, rowHeights=[7*mm, 16*mm])
     t.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), BG_CARD),
-        ('TEXTCOLOR', (0, 0), (-1, 0), TEXT_WHITE),
-        ('TEXTCOLOR', (0, 1), (-1, 1), TEXT_MUTED),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 26),
-        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, 1), 9),
+        ('TEXTCOLOR', (0, 0), (-1, 0), TEXT_MUTED),
+        ('TEXTCOLOR', (0, 1), (-1, 1), TEXT_WHITE),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 28),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, 0), 'BOTTOM'),
-        ('VALIGN', (0, 1), (-1, 1), 'TOP'),
+        ('VALIGN', (0, 1), (-1, 1), 'MIDDLE'),
         ('BOX', (0, 0), (0, -1), 0.5, BORDER),
         ('BOX', (1, 0), (1, -1), 0.5, BORDER),
         ('BOX', (2, 0), (2, -1), 0.5, BORDER),
         ('BOX', (3, 0), (3, -1), 0.5, BORDER),
-        ('TOPPADDING', (0, 0), (-1, 0), 4*mm),
-        ('BOTTOMPADDING', (0, 1), (-1, 1), 3*mm),
+        ('TOPPADDING', (0, 0), (-1, 0), 3*mm),
+        ('BOTTOMPADDING', (0, 1), (-1, 1), 4*mm),
         ('LEFTPADDING', (0, 0), (-1, -1), 3*mm),
         ('RIGHTPADDING', (0, 0), (-1, -1), 3*mm),
-        ('ROUNDEDCORNERS', [3, 3, 3, 3]),
     ]))
     return t
 
