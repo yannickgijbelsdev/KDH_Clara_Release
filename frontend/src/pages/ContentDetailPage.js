@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
+import ImageResizeDialog from '../components/ImageResizeDialog';
+import { isImageFile, isOversized } from '../utils/imageResize';
 import {
   ArrowLeft,
   Edit2,
