@@ -6,12 +6,13 @@ import { useMainSite } from '../context/MainSiteContext';
 import { DevToolsProvider } from '../context/DevToolsContext';
 import DevToolsPanel from './DevTools/DevToolsPanel';
 import DevToolsInspector from './DevTools/DevToolsInspector';
+import HelpButton from './Tickets/HelpButton';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
-  ArrowLeft, Send, Palette, Network, Activity
+  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
