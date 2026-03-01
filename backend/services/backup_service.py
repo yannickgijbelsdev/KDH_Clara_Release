@@ -334,9 +334,7 @@ async def clone_main_site(
     cloned_ms["slug"] = f"clone-{source_site.get('slug', 'test')}-{uuid.uuid4().hex[:6]}"
     cloned_ms["created_at"] = datetime.now(timezone.utc).isoformat()
     cloned_ms["cloned_from"] = source_main_site_id
-    await db.main_sites.insert_one(cloned_ms)
-    # Remove the _id that MongoDB added
-    await db.main_sites.update_one({"id": new_main_site_id}, {"$unset": {"_id": ""}})
+    await db.main_sites.insert_one({**cloned_ms})
 
     total_docs = 1
     # Clone all other collections
