@@ -49,6 +49,7 @@ from routers.wordpress import publish_content_to_wordpress
 from routers.proradio import proradio_router
 from routers.public_schedule import public_schedule_router
 from routers.statistics import statistics_router
+from routers.backups import backup_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 
