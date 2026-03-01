@@ -187,6 +187,39 @@ const MediaLibraryPage = () => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    const filesToUpload = [];
+    let oversizedImage = null;
+    const remaining = [];
+
+    for (const file of files) {
+      if (isImageFile(file) && isOversized(file)) {
+        if (!oversizedImage) {
+          oversizedImage = file;
+        }
+        // Keep remaining files to upload after resize
+        remaining.push(...Array.from(files).slice(Array.from(files).indexOf(file) + 1));
+        break;
+      }
+      filesToUpload.push(file);
+    }
+
+    // Upload files that are fine
+    if (filesToUpload.length > 0) {
+      await uploadFiles(filesToUpload);
+    }
+
+    // Show resize dialog for oversized image
+    if (oversizedImage) {
+      setPendingFiles(remaining.filter(f => !(isImageFile(f) && isOversized(f))));
+      setResizeFile(oversizedImage);
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const uploadFiles = async (files) => {
     setUploading(true);
     let successCount = 0;
 
@@ -211,9 +244,12 @@ const MediaLibraryPage = () => {
     }
     
     setUploading(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  };
+
+  const handleResized = async (resizedFile) => {
+    setResizeFile(null);
+    await uploadFiles([resizedFile, ...pendingFiles]);
+    setPendingFiles([]);
   };
 
   const handleDeleteAsset = async (asset) => {
