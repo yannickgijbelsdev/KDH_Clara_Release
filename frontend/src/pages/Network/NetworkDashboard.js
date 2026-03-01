@@ -468,8 +468,15 @@ export default function NetworkDashboard() {
             <span className="text-white font-black text-lg">Clara Global</span>
           </div>
 
-          {/* Right: User dropdown */}
-          <DropdownMenu>
+          {/* Right: Backups & User dropdown */}
+          <div className="flex items-center gap-2">
+            <Link to="/backups">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs" data-testid="nav-backups-btn">
+                <HardDrive className="w-3.5 h-3.5" />
+                Backups
+              </Button>
+            </Link>
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
