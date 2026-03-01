@@ -94,10 +94,10 @@ const LoginPage = () => {
               // Step 1: Email & Password
               <>
                 <h2 className="text-2xl font-bold text-white mb-2">
-                  Welkom terug
+                  Welcome back
                 </h2>
                 <p className="text-zinc-400 mb-8">
-                  Log in om toegang te krijgen tot je dashboard
+                  Sign in to access your dashboard
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -109,14 +109,14 @@ const LoginPage = () => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="jij@voorbeeld.nl"
+                      placeholder="you@example.com"
                       required
                       className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 h-12"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-zinc-300">Wachtwoord</Label>
+                    <Label htmlFor="password" className="text-zinc-300">Password</Label>
                     <Input
                       id="password"
                       data-testid="login-password-input"
@@ -135,7 +135,7 @@ const LoginPage = () => {
                     disabled={isLoading}
                     className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg shadow-orange-500/20"
                   >
-                    {isLoading ? 'Even geduld...' : 'Inloggen'}
+                    {isLoading ? 'Signing in...' : 'Sign in'}
                   </Button>
                 </form>
               </>
