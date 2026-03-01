@@ -2449,13 +2449,15 @@ now = now_brussels()  # Automatically handles CET/CEST
   - **Weekly Content Activity**: Bar chart showing weekly content creation
   - **Content per Category**: Horizontal progress bars with counts
   - **Top Content Creators**: Ranked table with avatars, total items, approved, published to WP, pending
-  - **PDF Export**: Export entire report as PDF using html2canvas + jsPDF
-  - Backend: 5 new endpoints in `/app/backend/routers/statistics.py`
+  - **PDF Export**: Server-side PDF generation with ReportLab (dark theme, landscape A4, vector text, proper charts)
+  - Backend: 6 endpoints in `/app/backend/routers/statistics.py`
     - `GET /api/statistics/{main_site_id}/overview`
     - `GET /api/statistics/{main_site_id}/monthly`
     - `GET /api/statistics/{main_site_id}/top-authors`
     - `GET /api/statistics/{main_site_id}/per-site-monthly`
     - `GET /api/statistics/{main_site_id}/weekly-activity`
+    - `GET /api/statistics/{main_site_id}/export-pdf`
+  - PDF Service: `/app/backend/services/pdf_report.py`
   - Frontend: `/app/frontend/src/pages/Network/StatisticsPage.js`
-  - Dependencies added: recharts, jspdf, html2canvas (frontend)
+  - Dependencies added: recharts (frontend), reportlab (backend)
   - Tested: 100% backend + 100% frontend (iteration_53.json)
