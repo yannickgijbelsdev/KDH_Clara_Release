@@ -135,12 +135,15 @@ async def get_monthly_stats(
     now = now_brussels()
     monthly_data = []
 
+    # Generate proper calendar months
     for i in range(months - 1, -1, -1):
-        target = now - timedelta(days=i * 30)
-        year = target.year
-        month = target.month
+        year = now.year
+        month = now.month - i
+        while month <= 0:
+            month += 12
+            year -= 1
         month_key = f"{year}-{month:02d}"
-        month_label = target.strftime("%b %Y")
+        month_label = datetime(year, month, 1).strftime("%b %Y")
 
         # Count content created this month
         created_count = 0
