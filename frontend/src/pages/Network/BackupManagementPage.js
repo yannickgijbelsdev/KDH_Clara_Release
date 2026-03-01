@@ -140,7 +140,7 @@ export default function BackupManagementPage() {
 
   const deleteBackup = async (backupId) => {
     try {
-      await fetch(`${API}/api/backups/${backupId}`, {
+      await fetch(`${API}/api/backups/single/${backupId}`, {
         method: 'DELETE', headers,
       });
       toast.success('Backup deleted');
