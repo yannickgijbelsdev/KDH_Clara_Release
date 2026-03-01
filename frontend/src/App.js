@@ -113,6 +113,16 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } 
       />
+
+      {/* Statistics - Network Admin only */}
+      <Route
+        path="/statistics/:mainSiteId"
+        element={
+          <ProtectedRoute>
+            <StatisticsPage />
+          </ProtectedRoute>
+        }
+      />
       
       {/* RDS Monitor - Standalone public-ish page */}
       <Route 
