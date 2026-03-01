@@ -63,6 +63,7 @@ class MainSiteResponse(BaseModel):
     enabled_features: List[str] = []
     site_count: int = 0  # Number of mini sites
     user_count: int = 0  # Number of users with access
+    cloned_from: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
