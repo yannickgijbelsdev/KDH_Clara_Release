@@ -51,6 +51,7 @@ class UserWithTeamResponse(BaseModel):
     preferences: Optional[dict] = None
     is_network_admin: bool = False
     totp_enabled: bool = False
+    totp_skip_count: int = 0
 
 
 class TokenResponse(BaseModel):
