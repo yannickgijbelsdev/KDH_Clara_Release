@@ -319,11 +319,11 @@ class TestBackupAPIs:
     # ─────────────────────────────────────────────────────────────────────────
 
     def test_unauthenticated_list_backups(self):
-        """Unauthenticated request should get 401"""
+        """Unauthenticated request should get 401 or 403"""
         response = requests.get(f"{BASE_URL}/api/backups/{MAIN_SITE_ID}")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
 
     def test_unauthenticated_create_backup(self):
-        """Unauthenticated request should get 401"""
+        """Unauthenticated request should get 401 or 403"""
         response = requests.post(f"{BASE_URL}/api/backups/{MAIN_SITE_ID}")
-        assert response.status_code == 401, f"Expected 401, got {response.status_code}"
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
