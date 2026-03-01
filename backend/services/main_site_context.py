@@ -168,3 +168,42 @@ async def get_flexible_data_filter(request: Request, current_user: dict) -> dict
     
     return {}
 
+
+
+async def get_effective_role(request: Request, current_user: dict) -> str:
+    """Get the effective role for a user, considering site-specific roles.
+    
+    If X-Main-Site-ID header is present, checks the user's site-specific role
+    and returns the higher-privilege role between global and site-specific.
+    
+    Returns the user's effective role string.
+    """
+    global_role = current_user.get('role', 'viewer')
+    
+    # Network admins always have full access
+    if current_user.get('is_network_admin'):
+        return 'admin'
+    
+    main_site_id = request.headers.get('X-Main-Site-ID')
+    if not main_site_id:
+        return global_role
+    
+    # Look up site-specific role
+    site_access = await db.main_site_users.find_one({
+        "user_id": current_user['id'],
+        "main_site_id": main_site_id
+    }, {"_id": 0, "role": 1})
+    
+    if not site_access:
+        return global_role
+    
+    site_role = site_access.get('role', 'viewer')
+    
+    # Role hierarchy: admin > news_admin > editor > presenter > viewer
+    role_priority = {'admin': 5, 'news_admin': 4, 'editor': 3, 'presenter': 2, 'viewer': 1}
+    
+    global_priority = role_priority.get(global_role, 0)
+    site_priority = role_priority.get(site_role, 0)
+    
+    # Return the highest-privilege role
+    return site_role if site_priority > global_priority else global_role
