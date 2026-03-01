@@ -294,7 +294,8 @@ export const AuthProvider = ({ children }) => {
       sessionExpiresAt,
       showSessionWarning,
       sessionTimeLeft,
-      dismissSessionWarning
+      dismissSessionWarning,
+      refreshUser
     }}>
       {children}
     </AuthContext.Provider>
