@@ -110,6 +110,9 @@ const ContentDetailPage = () => {
   const [featuredImages, setFeaturedImages] = useState({});
   const [uploadingSiteId, setUploadingSiteId] = useState(null);
   const fileInputRefs = useRef({});
+  // Image resize state
+  const [resizeFile, setResizeFile] = useState(null);
+  const [resizeSiteId, setResizeSiteId] = useState(null);
   // Audit log state
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditLogsExpanded, setAuditLogsExpanded] = useState(false);
