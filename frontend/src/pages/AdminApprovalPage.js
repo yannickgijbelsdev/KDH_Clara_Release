@@ -224,7 +224,7 @@ const AdminApprovalPage = () => {
     item => !item.approval_status || item.approval_status === 'pending'
   ).length;
 
-  if (!canApproveContent) {
+  if (!permissionCheckDone || !canApproveForSite) {
     return null;
   }
 
