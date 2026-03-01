@@ -2374,3 +2374,18 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Files modified: `WordPressSettingsPage.js`, `TeamSettingsPage.js`, `wordpress.py`, `content.py`
 - Tested: 9/9 backend + 6/6 frontend tests passed (100%)
 
+
+
+### March 1, 2026 - Image Resize Feature for Oversized Uploads
+- [x] **Client-side image resize when file > 5MB**:
+  - Created reusable `ImageResizeDialog` component with progress bar
+  - Canvas-based compression: scales dimensions (max 2400px) + reduces quality (0.85→0.4)
+  - Progress indicator shows 0-100% during resize
+  - Auto-uploads after successful resize
+  - Graceful error handling when compression can't reach target size
+  - Integrated in: MediaLibraryPage, ContentDetailPage, ShowManagementPage
+  - Files: `utils/imageResize.js`, `components/ImageResizeDialog.js`
+  - Tested: 9/9 frontend tests passed (100%)
+
+### March 1, 2026 - Login Page Language Fix
+- [x] Reverted login page text from Dutch back to English
