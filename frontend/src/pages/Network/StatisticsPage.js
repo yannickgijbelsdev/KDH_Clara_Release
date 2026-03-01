@@ -45,7 +45,6 @@ export default function StatisticsPage() {
   const { mainSiteId } = useParams();
   const { user, token } = useAuth();
   const navigate = useNavigate();
-  const reportRef = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
