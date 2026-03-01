@@ -333,9 +333,14 @@ const MainSiteDashboardLayout = () => {
     // RDS Monitor should only be available if rds_monitor or rds_builder is enabled
     const alwaysAvailableForAdmin = [];
     
+    // Features always available for everyone (not dependent on enabled_features)
+    const alwaysAvailable = ['support_tickets'];
+    
     return NAV_GROUPS.map(group => {
       const items = group.features
         .filter(featureId => {
+          // Always show support tickets for everyone
+          if (alwaysAvailable.includes(featureId)) return true;
           // Always show certain features for admins
           if (alwaysAvailableForAdmin.includes(featureId) && userIsAdmin) return true;
           // Otherwise check enabled features
