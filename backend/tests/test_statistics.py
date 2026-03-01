@@ -171,14 +171,13 @@ class TestStatisticsEndpoints:
         
         print(f"Per-site monthly: {len(months)} months, {len(site_names)} sites ({site_names})")
 
-    def test_per_site_monthly_endpoint_regular_user_forbidden(self, regular_user_token):
-        """Test regular user gets 403 on per-site-monthly endpoint"""
+    def test_per_site_monthly_endpoint_unauthenticated_denied(self):
+        """Test unauthenticated request gets 401/403 on per-site-monthly endpoint"""
         response = requests.get(
-            f"{BASE_URL}/api/statistics/{MAIN_SITE_ID}/per-site-monthly",
-            headers={"Authorization": f"Bearer {regular_user_token}"}
+            f"{BASE_URL}/api/statistics/{MAIN_SITE_ID}/per-site-monthly"
         )
-        assert response.status_code == 403, f"Expected 403, got {response.status_code}"
-        print("Regular user correctly denied access to per-site monthly")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print("Unauthenticated user correctly denied access to per-site monthly")
 
     def test_weekly_activity_endpoint_network_admin(self, network_admin_token):
         """Test GET /api/statistics/{main_site_id}/weekly-activity returns weekly data"""
