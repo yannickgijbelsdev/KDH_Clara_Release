@@ -661,9 +661,24 @@ const MainSiteDashboardLayout = () => {
     );
   };
 
+  const isClone = !!mainSite?.cloned_from;
+
   return (
+    <DevToolsProvider enabled={isClone}>
     <TooltipProvider delayDuration={0}>
       <div className="min-h-screen bg-[#09090b]">
+        {/* Clone Mode Banner */}
+        {isClone && (
+          <div className="fixed top-0 left-0 right-0 z-[60] bg-cyan-600 text-white px-4 py-1.5" data-testid="clone-banner">
+            <div className="flex items-center justify-between max-w-screen-xl mx-auto">
+              <div className="flex items-center gap-2 text-xs font-medium">
+                <Activity className="w-3.5 h-3.5" />
+                <span>CLONE MODE — DevTools active</span>
+              </div>
+              <span className="text-[10px] opacity-70">{mainSite?.name}</span>
+            </div>
+          </div>
+        )}
         {/* Impersonation Banner */}
         {impersonating && (
           <div className="fixed top-0 left-0 right-0 z-[60] bg-orange-500 text-white px-4 py-2">
