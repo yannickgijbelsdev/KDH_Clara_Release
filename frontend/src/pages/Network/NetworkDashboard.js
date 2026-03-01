@@ -706,6 +706,17 @@ export default function NetworkDashboard() {
                       <Bug className="w-3.5 h-3.5" />
                       Debug
                     </Button>
+                    <Link to={`/statistics/${site.id}`}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs"
+                        data-testid={`statistics-${site.slug}`}
+                      >
+                        <BarChart3 className="w-3.5 h-3.5" />
+                        Stats
+                      </Button>
+                    </Link>
                   </div>
                   <Link to={`/${site.slug}`}>
                     <Button variant="outline" className="w-full gap-2 mt-2">
