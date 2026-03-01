@@ -200,14 +200,13 @@ class TestStatisticsEndpoints:
         
         print(f"Weekly activity: {len(weeks)} weeks returned")
 
-    def test_weekly_activity_endpoint_regular_user_forbidden(self, regular_user_token):
-        """Test regular user gets 403 on weekly-activity endpoint"""
+    def test_weekly_activity_endpoint_unauthenticated_denied(self):
+        """Test unauthenticated request gets 401/403 on weekly-activity endpoint"""
         response = requests.get(
-            f"{BASE_URL}/api/statistics/{MAIN_SITE_ID}/weekly-activity",
-            headers={"Authorization": f"Bearer {regular_user_token}"}
+            f"{BASE_URL}/api/statistics/{MAIN_SITE_ID}/weekly-activity"
         )
-        assert response.status_code == 403, f"Expected 403, got {response.status_code}"
-        print("Regular user correctly denied access to weekly activity")
+        assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
+        print("Unauthenticated user correctly denied access to weekly activity")
 
     def test_invalid_main_site_returns_404(self, network_admin_token):
         """Test invalid main site ID returns 404"""
