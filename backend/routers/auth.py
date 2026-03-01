@@ -1,5 +1,7 @@
 """Authentication routes."""
 from fastapi import APIRouter, HTTPException, Depends, Request
+from pydantic import BaseModel
+from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
 
@@ -11,8 +13,38 @@ from services.auth import (
     hash_password, verify_password, create_token, get_current_user
 )
 from services.audit import log_action, get_client_ip
+from services.two_factor import (
+    generate_totp_secret, generate_qr_code_base64, verify_totp,
+    generate_backup_codes, hash_backup_code, verify_backup_code
+)
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+# 2FA Models
+class TwoFactorSetupResponse(BaseModel):
+    secret: str
+    qr_code: str  # Base64 encoded PNG
+    backup_codes: List[str]
+
+
+class TwoFactorVerifyRequest(BaseModel):
+    code: str
+
+
+class TwoFactorLoginRequest(BaseModel):
+    email: str
+    password: str
+    totp_code: Optional[str] = None
+    backup_code: Optional[str] = None
+
+
+class LoginResponse(BaseModel):
+    requires_2fa: bool = False
+    token: Optional[str] = None
+    user: Optional[UserWithTeamResponse] = None
+    expires_at: Optional[str] = None
+    temp_token: Optional[str] = None  # Temporary token for 2FA verification
 
 
 @auth_router.post("/register", response_model=TokenResponse)
