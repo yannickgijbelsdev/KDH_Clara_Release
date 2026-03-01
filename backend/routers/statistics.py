@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from fastapi.responses import StreamingResponse
 from database import db
 from services.auth import get_current_user
 from services.timezone_utils import now_brussels, BRUSSELS_TZ
