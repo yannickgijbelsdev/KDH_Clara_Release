@@ -386,6 +386,21 @@ const TeamSettingsPage = () => {
     );
   }
 
+  if (adminCheckDone && !isMainSiteAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center" data-testid="no-access-message">
+        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
+          <ShieldAlert className="w-8 h-8 text-red-400" />
+        </div>
+        <h2 className="text-xl font-bold text-white mb-2">Geen toegang</h2>
+        <p className="text-zinc-400 max-w-md">
+          Je hebt geen beheerdersrechten om de teaminstellingen te bekijken of aan te passen.
+          Neem contact op met een beheerder als je denkt dat dit een fout is.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div data-testid="team-settings-page">
       {/* Header */}
