@@ -407,6 +407,7 @@ async def sync_wordpress_categories(
             synced = 0
             created = 0
             updated = 0
+            wp_cat_ids = []
             
             for wp_cat in all_wp_categories:
                 wp_cat_name = wp_cat.get('name', '').strip()
@@ -416,20 +417,24 @@ async def sync_wordpress_categories(
                 if not wp_cat_name:
                     continue
                 
+                wp_cat_ids.append(wp_cat_id)
+                
                 # Check if category already exists for this main site
                 existing = await db.categories.find_one({
                     "main_site_id": main_site_id,
                     "$or": [
-                        {"name": {"$regex": f"^{wp_cat_name}$", "$options": "i"}},
-                        {"wp_category_id": wp_cat_id}
+                        {"wp_category_id": wp_cat_id},
+                        {"name": {"$regex": f"^{wp_cat_name}$", "$options": "i"}}
                     ]
                 })
                 
                 if existing:
-                    # Update existing category with WordPress ID
+                    # Update existing category with latest WordPress data
                     await db.categories.update_one(
                         {"id": existing["id"]},
                         {"$set": {
+                            "name": wp_cat_name,
+                            "slug": wp_cat_slug,
                             "wp_category_id": wp_cat_id,
                             "wp_category_slug": wp_cat_slug,
                             "updated_at": now
@@ -455,12 +460,22 @@ async def sync_wordpress_categories(
                 
                 synced += 1
             
+            # Remove categories that no longer exist in WordPress
+            removed = 0
+            if wp_cat_ids:
+                result = await db.categories.delete_many({
+                    "main_site_id": main_site_id,
+                    "wp_category_id": {"$exists": True, "$nin": wp_cat_ids}
+                })
+                removed = result.deleted_count
+            
             return {
                 "success": True,
-                "message": f"Synced {synced} categories from WordPress",
+                "message": f"Synced {synced} categories from WordPress ({created} new, {updated} updated, {removed} removed)",
                 "synced": synced,
                 "created": created,
                 "updated": updated,
+                "removed": removed,
                 "wp_categories_found": len(all_wp_categories)
             }
             
