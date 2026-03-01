@@ -120,9 +120,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
-    const response = await axios.post(`${API}/auth/login`, { email, password });
-    const { token: newToken, user: userData, expires_at } = response.data;
+  const login = async (email, password, totpCode = null, backupCode = null) => {
+    const response = await axios.post(`${API}/auth/login`, { 
+      email, 
+      password,
+      totp_code: totpCode,
+      backup_code: backupCode
+    });
+    
+    const { requires_2fa, token: newToken, user: userData, expires_at, temp_token } = response.data;
+    
+    // If 2FA is required and no code was provided, return the flag
+    if (requires_2fa && !newToken) {
+      return { requires_2fa: true, temp_token };
+    }
+    
+    // Full login successful
     localStorage.setItem('token', newToken);
     localStorage.removeItem('impersonating'); // Clear any impersonation
     if (expires_at) {
