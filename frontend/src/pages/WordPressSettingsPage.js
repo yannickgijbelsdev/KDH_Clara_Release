@@ -78,6 +78,7 @@ const WordPressSettingsPage = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingSite, setEditingSite] = useState(null);
   const [syncingCategoriesId, setSyncingCategoriesId] = useState(null);
+  const [importingPostsId, setImportingPostsId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     wp_base_url: '',
