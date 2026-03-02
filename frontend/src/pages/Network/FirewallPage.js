@@ -295,11 +295,11 @@ function SessionsTab({ token, mainSiteId }) {
 
   const fetchSessions = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/api/firewall/sessions`, { headers });
+      const res = await fetch(`${API}/api/firewall/sessions?main_site_id=${mainSiteId}`, { headers });
       if (res.ok) setSessions((await res.json()).sessions || []);
     } catch {}
     setLoading(false);
-  }, []);
+  }, [mainSiteId]);
 
   useEffect(() => { fetchSessions(); }, [fetchSessions]);
 

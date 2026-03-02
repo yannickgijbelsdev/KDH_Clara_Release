@@ -313,8 +313,16 @@ async def list_sessions(
             {"main_site_id": main_site_id}, {"_id": 0, "user_id": 1}
         ).to_list(500)
         user_ids = [d["user_id"] for d in site_user_docs]
-        if user_ids:
-            query["user_id"] = {"$in": user_ids}
+        # Also include network admins (they belong to all sites)
+        network_admins = await db.users.find(
+            {"is_network_admin": True}, {"_id": 0, "id": 1}
+        ).to_list(100)
+        admin_ids = [a["id"] for a in network_admins]
+        all_ids = list(set(user_ids + admin_ids))
+        if all_ids:
+            query["user_id"] = {"$in": all_ids}
+        else:
+            return {"sessions": []}
 
     sessions = await db.sessions.find(query, {"_id": 0}).sort("started_at", -1).to_list(500)
 
