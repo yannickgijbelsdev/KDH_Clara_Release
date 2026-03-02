@@ -40,6 +40,7 @@ import BackupManagementPage from './pages/Network/BackupManagementPage';
 import FirewallPage from './pages/Network/FirewallPage';
 import TicketsPage from './pages/Tickets/TicketsPage';
 import { JourneyProvider } from './context/JourneyContext';
+import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
