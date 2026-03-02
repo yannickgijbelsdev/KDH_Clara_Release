@@ -2560,6 +2560,51 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: 100% backend (17/17) + 100% frontend (iteration_56.json)
 
 
+### March 2, 2026 - Firewall Extended Features (Complete)
+**Bug Fix:**
+- [x] Activity logs per main site: Fixed $or query that was leaking logs from other main sites (removed fallback `team_id: None` match)
+
+**New Features:**
+- [x] **Security Audit** (GET /api/firewall/audit/{main_site_id}):
+  - Score 0-100 with grade (good/moderate/poor)
+  - Checks: firewall enabled, brute force config, geo-blocking, IP rules, 2FA adoption, temp passwords, password age
+  - Lists weak password users with "Force Change" and "Block" action buttons
+  - Lists users without 2FA
+  - Rescan button for live audit
+- [x] **Live Session Monitoring** (Sessions tab):
+  - All active sessions with user name, email, IP, geolocation, browser, start time
+  - Live duration timer updating every second
+  - Per-session terminate button (remote logout)
+  - Per-user terminate all sessions
+- [x] **User Blocking**:
+  - Block/unblock user accounts manually
+  - Blocked users cannot login (403) and all sessions terminated on block
+  - Network admins cannot be blocked (protection)
+- [x] **Force Password Change**:
+  - Admin can force any user to change password
+  - ForcePasswordChangeModal blocks entire UI until password changed
+  - Appears on login and when already logged in
+  - Password change resets the flag
+- [x] **Session Tracking**: Every login creates a session record with IP, user-agent, timestamps
+  - Logout marks sessions as inactive
+  - get_current_user checks session validity (terminated sessions rejected)
+- Backend Endpoints:
+  - GET /api/firewall/audit/{main_site_id}
+  - GET /api/firewall/sessions, POST /api/firewall/sessions/{id}/terminate, POST /api/firewall/sessions/terminate-user/{id}
+  - POST /api/firewall/users/{id}/block, POST /api/firewall/users/{id}/unblock
+  - POST /api/firewall/users/{id}/force-password-change, POST /api/firewall/users/{id}/cancel-force-password-change
+- Database collections updated: `sessions` (new)
+- Files:
+  - `backend/routers/firewall.py` - Extended with sessions, user blocking, audit, force pw endpoints
+  - `backend/routers/auth.py` - Session creation, blocked user check, force pw in responses
+  - `backend/services/auth.py` - Session validation in get_current_user
+  - `backend/routers/logs.py` - Fixed activity logs main site filter
+  - `frontend/src/pages/Network/FirewallPage.js` - 7 tabs: Overview, Security Audit, Sessions, IP Rules, Blocked IPs, Security Logs, Settings
+  - `frontend/src/components/Auth/ForcePasswordChangeModal.js` - Modal for forced password change
+  - `frontend/src/context/AuthContext.js` - force_password_change support
+- Tested: 100% backend (23/23) + 100% frontend (iteration_58.json)
+
+
 ### March 2, 2026 - Firewall & Security System (Complete)
 - [x] **Firewall Middleware**: Intercepts every /api request, checks IP blocks, rate limits, IP rules, geo-blocking
 - [x] **IP Rules per Main Site**: Whitelist (only allow) and Blacklist (block) with IP addresses and CIDR ranges
