@@ -65,7 +65,11 @@ export const MainSiteProvider = ({ children }) => {
 
     try {
       const res = await fetch(`${API}/api/main-sites/by-slug/${mainSiteSlug}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        method: 'GET',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
       });
 
       if (res.ok) {
@@ -81,7 +85,11 @@ export const MainSiteProvider = ({ children }) => {
 
         // Get user's role for this main site
         const accessRes = await fetch(`${API}/api/main-sites/my/access`, {
-          headers: { Authorization: `Bearer ${token}` }
+          method: 'GET',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
         });
         if (accessRes.ok) {
           const accessData = await accessRes.json();
@@ -92,8 +100,19 @@ export const MainSiteProvider = ({ children }) => {
         setError('Main site not found');
         setupInterceptor(interceptorRef, null); // Clear interceptor
         setMainSite(null);
+      } else if (res.status === 401) {
+        // Token expired or invalid, redirect to login
+        setError('Session expired');
+        setupInterceptor(interceptorRef, null);
+        setMainSite(null);
       } else if (res.status === 403) {
-        setError('Access denied');
+        // Check if account is blocked
+        try {
+          const errData = await res.json();
+          setError(errData.detail || 'Access denied');
+        } catch {
+          setError('Access denied');
+        }
         setupInterceptor(interceptorRef, null); // Clear interceptor
         setMainSite(null);
       } else {
