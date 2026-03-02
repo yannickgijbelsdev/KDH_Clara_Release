@@ -292,3 +292,239 @@ async def lookup_geo(ip: str, current_user: dict = Depends(get_current_user)):
     geo = await get_geo_info(ip)
     geo.pop("cached_at", None)
     return {"ip": ip, **geo}
+
+
+# ============== ACTIVE SESSIONS ==============
+
+@firewall_router.get("/sessions")
+async def list_sessions(
+    main_site_id: Optional[str] = None,
+    active_only: bool = True,
+    current_user: dict = Depends(get_current_user),
+):
+    """List active user sessions."""
+    require_network_admin(current_user)
+    query = {}
+    if active_only:
+        query["active"] = True
+    if main_site_id:
+        # Get team_ids for this main site to filter sessions
+        main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "team_ids": 1})
+        team_ids = main_site.get("team_ids", []) if main_site else []
+        if team_ids:
+            query["team_id"] = {"$in": team_ids}
+
+    sessions = await db.sessions.find(query, {"_id": 0}).sort("started_at", -1).to_list(500)
+
+    # Enrich with geo
+    for s in sessions:
+        geo = await get_geo_info(s.get("ip", ""))
+        s["country_name"] = geo.get("country_name", "")
+        s["city"] = geo.get("city", "")
+
+    return {"sessions": sessions}
+
+
+@firewall_router.post("/sessions/{session_id}/terminate")
+async def terminate_session(session_id: str, current_user: dict = Depends(get_current_user)):
+    """Terminate a specific user session (remote logout)."""
+    require_network_admin(current_user)
+    result = await db.sessions.update_one(
+        {"id": session_id, "active": True},
+        {"$set": {"active": False, "ended_at": datetime.now(timezone.utc).isoformat(), "terminated_by": current_user["id"]}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Session not found or already ended")
+
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    await log_security_event("session_terminated", session.get("ip", "unknown"), None, {
+        "terminated_user": session.get("user_email", ""),
+        "terminated_by": current_user.get("email", ""),
+    })
+    return {"terminated": True, "session_id": session_id}
+
+
+@firewall_router.post("/sessions/terminate-user/{user_id}")
+async def terminate_user_sessions(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Terminate all sessions for a specific user."""
+    require_network_admin(current_user)
+    result = await db.sessions.update_many(
+        {"user_id": user_id, "active": True},
+        {"$set": {"active": False, "ended_at": datetime.now(timezone.utc).isoformat(), "terminated_by": current_user["id"]}}
+    )
+    return {"terminated_count": result.modified_count, "user_id": user_id}
+
+
+# ============== USER BLOCKING ==============
+
+class UserBlockRequest(BaseModel):
+    reason: str = "Blocked by administrator"
+
+@firewall_router.post("/users/{user_id}/block")
+async def block_user(user_id: str, body: UserBlockRequest, current_user: dict = Depends(get_current_user)):
+    """Block a user account."""
+    require_network_admin(current_user)
+    target = await db.users.find_one({"id": user_id}, {"_id": 0, "email": 1, "name": 1, "is_network_admin": 1})
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    if target.get("is_network_admin"):
+        raise HTTPException(status_code=400, detail="Cannot block a network admin")
+
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_blocked": True, "blocked_at": datetime.now(timezone.utc).isoformat(), "blocked_reason": body.reason}}
+    )
+    # Terminate all active sessions
+    await db.sessions.update_many(
+        {"user_id": user_id, "active": True},
+        {"$set": {"active": False, "ended_at": datetime.now(timezone.utc).isoformat(), "terminated_by": current_user["id"]}}
+    )
+    await log_security_event("user_blocked", "system", None, {
+        "user_id": user_id, "user_email": target.get("email", ""), "reason": body.reason
+    })
+    return {"blocked": True, "user_id": user_id}
+
+
+@firewall_router.post("/users/{user_id}/unblock")
+async def unblock_user(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Unblock a user account."""
+    require_network_admin(current_user)
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$unset": {"is_blocked": "", "blocked_at": "", "blocked_reason": ""}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    await log_security_event("user_unblocked", "system", None, {"user_id": user_id})
+    return {"unblocked": True, "user_id": user_id}
+
+
+# ============== FORCE PASSWORD CHANGE ==============
+
+@firewall_router.post("/users/{user_id}/force-password-change")
+async def force_password_change(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Force a user to change their password on next login."""
+    require_network_admin(current_user)
+    result = await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"force_password_change": True}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"forced": True, "user_id": user_id}
+
+
+@firewall_router.post("/users/{user_id}/cancel-force-password-change")
+async def cancel_force_password_change(user_id: str, current_user: dict = Depends(get_current_user)):
+    """Cancel forced password change for a user."""
+    require_network_admin(current_user)
+    await db.users.update_one({"id": user_id}, {"$unset": {"force_password_change": ""}})
+    return {"cancelled": True, "user_id": user_id}
+
+
+# ============== SECURITY AUDIT ==============
+
+@firewall_router.get("/audit/{main_site_id}")
+async def security_audit(main_site_id: str, current_user: dict = Depends(get_current_user)):
+    """Run a security audit for a main site and return score + recommendations."""
+    require_network_admin(current_user)
+    
+    issues = []
+    score = 100
+    
+    # 1. Check firewall settings
+    settings = await get_firewall_settings(main_site_id)
+    if not settings.get("enabled"):
+        issues.append({"severity": "critical", "category": "firewall", "message": "Firewall is disabled", "action": "Enable firewall in settings"})
+        score -= 25
+
+    # 2. Check brute force settings
+    bf_max = settings.get("brute_force_max_attempts", 5)
+    if bf_max > 10:
+        issues.append({"severity": "warning", "category": "brute_force", "message": f"Brute force threshold is too high ({bf_max} attempts)", "action": "Lower to 5-7 attempts"})
+        score -= 10
+
+    # 3. Check geo-blocking
+    if not settings.get("geo_blocking_enabled"):
+        issues.append({"severity": "info", "category": "geo", "message": "Geo-blocking is not enabled", "action": "Consider enabling geo-blocking for high-risk countries"})
+        score -= 5
+
+    # 4. Check IP rules
+    rules = await get_firewall_rules(main_site_id)
+    if not rules:
+        issues.append({"severity": "info", "category": "rules", "message": "No IP rules configured", "action": "Consider adding whitelist or blacklist rules"})
+        score -= 5
+
+    # 5. Check users - 2FA adoption
+    main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "team_ids": 1})
+    team_ids = main_site.get("team_ids", []) if main_site else []
+    
+    users = await db.users.find(
+        {"team_id": {"$in": team_ids}, "is_system_account": {"$ne": True}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "totp_enabled": 1, "temp_password": 1,
+         "force_password_change": 1, "password_changed_at": 1, "created_at": 1, "is_blocked": 1}
+    ).to_list(500)
+
+    total_users = len(users)
+    users_without_2fa = [u for u in users if not u.get("totp_enabled")]
+    users_with_temp_pw = [u for u in users if u.get("temp_password")]
+    users_never_changed_pw = [u for u in users if not u.get("password_changed_at")]
+    
+    if total_users > 0:
+        tfa_pct = ((total_users - len(users_without_2fa)) / total_users) * 100
+        if tfa_pct < 50:
+            issues.append({"severity": "critical", "category": "2fa", "message": f"Only {tfa_pct:.0f}% of users have 2FA enabled ({len(users_without_2fa)}/{total_users} without)", "action": "Enforce 2FA for all users"})
+            score -= 20
+        elif tfa_pct < 80:
+            issues.append({"severity": "warning", "category": "2fa", "message": f"{tfa_pct:.0f}% 2FA adoption ({len(users_without_2fa)} users without)", "action": "Encourage remaining users to enable 2FA"})
+            score -= 10
+
+    if users_with_temp_pw:
+        issues.append({"severity": "warning", "category": "passwords", "message": f"{len(users_with_temp_pw)} user(s) still using temporary passwords", "action": "Force password change for these users"})
+        score -= 10
+
+    if users_never_changed_pw:
+        issues.append({"severity": "info", "category": "passwords", "message": f"{len(users_never_changed_pw)} user(s) never changed their password", "action": "Consider requiring password updates"})
+        score -= 5
+
+    # 6. Active blocks
+    active_blocks = await db.firewall_blocks.count_documents({"active": True})
+
+    score = max(0, min(100, score))
+    
+    if score >= 80:
+        grade = "good"
+    elif score >= 50:
+        grade = "moderate"
+    else:
+        grade = "poor"
+
+    # Build weak password users list (temp pw + never changed)
+    weak_password_users = []
+    for u in users_with_temp_pw:
+        weak_password_users.append({
+            "id": u["id"], "name": u.get("name", ""), "email": u.get("email", ""),
+            "reason": "Using temporary password", "force_password_change": u.get("force_password_change", False)
+        })
+    for u in users_never_changed_pw:
+        if u["id"] not in [w["id"] for w in weak_password_users]:
+            weak_password_users.append({
+                "id": u["id"], "name": u.get("name", ""), "email": u.get("email", ""),
+                "reason": "Never changed password", "force_password_change": u.get("force_password_change", False)
+            })
+
+    return {
+        "score": score,
+        "grade": grade,
+        "total_users": total_users,
+        "users_without_2fa": len(users_without_2fa),
+        "users_with_weak_passwords": len(weak_password_users),
+        "active_blocks": active_blocks,
+        "active_rules": len(rules),
+        "issues": sorted(issues, key=lambda x: {"critical": 0, "warning": 1, "info": 2}[x["severity"]]),
+        "weak_password_users": weak_password_users,
+        "users_without_2fa_list": [
+            {"id": u["id"], "name": u.get("name", ""), "email": u.get("email", "")}
+            for u in users_without_2fa
+        ],
+    }
