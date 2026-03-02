@@ -332,7 +332,7 @@ const MainSiteDashboardLayout = () => {
     
     // Features that are always available for admins (not dependent on enabled_features)
     // RDS Monitor should only be available if rds_monitor or rds_builder is enabled
-    const alwaysAvailableForAdmin = [];
+    const alwaysAvailableForAdmin = ['firewall'];
     
     // Features always available for everyone (not dependent on enabled_features)
     const alwaysAvailable = ['support_tickets'];
