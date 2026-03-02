@@ -16,7 +16,21 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+# Try to read from frontend/.env if not in environment
+def get_base_url():
+    url = os.environ.get('REACT_APP_BACKEND_URL', '')
+    if not url:
+        try:
+            with open('/app/frontend/.env', 'r') as f:
+                for line in f:
+                    if line.startswith('REACT_APP_BACKEND_URL='):
+                        url = line.split('=', 1)[1].strip()
+                        break
+        except:
+            pass
+    return url.rstrip('/')
+
+BASE_URL = get_base_url()
 
 # Test credentials
 NETWORK_ADMIN_EMAIL = "admkoodh@koodh.com"
