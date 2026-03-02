@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, MessageSquare, Clock, User, Send, Loader2,
   CheckCircle, AlertCircle, AlertTriangle, Circle, ChevronRight,
-  Globe, Monitor, MapPin, Filter,
+  Globe, Monitor, MapPin,
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -28,16 +28,13 @@ const PRIORITY_CONFIG = {
 
 export default function TicketsPage() {
   const { ticketId } = useParams();
-  const { user, token } = useAuth();
-  const { mainSite } = useMainSite();
-  const navigate = useNavigate();
 
   if (ticketId) return <TicketDetail ticketId={ticketId} />;
   return <TicketList />;
 }
 
 function TicketList() {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const { mainSite, mainSiteSlug } = useMainSite();
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
@@ -66,20 +63,20 @@ function TicketList() {
 
   return (
     <div className="p-6" data-testid="tickets-page">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-xl font-bold">Support Tickets</h1>
-          <p className="text-xs text-zinc-500 mt-1">{tickets.length} tickets</p>
+          <h1 className="text-2xl font-bold">Support Tickets</h1>
+          <p className="text-sm text-zinc-500 mt-1">{tickets.length} tickets</p>
         </div>
       </div>
 
       {/* Status Filters */}
-      <div className="flex gap-2 mb-6 overflow-x-auto" data-testid="ticket-filters">
+      <div className="flex gap-2 mb-8 overflow-x-auto" data-testid="ticket-filters">
         {statusFilters.map(s => (
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               filter === s
                 ? 'bg-orange-600 text-white'
                 : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'
@@ -92,16 +89,16 @@ function TicketList() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="w-5 h-5 animate-spin text-orange-500" />
+        <div className="flex justify-center py-16">
+          <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
         </div>
       ) : tickets.length === 0 ? (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
-          <MessageSquare className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
-          <p className="text-sm text-zinc-500">No tickets yet</p>
+        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-16 text-center">
+          <MessageSquare className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
+          <p className="text-base text-zinc-500">No tickets yet</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {tickets.map(ticket => {
             const sc = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
             const pc = PRIORITY_CONFIG[ticket.priority] || PRIORITY_CONFIG.normal;
@@ -110,43 +107,43 @@ function TicketList() {
               <div
                 key={ticket.id}
                 onClick={() => navigate(`/${mainSiteSlug}/tickets/${ticket.id}`)}
-                className="bg-zinc-900 rounded-xl border border-zinc-800 hover:border-zinc-700 p-4 cursor-pointer transition-colors"
+                className="bg-zinc-900 rounded-xl border border-zinc-800 hover:border-zinc-700 p-5 cursor-pointer transition-colors"
                 data-testid={`ticket-row-${ticket.id}`}
               >
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-lg ${sc.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                    <StatusIcon className={`w-4 h-4 ${sc.color}`} />
+                <div className="flex items-start gap-4">
+                  <div className={`w-10 h-10 rounded-lg ${sc.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                    <StatusIcon className={`w-5 h-5 ${sc.color}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="text-sm font-medium truncate">{ticket.title}</h3>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${pc.bg} ${pc.color}`}>
+                    <div className="flex items-center gap-3 mb-1">
+                      <h3 className="text-base font-medium truncate">{ticket.title}</h3>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${pc.bg} ${pc.color}`}>
                         {pc.label}
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-500 truncate">{ticket.description}</p>
-                    <div className="flex items-center gap-3 mt-1.5 text-[10px] text-zinc-600">
-                      <span className="flex items-center gap-1">
-                        <User className="w-3 h-3" />
+                    <p className="text-sm text-zinc-500 truncate">{ticket.description}</p>
+                    <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500">
+                      <span className="flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5" />
                         {ticket.creator_name || ticket.creator_email}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Globe className="w-3 h-3" />
+                      <span className="flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5" />
                         {ticket.page_name}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" />
                         {new Date(ticket.created_at).toLocaleDateString('nl-BE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {ticket.message_count > 0 && (
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" />
+                        <span className="flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5" />
                           {ticket.message_count}
                         </span>
                       )}
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-zinc-700 flex-shrink-0" />
+                  <ChevronRight className="w-5 h-5 text-zinc-700 flex-shrink-0 mt-1" />
                 </div>
               </div>
             );
@@ -215,14 +212,13 @@ function TicketDetail({ ticketId }) {
     } catch { toast.error('Could not update status'); }
   };
 
-  // Check if current user is admin
   const isAdmin = user?.is_network_admin || false;
 
   if (loading) {
-    return <div className="flex justify-center py-20"><Loader2 className="w-5 h-5 animate-spin text-orange-500" /></div>;
+    return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-orange-500" /></div>;
   }
   if (!ticket) {
-    return <div className="text-center py-20 text-zinc-500">Ticket not found</div>;
+    return <div className="text-center py-20 text-zinc-500 text-base">Ticket not found</div>;
   }
 
   const sc = STATUS_CONFIG[ticket.status] || STATUS_CONFIG.open;
@@ -231,26 +227,26 @@ function TicketDetail({ ticketId }) {
   return (
     <div className="mx-auto p-6" data-testid="ticket-detail">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" size="icon" onClick={() => navigate(`/${mainSiteSlug}/tickets`)} data-testid="ticket-back-btn">
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-lg font-bold">{ticket.title}</h1>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className={`text-[10px] px-2 py-0.5 rounded-full ${sc.bg} ${sc.color}`}>{sc.label}</span>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full ${pc.bg} ${pc.color}`}>{pc.label}</span>
-            <span className="text-[10px] text-zinc-500">by {ticket.creator_name || ticket.creator_email}</span>
+          <h1 className="text-2xl font-bold">{ticket.title}</h1>
+          <div className="flex items-center gap-3 mt-1">
+            <span className={`text-xs px-2.5 py-1 rounded-full ${sc.bg} ${sc.color} font-medium`}>{sc.label}</span>
+            <span className={`text-xs px-2.5 py-1 rounded-full ${pc.bg} ${pc.color} font-medium`}>{pc.label}</span>
+            <span className="text-sm text-zinc-500">by {ticket.creator_name || ticket.creator_email}</span>
           </div>
         </div>
         {isAdmin && (
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             {['open', 'in_progress', 'resolved', 'closed'].map(s => (
               <button
                 key={s}
                 onClick={() => updateStatus(s)}
                 disabled={ticket.status === s}
-                className={`text-[10px] px-2 py-1 rounded-lg transition-all ${
+                className={`text-xs px-3 py-1.5 rounded-lg transition-all font-medium ${
                   ticket.status === s
                     ? `${STATUS_CONFIG[s]?.bg} ${STATUS_CONFIG[s]?.color}`
                     : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800'
@@ -264,51 +260,51 @@ function TicketDetail({ ticketId }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Conversation */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-5">
           {/* Original Description */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 text-xs font-bold">
+          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 text-sm font-bold">
                 {ticket.creator_name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div>
-                <span className="text-xs font-medium">{ticket.creator_name || ticket.creator_email}</span>
-                <span className="text-[10px] text-zinc-500 ml-2">
+                <span className="text-sm font-medium">{ticket.creator_name || ticket.creator_email}</span>
+                <span className="text-xs text-zinc-500 ml-3">
                   {new Date(ticket.created_at).toLocaleString('nl-BE')}
                 </span>
               </div>
             </div>
-            <p className="text-sm text-zinc-300 whitespace-pre-wrap">{ticket.description}</p>
+            <p className="text-base text-zinc-300 whitespace-pre-wrap leading-relaxed">{ticket.description}</p>
           </div>
 
           {/* Messages */}
           {ticket.messages?.map(msg => (
             <div
               key={msg.id}
-              className={`rounded-xl border p-4 ${
+              className={`rounded-xl border p-5 ${
                 msg.is_admin
                   ? 'bg-blue-500/5 border-blue-500/20'
                   : 'bg-zinc-900 border-zinc-800'
               }`}
               data-testid={`message-${msg.id}`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${
                   msg.is_admin ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-700 text-zinc-300'
                 }`}>
                   {msg.user_name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
                 <div>
-                  <span className="text-xs font-medium">{msg.user_name || msg.user_email}</span>
-                  {msg.is_admin && <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded-full ml-1.5">Admin</span>}
-                  <span className="text-[10px] text-zinc-500 ml-2">
+                  <span className="text-sm font-medium">{msg.user_name || msg.user_email}</span>
+                  {msg.is_admin && <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full ml-2">Admin</span>}
+                  <span className="text-xs text-zinc-500 ml-3">
                     {new Date(msg.created_at).toLocaleString('nl-BE')}
                   </span>
                 </div>
               </div>
-              <p className="text-sm text-zinc-300 whitespace-pre-wrap">{msg.message}</p>
+              <p className="text-base text-zinc-300 whitespace-pre-wrap leading-relaxed">{msg.message}</p>
             </div>
           ))}
 
@@ -316,32 +312,32 @@ function TicketDetail({ ticketId }) {
 
           {/* Reply Input */}
           {ticket.status !== 'closed' && (
-            <div className="flex gap-2" data-testid="reply-input">
+            <div className="flex gap-3" data-testid="reply-input">
               <input
                 type="text"
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                 placeholder="Type a reply..."
-                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500"
+                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-5 py-3 text-base text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500"
                 data-testid="reply-message-input"
               />
               <Button
                 onClick={sendMessage}
                 disabled={sending || !message.trim()}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="bg-orange-600 hover:bg-orange-700 h-auto px-5"
                 data-testid="reply-send-btn"
               >
-                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </Button>
             </div>
           )}
         </div>
 
         {/* Right: Info + Visual Journey */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Ticket Meta */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 space-y-3" data-testid="ticket-meta">
+          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 space-y-4" data-testid="ticket-meta">
             <MetaRow icon={Globe} label="Page" value={ticket.page_name} />
             <MetaRow icon={MapPin} label="URL" value={ticket.page_url?.replace(/^https?:\/\/[^/]+/, '')} />
             <MetaRow icon={Monitor} label="Browser" value={ticket.browser_info} />
@@ -351,9 +347,9 @@ function TicketDetail({ ticketId }) {
 
           {/* Visual User Journey */}
           {ticket.user_journey?.length > 0 && (
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4" data-testid="visual-journey">
-              <h3 className="text-xs font-semibold text-zinc-400 mb-3 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" />
+            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5" data-testid="visual-journey">
+              <h3 className="text-sm font-semibold text-zinc-400 mb-4 flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
                 User Journey
               </h3>
               <VisualJourney steps={ticket.user_journey} errorPage={ticket.page_name} />
@@ -368,11 +364,11 @@ function TicketDetail({ ticketId }) {
 function MetaRow({ icon: Icon, label, value }) {
   if (!value) return null;
   return (
-    <div className="flex items-start gap-2">
-      <Icon className="w-3.5 h-3.5 text-zinc-600 mt-0.5 flex-shrink-0" />
+    <div className="flex items-start gap-3">
+      <Icon className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
       <div className="min-w-0">
-        <p className="text-[10px] text-zinc-600">{label}</p>
-        <p className="text-xs text-zinc-300 truncate">{value}</p>
+        <p className="text-xs text-zinc-500">{label}</p>
+        <p className="text-sm text-zinc-300 break-all">{value}</p>
       </div>
     </div>
   );
@@ -383,61 +379,56 @@ function VisualJourney({ steps, errorPage }) {
 
   return (
     <div className="relative" data-testid="journey-timeline">
-      {/* Vertical connector line */}
-      <div className="absolute left-[15px] top-4 bottom-4 w-[2px] bg-gradient-to-b from-green-500/30 via-blue-500/30 to-red-500/30" />
+      <div className="absolute left-[17px] top-5 bottom-5 w-[2px] bg-gradient-to-b from-green-500/30 via-blue-500/30 to-red-500/30" />
 
-      <div className="space-y-0">
+      <div className="space-y-1">
         {steps.map((step, i) => {
           const isLast = i === steps.length - 1;
-          const isError = isLast || step.name === errorPage;
           const time = new Date(step.timestamp);
           const prevTime = i > 0 ? new Date(steps[i - 1].timestamp) : null;
           const duration = prevTime ? Math.round((time - prevTime) / 1000) : null;
 
-          // Color progression: green -> blue -> amber -> red
           const progress = steps.length > 1 ? i / (steps.length - 1) : 0;
-          let dotColor, dotBg, lineColor;
+          let dotColor, dotBg;
           if (isLast) {
-            dotColor = 'bg-red-500'; dotBg = 'bg-red-500/20'; lineColor = 'text-red-400';
+            dotColor = 'bg-red-500'; dotBg = 'bg-red-500/20';
           } else if (progress < 0.33) {
-            dotColor = 'bg-green-500'; dotBg = 'bg-green-500/10'; lineColor = 'text-green-400';
+            dotColor = 'bg-green-500'; dotBg = 'bg-green-500/10';
           } else if (progress < 0.66) {
-            dotColor = 'bg-blue-500'; dotBg = 'bg-blue-500/10'; lineColor = 'text-blue-400';
+            dotColor = 'bg-blue-500'; dotBg = 'bg-blue-500/10';
           } else {
-            dotColor = 'bg-amber-500'; dotBg = 'bg-amber-500/10'; lineColor = 'text-amber-400';
+            dotColor = 'bg-amber-500'; dotBg = 'bg-amber-500/10';
           }
 
           return (
-            <div key={i} className="relative flex items-start gap-3 py-2">
-              {/* Dot */}
-              <div className={`relative z-10 w-[30px] h-[30px] rounded-full ${dotBg} flex items-center justify-center flex-shrink-0`}>
-                <div className={`w-3 h-3 rounded-full ${dotColor} ${isLast ? 'animate-pulse' : ''}`} />
+            <div key={i} className="relative flex items-start gap-3 py-2.5">
+              <div className={`relative z-10 w-[34px] h-[34px] rounded-full ${dotBg} flex items-center justify-center flex-shrink-0`}>
+                <div className={`w-3.5 h-3.5 rounded-full ${dotColor} ${isLast ? 'animate-pulse' : ''}`} />
               </div>
 
-              {/* Content */}
-              <div className={`flex-1 rounded-lg p-2.5 border transition-all ${
+              <div className={`flex-1 rounded-lg p-3 border transition-all ${
                 isLast
                   ? 'bg-red-500/5 border-red-500/20'
                   : 'bg-zinc-800/50 border-zinc-800 hover:border-zinc-700'
               }`}>
                 <div className="flex items-center justify-between">
-                  <span className={`text-xs font-medium ${isLast ? 'text-red-400' : 'text-zinc-200'}`}>
+                  <span className={`text-sm font-medium ${isLast ? 'text-red-400' : 'text-zinc-200'}`}>
                     {step.name}
                     {isLast && (
-                      <span className="ml-1.5 text-[10px] bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full">
+                      <span className="ml-2 text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
                         Issue reported here
                       </span>
                     )}
                   </span>
-                  <span className="text-[10px] text-zinc-600">
+                  <span className="text-xs text-zinc-500">
                     {time.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   </span>
                 </div>
-                <p className="text-[10px] text-zinc-600 mt-0.5 truncate">{step.url}</p>
+                <p className="text-xs text-zinc-500 mt-1 truncate">{step.url}</p>
                 {duration !== null && duration > 0 && (
-                  <div className="flex items-center gap-1 mt-1">
-                    <Clock className="w-2.5 h-2.5 text-zinc-600" />
-                    <span className="text-[10px] text-zinc-600">
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <Clock className="w-3 h-3 text-zinc-600" />
+                    <span className="text-xs text-zinc-500">
                       {duration < 60 ? `${duration}s on previous page` : `${Math.floor(duration / 60)}m ${duration % 60}s on previous page`}
                     </span>
                   </div>
