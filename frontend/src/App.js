@@ -216,6 +216,7 @@ const AppRoutes = () => {
         <Route path="sites/:siteId" element={<SiteDashboard />} />
         <Route path="tickets" element={<TicketsPage />} />
         <Route path="tickets/:ticketId" element={<TicketsPage />} />
+        <Route path="firewall" element={<FirewallPage />} />
       </Route>
 
       {/* Public mini site pages - /:mainSiteSlug/:siteSlug */}
