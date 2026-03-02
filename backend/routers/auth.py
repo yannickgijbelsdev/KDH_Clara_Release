@@ -283,16 +283,15 @@ async def logout(request: Request, current_user: dict = Depends(get_current_user
     return {"message": "Logged out successfully"}
 
 
-@auth_router.get("/me", response_model=UserWithTeamResponse)
+@auth_router.get("/me")
 async def get_me(current_user: dict = Depends(get_current_user)):
     team = await db.teams.find_one({"id": current_user.get('team_id')}, {"_id": 0})
     team_name = team['name'] if team else "Unknown Team"
     
-    # Include avatar and preferences if exist
     avatar = current_user.get('avatar')
     preferences = current_user.get('preferences', {})
     
-    return UserWithTeamResponse(
+    resp = UserWithTeamResponse(
         id=current_user['id'],
         email=current_user['email'],
         name=current_user['name'],
@@ -306,6 +305,11 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         totp_enabled=current_user.get('totp_enabled', False),
         totp_skip_count=current_user.get('totp_skip_count', 0)
     )
+    return {
+        **resp.dict(),
+        "force_password_change": current_user.get('force_password_change', False),
+        "is_blocked": current_user.get('is_blocked', False),
+    }
 
 
 @auth_router.post("/2fa/skip")
