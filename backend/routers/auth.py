@@ -205,6 +205,7 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
             )
     
     # Log successful login
+    await handle_successful_login(client_ip, user['id'], user['email'])
     await log_action(
         action="Login",
         category="auth",
@@ -212,7 +213,7 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         user_name=user['name'],
         user_email=user['email'],
         team_id=team_id,
-        ip_address=get_client_ip(request),
+        ip_address=client_ip,
         details={"role": role, "2fa_enabled": totp_enabled}
     )
     
