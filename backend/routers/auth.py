@@ -343,8 +343,8 @@ async def change_password(
     await db.users.update_one(
         {"id": current_user['id']},
         {
-            "$set": {"password_hash": hash_password(new_password)},
-            "$unset": {"temp_password": ""}
+            "$set": {"password_hash": hash_password(new_password), "password_changed_at": datetime.now(timezone.utc).isoformat()},
+            "$unset": {"temp_password": "", "force_password_change": ""}
         }
     )
     
