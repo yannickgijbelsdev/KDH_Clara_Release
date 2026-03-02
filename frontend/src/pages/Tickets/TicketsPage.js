@@ -65,7 +65,7 @@ function TicketList() {
   const statusFilters = ['all', 'open', 'in_progress', 'resolved', 'closed'];
 
   return (
-    <div className="p-6 max-w-5xl mx-auto" data-testid="tickets-page">
+    <div className="p-6" data-testid="tickets-page">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold">Support Tickets</h1>
@@ -229,7 +229,7 @@ function TicketDetail({ ticketId }) {
   const pc = PRIORITY_CONFIG[ticket.priority] || PRIORITY_CONFIG.normal;
 
   return (
-    <div className="max-w-5xl mx-auto p-6" data-testid="ticket-detail">
+    <div className="mx-auto p-6" data-testid="ticket-detail">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <Button variant="ghost" size="icon" onClick={() => navigate(`/${mainSiteSlug}/tickets`)} data-testid="ticket-back-btn">

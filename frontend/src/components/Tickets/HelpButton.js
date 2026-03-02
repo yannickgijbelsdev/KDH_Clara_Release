@@ -97,7 +97,7 @@ export default function HelpButton() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-4 left-4 z-[9990] group"
+          className="fixed bottom-4 right-4 z-[9990] group"
           data-testid="help-button"
         >
           <div className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-full pl-3 pr-4 py-2 shadow-xl transition-all">
