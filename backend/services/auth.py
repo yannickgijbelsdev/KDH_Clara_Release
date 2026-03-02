@@ -19,13 +19,14 @@ def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
 
-def create_token(user_id: str, expires_minutes: int = None) -> tuple[str, float]:
+def create_token(user_id: str, expires_minutes: int = None, session_id: str = None) -> tuple[str, float]:
     """Create JWT token and return token + expiration timestamp.
     
     Args:
         user_id: The user ID to encode in the token
         expires_minutes: Optional override for expiration time in minutes.
                         If not provided, uses JWT_EXPIRATION_HOURS from config.
+        session_id: Optional session ID to include in the token payload.
     """
     if expires_minutes:
         exp_timestamp = datetime.now(timezone.utc).timestamp() + (expires_minutes * 60)
@@ -36,6 +37,8 @@ def create_token(user_id: str, expires_minutes: int = None) -> tuple[str, float]
         'user_id': user_id,
         'exp': exp_timestamp
     }
+    if session_id:
+        payload['session_id'] = session_id
     token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
     return token, exp_timestamp
 
