@@ -266,6 +266,11 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
 @auth_router.post("/logout")
 async def logout(request: Request, current_user: dict = Depends(get_current_user)):
     """Log out the current user."""
+    # Mark all active sessions for this user as inactive
+    await db.sessions.update_many(
+        {"user_id": current_user['id'], "active": True},
+        {"$set": {"active": False, "ended_at": datetime.now(timezone.utc).isoformat()}}
+    )
     await log_action(
         action="Logout",
         category="auth",
