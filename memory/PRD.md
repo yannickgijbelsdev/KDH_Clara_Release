@@ -2558,3 +2558,36 @@ now = now_brussels()  # Automatically handles CET/CEST
   - `frontend/src/App.js` - JourneyProvider wrapper, ticket routes
   - `frontend/src/components/MainSiteDashboardLayout.js` - HelpButton render, nav item
 - Tested: 100% backend (17/17) + 100% frontend (iteration_56.json)
+
+
+### March 2, 2026 - Firewall & Security System (Complete)
+- [x] **Firewall Middleware**: Intercepts every /api request, checks IP blocks, rate limits, IP rules, geo-blocking
+- [x] **IP Rules per Main Site**: Whitelist (only allow) and Blacklist (block) with IP addresses and CIDR ranges
+- [x] **Brute Force Protection**: Auto-blocks IPs after configurable failed login attempts (default: 5 in 15min → 30min ban)
+  - Network admins CAN be locked out by brute force (as requested)
+  - Successful login clears attempt counter
+- [x] **Rate Limiting**: Configurable per-IP request limits (default: 200 req/60s), auto-blocks at 3x threshold
+- [x] **Geo-Blocking**: Uses ip-api.com for IP geolocation, block by country code (ISO 3166-1 alpha-2)
+  - 1-hour geo cache, network admins bypass geo rules
+- [x] **Security Monitoring Dashboard** (/:mainSiteSlug/firewall):
+  - Overview: Stats cards (active blocks, events 24h, failed/successful logins, rate limited, geo blocked)
+  - IP Rules: Create/edit/toggle/delete whitelist & blacklist rules
+  - Blocked IPs: Manual block/unblock with geo info, auto-blocked IPs shown with reason
+  - Security Logs: Filtered by event type, paginated, shows IP/geo/timestamp/details
+  - Settings: Configure brute force, rate limiting, geo-blocking per site
+- [x] **Network Admin Bypass**: Network admins bypass IP rules and geo-blocking, but NOT brute force or rate limits
+- [x] **Auto-Blocking**: Automatic IP blocking on brute force detection and severe rate limit abuse
+- Backend Endpoints:
+  - GET/PUT /api/firewall/settings/{main_site_id}
+  - GET/POST /api/firewall/rules/{main_site_id}, PUT/DELETE /api/firewall/rules/{main_site_id}/{rule_id}
+  - GET /api/firewall/blocks, POST /api/firewall/blocks, DELETE /api/firewall/blocks/{ip}
+  - GET /api/firewall/logs, GET /api/firewall/logs/stats
+  - GET /api/firewall/geo/{ip}
+- Database collections: `firewall_settings`, `firewall_rules`, `firewall_blocks`, `security_logs`
+- Files:
+  - `backend/services/firewall_service.py` - Core firewall logic
+  - `backend/routers/firewall.py` - API endpoints
+  - `backend/middleware/firewall_middleware.py` - Request interceptor
+  - `backend/routers/auth.py` - Brute force integration
+  - `frontend/src/pages/Network/FirewallPage.js` - Admin dashboard
+- Tested: 100% backend (25/25) + 100% frontend (iteration_57.json)
