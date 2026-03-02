@@ -2516,3 +2516,45 @@ now = now_brussels()  # Automatically handles CET/CEST
   - `backend/routers/devtools.py` — Source code endpoint
   - `backend/models/main_sites.py` — Added cloned_from field
 - Tested: 100% backend (15/15) + 100% frontend (iteration_55.json)
+
+
+### March 2, 2026 - Ticketing / Support System (Complete)
+- [x] **Help Button**: Floating help button (bottom-left) visible on all main site pages
+  - Auto-detects current page name, user name, browser info
+  - Shows user journey preview (last 6 pages visited)
+  - Priority selector: Low, Normal, High, Urgent
+  - Creates ticket via POST /api/tickets/
+- [x] **User Journey Tracking**: JourneyProvider context tracks page navigation
+  - Records URL, page name, timestamp for each navigation
+  - Stores up to 50 steps, deduplicates consecutive same pages
+  - Submitted with ticket for admin review
+- [x] **Ticket Management Page** (/:mainSiteSlug/tickets):
+  - List view with status filters (All, Open, In Progress, Resolved, Closed)
+  - Shows ticket title, description, priority, creator, page, timestamp, message count
+  - Click to open ticket detail
+- [x] **Ticket Detail Page** (/:mainSiteSlug/tickets/:ticketId):
+  - Conversation thread with admin/user message distinction
+  - Admin badge on admin replies
+  - Visual User Journey timeline (color progression green→blue→amber→red)
+  - Ticket metadata panel (page, URL, browser, IP, site)
+  - Status change buttons for admins
+  - Reply input with Enter to send
+- [x] **Backend Endpoints**:
+  - POST /api/tickets/ - Create ticket
+  - GET /api/tickets/ - List tickets (admins see all, users see own)
+  - GET /api/tickets/{id} - Get ticket with messages and journey
+  - POST /api/tickets/{id}/messages - Add message
+  - PUT /api/tickets/{id}/status - Update status (admin only)
+  - GET /api/tickets/notifications - Unread notification count
+  - POST /api/tickets/notifications/read - Mark notifications as read
+- [x] **Navigation**: "Support Tickets" nav item in "Support" group (always visible)
+- [x] **Notifications**: Admins notified on new tickets, users notified on admin replies
+- Database collections: `tickets`, `ticket_messages`, `ticket_notifications`
+- Files:
+  - `backend/routers/tickets.py` - All ticket endpoints
+  - `frontend/src/context/JourneyContext.js` - User journey tracking
+  - `frontend/src/components/Tickets/HelpButton.js` - Floating help button + form
+  - `frontend/src/pages/Tickets/TicketsPage.js` - Ticket list + detail views
+  - `frontend/src/App.js` - JourneyProvider wrapper, ticket routes
+  - `frontend/src/components/MainSiteDashboardLayout.js` - HelpButton render, nav item
+- Tested: 100% backend (17/17) + 100% frontend (iteration_56.json)
