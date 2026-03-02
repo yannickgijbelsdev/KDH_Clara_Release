@@ -63,12 +63,10 @@ async def get_audit_logs(
         team_ids = main_site.get("team_ids", []) if main_site else []
         
         # Query logs that either have this main_site_id OR belong to one of its teams
-        query = {
-            "$or": [
-                {"main_site_id": main_site_id},
-                {"team_id": {"$in": team_ids}} if team_ids else {"team_id": None}
-            ]
-        }
+        or_conditions = [{"main_site_id": main_site_id}]
+        if team_ids:
+            or_conditions.append({"team_id": {"$in": team_ids}})
+        query = {"$or": or_conditions}
     elif current_user.get("team_id"):
         query = {"team_id": current_user.get("team_id")}
     elif is_network_admin:
