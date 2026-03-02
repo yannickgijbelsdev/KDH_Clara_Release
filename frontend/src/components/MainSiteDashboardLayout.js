@@ -12,7 +12,7 @@ import {
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
-  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy
+  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
