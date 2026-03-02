@@ -58,6 +58,15 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     user = await db.users.find_one({"id": payload['user_id']}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    # Check if user is blocked
+    if user.get('is_blocked'):
+        raise HTTPException(status_code=403, detail="Account is blocked. Contact your administrator.")
+    # Check if session was terminated
+    session_id = payload.get('session_id')
+    if session_id:
+        session = await db.sessions.find_one({"id": session_id}, {"_id": 0, "active": 1})
+        if session and not session.get("active", True):
+            raise HTTPException(status_code=401, detail="Session terminated by administrator")
     # Ensure is_network_admin field exists (defaults to False)
     if 'is_network_admin' not in user:
         user['is_network_admin'] = False
