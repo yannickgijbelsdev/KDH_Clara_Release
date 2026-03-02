@@ -221,7 +221,24 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         details={"role": role, "2fa_enabled": totp_enabled}
     )
     
-    token, expires_at = create_token(user['id'])
+    # Create session tracking record
+    session_id = str(uuid.uuid4())
+    user_agent = request.headers.get("user-agent", "Unknown")
+    session_doc = {
+        "id": session_id,
+        "user_id": user['id'],
+        "user_name": user.get('name', ''),
+        "user_email": user.get('email', ''),
+        "ip": client_ip,
+        "user_agent": user_agent,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "last_active": datetime.now(timezone.utc).isoformat(),
+        "active": True,
+        "team_id": team_id,
+    }
+    await db.sessions.insert_one({**session_doc})
+
+    token, expires_at = create_token(user['id'], session_id=session_id)
     user_response = UserWithTeamResponse(
         id=user['id'],
         email=user['email'],
@@ -241,7 +258,8 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         "user": user_response,
         "expires_at": expires_at,
         "temp_token": None,
-        "totp_skip_count": user.get('totp_skip_count', 0)
+        "totp_skip_count": user.get('totp_skip_count', 0),
+        "force_password_change": user.get('force_password_change', False),
     }
 
 
