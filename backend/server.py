@@ -52,6 +52,7 @@ from routers.statistics import statistics_router
 from routers.backups import backup_router
 from routers.devtools import devtools_router
 from routers.tickets import ticket_router
+from routers.firewall import firewall_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 
@@ -107,6 +108,7 @@ api_router.include_router(statistics_router)
 api_router.include_router(backup_router)
 api_router.include_router(devtools_router)
 api_router.include_router(ticket_router)
+api_router.include_router(firewall_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
