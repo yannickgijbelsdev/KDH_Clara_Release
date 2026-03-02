@@ -122,13 +122,22 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
     3. If 2FA enabled and code provided: verify code and return full token
     4. If 2FA not enabled: return full token with warning flag
     """
+    client_ip = get_client_ip(request)
+
+    # Check if IP is blocked (brute force protection)
+    block = await check_ip_blocked(client_ip)
+    if block:
+        raise HTTPException(status_code=403, detail="IP temporarily blocked due to too many failed attempts. Try again later.")
+
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not verify_password(credentials.password, user['password_hash']):
+        # Record failed attempt for brute force detection
+        await handle_failed_login(client_ip, credentials.email)
         await log_action(
             action="Login Failed",
             category="auth",
             user_email=credentials.email,
-            ip_address=get_client_ip(request),
+            ip_address=client_ip,
             details={"reason": "Invalid credentials"}
         )
         raise HTTPException(status_code=401, detail="Invalid credentials")
