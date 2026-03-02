@@ -276,6 +276,7 @@ function App() {
       <AuthProvider>
         <JourneyProvider>
           <TwoFactorEnforcementWrapper />
+          <ForcePasswordChangeModal />
           <AppRoutes />
           <SessionWarningModal />
           <Toaster position="bottom-right" richColors />
