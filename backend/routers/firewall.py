@@ -456,14 +456,19 @@ async def security_audit(main_site_id: str, current_user: dict = Depends(get_cur
         score -= 5
 
     # 5. Check users - 2FA adoption
-    main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "team_ids": 1})
-    team_ids = main_site.get("team_ids", []) if main_site else []
-    
-    users = await db.users.find(
-        {"team_id": {"$in": team_ids}, "is_system_account": {"$ne": True}},
-        {"_id": 0, "id": 1, "name": 1, "email": 1, "totp_enabled": 1, "temp_password": 1,
-         "force_password_change": 1, "password_changed_at": 1, "created_at": 1, "is_blocked": 1}
+    # Users are linked via main_site_users collection, not team_ids
+    site_user_docs = await db.main_site_users.find(
+        {"main_site_id": main_site_id}, {"_id": 0, "user_id": 1}
     ).to_list(500)
+    user_ids = [d["user_id"] for d in site_user_docs]
+    
+    users = []
+    if user_ids:
+        users = await db.users.find(
+            {"id": {"$in": user_ids}, "is_system_account": {"$ne": True}},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "totp_enabled": 1, "temp_password": 1,
+             "force_password_change": 1, "password_changed_at": 1, "created_at": 1, "is_blocked": 1}
+        ).to_list(500)
 
     total_users = len(users)
     users_without_2fa = [u for u in users if not u.get("totp_enabled")]
