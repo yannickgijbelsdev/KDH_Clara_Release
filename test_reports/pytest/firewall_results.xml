@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="32" failures="4" skipped="0" tests="36" time="0.903" timestamp="2026-03-02T00:35:40.271632+00:00" hostname="agent-env-dce4e80a-6fd6-4c8d-a9bc-91b7030a03b4"><testcase classname="backend.tests.test_firewall.TestFirewallAuth" name="test_firewall_endpoints_require_auth" time="0.001"><failure message="requests.exceptions.MissingSchema: Invalid URL '/api/firewall/settings/fc37cb22-b93e-4fc8-9d77-818b3af45d35': No scheme supplied. Perhaps you meant https:///api/firewall/settings/fc37cb22-b93e-4fc8-9d77-818b3af45d35?">backend/tests/test_firewall.py:65: in test_firewall_endpoints_require_auth
+    resp = self.session.request(method, f"{BASE_URL}{endpoint}")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/firewall/settings/fc37cb22-b93e-4fc8-9d77-818b3af45d35': No scheme supplied. Perhaps you meant https:///api/firewall/settings/fc37cb22-b93e-4fc8-9d77-818b3af45d35?</failure></testcase><testcase classname="backend.tests.test_firewall.TestFirewallSettings" name="test_get_default_settings" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:76: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:80: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallSettings" name="test_update_brute_force_settings" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:76: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:80: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallSettings" name="test_update_rate_limiting_settings" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:76: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:80: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallSettings" name="test_update_geo_blocking_settings" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:76: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:80: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallRules" name="test_create_blacklist_rule" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:197: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:202: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'&quot;">backend/tests/test_firewall.py:213: in teardown_method
+    for rule_id in self.created_rule_ids:
+                   ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallRules" name="test_create_whitelist_rule" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:197: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:202: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'&quot;">backend/tests/test_firewall.py:213: in teardown_method
+    for rule_id in self.created_rule_ids:
+                   ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallRules" name="test_list_rules" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:197: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:202: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'&quot;">backend/tests/test_firewall.py:213: in teardown_method
+    for rule_id in self.created_rule_ids:
+                   ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallRules" name="test_toggle_rule_active" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:197: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:202: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'&quot;">backend/tests/test_firewall.py:213: in teardown_method
+    for rule_id in self.created_rule_ids:
+                   ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallRules" name="test_delete_rule" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:197: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:202: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'&quot;">backend/tests/test_firewall.py:213: in teardown_method
+    for rule_id in self.created_rule_ids:
+                   ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallRules" name="test_delete_nonexistent_rule_returns_404" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:197: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:202: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'&quot;">backend/tests/test_firewall.py:213: in teardown_method
+    for rule_id in self.created_rule_ids:
+                   ^^^^^^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallRules' object has no attribute 'created_rule_ids'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallBlocks" name="test_manual_block_ip_permanent" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:375: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:380: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'&quot;">backend/tests/test_firewall.py:391: in teardown_method
+    for ip in self.blocked_ips:
+              ^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallBlocks" name="test_manual_block_ip_with_duration" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:375: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:380: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'&quot;">backend/tests/test_firewall.py:391: in teardown_method
+    for ip in self.blocked_ips:
+              ^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallBlocks" name="test_list_blocks_with_geo_info" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:375: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:380: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'&quot;">backend/tests/test_firewall.py:391: in teardown_method
+    for ip in self.blocked_ips:
+              ^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallBlocks" name="test_unblock_ip" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:375: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:380: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'&quot;">backend/tests/test_firewall.py:391: in teardown_method
+    for ip in self.blocked_ips:
+              ^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'</error></testcase><testcase classname="backend.tests.test_firewall.TestFirewallBlocks" name="test_unblock_nonexistent_returns_404" time="0.001"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:375: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:380: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error><error message="failed on teardown with &quot;AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'&quot;">backend/tests/test_firewall.py:391: in teardown_method
+    for ip in self.blocked_ips:
+              ^^^^^^^^^^^^^^^^
+E   AttributeError: 'TestFirewallBlocks' object has no attribute 'blocked_ips'</error></testcase><testcase classname="backend.tests.test_firewall.TestSecurityLogs" name="test_get_security_logs" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:503: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:507: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestSecurityLogs" name="test_get_logs_filtered_by_event_type" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:503: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:507: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestSecurityLogs" name="test_get_logs_with_pagination" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:503: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:507: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestSecurityLogs" name="test_get_logs_stats" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:503: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:507: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestGeoLookup" name="test_geo_lookup_public_ip" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:573: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:577: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestGeoLookup" name="test_geo_lookup_private_ip" time="0.000"><error message="failed on setup with &quot;requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?&quot;">backend/tests/test_firewall.py:573: in setup
+    self.token = self._login()
+                 ^^^^^^^^^^^^^
+backend/tests/test_firewall.py:577: in _login
+    resp = self.session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</error></testcase><testcase classname="backend.tests.test_firewall.TestBruteForceIntegration" name="test_failed_login_creates_security_log" time="0.000"><failure message="requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?">backend/tests/test_firewall.py:619: in test_failed_login_creates_security_log
+    login_resp = session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</failure></testcase><testcase classname="backend.tests.test_firewall.TestBruteForceIntegration" name="test_successful_login_creates_security_log" time="0.000"><failure message="requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?">backend/tests/test_firewall.py:654: in test_successful_login_creates_security_log
+    resp = session.post(f"{BASE_URL}/api/auth/login", json={
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:637: in post
+    return self.request("POST", url, data=data, json=json, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/auth/login': No scheme supplied. Perhaps you meant https:///api/auth/login?</failure></testcase><testcase classname="backend.tests.test_firewall.TestNonAdminAccess" name="test_non_admin_gets_403" time="0.000"><failure message="requests.exceptions.MissingSchema: Invalid URL '/api/firewall/settings/fc37cb22-b93e-4fc8-9d77-818b3af45d35': No scheme supplied. Perhaps you meant https:///api/firewall/settings/fc37cb22-b93e-4fc8-9d77-818b3af45d35?">backend/tests/test_firewall.py:694: in test_non_admin_gets_403
+    resp = session.get(f"{BASE_URL}{endpoint}")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:602: in get
+    return self.request("GET", url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:575: in request
+    prep = self.prepare_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:484: in prepare_request
+    p.prepare(
+/root/.venv/lib/python3.11/site-packages/requests/models.py:367: in prepare
+    self.prepare_url(url, params)
+/root/.venv/lib/python3.11/site-packages/requests/models.py:438: in prepare_url
+    raise MissingSchema(
+E   requests.exceptions.MissingSchema: Invalid URL '/api/firewall/settings/fc37cb22-b93e-4fc8-9d77-818b3af45d35': No scheme supplied. Perhaps you meant https:///api/firewall/settings/fc37cb22-b93e-4fc8-9d77-818b3af45d35?</failure></testcase></testsuite></testsuites>
