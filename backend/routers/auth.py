@@ -13,6 +13,7 @@ from services.auth import (
     hash_password, verify_password, create_token, get_current_user
 )
 from services.audit import log_action, get_client_ip
+from services.firewall_service import handle_failed_login, handle_successful_login, check_ip_blocked
 from services.two_factor import (
     generate_totp_secret, generate_qr_code_base64, verify_totp,
     generate_backup_codes, hash_backup_code, verify_backup_code
