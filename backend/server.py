@@ -814,6 +814,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Firewall Middleware (runs after CORS so blocked requests still get proper CORS headers)
+from database import JWT_ALGORITHM
+from middleware.firewall_middleware import FirewallMiddleware
+app.add_middleware(FirewallMiddleware, jwt_secret=JWT_SECRET, jwt_algorithm=JWT_ALGORITHM)
+
 
 # ============== STARTUP/SHUTDOWN EVENTS ==============
 
