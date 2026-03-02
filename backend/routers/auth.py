@@ -141,6 +141,10 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
             details={"reason": "Invalid credentials"}
         )
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Check if user is blocked
+    if user.get('is_blocked'):
+        raise HTTPException(status_code=403, detail="Account is blocked. Contact your administrator.")
     
     team = await db.teams.find_one({"id": user.get('team_id')}, {"_id": 0})
     team_name = team['name'] if team else "Unknown Team"
