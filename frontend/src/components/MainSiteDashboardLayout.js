@@ -112,7 +112,7 @@ const NAV_GROUPS = [
     id: 'admin',
     label: 'Administration',
     icon: Settings,
-    features: ['team_settings', 'wordpress', 'activity_logs']
+    features: ['team_settings', 'wordpress', 'activity_logs', 'firewall']
   },
   {
     id: 'support',
