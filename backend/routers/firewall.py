@@ -308,11 +308,13 @@ async def list_sessions(
     if active_only:
         query["active"] = True
     if main_site_id:
-        # Get team_ids for this main site to filter sessions
-        main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "team_ids": 1})
-        team_ids = main_site.get("team_ids", []) if main_site else []
-        if team_ids:
-            query["team_id"] = {"$in": team_ids}
+        # Get user_ids linked to this main site via main_site_users
+        site_user_docs = await db.main_site_users.find(
+            {"main_site_id": main_site_id}, {"_id": 0, "user_id": 1}
+        ).to_list(500)
+        user_ids = [d["user_id"] for d in site_user_docs]
+        if user_ids:
+            query["user_id"] = {"$in": user_ids}
 
     sessions = await db.sessions.find(query, {"_id": 0}).sort("started_at", -1).to_list(500)
 
