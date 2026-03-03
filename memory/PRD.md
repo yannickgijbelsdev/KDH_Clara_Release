@@ -2659,6 +2659,16 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files updated: `backend/routers/firewall.py`
 
 
+### March 3, 2026 - Call Studio Feature Toggle + Clone Visibility
+- [x] **Call Studio als feature toggle**: `call_studio` toegevoegd aan AVAILABLE_FEATURES (group: streaming). Network Admin kan het per main site in-/uitschakelen. Verschijnt alleen in sidebar als het is ingeschakeld.
+- [x] **Clone sites zichtbaarheid beperkt**:
+  - Network Admin: ziet alle sites inclusief clones
+  - Admin van parent site: ziet clones van hun main site
+  - Editor/Presenter/Viewer: zien GEEN clones
+  - Toegepast op zowel `GET /api/main-sites` als `GET /api/main-sites/my/access`
+  - Logica getest met unit tests: 3/3 scenarios passed (editor=hidden, admin=visible, viewer=hidden)
+
+
 ### March 3, 2026 - Call Studio Feature (Phase 1) Implemented
 - [x] **Call Studio - Phase 1 Complete**:
   - Audio Profiles: CRUD for saving input/output device configurations per user (Studio A, Home Setup, etc.)

@@ -59,12 +59,13 @@ async def get_available_features(current_user: dict = Depends(get_current_user))
 
 @main_sites_router.get("", response_model=list[MainSiteListResponse])
 async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
-    """Get all main sites. Network admins see all, others see only their assigned sites."""
+    """Get all main sites. Network admins see all, others see only their assigned sites.
+    Clone sites are only visible to network admins and admins of the parent site."""
     is_network_admin = current_user.get('is_network_admin', False)
     user_id = current_user['id']
     
     if is_network_admin:
-        # Network admin sees all main sites
+        # Network admin sees all main sites including clones
         main_sites = await db.main_sites.find(
             {},
             {"_id": 0}
@@ -73,14 +74,28 @@ async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
         # Regular users see only assigned main sites
         user_access = await db.main_site_users.find(
             {"user_id": user_id},
-            {"_id": 0, "main_site_id": 1}
+            {"_id": 0, "main_site_id": 1, "role": 1}
         ).to_list(100)
         main_site_ids = [a["main_site_id"] for a in user_access]
+        access_by_id = {a["main_site_id"]: a["role"] for a in user_access}
         
         main_sites = await db.main_sites.find(
             {"id": {"$in": main_site_ids}},
             {"_id": 0}
         ).to_list(100)
+        
+        # Filter out clones unless user is admin of the parent site
+        admin_site_ids = {sid for sid, role in access_by_id.items() if role == "admin"}
+        filtered = []
+        for site in main_sites:
+            cloned_from = site.get("cloned_from")
+            if not cloned_from:
+                # Not a clone — always show
+                filtered.append(site)
+            elif cloned_from in admin_site_ids or site["id"] in admin_site_ids:
+                # Clone visible if user is admin of parent or the clone itself
+                filtered.append(site)
+        main_sites = filtered
     
     # Add counts
     for site in main_sites:
@@ -544,7 +559,8 @@ async def get_main_site_mini_sites(
 
 @main_sites_router.get("/my/access")
 async def get_my_main_site_access(current_user: dict = Depends(get_current_user)):
-    """Get current user's main site access list with their roles."""
+    """Get current user's main site access list with their roles.
+    Clone sites are only visible to network admins and admins of the parent site."""
     user_id = current_user['id']
     is_network_admin = current_user.get('is_network_admin', False)
     
@@ -579,6 +595,16 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
         {"_id": 0}
     ).to_list(100)
     
+    # Filter out clones unless user is admin of the parent site
+    admin_site_ids = {sid for sid, role in access_by_id.items() if role == "admin"}
+    filtered = []
+    for ms in main_sites:
+        cloned_from = ms.get("cloned_from")
+        if not cloned_from:
+            filtered.append(ms)
+        elif cloned_from in admin_site_ids or ms["id"] in admin_site_ids:
+            filtered.append(ms)
+    
     return {
         "is_network_admin": False,
         "main_sites": [
@@ -589,7 +615,7 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
                 "logo_url": ms.get("logo_url"),
                 "role": access_by_id.get(ms["id"], "viewer")
             }
-            for ms in main_sites
+            for ms in filtered
         ]
     }
 

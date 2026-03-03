@@ -25,6 +25,7 @@ AVAILABLE_FEATURES = [
     {"id": "rds_builder", "name": "RDS Builder", "group": "streaming"},
     {"id": "rds_monitor", "name": "RDS Monitor", "group": "streaming"},
     {"id": "stream_monitor", "name": "Stream Monitor", "group": "streaming"},
+    {"id": "call_studio", "name": "Call Studio", "group": "streaming"},
     
     # Sites group (mini sites)
     {"id": "sites", "name": "Sites", "group": "sites"},

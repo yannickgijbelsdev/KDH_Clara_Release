@@ -336,7 +336,7 @@ const MainSiteDashboardLayout = () => {
     const alwaysAvailableForAdmin = ['firewall'];
     
     // Features always available for everyone (not dependent on enabled_features)
-    const alwaysAvailable = ['support_tickets', 'call_studio'];
+    const alwaysAvailable = ['support_tickets'];
     
     return NAV_GROUPS.map(group => {
       const items = group.features
