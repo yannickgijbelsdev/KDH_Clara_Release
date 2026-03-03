@@ -224,7 +224,7 @@ async def get_security_logs(
     require_network_admin(current_user)
     query = {}
     if main_site_id:
-        query["main_site_id"] = main_site_id
+        query["main_site_id"] = {"$in": [main_site_id, None]}
     if event_type:
         query["event_type"] = event_type
 
@@ -241,12 +241,17 @@ async def get_security_stats(
     main_site_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user),
 ):
-    """Get aggregated security statistics."""
+    """Get aggregated security statistics.
+    
+    Includes both site-specific AND global events (main_site_id=None),
+    since logins, IP blocks, etc. occur without a site context.
+    """
     require_network_admin(current_user)
     
+    # Include both site-specific and global (null) events
     query = {}
     if main_site_id:
-        query["main_site_id"] = main_site_id
+        query["main_site_id"] = {"$in": [main_site_id, None]}
 
     # Count by event type
     pipeline = [
@@ -257,10 +262,10 @@ async def get_security_stats(
     async for doc in db.security_logs.aggregate(pipeline):
         event_counts[doc["_id"] or "unknown"] = doc["count"]
 
-    # Active blocks count
+    # Active blocks count (include both site-specific and global blocks)
     block_query = {"active": True}
     if main_site_id:
-        block_query["main_site_id"] = main_site_id
+        block_query["$or"] = [{"main_site_id": main_site_id}, {"main_site_id": None}]
     active_blocks = await db.firewall_blocks.count_documents(block_query)
 
     # Recent events (last 24h)
@@ -270,8 +275,11 @@ async def get_security_stats(
     recent_events = await db.security_logs.count_documents(recent_query)
 
     # Top blocked IPs
+    block_match = {"active": True}
+    if main_site_id:
+        block_match["$or"] = [{"main_site_id": main_site_id}, {"main_site_id": None}]
     block_pipeline = [
-        {"$match": {"active": True}},
+        {"$match": block_match},
         {"$group": {"_id": "$ip", "count": {"$sum": 1}, "last_reason": {"$last": "$reason"}}},
         {"$sort": {"count": -1}},
         {"$limit": 10},

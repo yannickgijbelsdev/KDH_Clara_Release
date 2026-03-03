@@ -2649,6 +2649,15 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Test report: `/app/test_reports/iteration_59.json`
   - Test file: `/app/backend/tests/test_endpoint_protection.py`
 
+
+### March 3, 2026 - Firewall Overview Stats Bug Fix
+- [x] **Bug Fix: Firewall Overview showed no data**:
+  - Root cause: Stats query filtered on exact `main_site_id`, but login events, IP blocks, etc. are logged without a site context (`main_site_id=None`)
+  - Fix: Changed both `/api/firewall/logs/stats` and `/api/firewall/logs` to include global events (`main_site_id=None`) alongside site-specific events using `$in` query
+  - Result: Overview now shows all 6 stat cards with real data (successful logins, failed logins, events 24h, etc.)
+  - Security Logs tab also now shows all relevant events
+  - Files updated: `backend/routers/firewall.py`
+
 ## Current Status (March 3, 2026)
 ### Open Issues
 - **P0: Clone Login Bug (Production)** - Users unable to log into cloned main sites on production. Enhanced error handling added for diagnostics. Waiting for user feedback with screenshots/network tab info.
