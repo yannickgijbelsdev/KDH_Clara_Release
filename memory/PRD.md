@@ -2636,3 +2636,25 @@ now = now_brussels()  # Automatically handles CET/CEST
   - `backend/routers/auth.py` - Brute force integration
   - `frontend/src/pages/Network/FirewallPage.js` - Admin dashboard
 - Tested: 100% backend (25/25) + 100% frontend (iteration_57.json)
+
+
+### March 3, 2026 - Endpoint Protection Verification (Complete)
+- [x] **Endpoint Protection Feature Verified**:
+  - Formally tested with testing agent: 21/21 backend tests passed, 100% frontend verified
+  - All 18 configurable endpoint groups working correctly
+  - Toggle public/private per main site works
+  - Live connection monitoring with 10s auto-refresh
+  - Middleware enforcement: private endpoints reject unauth, public endpoints accessible
+  - Always-public endpoints (RDS, uploads, shares) always accessible
+  - Test report: `/app/test_reports/iteration_59.json`
+  - Test file: `/app/backend/tests/test_endpoint_protection.py`
+
+## Current Status (March 3, 2026)
+### Open Issues
+- **P0: Clone Login Bug (Production)** - Users unable to log into cloned main sites on production. Enhanced error handling added for diagnostics. Waiting for user feedback with screenshots/network tab info.
+
+### Upcoming Tasks
+- **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
+- **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
+- **P1: Configurable "Stale Now Playing" Timeout** - Make 15-min timeout configurable via UI
+- **P2: Stream Monitor VU Meters** - Implement functional VU meters (blocked by browser security)
