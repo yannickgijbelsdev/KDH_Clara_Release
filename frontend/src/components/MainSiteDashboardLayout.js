@@ -12,7 +12,7 @@ import {
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
-  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield
+  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -73,6 +73,7 @@ const FEATURE_NAV_ITEMS = {
   wordpress: { to: 'wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
   activity_logs: { to: 'logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
   firewall: { to: 'firewall', icon: Shield, label: 'Firewall', adminOnly: true },
+  call_studio: { to: 'call-studio', icon: Phone, label: 'Call Studio' },
   support_tickets: { to: 'tickets', icon: LifeBuoy, label: 'Support Tickets' },
 };
 
@@ -100,7 +101,7 @@ const NAV_GROUPS = [
     id: 'streaming',
     label: 'Streaming & RDS',
     icon: Radio,
-    features: ['rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor']
+    features: ['rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor', 'call_studio']
   },
   {
     id: 'sites',
@@ -335,7 +336,7 @@ const MainSiteDashboardLayout = () => {
     const alwaysAvailableForAdmin = ['firewall'];
     
     // Features always available for everyone (not dependent on enabled_features)
-    const alwaysAvailable = ['support_tickets'];
+    const alwaysAvailable = ['support_tickets', 'call_studio'];
     
     return NAV_GROUPS.map(group => {
       const items = group.features

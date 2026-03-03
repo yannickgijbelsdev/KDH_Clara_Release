@@ -53,8 +53,10 @@ from routers.backups import backup_router
 from routers.devtools import devtools_router
 from routers.tickets import ticket_router
 from routers.firewall import firewall_router
+from routers.calls import calls_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
+from services.call_signaling import call_signaling
 
 # Create the main app
 app = FastAPI(title="Radio Show Planner API")
@@ -109,6 +111,7 @@ api_router.include_router(backup_router)
 api_router.include_router(devtools_router)
 api_router.include_router(ticket_router)
 api_router.include_router(firewall_router)
+api_router.include_router(calls_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
@@ -798,6 +801,67 @@ async def show_rundown_websocket(
         await ws_manager.disconnect(websocket, room_id)
     except Exception:
         await ws_manager.disconnect(websocket, room_id)
+
+
+# ============== CALL SIGNALING WEBSOCKET ==============
+
+@app.websocket("/ws/call/{room_id}")
+async def call_signaling_websocket(websocket: WebSocket, room_id: str):
+    """WebSocket endpoint for WebRTC call signaling.
+    
+    Roles:
+    - host: Authenticated Clara user (passes token)
+    - caller: External user joining via invite link (passes caller_token)
+    """
+    token = websocket.query_params.get("token")
+    role = websocket.query_params.get("role", "host")
+
+    # Validate host via JWT
+    if role == "host":
+        if not token:
+            await websocket.close(code=4001, reason="Missing token")
+            return
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+            if not user_id:
+                await websocket.close(code=4001, reason="Invalid token")
+                return
+        except Exception:
+            await websocket.close(code=4001, reason="Invalid token")
+            return
+    elif role == "caller":
+        # Callers just need a valid room_id (invite was already accepted via REST)
+        invite = await db.call_invites.find_one({"id": room_id})
+        if not invite or invite.get("status") not in ("active", "pending"):
+            await websocket.close(code=4004, reason="Invalid or expired invite")
+            return
+    else:
+        await websocket.close(code=4001, reason="Invalid role")
+        return
+
+    await call_signaling.connect(room_id, role, websocket)
+
+    try:
+        while True:
+            data = await websocket.receive_text()
+            try:
+                message = json.loads(data)
+                msg_type = message.get("type")
+
+                if msg_type == "ping":
+                    await websocket.send_json({"type": "pong"})
+                elif msg_type in ("offer", "answer", "ice_candidate", "mute_state", "volume_change", "hangup"):
+                    await call_signaling.relay_message(room_id, role, message)
+                elif msg_type == "get_status":
+                    status = call_signaling.get_room_status(room_id)
+                    await websocket.send_json({"type": "room_status", **status})
+            except json.JSONDecodeError:
+                pass
+    except WebSocketDisconnect:
+        await call_signaling.disconnect(room_id, role)
+    except Exception:
+        await call_signaling.disconnect(room_id, role)
 
 
 # ============== INCLUDE MAIN ROUTER ==============

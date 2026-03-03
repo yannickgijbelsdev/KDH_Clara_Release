@@ -39,7 +39,11 @@ import StatisticsPage from './pages/Network/StatisticsPage';
 import BackupManagementPage from './pages/Network/BackupManagementPage';
 import FirewallPage from './pages/Network/FirewallPage';
 import TicketsPage from './pages/Tickets/TicketsPage';
+import CallPage from './pages/CallPage';
+import PublicCallPage from './pages/PublicCallPage';
 import { JourneyProvider } from './context/JourneyContext';
+import { CallProvider } from './context/CallContext';
+import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import './App.css';
 
@@ -218,7 +222,11 @@ const AppRoutes = () => {
         <Route path="tickets" element={<TicketsPage />} />
         <Route path="tickets/:ticketId" element={<TicketsPage />} />
         <Route path="firewall" element={<FirewallPage />} />
+        <Route path="call-studio" element={<CallPage />} />
       </Route>
+
+      {/* Public Call Page - /call/:callToken (no auth required) */}
+      <Route path="/call/:callToken" element={<PublicCallPage />} />
 
       {/* Public mini site pages - /:mainSiteSlug/:siteSlug */}
       <Route path="/:mainSiteSlug/:siteSlug" element={<PublicSitePage />} />
@@ -275,11 +283,14 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <JourneyProvider>
-          <TwoFactorEnforcementWrapper />
-          <ForcePasswordChangeModal />
-          <AppRoutes />
-          <SessionWarningModal />
-          <Toaster position="bottom-right" richColors />
+          <CallProvider>
+            <TwoFactorEnforcementWrapper />
+            <ForcePasswordChangeModal />
+            <AppRoutes />
+            <CallWidget />
+            <SessionWarningModal />
+            <Toaster position="bottom-right" richColors />
+          </CallProvider>
         </JourneyProvider>
       </AuthProvider>
     </BrowserRouter>

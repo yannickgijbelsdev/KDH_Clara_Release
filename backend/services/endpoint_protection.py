@@ -18,6 +18,7 @@ ALWAYS_PUBLIC_PREFIXES = (
     "/api/uploads/",
     "/api/share/",
     "/api/config",
+    "/api/calls/join/",
 )
 
 # Always private - cannot be made public
