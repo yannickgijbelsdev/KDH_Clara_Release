@@ -7,7 +7,7 @@ import {
   Shield, ShieldAlert, ShieldCheck, ShieldOff, Plus, Trash2, Globe,
   Ban, CheckCircle, Clock, AlertTriangle, Activity, X, Loader2,
   Lock, Unlock, RefreshCw, Monitor, UserX, KeyRound, Scan,
-  Users, Timer, LogOut, AlertCircle, Info,
+  Users, Timer, LogOut, AlertCircle, Info, Network, Eye, EyeOff,
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -25,6 +25,7 @@ export default function FirewallPage() {
     { id: 'overview', label: 'Overview', icon: Shield },
     { id: 'audit', label: 'Security Audit', icon: Scan },
     { id: 'sessions', label: 'Sessions', icon: Users },
+    { id: 'endpoints', label: 'Endpoints', icon: Network },
     { id: 'rules', label: 'IP Rules', icon: Lock },
     { id: 'blocks', label: 'Blocked IPs', icon: Ban },
     { id: 'logs', label: 'Security Logs', icon: Activity },
@@ -63,6 +64,7 @@ export default function FirewallPage() {
       {tab === 'overview' && <OverviewTab token={token} mainSiteId={mainSite?.id} />}
       {tab === 'audit' && <AuditTab token={token} mainSiteId={mainSite?.id} />}
       {tab === 'sessions' && <SessionsTab token={token} mainSiteId={mainSite?.id} />}
+      {tab === 'endpoints' && <EndpointsTab token={token} mainSiteId={mainSite?.id} />}
       {tab === 'rules' && <RulesTab token={token} mainSiteId={mainSite?.id} />}
       {tab === 'blocks' && <BlocksTab token={token} mainSiteId={mainSite?.id} />}
       {tab === 'logs' && <LogsTab token={token} mainSiteId={mainSite?.id} />}
@@ -402,6 +404,191 @@ function parseUA(ua) {
   if (ua.includes('Edge')) return 'Edge';
   return ua.substring(0, 30);
 }
+
+
+// ============== ENDPOINTS TAB ==============
+function EndpointsTab({ token, mainSiteId }) {
+  const [groups, setGroups] = useState([]);
+  const [publicGroups, setPublicGroups] = useState([]);
+  const [connections, setConnections] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [expandedGroup, setExpandedGroup] = useState(null);
+  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [epRes, connRes] = await Promise.all([
+        fetch(`${API}/api/firewall/endpoints/${mainSiteId}`, { headers }),
+        fetch(`${API}/api/firewall/endpoints/${mainSiteId}/connections`, { headers }),
+      ]);
+      if (epRes.ok) {
+        const data = await epRes.json();
+        setGroups(data.groups || []);
+        setPublicGroups(data.public_groups || []);
+      }
+      if (connRes.ok) {
+        setConnections((await connRes.json()).connections || []);
+      }
+    } catch {}
+    setLoading(false);
+  }, [mainSiteId]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Auto-refresh connections every 10s
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API}/api/firewall/endpoints/${mainSiteId}/connections`, { headers });
+        if (res.ok) setConnections((await res.json()).connections || []);
+      } catch {}
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [mainSiteId]);
+
+  const toggleGroup = async (groupId) => {
+    const newPublic = publicGroups.includes(groupId)
+      ? publicGroups.filter(g => g !== groupId)
+      : [...publicGroups, groupId];
+
+    setSaving(true);
+    try {
+      const res = await fetch(`${API}/api/firewall/endpoints/${mainSiteId}`, {
+        method: 'PUT', headers,
+        body: JSON.stringify({ public_groups: newPublic }),
+      });
+      if (res.ok) {
+        setPublicGroups(newPublic);
+        toast.success(`${groupId} is now ${newPublic.includes(groupId) ? 'public' : 'private'}`);
+      }
+    } catch {}
+    setSaving(false);
+  };
+
+  const getConnectionsForGroup = (groupId) => {
+    return connections.find(c => c.group === groupId);
+  };
+
+  if (loading) return <Spinner />;
+
+  return (
+    <div className="space-y-6" data-testid="endpoints-tab">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-zinc-500">
+            {publicGroups.length} of {groups.length} endpoint groups are public
+          </p>
+          <p className="text-xs text-zinc-600 mt-1">RDS endpoints are always public and cannot be locked.</p>
+        </div>
+        <button onClick={fetchData} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400">
+          <RefreshCw className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Always Public Notice */}
+      <div className="bg-green-500/5 rounded-xl border border-green-500/20 p-4 flex items-center gap-3">
+        <Eye className="w-5 h-5 text-green-400 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-green-400">Always Public (not configurable)</p>
+          <p className="text-xs text-zinc-500 mt-0.5">RDS Settings, RDS Builder Output, Public Schedules, Public Site Pages, Uploads, Share Links</p>
+        </div>
+      </div>
+
+      {/* Endpoint Groups */}
+      <div className="space-y-2">
+        {groups.map(group => {
+          const isPublic = publicGroups.includes(group.id);
+          const conn = getConnectionsForGroup(group.id);
+          const isExpanded = expandedGroup === group.id;
+
+          return (
+            <div key={group.id} className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden" data-testid={`endpoint-${group.id}`}>
+              <div className="p-4 flex items-center justify-between">
+                <div
+                  className="flex items-center gap-3 flex-1 cursor-pointer"
+                  onClick={() => setExpandedGroup(isExpanded ? null : group.id)}
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isPublic ? 'bg-green-500/10' : 'bg-zinc-800'}`}>
+                    {isPublic ? <Eye className="w-4 h-4 text-green-400" /> : <EyeOff className="w-4 h-4 text-zinc-500" />}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{group.label}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${isPublic ? 'bg-green-500/10 text-green-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                        {isPublic ? 'public' : 'private'}
+                      </span>
+                      {conn && conn.total_requests > 0 && (
+                        <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Activity className="w-3 h-3" />
+                          {conn.total_requests} req ({conn.unique_ips} IPs)
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500 mt-0.5">{group.description}</p>
+                  </div>
+                </div>
+                <Toggle
+                  checked={isPublic}
+                  onChange={() => toggleGroup(group.id)}
+                  testId={`toggle-${group.id}`}
+                />
+              </div>
+
+              {/* Connection details when expanded and public */}
+              {isExpanded && isPublic && conn && conn.connections?.length > 0 && (
+                <div className="border-t border-zinc-800 p-4 bg-zinc-950/50">
+                  <h4 className="text-xs font-semibold text-zinc-400 mb-3 flex items-center gap-2">
+                    <Monitor className="w-3.5 h-3.5" />
+                    Active Connections (last hour)
+                  </h4>
+                  <div className="space-y-2">
+                    {conn.connections.map((c, i) => (
+                      <div key={i} className="flex items-center justify-between py-2 border-b border-zinc-800/50 last:border-0">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-mono text-zinc-300">{c.ip}</span>
+                          {c.country_name && c.country_name !== 'Unknown' && (
+                            <span className="text-xs text-zinc-500 flex items-center gap-1">
+                              <Globe className="w-3 h-3" />
+                              {c.country_name} {c.city && `(${c.city})`}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs text-zinc-500">
+                          <span>{c.request_count} requests</span>
+                          {c.duration_seconds > 0 && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {c.duration_seconds < 60 ? `${c.duration_seconds}s` : `${Math.floor(c.duration_seconds / 60)}m`}
+                            </span>
+                          )}
+                          <span className="text-zinc-600">{new Date(c.last_seen).toLocaleTimeString('nl-BE')}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {isExpanded && isPublic && (!conn || conn.connections?.length === 0) && (
+                <div className="border-t border-zinc-800 p-4 bg-zinc-950/50 text-center">
+                  <p className="text-xs text-zinc-600">No connections in the last hour</p>
+                </div>
+              )}
+
+              {isExpanded && !isPublic && (
+                <div className="border-t border-zinc-800 p-4 bg-zinc-950/50 text-center">
+                  <p className="text-xs text-zinc-600">Endpoint is private — set to public to see connections</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 // ============== RULES TAB ==============
 function RulesTab({ token, mainSiteId }) {

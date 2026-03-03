@@ -10,6 +10,10 @@ from services.firewall_service import (
     get_firewall_settings, get_firewall_rules, block_ip, unblock_ip,
     invalidate_cache, get_geo_info, log_security_event,
 )
+from services.endpoint_protection import (
+    get_endpoint_settings, invalidate_endpoint_cache, get_all_endpoint_groups,
+    get_public_connection_stats, ENDPOINT_GROUPS,
+)
 
 firewall_router = APIRouter(prefix="/firewall", tags=["firewall"])
 
@@ -543,3 +547,71 @@ async def security_audit(main_site_id: str, current_user: dict = Depends(get_cur
             for u in users_without_2fa
         ],
     }
+
+
+
+# ============== ENDPOINT PROTECTION ==============
+
+class EndpointSettingsUpdate(BaseModel):
+    public_groups: List[str]
+
+
+@firewall_router.get("/endpoints/{main_site_id}")
+async def get_endpoint_protection(main_site_id: str, current_user: dict = Depends(get_current_user)):
+    """Get endpoint protection settings for a main site."""
+    require_network_admin(current_user)
+    settings = await get_endpoint_settings(main_site_id)
+    settings.pop("_cached_at", None)
+    groups = get_all_endpoint_groups()
+    public_groups = settings.get("public_groups", [])
+
+    for g in groups:
+        g["is_public"] = g["id"] in public_groups
+
+    return {
+        "groups": groups,
+        "public_groups": public_groups,
+    }
+
+
+@firewall_router.put("/endpoints/{main_site_id}")
+async def update_endpoint_protection(
+    main_site_id: str,
+    body: EndpointSettingsUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Update which endpoint groups are public for a main site."""
+    require_network_admin(current_user)
+    # Validate group IDs
+    valid_ids = set(ENDPOINT_GROUPS.keys())
+    for gid in body.public_groups:
+        if gid not in valid_ids:
+            raise HTTPException(status_code=400, detail=f"Unknown group: {gid}")
+
+    await db.endpoint_settings.update_one(
+        {"main_site_id": main_site_id},
+        {"$set": {
+            "main_site_id": main_site_id,
+            "public_groups": body.public_groups,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+    invalidate_endpoint_cache(main_site_id)
+    return {"public_groups": body.public_groups}
+
+
+@firewall_router.get("/endpoints/{main_site_id}/connections")
+async def get_endpoint_connections(main_site_id: str, current_user: dict = Depends(get_current_user)):
+    """Get live connection stats for public endpoints of a main site."""
+    require_network_admin(current_user)
+    stats = get_public_connection_stats(main_site_id)
+
+    # Enrich with geo info
+    for stat in stats:
+        for conn in stat.get("connections", []):
+            geo = await get_geo_info(conn["ip"])
+            conn["country_name"] = geo.get("country_name", "")
+            conn["city"] = geo.get("city", "")
+
+    return {"connections": stats}

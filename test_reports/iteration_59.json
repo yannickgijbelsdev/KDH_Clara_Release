@@ -1,0 +1,59 @@
+{
+  "summary": "Endpoint Protection feature fully tested - Backend (21/21 tests passed) and Frontend (all features working). The feature allows admins to lock down API endpoints by default and selectively open specific endpoints per main site with live connection monitoring.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_endpoint_protection.py",
+    "/app/test_reports/pytest/endpoint_protection_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_endpoint_protection.py"
+  ],
+  "success_rate": {
+    "backend": "100% (21/21 tests passed)",
+    "frontend": "100% (all features verified)"
+  },
+  "test_credentials": {
+    "network_admin_email": "admkoodh@koodh.com",
+    "network_admin_password": "KYLovie13monx",
+    "main_site_id": "db23c31a-7776-4805-a4a5-bd019dd7c2be",
+    "main_site_slug": "radiogroep"
+  },
+  "seed_data_creation": "None required - used existing test main site",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Endpoint Protection feature is fully implemented and tested. Key test files: /app/backend/tests/test_endpoint_protection.py (21 tests). The feature uses main_site_id db23c31a-7776-4805-a4a5-bd019dd7c2be for testing. Frontend navigation: Login -> Skip 2FA -> Open Dashboard for Radiogroep MFY/GRK -> Firewall (sidebar) -> Endpoints tab.",
+  "features_tested": {
+    "backend_api": {
+      "GET /api/firewall/endpoints/{main_site_id}": "PASS - Returns all 18 endpoint groups with public/private status",
+      "PUT /api/firewall/endpoints/{main_site_id}": "PASS - Updates which endpoint groups are public, validates group IDs",
+      "GET /api/firewall/endpoints/{main_site_id}/connections": "PASS - Returns live connection stats for public endpoints",
+      "Always-public endpoints": "PASS - /api/health, /api/config accessible without auth",
+      "Always-private endpoints": "PASS - /api/firewall/*, /api/auth/* require auth",
+      "Endpoint protection requires auth": "PASS - All endpoint protection APIs require network admin auth"
+    },
+    "frontend_ui": {
+      "Endpoints tab displays": "PASS - Shows all 18 endpoint groups with toggle switches",
+      "Toggle functionality": "PASS - Can toggle groups public/private, UI updates correctly",
+      "Toast notifications": "PASS - Shows 'X is now public/private' messages",
+      "Public groups counter": "PASS - Shows 'N of 18 endpoint groups are public'",
+      "Always Public section": "PASS - Shows non-configurable always-public endpoints",
+      "Connection stats display": "PASS - Shows 'N req (M IPs)' badges on groups with traffic",
+      "Expandable connection details": "PASS - Click to expand shows IP, location, request count, timestamp",
+      "Auto-refresh connections": "VERIFIED - Code includes 10s interval refresh"
+    }
+  },
+  "middleware_enforcement": {
+    "private_endpoints_reject_unauth": "PASS - Unauthenticated requests to private endpoints get 401",
+    "public_endpoints_accessible": "PASS - Public endpoints accessible (endpoint handlers may still require auth)"
+  }
+}
