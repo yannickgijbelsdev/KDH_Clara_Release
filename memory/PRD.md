@@ -2658,6 +2658,41 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Security Logs tab also now shows all relevant events
   - Files updated: `backend/routers/firewall.py`
 
+
+### March 3, 2026 - Call Studio Feature (Phase 1) Implemented
+- [x] **Call Studio - Phase 1 Complete**:
+  - Audio Profiles: CRUD for saving input/output device configurations per user (Studio A, Home Setup, etc.)
+  - Device availability detection: warns when saved devices are no longer available
+  - Invite Link System: create shareable links for external callers to join calls
+  - Public Call Page: external callers can view invite info, enter name, accept & join (no auth required)
+  - WebRTC peer-to-peer audio signaling via WebSocket (/ws/call/{room_id})
+  - Connection quality monitoring (RTT-based: good/fair/poor indicator)
+  - Volume control slider for caller audio
+  - Mute/unmute toggle with visual feedback
+  - Persistent floating CallWidget: stays visible while navigating through Clara
+  - Call History tab: view ended calls with duration
+  - Test report: `/app/test_reports/iteration_60.json` - 26/26 backend tests passed, 100% frontend
+  - Backend test file: `/app/backend/tests/test_calls.py`
+
+  **New files created:**
+  - `backend/models/calls.py` - Pydantic models
+  - `backend/routers/calls.py` - API endpoints
+  - `backend/services/call_signaling.py` - WebSocket signaling manager
+  - `frontend/src/pages/CallPage.js` - Call Studio main page
+  - `frontend/src/pages/PublicCallPage.js` - Public caller join page
+  - `frontend/src/components/Call/CallWidget.js` - Persistent floating call widget
+  - `frontend/src/context/CallContext.js` - Global call state management
+
+  **DB collections:**
+  - `audio_profiles`: {id, user_id, name, input_device_id, input_device_label, output_device_id, output_device_label}
+  - `call_invites`: {id, token, label, created_by, status, caller_name, call_started_at, call_ended_at, duration_seconds}
+
+## Upcoming: Call Studio Phase 2
+- Group calls (multiple callers linked to a group)
+- Callback functionality (re-call ended callers)
+- Individual caller controls in group context (mute individual, kick, bring back)
+- Integration with broadcast mixer (caller audio as a fader input)
+
 ## Current Status (March 3, 2026)
 ### Open Issues
 - **P0: Clone Login Bug (Production)** - Users unable to log into cloned main sites on production. Enhanced error handling added for diagnostics. Waiting for user feedback with screenshots/network tab info.
