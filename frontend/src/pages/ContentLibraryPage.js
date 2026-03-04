@@ -21,6 +21,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/PermissionsContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -96,7 +97,9 @@ const getBestFeaturedImage = (item) => {
 };
 
 const ContentLibraryPage = () => {
-  const { isEditor } = useAuth();
+  const { isEditor: legacyIsEditor } = useAuth();
+  const { canCreate, canEdit } = usePermissions();
+  const isEditor = canCreate('content_library') || canEdit('content_library') || legacyIsEditor;
   const navigate = useNavigate();
   const location = useLocation();
   const { mainSiteSlug } = useParams();

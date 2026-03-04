@@ -6,6 +6,7 @@ import { Plus, Calendar, Clock, ChevronRight, ChevronDown, Filter, Repeat, Layer
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/PermissionsContext';
 import CreateShowDialog from '../components/CreateShowDialog';
 import {
   DropdownMenu,
@@ -290,7 +291,11 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
 };
 
 const ShowsPage = () => {
-  const { isEditor } = useAuth();
+  const { isEditor: legacyIsEditor } = useAuth();
+  const { canCreate, canEdit, canDelete } = usePermissions();
+  const isEditor = canCreate('shows') || canEdit('shows') || legacyIsEditor;
+  const canCreateShows = canCreate('shows');
+  const canDeleteShows = canDelete('shows');
   const { mainSiteSlug } = useParams();
   const [shows, setShows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -367,7 +372,7 @@ const ShowsPage = () => {
           <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Shows</h1>
           <p className="text-sm sm:text-base text-zinc-400">Plan and manage your radio shows</p>
         </div>
-        {isEditor && (
+        {canCreateShows && (
           <Button
             data-testid="create-show-btn"
             onClick={() => setIsCreateOpen(true)}

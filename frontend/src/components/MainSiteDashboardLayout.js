@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation, useParams } from 'react-rout
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
+import { PermissionsProvider, usePermissions } from '../context/PermissionsContext';
 import { DevToolsProvider } from '../context/DevToolsContext';
 import DevToolsPanel from './DevTools/DevToolsPanel';
 import DevToolsInspector from './DevTools/DevToolsInspector';
@@ -138,9 +139,10 @@ const getSiteNavGroup = (currentSite) => ({
   ]
 });
 
-const MainSiteDashboardLayout = () => {
+const MainSiteDashboardContent = () => {
   const { user, logout, impersonating, exitImpersonation } = useAuth();
   const { mainSite, mainSiteSlug, userRole, loading, error, hasFeature, isAdmin } = useMainSite();
+  const { canView, canCreate, canEdit, canDelete } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
   const { siteId } = useParams();
@@ -332,7 +334,6 @@ const MainSiteDashboardLayout = () => {
     const enabledFeatures = mainSite.enabled_features || [];
     
     // Features that are always available for admins (not dependent on enabled_features)
-    // RDS Monitor should only be available if rds_monitor or rds_builder is enabled
     const alwaysAvailableForAdmin = ['firewall'];
     
     // Features always available for everyone (not dependent on enabled_features)
@@ -352,9 +353,8 @@ const MainSiteDashboardLayout = () => {
           const navItem = FEATURE_NAV_ITEMS[featureId];
           if (!navItem) return null;
           
-          // Check permissions
-          if (navItem.adminOnly && !userIsAdmin) return null;
-          if (navItem.approverOnly && !canApprove) return null;
+          // Check role-based permissions: user needs "view" permission for this feature
+          if (!userIsAdmin && !canView(featureId)) return null;
           
           return {
             ...navItem,
@@ -995,5 +995,12 @@ const MainSiteDashboardLayout = () => {
     </DevToolsProvider>
   );
 };
+
+// Wrapper that provides PermissionsProvider context
+const MainSiteDashboardLayout = () => (
+  <PermissionsProvider>
+    <MainSiteDashboardContent />
+  </PermissionsProvider>
+);
 
 export default MainSiteDashboardLayout;

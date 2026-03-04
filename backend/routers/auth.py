@@ -19,6 +19,9 @@ from services.two_factor import (
     generate_backup_codes, hash_backup_code, verify_backup_code
 )
 
+from services.permissions import get_user_permissions
+
+
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -309,6 +312,39 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         **resp.dict(),
         "force_password_change": current_user.get('force_password_change', False),
         "is_blocked": current_user.get('is_blocked', False),
+    }
+
+
+@auth_router.get("/me/permissions")
+async def get_my_permissions(request: Request, current_user: dict = Depends(get_current_user)):
+    """Get the current user's permissions for the main site in X-Main-Site-ID header."""
+    permissions = await get_user_permissions(request, current_user)
+    
+    # Also get the effective role slug for this site
+    main_site_id = request.headers.get("X-Main-Site-ID")
+    role_slug = "admin" if current_user.get("is_network_admin") else current_user.get("role", "viewer")
+    role_info = None
+    
+    if main_site_id and not current_user.get("is_network_admin"):
+        site_access = await db.main_site_users.find_one(
+            {"user_id": current_user["id"], "main_site_id": main_site_id},
+            {"_id": 0, "role": 1},
+        )
+        if site_access:
+            role_slug = site_access.get("role", "viewer")
+        
+        role_doc = await db.roles.find_one(
+            {"main_site_id": main_site_id, "slug": role_slug},
+            {"_id": 0, "name": 1, "slug": 1, "color": 1},
+        )
+        if role_doc:
+            role_info = role_doc
+    
+    return {
+        "permissions": permissions,
+        "role_slug": role_slug,
+        "role_info": role_info,
+        "is_network_admin": current_user.get("is_network_admin", False),
     }
 
 

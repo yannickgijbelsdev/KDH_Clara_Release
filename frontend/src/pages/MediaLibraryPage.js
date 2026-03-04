@@ -69,12 +69,14 @@ import {
 } from '../components/ui/select';
 import { Switch } from '../components/ui/switch';
 import { cn } from '../lib/utils';
+import { usePermissions } from '../context/PermissionsContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const MediaLibraryPage = () => {
-  const { isEditor, isAdmin } = useAuth();
-  const canEdit = isEditor || isAdmin;
+  const { isAdmin } = useAuth();
+  const { canCreate, canEdit: canEditPerm } = usePermissions();
+  const canEdit = canEditPerm('media_library') || canCreate('media_library') || isAdmin;
   
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
