@@ -25,6 +25,32 @@ ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'im
 MAX_AVATAR_SIZE = 10 * 1024 * 1024  # 10MB
 
 
+async def _find_user_in_context(user_id: str, request: Request, current_user: dict):
+    """Find a user, respecting multisite context.
+    
+    In multisite context (X-Main-Site-ID header): checks main_site_users access.
+    Fallback: checks team_id matching.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+
+    if main_site_id:
+        # Multisite: verify user is part of this main site
+        access = await db.main_site_users.find_one({
+            "main_site_id": main_site_id, "user_id": user_id
+        })
+        if not access and not current_user.get("is_network_admin"):
+            return None
+        return await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+
+    # Fallback: team_id based lookup
+    team_id = current_user.get("team_id")
+    if team_id:
+        return await db.users.find_one(
+            {"id": user_id, "team_id": team_id}, {"_id": 0, "password_hash": 0}
+        )
+    return None
+
+
 @users_router.get("", response_model=List[UserResponse])
 async def get_team_users(
     request: Request,
@@ -145,13 +171,11 @@ async def invite_user(
 @users_router.get("/invite/{user_id}/password")
 async def get_temp_password(
     user_id: str,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
     """Get temporary password for newly invited user (admin only)."""
-    user = await db.users.find_one(
-        {"id": user_id, "team_id": current_user['team_id']},
-        {"_id": 0}
-    )
+    user = await _find_user_in_context(user_id, request, current_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -173,9 +197,7 @@ async def update_user_role(
     if user_id == current_user['id']:
         raise HTTPException(status_code=400, detail="Cannot change your own role")
     
-    user = await db.users.find_one(
-        {"id": user_id, "team_id": current_user['team_id']}
-    )
+    user = await _find_user_in_context(user_id, request, current_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -185,6 +207,14 @@ async def update_user_role(
         {"id": user_id},
         {"$set": {"role": role_data.role}}
     )
+    
+    # Also update role in main_site_users if in multisite context
+    main_site_id = await get_main_site_id_from_header(request)
+    if main_site_id:
+        await db.main_site_users.update_one(
+            {"main_site_id": main_site_id, "user_id": user_id},
+            {"$set": {"role": role_data.role}}
+        )
     
     # Log role change
     await log_action(
@@ -219,15 +249,11 @@ async def remove_user(
         raise HTTPException(status_code=400, detail="Cannot remove yourself")
     
     # Get user info before deletion for logging
-    user = await db.users.find_one(
-        {"id": user_id, "team_id": current_user['team_id']}
-    )
+    user = await _find_user_in_context(user_id, request, current_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    result = await db.users.delete_one(
-        {"id": user_id, "team_id": current_user['team_id']}
-    )
+    result = await db.users.delete_one({"id": user_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -258,9 +284,7 @@ async def update_user(
     current_user: dict = Depends(require_admin)
 ):
     """Update a user's profile (admin only)."""
-    user = await db.users.find_one(
-        {"id": user_id, "team_id": current_user['team_id']}
-    )
+    user = await _find_user_in_context(user_id, request, current_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -314,9 +338,7 @@ async def reset_user_password(
     current_user: dict = Depends(require_admin)
 ):
     """Reset a user's password (admin only)."""
-    user = await db.users.find_one(
-        {"id": user_id, "team_id": current_user['team_id']}
-    )
+    user = await _find_user_in_context(user_id, request, current_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     

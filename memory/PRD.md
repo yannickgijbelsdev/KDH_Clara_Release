@@ -2659,6 +2659,15 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files updated: `backend/routers/firewall.py`
 
 
+### March 4, 2026 - Bug Fix: "User not found" in Team Settings (Production)
+- [x] **Root cause:** User management endpoints (`PUT /users/{id}`, `PUT /users/{id}/role`, `PUT /users/{id}/password`, `DELETE /users/{id}`, `GET /invite/{id}/password`) filtered on `team_id` match. In multi-site context, users assigned to a main site can have different `team_id`s. This caused "User not found" when trying to edit or update their roles.
+- [x] **Fix:** Created `_find_user_in_context()` helper that:
+  - In multisite context (X-Main-Site-ID header): verifies user via `main_site_users` access
+  - Fallback: uses `team_id` matching for backwards compatibility
+- [x] **Also fixed:** Role updates now sync to `main_site_users` collection for consistency
+- [x] **Files changed:** `backend/routers/users.py` (5 endpoints updated)
+
+
 ### March 3, 2026 - Call Studio Feature Toggle + Clone Visibility
 - [x] **Call Studio als feature toggle**: `call_studio` toegevoegd aan AVAILABLE_FEATURES (group: streaming). Network Admin kan het per main site in-/uitschakelen. Verschijnt alleen in sidebar als het is ingeschakeld.
 - [x] **Clone sites zichtbaarheid beperkt**:
