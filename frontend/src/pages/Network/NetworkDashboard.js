@@ -22,7 +22,7 @@ import {
   Plus, Globe, Users, Layers, Settings, Trash2, Edit, ExternalLink,
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
-  Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, BarChart3,
+  Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
   HardDrive
 } from 'lucide-react';
 import {
@@ -34,6 +34,7 @@ import {
 } from '../../components/ui/dropdown-menu';
 import MigrationTool from './MigrationTool';
 import RolesManager from './RolesManager';
+import PermissionAuditPanel from './PermissionAuditPanel';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import { useNavigate } from 'react-router-dom';
 
@@ -249,6 +250,7 @@ export default function NetworkDashboard() {
   const [userAccessPanel, setUserAccessPanel] = useState({ open: false, loading: false, data: null });
   const [securityPanelOpen, setSecurityPanelOpen] = useState(false);
   const [rolesPanel, setRolesPanel] = useState({ open: false, siteId: null, siteName: '' });
+  const [auditOpen, setAuditOpen] = useState(false);
 
   const RoleIcon = roleIcons[user?.role] || Network;
 
@@ -606,6 +608,15 @@ export default function NetworkDashboard() {
             >
               <Code className="w-4 h-4" />
               API Explorer
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setAuditOpen(true)}
+              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+              data-testid="permission-audit-btn"
+            >
+              <ShieldAlert className="w-4 h-4" />
+              Permission Audit
             </Button>
             <Button 
               variant="outline" 
@@ -1164,6 +1175,14 @@ export default function NetworkDashboard() {
           mainSiteName={rolesPanel.siteName}
           token={token}
           onClose={() => setRolesPanel({ open: false, siteId: null, siteName: '' })}
+        />
+      )}
+
+      {/* Permission Audit Panel */}
+      {auditOpen && (
+        <PermissionAuditPanel
+          token={token}
+          onClose={() => setAuditOpen(false)}
         />
       )}
     </div>

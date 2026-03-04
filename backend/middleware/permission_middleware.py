@@ -2,6 +2,7 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from database import db
+from datetime import datetime, timezone
 import jwt
 import logging
 
@@ -59,6 +60,25 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         self.jwt_secret = jwt_secret
         self.jwt_algorithm = jwt_algorithm
 
+    async def _log_denial(self, user_id, email, role_slug, main_site_id, feature, action, path, method, ip):
+        """Log a permission denial to the audit collection."""
+        try:
+            await db.permission_audit_logs.insert_one({
+                "user_id": user_id,
+                "user_email": email,
+                "role": role_slug,
+                "main_site_id": main_site_id,
+                "feature": feature,
+                "action": action,
+                "path": path,
+                "method": method,
+                "ip_address": ip,
+                "result": "denied",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+        except Exception as e:
+            logger.error(f"Failed to log permission denial: {e}")
+
     async def dispatch(self, request, call_next):
         path = request.url.path
         method = request.method
@@ -99,9 +119,12 @@ class PermissionMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Check if network admin (always allowed)
-        user = await db.users.find_one({"id": user_id}, {"_id": 0, "is_network_admin": 1})
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "is_network_admin": 1, "email": 1})
         if user and user.get("is_network_admin"):
             return await call_next(request)
+
+        user_email = user.get("email", "") if user else ""
+        client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client else "")
 
         # Get main site context
         main_site_id = request.headers.get("X-Main-Site-ID")
@@ -129,8 +152,8 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         )
 
         if not role:
-            # No role definition found — deny write operations, allow reads
             if action != "view":
+                await self._log_denial(user_id, user_email, role_slug, main_site_id, feature, action, path, method, client_ip)
                 return JSONResponse(
                     status_code=403,
                     content={"detail": f"No permission to {action} {feature}"},
@@ -141,6 +164,7 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         feature_perms = permissions.get(feature, {})
 
         if not feature_perms.get(action, False):
+            await self._log_denial(user_id, user_email, role_slug, main_site_id, feature, action, path, method, client_ip)
             return JSONResponse(
                 status_code=403,
                 content={"detail": f"You don't have {action} permission for {feature}"},

@@ -2687,6 +2687,14 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Page-level UI**: Create buttons (e.g. "+ New Show") hidden when user lacks "create" permission
 - [x] Test report: `/app/test_reports/iteration_62.json` — 18/18 backend, 100% frontend
 
+
+### March 4, 2026 - Permission Audit Log
+- [x] **Permission Audit Logging**: Middleware logs every 403 permission denial to `permission_audit_logs` collection with user_email, role, feature, action, path, method, IP, timestamp
+- [x] **Audit API Endpoints**: `GET /api/roles/audit/logs` (filterable by email, feature, main_site) + `GET /api/roles/audit/stats` (total denials, 24h count, top blocked users/features)
+- [x] **Audit Dashboard Panel**: Network Admin only panel accessible from "Permission Audit" button on Network Dashboard. Shows stats cards + filterable/sortable log table with color-coded action badges.
+- [x] **New files:** `backend/middleware/permission_middleware.py` (updated), `frontend/src/pages/Network/PermissionAuditPanel.js`
+- [x] **DB collection:** `permission_audit_logs` {user_id, user_email, role, main_site_id, feature, action, path, method, ip_address, result, timestamp}
+
   - **DB collection:** `roles` {id, main_site_id, name, slug, is_system, description, color, permissions, sort_order}
 
 

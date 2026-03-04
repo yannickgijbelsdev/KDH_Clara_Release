@@ -317,3 +317,86 @@ async def _seed_default_roles(main_site_id: str):
         role_copy = {k: v for k, v in role.items() if k != "_id"}
         roles.append(role_copy)
     return roles
+
+
+# ============== PERMISSION AUDIT LOGS ==============
+
+@roles_router.get("/audit/logs")
+async def get_permission_audit_logs(
+    main_site_id: Optional[str] = None,
+    user_email: Optional[str] = None,
+    feature: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+    current_user: dict = Depends(get_current_user),
+):
+    """Get permission denial audit logs. Network admin only."""
+    require_network_admin(current_user)
+
+    query = {}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    if user_email:
+        query["user_email"] = {"$regex": user_email, "$options": "i"}
+    if feature:
+        query["feature"] = feature
+
+    total = await db.permission_audit_logs.count_documents(query)
+    logs = await db.permission_audit_logs.find(query, {"_id": 0}).sort(
+        "timestamp", -1
+    ).skip(offset).limit(limit).to_list(limit)
+
+    return {"logs": logs, "total": total}
+
+
+@roles_router.get("/audit/stats")
+async def get_permission_audit_stats(
+    main_site_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
+):
+    """Get aggregated permission audit stats. Network admin only."""
+    require_network_admin(current_user)
+
+    query = {}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+
+    total = await db.permission_audit_logs.count_documents(query)
+
+    # Last 24h
+    from datetime import timedelta
+    cutoff_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    recent = await db.permission_audit_logs.count_documents({**query, "timestamp": {"$gte": cutoff_24h}})
+
+    # Top blocked users
+    user_pipeline = [
+        {"$match": query} if query else {"$match": {}},
+        {"$group": {"_id": "$user_email", "count": {"$sum": 1}, "last_role": {"$last": "$role"}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10},
+    ]
+    top_users = []
+    async for doc in db.permission_audit_logs.aggregate(user_pipeline):
+        top_users.append({"email": doc["_id"], "count": doc["count"], "role": doc.get("last_role", "")})
+
+    # Top blocked features
+    feature_pipeline = [
+        {"$match": query} if query else {"$match": {}},
+        {"$group": {"_id": {"feature": "$feature", "action": "$action"}, "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10},
+    ]
+    top_features = []
+    async for doc in db.permission_audit_logs.aggregate(feature_pipeline):
+        top_features.append({
+            "feature": doc["_id"]["feature"],
+            "action": doc["_id"]["action"],
+            "count": doc["count"],
+        })
+
+    return {
+        "total_denials": total,
+        "denials_24h": recent,
+        "top_blocked_users": top_users,
+        "top_blocked_features": top_features,
+    }
