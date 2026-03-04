@@ -2670,6 +2670,23 @@ now = now_brussels()  # Automatically handles CET/CEST
   - System roles (Admin) protected from rename/delete
   - Test report: `/app/test_reports/iteration_61.json` - 18/18 backend, 100% frontend
   - **New files:** `backend/routers/roles.py`, `frontend/src/pages/Network/RolesManager.js`
+
+### March 4, 2026 - Permissions Enforcement (Complete)
+- [x] **Backend Permission Middleware** (`middleware/permission_middleware.py`):
+  - Maps API route prefixes to features (shows, content_library, media_library, etc.)
+  - Maps HTTP methods to actions (GET=view, POST=create, PUT=edit, DELETE=delete)
+  - Network admins and site admins bypass all checks
+  - Exempt paths: /api/auth, /api/health, /api/main-sites, /api/firewall, /api/roles, /api/tickets, /api/calls/join
+  - Returns 403 with descriptive message when permission denied
+- [x] **Backend Permission Service** (`services/permissions.py`):
+  - `get_user_permissions()`, `has_permission()`, `check_permission()`, `require_permission()` dependency
+- [x] **Frontend PermissionsContext** (`context/PermissionsContext.js`):
+  - Provides `can(feature, action)`, `canView()`, `canCreate()`, `canEdit()`, `canDelete()` hooks
+  - Fetches permissions via `GET /api/auth/me/permissions` with X-Main-Site-ID header
+- [x] **Sidebar filtering**: Menu items hidden when user lacks "view" permission for that feature
+- [x] **Page-level UI**: Create buttons (e.g. "+ New Show") hidden when user lacks "create" permission
+- [x] Test report: `/app/test_reports/iteration_62.json` — 18/18 backend, 100% frontend
+
   - **DB collection:** `roles` {id, main_site_id, name, slug, is_system, description, color, permissions, sort_order}
 
 
