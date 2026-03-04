@@ -33,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu';
 import MigrationTool from './MigrationTool';
+import RolesManager from './RolesManager';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import { useNavigate } from 'react-router-dom';
 
@@ -247,6 +248,7 @@ export default function NetworkDashboard() {
   const [debugPanel, setDebugPanel] = useState({ open: false, siteId: null, siteName: '', loading: false, data: null });
   const [userAccessPanel, setUserAccessPanel] = useState({ open: false, loading: false, data: null });
   const [securityPanelOpen, setSecurityPanelOpen] = useState(false);
+  const [rolesPanel, setRolesPanel] = useState({ open: false, siteId: null, siteName: '' });
 
   const RoleIcon = roleIcons[user?.role] || Network;
 
@@ -727,6 +729,16 @@ export default function NetworkDashboard() {
                         Stats
                       </Button>
                     </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-1.5 text-xs"
+                      data-testid={`roles-${site.slug}`}
+                      onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}
+                    >
+                      <UserCog className="w-3.5 h-3.5" />
+                      Roles
+                    </Button>
                   </div>
                   <Link to={`/${site.slug}`}>
                     <Button variant="outline" className="w-full gap-2 mt-2">
@@ -1144,6 +1156,16 @@ export default function NetworkDashboard() {
           <TwoFactorSetup user={user} onUpdate={refreshUser} />
         </DialogContent>
       </Dialog>
+
+      {/* Roles Manager Panel */}
+      {rolesPanel.open && (
+        <RolesManager
+          mainSiteId={rolesPanel.siteId}
+          mainSiteName={rolesPanel.siteName}
+          token={token}
+          onClose={() => setRolesPanel({ open: false, siteId: null, siteName: '' })}
+        />
+      )}
     </div>
   );
 }
