@@ -1,6 +1,6 @@
 """Authentication and user models."""
 from pydantic import BaseModel, EmailStr, ConfigDict
-from typing import Optional, Literal
+from typing import Optional
 
 
 class TeamCreate(BaseModel):
@@ -63,8 +63,8 @@ class TokenResponse(BaseModel):
 class InviteUserRequest(BaseModel):
     email: EmailStr
     name: str
-    role: Literal["admin", "news_admin", "editor", "presenter", "viewer"] = "editor"
+    role: str = "editor"
 
 
 class UpdateUserRoleRequest(BaseModel):
-    role: Literal["admin", "news_admin", "editor", "presenter", "viewer"]
+    role: str

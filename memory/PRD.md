@@ -2751,12 +2751,20 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Individual caller controls in group context (mute individual, kick, bring back)
 - Integration with broadcast mixer (caller audio as a fader input)
 
-## Current Status (March 3, 2026)
+## Current Status (March 4, 2026)
 ### Open Issues
 - **P0: Clone Login Bug (Production)** - Users unable to log into cloned main sites on production. Enhanced error handling added for diagnostics. Waiting for user feedback with screenshots/network tab info.
+
+### Recently Completed (March 4, 2026)
+- **P0 Bug Fix: Custom Roles in Team Settings** - Fixed: custom RBAC roles now appear in Team Settings role dropdown, invite dialog, and add existing user dialog. Changes:
+  - Added `GET /api/roles/{main_site_id}/available` endpoint accessible by main site admins (not just network admin)
+  - Updated `TeamSettingsPage.js` to dynamically fetch roles from the RBAC system
+  - Changed `UpdateUserRoleRequest` and `InviteUserRequest` from hardcoded `Literal` to `str` to accept custom roles
+  - Legacy roles (e.g., news_admin) display with a "(legacy)" indicator
 
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
 - **P1: Configurable "Stale Now Playing" Timeout** - Make 15-min timeout configurable via UI
 - **P2: Stream Monitor VU Meters** - Implement functional VU meters (blocked by browser security)
+- **P2: Frontend RBAC cleanup** - Update component-level action buttons (Delete, Edit) to use canCreate/canDelete hooks
