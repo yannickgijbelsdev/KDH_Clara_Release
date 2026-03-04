@@ -262,10 +262,10 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
             {/* Role list */}
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
               {roles.map(role => (
-                <button
+                <div
                   key={role.id}
                   onClick={() => selectRole(role)}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-all ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-all cursor-pointer ${
                     activeRoleId === role.id ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300'
                   }`}
                   data-testid={`role-${role.slug}`}
@@ -283,7 +283,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                       <Trash2 className="w-3 h-3" />
                     </button>
                   )}
-                </button>
+                </div>
               ))}
             </div>
           </div>

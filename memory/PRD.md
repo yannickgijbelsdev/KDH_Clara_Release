@@ -2659,6 +2659,20 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files updated: `backend/routers/firewall.py`
 
 
+### March 4, 2026 - Roles & Permissions Management System
+- [x] **Roles & Permissions per Main Site**:
+  - Network Admin can manage roles per main site via "Roles" button on site card
+  - CRUD for custom roles (create, rename, change color, delete)
+  - Default roles seeded automatically: Admin (system), Editor, Presenter, Viewer
+  - Granular permissions matrix: 19 features × 4 actions (view/create/edit/delete)
+  - 6 permission groups: Shows, Content, Communication, Streaming & RDS, Sites, Administration
+  - Bulk toggles: per group, per action column, per feature row
+  - System roles (Admin) protected from rename/delete
+  - Test report: `/app/test_reports/iteration_61.json` - 18/18 backend, 100% frontend
+  - **New files:** `backend/routers/roles.py`, `frontend/src/pages/Network/RolesManager.js`
+  - **DB collection:** `roles` {id, main_site_id, name, slug, is_system, description, color, permissions, sort_order}
+
+
 ### March 4, 2026 - Bug Fix: "User not found" in Team Settings (Production)
 - [x] **Root cause:** User management endpoints (`PUT /users/{id}`, `PUT /users/{id}/role`, `PUT /users/{id}/password`, `DELETE /users/{id}`, `GET /invite/{id}/password`) filtered on `team_id` match. In multi-site context, users assigned to a main site can have different `team_id`s. This caused "User not found" when trying to edit or update their roles.
 - [x] **Fix:** Created `_find_user_in_context()` helper that:
