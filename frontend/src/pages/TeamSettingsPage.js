@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -23,6 +23,7 @@ import {
   ArrowLeftRight,
   FileCheck,
   ShieldAlert,
+  CircleDot,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -63,28 +64,13 @@ import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const roleIcons = {
+// Fallback icons for known system roles
+const SYSTEM_ROLE_ICONS = {
   admin: Crown,
   news_admin: FileCheck,
   editor: Pencil,
   presenter: Mic,
   viewer: Eye,
-};
-
-const roleColors = {
-  admin: 'bg-orange-500/20 text-rose-400',
-  news_admin: 'bg-emerald-500/20 text-emerald-400',
-  editor: 'bg-violet-500/20 text-violet-400',
-  presenter: 'bg-amber-500/20 text-amber-400',
-  viewer: 'bg-zinc-500/20 text-zinc-400',
-};
-
-const roleLabels = {
-  admin: 'Admin',
-  news_admin: 'News Admin',
-  editor: 'Editor',
-  presenter: 'Presenter',
-  viewer: 'Viewer',
 };
 
 const TeamSettingsPage = () => {
@@ -104,6 +90,15 @@ const TeamSettingsPage = () => {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   
+  // Dynamic roles from RBAC system
+  const [availableRoles, setAvailableRoles] = useState([
+    // Fallback defaults until dynamic roles are loaded
+    { slug: 'admin', name: 'Admin', color: '#ef4444', description: 'Full access to everything' },
+    { slug: 'editor', name: 'Editor', color: '#f59e0b', description: 'Can manage content and shows' },
+    { slug: 'presenter', name: 'Presenter', color: '#3b82f6', description: 'Can view and manage assigned shows' },
+    { slug: 'viewer', name: 'Viewer', color: '#6b7280', description: 'Read-only access' },
+  ]);
+  
   // Add existing user state
   const [addExistingUserDialogOpen, setAddExistingUserDialogOpen] = useState(false);
   const [availableUsers, setAvailableUsers] = useState([]);
@@ -112,6 +107,29 @@ const TeamSettingsPage = () => {
   const [selectedExistingUser, setSelectedExistingUser] = useState(null);
   const [addingExistingUser, setAddingExistingUser] = useState(false);
   const [existingUserRole, setExistingUserRole] = useState('editor');
+
+  // Helper: get icon for a role slug
+  const getRoleIcon = useCallback((slug) => {
+    return SYSTEM_ROLE_ICONS[slug] || CircleDot;
+  }, []);
+
+  // Helper: get display label for a role slug
+  const getRoleLabel = useCallback((slug) => {
+    const role = availableRoles.find(r => r.slug === slug);
+    if (role) return role.name;
+    // Fallback for unrecognized slugs
+    return slug?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'Unknown';
+  }, [availableRoles]);
+
+  // Helper: get color classes for a role
+  const getRoleColor = useCallback((slug) => {
+    const role = availableRoles.find(r => r.slug === slug);
+    if (role?.color) {
+      return { style: { backgroundColor: `${role.color}20`, color: role.color } };
+    }
+    // Fallback
+    return { className: 'bg-zinc-500/20 text-zinc-400' };
+  }, [availableRoles]);
   
   // Helper for context-aware navigation - uses URL param directly
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
@@ -181,17 +199,25 @@ const TeamSettingsPage = () => {
       setTeam(teamRes.data);
       setUsers(usersRes.data);
       
-      // In multisite context, fetch main site info for display
+      // In multisite context, fetch main site info and available roles
       if (mainSiteSlug) {
         try {
           const mainSitesRes = await axios.get(`${API}/main-sites`);
           const currentMainSite = mainSitesRes.data.find(s => s.slug === mainSiteSlug);
           if (currentMainSite) {
             setMainSite(currentMainSite);
+            // Fetch available roles for this main site
+            try {
+              const rolesRes = await axios.get(`${API}/roles/${currentMainSite.id}/available`);
+              if (rolesRes.data.roles?.length > 0) {
+                setAvailableRoles(rolesRes.data.roles);
+              }
+            } catch (rolesErr) {
+              console.error('Failed to load roles:', rolesErr);
+            }
           }
         } catch (msErr) {
           console.error('Failed to load main site info:', msErr);
-          // Not critical, we can still show team info
         }
       }
     } catch (error) {
@@ -472,8 +498,9 @@ const TeamSettingsPage = () => {
 
         <div className="space-y-3">
           {users.map((member) => {
-            const RoleIcon = roleIcons[member.role] || Eye;
+            const RoleIcon = getRoleIcon(member.role);
             const isCurrentUser = member.id === user?.id;
+            const roleColorInfo = getRoleColor(member.role);
 
             return (
               <div
@@ -512,9 +539,12 @@ const TeamSettingsPage = () => {
                 <div className="flex items-center gap-4">
                   {isCurrentUser ? (
                     <>
-                      <span className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${roleColors[member.role]}`}>
+                      <span
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${roleColorInfo.className || ''}`}
+                        style={roleColorInfo.style || {}}
+                      >
                         <RoleIcon className="w-4 h-4" />
-                        {roleLabels[member.role]}
+                        {getRoleLabel(member.role)}
                       </span>
                       
                       <DropdownMenu>
@@ -570,43 +600,33 @@ const TeamSettingsPage = () => {
                         value={member.role}
                         onValueChange={(value) => handleUpdateRole(member.id, value)}
                       >
-                        <SelectTrigger className="w-36 bg-[#18181b] border-zinc-700 text-zinc-300">
+                        <SelectTrigger className="w-40 bg-[#18181b] border-zinc-700 text-zinc-300">
                           <div className="flex items-center gap-2">
                             <RoleIcon className="w-4 h-4" />
-                            <span>{roleLabels[member.role]}</span>
+                            <span>{getRoleLabel(member.role)}</span>
                           </div>
                         </SelectTrigger>
                         <SelectContent className="bg-[#18181b] border-zinc-800">
-                          <SelectItem value="admin" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                            <div className="flex items-center gap-2">
-                              <Crown className="w-4 h-4" />
-                              Admin
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="news_admin" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                            <div className="flex items-center gap-2">
-                              <FileCheck className="w-4 h-4" />
-                              News Admin
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="editor" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                            <div className="flex items-center gap-2">
-                              <Pencil className="w-4 h-4" />
-                              Editor
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="presenter" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                            <div className="flex items-center gap-2">
-                              <Mic className="w-4 h-4" />
-                              Presenter
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="viewer" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                            <div className="flex items-center gap-2">
-                              <Eye className="w-4 h-4" />
-                              Viewer
-                            </div>
-                          </SelectItem>
+                          {/* Show current role if not in available roles (legacy) */}
+                          {!availableRoles.find(r => r.slug === member.role) && (
+                            <SelectItem value={member.role} className="text-zinc-500 focus:text-white focus:bg-zinc-800">
+                              <div className="flex items-center gap-2">
+                                <RoleIcon className="w-4 h-4" />
+                                {getRoleLabel(member.role)} (legacy)
+                              </div>
+                            </SelectItem>
+                          )}
+                          {availableRoles.map((role) => {
+                            const Icon = getRoleIcon(role.slug);
+                            return (
+                              <SelectItem key={role.slug} value={role.slug} className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                                <div className="flex items-center gap-2">
+                                  <Icon className="w-4 h-4" style={{ color: role.color }} />
+                                  {role.name}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                       
@@ -741,36 +761,17 @@ const TeamSettingsPage = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#18181b] border-zinc-800">
-                  <SelectItem value="admin" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                    <div className="flex items-center gap-2">
-                      <Crown className="w-4 h-4" />
-                      Admin - Full access
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="news_admin" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                    <div className="flex items-center gap-2">
-                      <FileCheck className="w-4 h-4" />
-                      News Admin - Editor + Approvals
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="editor" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                    <div className="flex items-center gap-2">
-                      <Pencil className="w-4 h-4" />
-                      Editor - Create & edit content
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="presenter" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                    <div className="flex items-center gap-2">
-                      <Mic className="w-4 h-4" />
-                      Presenter - Edit assigned shows
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="viewer" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
-                    <div className="flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      Viewer - Read-only access
-                    </div>
-                  </SelectItem>
+                  {availableRoles.map((role) => {
+                    const Icon = getRoleIcon(role.slug);
+                    return (
+                      <SelectItem key={role.slug} value={role.slug} className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-4 h-4" style={{ color: role.color }} />
+                          {role.name}{role.description ? ` - ${role.description}` : ''}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -876,11 +877,17 @@ const TeamSettingsPage = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#18181b] border-zinc-800">
-                    <SelectItem value="admin" className="text-zinc-300">Admin</SelectItem>
-                    <SelectItem value="news_admin" className="text-zinc-300">News Admin</SelectItem>
-                    <SelectItem value="editor" className="text-zinc-300">Editor</SelectItem>
-                    <SelectItem value="presenter" className="text-zinc-300">Presenter</SelectItem>
-                    <SelectItem value="viewer" className="text-zinc-300">Viewer</SelectItem>
+                    {availableRoles.map((role) => {
+                      const Icon = getRoleIcon(role.slug);
+                      return (
+                        <SelectItem key={role.slug} value={role.slug} className="text-zinc-300">
+                          <div className="flex items-center gap-2">
+                            <Icon className="w-4 h-4" style={{ color: role.color }} />
+                            {role.name}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>

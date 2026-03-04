@@ -1,0 +1,94 @@
+{
+  "summary": "Tested custom roles fix for Team Settings page. Backend endpoint GET /api/roles/{main_site_id}/available works correctly (10/10 tests passed). Frontend correctly displays dynamic roles including custom 'News Editor' and shows '(legacy)' indicator for legacy roles. However, CRITICAL BUG found: Changing a user's role to a custom role fails with 422 validation error because backend UpdateUserRoleRequest model uses hardcoded Literal instead of accepting any string role.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "PUT /api/users/{user_id}/role",
+        "issue": "UpdateUserRoleRequest model in /app/backend/models/auth.py uses Literal['admin', 'news_admin', 'editor', 'presenter', 'viewer'] which rejects custom roles like 'news_editor'. Returns 422 validation error when trying to assign custom RBAC roles.",
+        "priority": "CRITICAL",
+        "fix": "Change UpdateUserRoleRequest.role from Literal to str to accept any valid role slug from the RBAC system"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "TeamSettingsPage role dropdown",
+        "issue": "When role update API returns 422 error, React crashes with 'Objects are not valid as a React child' error instead of showing error toast",
+        "selector": "button[role='combobox']",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Change user role to custom role",
+        "issue": "Selecting a custom role from dropdown causes API 422 error and React crash",
+        "affected_selectors": ["[data-testid='user-row-*'] button[role='combobox']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_roles_available.py",
+    "/app/test_reports/pytest/roles_available_results.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Update /app/backend/models/auth.py line 70 - change UpdateUserRoleRequest.role from Literal to str to accept custom RBAC roles",
+    "Update /app/backend/models/auth.py line 66 - change InviteUserRequest.role from Literal to str for same reason",
+    "Investigate React crash when API returns 422 - may need better error boundary or toast handling"
+  ],
+  "critical_code_review_comments": [
+    "The hardcoded Literal type in UpdateUserRoleRequest defeats the purpose of dynamic RBAC custom roles",
+    "InviteUserRequest has the same issue at line 66 - both need to accept any string role from the RBAC system"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_roles_available.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed for GET /api/roles/{main_site_id}/available)",
+    "frontend": "80% (roles display correctly, but role change fails due to backend validation)"
+  },
+  "seed_data_creation": "None - used existing test accounts and roles",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The new /api/roles/{main_site_id}/available endpoint works correctly. Custom roles appear in dropdowns. Legacy roles show '(legacy)' indicator. BUT changing a user's role to a custom role fails because UpdateUserRoleRequest model uses hardcoded Literal. Fix is to change role field to str type in both UpdateUserRoleRequest and InviteUserRequest in /app/backend/models/auth.py",
+  "features_tested": {
+    "passed": [
+      "GET /api/roles/{main_site_id}/available returns 200",
+      "Endpoint returns roles array with required fields (name, slug, color)",
+      "Radiogroep site has custom 'News Editor' role",
+      "Default roles (admin, editor, presenter, viewer) included",
+      "DBNTSTUDIO site has only default roles",
+      "Roles sorted by sort_order",
+      "Unauthenticated requests denied with 401",
+      "Network admin can access endpoint",
+      "Team Settings page loads at /{mainSiteSlug}/team",
+      "Role dropdown shows custom 'News Editor' role",
+      "Invite User dialog shows custom roles with descriptions",
+      "Legacy role 'news_admin' displays with '(legacy)' indicator"
+    ],
+    "failed": [
+      "Changing user role via dropdown to custom role - 422 validation error"
+    ]
+  },
+  "test_credentials": {
+    "network_admin": {
+      "email": "admkoodh@koodh.com",
+      "password": "KYLovie13monx"
+    }
+  },
+  "rca_of_the_issue": {
+    "root_cause": "UpdateUserRoleRequest and InviteUserRequest models in /app/backend/models/auth.py use Pydantic Literal type with hardcoded role values instead of accepting any string. This prevents custom RBAC roles from being assigned.",
+    "file": "/app/backend/models/auth.py",
+    "lines": [66, 70],
+    "reproduction_steps": [
+      "1. Login as network admin",
+      "2. Navigate to /radiogroep/team",
+      "3. Click on a user's role dropdown",
+      "4. Select 'News Editor' (custom role)",
+      "5. Observe 422 validation error and React crash"
+    ],
+    "mitigation": "Change Literal types to str in UpdateUserRoleRequest (line 70) and InviteUserRequest (line 66)"
+  }
+}

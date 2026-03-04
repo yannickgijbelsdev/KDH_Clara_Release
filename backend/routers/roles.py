@@ -165,9 +165,35 @@ async def get_permission_schema(current_user: dict = Depends(get_current_user)):
 
 # ============== ROLES CRUD ==============
 
+@roles_router.get("/{main_site_id}/available")
+async def list_roles_for_assignment(main_site_id: str, current_user: dict = Depends(get_current_user)):
+    """List available roles for user assignment. Accessible by any admin of the main site."""
+    # Allow network admins and main site admins
+    if not current_user.get("is_network_admin"):
+        site_access = await db.main_site_users.find_one({
+            "main_site_id": main_site_id,
+            "user_id": current_user["id"],
+            "role": "admin"
+        })
+        if not site_access:
+            raise HTTPException(403, "Admin access required")
+
+    roles = await db.roles.find(
+        {"main_site_id": main_site_id},
+        {"_id": 0, "id": 1, "name": 1, "slug": 1, "color": 1, "description": 1, "is_system": 1, "sort_order": 1}
+    ).sort("sort_order", 1).to_list(50)
+
+    # If no roles exist yet, seed defaults
+    if not roles:
+        all_roles = await _seed_default_roles(main_site_id)
+        roles = [{"id": r["id"], "name": r["name"], "slug": r["slug"], "color": r["color"], "description": r["description"], "is_system": r["is_system"], "sort_order": r["sort_order"]} for r in all_roles]
+
+    return {"roles": roles}
+
+
 @roles_router.get("/{main_site_id}")
 async def list_roles(main_site_id: str, current_user: dict = Depends(get_current_user)):
-    """List all roles for a main site."""
+    """List all roles for a main site (full details, network admin only)."""
     require_network_admin(current_user)
 
     roles = await db.roles.find(
