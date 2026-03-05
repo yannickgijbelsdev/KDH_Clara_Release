@@ -224,7 +224,7 @@ async def get_security_logs(
     require_network_admin(current_user)
     query = {}
     if main_site_id:
-        query["main_site_id"] = {"$in": [main_site_id, None]}
+        query["main_site_id"] = main_site_id
     if event_type:
         query["event_type"] = event_type
 
@@ -241,17 +241,13 @@ async def get_security_stats(
     main_site_id: Optional[str] = None,
     current_user: dict = Depends(get_current_user),
 ):
-    """Get aggregated security statistics.
-    
-    Includes both site-specific AND global events (main_site_id=None),
-    since logins, IP blocks, etc. occur without a site context.
-    """
+    """Get aggregated security statistics for a specific main site."""
     require_network_admin(current_user)
     
-    # Include both site-specific and global (null) events
+    # Strict per-site filtering
     query = {}
     if main_site_id:
-        query["main_site_id"] = {"$in": [main_site_id, None]}
+        query["main_site_id"] = main_site_id
 
     # Count by event type
     pipeline = [
@@ -262,10 +258,10 @@ async def get_security_stats(
     async for doc in db.security_logs.aggregate(pipeline):
         event_counts[doc["_id"] or "unknown"] = doc["count"]
 
-    # Active blocks count (include both site-specific and global blocks)
+    # Active blocks count — filtered by main_site_id
     block_query = {"active": True}
     if main_site_id:
-        block_query["$or"] = [{"main_site_id": main_site_id}, {"main_site_id": None}]
+        block_query["main_site_id"] = main_site_id
     active_blocks = await db.firewall_blocks.count_documents(block_query)
 
     # Recent events (last 24h)
@@ -274,10 +270,10 @@ async def get_security_stats(
     recent_query = {**query, "timestamp": {"$gte": cutoff}}
     recent_events = await db.security_logs.count_documents(recent_query)
 
-    # Top blocked IPs
+    # Top blocked IPs — filtered by main_site_id
     block_match = {"active": True}
     if main_site_id:
-        block_match["$or"] = [{"main_site_id": main_site_id}, {"main_site_id": None}]
+        block_match["main_site_id"] = main_site_id
     block_pipeline = [
         {"$match": block_match},
         {"$group": {"_id": "$ip", "count": {"$sum": 1}, "last_reason": {"$last": "$reason"}}},
@@ -514,8 +510,8 @@ async def security_audit(main_site_id: str, current_user: dict = Depends(get_cur
         issues.append({"severity": "info", "category": "passwords", "message": f"{len(users_never_changed_pw)} user(s) never changed their password", "action": "Consider requiring password updates"})
         score -= 5
 
-    # 6. Active blocks
-    active_blocks = await db.firewall_blocks.count_documents({"active": True})
+    # 6. Active blocks — filtered by main_site_id
+    active_blocks = await db.firewall_blocks.count_documents({"active": True, "main_site_id": main_site_id})
 
     score = max(0, min(100, score))
     
