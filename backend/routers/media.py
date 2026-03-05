@@ -17,6 +17,7 @@ from services.s3_storage import (
     upload_file_to_s3, delete_file_from_s3, is_s3_configured
 )
 from services.main_site_context import get_main_site_id_from_header
+from services.audit import log_action, get_client_ip
 
 media_router = APIRouter(prefix="/media", tags=["Media Library"])
 
@@ -171,6 +172,22 @@ async def upload_media_asset(
     asset_doc.pop("_id", None)
     asset_doc["uploaded_by_name"] = current_user.get("name")
     
+    # Log media upload
+    await log_action(
+        action=f"Uploaded media: {title or file.filename}",
+        category="media",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user.get('team_id'),
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="media_asset",
+        target_id=asset_doc["id"],
+        target_name=title or file.filename,
+        details={"kind": kind, "size": file_size, "mime_type": content_type}
+    )
+    
     return asset_doc
 
 
@@ -226,6 +243,7 @@ async def update_media_asset(
 @media_router.delete("/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_media_asset(
     asset_id: str,
+    request: Request,
     current_user: dict = Depends(require_can_edit_content)
 ):
     """Delete a media asset from storage."""
@@ -235,6 +253,8 @@ async def delete_media_asset(
     if not asset:
         raise HTTPException(status_code=404, detail="Media asset not found")
     
+    asset_title = asset.get("title", asset.get("original_filename", "Unknown"))
+    main_site_id = asset.get("main_site_id")
     storage_key = asset.get("file_storage_key", "")
     
     # Delete from S3 if it's an S3 file
@@ -255,6 +275,21 @@ async def delete_media_asset(
     await db.show_media.delete_many({"media_asset_id": asset_id})
     await db.rundown_item_media.delete_many({"media_asset_id": asset_id})
     await db.media_share_links.delete_many({"asset_id": asset_id})
+    
+    # Log media deletion
+    await log_action(
+        action=f"Deleted media: {asset_title}",
+        category="media",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user.get('team_id'),
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="media_asset",
+        target_id=asset_id,
+        target_name=asset_title
+    )
 
 
 @media_router.post("/{asset_id}/share")

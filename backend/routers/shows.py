@@ -26,6 +26,7 @@ from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_co
 from services.main_site_context import get_main_site_id_from_header
 from services.proradio_service import sync_show_to_proradio, delete_show_from_proradio
 from services.timezone_utils import now_brussels, today_brussels, format_datetime_brussels
+from services.audit import log_action, get_client_ip
 
 logger = logging.getLogger(__name__)
 
@@ -860,6 +861,22 @@ async def create_show(
         
         background_tasks.add_task(sync_recurring_shows)
         
+        # Log show creation
+        await log_action(
+            action=f"Created recurring show: {show_data.title}",
+            category="show",
+            user_id=current_user['id'],
+            user_name=current_user.get('name'),
+            user_email=current_user.get('email'),
+            team_id=team_id,
+            main_site_id=main_site_id,
+            ip_address=get_client_ip(request),
+            target_type="show",
+            target_id=parent_id,
+            target_name=show_data.title,
+            details={"recurring": True, "interval": show_data.recurrence_interval}
+        )
+        
         return parent_doc
     else:
         # Non-recurring show
@@ -895,6 +912,22 @@ async def create_show(
         
         # Sync to ProRadio in background
         background_tasks.add_task(sync_show_to_proradio, show_doc, main_site_id, team_id)
+        
+        # Log show creation
+        await log_action(
+            action=f"Created show: {show_data.title}",
+            category="show",
+            user_id=current_user['id'],
+            user_name=current_user.get('name'),
+            user_email=current_user.get('email'),
+            team_id=team_id,
+            main_site_id=main_site_id,
+            ip_address=get_client_ip(request),
+            target_type="show",
+            target_id=show_id,
+            target_name=show_data.title,
+            details={"date": show_data.date, "start_time": show_data.start_time, "end_time": show_data.end_time}
+        )
         
         return show_doc
 
@@ -1026,6 +1059,22 @@ async def update_show(
         # Sync just this show
         background_tasks.add_task(sync_show_to_proradio, updated_show, main_site_id, team_id)
     
+    # Log show update
+    await log_action(
+        action=f"Updated show: {updated_show.get('title', 'Unknown')}",
+        category="show",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=team_id,
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="show",
+        target_id=show_id,
+        target_name=updated_show.get('title'),
+        details={"update_all": update_all, "fields_changed": list(update_dict.keys())}
+    )
+    
     return updated_show
 
 
@@ -1104,6 +1153,22 @@ async def delete_show(
             show.get("start_time"), show.get("end_time"),
             main_site_id, team_id
         )
+
+    # Log show deletion
+    await log_action(
+        action=f"Deleted show: {show.get('title', 'Unknown')}",
+        category="show",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=team_id,
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="show",
+        target_id=show_id,
+        target_name=show.get('title'),
+        details={"delete_all": delete_all, "recurring": show.get('is_recurring', False)}
+    )
 
 
 # ============== RECURRENCE SETTINGS ==============

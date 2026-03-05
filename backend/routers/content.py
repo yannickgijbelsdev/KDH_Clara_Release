@@ -268,12 +268,13 @@ async def create_content_item(
     
     # Log content creation
     await log_action(
-        action="Created Content",
+        action=f"Created Content: {content_data.title}",
         category="content",
         user_id=current_user['id'],
         user_name=current_user.get('name'),
         user_email=current_user.get('email'),
         team_id=current_user.get('team_id'),
+        main_site_id=main_site_id,
         ip_address=get_client_ip(request),
         target_type="content_item",
         target_id=content_id,
@@ -358,6 +359,21 @@ async def update_content_item(
             changes=changes,
             ip_address=ip_address
         )
+        # Also log to main activity logs
+        await log_action(
+            action=f"Updated Content: {content.get('title', 'Unknown')}",
+            category="content",
+            user_id=current_user['id'],
+            user_name=current_user.get('name'),
+            user_email=current_user.get('email'),
+            team_id=current_user.get('team_id'),
+            main_site_id=main_site_id,
+            ip_address=get_client_ip(request),
+            target_type="content_item",
+            target_id=content_id,
+            target_name=content.get('title'),
+            details={"changes": changes}
+        )
     
     return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
 
@@ -429,6 +445,21 @@ async def update_content_approval(
         user_name=current_user.get('name', 'Unknown'),
         details=approval_data.approval_notes or f"Content {approval_data.approval_status}",
         ip_address=ip_address
+    )
+    # Also log to main activity logs
+    await log_action(
+        action=f"Content {approval_data.approval_status}: {content.get('title', 'Unknown')}",
+        category="content",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user.get('team_id'),
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="content_item",
+        target_id=content_id,
+        target_name=content.get('title'),
+        details={"approval_status": approval_data.approval_status, "notes": approval_data.approval_notes}
     )
     
     # Send email notification to content creator (if approved or rejected)
@@ -599,6 +630,21 @@ async def delete_content_item(
         details=f"Deleted content: {content.get('title', 'Unknown')}. WordPress deletions: {len([r for r in wp_deletion_results if r.get('success')])} successful",
         ip_address=ip_address
     )
+    # Also log to main activity logs
+    await log_action(
+        action=f"Deleted Content: {content.get('title', 'Unknown')}",
+        category="content",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user.get('team_id'),
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="content_item",
+        target_id=content_id,
+        target_name=content.get('title'),
+        details={"wp_deletions": len([r for r in wp_deletion_results if r.get('success')])}
+    )
     
     return {
         "message": "Content deleted",
@@ -642,6 +688,20 @@ async def restore_content_item(
         user_name=current_user.get('name', 'Unknown'),
         details=f"Restored content: {content.get('title', 'Unknown')}",
         ip_address=ip_address
+    )
+    # Also log to main activity logs
+    await log_action(
+        action=f"Restored Content: {content.get('title', 'Unknown')}",
+        category="content",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user.get('team_id'),
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="content_item",
+        target_id=content_id,
+        target_name=content.get('title')
     )
     
     return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))

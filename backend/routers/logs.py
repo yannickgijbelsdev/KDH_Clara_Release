@@ -234,10 +234,10 @@ async def get_log_categories(current_user: dict = Depends(require_admin)):
         "categories": [
             {"value": "auth", "label": "Authentication", "description": "Login, logout, password changes"},
             {"value": "user", "label": "User Management", "description": "Create, update, delete users"},
-            {"value": "show", "label": "Shows", "description": "Show creation and updates"},
+            {"value": "show", "label": "Shows", "description": "Show creation, updates and deletion"},
             {"value": "rundown", "label": "Rundown", "description": "Rundown item changes"},
-            {"value": "content", "label": "Content Library", "description": "Content changes"},
-            {"value": "media", "label": "Media Library", "description": "Media uploads and changes"},
+            {"value": "content", "label": "Content Library", "description": "Content creation, updates, approval and publishing"},
+            {"value": "media", "label": "Media Library", "description": "Media uploads and deletion"},
             {"value": "team", "label": "Team Settings", "description": "Team configuration changes"},
             {"value": "settings", "label": "Show Settings", "description": "Show titles and studios"}
         ]

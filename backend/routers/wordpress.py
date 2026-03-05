@@ -27,6 +27,7 @@ from models.wordpress import (
 )
 from services.auth import get_current_user, require_admin
 from services.main_site_context import get_main_site_id_from_header, get_effective_role
+from services.audit import log_action, get_client_ip
 
 # Security audit logger for WordPress integration
 wp_audit_logger = logging.getLogger("wordpress.audit")
@@ -1130,4 +1131,24 @@ async def publish_content_to_wordpress(
                 message=str(e)
             ))
     
+    # Log successful publishes to activity log
+    successful = [r for r in results if r.success]
+    if successful:
+        await log_action(
+            action=f"Published to WordPress: {content.get('title', 'Unknown')}",
+            category="content",
+            user_id=current_user['id'],
+            user_name=current_user.get('name'),
+            user_email=current_user.get('email'),
+            team_id=current_user.get('team_id'),
+            ip_address="system",
+            target_type="content_item",
+            target_id=content_id,
+            target_name=content.get('title'),
+            details={
+                "sites": [r.site_name for r in successful],
+                "wp_status": [r.message for r in successful]
+            }
+        )
+
     return PublishResponse(results=results)
