@@ -92,10 +92,15 @@ class PermissionMiddleware(BaseHTTPMiddleware):
 
         # Find matching feature for this route
         feature = None
-        for prefix, feat in ROUTE_PERMISSIONS.items():
-            if path.startswith(prefix):
-                feature = feat
-                break
+
+        # Check for rundown-specific sub-routes first (more specific match)
+        if "/rundown" in path:
+            feature = "rundown"
+        else:
+            for prefix, feat in ROUTE_PERMISSIONS.items():
+                if path.startswith(prefix):
+                    feature = feat
+                    break
 
         if not feature:
             return await call_next(request)

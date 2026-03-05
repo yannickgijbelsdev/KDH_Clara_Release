@@ -1009,6 +1009,13 @@ async def startup_db_client():
     await start_backup_scheduler()
     logger.info("Daily backup scheduler started")
 
+    # Migrate: add 'rundown' permission to existing roles
+    try:
+        from routers.roles import migrate_add_rundown_permission
+        await migrate_add_rundown_permission()
+    except Exception as e:
+        logger.warning(f"Rundown permission migration failed: {e}")
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

@@ -15,6 +15,7 @@ PERMISSION_CATEGORIES = [
         "group": "Shows",
         "permissions": [
             {"id": "shows", "label": "Shows"},
+            {"id": "rundown", "label": "Rundown"},
             {"id": "calendar", "label": "Calendar"},
             {"id": "show_management", "label": "Show Management"},
         ]
@@ -119,13 +120,13 @@ def _generate_default_permissions(slug):
         for pid in all_ids:
             if pid in ("team_settings", "firewall", "wordpress", "activity_logs"):
                 permissions[pid] = {"view": False, "create": False, "edit": False, "delete": False}
-            elif pid in ("shows", "calendar", "content_library", "media_library", "content_approval", "team_chat", "call_studio", "support_tickets"):
+            elif pid in ("shows", "rundown", "calendar", "content_library", "media_library", "content_approval", "team_chat", "call_studio", "support_tickets"):
                 permissions[pid] = {"view": True, "create": True, "edit": True, "delete": True}
             else:
                 permissions[pid] = {"view": True, "create": False, "edit": False, "delete": False}
     elif slug == "presenter":
         for pid in all_ids:
-            if pid in ("shows", "calendar", "team_chat", "call_studio", "support_tickets"):
+            if pid in ("shows", "rundown", "calendar", "team_chat", "call_studio", "support_tickets"):
                 permissions[pid] = {"view": True, "create": False, "edit": True, "delete": False}
             elif pid in ("content_library", "media_library"):
                 permissions[pid] = {"view": True, "create": True, "edit": False, "delete": False}
@@ -134,7 +135,7 @@ def _generate_default_permissions(slug):
     else:
         # viewer / custom default
         for pid in all_ids:
-            if pid in ("shows", "calendar", "support_tickets"):
+            if pid in ("shows", "rundown", "calendar", "support_tickets"):
                 permissions[pid] = {"view": True, "create": False, "edit": False, "delete": False}
             else:
                 permissions[pid] = {"view": False, "create": False, "edit": False, "delete": False}
@@ -343,6 +344,34 @@ async def _seed_default_roles(main_site_id: str):
         role_copy = {k: v for k, v in role.items() if k != "_id"}
         roles.append(role_copy)
     return roles
+
+
+async def migrate_add_rundown_permission():
+    """Add 'rundown' permission to all existing roles that don't have it yet."""
+    roles_without_rundown = db.roles.find({"permissions.rundown": {"$exists": False}})
+    count = 0
+    async for role in roles_without_rundown:
+        slug = role.get("slug", "viewer")
+        # Derive rundown permission from role type
+        if slug == "admin" or role.get("is_system"):
+            rundown_perms = {"view": True, "create": True, "edit": True, "delete": True}
+        elif slug == "editor":
+            rundown_perms = {"view": True, "create": True, "edit": True, "delete": True}
+        elif slug == "presenter":
+            rundown_perms = {"view": True, "create": False, "edit": True, "delete": False}
+        else:
+            # Copy from shows permission if available, otherwise view-only
+            shows_perms = role.get("permissions", {}).get("shows", {})
+            rundown_perms = shows_perms if shows_perms else {"view": True, "create": False, "edit": False, "delete": False}
+
+        await db.roles.update_one(
+            {"id": role["id"]},
+            {"$set": {"permissions.rundown": rundown_perms}}
+        )
+        count += 1
+    if count > 0:
+        import logging
+        logging.getLogger(__name__).info(f"Migrated {count} roles: added 'rundown' permission")
 
 
 # ============== PERMISSION AUDIT LOGS ==============
