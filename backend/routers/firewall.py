@@ -1,6 +1,6 @@
 """Firewall Router — Network admin firewall management endpoints."""
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from pydantic import BaseModel
@@ -265,7 +265,6 @@ async def get_security_stats(
     active_blocks = await db.firewall_blocks.count_documents(block_query)
 
     # Recent events (last 24h)
-    from datetime import timedelta
     cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
     recent_query = {**query, "timestamp": {"$gte": cutoff}}
     recent_events = await db.security_logs.count_documents(recent_query)
@@ -310,8 +309,29 @@ async def list_sessions(
     active_only: bool = True,
     current_user: dict = Depends(get_current_user),
 ):
-    """List active user sessions."""
+    """List active user sessions. Auto-expires sessions past JWT expiry."""
     require_network_admin(current_user)
+    
+    # Auto-expire zombie sessions: active=True but JWT has expired
+    now_iso = datetime.now(timezone.utc).isoformat()
+    # Sessions with expires_at field
+    expired_result = await db.sessions.update_many(
+        {"active": True, "expires_at": {"$lt": now_iso, "$exists": True}},
+        {"$set": {"active": False, "ended_at": now_iso, "end_reason": "token_expired"}}
+    )
+    # Sessions without expires_at (old records): expire if started > JWT_EXPIRATION_HOURS ago
+    from database import JWT_EXPIRATION_HOURS
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=JWT_EXPIRATION_HOURS)).isoformat()
+    old_result = await db.sessions.update_many(
+        {"active": True, "expires_at": {"$exists": False}, "started_at": {"$lt": cutoff}},
+        {"$set": {"active": False, "ended_at": now_iso, "end_reason": "token_expired"}}
+    )
+    if expired_result.modified_count or old_result.modified_count:
+        import logging
+        logging.getLogger(__name__).info(
+            f"Auto-expired {expired_result.modified_count + old_result.modified_count} zombie sessions"
+        )
+    
     query = {}
     if active_only:
         query["active"] = True

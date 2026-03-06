@@ -2,10 +2,10 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import uuid
 
-from database import db
+from database import db, JWT_EXPIRATION_HOURS
 from models.auth import (
     UserCreate, UserLogin, TokenResponse, UserWithTeamResponse
 )
@@ -227,6 +227,7 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
     # Create session tracking record
     session_id = str(uuid.uuid4())
     user_agent = request.headers.get("user-agent", "Unknown")
+    session_expires = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
     session_doc = {
         "id": session_id,
         "user_id": user['id'],
@@ -236,6 +237,7 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         "user_agent": user_agent,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "last_active": datetime.now(timezone.utc).isoformat(),
+        "expires_at": session_expires.isoformat(),
         "active": True,
         "team_id": team_id,
     }
