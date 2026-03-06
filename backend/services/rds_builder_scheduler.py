@@ -85,18 +85,10 @@ async def log_text_change(db, station: str, new_text: str, item_type: str, reaso
 async def get_now_playing_station_for(db, station: str) -> str:
     """Determine which station's now playing data to use.
     
-    If the current active show has rds_station="both", GRK uses MFY's now playing.
-    Otherwise, use the requested station's own now playing.
+    Each station always uses its own shoutcast stream data.
+    This ensures that when separate shows run on MFY and GRK simultaneously,
+    each station shows its own now playing info.
     """
-    if station == "grk":
-        # Check if there's an active show with rds_station="both"
-        active_show = await db.rds_cached_rundowns.find_one(
-            {"is_active": True, "rds_station": "both"},
-            {"_id": 0, "rds_station": 1}
-        )
-        if active_show:
-            # Show is on both stations, GRK uses MFY's now playing
-            return "mfy"
     return station
 
 
