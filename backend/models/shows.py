@@ -146,6 +146,7 @@ class ShowResponse(BaseModel):
     recurrence_end_date: Optional[str] = None
     parent_show_id: Optional[str] = None  # If this is an occurrence of a recurring show
     is_recurring: Optional[bool] = False
+    rds_station: Optional[str] = "none"
 
 
 class RundownItemCreate(BaseModel):

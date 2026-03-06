@@ -25,11 +25,27 @@ import {
   Users,
   User,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import CreateShowDialog from '../components/CreateShowDialog';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const stationBadge = (station) => {
+  if (!station || station === 'none') return null;
+  const cfg = {
+    mfy: { label: 'MFY', cls: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+    grk: { label: 'GRK', cls: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
+    both: { label: 'BOTH', cls: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
+  };
+  const c = cfg[station] || { label: station.toUpperCase(), cls: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' };
+  return (
+    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.cls} leading-none`}>
+      {c.label}
+    </span>
+  );
+};
 
 const statusColors = {
   draft: 'bg-zinc-500',
@@ -252,13 +268,19 @@ const CalendarPage = () => {
                     {/* Show indicators */}
                     {dayShows.length > 0 && (
                       <div className="flex flex-wrap gap-0.5 justify-center">
-                        {dayShows.slice(0, 3).map((show, i) => (
-                          <div
-                            key={show.id}
-                            className={`w-1.5 h-1.5 rounded-full ${statusColors[show.status]}`}
-                            title={show.title}
-                          />
-                        ))}
+                        {dayShows.slice(0, 3).map((show) => {
+                          const stColor = show.rds_station === 'mfy' ? 'bg-orange-400' 
+                            : show.rds_station === 'grk' ? 'bg-cyan-400'
+                            : show.rds_station === 'both' ? 'bg-violet-400'
+                            : statusColors[show.status];
+                          return (
+                            <div
+                              key={show.id}
+                              className={`w-1.5 h-1.5 rounded-full ${stColor}`}
+                              title={`${show.title}${show.rds_station && show.rds_station !== 'none' ? ` (${show.rds_station.toUpperCase()})` : ''}`}
+                            />
+                          );
+                        })}
                         {dayShows.length > 3 && (
                           <span className="text-[10px] text-zinc-500">
                             +{dayShows.length - 3}
@@ -281,6 +303,20 @@ const CalendarPage = () => {
                 <span className="text-xs text-zinc-400 capitalize">{statusLabels[status]}</span>
               </div>
             ))}
+            <span className="text-xs text-zinc-600 mx-1">|</span>
+            <span className="text-xs text-zinc-500">Station:</span>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-orange-400" />
+              <span className="text-xs text-zinc-400">MFY</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span className="text-xs text-zinc-400">GRK</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-violet-400" />
+              <span className="text-xs text-zinc-400">Both</span>
+            </div>
           </div>
         </div>
       </div>
@@ -346,6 +382,7 @@ const CalendarPage = () => {
                                 <h4 className="text-white font-medium group-hover:text-rose-400 transition-colors line-clamp-1">
                                   {show.title}
                                 </h4>
+                                {stationBadge(show.rds_station)}
                                 {show.is_recurring && (
                                   <Repeat className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" title="Recurring show" />
                                 )}

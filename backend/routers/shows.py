@@ -741,6 +741,16 @@ async def get_shows(
         ).to_list(100)
         presenters_map = {p["id"]: p for p in presenters}
     
+    # Get station assignments from show_titles
+    title_names = list(set(s.get('title') for s in shows if s.get('title')))
+    station_map = {}
+    if title_names:
+        title_docs = await db.show_titles.find(
+            {"name": {"$in": title_names}, "main_site_id": main_site_id} if main_site_id else {"name": {"$in": title_names}},
+            {"_id": 0, "name": 1, "rds_station": 1}
+        ).to_list(200)
+        station_map = {t['name']: t.get('rds_station', 'none') for t in title_docs}
+
     for show in shows:
         if show.get('studio_id'):
             show['studio_name'] = studios_map.get(show['studio_id'])
@@ -748,6 +758,8 @@ async def get_shows(
         presenter_ids = show.get('presenter_ids', [])
         if presenter_ids:
             show['presenters'] = [presenters_map[pid] for pid in presenter_ids if pid in presenters_map]
+        # Add station label
+        show['rds_station'] = station_map.get(show.get('title'), 'none')
     
     return shows
 

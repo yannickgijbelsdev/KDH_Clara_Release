@@ -31,6 +31,30 @@ import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Derive station from WordPress site name
+const deriveStation = (siteName) => {
+  if (!siteName) return null;
+  const lower = siteName.toLowerCase();
+  if (lower === 'mfy' || lower.includes('mfy')) return 'mfy';
+  if (lower === 'grk' || lower.includes('grk')) return 'grk';
+  return null;
+};
+
+const stationBadge = (station) => {
+  if (!station) return null;
+  const cfg = {
+    mfy: { label: 'MFY', cls: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+    grk: { label: 'GRK', cls: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
+    both: { label: 'BOTH', cls: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
+  };
+  const c = cfg[station] || { label: station.toUpperCase(), cls: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' };
+  return (
+    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.cls} leading-none`}>
+      {c.label}
+    </span>
+  );
+};
+
 const statusColors = {
   published: 'bg-green-500',
   scheduled: 'bg-orange-500',
@@ -93,6 +117,16 @@ const ContentCalendarPage = () => {
     const entries = [];
 
     contentItems.forEach(item => {
+      // Determine station for the whole content item (based on all publish targets)
+      const allStations = new Set();
+      (item.publish_statuses || []).forEach(ps => {
+        const st = deriveStation(ps.wordpress_site_name);
+        if (st) allStations.add(st);
+      });
+      const itemStation = allStations.size > 1 ? 'both' 
+        : allStations.size === 1 ? [...allStations][0] 
+        : deriveStation(item.source) || null;
+
       if (item.publish_statuses?.length > 0) {
         item.publish_statuses.forEach(ps => {
           const isPublished = ps.sync_status === 'synced' || ps.wp_status === 'publish';
@@ -118,6 +152,7 @@ const ContentCalendarPage = () => {
               status: isScheduled ? 'scheduled' : 'published',
               siteName: ps.wordpress_site_name || 'WordPress',
               siteId: ps.wordpress_site_id,
+              station: deriveStation(ps.wordpress_site_name) || itemStation,
               wpUrl: ps.wp_permalink,
               imageUrl: getBestFeaturedImage(item),
               excerpt: item.excerpt || '',
@@ -142,6 +177,7 @@ const ContentCalendarPage = () => {
           status: 'published',
           siteName: item.source || 'WordPress',
           siteId: null,
+          station: deriveStation(item.source) || itemStation,
           wpUrl: item.source_url,
           imageUrl: getBestFeaturedImage(item),
           excerpt: item.excerpt || '',
@@ -291,13 +327,19 @@ const ContentCalendarPage = () => {
 
                     {dayEntries.length > 0 && (
                       <div className="flex flex-wrap gap-0.5 justify-center">
-                        {dayEntries.slice(0, 4).map((entry) => (
-                          <div
-                            key={entry.id}
-                            className={`w-1.5 h-1.5 rounded-full ${statusColors[entry.status]}`}
-                            title={`${entry.title} (${entry.status})`}
-                          />
-                        ))}
+                        {dayEntries.slice(0, 4).map((entry) => {
+                          const stColor = entry.station === 'mfy' ? 'bg-orange-400' 
+                            : entry.station === 'grk' ? 'bg-cyan-400'
+                            : entry.station === 'both' ? 'bg-violet-400'
+                            : statusColors[entry.status];
+                          return (
+                            <div
+                              key={entry.id}
+                              className={`w-1.5 h-1.5 rounded-full ${stColor}`}
+                              title={`${entry.title} (${entry.siteName}${entry.station ? ` - ${entry.station.toUpperCase()}` : ''})`}
+                            />
+                          );
+                        })}
                         {dayEntries.length > 4 && (
                           <span className="text-[10px] text-zinc-500">+{dayEntries.length - 4}</span>
                         )}
@@ -319,6 +361,20 @@ const ContentCalendarPage = () => {
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-orange-500" />
               <span className="text-xs text-zinc-400">Scheduled</span>
+            </div>
+            <span className="text-xs text-zinc-600 mx-1">|</span>
+            <span className="text-xs text-zinc-500">Station:</span>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-orange-400" />
+              <span className="text-xs text-zinc-400">MFY</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span className="text-xs text-zinc-400">GRK</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-violet-400" />
+              <span className="text-xs text-zinc-400">Both</span>
             </div>
           </div>
         </div>
@@ -374,9 +430,12 @@ const ContentCalendarPage = () => {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between mb-1">
-                            <h4 className="text-white font-medium group-hover:text-rose-400 transition-colors line-clamp-1 text-sm">
-                              {entry.title}
-                            </h4>
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="text-white font-medium group-hover:text-rose-400 transition-colors line-clamp-1 text-sm">
+                                {entry.title}
+                              </h4>
+                              {stationBadge(entry.station)}
+                            </div>
                             <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${statusColors[entry.status]}`} />
                           </div>
                           <div className="flex items-center gap-1 text-zinc-500 text-xs">

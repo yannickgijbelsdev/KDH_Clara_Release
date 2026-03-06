@@ -2756,10 +2756,13 @@ now = now_brussels()  # Automatically handles CET/CEST
 - **P0: Clone Login Bug (Production)** - Users unable to log into cloned main sites on production. Enhanced error handling added for diagnostics. Waiting for user feedback with screenshots/network tab info.
 
 ### Recently Completed (March 6, 2026)
-- **Bug Fix: Twee live shows op verschillende zenders** - Fixed: RDS cache was gekey'd op alleen `team_id`, waardoor twee shows met dezelfde team maar op verschillende stations (MFY/GRK) elkaars cache overschreven. Nu gekey'd op `team_id + rds_station`. Shows met `rds_station: "both"` worden correct gesplitst naar twee aparte cache entries.
-- **Bug Fix: Cache deactivatie** - Was globaal (alle caches), nu per-team. Voorkomt dat actieve shows op andere teams onterecht gedeactiveerd worden.
-- **Activity Logs uitgebreid** - Content create/update/approve/delete, Shows create/update/delete, WordPress publish, Media upload/delete worden nu allemaal gelogd in de hoofdactiviteitenlog met correcte `main_site_id`.
-- **Firewall Cross-Site isolatie** - Alle firewall endpoints strikt gefilterd per `main_site_id`.
+- **Bug Fix: Twee live shows op verschillende zenders** - RDS cache nu gekey'd op `team_id + rds_station`. `get_now_playing_station_for()` gefixt: elke station gebruikt altijd eigen shoutcast data.
+- **Station Labels op Calendars** - Show Calendar en Content Calendar tonen nu MFY/GRK/Both labels:
+  - Shows: rds_station vanuit show_titles, dots gekleurd per station (oranje=MFY, cyaan=GRK, paars=Both)
+  - Content: station automatisch afgeleid van WordPress site naam (MFY/GRK)
+  - Legenda bijgewerkt met station-kleuren
+- **Activity Logs uitgebreid** - Content, Shows, WordPress en Media acties worden nu gelogd
+- **Firewall Cross-Site isolatie** - Alle firewall endpoints strikt gefilterd per `main_site_id`
 
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
