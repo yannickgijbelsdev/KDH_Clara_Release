@@ -104,9 +104,12 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
     results = []
     
     if not live_shows:
-        # No live shows - mark any active caches as inactive
+        # No live shows - mark caches for this team as inactive
+        deactivate_query = {"is_active": True}
+        if team_ids_list:
+            deactivate_query["team_id"] = {"$in": team_ids_list}
         await db.rds_cached_rundowns.update_many(
-            {"is_active": True},
+            deactivate_query,
             {"$set": {"is_active": False, "updated_at": timestamp}}
         )
         
@@ -165,6 +168,11 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 )
             rds_station = show_title_doc.get("rds_station", "none") if show_title_doc else "none"
             
+            # Skip shows not assigned to any station
+            if rds_station == "none":
+                logger.info(f"Skipping show '{show_title}' - rds_station is 'none'")
+                continue
+            
             # Fetch rundown items for this show
             rundown_items = await db.rundown_items.find(
                 {"show_id": show_id},
@@ -186,12 +194,23 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
                 "updated_at": timestamp
             }
             
-            # Upsert cached rundown
-            await db.rds_cached_rundowns.update_one(
-                {"team_id": show_team_id},
-                {"$set": cached_data},
-                upsert=True
-            )
+            # Determine which station slots to fill
+            if rds_station == "both":
+                # Show is for both stations: create/update entries for both mfy and grk
+                for st in ["mfy", "grk"]:
+                    station_data = {**cached_data, "rds_station": st}
+                    await db.rds_cached_rundowns.update_one(
+                        {"team_id": show_team_id, "rds_station": st},
+                        {"$set": station_data},
+                        upsert=True
+                    )
+            else:
+                # Show is for a specific station (mfy or grk)
+                await db.rds_cached_rundowns.update_one(
+                    {"team_id": show_team_id, "rds_station": rds_station},
+                    {"$set": cached_data},
+                    upsert=True
+                )
             
             # Update RDS settings with last refresh time (use original identifier)
             await db.rds_settings.update_one(

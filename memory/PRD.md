@@ -2755,10 +2755,11 @@ now = now_brussels()  # Automatically handles CET/CEST
 ### Open Issues
 - **P0: Clone Login Bug (Production)** - Users unable to log into cloned main sites on production. Enhanced error handling added for diagnostics. Waiting for user feedback with screenshots/network tab info.
 
-### Recently Completed (March 5, 2026)
-- **P0 Bug Fix: Custom Roles in Team Settings** - Fixed: custom RBAC roles now appear in Team Settings role dropdown, invite dialog, and add existing user dialog
-- **Rundown Permissie** - Added "Rundown" as separate RBAC permission category in the Shows group, with migration for existing roles
-- **Firewall Cross-Site Data Isolation** - Fixed: firewall logs, stats, blocks, and security audit now strictly filtered per main_site_id. No more cross-site data leakage via `$in: [site_id, null]` queries
+### Recently Completed (March 6, 2026)
+- **Bug Fix: Twee live shows op verschillende zenders** - Fixed: RDS cache was gekey'd op alleen `team_id`, waardoor twee shows met dezelfde team maar op verschillende stations (MFY/GRK) elkaars cache overschreven. Nu gekey'd op `team_id + rds_station`. Shows met `rds_station: "both"` worden correct gesplitst naar twee aparte cache entries.
+- **Bug Fix: Cache deactivatie** - Was globaal (alle caches), nu per-team. Voorkomt dat actieve shows op andere teams onterecht gedeactiveerd worden.
+- **Activity Logs uitgebreid** - Content create/update/approve/delete, Shows create/update/delete, WordPress publish, Media upload/delete worden nu allemaal gelogd in de hoofdactiviteitenlog met correcte `main_site_id`.
+- **Firewall Cross-Site isolatie** - Alle firewall endpoints strikt gefilterd per `main_site_id`.
 
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
