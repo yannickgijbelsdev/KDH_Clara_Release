@@ -735,12 +735,8 @@ export default function NetworkDashboard() {
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
                     <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => openEditDialog(site)}><Edit className="w-3.5 h-3.5" /></Button>
-                    {site.site_type !== 'technical' && (
-                      <>
-                        <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => runHealthCheck(site.id, site.name)}><Activity className="w-3.5 h-3.5" /></Button>
-                        <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}><UserCog className="w-3.5 h-3.5" /></Button>
-                      </>
-                    )}
+                    <Button variant="ghost" size="icon" className={`w-8 h-8 ${site.site_type === 'technical' ? 'opacity-10 pointer-events-none' : ''}`} disabled={site.site_type === 'technical'} onClick={() => runHealthCheck(site.id, site.name)}><Activity className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="icon" className={`w-8 h-8 ${site.site_type === 'technical' ? 'opacity-10 pointer-events-none' : ''}`} disabled={site.site_type === 'technical'} onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}><UserCog className="w-3.5 h-3.5" /></Button>
                     <Link to={`/${site.slug}`}><Button variant="ghost" size="icon" className="w-8 h-8"><ExternalLink className="w-3.5 h-3.5" /></Button></Link>
                     <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleDeleteClick(site.id, site.name)}><Trash2 className="w-3.5 h-3.5 text-red-500" /></Button>
                   </div>
