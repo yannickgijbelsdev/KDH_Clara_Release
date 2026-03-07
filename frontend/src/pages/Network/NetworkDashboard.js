@@ -874,7 +874,7 @@ export default function NetworkDashboard() {
                   >
                     <Radio className="w-5 h-5 text-orange-400" />
                     <div>
-                      <span className="text-sm font-medium text-white">Radio</span>
+                      <span className="text-sm font-medium text-white">Clara Standard</span>
                       <p className="text-xs text-zinc-400">Full feature set</p>
                     </div>
                   </div>
@@ -889,8 +889,8 @@ export default function NetworkDashboard() {
                   >
                     <Monitor className="w-5 h-5 text-emerald-400" />
                     <div>
-                      <span className="text-sm font-medium text-white">Technical</span>
-                      <p className="text-xs text-zinc-400">ZeroTier monitoring</p>
+                      <span className="text-sm font-medium text-white">Clara Technical</span>
+                      <p className="text-xs text-zinc-400">Only for monitoring purposes</p>
                     </div>
                   </div>
                 </div>
