@@ -576,6 +576,8 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
                     "name": ms["name"],
                     "slug": ms["slug"],
                     "logo_url": ms.get("logo_url"),
+                    "site_type": ms.get("site_type", "radio"),
+                    "cloned_from": ms.get("cloned_from"),
                     "role": "network_admin"
                 }
                 for ms in main_sites
@@ -614,6 +616,8 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
                 "name": ms["name"],
                 "slug": ms["slug"],
                 "logo_url": ms.get("logo_url"),
+                "site_type": ms.get("site_type", "radio"),
+                "cloned_from": ms.get("cloned_from"),
                 "role": access_by_id.get(ms["id"], "viewer")
             }
             for ms in filtered

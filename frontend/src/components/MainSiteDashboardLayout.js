@@ -787,6 +787,7 @@ const MainSiteDashboardContent = () => {
                 <Button
                   variant="ghost"
                   size="icon"
+                  data-testid="user-menu-trigger"
                   className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-orange-500/10`}
                 >
                   {user?.avatar?.url || user?.avatar?.file_key ? (
@@ -838,19 +839,23 @@ const MainSiteDashboardContent = () => {
                     <div className="px-2 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wide">
                       Mijn Sites
                     </div>
-                    {myMainSites.map(site => (
+                    {myMainSites.map(site => {
+                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : 'Standard';
+                      const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : 'text-zinc-600';
+                      return (
                       <DropdownMenuItem
                         key={site.id}
                         onClick={() => navigate(`/${site.slug}`)}
                         className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800/50 text-orange-500' : ''}`}
                       >
-                        <Globe className="w-4 h-4 mr-2" />
-                        {site.name}
-                        {site.slug === mainSiteSlug && (
-                          <span className="ml-auto text-xs text-zinc-500">actief</span>
-                        )}
+                        <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">{site.name}</span>
+                        <span className={`ml-auto text-[10px] flex-shrink-0 ${site.slug === mainSiteSlug ? 'text-orange-500' : labelColor}`}>
+                          {site.slug === mainSiteSlug ? 'actief' : siteLabel}
+                        </span>
                       </DropdownMenuItem>
-                    ))}
+                      );
+                    })}
                   </>
                 )}
                 {user?.is_network_admin && (
