@@ -1013,6 +1013,11 @@ async def startup_db_client():
     await start_backup_scheduler()
     logger.info("Daily backup scheduler started")
 
+    # Start daily notification digest scheduler
+    from services.notification_scheduler import start_notification_scheduler
+    await start_notification_scheduler()
+    logger.info("Notification digest scheduler started")
+
     # Migrate: add 'rundown' permission to existing roles
     try:
         from routers.roles import migrate_add_rundown_permission

@@ -54,7 +54,7 @@ async def save_smtp_config(data: dict, current_user: dict = Depends(require_netw
     port = data.get("port") or provider.get("port", 587)
 
     if not host or not data.get("username"):
-        raise HTTPException(400, "Host en gebruikersnaam zijn verplicht")
+        raise HTTPException(400, "Host and username are required")
 
     doc = {
         "type": "smtp",
@@ -97,10 +97,10 @@ async def test_smtp(data: dict, current_user: dict = Depends(require_network_adm
         if existing and existing.get("password"):
             config["password"] = existing["password"]
         else:
-            return {"success": False, "message": "Geen wachtwoord opgegeven"}
+            return {"success": False, "message": "No password provided"}
 
     if not config.get("host") or not config.get("username"):
-        return {"success": False, "message": "Host en gebruikersnaam zijn verplicht"}
+        return {"success": False, "message": "Host and username are required"}
 
     result = await test_smtp_config(config)
     return result
@@ -115,23 +115,23 @@ async def send_test_email(
     """Send a test email to the specified address."""
     to_email = data.get("to_email", current_user.get("email"))
     if not to_email:
-        raise HTTPException(400, "E-mailadres verplicht")
+        raise HTTPException(400, "Email address required")
 
     smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
     if not smtp_config or not smtp_config.get("password"):
-        raise HTTPException(400, "SMTP niet geconfigureerd")
+        raise HTTPException(400, "SMTP not configured")
 
     html = build_notification_html(
-        "Test Melding",
+        "Test Notification",
         "system",
-        "Dit is een test e-mail van Clara Radio Dashboard. Als je dit ontvangt werkt de SMTP configuratie correct!",
+        "This is a test email from Clara Radio Dashboard. If you receive this, the SMTP configuration is working correctly!",
         user_name=current_user.get("name", ""),
     )
 
-    success = await send_email_with_config(smtp_config, to_email, "Clara Test Melding", html)
+    success = await send_email_with_config(smtp_config, to_email, "Clara Test Notification", html)
     if success:
-        return {"message": f"Test e-mail verstuurd naar {to_email}"}
-    raise HTTPException(500, "E-mail versturen mislukt. Controleer de SMTP instellingen.")
+        return {"message": f"Test email sent to {to_email}"}
+    raise HTTPException(500, "Failed to send email. Please check the SMTP settings.")
 
 
 # ── ROLE NOTIFICATION SETTINGS ──────────────────────────────────
@@ -159,7 +159,7 @@ async def save_role_notification_settings(data: dict, current_user: dict = Depen
         }},
         upsert=True,
     )
-    return {"message": "Instellingen opgeslagen", "roles": roles}
+    return {"message": "Settings saved", "roles": roles}
 
 
 # ── NOTIFICATION LOG (for daily summaries) ──────────────────────
@@ -173,6 +173,18 @@ async def get_notification_log(
         {}, {"_id": 0}
     ).sort("timestamp", -1).limit(limit).to_list(limit)
     return logs
+
+
+@notifications_router.post("/send-daily-digest")
+async def manual_send_daily_digest(
+    current_user: dict = Depends(require_network_admin),
+):
+    """Manually trigger the daily digest email."""
+    from services.notification_scheduler import send_daily_digest
+    await send_daily_digest()
+    return {"message": "Daily digest sent"}
+
+
 
 
 # ── TRIGGER NOTIFICATION (internal helper, called from other routers) ──

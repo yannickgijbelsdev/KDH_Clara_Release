@@ -15,65 +15,65 @@ SMTP_PROVIDERS = {
         "host": "smtp.office365.com",
         "port": 587,
         "use_tls": True,
-        "help_text": "Gebruik je Microsoft 365 e-mail en een App Password (Security > App passwords)"
+        "help_text": "Use your Microsoft 365 email and an App Password (Security > App passwords)"
     },
     "google": {
         "name": "Google Workspace / Gmail",
         "host": "smtp.gmail.com",
         "port": 587,
         "use_tls": True,
-        "help_text": "Gebruik je Gmail-adres en een App Password (myaccount.google.com > Security > App passwords)"
+        "help_text": "Use your Gmail address and an App Password (myaccount.google.com > Security > App passwords)"
     },
     "outlook": {
         "name": "Outlook.com",
         "host": "smtp-mail.outlook.com",
         "port": 587,
         "use_tls": True,
-        "help_text": "Gebruik je Outlook.com e-mail en wachtwoord"
+        "help_text": "Use your Outlook.com email and password"
     },
     "custom": {
         "name": "Custom SMTP",
         "host": "",
         "port": 587,
         "use_tls": True,
-        "help_text": "Vul de SMTP-gegevens van je eigen mailserver in"
+        "help_text": "Enter your own mail server SMTP details"
     }
 }
 
 NOTIFICATION_CATEGORIES = {
     "security": {
         "name": "Security",
-        "description": "Failed logins, brute force, nieuwe sessies",
+        "description": "Failed logins, brute force, new sessions",
         "events": ["login_failed", "brute_force_detected", "new_session", "password_changed"]
     },
     "firewall": {
         "name": "Firewall",
-        "description": "Geblokkeerde IP's, verdachte activiteit",
+        "description": "Blocked IPs, suspicious activity",
         "events": ["ip_blocked", "suspicious_activity", "firewall_rule_changed"]
     },
     "content": {
         "name": "Content Library",
-        "description": "Artikelen aangemaakt, gepubliceerd, verwijderd",
+        "description": "Articles created, published, deleted",
         "events": ["content_created", "content_published", "content_deleted", "content_updated"]
     },
     "shows": {
         "name": "Show Management",
-        "description": "Show titles, studio's, presenter wijzigingen",
+        "description": "Show titles, studios, presenter changes",
         "events": ["show_title_changed", "studio_changed", "presenter_changed", "show_created", "show_deleted"]
     },
     "users": {
-        "name": "Gebruikers",
-        "description": "Nieuwe gebruikers, rol wijzigingen, wachtwoord resets",
+        "name": "Users",
+        "description": "New users, role changes, password resets",
         "events": ["user_created", "user_role_changed", "password_reset", "user_deleted"]
     },
     "wordpress": {
         "name": "WordPress",
-        "description": "Publicaties, sync fouten",
+        "description": "Publications, sync errors",
         "events": ["wp_published", "wp_sync_error", "wp_category_synced"]
     },
     "system": {
         "name": "System",
-        "description": "Backups, ZeroTier status, systeemmeldingen",
+        "description": "Backups, ZeroTier status, system notifications",
         "events": ["backup_completed", "backup_failed", "zt_client_online", "zt_client_offline"]
     }
 }
@@ -126,13 +126,13 @@ async def test_smtp_config(smtp_config: dict) -> dict:
             with smtplib.SMTP_SSL(host, port, context=context, timeout=10) as server:
                 server.login(smtp_config["username"], smtp_config["password"])
 
-        return {"success": True, "message": "SMTP verbinding succesvol!"}
+        return {"success": True, "message": "SMTP connection successful!"}
     except smtplib.SMTPAuthenticationError:
-        return {"success": False, "message": "Authenticatie mislukt. Controleer je gebruikersnaam en wachtwoord (gebruik een App Password)."}
+        return {"success": False, "message": "Authentication failed. Check your username and password (use an App Password)."}
     except smtplib.SMTPConnectError:
-        return {"success": False, "message": f"Kan geen verbinding maken met {smtp_config['host']}:{smtp_config.get('port', 587)}"}
+        return {"success": False, "message": f"Cannot connect to {smtp_config['host']}:{smtp_config.get('port', 587)}"}
     except Exception as e:
-        return {"success": False, "message": f"Fout: {str(e)}"}
+        return {"success": False, "message": f"Error: {str(e)}"}
 
 
 def build_notification_html(event_type: str, category: str, details: str, site_name: str = "", user_name: str = "") -> str:
@@ -144,7 +144,7 @@ def build_notification_html(event_type: str, category: str, details: str, site_n
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
         <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Clara Melding</h1>
+            <h1 style="margin:0;font-size:18px;color:white;">Clara Notification</h1>
             <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">{cat_name}</p>
         </div>
         <div style="padding:24px;">
@@ -157,7 +157,7 @@ def build_notification_html(event_type: str, category: str, details: str, site_n
                     <td>Site: <strong style="color:#a1a1aa;">{site_name or 'Global'}</strong></td>
                     <td style="text-align:right;">{now}</td>
                 </tr>
-                {f'<tr><td colspan="2">Door: <strong style="color:#a1a1aa;">{user_name}</strong></td></tr>' if user_name else ''}
+                {f'<tr><td colspan="2">By: <strong style="color:#a1a1aa;">{user_name}</strong></td></tr>' if user_name else ''}
             </table>
         </div>
         <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Radio Management Platform</div>
@@ -180,17 +180,17 @@ def build_daily_summary_html(events: list) -> str:
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:700px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
         <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Clara Dagelijks Overzicht</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">{now} &middot; {len(events)} meldingen</p>
+            <h1 style="margin:0;font-size:18px;color:white;">Clara Daily Summary</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">{now} &middot; {len(events)} notifications</p>
         </div>
         <div style="padding:24px;">
             <table style="width:100%;border-collapse:collapse;">
                 <thead><tr style="border-bottom:2px solid #27272a;">
-                    <th style="padding:8px 12px;text-align:left;font-size:11px;color:#71717a;text-transform:uppercase;">Tijd</th>
-                    <th style="padding:8px 12px;text-align:left;font-size:11px;color:#71717a;text-transform:uppercase;">Categorie</th>
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;color:#71717a;text-transform:uppercase;">Time</th>
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;color:#71717a;text-transform:uppercase;">Category</th>
                     <th style="padding:8px 12px;text-align:left;font-size:11px;color:#71717a;text-transform:uppercase;">Details</th>
                 </tr></thead>
-                <tbody>{rows if rows else '<tr><td colspan="3" style="padding:16px;text-align:center;color:#52525b;">Geen activiteit vandaag</td></tr>'}</tbody>
+                <tbody>{rows if rows else '<tr><td colspan="3" style="padding:16px;text-align:center;color:#52525b;">No activity today</td></tr>'}</tbody>
             </table>
         </div>
         <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Radio Management Platform</div>

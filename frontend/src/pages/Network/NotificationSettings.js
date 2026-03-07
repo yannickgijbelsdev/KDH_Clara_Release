@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import {
   Mail, Shield, Flame, FileText, Tv, Users, Globe, Server,
   ChevronDown, Loader2, Check, Send, AlertCircle, Bell, BellRing,
-  Clock, Zap,
+  Clock, Zap, History, Play,
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -42,13 +42,17 @@ export default function NotificationSettings({ open, onClose }) {
   const [loadingRoles, setLoadingRoles] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [testEmailAddr, setTestEmailAddr] = useState('');
+  const [notifLog, setNotifLog] = useState([]);
+  const [loadingLog, setLoadingLog] = useState(false);
+  const [sendingDigest, setSendingDigest] = useState(false);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   useEffect(() => {
     if (!open) return;
     fetchAll();
-  }, [open]);
+    if (tab === 'history') fetchLog();
+  }, [open, tab]);
 
   const fetchAll = async () => {
     try {
@@ -102,6 +106,25 @@ export default function NotificationSettings({ open, onClose }) {
     }
   };
 
+  const fetchLog = async () => {
+    setLoadingLog(true);
+    try {
+      const res = await fetch(`${API}/api/notifications/log?limit=30`, { headers });
+      if (res.ok) setNotifLog(await res.json());
+    } catch {} finally { setLoadingLog(false); }
+  };
+
+  const sendDailyDigest = async () => {
+    setSendingDigest(true);
+    try {
+      const res = await fetch(`${API}/api/notifications/send-daily-digest`, { method: 'POST', headers });
+      if (res.ok) toast.success('Daily digest sent');
+      else toast.error('Failed to send digest');
+    } catch { toast.error('Failed'); }
+    finally { setSendingDigest(false); }
+  };
+
+
   const selectProvider = (provId) => {
     const prov = providers.find(p => p.id === provId);
     if (prov) {
@@ -138,7 +161,7 @@ export default function NotificationSettings({ open, onClose }) {
   };
 
   const sendTestEmail = async () => {
-    if (!testEmailAddr) { toast.error('Vul een e-mailadres in'); return; }
+    if (!testEmailAddr) { toast.error('Please enter an email address'); return; }
     setSendingTest(true);
     try {
       const res = await fetch(`${API}/api/notifications/smtp-test-email`, { method: 'POST', headers, body: JSON.stringify({ to_email: testEmailAddr }) });
@@ -193,6 +216,7 @@ export default function NotificationSettings({ open, onClose }) {
           {[
             { id: 'smtp', label: 'SMTP Config', icon: Mail },
             { id: 'roles', label: 'Role Notifications', icon: Users },
+            { id: 'history', label: 'History', icon: History },
           ].map(t => (
             <button
               key={t.id}
@@ -429,6 +453,53 @@ export default function NotificationSettings({ open, onClose }) {
                 Save Settings
               </Button>
             </div>
+          </div>
+        )}
+
+        {/* History Tab */}
+        {tab === 'history' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-zinc-400">Recent notification events and delivery status.</p>
+              <Button variant="outline" onClick={sendDailyDigest} disabled={sendingDigest} className="gap-2 text-xs" data-testid="send-digest-btn">
+                {sendingDigest ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                Send Daily Digest Now
+              </Button>
+            </div>
+
+            {loadingLog ? (
+              <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>
+            ) : notifLog.length === 0 ? (
+              <div className="text-center py-8 text-zinc-500 text-sm">No notification events yet</div>
+            ) : (
+              <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+                {notifLog.map((evt, i) => {
+                  const Icon = CATEGORY_ICONS[evt.category] || Bell;
+                  const sentCount = (evt.emails_sent || []).length;
+                  return (
+                    <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-zinc-800/30 hover:bg-zinc-800/50" data-testid={`notif-log-${i}`}>
+                      <Icon className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-white truncate">{evt.event_type}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-400">{evt.category}</span>
+                          {sentCount > 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              {sentCount} sent
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-zinc-500 truncate mt-0.5">{evt.details}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-zinc-600">{new Date(evt.timestamp).toLocaleString()}</span>
+                          {evt.actor_name && <span className="text-[10px] text-zinc-600">by {evt.actor_name}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </DialogContent>

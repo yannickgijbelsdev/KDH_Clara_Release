@@ -252,8 +252,9 @@ def clear_login_attempts(ip: str):
 
 async def log_security_event(event_type: str, ip: str, main_site_id: str = None,
                               details: dict = None, user_id: str = None, user_email: str = None):
-    """Log a security event."""
+    """Log a security event and trigger notifications."""
     import uuid
+    import asyncio
     geo = await get_geo_info(ip) if ip not in ("unknown", "127.0.0.1") else {}
 
     entry = {
@@ -270,6 +271,25 @@ async def log_security_event(event_type: str, ip: str, main_site_id: str = None,
         "details": details or {},
     }
     await db.security_logs.insert_one({**entry})
+
+    # Trigger notification for security/firewall events (skip noisy ones)
+    SKIP_NOTIFICATION_EVENTS = {"api_access", "successful_login"}
+    if event_type not in SKIP_NOTIFICATION_EVENTS:
+        try:
+            from routers.notifications import trigger_notification
+            category = "firewall" if "block" in event_type or "geo" in event_type or "rate" in event_type else "security"
+            location = f" from {geo.get('city', '')}, {geo.get('country_name', '')}" if geo.get("city") else ""
+            details_str = f"IP: {ip}{location}. {details.get('reason', '') if details else ''}"
+            asyncio.create_task(trigger_notification(
+                category=category,
+                event_type=event_type,
+                details=details_str,
+                main_site_id=main_site_id or "",
+                actor_email=user_email or "",
+            ))
+        except Exception:
+            pass
+
     return entry
 
 

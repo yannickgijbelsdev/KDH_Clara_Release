@@ -119,7 +119,7 @@ function DebugContent({ data }) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-500 p-2">Geen shows vandaag</p>
+          <p className="text-xs text-zinc-500 p-2">No shows today</p>
         )}
       </Section>
 
@@ -135,7 +135,7 @@ function DebugContent({ data }) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-500 p-2">Geen traffic</p>
+          <p className="text-xs text-zinc-500 p-2">No traffic</p>
         )}
       </Section>
 
@@ -157,7 +157,7 @@ function DebugContent({ data }) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-500 p-2">Geen cache logs</p>
+          <p className="text-xs text-zinc-500 p-2">No cache logs</p>
         )}
       </Section>
 
@@ -174,7 +174,7 @@ function DebugContent({ data }) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-500 p-2">Geen actieve rundowns</p>
+          <p className="text-xs text-zinc-500 p-2">No active rundowns</p>
         )}
       </Section>
 
@@ -194,7 +194,7 @@ function DebugContent({ data }) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-500 p-2">Geen shoutcast logs</p>
+          <p className="text-xs text-zinc-500 p-2">No shoutcast logs</p>
         )}
       </Section>
 
@@ -212,7 +212,7 @@ function DebugContent({ data }) {
             ))}
           </div>
         ) : (
-          <p className="text-xs text-zinc-500 p-2">Geen activiteit</p>
+          <p className="text-xs text-zinc-500 p-2">No activity</p>
         )}
       </Section>
 
@@ -603,7 +603,7 @@ export default function NetworkDashboard() {
               className="bg-amber-500 hover:bg-amber-600 text-black gap-2"
             >
               <Shield className="w-4 h-4" />
-              2FA Instellen
+              2FA Setup
             </Button>
           </div>
         )}
@@ -642,7 +642,7 @@ export default function NetworkDashboard() {
               className={`gap-2 ${user?.totp_enabled ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700'}`}
             >
               <Shield className="w-4 h-4" />
-              {user?.totp_enabled ? '2FA Actief' : 'Beveiliging'}
+              {user?.totp_enabled ? '2FA Active' : 'Security'}
             </Button>
             <Button
               variant="outline"
@@ -660,7 +660,7 @@ export default function NetworkDashboard() {
               data-testid="notification-settings-btn"
             >
               <Bell className="w-4 h-4" />
-              Meldingen
+              Notifications
             </Button>
             <Button 
               variant="outline" 
@@ -1087,7 +1087,7 @@ export default function NetworkDashboard() {
                 )}
                 <div>
                   <p className="font-semibold text-white">
-                    {healthCheck.result.overall_status === 'ok' ? 'Alles OK' :
+                    {healthCheck.result.overall_status === 'ok' ? 'All OK' :
                      healthCheck.result.overall_status === 'error' ? 'Fouten Gevonden' : 'Waarschuwingen'}
                   </p>
                   <p className="text-xs text-zinc-400">{healthCheck.result.timestamp?.slice(0, 19)}</p>
@@ -1145,7 +1145,7 @@ export default function NetworkDashboard() {
               )}
             </div>
           ) : (
-            <p className="text-zinc-500 text-center py-8">Geen resultaten</p>
+            <p className="text-zinc-500 text-center py-8">No results</p>
           )}
         </DialogContent>
       </Dialog>
@@ -1174,7 +1174,7 @@ export default function NetworkDashboard() {
           ) : debugPanel.data ? (
             <DebugContent data={debugPanel.data} />
           ) : (
-            <p className="text-zinc-500 text-center py-8">Geen data</p>
+            <p className="text-zinc-500 text-center py-8">No data</p>
           )}
         </DialogContent>
       </Dialog>
@@ -1276,7 +1276,7 @@ export default function NetworkDashboard() {
               </div>
             </div>
           ) : (
-            <p className="text-zinc-500 text-center py-8">Geen data</p>
+            <p className="text-zinc-500 text-center py-8">No data</p>
           )}
         </DialogContent>
       </Dialog>
@@ -1287,10 +1287,10 @@ export default function NetworkDashboard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-emerald-500" />
-              Account Beveiliging
+              Account Security
             </DialogTitle>
             <DialogDescription>
-              Beheer je twee-factor authenticatie instellingen.
+              Manage your two-factor authentication settings.
             </DialogDescription>
           </DialogHeader>
           <TwoFactorSetup user={user} onUpdate={refreshUser} />
