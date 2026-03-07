@@ -1,183 +1,197 @@
-"""Email service for sending notifications via SMTP (Microsoft 365)."""
-import os
+"""Email service for sending notifications via SMTP."""
 import smtplib
+import ssl
 import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from datetime import datetime, timezone
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-# SMTP Configuration from environment
-SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.office365.com')
-SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
-SMTP_USER = os.environ.get('SMTP_USER', '')
-SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
-SMTP_FROM_EMAIL = os.environ.get('SMTP_FROM_EMAIL', SMTP_USER)
-SMTP_FROM_NAME = os.environ.get('SMTP_FROM_NAME', 'Clara Radio Dashboard')
+SMTP_PROVIDERS = {
+    "microsoft365": {
+        "name": "Microsoft 365",
+        "host": "smtp.office365.com",
+        "port": 587,
+        "use_tls": True,
+        "help_text": "Gebruik je Microsoft 365 e-mail en een App Password (Security > App passwords)"
+    },
+    "google": {
+        "name": "Google Workspace / Gmail",
+        "host": "smtp.gmail.com",
+        "port": 587,
+        "use_tls": True,
+        "help_text": "Gebruik je Gmail-adres en een App Password (myaccount.google.com > Security > App passwords)"
+    },
+    "outlook": {
+        "name": "Outlook.com",
+        "host": "smtp-mail.outlook.com",
+        "port": 587,
+        "use_tls": True,
+        "help_text": "Gebruik je Outlook.com e-mail en wachtwoord"
+    },
+    "custom": {
+        "name": "Custom SMTP",
+        "host": "",
+        "port": 587,
+        "use_tls": True,
+        "help_text": "Vul de SMTP-gegevens van je eigen mailserver in"
+    }
+}
+
+NOTIFICATION_CATEGORIES = {
+    "security": {
+        "name": "Security",
+        "description": "Failed logins, brute force, nieuwe sessies",
+        "events": ["login_failed", "brute_force_detected", "new_session", "password_changed"]
+    },
+    "firewall": {
+        "name": "Firewall",
+        "description": "Geblokkeerde IP's, verdachte activiteit",
+        "events": ["ip_blocked", "suspicious_activity", "firewall_rule_changed"]
+    },
+    "content": {
+        "name": "Content Library",
+        "description": "Artikelen aangemaakt, gepubliceerd, verwijderd",
+        "events": ["content_created", "content_published", "content_deleted", "content_updated"]
+    },
+    "shows": {
+        "name": "Show Management",
+        "description": "Show titles, studio's, presenter wijzigingen",
+        "events": ["show_title_changed", "studio_changed", "presenter_changed", "show_created", "show_deleted"]
+    },
+    "users": {
+        "name": "Gebruikers",
+        "description": "Nieuwe gebruikers, rol wijzigingen, wachtwoord resets",
+        "events": ["user_created", "user_role_changed", "password_reset", "user_deleted"]
+    },
+    "wordpress": {
+        "name": "WordPress",
+        "description": "Publicaties, sync fouten",
+        "events": ["wp_published", "wp_sync_error", "wp_category_synced"]
+    },
+    "system": {
+        "name": "System",
+        "description": "Backups, ZeroTier status, systeemmeldingen",
+        "events": ["backup_completed", "backup_failed", "zt_client_online", "zt_client_offline"]
+    }
+}
 
 
-def is_smtp_configured() -> bool:
-    """Check if SMTP is properly configured."""
-    return bool(SMTP_USER and SMTP_PASSWORD and SMTP_HOST)
-
-
-async def send_email(
-    to_email: str,
-    subject: str,
-    html_body: str,
-    plain_body: Optional[str] = None
-) -> bool:
-    """
-    Send an email via SMTP.
-    
-    Args:
-        to_email: Recipient email address
-        subject: Email subject
-        html_body: HTML content of the email
-        plain_body: Optional plain text version
-        
-    Returns:
-        True if email was sent successfully
-    """
-    if not is_smtp_configured():
-        logger.warning("SMTP not configured, skipping email send")
-        return False
-    
+async def send_email_with_config(smtp_config: dict, to_email: str, subject: str, html_body: str) -> bool:
+    """Send an email using a stored SMTP config dict."""
     try:
-        # Create message
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = subject
-        msg['From'] = f"{SMTP_FROM_NAME} <{SMTP_FROM_EMAIL}>"
-        msg['To'] = to_email
-        
-        # Add plain text version (fallback)
-        if plain_body:
-            msg.attach(MIMEText(plain_body, 'plain', 'utf-8'))
-        
-        # Add HTML version
-        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
-        
-        # Send email
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_FROM_EMAIL, to_email, msg.as_string())
-        
-        logger.info(f"Email sent successfully to {to_email}")
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        from_email = smtp_config.get("from_email") or smtp_config.get("username", "")
+        from_name = smtp_config.get("from_name", "Clara Radio Dashboard")
+        msg["From"] = f"{from_name} <{from_email}>"
+        msg["To"] = to_email
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+        context = ssl.create_default_context()
+        host = smtp_config["host"]
+        port = int(smtp_config.get("port", 587))
+
+        if smtp_config.get("use_tls", True):
+            with smtplib.SMTP(host, port, timeout=15) as server:
+                server.starttls(context=context)
+                server.login(smtp_config["username"], smtp_config["password"])
+                server.sendmail(from_email, to_email, msg.as_string())
+        else:
+            with smtplib.SMTP_SSL(host, port, context=context, timeout=15) as server:
+                server.login(smtp_config["username"], smtp_config["password"])
+                server.sendmail(from_email, to_email, msg.as_string())
+
+        logger.info(f"Email sent to {to_email}: {subject}")
         return True
-        
     except Exception as e:
-        logger.error(f"Failed to send email to {to_email}: {str(e)}")
+        logger.error(f"Failed to send email to {to_email}: {e}")
         return False
 
 
-async def send_content_approval_notification(
-    to_email: str,
-    to_name: str,
-    content_title: str,
-    approval_status: str,
-    approval_notes: Optional[str] = None,
-    approver_name: Optional[str] = None,
-    content_url: Optional[str] = None
-) -> bool:
-    """
-    Send a notification when content is approved or rejected.
-    
-    Args:
-        to_email: Content creator's email
-        to_name: Content creator's name
-        content_title: Title of the content
-        approval_status: 'approved' or 'rejected'
-        approval_notes: Optional notes from the approver
-        approver_name: Name of the person who approved/rejected
-        content_url: Optional URL to view the content
-    """
-    is_approved = approval_status == 'approved'
-    
-    subject = f"{'✅ Goedgekeurd' if is_approved else '❌ Afgewezen'}: {content_title}"
-    
-    status_color = '#22c55e' if is_approved else '#ef4444'
-    status_text = 'goedgekeurd' if is_approved else 'afgewezen'
-    status_icon = '✅' if is_approved else '❌'
-    
-    html_body = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <style>
-            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }}
-            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-            .header {{ background: linear-gradient(135deg, #18181b 0%, #27272a 100%); color: white; padding: 30px; border-radius: 12px 12px 0 0; }}
-            .header h1 {{ margin: 0; font-size: 24px; }}
-            .content {{ background: #f4f4f5; padding: 30px; border-radius: 0 0 12px 12px; }}
-            .status-badge {{ display: inline-block; background: {status_color}; color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; margin: 15px 0; }}
-            .content-title {{ background: white; padding: 15px; border-radius: 8px; border-left: 4px solid {status_color}; margin: 15px 0; }}
-            .notes {{ background: white; padding: 15px; border-radius: 8px; margin: 15px 0; }}
-            .notes-label {{ font-weight: 600; color: #666; margin-bottom: 5px; }}
-            .button {{ display: inline-block; background: #f97316; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 15px; }}
-            .footer {{ text-align: center; color: #666; font-size: 12px; margin-top: 20px; }}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>Clara Radio Dashboard</h1>
-            </div>
-            <div class="content">
-                <p>Hallo {to_name},</p>
-                
-                <p>Je content is <strong>{status_text}</strong> {f'door {approver_name}' if approver_name else ''}.</p>
-                
-                <div class="status-badge">{status_icon} {status_text.upper()}</div>
-                
-                <div class="content-title">
-                    <strong>Content:</strong><br>
-                    {content_title}
-                </div>
-                
-                {f'''<div class="notes">
-                    <div class="notes-label">Opmerkingen:</div>
-                    {approval_notes}
-                </div>''' if approval_notes else ''}
-                
-                {f'<a href="{content_url}" class="button">Bekijk Content</a>' if content_url else ''}
-                
-                <div class="footer">
-                    <p>Dit is een automatisch gegenereerd bericht van Clara Radio Dashboard.</p>
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>
-    """
-    
-    plain_body = f"""
-Hallo {to_name},
-
-Je content "{content_title}" is {status_text}{f' door {approver_name}' if approver_name else ''}.
-
-{f'Opmerkingen: {approval_notes}' if approval_notes else ''}
-
-{f'Bekijk: {content_url}' if content_url else ''}
-
--- 
-Clara Radio Dashboard
-    """
-    
-    return await send_email(to_email, subject, html_body, plain_body)
-
-
-async def test_smtp_connection() -> dict:
-    """Test SMTP connection and return status."""
-    if not is_smtp_configured():
-        return {'connected': False, 'error': 'SMTP credentials not configured'}
-    
+async def test_smtp_config(smtp_config: dict) -> dict:
+    """Test SMTP connection with provided config."""
     try:
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-        return {'connected': True, 'host': SMTP_HOST, 'user': SMTP_USER}
+        context = ssl.create_default_context()
+        host = smtp_config["host"]
+        port = int(smtp_config.get("port", 587))
+
+        if smtp_config.get("use_tls", True):
+            with smtplib.SMTP(host, port, timeout=10) as server:
+                server.starttls(context=context)
+                server.login(smtp_config["username"], smtp_config["password"])
+        else:
+            with smtplib.SMTP_SSL(host, port, context=context, timeout=10) as server:
+                server.login(smtp_config["username"], smtp_config["password"])
+
+        return {"success": True, "message": "SMTP verbinding succesvol!"}
+    except smtplib.SMTPAuthenticationError:
+        return {"success": False, "message": "Authenticatie mislukt. Controleer je gebruikersnaam en wachtwoord (gebruik een App Password)."}
+    except smtplib.SMTPConnectError:
+        return {"success": False, "message": f"Kan geen verbinding maken met {smtp_config['host']}:{smtp_config.get('port', 587)}"}
     except Exception as e:
-        return {'connected': False, 'error': str(e)}
+        return {"success": False, "message": f"Fout: {str(e)}"}
+
+
+def build_notification_html(event_type: str, category: str, details: str, site_name: str = "", user_name: str = "") -> str:
+    """Build HTML email body for a real-time notification."""
+    cat_info = NOTIFICATION_CATEGORIES.get(category, {})
+    cat_name = cat_info.get("name", category.title())
+    now = datetime.now(timezone.utc).strftime("%d-%m-%Y %H:%M UTC")
+
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:20px 24px;">
+            <h1 style="margin:0;font-size:18px;color:white;">Clara Melding</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">{cat_name}</p>
+        </div>
+        <div style="padding:24px;">
+            <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:16px;">
+                <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:white;">{event_type}</p>
+                <p style="margin:0;font-size:13px;color:#a1a1aa;">{details}</p>
+            </div>
+            <table style="width:100%;font-size:12px;color:#71717a;">
+                <tr>
+                    <td>Site: <strong style="color:#a1a1aa;">{site_name or 'Global'}</strong></td>
+                    <td style="text-align:right;">{now}</td>
+                </tr>
+                {f'<tr><td colspan="2">Door: <strong style="color:#a1a1aa;">{user_name}</strong></td></tr>' if user_name else ''}
+            </table>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Radio Management Platform</div>
+    </div>"""
+
+
+def build_daily_summary_html(events: list) -> str:
+    """Build HTML for daily summary email."""
+    now = datetime.now(timezone.utc).strftime("%d-%m-%Y")
+    rows = ""
+    for evt in events[:50]:
+        cat_info = NOTIFICATION_CATEGORIES.get(evt.get("category", ""), {})
+        rows += f"""
+        <tr style="border-bottom:1px solid #27272a;">
+            <td style="padding:8px 12px;font-size:12px;color:#a1a1aa;">{evt.get('timestamp','')[:16]}</td>
+            <td style="padding:8px 12px;font-size:12px;color:#e4e4e7;">{cat_info.get('name', evt.get('category',''))}</td>
+            <td style="padding:8px 12px;font-size:12px;color:#a1a1aa;">{evt.get('details','')[:80]}</td>
+        </tr>"""
+
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:700px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:20px 24px;">
+            <h1 style="margin:0;font-size:18px;color:white;">Clara Dagelijks Overzicht</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">{now} &middot; {len(events)} meldingen</p>
+        </div>
+        <div style="padding:24px;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead><tr style="border-bottom:2px solid #27272a;">
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;color:#71717a;text-transform:uppercase;">Tijd</th>
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;color:#71717a;text-transform:uppercase;">Categorie</th>
+                    <th style="padding:8px 12px;text-align:left;font-size:11px;color:#71717a;text-transform:uppercase;">Details</th>
+                </tr></thead>
+                <tbody>{rows if rows else '<tr><td colspan="3" style="padding:16px;text-align:center;color:#52525b;">Geen activiteit vandaag</td></tr>'}</tbody>
+            </table>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Radio Management Platform</div>
+    </div>"""

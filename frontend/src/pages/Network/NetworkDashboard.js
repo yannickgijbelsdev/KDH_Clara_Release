@@ -23,7 +23,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -36,6 +36,7 @@ import MigrationTool from './MigrationTool';
 import RolesManager from './RolesManager';
 import PermissionAuditPanel from './PermissionAuditPanel';
 import NetworkAdminManager from './NetworkAdminManager';
+import NotificationSettings from './NotificationSettings';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import { useNavigate } from 'react-router-dom';
 
@@ -255,6 +256,7 @@ export default function NetworkDashboard() {
   const [rolesPanel, setRolesPanel] = useState({ open: false, siteId: null, siteName: '' });
   const [auditOpen, setAuditOpen] = useState(false);
   const [adminManagerOpen, setAdminManagerOpen] = useState(false);
+  const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
   const RoleIcon = roleIcons[user?.role] || Network;
@@ -650,6 +652,15 @@ export default function NetworkDashboard() {
             >
               <Crown className="w-4 h-4" />
               Network Admins
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setNotifSettingsOpen(true)}
+              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+              data-testid="notification-settings-btn"
+            >
+              <Bell className="w-4 h-4" />
+              Meldingen
             </Button>
             <Button 
               variant="outline" 
@@ -1308,6 +1319,12 @@ export default function NetworkDashboard() {
       <NetworkAdminManager
         open={adminManagerOpen}
         onClose={() => setAdminManagerOpen(false)}
+      />
+
+      {/* Notification Settings */}
+      <NotificationSettings
+        open={notifSettingsOpen}
+        onClose={() => setNotifSettingsOpen(false)}
       />
     </div>
   );

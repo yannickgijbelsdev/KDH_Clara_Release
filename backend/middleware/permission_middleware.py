@@ -43,6 +43,7 @@ SKIP_PREFIXES = (
     "/api/calls/join",  # Public call join
     "/api/users/network-admins",  # Network admin management
     "/api/users/me",  # User preferences
+    "/api/notifications",  # Notification config (has own auth)
 )
 
 METHOD_TO_ACTION = {
