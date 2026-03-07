@@ -490,6 +490,35 @@ async def get_studios(
     return studios
 
 
+
+@shows_router.get("/team-members")
+async def get_show_team_members(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get team members for presenter selection in show management.
+    This endpoint is under /api/shows so it uses show_management permissions
+    instead of team_settings, allowing non-admin users with show_management access."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        user_accesses = await db.main_site_users.find(
+            {"main_site_id": main_site_id},
+            {"_id": 0, "user_id": 1}
+        ).to_list(100)
+        user_ids = [ua["user_id"] for ua in user_accesses]
+        
+        if user_ids:
+            users = await db.users.find(
+                {"id": {"$in": user_ids}, "is_system_account": {"$ne": True}},
+                {"_id": 0, "id": 1, "name": 1, "email": 1, "role": 1, "avatar": 1}
+            ).to_list(100)
+            return users
+    
+    return []
+
+
+
 @shows_router.post("/studios", response_model=StudioResponse, status_code=status.HTTP_201_CREATED)
 async def create_studio(
     request: Request,

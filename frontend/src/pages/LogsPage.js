@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/PermissionsContext';
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
 import {
   FileText,
@@ -78,6 +79,7 @@ const categoryColors = {
 
 const LogsPage = () => {
   const { isAdmin } = useAuth();
+  const { canView, loading: permissionsLoading } = usePermissions();
   const navigate = useNavigate();
   const { mainSiteSlug } = useParams();
   
@@ -107,14 +109,15 @@ const LogsPage = () => {
   const [archiveLoading, setArchiveLoading] = useState(false);
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (permissionsLoading) return;
+    if (!isAdmin && !canView('activity_logs')) {
       navigate(navTo('/shows'));
       return;
     }
     fetchCategories();
     fetchUsers();
     fetchStats();
-  }, [isAdmin]);
+  }, [isAdmin, permissionsLoading]);
 
   useEffect(() => {
     if (!showArchive) {

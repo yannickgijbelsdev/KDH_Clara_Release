@@ -22,6 +22,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/PermissionsContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +51,7 @@ const getFeaturedImageUrl = (featuredImage) => {
 
 const TrashPage = () => {
   const { isAdmin } = useAuth();
+  const { canView, loading: permissionsLoading } = usePermissions();
   const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [deletedContent, setDeletedContent] = useState([]);
@@ -64,12 +66,13 @@ const TrashPage = () => {
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (permissionsLoading) return;
+    if (!isAdmin && !canView('trash')) {
       navigate(navTo('/'));
       return;
     }
     fetchDeletedContent();
-  }, [isAdmin, navigate, mainSiteSlug]);
+  }, [isAdmin, navigate, mainSiteSlug, permissionsLoading]);
 
   const fetchDeletedContent = async () => {
     setLoading(true);
@@ -128,7 +131,7 @@ const TrashPage = () => {
     }
   };
 
-  if (!isAdmin) {
+  if (!isAdmin && !canView('trash')) {
     return null;
   }
 

@@ -93,8 +93,11 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         # Find matching feature for this route
         feature = None
 
-        # Check for rundown-specific sub-routes first (more specific match)
-        if "/rundown" in path:
+        # Check for show management sub-routes (titles, studios need show_management permission)
+        if "/shows/titles" in path or "/shows/studios" in path:
+            feature = "show_management"
+        # Check for rundown-specific sub-routes (more specific match)
+        elif "/rundown" in path:
             feature = "rundown"
         else:
             for prefix, feat in ROUTE_PERMISSIONS.items():

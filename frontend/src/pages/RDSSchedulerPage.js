@@ -43,6 +43,7 @@ import {
 } from '../components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/PermissionsContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -361,6 +362,7 @@ const RDSSchedulerPage = () => {
   const navigate = useNavigate();
   const { mainSiteSlug } = useParams();
   const { isAdmin } = useAuth();
+  const { canView, loading: permissionsLoading } = usePermissions();
   const [station, setStation] = useState('mfy');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [calendarItems, setCalendarItems] = useState([]);
@@ -454,7 +456,15 @@ const RDSSchedulerPage = () => {
     }
   };
 
-  if (!isAdmin) {
+  if (permissionsLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-pulse text-zinc-400">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAdmin && !canView('rds_settings')) {
     return (
       <div className="text-center py-12 text-zinc-500">
         You do not have access to this page.

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/PermissionsContext';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import { isImageFile, isOversized } from '../utils/imageResize';
 import {
@@ -59,6 +60,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const ShowManagementPage = () => {
   const { isAdmin } = useAuth();
+  const { canView, loading: permissionsLoading } = usePermissions();
   const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('titles');
@@ -106,19 +108,20 @@ const ShowManagementPage = () => {
   const [savingStudio, setSavingStudio] = useState(false);
 
   useEffect(() => {
-    if (!isAdmin) {
+    if (permissionsLoading) return;
+    if (!isAdmin && !canView('show_management')) {
       navigate(navTo('/shows'));
       return;
     }
     fetchData();
-  }, [isAdmin, mainSiteSlug]);
+  }, [isAdmin, mainSiteSlug, permissionsLoading]);
 
   const fetchData = async () => {
     try {
       const [titlesRes, studiosRes, usersRes] = await Promise.all([
         axios.get(`${API}/shows/titles`),
         axios.get(`${API}/shows/studios`),
-        axios.get(`${API}/users`),
+        axios.get(`${API}/shows/team-members`),
       ]);
       setShowTitles(titlesRes.data);
       setStudios(studiosRes.data);
