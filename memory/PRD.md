@@ -2789,6 +2789,16 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **RBAC Page Access Bug Fix (COMPLETE)**: Harde `!isAdmin` redirects vervangen door RBAC permissie checks op ShowManagement, Trash, Logs en RDS pagina's. Race condition fix met permissionsLoading guard.
 - [x] **Site Type Labels (COMPLETE)**: Standard/Technical/Clone labels in het MIJN SITES dropdown menu
 - [x] **Create Main Site Labels (COMPLETE)**: "Clara Standard" en "Clara Technical" naamgeving
+
+### March 7, 2026 - E-mail Meldingen Systeem
+- [x] **SMTP Configuratie (COMPLETE)**: Provider templates (Microsoft 365, Google, Outlook, Custom), auto-fill host/port, test verbinding, test e-mail
+- [x] **Notificatie Categorieën (COMPLETE)**: Security, Firewall, Content Library, Show Management, Gebruikers, WordPress, System
+- [x] **Per-Rol Meldingen (COMPLETE)**: Per rol categorieën aan/uit, meldingstype (Real-time, Dagelijks, Beide)
+- [x] **Backend Trigger System (COMPLETE)**: `trigger_notification()` functie die real-time e-mails stuurt op basis van rol configuratie
+- [x] **Technical Site Grayed Out (COMPLETE)**: Health Check, Debug, Stats, Roles disabled voor technical sites in grid en lijst
+- [x] **Zerotier verborgen voor gewone sites (COMPLETE)**: Feature tags en feature checklist filteren zerotier uit voor radio/clone sites
+- Tested: 22/22 backend + 100% frontend (iteration_66.json)
+
 - Tested: 18/18 backend + 100% frontend (iteration_65.json)
 
   - Tested: 12/12 backend + all frontend tests passed (100%)
