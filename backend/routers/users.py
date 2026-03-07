@@ -545,7 +545,7 @@ async def update_user_preferences(
     current_user: dict = Depends(get_current_user)
 ):
     """Update current user's preferences."""
-    allowed_prefs = ['grouped_menu']  # Whitelist of allowed preference keys
+    allowed_prefs = ['grouped_menu', 'network_view_mode']  # Whitelist of allowed preference keys
     
     # Filter to only allowed preferences
     filtered_prefs = {k: v for k, v in preferences.items() if k in allowed_prefs}
@@ -568,3 +568,173 @@ async def get_user_preferences(current_user: dict = Depends(get_current_user)):
     user = await db.users.find_one({"id": current_user['id']}, {"_id": 0, "preferences": 1})
     return user.get("preferences", {})
 
+
+
+# ============== NETWORK ADMIN MANAGEMENT ==============
+
+def require_primary_network_admin(current_user: dict = Depends(get_current_user)):
+    """Only the primary network admin can manage other network admins."""
+    if not current_user.get('is_network_admin') or not current_user.get('is_primary_network_admin'):
+        raise HTTPException(status_code=403, detail="Only the primary network admin can manage network admins")
+    return current_user
+
+
+@users_router.get("/network-admins")
+async def get_network_admins(current_user: dict = Depends(get_current_user)):
+    """Get all network admins. Only accessible by network admins."""
+    if not current_user.get('is_network_admin'):
+        raise HTTPException(status_code=403, detail="Network admin access required")
+    
+    admins = await db.users.find(
+        {"is_network_admin": True},
+        {"_id": 0, "password_hash": 0, "totp_secret": 0}
+    ).to_list(50)
+    
+    return admins
+
+
+@users_router.post("/network-admins")
+async def create_network_admin(
+    data: dict,
+    request: Request,
+    current_user: dict = Depends(require_primary_network_admin)
+):
+    """Create a new network admin. Only the primary admin can do this."""
+    name = data.get('name', '').strip()
+    email = data.get('email', '').strip().lower()
+    na_permissions = data.get('network_permissions', {})
+    
+    if not name or not email:
+        raise HTTPException(status_code=400, detail="Name and email are required")
+    
+    # Check if user already exists
+    existing = await db.users.find_one({"email": email})
+    if existing:
+        # If user exists but is not a network admin, promote them
+        if existing.get('is_network_admin'):
+            raise HTTPException(status_code=400, detail="This user is already a network admin")
+        
+        await db.users.update_one(
+            {"id": existing['id']},
+            {"$set": {
+                "is_network_admin": True,
+                "is_primary_network_admin": False,
+                "network_permissions": na_permissions,
+            }}
+        )
+        
+        await log_action(
+            action="Network Admin Promoted",
+            category="admin",
+            user_id=current_user['id'],
+            user_name=current_user['name'],
+            user_email=current_user['email'],
+            details=f"Promoted {email} to network admin",
+            ip_address=get_client_ip(request)
+        )
+        
+        return {"message": f"{email} promoted to network admin", "user_id": existing['id']}
+    
+    # Create new user as network admin
+    temp_password = generate_temp_password()
+    user_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    new_user = {
+        "id": user_id,
+        "name": name,
+        "email": email,
+        "password_hash": hash_password(temp_password),
+        "temp_password": temp_password,
+        "role": "admin",
+        "is_network_admin": True,
+        "is_primary_network_admin": False,
+        "network_permissions": na_permissions,
+        "force_password_change": True,
+        "created_at": now,
+        "totp_enabled": False,
+        "totp_skip_count": 0,
+    }
+    
+    await db.users.insert_one(new_user)
+    new_user.pop('_id', None)
+    new_user.pop('password_hash', None)
+    
+    await log_action(
+        action="Network Admin Created",
+        category="admin",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        details=f"Created network admin: {email}",
+        ip_address=get_client_ip(request)
+    )
+    
+    return {"message": "Network admin created", "user_id": user_id, "temp_password": temp_password}
+
+
+@users_router.put("/network-admins/{admin_id}/permissions")
+async def update_network_admin_permissions(
+    admin_id: str,
+    data: dict,
+    request: Request,
+    current_user: dict = Depends(require_primary_network_admin)
+):
+    """Update a network admin's permissions. Only the primary admin can do this."""
+    target = await db.users.find_one({"id": admin_id, "is_network_admin": True}, {"_id": 0})
+    if not target:
+        raise HTTPException(status_code=404, detail="Network admin not found")
+    
+    if target.get('is_primary_network_admin'):
+        raise HTTPException(status_code=400, detail="Cannot modify primary admin permissions")
+    
+    na_permissions = data.get('network_permissions', {})
+    
+    await db.users.update_one(
+        {"id": admin_id},
+        {"$set": {"network_permissions": na_permissions}}
+    )
+    
+    await log_action(
+        action="Network Admin Permissions Updated",
+        category="admin",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        details=f"Updated permissions for {target.get('email')}",
+        ip_address=get_client_ip(request)
+    )
+    
+    return {"message": "Permissions updated"}
+
+
+@users_router.delete("/network-admins/{admin_id}")
+async def remove_network_admin(
+    admin_id: str,
+    request: Request,
+    current_user: dict = Depends(require_primary_network_admin)
+):
+    """Remove network admin status. Cannot remove the primary admin."""
+    target = await db.users.find_one({"id": admin_id, "is_network_admin": True}, {"_id": 0, "email": 1, "is_primary_network_admin": 1})
+    if not target:
+        raise HTTPException(status_code=404, detail="Network admin not found")
+    
+    if target.get('is_primary_network_admin'):
+        raise HTTPException(status_code=400, detail="Cannot remove the primary network admin")
+    
+    await db.users.update_one(
+        {"id": admin_id},
+        {"$set": {"is_network_admin": False}, "$unset": {"is_primary_network_admin": "", "network_permissions": ""}}
+    )
+    
+    await log_action(
+        action="Network Admin Removed",
+        category="admin",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        details=f"Removed network admin: {target.get('email')}",
+        ip_address=get_client_ip(request)
+    )
+    
+    return {"message": "Network admin status removed"}

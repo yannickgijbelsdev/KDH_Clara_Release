@@ -23,7 +23,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor
+  HardDrive, Monitor, LayoutGrid, List
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -35,6 +35,7 @@ import {
 import MigrationTool from './MigrationTool';
 import RolesManager from './RolesManager';
 import PermissionAuditPanel from './PermissionAuditPanel';
+import NetworkAdminManager from './NetworkAdminManager';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import { useNavigate } from 'react-router-dom';
 
@@ -253,6 +254,8 @@ export default function NetworkDashboard() {
   const [securityPanelOpen, setSecurityPanelOpen] = useState(false);
   const [rolesPanel, setRolesPanel] = useState({ open: false, siteId: null, siteName: '' });
   const [auditOpen, setAuditOpen] = useState(false);
+  const [adminManagerOpen, setAdminManagerOpen] = useState(false);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
   const RoleIcon = roleIcons[user?.role] || Network;
 
@@ -261,9 +264,24 @@ export default function NetworkDashboard() {
     navigate('/login');
   };
 
+  const toggleViewMode = (mode) => {
+    setViewMode(mode);
+    fetch(`${API}/api/users/me/preferences`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ network_view_mode: mode })
+    }).catch(() => {});
+  };
+
   useEffect(() => {
     fetchMainSites();
     fetchFeatures();
+    // Load view mode from preferences
+    fetch(`${API}/api/users/me/preferences`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(r => r.ok ? r.json() : {}).then(p => {
+      if (p.network_view_mode) setViewMode(p.network_view_mode);
+    }).catch(() => {});
   }, []);
 
   const fetchMainSites = async () => {
@@ -594,7 +612,28 @@ export default function NetworkDashboard() {
             <h1 className="text-2xl font-bold">Network Admin</h1>
             <p className="text-sm text-zinc-400">Manage all main sites</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {/* View mode toggle */}
+            <div className="flex bg-zinc-800 rounded-lg p-0.5 border border-zinc-700">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`w-8 h-8 rounded-md ${viewMode === 'grid' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                onClick={() => toggleViewMode('grid')}
+                data-testid="view-mode-grid"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`w-8 h-8 rounded-md ${viewMode === 'list' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                onClick={() => toggleViewMode('list')}
+                data-testid="view-mode-list"
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
             <Button 
               variant="outline" 
               onClick={() => setSecurityPanelOpen(true)} 
@@ -602,6 +641,15 @@ export default function NetworkDashboard() {
             >
               <Shield className="w-4 h-4" />
               {user?.totp_enabled ? '2FA Actief' : 'Beveiliging'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setAdminManagerOpen(true)}
+              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+              data-testid="network-admins-btn"
+            >
+              <Crown className="w-4 h-4" />
+              Network Admins
             </Button>
             <Button 
               variant="outline" 
@@ -656,8 +704,42 @@ export default function NetworkDashboard() {
           </div>
         ) : (
           <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {mainSites.filter(s => !s.cloned_from).map(site => (
+          <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-3'}>
+            {mainSites.filter(s => !s.cloned_from).map(site => viewMode === 'list' ? (
+              <Card key={site.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <Link to={`/${site.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
+                    {site.logo_url ? (
+                      <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                        <Globe className="w-5 h-5 text-zinc-500" />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-white truncate">{site.name}</span>
+                        {site.site_type === 'technical' && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">Technical</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-zinc-500">/{site.slug}</span>
+                    </div>
+                  </Link>
+                  <div className="flex items-center gap-4 text-xs text-zinc-500 flex-shrink-0">
+                    <span className="flex items-center gap-1"><Layers className="w-3.5 h-3.5" />{site.site_count}</span>
+                    <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{site.user_count}</span>
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => openEditDialog(site)}><Edit className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => runHealthCheck(site.id, site.name)}><Activity className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}><UserCog className="w-3.5 h-3.5" /></Button>
+                    <Link to={`/${site.slug}`}><Button variant="ghost" size="icon" className="w-8 h-8"><ExternalLink className="w-3.5 h-3.5" /></Button></Link>
+                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleDeleteClick(site.id, site.name)}><Trash2 className="w-3.5 h-3.5 text-red-500" /></Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
               <Card key={site.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -1235,6 +1317,12 @@ export default function NetworkDashboard() {
           onClose={() => setAuditOpen(false)}
         />
       )}
+
+      {/* Network Admin Manager */}
+      <NetworkAdminManager
+        open={adminManagerOpen}
+        onClose={() => setAdminManagerOpen(false)}
+      />
     </div>
   );
 }

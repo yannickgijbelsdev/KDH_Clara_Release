@@ -41,6 +41,8 @@ SKIP_PREFIXES = (
     "/api/backups",
     "/api/devtools",
     "/api/calls/join",  # Public call join
+    "/api/users/network-admins",  # Network admin management
+    "/api/users/me",  # User preferences
 )
 
 METHOD_TO_ACTION = {
