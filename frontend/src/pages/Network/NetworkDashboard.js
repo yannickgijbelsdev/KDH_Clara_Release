@@ -23,7 +23,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive
+  HardDrive, Monitor
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -66,7 +66,8 @@ const FEATURE_GROUPS = {
   communication: { name: 'Communication', Icon: MessageSquare },
   streaming: { name: 'Streaming & RDS', Icon: Radio },
   sites: { name: 'Sites', Icon: Globe },
-  admin: { name: 'Administration', Icon: Cog }
+  admin: { name: 'Administration', Icon: Cog },
+  technical: { name: 'Technical', Icon: Monitor }
 };
 
 // Debug Content Component
@@ -242,7 +243,8 @@ export default function NetworkDashboard() {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
-    enabled_features: []
+    enabled_features: [],
+    site_type: 'radio'
   });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, siteId: null, siteName: '' });
   const [healthCheck, setHealthCheck] = useState({ open: false, siteId: null, siteName: '', loading: false, result: null, history: [] });
@@ -313,7 +315,7 @@ export default function NetworkDashboard() {
       if (res.ok) {
         toast.success('Main site created successfully');
         setShowCreateDialog(false);
-        setFormData({ name: '', slug: '', enabled_features: [] });
+        setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
         fetchMainSites();
       } else {
         const err = await res.json();
@@ -668,7 +670,14 @@ export default function NetworkDashboard() {
                         </div>
                       )}
                       <div>
-                        <CardTitle className="text-lg">{site.name}</CardTitle>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {site.name}
+                          {site.site_type === 'technical' && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-normal">
+                              Technical
+                            </span>
+                          )}
+                        </CardTitle>
                         <CardDescription className="text-zinc-500">/{site.slug}</CardDescription>
                       </div>
                     </div>
@@ -816,7 +825,7 @@ export default function NetworkDashboard() {
         if (!open) {
           setShowCreateDialog(false);
           setEditingSite(null);
-          setFormData({ name: '', slug: '', enabled_features: [] });
+          setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
         }
       }}>
         <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -849,6 +858,46 @@ export default function NetworkDashboard() {
               </div>
             </div>
 
+            {/* Site Type Selector */}
+            {!editingSite && (
+              <div className="space-y-2">
+                <Label>Site Type</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      formData.site_type === 'radio'
+                        ? 'bg-orange-500/20 border border-orange-500/50'
+                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
+                    }`}
+                    onClick={() => setFormData({ ...formData, site_type: 'radio' })}
+                    data-testid="site-type-radio"
+                  >
+                    <Radio className="w-5 h-5 text-orange-400" />
+                    <div>
+                      <span className="text-sm font-medium text-white">Radio</span>
+                      <p className="text-xs text-zinc-400">Full feature set</p>
+                    </div>
+                  </div>
+                  <div
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      formData.site_type === 'technical'
+                        ? 'bg-emerald-500/20 border border-emerald-500/50'
+                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
+                    }`}
+                    onClick={() => setFormData({ ...formData, site_type: 'technical', enabled_features: ['team_settings', 'zerotier'] })}
+                    data-testid="site-type-technical"
+                  >
+                    <Monitor className="w-5 h-5 text-emerald-400" />
+                    <div>
+                      <span className="text-sm font-medium text-white">Technical</span>
+                      <p className="text-xs text-zinc-400">ZeroTier monitoring</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {formData.site_type !== 'technical' && (
             <div className="space-y-3">
               <Label>Enabled Features</Label>
               <div className="grid gap-4">
@@ -884,6 +933,7 @@ export default function NetworkDashboard() {
                 })}
               </div>
             </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -892,7 +942,7 @@ export default function NetworkDashboard() {
               onClick={() => {
                 setShowCreateDialog(false);
                 setEditingSite(null);
-                setFormData({ name: '', slug: '', enabled_features: [] });
+                setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
               }}
             >
               Cancel

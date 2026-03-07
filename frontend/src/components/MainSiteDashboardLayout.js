@@ -13,7 +13,7 @@ import {
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
-  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone
+  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -115,7 +115,7 @@ const NAV_GROUPS = [
     id: 'admin',
     label: 'Administration',
     icon: Settings,
-    features: ['team_settings', 'wordpress', 'activity_logs', 'firewall']
+    features: ['team_settings', 'wordpress', 'activity_logs', 'firewall', 'zerotier']
   },
   {
     id: 'support',
@@ -331,6 +331,26 @@ const MainSiteDashboardContent = () => {
   // Build navigation groups based on enabled features
   const buildNavGroups = () => {
     if (!mainSite) return [];
+    
+    // Technical sites only show team_settings and zerotier
+    if (mainSite.site_type === 'technical') {
+      const technicalFeatures = ['team_settings', 'zerotier', 'support_tickets'];
+      const items = technicalFeatures
+        .map(featureId => {
+          const navItem = FEATURE_NAV_ITEMS[featureId];
+          if (!navItem) return null;
+          if (navItem.adminOnly && !userIsAdmin) return null;
+          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId };
+        })
+        .filter(Boolean);
+      
+      return [{
+        id: 'technical',
+        label: 'Technical',
+        icon: Monitor,
+        items
+      }];
+    }
     
     const enabledFeatures = mainSite.enabled_features || [];
     

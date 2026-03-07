@@ -43,6 +43,7 @@ import CallPage from './pages/CallPage';
 import PublicCallPage from './pages/PublicCallPage';
 import { JourneyProvider } from './context/JourneyContext';
 import { CallProvider } from './context/CallContext';
+import ZeroTierPage from './pages/ZeroTierPage';
 import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import './App.css';
@@ -223,6 +224,7 @@ const AppRoutes = () => {
         <Route path="tickets/:ticketId" element={<TicketsPage />} />
         <Route path="firewall" element={<FirewallPage />} />
         <Route path="call-studio" element={<CallPage />} />
+        <Route path="zerotier" element={<ZeroTierPage />} />
       </Route>
 
       {/* Public Call Page - /call/:callToken (no auth required) */}
@@ -248,6 +250,12 @@ const MainSiteIndexInner = () => {
   
   useEffect(() => {
     if (!loading && mainSite) {
+      // Technical sites always go to zerotier
+      if (mainSite.site_type === 'technical') {
+        navigate(`/${mainSiteSlug}/zerotier`, { replace: true });
+        return;
+      }
+      
       const features = mainSite.enabled_features || [];
       // Redirect to first enabled feature
       const featureRoutes = {

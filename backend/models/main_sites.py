@@ -34,6 +34,9 @@ AVAILABLE_FEATURES = [
     {"id": "team_settings", "name": "Team Settings", "group": "admin"},
     {"id": "wordpress", "name": "WordPress", "group": "admin"},
     {"id": "activity_logs", "name": "Activity Logs", "group": "admin"},
+    
+    # Technical group
+    {"id": "zerotier", "name": "ZeroTier Monitor", "group": "technical"},
 ]
 
 
