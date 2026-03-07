@@ -105,7 +105,7 @@ function DebugContent({ data }) {
       </div>
 
       {/* Today's Shows */}
-      <Section id="shows" title="Shows Vandaag" icon={Tv} color="text-orange-400" count={data.todays_shows?.length || 0}>
+      <Section id="shows" title="Shows Today" icon={Tv} color="text-orange-400" count={data.todays_shows?.length || 0}>
         {data.todays_shows?.length > 0 ? (
           <div className="space-y-1">
             {data.todays_shows.map((show, i) => (
@@ -124,7 +124,7 @@ function DebugContent({ data }) {
       </Section>
 
       {/* Traffic last hour */}
-      <Section id="traffic" title="Traffic (laatste uur)" icon={Activity} color="text-blue-400" count={data.traffic_last_hour?.reduce((s, t) => s + t.count, 0) || 0}>
+      <Section id="traffic" title="Traffic (last hour)" icon={Activity} color="text-blue-400" count={data.traffic_last_hour?.reduce((s, t) => s + t.count, 0) || 0}>
         {data.traffic_last_hour?.length > 0 ? (
           <div className="space-y-1">
             {data.traffic_last_hour.map((t, i) => (
@@ -162,7 +162,7 @@ function DebugContent({ data }) {
       </Section>
 
       {/* Active Rundowns */}
-      <Section id="rundowns" title="Actieve Rundowns" icon={FileText} color="text-emerald-400" count={data.active_rundowns?.length || 0}>
+      <Section id="rundowns" title="Active Rundowns" icon={FileText} color="text-emerald-400" count={data.active_rundowns?.length || 0}>
         {data.active_rundowns?.length > 0 ? (
           <div className="space-y-1">
             {data.active_rundowns.map((r, i) => (
@@ -199,7 +199,7 @@ function DebugContent({ data }) {
       </Section>
 
       {/* Recent Audit Logs */}
-      <Section id="audit" title="Recente Activiteit" icon={Clock} color="text-amber-400" count={data.recent_logs?.length || 0}>
+      <Section id="audit" title="Recent Activity" icon={Clock} color="text-amber-400" count={data.recent_logs?.length || 0}>
         {data.recent_logs?.length > 0 ? (
           <div className="space-y-1 max-h-60 overflow-y-auto">
             {data.recent_logs.slice(0, 20).map((log, i) => (
@@ -432,7 +432,7 @@ export default function NetworkDashboard() {
       const history = historyRes.ok ? await historyRes.json() : [];
       setHealthCheck(prev => ({ ...prev, loading: false, result, history }));
     } catch (err) {
-      toast.error('Health check mislukt');
+      toast.error('Health check failed');
       setHealthCheck(prev => ({ ...prev, loading: false }));
     }
   };
@@ -446,7 +446,7 @@ export default function NetworkDashboard() {
       const data = res.ok ? await res.json() : null;
       setDebugPanel(prev => ({ ...prev, loading: false, data }));
     } catch (err) {
-      toast.error('Debug info ophalen mislukt');
+      toast.error('Failed to load debug info');
       setDebugPanel(prev => ({ ...prev, loading: false }));
     }
   };
@@ -465,7 +465,7 @@ export default function NetworkDashboard() {
       const data = res.ok ? await res.json() : null;
       setUserAccessPanel(prev => ({ ...prev, loading: false, data }));
     } catch (err) {
-      toast.error('User access info ophalen mislukt');
+      toast.error('Failed to load user access info');
       setUserAccessPanel(prev => ({ ...prev, loading: false }));
     }
   };
@@ -1069,7 +1069,7 @@ export default function NetworkDashboard() {
           {healthCheck.loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-              <span className="ml-3 text-zinc-400">Tests uitvoeren...</span>
+              <span className="ml-3 text-zinc-400">Running tests...</span>
             </div>
           ) : healthCheck.result ? (
             <div className="space-y-4">
@@ -1088,7 +1088,7 @@ export default function NetworkDashboard() {
                 <div>
                   <p className="font-semibold text-white">
                     {healthCheck.result.overall_status === 'ok' ? 'All OK' :
-                     healthCheck.result.overall_status === 'error' ? 'Fouten Gevonden' : 'Waarschuwingen'}
+                     healthCheck.result.overall_status === 'error' ? 'Errors Found' : 'Warnings'}
                   </p>
                   <p className="text-xs text-zinc-400">{healthCheck.result.timestamp?.slice(0, 19)}</p>
                 </div>
@@ -1120,13 +1120,13 @@ export default function NetworkDashboard() {
 
               {/* Team IDs resolved */}
               <div className="text-xs text-zinc-500 p-2 bg-zinc-800/30 rounded">
-                Team IDs doorzocht: {healthCheck.result.team_ids_resolved?.length || 0}
+                Team IDs searched: {healthCheck.result.team_ids_resolved?.length || 0}
               </div>
 
               {/* History */}
               {healthCheck.history?.length > 1 && (
                 <div className="pt-2">
-                  <p className="text-xs text-zinc-500 mb-2">Vorige checks</p>
+                  <p className="text-xs text-zinc-500 mb-2">Previous checks</p>
                   <div className="space-y-1">
                     {healthCheck.history.slice(1, 6).map((h, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs text-zinc-500">
@@ -1169,7 +1169,7 @@ export default function NetworkDashboard() {
           {debugPanel.loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
-              <span className="ml-3 text-zinc-400">Debug info ophalen...</span>
+              <span className="ml-3 text-zinc-400">Loading debug info...</span>
             </div>
           ) : debugPanel.data ? (
             <DebugContent data={debugPanel.data} />
@@ -1198,7 +1198,7 @@ export default function NetworkDashboard() {
           {userAccessPanel.loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-              <span className="ml-3 text-zinc-400">User access info ophalen...</span>
+              <span className="ml-3 text-zinc-400">Loading user access info...</span>
             </div>
           ) : userAccessPanel.data ? (
             <div className="space-y-6">
@@ -1206,7 +1206,7 @@ export default function NetworkDashboard() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-zinc-800/50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-white">{userAccessPanel.data.total_users}</div>
-                  <div className="text-xs text-zinc-400">Totaal Users</div>
+                  <div className="text-xs text-zinc-400">Total Users</div>
                 </div>
                 <div className="bg-zinc-800/50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-white">{userAccessPanel.data.total_main_sites}</div>
@@ -1223,7 +1223,7 @@ export default function NetworkDashboard() {
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
                   <h3 className="text-amber-400 font-semibold mb-3 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" />
-                    Users ZONDER site access ({userAccessPanel.data.users_without_site_access.length})
+                    Users WITHOUT site access ({userAccessPanel.data.users_without_site_access.length})
                   </h3>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {userAccessPanel.data.users_without_site_access.map((user, idx) => (

@@ -2792,16 +2792,38 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 ### March 7, 2026 - E-mail Meldingen Systeem
 - [x] **SMTP Configuratie (COMPLETE)**: Provider templates (Microsoft 365, Google, Outlook, Custom), auto-fill host/port, test verbinding, test e-mail
-- [x] **Notificatie Categorieën (COMPLETE)**: Security, Firewall, Content Library, Show Management, Gebruikers, WordPress, System
-- [x] **Per-Rol Meldingen (COMPLETE)**: Per rol categorieën aan/uit, meldingstype (Real-time, Dagelijks, Beide)
+- [x] **Notificatie Categorieën (COMPLETE)**: Security, Firewall, Content Library, Show Management, Users, WordPress, System
+- [x] **Per-Rol Meldingen (COMPLETE)**: Per rol categorieën aan/uit, meldingstype (Real-time, Daily, Both)
 - [x] **Backend Trigger System (COMPLETE)**: `trigger_notification()` functie die real-time e-mails stuurt op basis van rol configuratie
 - [x] **Technical Site Grayed Out (COMPLETE)**: Health Check, Debug, Stats, Roles disabled voor technical sites in grid en lijst
 - [x] **Zerotier verborgen voor gewone sites (COMPLETE)**: Feature tags en feature checklist filteren zerotier uit voor radio/clone sites
 - Tested: 22/22 backend + 100% frontend (iteration_66.json)
 
-- Tested: 18/18 backend + 100% frontend (iteration_65.json)
-
-  - Tested: 12/12 backend + all frontend tests passed (100%)
+### March 8, 2026 - Email Notification System Finalized
+- [x] **Full English Translation (COMPLETE)**: All SMTP provider help text, category descriptions, error messages, email templates, and UI labels translated from Dutch to English
+- [x] **Notification Triggering Wired Up (COMPLETE)**: 
+  - `log_action()` in `services/audit.py` now automatically triggers notifications via `asyncio.create_task()`
+  - `log_security_event()` in `services/firewall_service.py` triggers notifications for security/firewall events
+  - Audit categories mapped to notification categories (auth→security, user→users, show→shows, content→content, etc.)
+  - Noisy events filtered out (api_access, successful_login, Login, Logout, Page view)
+- [x] **Daily Digest Scheduler (COMPLETE)**:
+  - New service: `services/notification_scheduler.py`
+  - Runs daily at 07:00 UTC (08:00 CET)
+  - Aggregates last 24h events per role/category
+  - Sends HTML summary emails to users with "daily" or "both" notification mode
+  - Manual trigger: `POST /api/notifications/send-daily-digest`
+- [x] **Notification History Tab (COMPLETE)**:
+  - New "History" tab in NotificationSettings dialog
+  - Shows recent notification events with category, type, details, timestamp, delivery count
+  - "Send Daily Digest Now" button for manual trigger
+- [x] **Network Dashboard English Translation (COMPLETE)**:
+  - All button labels: "Notifications", "2FA Active"/"Security", "Account Security"
+  - All empty states: "No shows today", "No traffic", "No cache logs", etc.
+  - Debug Panel: "Shows Today", "Traffic (last hour)", "Active Rundowns", "Recent Activity"
+  - Health Check: "Running tests...", "Errors Found", "Warnings", "Previous checks"
+  - User Access Debug: "Total Users", "Users WITHOUT site access", loading states
+  - All toast messages translated to English
+- Tested: 16/16 backend + 100% frontend (iteration_67.json)
 
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
