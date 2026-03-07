@@ -43,6 +43,7 @@ class MainSiteCreate(BaseModel):
     slug: str  # URL path, e.g., "radiogroep" for /radiogroep
     description: Optional[str] = None
     enabled_features: List[str] = []  # List of feature IDs
+    site_type: str = "radio"  # "radio" or "technical"
 
 
 class MainSiteUpdate(BaseModel):
@@ -62,6 +63,7 @@ class MainSiteResponse(BaseModel):
     description: Optional[str] = None
     logo_url: Optional[str] = None
     enabled_features: List[str] = []
+    site_type: str = "radio"
     site_count: int = 0  # Number of mini sites
     user_count: int = 0  # Number of users with access
     cloned_from: Optional[str] = None
@@ -77,6 +79,7 @@ class MainSiteListResponse(BaseModel):
     description: Optional[str] = None
     logo_url: Optional[str] = None
     enabled_features: List[str] = []
+    site_type: str = "radio"
     site_count: int = 0
     user_count: int = 0
     cloned_from: Optional[str] = None

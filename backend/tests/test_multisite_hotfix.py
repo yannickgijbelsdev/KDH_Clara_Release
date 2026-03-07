@@ -13,7 +13,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://role-dropdown-ui.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://multi-tenant-hub-27.preview.emergentagent.com')
 
 # Test credentials
 NETWORK_ADMIN_EMAIL = "admkoodh@koodh.com"

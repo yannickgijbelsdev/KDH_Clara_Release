@@ -55,6 +55,7 @@ from routers.tickets import ticket_router
 from routers.firewall import firewall_router
 from routers.calls import calls_router
 from routers.roles import roles_router
+from routers.zerotier import zerotier_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -114,6 +115,7 @@ api_router.include_router(ticket_router)
 api_router.include_router(firewall_router)
 api_router.include_router(calls_router)
 api_router.include_router(roles_router)
+api_router.include_router(zerotier_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============

@@ -139,6 +139,7 @@ async def create_main_site(
         "description": data.description,
         "logo_url": None,
         "enabled_features": data.enabled_features,
+        "site_type": data.site_type,
         "created_at": now,
         "updated_at": now
     }

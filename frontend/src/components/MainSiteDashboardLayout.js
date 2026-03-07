@@ -76,6 +76,7 @@ const FEATURE_NAV_ITEMS = {
   firewall: { to: 'firewall', icon: Shield, label: 'Firewall', adminOnly: true },
   call_studio: { to: 'call-studio', icon: Phone, label: 'Call Studio' },
   support_tickets: { to: 'tickets', icon: LifeBuoy, label: 'Support Tickets' },
+  zerotier: { to: 'zerotier', icon: Monitor, label: 'ZeroTier', adminOnly: true },
 };
 
 // Navigation groups with feature mapping

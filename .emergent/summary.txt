@@ -1,159 +1,171 @@
 <analysis>**original_problem_statement:**
-The user initially requested a new ticketing system. This evolved into a series of requests for a comprehensive security and management system for their multi-tenant radio platform.
+The user's initial request for a ticketing system has expanded into the development of a comprehensive, multi-tenant security and management platform for their radio business.
 
 PRODUCT REQUIREMENTS:
-1.  **Ticketing System (Completed):** A help button on every page for users to submit tickets with their journey tracked. An admin view to manage and reply to tickets.
-2.  **Firewall (Completed):** A per-main-site firewall with custom rules, brute-force protection, and activity logs.
-3.  **Advanced User Management (Completed):** Live session monitoring, manual user blocking, and forced password changes.
-4.  **Security Audit (Completed):** A dashboard panel that runs a safety check and provides recommendations.
-5.  **Endpoint Protection (Completed):** An admin interface to lock down API endpoints and monitor live connections.
-6.  **WebRTC Calling System (Completed):** A Call Studio feature for users to make calls via the system. Includes audio device profiles, shareable invite links for guests, and a persistent call widget.
-7.  **Granular Role-Based Access Control (RBAC) (In Progress):** A system for the Network Admin to create custom roles with specific permissions (view, create, edit, delete) for each feature and main site. This includes backend and frontend enforcement.
-8.  **Permission Audit Log (Completed):** A log viewer in the Network Admin dashboard to troubleshoot permission-related issues by showing all denied API requests.
-9.  **Unresolved Bug:** Users are unable to log into cloned main sites on the production environment.
-10. **New Bug:** Custom roles created in the RBAC system are not reflected in the Team Settings user assignment UI.
+1.  **Ticketing System (Completed)**
+2.  **Firewall (Completed)**
+3.  **Advanced User Management (Completed)**
+4.  **Security Audit (Completed)**
+5.  **Endpoint Protection (Completed)**
+6.  **WebRTC Calling System (Completed)**
+7.  **Granular Role-Based Access Control (RBAC) (Completed):** A system for creating custom roles with specific permissions. A bug preventing the assignment of custom roles was fixed in this session.
+8.  **Permission Audit Log (Completed)**
+9.  **Expanded Activity Logging (Completed):** Logging was extended to cover content, shows, media, and WordPress publishing actions.
+10. **Firewall Data Isolation (Completed):** Firewall data (logs, stats) is now strictly segregated per main site.
+11. **Calendar Station Labels (Completed):** The Show and Content calendars now display labels (MFY, GRK, Both) to indicate the assigned station for each event.
+12. **Correct Session Expiry (Completed):** Zombie user sessions that persisted long after their tokens expired are now correctly marked as inactive.
+13. **ZeroTier Integration (In Progress):** A new feature to monitor ZeroTier network clients from within the application. This involves a new technical main site type with a dedicated UI.
+14. **Unresolved Bug:** Users are unable to log into cloned main sites on the production environment.
+15. **Unresolved Bug:** User reported the RDS Settings page was not loading, but the agent could not reproduce it.
 
 **User's preferred language**: Dutch. The next agent MUST respond in Dutch.
 
 **what currently exists?**
-The application is a full-stack React/FastAPI radio management tool with a multi-tenant architecture. It includes a ticketing system, a comprehensive firewall, and advanced user management tools. In this session, the agent implemented a full WebRTC-based calling system (Call Studio), which can be toggled as a feature per site. A major new feature is the custom Role-Based Access Control (RBAC) system, allowing a Network Admin to define granular permissions for custom roles. This system is enforced on both the backend (via middleware) and frontend (hiding UI elements). A permission audit log was also added. A bug preventing user updates in a multi-tenant context was fixed.
+The application is a full-stack React/FastAPI radio management tool with a multi-tenant architecture. The core features include a ticketing system, firewall, advanced user management, WebRTC calling, and a granular RBAC system.
+
+In this session, the agent performed significant bug fixing and feature enhancement:
+- **RBAC:** Fixed a critical bug preventing the assignment of custom roles in Team Settings by overhauling the frontend dropdown to be dynamic and removing hardcoded backend validation.
+- **RDS:** Resolved a complex Now Playing bug where two radio stations would display the same song information due to a flawed caching strategy and incorrect data source logic.
+- **Security & Logging:** Patched a data-leakage vulnerability in the firewall where tenants could see global logs and stats. Expanded activity logging to cover previously unmonitored actions like content updates, show creation, and media uploads. Fixed an issue causing zombie user sessions to remain active indefinitely.
+- **UI Enhancements:** Added station-specific labels and color-coding to the Show and Content calendars, providing better visual clarity for multi-station operators.
+- **New Feature Started:** Began implementation of a ZeroTier network monitoring integration, introducing the concept of a technical main site type with a limited feature set.
 
 **Last working item**:
--   **Last item agent was working:** The user reported a new bug: In team settings die ik de rollen wel niet aangepast (In team settings I don't see the roles adjusted). This means the new custom roles created in the Network Admin's RBAC panel are not appearing in the role selection dropdown on the Team Settings page for individual sites. The agent has asked for clarification but has not yet started debugging.
--   **Status:** BLOCKED
+-   **Last item agent was working:** Implementing the ZeroTier integration. The user requested a way to monitor ZeroTier clients. The agent started by creating a new  (technical) to differentiate these monitoring sites, created a new backend router and frontend page, and was in the process of modifying the main dashboard layout to display a different set of sidebar navigation items for this new site type.
+-   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** Frontend testing agent. The agent should first confirm the issue, then investigate  to see how the roles dropdown is populated. It likely needs to be updated to fetch roles from the  endpoint.
+-   **Which testing method agent to use?** both. The backend API will require  testing to validate communication with the ZeroTier API. The frontend will require the  or  to verify the new ZeroTier page UI and the conditional sidebar navigation logic.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: (P0) Team Settings roles not updated.**
-    -   **Description:** The custom roles created via the new RBAC system are not available for assignment on the Team Settings page of a main site. The dropdown likely shows an old, hardcoded list of roles instead of the new, dynamic ones.
-    -   **Attempted fixes:** None. The agent was asking for clarification when the session ended.
+-   **Issue 1: (P1) Cannot log into cloned sites on production.**
+    -   **Description:** A long-standing critical bug where users cannot log into cloned main sites on their production environment. The agent could not reproduce this in the preview environment.
+    -   **Attempted fixes:** A previous agent improved error logging to get more diagnostic info from the user. No progress has been made in this session.
     -   **Next debug checklist:**
-        1.  Confirm the user's report by inspecting the Team Settings page UI and its network requests.
-        2.  View  to find the role selection dropdown component.
-        3.  Modify the component to fetch the list of available roles for the current main site from the  endpoint.
-        4.  Ensure the update role functionality correctly sends the selected  to the backend.
-    -   **Why fix this issue and what will be achieved with the fix?** The new RBAC system is useless if the custom roles cannot be assigned to users. This fix will complete the RBAC feature loop.
-    -   **Status:** BLOCKED (waiting for user confirmation, but the problem is clear).
+        1.  Ask the user to trigger the error again on their production environment and provide a screenshot of any new, detailed error messages.
+        2.  Request that the user inspect the browser's developer console (Network and Console tabs) and share the full response of the failing login request.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical blocker for the user's workflow on their production system.
+    -   **Status:** BLOCKED (on user feedback)
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** None.
+-   **Issue 2: (P2) RDS Settings page not loading.**
+    -   **Description:** The user reported RDS settings wil niet meer inladen bij Radiogroep MFY/GRK. The agent investigated but could not reproduce the issue in the preview environment and the user changed the topic.
+    -   **Attempted fixes:** The agent checked the frontend page and backend logs but found no errors.
+    -   **Next debug checklist:**
+        1.  Re-engage the user on this topic, asking if the issue still persists.
+        2.  If it does, ask for a screenshot of the page and the browser's developer console to check for JavaScript errors.
+    -   **Why fix this issue and what will be achieved with the fix?** Ensures all parts of the RDS management system are functional for the user.
+    -   **Status:** BLOCKED (on user feedback)
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** frontend
     -   **Blocked on other issue:** None.
--   **Issue 2: (P1) Cannot log into cloned sites on production.**
-    -   **Description:** The user reported being unable to log into any cloned main site on their production environment. The agent could not reproduce this in the preview environment. This is a critical bug blocking a key workflow.
-    -   **Attempted fixes:** The previous agent improved error handling in  to display a more detailed error message to get more diagnostic information from the user.
-    -   **Next debug checklist:**
-        1.  Ask the user to trigger the error again on their production environment and provide a screenshot of the detailed error message.
-        2.  Ask the user to check the browser's developer tools Network tab for the failing API request and provide the response.
-        3.  Investigate if the  data is being correctly copied during the clone process in the production database.
-    -   **Why fix this issue and what will be achieved with the fix?** This is a blocking issue for the user's testing and development workflow.
-    -   **Status:** IN PROGRESS
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on other issue:** Blocked on receiving diagnostic info from the user.
 
 **In progress Task List**:
--   **Task 1: (P0) Complete RBAC Implementation**
-    -   **Where to resume:** Fix the bug where custom roles are not appearing in the Team Settings page (Issue 1).
-    -   **What will be achieved with this?** A fully functional, end-to-end custom roles and permissions system.
+-   **Task 1: (P0) Complete ZeroTier Integration**
+    -   **Where to resume:** The agent was editing  to create separate navigation groups for 'technical' sites. The backend has a placeholder router and the frontend has a placeholder page.
+    -   **Next Steps:**
+        1.  Finalize the sidebar filtering logic to show only Team Settings and ZeroTier for technical sites.
+        2.  Implement a settings area (e.g., as part of the main site settings) where the user can securely store and update the ZeroTier API token and Network ID for each technical site.
+        3.  Implement the  endpoints to use the stored credentials to call the ZeroTier API () and return the list of clients.
+        4.  Build the UI on  to display the list of ZeroTier members with relevant information (name, IP, online status).
+        5.  Update the Create Main Site flow to allow an admin to select the 'technical' site type.
+    -   **What will be achieved with this?** A fully functional monitoring dashboard for the user's ZeroTier networks.
     -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** frontend
+    -   **Should Test frontend/backend/both after fix?** both
     -   **Blocked on something:** None.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
     *   **(P1) Finalize WordPress Plugin Integration:** Guide the user through installing and configuring the custom  plugin.
-    *   **(P1) Cleanup Obsolete ProRadio Sync Code:** After the new plugin is confirmed to be working, remove the old ProRadio integration code.
+    *   **(P1) Cleanup Obsolete ProRadio Sync Code:** After the new plugin is confirmed to be working, remove the old ProRadio integration code (, ).
     *   **(P1) Configurable Stale Now Playing Timeout:** Add a UI to configure the 15-minute hardcoded timeout in .
 *   **Future Tasks:**
     *   **(P2) Stream Monitor VU Meters:** Implement functional VU meters on the stream monitor page.
 
 **Completed work in this session**
--   **WebRTC Calling System (Call Studio):** Implemented a complete real-time calling feature with audio profiles, shareable invite links, and a persistent UI widget, using WebSockets for signaling.
--   **Feature Toggling for Call Studio:** Made the Call Studio a feature that can be enabled/disabled per main site.
--   **Role-Based Access Control (RBAC) System:**
-    -   **Management UI:** Built a UI for Network Admins to create, edit, and delete roles and assign granular permissions (view, create, edit, delete) for every feature.
-    -   **Backend Enforcement:** Implemented a middleware () to protect all relevant API endpoints based on the user's role and permissions.
-    -   **Frontend Enforcement:** Integrated a  to dynamically filter the sidebar navigation and hide/disable UI elements (like buttons) based on user permissions.
--   **Permission Audit Log:** Added a dashboard panel for Network Admins to view a log of all permission-denied API requests, with stats and filtering.
--   **Bug Fix - Firewall Stats:** Fixed an issue where Firewall overview stats were incorrect because they did not include global events logged without a .
--   **Bug Fix - User not found in Team Management:** Refactored user management endpoints to correctly handle multi-site contexts, resolving an issue where updates failed for users belonging to different teams.
--   **Clone Visibility Restriction:** Updated API endpoints to ensure cloned sites are only visible to Network Admins and Admins of the original site.
--   **Endpoint Protection Verification:** The previously built feature was formally tested and verified using the testing agent.
+-   **RBAC Role Assignment Fix (DONE):** Fixed the bug where custom-created roles were not available for assignment in Team Settings.
+-   **Rundown RBAC Permission (DONE):** Added Rundown as a new, distinct permission category within the RBAC system.
+-   **Firewall Data Isolation Fix (DONE):** Patched a security flaw where firewall data was not strictly isolated between tenants.
+-   **Expanded Activity Logging (DONE):** Added comprehensive audit logging for create, update, and delete actions across Content, Shows, Media, and WordPress modules.
+-   **Dual Live Show Now Playing Fix (DONE):** Resolved a critical RDS bug that caused two separate radio stations to display the same now playing song information.
+-   **Calendar Station Labels (DONE):** Added station-specific labels (MFY, GRK, Both) to the Show and Content calendars.
+-   **Zombie User Session Fix (DONE):** Corrected an issue where user sessions remained active in the database long after their JWT tokens had expired.
 
 **Earlier issues found/mentioned but not fixed**
--   The root cause of the **clone login issue** on the user's production server remains unresolved, though diagnostics have been improved.
+-   **Cannot log into cloned sites on production:** This is a recurring, high-priority issue that remains blocked on user feedback.
+-   **RDS settings page not loading:** User reported this, but the agent could not reproduce it. This needs to be revisited with the user.
 
 **Known issue recurrence from previous fork**
--   **Multi-Tenant Permissions:** This remains a critical architectural concept. Several bugs fixed this session (Firewall stats, User not found error) stemmed from logic that did not properly account for the multi-tenant context (i.e., filtering by  vs. ). This continues to be a primary source of bugs.
+-   **Multi-Tenant Logic:** A bug where firewall data was leaking between tenants was another instance of this core architectural challenge. The fix involved reinforcing strict  filtering in database queries. This pattern requires constant vigilance.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Granular RBAC System:** A custom role-based access control system built on a  collection in the DB. A Network Admin can define roles and assign a matrix of permissions (view, create, edit, delete) for each application feature.
--   **Dynamic Permission Enforcement:**
-    -   **Backend:** A custom FastAPI middleware () intercepts API calls, maps the request path to a feature, and validates the user's permissions for the required action (inferred from the HTTP method).
-    -   **Frontend:** A  provides hooks (, , etc.) to conditionally render UI components. The main sidebar navigation is dynamically filtered based on these permissions.
--   **WebRTC & WebSocket Signaling:** Used for the real-time calling feature. A FastAPI WebSocket endpoint acts as the signaling server to exchange session descriptions (SDP) and ICE candidates between peers.
--   **Feature Toggling:** A system using the  array in the database allows enabling/disabling major features like the Call Studio on a per-site basis.
+-   **Conditional Site Features:** Introduced a  field ('standard', 'technical') on the  model to enable different UI layouts and feature sets based on the site's purpose.
+-   **Dynamic Frontend from Backend State:** The fix for the RBAC bug heavily relied on removing hardcoded frontend options and instead fetching the available roles dynamically from a new API endpoint, making the UI reactive to backend changes.
+-   **Composite Cache Keys:** Solved a critical race condition in the RDS caching mechanism by changing the cache key from a single field () to a composite key ( + ), ensuring data isolation for concurrent operations on different stations within the same tenant.
+-   **Session Expiry Management:** Implemented a robust fix for zombie sessions by adding an  timestamp to session documents in the database upon creation and adding cleanup logic to queries that fetch session data.
+-   **Data Enrichment for UI:** Continued the pattern of enriching backend data payloads (e.g., adding  to show objects) to simplify frontend logic for features like the calendar labels.
 
 **key DB schema**
--   **roles:** 
--   **permission_audit_logs:** 
--   **audio_profiles:** 
--   **call_invites:** 
+-   **main_sites:**  (new field, defaults to 'standard')
+-   **sessions:**  (new field)
+-   **roles:**  (new permission key)
 
 **changes in tech stack**
--   None.
+-   None. The ZeroTier integration is being done via direct HTTP requests using .
 
 **All files of reference**
-*   : Core of the backend RBAC enforcement.
-*   : Central logic for checking user permissions.
-*   : API for managing roles, permissions, and audit logs.
-*   : Core of frontend RBAC, provides permission hooks.
-*   : Where sidebar filtering is implemented.
-*   : The UI for creating and editing roles.
-*   : The file that needs to be fixed to solve the current bug.
-*   : Previously modified to fix a critical multi-tenant bug.
+*   : **Currently being modified** for the ZeroTier task.
+*   : New file containing the logic for the ZeroTier integration.
+*   : New frontend page for ZeroTier monitoring.
+*    & : Key files for the Now Playing bug fix.
+*   : Key file for the RBAC role assignment bug fix.
+*   : Key file for the session expiry and data isolation fixes.
+*   , , , : Files where expanded activity logging was added.
 
 **Areas that need refactoring**:
 -   The obsolete ProRadio sync code (, ) still needs to be removed.
--   Frontend pages (e.g., , ) should be updated to use the more granular  and  permissions from  hook for action buttons, instead of a general  or  prop.
+-   The logic for rendering station-specific badges and colors is now present in both  and . This could be better centralized in a hook or utility function to avoid duplication.
 
 **key api endpoints**
--   : Full CRUD for roles and permissions.
--   : Get permission denial logs.
--   : Get permissions for the current user and main site.
--   : Manage audio device profiles.
--   : Manage call invite links.
--   : WebSocket endpoint for WebRTC signaling.
+-   : **(New)** Gets a simplified list of available roles for a site.
+-   : **(New, In-Progress)** Endpoint to fetch ZeroTier network members.
+-   : **(Modified)** Endpoint now correctly accepts custom role strings.
+-   : **(Modified)** Now automatically expires stale sessions.
 
 **Critical Info for New Agent**
--   **Taal:** De gebruiker communiceert in het Nederlands. Alle communicatie MOET in het Nederlands.
--   **Hoogste Prioriteit:** Het oplossen van de bug in Team Settings waar de nieuwe custom rollen niet verschijnen (Issue 1). Dit is de laatste stap om de RBAC-functie te voltooien.
--   **Tweede Prioriteit:** Het debuggen van de bug waardoor inloggen op gekloonde sites niet werkt op de productieomgeving van de gebruiker (Issue 2). Dit is een langlopend, kritiek probleem.
+-   **Taal:** De gebruiker spreekt Nederlands. Alle communicatie MOET in het Nederlands.
+-   **Huidige Taak (P0):** De implementatie van de ZeroTier-integratie afmaken. Dit is de hoogste prioriteit.
+-   **Geblokkeerde Bugs:** De bugs met het inloggen op gekloonde sites (P1) en de RDS-instellingenpagina (P2) zijn belangrijk, maar vereisen input van de gebruiker. Vraag hier opnieuw naar nadat er vooruitgang is geboekt met de ZeroTier-taak.
+-   **Architectuur:** Let goed op het  veld in . Dit is een nieuw concept om verschillende soorten sites met verschillende functies te ondersteunen.
 
 **documents and test reports created in this job**
 -    (updated)
--   Test reports for Call Studio, RBAC, and Audit Log features are located in .
+-    (Generated for the RBAC role fix).
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Asks for a custom roles & permissions system.
-2.  **Agent:** Proposes a detailed plan for the RBAC system (management UI + enforcement).
-3.  **User:** Prima (Okay). Approves the plan.
-4.  **Agent:** Implements Phase 1 (Management UI) and shows a screenshot.
-5.  **User:** Ja, uiteraard, maak het compleet (Yes, of course, make it complete). Asks the agent to implement the enforcement part.
-6.  **Agent:** Implements Phase 2 (Backend & Frontend enforcement) and confirms with tests and a screenshot showing the UI correctly filtered for a Presenter role.
-7.  **User:** Asks for a permission audit log, viewable only by the Network Admin.
-8.  **Agent:** Implements the permission audit log feature and shows a screenshot of the new panel working correctly.
-9.  **User:** In team settings die ik de rollen wel niet aangepast (In team settings I don't see the roles adjusted). Reports the current bug.
-10. **Agent:** Acknowledges the new bug report and asks for confirmation of the problem description. (Awaiting user reply).
+1.  **User:** Asks to fix firewall audits, suspecting data leakage between main sites. (Task started)
+2.  **User:** Asks to expand activity logs to include actions like posting articles, approvals, etc., as they seem sparse. (Task started & completed)
+3.  **User:** Reports a critical bug with a screenshot: two different radio stations are showing the same Now Playing information. (Task started & completed)
+4.  **User:** Reports the same Now Playing bug again with another screenshot, clarifying the issue is with the main text display, not the smaller cards. (Task started & completed)
+5.  **User:** Asks to add station labels (MFY, GRK, Both) to the content and show calendars, respecting the main site context. (Task started & completed)
+6.  **User:** Points out that firewall sessions show durations of 54+ hours, while JWT tokens should expire every 4-6 hours. (Task started & completed)
+7.  **User:** Requests to integrate ZeroTier to monitor which clients/servers are online. (Task started)
+8.  **Agent:** Asks for clarification on the ZeroTier integration.
+9.  **User:** Provides details for the ZeroTier integration:
+    -   It should be for special technical main sites.
+    -   Provides a ZeroTier Network ID.
+    -   The ID should be changeable.
+    -   These technical sites should be separate and only have Team Settings and the new ZeroTier feature.
+10. **Agent:** Acknowledges the ZeroTier plan and starts implementation. (Current task)
 
 **Project Health Check:**
 -   **Broken:**
-    -   Role assignment dropdown in the Team Settings page.
-    -   Login functionality for cloned sites on the user's production environment.
+    -   Login functionality for cloned sites on the user's production environment (unresolved, blocked on user).
+    -   RDS Settings page may not be loading for the user (unconfirmed, blocked on user).
 -   **Mocked:**
     -   None.
 
@@ -163,12 +175,13 @@ The application is a full-stack React/FastAPI radio management tool with a multi
 -   **WordPress:** Integration for category sync and post import.
 -   **reportlab:** Backend library for server-side PDF generation.
 -   **boto3:** For interacting with S3-compatible storage.
+-   **ZeroTier:** Being integrated via its public HTTP API (no library/SDK).
 
 **Testing status**
--   **Testing agent used after significant changes:** YES (Used extensively for the Call Studio and the multi-phase RBAC implementation).
+-   **Testing agent used after significant changes:** YES (For the RBAC role assignment fix).
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** None
--   **Known regressions:** The inability to log into cloned sites on production.
+-   **Known regressions:** None from this session. The cloned site login issue is a pre-existing regression.
 
 **Credentials to test flow:**
 -   **Network Admin:** 
@@ -177,5 +190,7 @@ The application is a full-stack React/FastAPI radio management tool with a multi
 -   **Password:** 
 
 **What agent forgot to execute**
--   The agent has not resolved the long-standing production bug where logging into cloned sites fails.
--   The implementation of permission checks on frontend action buttons (e.g., Delete buttons within components) is incomplete. While the main  buttons and sidebar are filtered, some actions might still be visible while being blocked by the backend. This needs cleanup.</analysis>
+-   The agent has not implemented the UI/backend logic for a user to create a 'technical' type main site.
+-   The agent has not created a way to store or edit the ZeroTier API Token or Network ID, which is a requirement for the new integration.
+-   The long-standing cloned site login bug remains unresolved and needs to be followed up on.
+-   The user's report about the RDS settings page not loading was not fully resolved and needs to be revisited.</analysis>
