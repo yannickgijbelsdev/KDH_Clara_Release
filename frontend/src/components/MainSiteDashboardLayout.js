@@ -334,7 +334,7 @@ const MainSiteDashboardContent = () => {
     
     // Technical sites only show team_settings and zerotier
     if (mainSite.site_type === 'technical') {
-      const technicalFeatures = ['team_settings', 'zerotier', 'support_tickets'];
+      const technicalFeatures = ['team_settings', 'zerotier'];
       const items = technicalFeatures
         .map(featureId => {
           const navItem = FEATURE_NAV_ITEMS[featureId];
@@ -1012,7 +1012,7 @@ const MainSiteDashboardContent = () => {
     </TooltipProvider>
     {isClone && <DevToolsPanel />}
     {isClone && <DevToolsInspector />}
-    <HelpButton />
+    {mainSite?.site_type !== 'technical' && <HelpButton />}
     </DevToolsProvider>
   );
 };
