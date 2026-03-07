@@ -2764,6 +2764,25 @@ now = now_brussels()  # Automatically handles CET/CEST
 - **Activity Logs uitgebreid** - Content, Shows, WordPress en Media acties worden nu gelogd
 - **Firewall Cross-Site isolatie** - Alle firewall endpoints strikt gefilterd per `main_site_id`
 
+
+### March 7, 2026 - ZeroTier Network Monitoring Integration
+- [x] **ZeroTier Integration (COMPLETE)**:
+  - New "technical" site type for main sites (`site_type: "radio" | "technical"`)
+  - Technical sites have limited sidebar: Team Settings, ZeroTier, Support only
+  - Auto-redirect: navigating to technical site root goes to `/zerotier`
+  - Create Main Site dialog with Radio/Technical type selector
+  - Technical type hides feature checklist (auto-sets team_settings + zerotier)
+  - "Technical" badge on site cards in Network Admin dashboard
+  - Backend: ZeroTier config CRUD (API token + Network ID per main site)
+  - Backend: ZeroTier network info, member list, authorize/deauthorize endpoints
+  - Backend: Masked API token in responses for security
+  - Frontend: Full ZeroTier monitoring page with config panel, network overview, member list
+  - Frontend: Auto-refresh every 30 seconds, manual refresh button
+  - Frontend: Member detail expansion with IP, physical address, client version
+  - Backend feature: `zerotier` added to AVAILABLE_FEATURES (technical group)
+  - Files: `backend/routers/zerotier.py`, `frontend/src/pages/ZeroTierPage.js`
+  - Tested: 12/12 backend + all frontend tests passed (100%)
+
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
