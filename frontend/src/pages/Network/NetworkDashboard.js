@@ -735,8 +735,12 @@ export default function NetworkDashboard() {
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
                     <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => openEditDialog(site)}><Edit className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => runHealthCheck(site.id, site.name)}><Activity className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}><UserCog className="w-3.5 h-3.5" /></Button>
+                    {site.site_type !== 'technical' && (
+                      <>
+                        <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => runHealthCheck(site.id, site.name)}><Activity className="w-3.5 h-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}><UserCog className="w-3.5 h-3.5" /></Button>
+                      </>
+                    )}
                     <Link to={`/${site.slug}`}><Button variant="ghost" size="icon" className="w-8 h-8"><ExternalLink className="w-3.5 h-3.5" /></Button></Link>
                     <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleDeleteClick(site.id, site.name)}><Trash2 className="w-3.5 h-3.5 text-red-500" /></Button>
                   </div>
@@ -794,59 +798,81 @@ export default function NetworkDashboard() {
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-1 mb-4">
-                    {site.enabled_features?.slice(0, 5).map(f => (
+                    {(site.site_type === 'technical'
+                      ? (site.enabled_features || []).filter(f => f === 'team_settings' || f === 'zerotier')
+                      : (site.enabled_features || []).filter(f => f !== 'zerotier').slice(0, 5)
+                    ).map(f => (
                       <span key={f} className="px-2 py-0.5 text-xs bg-zinc-800 rounded-full text-zinc-400">
                         {f}
                       </span>
                     ))}
-                    {site.enabled_features?.length > 5 && (
+                    {site.site_type !== 'technical' && site.enabled_features?.filter(f => f !== 'zerotier').length > 5 && (
                       <span className="px-2 py-0.5 text-xs bg-zinc-800 rounded-full text-zinc-400">
-                        +{site.enabled_features.length - 5} more
+                        +{site.enabled_features.filter(f => f !== 'zerotier').length - 5} more
                       </span>
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 gap-1.5 text-xs"
-                      data-testid={`health-check-${site.slug}`}
-                      onClick={() => runHealthCheck(site.id, site.name)}
-                    >
-                      <Activity className="w-3.5 h-3.5" />
-                      Test
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 gap-1.5 text-xs"
-                      data-testid={`debug-${site.slug}`}
-                      onClick={() => openDebugPanel(site.id, site.name)}
-                    >
-                      <Bug className="w-3.5 h-3.5" />
-                      Debug
-                    </Button>
-                    <Link to={`/statistics/${site.id}`}>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1.5 text-xs"
-                        data-testid={`statistics-${site.slug}`}
-                      >
-                        <BarChart3 className="w-3.5 h-3.5" />
-                        Stats
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 gap-1.5 text-xs"
-                      data-testid={`roles-${site.slug}`}
-                      onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}
-                    >
-                      <UserCog className="w-3.5 h-3.5" />
-                      Roles
-                    </Button>
+                    {site.site_type === 'technical' ? (
+                      <>
+                        <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs opacity-30 cursor-not-allowed" disabled>
+                          <Activity className="w-3.5 h-3.5" /> Test
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs opacity-30 cursor-not-allowed" disabled>
+                          <Bug className="w-3.5 h-3.5" /> Debug
+                        </Button>
+                        <Button variant="outline" size="sm" className="gap-1.5 text-xs opacity-30 cursor-not-allowed" disabled>
+                          <BarChart3 className="w-3.5 h-3.5" /> Stats
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs opacity-30 cursor-not-allowed" disabled>
+                          <UserCog className="w-3.5 h-3.5" /> Roles
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1.5 text-xs"
+                          data-testid={`health-check-${site.slug}`}
+                          onClick={() => runHealthCheck(site.id, site.name)}
+                        >
+                          <Activity className="w-3.5 h-3.5" />
+                          Test
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1.5 text-xs"
+                          data-testid={`debug-${site.slug}`}
+                          onClick={() => openDebugPanel(site.id, site.name)}
+                        >
+                          <Bug className="w-3.5 h-3.5" />
+                          Debug
+                        </Button>
+                        <Link to={`/statistics/${site.id}`}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5 text-xs"
+                            data-testid={`statistics-${site.slug}`}
+                          >
+                            <BarChart3 className="w-3.5 h-3.5" />
+                            Stats
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1.5 text-xs"
+                          data-testid={`roles-${site.slug}`}
+                          onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}
+                        >
+                          <UserCog className="w-3.5 h-3.5" />
+                          Roles
+                        </Button>
+                      </>
+                    )}
                   </div>
                   <Link to={`/${site.slug}`}>
                     <Button variant="outline" className="w-full gap-2 mt-2">
@@ -947,7 +973,7 @@ export default function NetworkDashboard() {
             <div className="space-y-3">
               <Label>Enabled Features</Label>
               <div className="grid gap-4">
-                {Object.entries(groupedFeatures).map(([groupId, features]) => {
+                {Object.entries(groupedFeatures).filter(([groupId]) => groupId !== 'technical').map(([groupId, features]) => {
                   const GroupIcon = FEATURE_GROUPS[groupId]?.Icon || Layers;
                   return (
                   <div key={groupId} className="space-y-2">
