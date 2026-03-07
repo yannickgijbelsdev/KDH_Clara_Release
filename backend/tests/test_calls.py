@@ -7,7 +7,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://multi-tenant-hub-27.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://radio-notify.preview.emergentagent.com')
 
 # Test credentials
 TEST_EMAIL = "admkoodh@koodh.com"

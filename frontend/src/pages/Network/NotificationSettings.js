@@ -21,9 +21,9 @@ const CATEGORY_ICONS = {
 };
 
 const MODE_OPTIONS = [
-  { id: 'realtime', label: 'Real-time', icon: Zap, desc: 'Direct bij elke event' },
-  { id: 'daily', label: 'Dagelijks', icon: Clock, desc: 'Samenvatting per dag' },
-  { id: 'both', label: 'Beide', icon: BellRing, desc: 'Real-time + samenvatting' },
+  { id: 'realtime', label: 'Real-time', icon: Zap, desc: 'Instant per event' },
+  { id: 'daily', label: 'Daily', icon: Clock, desc: 'Summary per day' },
+  { id: 'both', label: 'Both', icon: BellRing, desc: 'Real-time + summary' },
 ];
 
 export default function NotificationSettings({ open, onClose }) {
@@ -117,12 +117,12 @@ export default function NotificationSettings({ open, onClose }) {
       if (res.ok) {
         const data = await res.json();
         setSmtpConfig(data);
-        toast.success('SMTP configuratie opgeslagen');
+        toast.success('SMTP configuration saved');
       } else {
         const err = await res.json();
-        toast.error(err.detail || 'Opslaan mislukt');
+        toast.error(err.detail || 'Save failed');
       }
-    } catch { toast.error('Opslaan mislukt'); }
+    } catch { toast.error('Save failed'); }
     finally { setSaving(false); }
   };
 
@@ -133,7 +133,7 @@ export default function NotificationSettings({ open, onClose }) {
       const data = await res.json();
       if (data.success) toast.success(data.message);
       else toast.error(data.message);
-    } catch { toast.error('Test mislukt'); }
+    } catch { toast.error('Test failed'); }
     finally { setTesting(false); }
   };
 
@@ -142,9 +142,9 @@ export default function NotificationSettings({ open, onClose }) {
     setSendingTest(true);
     try {
       const res = await fetch(`${API}/api/notifications/smtp-test-email`, { method: 'POST', headers, body: JSON.stringify({ to_email: testEmailAddr }) });
-      if (res.ok) toast.success('Test e-mail verstuurd!');
-      else { const d = await res.json(); toast.error(d.detail || 'Versturen mislukt'); }
-    } catch { toast.error('Versturen mislukt'); }
+      if (res.ok) toast.success('Test email sent!');
+      else { const d = await res.json(); toast.error(d.detail || 'Send failed'); }
+    } catch { toast.error('Send failed'); }
     finally { setSendingTest(false); }
   };
 
@@ -168,9 +168,9 @@ export default function NotificationSettings({ open, onClose }) {
     setSaving(true);
     try {
       const res = await fetch(`${API}/api/notifications/role-settings`, { method: 'PUT', headers, body: JSON.stringify({ roles: roleSettings }) });
-      if (res.ok) toast.success('Rol meldingen opgeslagen');
-      else toast.error('Opslaan mislukt');
-    } catch { toast.error('Opslaan mislukt'); }
+      if (res.ok) toast.success('Role notification settings saved');
+      else toast.error('Save failed');
+    } catch { toast.error('Save failed'); }
     finally { setSaving(false); }
   };
 
@@ -184,7 +184,7 @@ export default function NotificationSettings({ open, onClose }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Bell className="w-5 h-5 text-orange-400" />
-            E-mail Meldingen
+            Email Notifications
           </DialogTitle>
         </DialogHeader>
 
@@ -192,7 +192,7 @@ export default function NotificationSettings({ open, onClose }) {
         <div className="flex gap-1 bg-zinc-800/50 rounded-lg p-1 mb-4">
           {[
             { id: 'smtp', label: 'SMTP Config', icon: Mail },
-            { id: 'roles', label: 'Rol Meldingen', icon: Users },
+            { id: 'roles', label: 'Role Notifications', icon: Users },
           ].map(t => (
             <button
               key={t.id}
@@ -211,7 +211,7 @@ export default function NotificationSettings({ open, onClose }) {
           <div className="space-y-4">
             {/* Provider Selector */}
             <div className="space-y-2">
-              <Label>E-mail Provider</Label>
+              <Label>Email Provider</Label>
               <div className="relative">
                 <button
                   onClick={() => setProviderOpen(!providerOpen)}
@@ -219,7 +219,7 @@ export default function NotificationSettings({ open, onClose }) {
                   data-testid="smtp-provider-select"
                 >
                   <div>
-                    <span className="text-sm font-medium text-white">{selectedProvider?.name || 'Kies provider'}</span>
+                    <span className="text-sm font-medium text-white">{selectedProvider?.name || 'Select provider'}</span>
                     {selectedProvider?.help_text && (
                       <p className="text-xs text-zinc-500 mt-0.5">{selectedProvider.help_text}</p>
                     )}
@@ -264,22 +264,22 @@ export default function NotificationSettings({ open, onClose }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Gebruikersnaam / E-mail</Label>
+                <Label>Username / Email</Label>
                 <Input value={smtpForm.username} onChange={e => setSmtpForm(p => ({ ...p, username: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="user@example.com" data-testid="smtp-username" />
               </div>
               <div>
-                <Label>Wachtwoord / App Password</Label>
+                <Label>Password / App Password</Label>
                 <Input type="password" value={smtpForm.password} onChange={e => setSmtpForm(p => ({ ...p, password: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="••••••••" data-testid="smtp-password" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Afzender E-mail</Label>
+                <Label>Sender Email</Label>
                 <Input value={smtpForm.from_email} onChange={e => setSmtpForm(p => ({ ...p, from_email: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="noreply@example.com" data-testid="smtp-from-email" />
               </div>
               <div>
-                <Label>Afzender Naam</Label>
+                <Label>Sender Name</Label>
                 <Input value={smtpForm.from_name} onChange={e => setSmtpForm(p => ({ ...p, from_name: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="Clara Radio Dashboard" data-testid="smtp-from-name" />
               </div>
             </div>
@@ -288,17 +288,17 @@ export default function NotificationSettings({ open, onClose }) {
             <div className="flex items-center gap-2 pt-2">
               {smtpConfig?.configured && (
                 <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
-                  <Check className="w-3 h-3" /> Geconfigureerd
+                  <Check className="w-3 h-3" /> Configured
                 </span>
               )}
               <div className="flex-1" />
               <Button variant="outline" onClick={testConnection} disabled={testing} className="gap-2" data-testid="smtp-test-btn">
                 {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertCircle className="w-4 h-4" />}
-                Test Verbinding
+                Test Connection
               </Button>
               <Button onClick={saveSMTP} disabled={saving} className="gap-2" data-testid="smtp-save-btn">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                Opslaan
+                Save
               </Button>
             </div>
 
@@ -316,7 +316,7 @@ export default function NotificationSettings({ open, onClose }) {
                   />
                   <Button variant="outline" onClick={sendTestEmail} disabled={sendingTest} className="gap-2 flex-shrink-0" data-testid="send-test-email-btn">
                     {sendingTest ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    Test E-mail
+                    Test Email
                   </Button>
                 </CardContent>
               </Card>
@@ -327,7 +327,7 @@ export default function NotificationSettings({ open, onClose }) {
         {/* Role Notification Settings Tab */}
         {tab === 'roles' && (
           <div className="space-y-4">
-            <p className="text-sm text-zinc-400">Kies per rol welke meldingen ze ontvangen en of dat real-time of als dagelijkse samenvatting is.</p>
+            <p className="text-sm text-zinc-400">Choose per role which notifications they receive and whether real-time or as a daily summary.</p>
 
             {loadingRoles ? (
               <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>
@@ -351,13 +351,13 @@ export default function NotificationSettings({ open, onClose }) {
                           </div>
                           <div>
                             <span className="text-sm font-medium text-white">{role.name}</span>
-                            <span className="text-xs text-zinc-500 ml-2">{activeCount} categorie{activeCount !== 1 ? 'ën' : ''}</span>
+                            <span className="text-xs text-zinc-500 ml-2">{activeCount} {activeCount !== 1 ? 'categories' : 'category'}</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {activeCount > 0 && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                              {roleCfg.mode === 'realtime' ? 'Real-time' : roleCfg.mode === 'both' ? 'Beide' : 'Dagelijks'}
+                              {roleCfg.mode === 'realtime' ? 'Real-time' : roleCfg.mode === 'both' ? 'Both' : 'Daily'}
                             </span>
                           )}
                           <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -368,7 +368,7 @@ export default function NotificationSettings({ open, onClose }) {
                         <CardContent className="pt-0 pb-4 px-4 space-y-4 border-t border-zinc-700/50">
                           {/* Mode selector */}
                           <div className="pt-3">
-                            <Label className="text-xs text-zinc-400 mb-2 block">Meldingstype</Label>
+                            <Label className="text-xs text-zinc-400 mb-2 block">Notification Type</Label>
                             <div className="grid grid-cols-3 gap-2">
                               {MODE_OPTIONS.map(m => (
                                 <button
@@ -391,7 +391,7 @@ export default function NotificationSettings({ open, onClose }) {
 
                           {/* Category toggles */}
                           <div>
-                            <Label className="text-xs text-zinc-400 mb-2 block">Categorieën</Label>
+                            <Label className="text-xs text-zinc-400 mb-2 block">Categories</Label>
                             <div className="space-y-1">
                               {categories.map(cat => {
                                 const Icon = CATEGORY_ICONS[cat.id] || Bell;
@@ -426,7 +426,7 @@ export default function NotificationSettings({ open, onClose }) {
             <div className="flex justify-end pt-2">
               <Button onClick={saveRoleSettings} disabled={saving} className="gap-2" data-testid="save-role-settings-btn">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                Instellingen Opslaan
+                Save Settings
               </Button>
             </div>
           </div>
