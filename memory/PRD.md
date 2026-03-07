@@ -2781,6 +2781,16 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Frontend: Member detail expansion with IP, physical address, client version
   - Backend feature: `zerotier` added to AVAILABLE_FEATURES (technical group)
   - Files: `backend/routers/zerotier.py`, `frontend/src/pages/ZeroTierPage.js`
+
+### March 7, 2026 - Clara Global Enhancements & RBAC Bug Fix
+- [x] **View Mode Toggle (COMPLETE)**: Grid/list toggle voor Clara Global Network Dashboard, opgeslagen in user preferences
+- [x] **Multiple Network Admins (COMPLETE)**: CRUD voor network admins met primary admin bescherming
+- [x] **Network Admin Permissions (COMPLETE)**: Granulaire permissies (manage_sites, manage_users, manage_roles, view_firewall, view_logs, manage_settings) + read-only modus
+- [x] **RBAC Page Access Bug Fix (COMPLETE)**: Harde `!isAdmin` redirects vervangen door RBAC permissie checks op ShowManagement, Trash, Logs en RDS pagina's. Race condition fix met permissionsLoading guard.
+- [x] **Site Type Labels (COMPLETE)**: Standard/Technical/Clone labels in het MIJN SITES dropdown menu
+- [x] **Create Main Site Labels (COMPLETE)**: "Clara Standard" en "Clara Technical" naamgeving
+- Tested: 18/18 backend + 100% frontend (iteration_65.json)
+
   - Tested: 12/12 backend + all frontend tests passed (100%)
 
 ### Upcoming Tasks
