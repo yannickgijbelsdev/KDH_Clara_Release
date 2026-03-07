@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import {
   Monitor, Wifi, WifiOff, Shield, ShieldOff, Settings, RefreshCw,
   Globe, Server, Clock, ChevronRight, AlertCircle, Save, Eye, EyeOff,
+  Pencil, Check, X,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -26,6 +27,8 @@ const ZeroTierPage = () => {
   const [savingConfig, setSavingConfig] = useState(false);
   const [showToken, setShowToken] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [editingName, setEditingName] = useState(null);
+  const [editNameValue, setEditNameValue] = useState('');
 
   const fetchMainSite = useCallback(async () => {
     try {
@@ -103,6 +106,19 @@ const ZeroTierPage = () => {
       await fetchData();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Action failed');
+    }
+  };
+
+  const handleRenameMember = async (memberId) => {
+    if (!mainSite || !editNameValue.trim()) return;
+    try {
+      await axios.put(`${API}/zerotier/${mainSite.id}/member/${memberId}/name`, { name: editNameValue.trim() });
+      toast.success('Naam bijgewerkt');
+      setEditingName(null);
+      setEditNameValue('');
+      await fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Naam wijzigen mislukt');
     }
   };
 
@@ -270,107 +286,158 @@ const ZeroTierPage = () => {
             ) : (
               <div className="divide-y divide-zinc-800/50">
                 {members.members.map(member => (
-                  <div
-                    key={member.id}
-                    className="px-5 py-3 flex items-center gap-4 hover:bg-zinc-800/30 transition-colors cursor-pointer"
-                    onClick={() => setSelectedMember(selectedMember?.id === member.id ? null : member)}
-                    data-testid={`zt-member-${member.id}`}
-                  >
-                    {/* Status indicator */}
-                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${member.online ? 'bg-emerald-400 shadow-lg shadow-emerald-400/30' : 'bg-zinc-600'}`} />
+                  <div key={member.id}>
+                    <div
+                      className="px-5 py-3 flex items-center gap-4 hover:bg-zinc-800/30 transition-colors cursor-pointer group"
+                      onClick={() => setSelectedMember(selectedMember?.id === member.id ? null : member)}
+                      data-testid={`zt-member-${member.id}`}
+                    >
+                      {/* Status indicator */}
+                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${member.online ? 'bg-emerald-400 shadow-lg shadow-emerald-400/30' : 'bg-zinc-600'}`} />
 
-                    {/* Name & ID */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-white font-medium truncate">
-                          {member.name || member.id}
-                        </span>
-                        {member.name && (
-                          <span className="text-xs text-zinc-600 font-mono">{member.id}</span>
+                      {/* Name & ID */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          {editingName === member.id ? (
+                            <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                              <Input
+                                value={editNameValue}
+                                onChange={e => setEditNameValue(e.target.value)}
+                                onKeyDown={e => { if (e.key === 'Enter') handleRenameMember(member.id); if (e.key === 'Escape') setEditingName(null); }}
+                                className="h-7 text-sm bg-zinc-800 border-zinc-600 w-48"
+                                autoFocus
+                                data-testid={`zt-rename-input-${member.id}`}
+                              />
+                              <Button size="icon" variant="ghost" className="w-7 h-7" onClick={() => handleRenameMember(member.id)} data-testid={`zt-rename-save-${member.id}`}>
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="w-7 h-7" onClick={() => setEditingName(null)}>
+                                <X className="w-3.5 h-3.5 text-zinc-400" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <>
+                              <span className="text-white font-medium truncate">
+                                {member.name || member.id}
+                              </span>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="w-6 h-6 opacity-0 group-hover:opacity-100 hover:!opacity-100"
+                                onClick={e => { e.stopPropagation(); setEditingName(member.id); setEditNameValue(member.name || ''); }}
+                                data-testid={`zt-rename-btn-${member.id}`}
+                              >
+                                <Pencil className="w-3 h-3 text-zinc-500" />
+                              </Button>
+                              {member.name && (
+                                <span className="text-xs text-zinc-600 font-mono">{member.id}</span>
+                              )}
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          {member.ip_assignments?.length > 0 && (
+                            <span className="text-xs text-zinc-500 font-mono">{member.ip_assignments[0]}</span>
+                          )}
+                          {member.physical_address && (
+                            <span className="text-xs text-zinc-600">{member.physical_address}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Auth toggle */}
+                      <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                        {member.authorized ? (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 text-xs text-emerald-400 hover:text-red-400 hover:bg-red-500/10 border border-emerald-500/20 hover:border-red-500/20"
+                            onClick={() => handleAuthorize(member.id, false)}
+                            data-testid={`zt-deauth-inline-${member.id}`}
+                          >
+                            <Shield className="w-3 h-3 mr-1" /> Authorized
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="h-7 px-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                            onClick={() => handleAuthorize(member.id, true)}
+                            data-testid={`zt-auth-inline-${member.id}`}
+                          >
+                            <ShieldOff className="w-3 h-3 mr-1" /> Authorize
+                          </Button>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        {member.ip_assignments?.length > 0 && (
-                          <span className="text-xs text-zinc-500 font-mono">{member.ip_assignments[0]}</span>
-                        )}
-                        {member.physical_address && (
-                          <span className="text-xs text-zinc-600">{member.physical_address}</span>
-                        )}
+
+                      {/* Last seen */}
+                      <div className="text-right flex-shrink-0 w-20">
+                        <span className={`text-xs ${member.online ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                          {member.online ? 'Online' : formatLastSeen(member.last_seen)}
+                        </span>
                       </div>
+
+                      <ChevronRight className={`w-4 h-4 text-zinc-600 transition-transform ${selectedMember?.id === member.id ? 'rotate-90' : ''}`} />
                     </div>
 
-                    {/* Auth badge */}
-                    <div className="flex items-center gap-2">
-                      {member.authorized ? (
-                        <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                          <Shield className="w-3 h-3" /> Auth
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
-                          <ShieldOff className="w-3 h-3" /> Unauth
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Last seen */}
-                    <div className="text-right flex-shrink-0 w-20">
-                      <span className={`text-xs ${member.online ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                        {member.online ? 'Online' : formatLastSeen(member.last_seen)}
-                      </span>
-                    </div>
-
-                    <ChevronRight className={`w-4 h-4 text-zinc-600 transition-transform ${selectedMember?.id === member.id ? 'rotate-90' : ''}`} />
+                    {/* Expanded member detail */}
+                    {selectedMember?.id === member.id && (
+                      <div className="px-5 py-4 bg-zinc-800/30 border-t border-zinc-700/50">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                          <div>
+                            <span className="text-xs text-zinc-500 block">Node ID</span>
+                            <span className="text-sm text-white font-mono">{selectedMember.id}</span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-zinc-500 block">IP Assignments</span>
+                            <span className="text-sm text-white font-mono">
+                              {selectedMember.ip_assignments?.join(', ') || 'None'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-zinc-500 block">Physical Address</span>
+                            <span className="text-sm text-white font-mono">
+                              {selectedMember.physical_address || 'Unknown'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-zinc-500 block">Client Version</span>
+                            <span className="text-sm text-white">{selectedMember.client_version || 'Unknown'}</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-zinc-700"
+                            onClick={(e) => { e.stopPropagation(); setEditingName(member.id); setEditNameValue(member.name || ''); }}
+                            data-testid="zt-rename-expanded-btn"
+                          >
+                            <Pencil className="w-3.5 h-3.5 mr-1" /> Rename
+                          </Button>
+                          {selectedMember.authorized ? (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={(e) => { e.stopPropagation(); handleAuthorize(selectedMember.id, false); }}
+                              data-testid="zt-deauth-btn"
+                            >
+                              <ShieldOff className="w-3.5 h-3.5 mr-1" /> Deauthorize
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                              onClick={(e) => { e.stopPropagation(); handleAuthorize(selectedMember.id, true); }}
+                              data-testid="zt-auth-btn"
+                            >
+                              <Shield className="w-3.5 h-3.5 mr-1" /> Authorize
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
-
-                {/* Expanded member detail */}
-                {selectedMember && (
-                  <div className="px-5 py-4 bg-zinc-800/30 border-t border-zinc-700/50">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <span className="text-xs text-zinc-500 block">Node ID</span>
-                        <span className="text-sm text-white font-mono">{selectedMember.id}</span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-zinc-500 block">IP Assignments</span>
-                        <span className="text-sm text-white font-mono">
-                          {selectedMember.ip_assignments?.join(', ') || 'None'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-zinc-500 block">Physical Address</span>
-                        <span className="text-sm text-white font-mono">
-                          {selectedMember.physical_address || 'Unknown'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-zinc-500 block">Client Version</span>
-                        <span className="text-sm text-white">{selectedMember.client_version || 'Unknown'}</span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      {selectedMember.authorized ? (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={(e) => { e.stopPropagation(); handleAuthorize(selectedMember.id, false); }}
-                          data-testid="zt-deauth-btn"
-                        >
-                          <ShieldOff className="w-3.5 h-3.5 mr-1" /> Deauthorize
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
-                          onClick={(e) => { e.stopPropagation(); handleAuthorize(selectedMember.id, true); }}
-                          data-testid="zt-auth-btn"
-                        >
-                          <Shield className="w-3.5 h-3.5 mr-1" /> Authorize
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>

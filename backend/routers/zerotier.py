@@ -235,3 +235,27 @@ async def deauthorize_member(main_site_id: str, member_id: str, current_user: di
         json_data={"config": {"authorized": False}},
     )
     return {"status": "ok", "message": f"Member {member_id} deauthorized"}
+
+
+@zerotier_router.put("/{main_site_id}/member/{member_id}/name")
+async def update_member_name(
+    main_site_id: str,
+    member_id: str,
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Update a member's name/description."""
+    await require_site_access(main_site_id, current_user)
+    config = await get_zt_config(main_site_id)
+    if not config.get("api_token") or not config.get("network_id"):
+        raise HTTPException(400, "ZeroTier not configured.")
+
+    name = data.get("name", "").strip()
+    await zt_request(
+        "POST",
+        f"/network/{config['network_id']}/member/{member_id}",
+        config["api_token"],
+        json_data={"name": name, "description": name},
+    )
+    return {"status": "ok", "message": f"Member renamed to '{name}'"}
+
