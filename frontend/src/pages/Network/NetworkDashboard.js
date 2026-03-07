@@ -705,20 +705,23 @@ export default function NetworkDashboard() {
         ) : (
           <>
           <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-3'}>
-            {mainSites.filter(s => !s.cloned_from).map(site => viewMode === 'list' ? (
-              <Card key={site.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
+            {mainSites.map(site => viewMode === 'list' ? (
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardContent className="flex items-center gap-4 p-4">
                   <Link to={`/${site.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
                     {site.logo_url ? (
                       <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                        <Globe className="w-5 h-5 text-zinc-500" />
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : 'bg-zinc-800'}`}>
+                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                       </div>
                     )}
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-white truncate">{site.name}</span>
+                        {site.cloned_from && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 flex-shrink-0">Clone</span>
+                        )}
                         {site.site_type === 'technical' && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">Technical</span>
                         )}
@@ -740,20 +743,23 @@ export default function NetworkDashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <Card key={site.id} className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors">
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       {site.logo_url ? (
                         <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                       ) : (
-                        <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
-                          <Globe className="w-5 h-5 text-zinc-500" />
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : 'bg-zinc-800'}`}>
+                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                         </div>
                       )}
                       <div>
                         <CardTitle className="text-lg flex items-center gap-2">
                           {site.name}
+                          {site.cloned_from && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 font-normal">Clone</span>
+                          )}
                           {site.site_type === 'technical' && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-normal">
                               Technical
@@ -856,48 +862,6 @@ export default function NetworkDashboard() {
             <MigrationTool />
           </div>
 
-          {/* Clone Sites Section */}
-          {mainSites.some(s => s.cloned_from) && (
-            <div className="mt-8" data-testid="clone-sites-section">
-              <h2 className="text-sm font-semibold text-zinc-400 mb-3 flex items-center gap-2">
-                <Layers className="w-4 h-4 text-cyan-400" />
-                Clone Sites (DevTools Enabled)
-              </h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {mainSites.filter(s => s.cloned_from).map(clone => (
-                  <Card key={clone.id} className="bg-zinc-900 border-cyan-800/30 hover:border-cyan-700/50 transition-colors">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
-                            <Layers className="w-5 h-5 text-cyan-400" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              {clone.name}
-                              <span className="text-[10px] bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded-full font-normal">CLONE</span>
-                            </CardTitle>
-                            <CardDescription className="text-zinc-500">/{clone.slug}</CardDescription>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0 space-y-3">
-                      <p className="text-xs text-zinc-500">
-                        DevTools active — API inspector, code viewer, snapshots
-                      </p>
-                      <Link to={`/${clone.slug}`}>
-                        <Button size="sm" className="w-full gap-2 bg-cyan-600 hover:bg-cyan-700" data-testid={`open-clone-${clone.slug}`}>
-                          <Activity className="w-4 h-4" />
-                          Open Clone (DevTools)
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
           </>
         )}
       </main>
