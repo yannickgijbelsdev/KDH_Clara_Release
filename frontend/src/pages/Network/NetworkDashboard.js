@@ -74,7 +74,8 @@ const FEATURE_GROUPS = {
   streaming: { name: 'Streaming & RDS', Icon: Radio },
   sites: { name: 'Sites', Icon: Globe },
   admin: { name: 'Administration', Icon: Cog },
-  technical: { name: 'Technical', Icon: Monitor }
+  technical: { name: 'Technical', Icon: Monitor },
+  server: { name: 'Server', Icon: Monitor }
 };
 
 // Debug Content Component
@@ -792,8 +793,8 @@ export default function NetworkDashboard() {
                     Main Sites
                   </div>
                   {mainSites.slice(0, 5).map(site => {
-                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : 'Standard';
-                    const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : 'text-zinc-600';
+                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : 'Standard';
+                    const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-blue-400' : 'text-zinc-600';
                     return (
                       <DropdownMenuItem
                         key={site.id}
@@ -1004,8 +1005,8 @@ export default function NetworkDashboard() {
                     {site.logo_url ? (
                       <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                     ) : (
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : 'bg-zinc-800'}`}>
-                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : 'bg-zinc-800'}`}>
+                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-blue-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                       </div>
                     )}
                     <div className="min-w-0">
@@ -1291,7 +1292,7 @@ export default function NetworkDashboard() {
             {!editingSite && (
               <div className="space-y-2">
                 <Label>Site Type</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div
                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
                       formData.site_type === 'radio'
@@ -1319,18 +1320,33 @@ export default function NetworkDashboard() {
                     <Monitor className="w-5 h-5 text-emerald-400" />
                     <div>
                       <span className="text-sm font-medium text-white">Clara Technical</span>
-                      <p className="text-xs text-zinc-400">Only for monitoring purposes</p>
+                      <p className="text-xs text-zinc-400">Monitoring only</p>
+                    </div>
+                  </div>
+                  <div
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      formData.site_type === 'server'
+                        ? 'bg-blue-500/20 border border-blue-500/50'
+                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
+                    }`}
+                    onClick={() => setFormData({ ...formData, site_type: 'server', enabled_features: ['xml_imports', 'server_api_keys', 'team_settings', 'activity_logs'] })}
+                    data-testid="site-type-server"
+                  >
+                    <FileText className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <span className="text-sm font-medium text-white">Clara Server</span>
+                      <p className="text-xs text-zinc-400">XML imports & sync</p>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {formData.site_type !== 'technical' && (
+            {formData.site_type !== 'technical' && formData.site_type !== 'server' && (
             <div className="space-y-3">
               <Label>Enabled Features</Label>
               <div className="grid gap-4">
-                {Object.entries(groupedFeatures).filter(([groupId]) => groupId !== 'technical').map(([groupId, features]) => {
+                {Object.entries(groupedFeatures).filter(([groupId]) => groupId !== 'technical' && groupId !== 'server').map(([groupId, features]) => {
                   const GroupIcon = FEATURE_GROUPS[groupId]?.Icon || Layers;
                   return (
                   <div key={groupId} className="space-y-2">

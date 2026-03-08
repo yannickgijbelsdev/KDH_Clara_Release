@@ -37,6 +37,10 @@ AVAILABLE_FEATURES = [
     
     # Technical group
     {"id": "zerotier", "name": "ZeroTier Monitor", "group": "technical"},
+
+    # Server group
+    {"id": "xml_imports", "name": "XML Imports", "group": "server"},
+    {"id": "server_api_keys", "name": "API Keys", "group": "server"},
 ]
 
 
@@ -46,7 +50,7 @@ class MainSiteCreate(BaseModel):
     slug: str  # URL path, e.g., "radiogroep" for /radiogroep
     description: Optional[str] = None
     enabled_features: List[str] = []  # List of feature IDs
-    site_type: str = "radio"  # "radio" or "technical"
+    site_type: str = "radio"  # "radio", "technical", or "server"
 
 
 class MainSiteUpdate(BaseModel):

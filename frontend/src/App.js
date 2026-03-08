@@ -44,6 +44,10 @@ import PublicCallPage from './pages/PublicCallPage';
 import { JourneyProvider } from './context/JourneyContext';
 import { CallProvider } from './context/CallContext';
 import ZeroTierPage from './pages/ZeroTierPage';
+import XmlDashboard from './pages/Server/XmlDashboard';
+import XmlUpload from './pages/Server/XmlUpload';
+import XmlDetails from './pages/Server/XmlDetails';
+import ApiKeysPage from './pages/Server/ApiKeysPage';
 import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import './App.css';
@@ -225,6 +229,10 @@ const AppRoutes = () => {
         <Route path="firewall" element={<FirewallPage />} />
         <Route path="call-studio" element={<CallPage />} />
         <Route path="zerotier" element={<ZeroTierPage />} />
+        <Route path="xml-imports" element={<XmlDashboard />} />
+        <Route path="xml-upload" element={<XmlUpload />} />
+        <Route path="xml-imports/:importId" element={<XmlDetails />} />
+        <Route path="api-keys" element={<ApiKeysPage />} />
       </Route>
 
       {/* Public Call Page - /call/:callToken (no auth required) */}
@@ -253,6 +261,12 @@ const MainSiteIndexInner = () => {
       // Technical sites always go to zerotier
       if (mainSite.site_type === 'technical') {
         navigate(`/${mainSiteSlug}/zerotier`, { replace: true });
+        return;
+      }
+
+      // Server sites always go to xml-imports
+      if (mainSite.site_type === 'server') {
+        navigate(`/${mainSiteSlug}/xml-imports`, { replace: true });
         return;
       }
       
