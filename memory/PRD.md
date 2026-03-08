@@ -2840,6 +2840,29 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Clara Global Protect Branding (COMPLETE)**: Footer in all emails, test email subject, daily digest subject
 - Tested: 17/17 backend + 100% frontend (iteration_69.json)
 
+
+### Ticket Notification System (COMPLETE - Feb 2026)
+- [x] Email notifications on ticket creation → sent to creator + support.ops.clara@koodh.com
+- [x] Email notifications on new message/reply → sent to creator + support email (excludes sender)
+- [x] Email notifications on status change/closure → sent to creator + support email
+- [x] HTML email templates matching Clara Global Protect branding
+- [x] Fire-and-forget async email sending via asyncio.create_task
+- Tested: 18/18 backend + 100% frontend (iteration_70.json)
+
+### Forgot Password Flow (COMPLETE - Feb 2026)
+- [x] "Forgot password?" link on login page
+- [x] Forgot password form with email input and back navigation
+- [x] POST /api/auth/forgot-password endpoint (no auth required)
+- [x] Generates random temporary password, hashes and stores it
+- [x] Sets force_password_change=true on user
+- [x] Sends temp password via email (Clara Global Protect branded)
+- [x] Login response includes force_password_change flag
+- [x] ForcePasswordChangeModal forces new password on next login
+- [x] Password changed confirmation email sent after successful change
+- [x] **Bug fix**: change_password route was missing @auth_router.post decorator
+- [x] **Bug fix**: Parameter mismatch fixed (current_password vs old_password)
+- Tested: 18/18 backend + 100% frontend (iteration_70.json)
+
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
