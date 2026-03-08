@@ -766,7 +766,7 @@ export default function NetworkDashboard() {
                 )}
                 <div className="flex-1 text-left min-w-0">
                   <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                  <p className="text-xs text-zinc-500 truncate">{roleLabels[user?.role]}</p>
+                  <p className="text-xs text-zinc-500 truncate">{user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}</p>
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -791,7 +791,7 @@ export default function NetworkDashboard() {
               <DropdownMenuSeparator className="bg-zinc-800" />
               <DropdownMenuItem className="text-zinc-400 cursor-default">
                 <RoleIcon className="w-4 h-4 mr-2" />
-                {roleLabels[user?.role]}
+                {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
               </DropdownMenuItem>
               {mainSites.length > 0 && (
                 <>
@@ -916,7 +916,7 @@ export default function NetworkDashboard() {
                 <p className="text-sm font-medium text-white">{user?.name}</p>
                 <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
                   <RoleIcon className="w-3 h-3" />
-                  {roleLabels[user?.role]}
+                  {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
                 </p>
               </div>
             </div>

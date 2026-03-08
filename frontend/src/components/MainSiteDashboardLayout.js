@@ -857,11 +857,11 @@ const MainSiteDashboardContent = () => {
                   <>
                     <DropdownMenuSeparator className="bg-zinc-800" />
                     <div className="px-2 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wide">
-                      Mijn Sites
+                      My Sites
                     </div>
                     {myMainSites.map(site => {
-                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : 'Standard';
-                      const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : 'text-zinc-600';
+                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : 'Standard';
+                      const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : 'text-zinc-600';
                       return (
                       <DropdownMenuItem
                         key={site.id}
@@ -871,7 +871,7 @@ const MainSiteDashboardContent = () => {
                         <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
                         <span className="truncate">{site.name}</span>
                         <span className={`ml-auto text-[10px] flex-shrink-0 ${site.slug === mainSiteSlug ? 'text-orange-500' : labelColor}`}>
-                          {site.slug === mainSiteSlug ? 'actief' : siteLabel}
+                          {site.slug === mainSiteSlug ? 'active' : siteLabel}
                         </span>
                       </DropdownMenuItem>
                       );
