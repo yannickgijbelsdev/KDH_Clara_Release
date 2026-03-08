@@ -1330,7 +1330,7 @@ export default function NetworkDashboard() {
                         ? 'bg-emerald-500/20 border border-emerald-500/50'
                         : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
                     }`}
-                    onClick={() => setFormData({ ...formData, site_type: 'technical', enabled_features: ['team_settings', 'zerotier'] })}
+                    onClick={() => setFormData({ ...formData, site_type: 'technical', enabled_features: ['zerotier', 'team_settings', 'firewall', 'activity_logs'] })}
                     data-testid="site-type-technical"
                   >
                     <Monitor className="w-5 h-5 text-emerald-400" />
@@ -1345,13 +1345,13 @@ export default function NetworkDashboard() {
                         ? 'bg-blue-500/20 border border-blue-500/50'
                         : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
                     }`}
-                    onClick={() => setFormData({ ...formData, site_type: 'server', enabled_features: ['xml_imports', 'server_api_keys', 'team_settings', 'activity_logs'] })}
+                    onClick={() => setFormData({ ...formData, site_type: 'server', enabled_features: ['xml_imports', 'server_api_keys', 'vmix_director', 'team_settings', 'firewall', 'activity_logs'] })}
                     data-testid="site-type-server"
                   >
                     <FileText className="w-5 h-5 text-blue-400" />
                     <div>
                       <span className="text-sm font-medium text-white">Clara Server</span>
-                      <p className="text-xs text-zinc-400">XML imports & sync</p>
+                      <p className="text-xs text-zinc-400">XML imports, sync & vMix</p>
                     </div>
                   </div>
                 </div>
@@ -1375,6 +1375,60 @@ export default function NetworkDashboard() {
                   ))}
                 </select>
               </div>
+            )}
+
+            {/* Enabled Features for Technical & Server - core features grayed out, common features toggleable */}
+            {(formData.site_type === 'technical' || formData.site_type === 'server') && (
+            <div className="space-y-3">
+              <Label>Enabled Features</Label>
+              {/* Core features - always enabled, grayed out */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                  {formData.site_type === 'technical' ? 'Technical' : 'Server'} Features (always enabled)
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {(formData.site_type === 'technical'
+                    ? [{ id: 'zerotier', name: 'ZeroTier' }]
+                    : [{ id: 'xml_imports', name: 'XML Imports' }, { id: 'server_api_keys', name: 'API Keys' }, { id: 'vmix_director', name: 'vMix Director' }]
+                  ).map(feature => (
+                    <div
+                      key={feature.id}
+                      className="flex items-center gap-2 p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 opacity-50 cursor-not-allowed"
+                    >
+                      <Checkbox checked={true} disabled className="pointer-events-none" />
+                      <span className="text-sm text-zinc-400">{feature.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Toggleable common features */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Optional Features</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { id: 'team_settings', name: 'Team Settings' },
+                    { id: 'firewall', name: 'Firewall' },
+                    { id: 'activity_logs', name: 'Activity Logs' },
+                  ].map(feature => (
+                    <div
+                      key={feature.id}
+                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
+                        formData.enabled_features.includes(feature.id)
+                          ? 'bg-orange-500/20 border border-orange-500/50'
+                          : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
+                      }`}
+                      onClick={() => toggleFeature(feature.id)}
+                    >
+                      <Checkbox
+                        checked={formData.enabled_features.includes(feature.id)}
+                        className="pointer-events-none"
+                      />
+                      <span className="text-sm">{feature.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
             )}
 
             {formData.site_type !== 'technical' && formData.site_type !== 'server' && (
