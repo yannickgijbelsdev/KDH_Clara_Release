@@ -1,5 +1,6 @@
 """Main Sites (Organization) management routes."""
 import uuid
+import asyncio
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +12,7 @@ from models.main_sites import (
     AvailableFeaturesResponse, AVAILABLE_FEATURES
 )
 from services.auth import get_current_user
+from services.audit import log_action
 
 import logging
 logger = logging.getLogger(__name__)
@@ -150,6 +152,21 @@ async def create_main_site(
     main_site_doc["user_count"] = 0
     
     logger.info(f"Main site created: {data.name} ({slug}) by {current_user['email']}")
+
+    # Log and notify system admin
+    asyncio.create_task(log_action(
+        action="Main Site Created",
+        category="system",
+        user_id=current_user.get("id"),
+        user_name=current_user.get("name", ""),
+        user_email=current_user.get("email", ""),
+        main_site_id=main_site_id,
+        details={"description": f"Main site '{data.name}' (slug: {slug}) created by {current_user.get('name', '')}"},
+        target_type="main_site",
+        target_id=main_site_id,
+        target_name=data.name,
+    ))
+
     return main_site_doc
 
 
@@ -262,7 +279,22 @@ async def update_main_site(
     updated = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0})
     updated["site_count"] = await db.sites.count_documents({"main_site_id": main_site_id})
     updated["user_count"] = await db.main_site_users.count_documents({"main_site_id": main_site_id})
-    
+
+    # Log and notify system admin
+    changed_fields = [k for k in update_data if k != "updated_at"]
+    asyncio.create_task(log_action(
+        action="Main Site Updated",
+        category="system",
+        user_id=current_user.get("id"),
+        user_name=current_user.get("name", ""),
+        user_email=current_user.get("email", ""),
+        main_site_id=main_site_id,
+        details={"description": f"Main site '{updated.get('name', '')}' updated by {current_user.get('name', '')} (fields: {', '.join(changed_fields)})"},
+        target_type="main_site",
+        target_id=main_site_id,
+        target_name=updated.get("name", ""),
+    ))
+
     return updated
 
 
@@ -289,6 +321,19 @@ async def delete_main_site(
     await db.main_site_users.delete_many({"main_site_id": main_site_id})
     
     logger.info(f"Main site deleted: {main_site['name']} by {current_user['email']}")
+
+    # Log and notify system admin
+    asyncio.create_task(log_action(
+        action="Main Site Deleted",
+        category="system",
+        user_id=current_user.get("id"),
+        user_name=current_user.get("name", ""),
+        user_email=current_user.get("email", ""),
+        details={"description": f"Main site '{main_site.get('name', '')}' deleted by {current_user.get('name', '')}"},
+        target_type="main_site",
+        target_name=main_site.get("name", ""),
+    ))
+
     return {"status": "success", "message": "Main site deleted"}
 
 

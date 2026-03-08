@@ -9,6 +9,7 @@ from services.backup_service import (
     create_backup, restore_backup, clone_main_site,
     delete_clone, run_daily_backup, cleanup_expired_backups,
 )
+from services.audit import log_action
 
 backup_router = APIRouter(prefix="/backups", tags=["backups"])
 
@@ -116,6 +117,20 @@ async def create_manual_backup(
         backup_type="manual",
         created_by=current_user.get("id", "unknown"),
     )
+
+    # Log and notify system admin
+    asyncio.create_task(log_action(
+        action="Backup Created",
+        category="system",
+        user_id=current_user.get("id"),
+        user_name=current_user.get("name", ""),
+        user_email=current_user.get("email", ""),
+        main_site_id=main_site_id,
+        details={"description": f"Manual backup created for '{main_site.get('name', '')}' by {current_user.get('name', '')}"},
+        target_type="backup",
+        target_name=main_site.get("name", ""),
+    ))
+
     return result
 
 
@@ -137,6 +152,22 @@ async def restore_from_backup(
             body.backup_id,
             created_by=current_user.get("id", "unknown"),
         )
+
+        # Log and notify system admin
+        main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "name": 1})
+        site_name = main_site.get("name", "") if main_site else ""
+        asyncio.create_task(log_action(
+            action="Backup Restored",
+            category="system",
+            user_id=current_user.get("id"),
+            user_name=current_user.get("name", ""),
+            user_email=current_user.get("email", ""),
+            main_site_id=main_site_id,
+            details={"description": f"Backup restored for '{site_name}' by {current_user.get('name', '')} (backup: {body.backup_id[:8]}...)"},
+            target_type="backup",
+            target_name=site_name,
+        ))
+
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

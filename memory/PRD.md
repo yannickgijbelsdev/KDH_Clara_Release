@@ -2863,6 +2863,16 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Bug fix**: Parameter mismatch fixed (current_password vs old_password)
 - Tested: 18/18 backend + 100% frontend (iteration_70.json)
 
+### System Admin Alerts for Backups & Main Sites (COMPLETE - Feb 2026)
+- [x] Audit logging added to backup creation (`POST /api/backups/{id}`)
+- [x] Audit logging added to backup restore (`POST /api/backups/{id}/restore`)
+- [x] Audit logging added to main site creation (`POST /api/main-sites`)
+- [x] Audit logging added to main site update (`PUT /api/main-sites/{id}`)
+- [x] Audit logging added to main site deletion (`DELETE /api/main-sites/{id}`)
+- [x] All events go through centralized audit → notification → system alert pipeline
+- [x] System alert email (`clara.global@koodh.com`) receives all these events automatically
+
+
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
