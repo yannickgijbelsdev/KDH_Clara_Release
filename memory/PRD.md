@@ -2892,6 +2892,19 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: 20/20 backend + 100% frontend (iteration_71.json)
 
 
+### March 8, 2026 - Clara Global Label & UI Verification
+- [x] **Clara Global Label (COMPLETE)**: Changed "Clara Global" text in Network Dashboard to "Clara" + yellow "Global" label badge (matching Server/Technical label pattern)
+  - Updated 3 locations: mobile header, desktop sidebar, mobile sidebar
+  - Yellow color scheme: bg-yellow-500/15 text-yellow-400 border-yellow-500/25
+  - File: `frontend/src/pages/Network/NetworkDashboard.js`
+- [x] **UI Bug Fixes Verified (from previous agent)**:
+  - "Server" labels correctly displayed in dropdown menus (red)
+  - "Technical" labels correctly displayed (green)
+  - "Clone" labels correctly displayed (amber)
+  - Role shows "Network Admin" (not "Admin") in dropdown
+  - All site type labels working in MainSiteDashboardLayout dropdown
+
+
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
