@@ -32,6 +32,7 @@ AVAILABLE_FEATURES = [
     
     # Administration group
     {"id": "team_settings", "name": "Team Settings", "group": "admin"},
+    {"id": "firewall", "name": "Firewall", "group": "admin"},
     {"id": "wordpress", "name": "WordPress", "group": "admin"},
     {"id": "activity_logs", "name": "Activity Logs", "group": "admin"},
     
