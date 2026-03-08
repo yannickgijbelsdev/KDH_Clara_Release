@@ -336,9 +336,9 @@ const MainSiteDashboardContent = () => {
     return 0;
   };
 
-  // Brand: always "Clara", with optional type label
-  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : null;
-  const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : '';
+  // Brand: always "Clara", labels only in page header bar
+  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : 'Standard';
+  const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25';
   // Display name: for server sites, show linked main site name
   const displayName = mainSite?.site_type === 'server' && mainSite?.linked_main_site_name
     ? mainSite.linked_main_site_name
@@ -766,7 +766,6 @@ const MainSiteDashboardContent = () => {
                 <span className="text-white font-black text-sm">C</span>
               </div>
               <span className="text-lg font-bold text-white">Clara</span>
-              {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
             </div>
             <Button
               variant="ghost"
@@ -791,10 +790,7 @@ const MainSiteDashboardContent = () => {
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
           <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'px-2 text-center'}`}>
-            <div className={`flex items-center gap-1.5 ${useGroupedMenu ? '' : 'justify-center flex-wrap'}`}>
-              <span className="text-white font-black text-base">Clara</span>
-              {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
-            </div>
+            <span className="text-white font-black text-base">Clara</span>
           </div>
 
           {/* Navigation */}
@@ -924,7 +920,6 @@ const MainSiteDashboardContent = () => {
                   <span className="text-white font-black text-sm">C</span>
                 </div>
                 <span className="text-lg font-bold text-white">Clara</span>
-                {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
               </div>
               <Button
                 variant="ghost"
@@ -1014,7 +1009,7 @@ const MainSiteDashboardContent = () => {
                   ) : displayName && (
                     <p className="text-sm font-medium text-white">{displayName}</p>
                   )}
-                  {!isInSiteContext && siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
+                  {!isInSiteContext && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-white">{user?.name}</p>

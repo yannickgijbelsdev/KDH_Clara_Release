@@ -2905,16 +2905,13 @@ now = now_brussels()  # Automatically handles CET/CEST
   - All site type labels working in MainSiteDashboardLayout dropdown
 
 ### March 8, 2026 - Platform-wide Header Consistency Fix
-- [x] **Icon-only sidebar logo fix (COMPLETE)**: Replaced "Clara" text with "C" orange logo icon in icon-only sidebar mode (72px wide)
-  - Matches the mobile header pattern already in use
-  - Grouped sidebar mode (w-56) still shows full "Clara" text + labels
-  - Updated in: `MainSiteDashboardLayout.js`, `DashboardLayout.js`
-- [x] **Site type labels in page header bar (COMPLETE)**: Added site type label (Server/Technical) next to site name in the desktop page header bar
-  - Standard sites: No label (default type)
-  - Technical sites: Green "Technical" label
-  - Server sites: Red "Server" label
-  - Network Dashboard: "Network Management" text (no label needed)
-  - File: `frontend/src/components/MainSiteDashboardLayout.js`
+- [x] **Labels verplaatst van sidebar naar header bar**: Alle site-type labels (Standard, Server, Technical, Global) staan nu uitsluitend in de page header bar naast de sitenaam
+  - Sidebar toont overal alleen "Clara" zonder labels
+  - Network Dashboard header: "Network Management" + geel "Global" label
+  - Standard sites header: Site naam + grijs "Standard" label (NIEUW)
+  - Server sites header: Linked site naam + rood "Server" label
+  - Technical sites header: Site naam + groen "Technical" label
+  - Files: `MainSiteDashboardLayout.js`, `NetworkDashboard.js`, `DashboardLayout.js`
 
 
 ### Upcoming Tasks
