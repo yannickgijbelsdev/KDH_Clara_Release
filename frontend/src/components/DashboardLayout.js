@@ -446,8 +446,14 @@ const DashboardLayout = () => {
         {/* Desktop Sidebar */}
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
-          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'text-center'}`}>
-            <span className="text-white font-black text-base">Clara</span>
+          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'flex justify-center'}`}>
+            {useGroupedMenu ? (
+              <span className="text-white font-black text-base">Clara</span>
+            ) : (
+              <div className="p-2 bg-orange-500 rounded-lg inline-flex">
+                <span className="text-white font-black text-sm">C</span>
+              </div>
+            )}
           </div>
 
           {/* Navigation */}

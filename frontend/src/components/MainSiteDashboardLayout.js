@@ -790,11 +790,17 @@ const MainSiteDashboardContent = () => {
         {/* Desktop Sidebar */}
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
-          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'text-center'}`}>
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-white font-black text-base">Clara</span>
-              {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
-            </div>
+          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'flex justify-center'}`}>
+            {useGroupedMenu ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-white font-black text-base">Clara</span>
+                {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
+              </div>
+            ) : (
+              <div className="p-2 bg-orange-500 rounded-lg inline-flex">
+                <span className="text-white font-black text-sm">C</span>
+              </div>
+            )}
           </div>
 
           {/* Navigation */}
@@ -1008,12 +1014,13 @@ const MainSiteDashboardContent = () => {
           <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
             <div className="px-8 py-4">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex items-center gap-2">
                   {isInSiteContext && currentSite ? (
                     <p className="text-sm font-medium text-white">{currentSite.name}</p>
                   ) : displayName && (
                     <p className="text-sm font-medium text-white">{displayName}</p>
                   )}
+                  {!isInSiteContext && siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-white">{user?.name}</p>
