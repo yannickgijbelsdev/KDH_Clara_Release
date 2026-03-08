@@ -649,7 +649,7 @@ export default function NetworkDashboard() {
             <div className="p-2 bg-orange-500 rounded-lg">
               <span className="text-white font-black text-sm">C</span>
             </div>
-            <span className="text-lg font-bold text-white">Clara</span>
+            <span className="text-lg font-bold text-white">Clara Global</span>
           </div>
           <Button
             variant="ghost"
@@ -674,7 +674,7 @@ export default function NetworkDashboard() {
       <aside className="hidden lg:flex fixed top-0 left-0 h-full z-50 w-56 flex-col py-6 glass border-r border-white/10 transition-all duration-300">
         {/* Logo */}
         <div className="mb-6 px-4">
-          <span className="text-white font-black text-base">Clara</span>
+          <span className="text-white font-black text-base">Clara Global</span>
         </div>
 
         {/* Navigation */}
@@ -832,7 +832,7 @@ export default function NetworkDashboard() {
               <div className="p-2 bg-orange-500 rounded-lg">
                 <span className="text-white font-black text-sm">C</span>
               </div>
-              <span className="text-lg font-bold text-white">Clara</span>
+              <span className="text-lg font-bold text-white">Clara Global</span>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-white">
               <X className="w-5 h-5" />
