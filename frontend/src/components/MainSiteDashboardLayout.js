@@ -336,8 +336,9 @@ const MainSiteDashboardContent = () => {
     return 0;
   };
 
-  // Brand name based on site type
-  const brandName = mainSite?.site_type === 'server' ? 'Clara Server' : mainSite?.site_type === 'technical' ? 'Clara Technical' : 'Clara';
+  // Brand: always "Clara", with optional type label
+  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : null;
+  const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : '';
   // Display name: for server sites, show linked main site name
   const displayName = mainSite?.site_type === 'server' && mainSite?.linked_main_site_name
     ? mainSite.linked_main_site_name
@@ -764,7 +765,8 @@ const MainSiteDashboardContent = () => {
               <div className="p-2 bg-orange-500 rounded-lg">
                 <span className="text-white font-black text-sm">C</span>
               </div>
-              <span className="text-lg font-bold text-white">{brandName}</span>
+              <span className="text-lg font-bold text-white">Clara</span>
+              {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
             </div>
             <Button
               variant="ghost"
@@ -789,7 +791,10 @@ const MainSiteDashboardContent = () => {
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
           <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'text-center'}`}>
-            <span className="text-white font-black text-base">{brandName}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-white font-black text-base">Clara</span>
+              {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
+            </div>
           </div>
 
           {/* Navigation */}
@@ -918,7 +923,8 @@ const MainSiteDashboardContent = () => {
                 <div className="p-2 bg-orange-500 rounded-lg">
                   <span className="text-white font-black text-sm">C</span>
                 </div>
-                <span className="text-lg font-bold text-white">{brandName}</span>
+                <span className="text-lg font-bold text-white">Clara</span>
+                {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
               </div>
               <Button
                 variant="ghost"
