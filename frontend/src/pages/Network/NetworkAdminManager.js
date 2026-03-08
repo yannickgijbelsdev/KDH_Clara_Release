@@ -36,6 +36,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
   const [tempPassword, setTempPassword] = useState(null);
 
   const isPrimary = user?.is_primary_network_admin;
+  const isNetworkAdmin = user?.is_network_admin || user?.role === 'admin';
 
   useEffect(() => {
     if (open) fetchAdmins();
@@ -221,7 +222,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
                     <p className="text-xs text-zinc-500">{admin.email}</p>
                   </div>
                 </div>
-                {isPrimary && !admin.is_primary_network_admin && (
+                {(isPrimary || isNetworkAdmin) && !admin.is_primary_network_admin && admin.id !== user?.id && (
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" onClick={() => openEditPermissions(admin)} data-testid={`edit-admin-${admin.id}`}>
                       <Edit className="w-4 h-4 text-zinc-400" />
@@ -235,7 +236,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
             </Card>
           ))}
 
-          {isPrimary && (
+          {(isPrimary || isNetworkAdmin) && (
             <Button
               onClick={() => { resetForm(); setShowAddDialog(true); }}
               className="w-full gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 border-dashed"
