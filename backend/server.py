@@ -1018,6 +1018,27 @@ async def startup_db_client():
     await start_notification_scheduler()
     logger.info("Notification digest scheduler started")
 
+    # Auto-initialize system alert config (clara.global@koodh.com always enabled)
+    try:
+        system_alert = await db.notification_config.find_one({"type": "system_alert"})
+        if not system_alert:
+            await db.notification_config.insert_one({
+                "type": "system_alert",
+                "email": "clara.global@koodh.com",
+                "enabled": True,
+                "mode": "both",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            })
+            logger.info("System alert config auto-initialized (clara.global@koodh.com)")
+        elif not system_alert.get("enabled"):
+            await db.notification_config.update_one(
+                {"type": "system_alert"},
+                {"$set": {"enabled": True, "updated_at": datetime.now(timezone.utc).isoformat()}}
+            )
+            logger.info("System alert config auto-enabled")
+    except Exception as e:
+        logger.warning(f"Could not initialize system alert config: {e}")
+
     # Migrate: add 'rundown' permission to existing roles
     try:
         from routers.roles import migrate_add_rundown_permission
