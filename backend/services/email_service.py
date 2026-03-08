@@ -97,18 +97,29 @@ async def send_email_with_config(smtp_config: dict, to_email: str, subject: str,
         host = smtp_config["host"]
         port = int(smtp_config.get("port", 587))
 
+        refused = {}
         if smtp_config.get("use_tls", True):
             with smtplib.SMTP(host, port, timeout=15) as server:
                 server.starttls(context=context)
                 server.login(smtp_config["username"], smtp_config["password"])
-                server.sendmail(from_email, to_email, msg.as_string())
+                refused = server.sendmail(from_email, to_email, msg.as_string())
         else:
             with smtplib.SMTP_SSL(host, port, context=context, timeout=15) as server:
                 server.login(smtp_config["username"], smtp_config["password"])
-                server.sendmail(from_email, to_email, msg.as_string())
+                refused = server.sendmail(from_email, to_email, msg.as_string())
+
+        if refused:
+            logger.error(f"Email refused for {to_email}: {refused}")
+            return False
 
         logger.info(f"Email sent to {to_email}: {subject}")
         return True
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"SMTP auth failed for {to_email}: {e}")
+        return False
+    except smtplib.SMTPRecipientsRefused as e:
+        logger.error(f"Recipient refused {to_email}: {e}")
+        return False
     except Exception as e:
         logger.error(f"Failed to send email to {to_email}: {e}")
         return False

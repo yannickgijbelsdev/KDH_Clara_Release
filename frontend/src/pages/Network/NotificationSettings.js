@@ -617,11 +617,13 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                 {notifLog.map((evt, i) => {
                   const Icon = CATEGORY_ICONS[evt.category] || Bell;
                   const sentCount = (evt.emails_sent || []).length;
+                  const failedCount = (evt.emails_failed || []).length;
+                  const attemptedCount = (evt.emails_attempted || []).length;
                   return (
                     <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-zinc-800/30 hover:bg-zinc-800/50" data-testid={`notif-log-${i}`}>
                       <Icon className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-medium text-white truncate">{evt.event_type}</span>
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-400">{evt.category}</span>
                           {sentCount > 0 && (
@@ -629,8 +631,28 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                               {sentCount} sent
                             </span>
                           )}
+                          {failedCount > 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20" data-testid={`notif-log-${i}-failed`}>
+                              {failedCount} failed
+                            </span>
+                          )}
+                          {attemptedCount === 0 && sentCount === 0 && failedCount === 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700/50 text-zinc-500">
+                              no recipients
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-zinc-500 truncate mt-0.5">{evt.details}</p>
+                        {(evt.emails_sent?.length > 0 || evt.emails_failed?.length > 0) && (
+                          <div className="mt-1 space-y-0.5">
+                            {evt.emails_sent?.map((em, j) => (
+                              <span key={`s-${j}`} className="text-[10px] text-emerald-500/70 mr-2">{em}</span>
+                            ))}
+                            {evt.emails_failed?.map((em, j) => (
+                              <span key={`f-${j}`} className="text-[10px] text-red-400/70 mr-2 line-through">{em}</span>
+                            ))}
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] text-zinc-600">{new Date(evt.timestamp).toLocaleString()}</span>
                           {evt.actor_name && <span className="text-[10px] text-zinc-600">by {evt.actor_name}</span>}

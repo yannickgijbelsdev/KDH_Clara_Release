@@ -265,6 +265,8 @@ async def trigger_notification(
         "actor_email": actor_email,
         "timestamp": now,
         "emails_sent": [],
+        "emails_failed": [],
+        "emails_attempted": [],
     })
 
     # Check if SMTP is configured
@@ -300,35 +302,43 @@ async def trigger_notification(
             target_roles.append(role_slug)
 
     if not target_roles:
-        return
+        # Still check system alert even if no role-based notifications
+        pass
 
     # Find users with these roles in the relevant main site
     emails_sent = []
-    query = {}
-    if main_site_id:
-        accesses = await db.main_site_users.find(
-            {"main_site_id": main_site_id, "role": {"$in": target_roles}},
-            {"_id": 0, "user_id": 1},
-        ).to_list(200)
-        user_ids = [a["user_id"] for a in accesses]
-        if not user_ids:
-            return
-        query = {"id": {"$in": user_ids}}
-    else:
-        # Global events: notify network admins with matching role config
-        query = {"is_network_admin": True}
+    emails_failed = []
+    emails_attempted = []
 
-    users = await db.users.find(query, {"_id": 0, "id": 1, "email": 1, "name": 1}).to_list(200)
+    if target_roles:
+        query = {}
+        if main_site_id:
+            accesses = await db.main_site_users.find(
+                {"main_site_id": main_site_id, "role": {"$in": target_roles}},
+                {"_id": 0, "user_id": 1},
+            ).to_list(200)
+            user_ids = [a["user_id"] for a in accesses]
+            if user_ids:
+                query = {"id": {"$in": user_ids}}
+        else:
+            # Global events: notify network admins with matching role config
+            query = {"is_network_admin": True}
 
-    html = build_notification_html(event_type, category, details, site_name, actor_name)
-    subject = f"Clara Global Protect: {event_type}"
+        if query:
+            users = await db.users.find(query, {"_id": 0, "id": 1, "email": 1, "name": 1}).to_list(200)
 
-    for user in users:
-        if user["email"] == actor_email:
-            continue  # Don't notify the actor
-        success = await send_email_with_config(smtp_config, user["email"], subject, html)
-        if success:
-            emails_sent.append(user["email"])
+            html = build_notification_html(event_type, category, details, site_name, actor_name)
+            subject = f"Clara Global Protect: {event_type}"
+
+            for user in users:
+                if user["email"] == actor_email:
+                    continue  # Don't notify the actor
+                emails_attempted.append(user["email"])
+                success = await send_email_with_config(smtp_config, user["email"], subject, html)
+                if success:
+                    emails_sent.append(user["email"])
+                else:
+                    emails_failed.append(user["email"])
 
     # System Alert Email: always send a copy to the configured system alert address
     system_alert = await db.notification_config.find_one({"type": "system_alert"}, {"_id": 0})
@@ -336,14 +346,24 @@ async def trigger_notification(
         sa_mode = system_alert.get("mode", "both")
         if sa_mode in ("realtime", "both"):
             sa_email = system_alert["email"]
-            if sa_email not in emails_sent and sa_email != actor_email:
+            if sa_email not in emails_sent and sa_email not in emails_failed and sa_email != actor_email:
+                html = build_notification_html(event_type, category, details, site_name, actor_name) if not target_roles else html
+                subject = f"Clara Global Protect: {event_type}" if not target_roles else subject
+                emails_attempted.append(sa_email)
                 success = await send_email_with_config(smtp_config, sa_email, subject, html)
                 if success:
                     emails_sent.append(sa_email)
+                else:
+                    emails_failed.append(sa_email)
 
-    # Update log with sent emails
+    # Update log with delivery results
+    update_fields = {"emails_attempted": emails_attempted}
     if emails_sent:
+        update_fields["emails_sent"] = emails_sent
+    if emails_failed:
+        update_fields["emails_failed"] = emails_failed
+    if update_fields:
         await db.notification_log.update_one(
             {"timestamp": now, "event_type": event_type},
-            {"$set": {"emails_sent": emails_sent}},
+            {"$set": update_fields},
         )
