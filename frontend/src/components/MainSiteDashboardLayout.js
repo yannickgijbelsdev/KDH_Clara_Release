@@ -790,17 +790,11 @@ const MainSiteDashboardContent = () => {
         {/* Desktop Sidebar */}
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
-          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'flex justify-center'}`}>
-            {useGroupedMenu ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-white font-black text-base">Clara</span>
-                {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
-              </div>
-            ) : (
-              <div className="p-2 bg-orange-500 rounded-lg inline-flex">
-                <span className="text-white font-black text-sm">C</span>
-              </div>
-            )}
+          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'px-2 text-center'}`}>
+            <div className={`flex items-center gap-1.5 ${useGroupedMenu ? '' : 'justify-center flex-wrap'}`}>
+              <span className="text-white font-black text-base">Clara</span>
+              {siteTypeLabel && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
+            </div>
           </div>
 
           {/* Navigation */}
