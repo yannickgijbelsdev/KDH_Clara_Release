@@ -1345,7 +1345,7 @@ export default function NetworkDashboard() {
                         ? 'bg-blue-500/20 border border-blue-500/50'
                         : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
                     }`}
-                    onClick={() => setFormData({ ...formData, site_type: 'server', enabled_features: ['xml_imports', 'server_api_keys', 'vmix_director', 'team_settings', 'firewall', 'activity_logs'] })}
+                    onClick={() => setFormData({ ...formData, site_type: 'server', enabled_features: ['xml_imports', 'server_api_keys', 'team_settings', 'firewall', 'activity_logs'] })}
                     data-testid="site-type-server"
                   >
                     <FileText className="w-5 h-5 text-blue-400" />
@@ -1381,26 +1381,60 @@ export default function NetworkDashboard() {
             {(formData.site_type === 'technical' || formData.site_type === 'server') && (
             <div className="space-y-3">
               <Label>Enabled Features</Label>
-              {/* Core features - always enabled, grayed out */}
+              {/* Technical: core features always enabled */}
+              {formData.site_type === 'technical' && (
               <div className="space-y-2">
-                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
-                  {formData.site_type === 'technical' ? 'Technical' : 'Server'} Features (always enabled)
-                </h4>
+                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Technical Features (always enabled)</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {(formData.site_type === 'technical'
-                    ? [{ id: 'zerotier', name: 'ZeroTier' }]
-                    : [{ id: 'xml_imports', name: 'XML Imports' }, { id: 'server_api_keys', name: 'API Keys' }, { id: 'vmix_director', name: 'vMix Director' }]
-                  ).map(feature => (
-                    <div
-                      key={feature.id}
-                      className="flex items-center gap-2 p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 opacity-50 cursor-not-allowed"
-                    >
-                      <Checkbox checked={true} disabled className="pointer-events-none" />
-                      <span className="text-sm text-zinc-400">{feature.name}</span>
-                    </div>
-                  ))}
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 opacity-50 cursor-not-allowed">
+                    <Checkbox checked={true} disabled className="pointer-events-none" />
+                    <span className="text-sm text-zinc-400">ZeroTier</span>
+                  </div>
                 </div>
               </div>
+              )}
+              {/* Server: choose XML Imports OR vMix Director */}
+              {formData.site_type === 'server' && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Server Mode (choose one)</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      formData.enabled_features.includes('xml_imports')
+                        ? 'bg-red-500/20 border-2 border-red-500/60'
+                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
+                    }`}
+                    onClick={() => {
+                      const base = formData.enabled_features.filter(f => !['xml_imports', 'vmix_director'].includes(f));
+                      setFormData({ ...formData, enabled_features: [...base, 'xml_imports', 'server_api_keys'] });
+                    }}
+                  >
+                    <FileText className={`w-5 h-5 flex-shrink-0 ${formData.enabled_features.includes('xml_imports') ? 'text-red-400' : 'text-zinc-500'}`} />
+                    <div>
+                      <span className="text-sm font-medium text-white">XML Imports</span>
+                      <p className="text-[10px] text-zinc-400">Import & sync XML data</p>
+                    </div>
+                  </div>
+                  <div
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      formData.enabled_features.includes('vmix_director')
+                        ? 'bg-red-500/20 border-2 border-red-500/60'
+                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
+                    }`}
+                    onClick={() => {
+                      const base = formData.enabled_features.filter(f => !['xml_imports', 'vmix_director'].includes(f));
+                      setFormData({ ...formData, enabled_features: [...base, 'vmix_director', 'server_api_keys'] });
+                    }}
+                  >
+                    <Monitor className={`w-5 h-5 flex-shrink-0 ${formData.enabled_features.includes('vmix_director') ? 'text-red-400' : 'text-zinc-500'}`} />
+                    <div>
+                      <span className="text-sm font-medium text-white">vMix Director</span>
+                      <p className="text-[10px] text-zinc-400">Video overlay management</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              )}
               {/* Toggleable common features */}
               <div className="space-y-2">
                 <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Optional Features</h4>
