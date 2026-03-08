@@ -4,10 +4,13 @@ import ssl
 import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__)
+
+BRUSSELS_TZ = ZoneInfo("Europe/Brussels")
 
 SMTP_PROVIDERS = {
     "microsoft365": {
@@ -139,7 +142,7 @@ def build_notification_html(event_type: str, category: str, details: str, site_n
     """Build HTML email body for a real-time notification."""
     cat_info = NOTIFICATION_CATEGORIES.get(category, {})
     cat_name = cat_info.get("name", category.title())
-    now = datetime.now(timezone.utc).strftime("%d-%m-%Y %H:%M UTC")
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
 
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
@@ -160,19 +163,26 @@ def build_notification_html(event_type: str, category: str, details: str, site_n
                 {f'<tr><td colspan="2">By: <strong style="color:#a1a1aa;">{user_name}</strong></td></tr>' if user_name else ''}
             </table>
         </div>
-        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Radio Management Platform</div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
     </div>"""
 
 
 def build_daily_summary_html(events: list) -> str:
     """Build HTML for daily summary email."""
-    now = datetime.now(timezone.utc).strftime("%d-%m-%Y")
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y")
     rows = ""
     for evt in events[:50]:
         cat_info = NOTIFICATION_CATEGORIES.get(evt.get("category", ""), {})
+        # Convert timestamp to Brussels timezone
+        ts_raw = evt.get('timestamp', '')
+        try:
+            ts_utc = datetime.fromisoformat(ts_raw.replace('Z', '+00:00'))
+            ts_display = ts_utc.astimezone(BRUSSELS_TZ).strftime("%H:%M")
+        except Exception:
+            ts_display = ts_raw[:5]
         rows += f"""
         <tr style="border-bottom:1px solid #27272a;">
-            <td style="padding:8px 12px;font-size:12px;color:#a1a1aa;">{evt.get('timestamp','')[:16]}</td>
+            <td style="padding:8px 12px;font-size:12px;color:#a1a1aa;">{ts_display}</td>
             <td style="padding:8px 12px;font-size:12px;color:#e4e4e7;">{cat_info.get('name', evt.get('category',''))}</td>
             <td style="padding:8px 12px;font-size:12px;color:#a1a1aa;">{evt.get('details','')[:80]}</td>
         </tr>"""
@@ -193,5 +203,5 @@ def build_daily_summary_html(events: list) -> str:
                 <tbody>{rows if rows else '<tr><td colspan="3" style="padding:16px;text-align:center;color:#52525b;">No activity today</td></tr>'}</tbody>
             </table>
         </div>
-        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Radio Management Platform</div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
     </div>"""

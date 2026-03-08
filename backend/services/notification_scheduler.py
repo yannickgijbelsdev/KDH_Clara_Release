@@ -107,7 +107,7 @@ async def send_daily_digest():
                     ).to_list(500)
 
                 html = build_daily_summary_html(role_events)
-                subject = f"Clara Daily Summary — {len(role_events)} notifications"
+                subject = f"Clara Global Protect — Daily Summary ({len(role_events)} notifications)"
 
                 for user in users:
                     user_key = f"{user['email']}:{role_slug}:{site_id}"

@@ -124,11 +124,11 @@ async def send_test_email(
     html = build_notification_html(
         "Test Notification",
         "system",
-        "This is a test email from Clara Radio Dashboard. If you receive this, the SMTP configuration is working correctly!",
+        "This is a test email from Clara Global Protect. If you receive this, the SMTP configuration is working correctly!",
         user_name=current_user.get("name", ""),
     )
 
-    success = await send_email_with_config(smtp_config, to_email, "Clara Test Notification", html)
+    success = await send_email_with_config(smtp_config, to_email, "Clara Global Protect — Test", html)
     if success:
         return {"message": f"Test email sent to {to_email}"}
     raise HTTPException(500, "Failed to send email. Please check the SMTP settings.")
