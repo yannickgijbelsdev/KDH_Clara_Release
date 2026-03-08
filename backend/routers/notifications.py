@@ -189,6 +189,33 @@ async def get_site_roles(main_site_id: str, current_user: dict = Depends(require
     return roles
 
 
+# ── SYSTEM ALERT EMAIL ──────────────────────────────────────────
+@notifications_router.get("/system-alert")
+async def get_system_alert_settings(current_user: dict = Depends(require_network_admin)):
+    """Get the system alert email configuration."""
+    doc = await db.notification_config.find_one({"type": "system_alert"}, {"_id": 0})
+    return doc or {"email": "", "enabled": False, "mode": "both"}
+
+
+@notifications_router.put("/system-alert")
+async def save_system_alert_settings(data: dict, current_user: dict = Depends(require_network_admin)):
+    """Save the system alert email — receives ALL notifications from ALL sites."""
+    await db.notification_config.update_one(
+        {"type": "system_alert"},
+        {"$set": {
+            "type": "system_alert",
+            "email": data.get("email", ""),
+            "enabled": data.get("enabled", False),
+            "mode": data.get("mode", "both"),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user["id"],
+        }},
+        upsert=True,
+    )
+    return {"message": "System alert settings saved"}
+
+
+
 # ── NOTIFICATION LOG (for daily summaries) ──────────────────────
 @notifications_router.get("/log")
 async def get_notification_log(
@@ -294,7 +321,7 @@ async def trigger_notification(
     users = await db.users.find(query, {"_id": 0, "id": 1, "email": 1, "name": 1}).to_list(200)
 
     html = build_notification_html(event_type, category, details, site_name, actor_name)
-    subject = f"Clara: {event_type}"
+    subject = f"Clara Global Protect: {event_type}"
 
     for user in users:
         if user["email"] == actor_email:
@@ -302,6 +329,17 @@ async def trigger_notification(
         success = await send_email_with_config(smtp_config, user["email"], subject, html)
         if success:
             emails_sent.append(user["email"])
+
+    # System Alert Email: always send a copy to the configured system alert address
+    system_alert = await db.notification_config.find_one({"type": "system_alert"}, {"_id": 0})
+    if system_alert and system_alert.get("enabled") and system_alert.get("email"):
+        sa_mode = system_alert.get("mode", "both")
+        if sa_mode in ("realtime", "both"):
+            sa_email = system_alert["email"]
+            if sa_email not in emails_sent and sa_email != actor_email:
+                success = await send_email_with_config(smtp_config, sa_email, subject, html)
+                if success:
+                    emails_sent.append(sa_email)
 
     # Update log with sent emails
     if emails_sent:

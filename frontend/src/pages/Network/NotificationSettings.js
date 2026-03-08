@@ -47,6 +47,8 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
   const [sendingDigest, setSendingDigest] = useState(false);
   const [selectedSiteId, setSelectedSiteId] = useState('');
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false);
+  const [systemAlert, setSystemAlert] = useState({ email: '', enabled: false, mode: 'both' });
+  const [savingAlert, setSavingAlert] = useState(false);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -79,6 +81,9 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
           setSmtpForm(prev => ({ ...prev, provider: cfg.provider || 'custom', host: cfg.host || '', port: cfg.port || 587, use_tls: cfg.use_tls !== false, username: cfg.username || '', password: cfg.password || '', from_email: cfg.from_email || '', from_name: cfg.from_name || 'Clara Radio Dashboard' }));
         }
       }
+      // Fetch system alert settings
+      const alertRes = await fetch(`${API}/api/notifications/system-alert`, { headers });
+      if (alertRes.ok) setSystemAlert(await alertRes.json());
     } catch (err) {
       console.error(err);
     }
@@ -111,6 +116,17 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
       else setRoleSettings({});
     } catch { setRoleSettings({}); }
   };
+
+  const saveSystemAlert = async () => {
+    setSavingAlert(true);
+    try {
+      const res = await fetch(`${API}/api/notifications/system-alert`, { method: 'PUT', headers, body: JSON.stringify(systemAlert) });
+      if (res.ok) toast.success('System alert settings saved');
+      else toast.error('Save failed');
+    } catch { toast.error('Save failed'); }
+    finally { setSavingAlert(false); }
+  };
+
 
   const fetchLog = async () => {
     setLoadingLog(true);
@@ -215,6 +231,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
       <div className="flex gap-1 bg-zinc-800/50 rounded-lg p-1 mb-4">
         {[
           { id: 'smtp', label: 'SMTP Config', icon: Mail },
+          { id: 'alert', label: 'System Alert', icon: AlertCircle },
           { id: 'roles', label: 'Role Notifications', icon: Users },
           { id: 'history', label: 'History', icon: History },
         ].map(t => (
@@ -345,6 +362,79 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                 </CardContent>
               </Card>
             )}
+          </div>
+        )}
+
+        {/* System Alert Tab */}
+        {tab === 'alert' && (
+          <div className="space-y-4">
+            <p className="text-sm text-zinc-400">
+              Configure a system-wide alert email that receives <strong className="text-white">all</strong> notifications from all sites — ideal for global administrators.
+            </p>
+
+            <div className="flex items-center justify-between p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${systemAlert.enabled ? 'bg-emerald-500/10' : 'bg-zinc-700'}`}>
+                  <Bell className={`w-5 h-5 ${systemAlert.enabled ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">System Alert Email</p>
+                  <p className="text-xs text-zinc-500">{systemAlert.enabled ? 'Active — receiving all notifications' : 'Disabled'}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSystemAlert(prev => ({ ...prev, enabled: !prev.enabled }))}
+                className={`relative w-11 h-6 rounded-full transition-colors ${systemAlert.enabled ? 'bg-emerald-500' : 'bg-zinc-600'}`}
+                data-testid="system-alert-toggle"
+              >
+                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${systemAlert.enabled ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs text-zinc-400">Email Address</Label>
+                <Input
+                  type="email"
+                  value={systemAlert.email}
+                  onChange={(e) => setSystemAlert(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="clara.global@koodh.com"
+                  className="bg-zinc-800 border-zinc-700 mt-1"
+                  data-testid="system-alert-email"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs text-zinc-400">Notification Mode</Label>
+                <div className="grid grid-cols-3 gap-2 mt-1">
+                  {[
+                    { id: 'realtime', label: 'Real-time', icon: Zap, desc: 'Instant alerts' },
+                    { id: 'daily', label: 'Daily Summary', icon: Clock, desc: 'Once per day' },
+                    { id: 'both', label: 'Both', icon: BellRing, desc: 'Real-time + daily' },
+                  ].map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => setSystemAlert(prev => ({ ...prev, mode: m.id }))}
+                      className={`p-3 rounded-lg border text-left transition-colors ${
+                        systemAlert.mode === m.id
+                          ? 'border-orange-500/50 bg-orange-500/10'
+                          : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-600'
+                      }`}
+                      data-testid={`system-alert-mode-${m.id}`}
+                    >
+                      <m.icon className={`w-4 h-4 mb-1 ${systemAlert.mode === m.id ? 'text-orange-400' : 'text-zinc-500'}`} />
+                      <p className={`text-xs font-medium ${systemAlert.mode === m.id ? 'text-orange-400' : 'text-white'}`}>{m.label}</p>
+                      <p className="text-[10px] text-zinc-500">{m.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <Button onClick={saveSystemAlert} disabled={savingAlert || !systemAlert.email} className="w-full gap-2" data-testid="save-system-alert-btn">
+              {savingAlert ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              Save System Alert Settings
+            </Button>
           </div>
         )}
 

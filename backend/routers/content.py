@@ -342,6 +342,22 @@ async def update_content_item(
         update_dict["approved_by"] = None
         update_dict["approved_at"] = None
         update_dict["approval_notes"] = None
+
+        # Send approval request notification to approvers
+        import asyncio
+        from services.email_service import send_approval_request_notification
+        site_name = ""
+        if main_site_id:
+            ms = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "name": 1})
+            site_name = ms.get("name", "") if ms else ""
+        asyncio.create_task(
+            send_approval_request_notification(
+                content_title=content.get("title", "Untitled"),
+                requester_name=current_user.get("name", "Unknown"),
+                main_site_id=main_site_id or "",
+                site_name=site_name,
+            )
+        )
     
     await db.content_items.update_one(
         {"id": content_id},

@@ -122,6 +122,18 @@ async def send_daily_digest():
 
         logger.info(f"Daily digest: Sent {emails_sent} summary emails")
 
+        # System Alert Email: send full daily digest if configured
+        system_alert = await db.notification_config.find_one({"type": "system_alert"}, {"_id": 0})
+        if system_alert and system_alert.get("enabled") and system_alert.get("email"):
+            sa_mode = system_alert.get("mode", "both")
+            if sa_mode in ("daily", "both") and events:
+                html = build_daily_summary_html(events)
+                subject = f"Clara Global Protect — Daily Summary ({len(events)} notifications)"
+                success = await send_email_with_config(smtp_config, system_alert["email"], subject, html)
+                if success:
+                    emails_sent += 1
+                    logger.info(f"Daily digest: Sent system alert to {system_alert['email']}")
+
         # Log the digest run
         await db.notification_log.insert_one({
             "category": "system",

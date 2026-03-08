@@ -205,3 +205,138 @@ def build_daily_summary_html(events: list) -> str:
         </div>
         <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
     </div>"""
+
+
+def _approval_color(status: str) -> tuple:
+    """Return gradient + label for approval status."""
+    if status == "approved":
+        return ("linear-gradient(135deg,#22c55e,#16a34a)", "Approved")
+    elif status == "rejected":
+        return ("linear-gradient(135deg,#ef4444,#dc2626)", "Rejected")
+    return ("linear-gradient(135deg,#f59e0b,#d97706)", "Pending Approval")
+
+
+def build_approval_result_html(content_title: str, status: str, notes: str = "", approver_name: str = "") -> str:
+    """Email to the content creator when their article is approved or rejected."""
+    gradient, label = _approval_color(status)
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    notes_block = f'<div style="background:#27272a;border-radius:8px;padding:12px 16px;margin-top:12px;"><p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Reason</p><p style="margin:0;font-size:13px;color:#e4e4e7;">{notes}</p></div>' if notes else ""
+
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:{gradient};padding:20px 24px;">
+            <h1 style="margin:0;font-size:18px;color:white;">Content {label}</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
+        </div>
+        <div style="padding:24px;">
+            <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:12px;">
+                <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Article</p>
+                <p style="margin:0;font-size:15px;font-weight:600;color:white;">{content_title}</p>
+            </div>
+            <p style="margin:0;font-size:13px;color:#a1a1aa;">
+                Your article has been <strong style="color:white;">{status}</strong>{f' by {approver_name}' if approver_name else ''}.
+            </p>
+            {notes_block}
+            <p style="margin:16px 0 0;font-size:12px;color:#52525b;">{now}</p>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
+    </div>"""
+
+
+def build_approval_request_html(content_title: str, requester_name: str, site_name: str = "") -> str:
+    """Email to approvers when a content item is submitted for approval."""
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:20px 24px;">
+            <h1 style="margin:0;font-size:18px;color:white;">Approval Requested</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
+        </div>
+        <div style="padding:24px;">
+            <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:12px;">
+                <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Article</p>
+                <p style="margin:0;font-size:15px;font-weight:600;color:white;">{content_title}</p>
+            </div>
+            <p style="margin:0;font-size:13px;color:#a1a1aa;">
+                <strong style="color:white;">{requester_name}</strong> has submitted an article for your approval{f' on <strong style="color:white;">{site_name}</strong>' if site_name else ''}.
+            </p>
+            <p style="margin:16px 0 0;font-size:12px;color:#52525b;">{now}</p>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
+    </div>"""
+
+
+async def send_content_approval_notification(
+    to_email: str,
+    to_name: str,
+    content_title: str,
+    approval_status: str,
+    approval_notes: str = "",
+    approver_name: str = "",
+    content_url: str = None,
+):
+    """Send approval result email (approved/rejected) to the content creator."""
+    from database import db
+    smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+    if not smtp_config or not smtp_config.get("password"):
+        logger.debug("Approval notification: SMTP not configured")
+        return
+
+    html = build_approval_result_html(content_title, approval_status, approval_notes, approver_name)
+    subject = f"Content {'Approved' if approval_status == 'approved' else 'Rejected'}: {content_title}"
+    await send_email_with_config(smtp_config, to_email, subject, html)
+    logger.info(f"Approval notification sent to {to_email} ({approval_status})")
+
+
+async def send_approval_request_notification(
+    content_title: str,
+    requester_name: str,
+    main_site_id: str = "",
+    site_name: str = "",
+):
+    """Send approval request email to all users with approval permission (admin/news_admin) on the site."""
+    from database import db
+    smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+    if not smtp_config or not smtp_config.get("password"):
+        logger.debug("Approval request notification: SMTP not configured")
+        return
+
+    # Find users with approval rights for this site
+    approver_roles = ['admin', 'news_admin']
+    approvers = []
+
+    if main_site_id:
+        accesses = await db.main_site_users.find(
+            {"main_site_id": main_site_id, "role": {"$in": approver_roles}},
+            {"_id": 0, "user_id": 1}
+        ).to_list(100)
+        user_ids = list(set(a["user_id"] for a in accesses))
+        if user_ids:
+            approvers = await db.users.find(
+                {"id": {"$in": user_ids}},
+                {"_id": 0, "email": 1, "name": 1}
+            ).to_list(100)
+
+    # Also include network admins
+    network_admins = await db.users.find(
+        {"is_network_admin": True},
+        {"_id": 0, "email": 1, "name": 1}
+    ).to_list(50)
+    seen = {a["email"] for a in approvers}
+    for na in network_admins:
+        if na["email"] not in seen:
+            approvers.append(na)
+            seen.add(na["email"])
+
+    if not approvers:
+        logger.debug("No approvers found for approval request notification")
+        return
+
+    html = build_approval_request_html(content_title, requester_name, site_name)
+    subject = f"Approval Requested: {content_title}"
+    sent = 0
+    for approver in approvers:
+        success = await send_email_with_config(smtp_config, approver["email"], subject, html)
+        if success:
+            sent += 1
+    logger.info(f"Approval request sent to {sent} approvers")
