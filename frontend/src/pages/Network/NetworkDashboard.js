@@ -480,13 +480,19 @@ export default function NetworkDashboard() {
     }
 
     try {
+      // Clean up form data: don't send empty linked_main_site_id
+      const submitData = { ...formData };
+      if (!submitData.linked_main_site_id) {
+        delete submitData.linked_main_site_id;
+      }
+
       const res = await fetch(`${API}/api/main-sites`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(submitData)
       });
 
       if (res.ok) {
