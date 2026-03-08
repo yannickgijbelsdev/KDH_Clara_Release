@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -23,7 +23,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -32,6 +32,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../../components/ui/dropdown-menu';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '../../components/ui/collapsible';
 import MigrationTool from './MigrationTool';
 import RolesManager from './RolesManager';
 import PermissionAuditPanel from './PermissionAuditPanel';
@@ -351,24 +356,63 @@ export default function NetworkDashboard() {
   const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [activeSection, setActiveSection] = useState('sites'); // sidebar active section
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
+  const [expandedGroups, setExpandedGroups] = useState(['overview', 'management']);
 
-  // Sidebar navigation items
-  const SIDEBAR_ITEMS = [
-    { id: 'sites', label: 'Sites Overview', icon: Globe, group: 'main' },
-    { id: 'admins', label: 'Network Admins', icon: Crown, group: 'management' },
-    { id: 'notifications', label: 'Notifications', icon: Bell, group: 'management' },
-    { id: 'audit', label: 'Permission Audit', icon: ShieldAlert, group: 'debug' },
-    { id: 'user-access', label: 'User Access', icon: UserCog, group: 'debug' },
-    { id: 'security', label: 'Account Security', icon: Shield, group: 'security' },
+  // Navigation groups matching MainSiteDashboardLayout pattern
+  const NAV_GROUPS = [
+    {
+      id: 'overview',
+      label: 'Overview',
+      icon: Globe,
+      items: [
+        { id: 'sites', icon: Globe, label: 'Sites Overview' },
+      ]
+    },
+    {
+      id: 'management',
+      label: 'Management',
+      icon: Settings,
+      items: [
+        { id: 'admins', icon: Crown, label: 'Network Admins' },
+        { id: 'notifications', icon: Bell, label: 'Notifications' },
+      ]
+    },
+    {
+      id: 'debug',
+      label: 'Debug & Audit',
+      icon: Bug,
+      items: [
+        { id: 'audit', icon: ShieldAlert, label: 'Permission Audit' },
+        { id: 'user-access', icon: UserCog, label: 'User Access' },
+      ]
+    },
+    {
+      id: 'security',
+      label: 'Security',
+      icon: Shield,
+      items: [
+        { id: 'security', icon: Shield, label: 'Account Security' },
+      ]
+    },
+    {
+      id: 'external',
+      label: 'External',
+      icon: ExternalLink,
+      items: [
+        { id: 'backups', icon: HardDrive, label: 'Backups', link: '/backups' },
+        { id: 'explorer', icon: Code, label: 'API Explorer', link: '/explorer' },
+      ]
+    },
   ];
 
-  const SIDEBAR_GROUPS = [
-    { id: 'main', label: 'Overview' },
-    { id: 'management', label: 'Management' },
-    { id: 'debug', label: 'Debug & Audit' },
-    { id: 'security', label: 'Security' },
-  ];
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev =>
+      prev.includes(groupId)
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
 
   const RoleIcon = roleIcons[user?.role] || Network;
 
@@ -597,126 +641,173 @@ export default function NetworkDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white flex">
-      {/* Sidebar */}
-      <aside className={`fixed top-0 left-0 bottom-0 z-40 flex flex-col bg-[#0c0c0e] border-r border-white/[0.06] transition-all duration-200 ${sidebarOpen ? 'w-56' : 'w-14'}`}>
-        {/* Sidebar Header */}
-        <div className="flex items-center gap-2.5 px-3 h-14 border-b border-white/[0.06] flex-shrink-0">
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1.5 rounded-md hover:bg-white/5 text-zinc-400" data-testid="sidebar-toggle">
-            <Menu className="w-4 h-4" />
-          </button>
-          {sidebarOpen && <span className="text-white font-bold text-sm tracking-wide">Clara Global</span>}
+    <div className="min-h-screen bg-[#09090b]">
+      {/* Mobile Header */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-orange-500 rounded-lg">
+              <span className="text-white font-black text-sm">C</span>
+            </div>
+            <span className="text-lg font-bold text-white">Clara</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-zinc-400 hover:text-white"
+          >
+            {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </Button>
+        </div>
+      </header>
+
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/60 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex fixed top-0 left-0 h-full z-50 w-56 flex-col py-6 glass border-r border-white/10 transition-all duration-300">
+        {/* Logo */}
+        <div className="mb-6 px-4">
+          <span className="text-white font-black text-base">Clara</span>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-          {SIDEBAR_GROUPS.map(group => {
-            const items = SIDEBAR_ITEMS.filter(i => i.group === group.id);
-            if (!items.length) return null;
-            return (
-              <div key={group.id}>
-                {sidebarOpen && (
-                  <p className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">{group.label}</p>
+        <nav className="flex-1 px-3 py-4 overflow-y-auto">
+          {NAV_GROUPS.map((group) => (
+            <Collapsible
+              key={group.id}
+              open={expandedGroups.includes(group.id)}
+              onOpenChange={() => toggleGroup(group.id)}
+              className="mb-3"
+            >
+              <CollapsibleTrigger className="flex items-center gap-2 px-3 py-2.5 w-full text-left text-zinc-500 hover:text-zinc-300 transition-colors">
+                <group.icon className="h-4 w-4" />
+                <span className="flex-1 text-xs font-semibold uppercase tracking-wider">{group.label}</span>
+                {expandedGroups.includes(group.id) ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
                 )}
-                <div className="space-y-0.5">
-                  {items.map(item => {
-                    const Icon = item.icon;
-                    const isActive = activeSection === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setActiveSection(item.id)}
-                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors ${
-                          isActive
-                            ? 'bg-orange-500/10 text-orange-400 font-medium'
-                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                        }`}
-                        data-testid={`sidebar-${item.id}`}
-                        title={!sidebarOpen ? item.label : undefined}
-                      >
-                        <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-orange-400' : ''}`} />
-                        {sidebarOpen && <span className="truncate">{item.label}</span>}
-                        {!sidebarOpen && item.id === 'security' && user?.totp_enabled && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute right-1.5" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="ml-2 space-y-1 mt-1">
+                {group.items.map(item => {
+                  const Icon = item.icon;
+                  const isActive = activeSection === item.id;
 
-          {/* External Links */}
-          {sidebarOpen && (
-            <div>
-              <p className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">External</p>
-              <div className="space-y-0.5">
-                <Link to="/backups" className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5" data-testid="sidebar-backups">
-                  <HardDrive className="w-4 h-4 flex-shrink-0" />
-                  <span>Backups</span>
-                  <ExternalLink className="w-3 h-3 ml-auto text-zinc-600" />
-                </Link>
-                <Link to="/explorer" className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5" data-testid="sidebar-api-explorer">
-                  <Code className="w-4 h-4 flex-shrink-0" />
-                  <span>API Explorer</span>
-                  <ExternalLink className="w-3 h-3 ml-auto text-zinc-600" />
-                </Link>
-              </div>
-            </div>
-          )}
-          {!sidebarOpen && (
-            <div className="space-y-0.5">
-              <Link to="/backups" className="w-full flex items-center justify-center px-2.5 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5" title="Backups">
-                <HardDrive className="w-4 h-4" />
-              </Link>
-              <Link to="/explorer" className="w-full flex items-center justify-center px-2.5 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5" title="API Explorer">
-                <Code className="w-4 h-4" />
-              </Link>
-            </div>
-          )}
+                  // External links
+                  if (item.link) {
+                    return (
+                      <Link
+                        key={item.id}
+                        to={item.link}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                        data-testid={`sidebar-${item.id}`}
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="flex-1">{item.label}</span>
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                        isActive
+                          ? 'bg-orange-500/10 text-orange-500'
+                          : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                      }`}
+                      data-testid={`sidebar-${item.id}`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="flex-1 text-left">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
         </nav>
 
-        {/* User dropdown at bottom */}
-        <div className="border-t border-white/[0.06] p-2 flex-shrink-0">
+        {/* User Avatar at Bottom */}
+        <div className="mt-auto pt-4 px-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors">
+              <Button
+                variant="ghost"
+                data-testid="user-menu-trigger"
+                className="w-full justify-start gap-3 px-3 h-12 rounded-xl hover:bg-orange-500/10"
+              >
                 {user?.avatar?.url || user?.avatar?.file_key ? (
                   <img 
                     src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
                     alt={user?.name}
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
-                {sidebarOpen && (
-                  <div className="text-left min-w-0">
-                    <p className="text-xs font-medium text-white truncate">{user?.name}</p>
-                    <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                  <p className="text-xs text-zinc-500 truncate">{roleLabels[user?.role]}</p>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-56 bg-[#18181b] border-zinc-800 ml-2">
+              <div className="px-3 py-2 flex items-center gap-3">
+                {user?.avatar?.url || user?.avatar?.file_key ? (
+                  <img 
+                    src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
+                    alt={user?.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                    {user?.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="w-56 bg-[#18181b] border-zinc-800">
-              <div className="px-3 py-2">
-                <p className="text-sm font-medium text-white">{user?.name}</p>
-                <p className="text-xs text-zinc-500">{roleLabels[user?.role]}</p>
+                <div>
+                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-xs text-zinc-500">{user?.email}</p>
+                </div>
               </div>
               <DropdownMenuSeparator className="bg-zinc-800" />
-              {mainSites.slice(0, 5).map(site => (
-                <DropdownMenuItem
-                  key={site.id}
-                  onClick={() => navigate(`/${site.slug}`)}
-                  className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
-                >
-                  <Globe className="w-4 h-4 mr-2" />
-                  {site.name}
-                </DropdownMenuItem>
-              ))}
+              <DropdownMenuItem className="text-zinc-400 cursor-default">
+                <RoleIcon className="w-4 h-4 mr-2" />
+                {roleLabels[user?.role]}
+              </DropdownMenuItem>
+              {mainSites.length > 0 && (
+                <>
+                  <DropdownMenuSeparator className="bg-zinc-800" />
+                  <div className="px-2 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                    Main Sites
+                  </div>
+                  {mainSites.slice(0, 5).map(site => {
+                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : 'Standard';
+                    const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : 'text-zinc-600';
+                    return (
+                      <DropdownMenuItem
+                        key={site.id}
+                        onClick={() => navigate(`/${site.slug}`)}
+                        className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
+                      >
+                        <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="truncate">{site.name}</span>
+                        <span className={`ml-auto text-[10px] flex-shrink-0 ${labelColor}`}>{siteLabel}</span>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </>
+              )}
               <DropdownMenuSeparator className="bg-zinc-800" />
               <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10">
                 <LogOut className="w-4 h-4 mr-2" />
@@ -727,9 +818,104 @@ export default function NetworkDashboard() {
         </div>
       </aside>
 
+      {/* Mobile Sidebar */}
+      <aside
+        className={`
+          lg:hidden fixed top-0 left-0 h-full z-50 glass
+          w-64 transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        <div className="p-6 pt-4 h-full flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-orange-500 rounded-lg">
+                <span className="text-white font-black text-sm">C</span>
+              </div>
+              <span className="text-lg font-bold text-white">Clara</span>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-white">
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <nav className="space-y-1">
+              {NAV_GROUPS.flatMap(g => g.items).filter(i => !i.link).map((item) => {
+                const Icon = item.icon;
+                const isActive = activeSection === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}
+                    className={`
+                      w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                      ${isActive
+                        ? 'bg-orange-500/20 text-orange-500'
+                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                      }
+                    `}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+              {/* External links in mobile */}
+              <Link to="/backups" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5">
+                <HardDrive className="w-5 h-5" />
+                <span className="font-medium">Backups</span>
+              </Link>
+              <Link to="/explorer" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5">
+                <Code className="w-5 h-5" />
+                <span className="font-medium">API Explorer</span>
+              </Link>
+            </nav>
+          </div>
+
+          <div className="pt-4 border-t border-white/10 mt-4">
+            <div className="flex items-center gap-3 p-3">
+              {user?.avatar?.url || user?.avatar?.file_key ? (
+                <img src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`} alt={user?.name} className="w-10 h-10 rounded-full object-cover" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+              </div>
+            </div>
+            <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2">
+              <LogOut className="w-4 h-4" />
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </aside>
+
       {/* Main Content */}
-      <main className={`flex-1 transition-all duration-200 ${sidebarOpen ? 'ml-56' : 'ml-14'}`}>
-        <div className="max-w-7xl mx-auto px-6 py-6">
+      <main className="lg:ml-56 min-h-screen pt-16 lg:pt-0 transition-all duration-300">
+        {/* Page Header - matches MainSiteDashboardLayout exactly */}
+        <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
+          <div className="px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-white">Network Management</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-white">{user?.name}</p>
+                <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
+                  <RoleIcon className="w-3 h-3" />
+                  {roleLabels[user?.role]}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-6 lg:p-8">
 
           {/* Security Warning Banner */}
           {!user?.totp_enabled && activeSection === 'sites' && (
@@ -758,7 +944,7 @@ export default function NetworkDashboard() {
             <>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold">Sites Overview</h1>
+                  <h1 className="text-2xl font-bold text-white">Sites Overview</h1>
                   <p className="text-sm text-zinc-400">{mainSites.length} main sites</p>
                 </div>
                 <div className="flex gap-2 items-center">
