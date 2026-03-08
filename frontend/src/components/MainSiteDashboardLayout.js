@@ -79,6 +79,7 @@ const FEATURE_NAV_ITEMS = {
   zerotier: { to: 'zerotier', icon: Monitor, label: 'ZeroTier', adminOnly: true },
   xml_imports: { to: 'xml-imports', icon: FileText, label: 'XML Imports' },
   server_api_keys: { to: 'api-keys', icon: Shield, label: 'API Keys', adminOnly: true },
+  vmix_director: { to: 'vmix-director', icon: Monitor, label: 'vMix Director' },
 };
 
 // Navigation groups with feature mapping
@@ -123,7 +124,7 @@ const NAV_GROUPS = [
     id: 'server',
     label: 'Server',
     icon: Monitor,
-    features: ['xml_imports', 'server_api_keys']
+    features: ['xml_imports', 'server_api_keys', 'vmix_director']
   },
   {
     id: 'support',

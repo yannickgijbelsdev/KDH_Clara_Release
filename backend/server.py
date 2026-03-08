@@ -58,6 +58,7 @@ from routers.roles import roles_router
 from routers.zerotier import zerotier_router
 from routers.notifications import notifications_router
 from routers.xml_imports import xml_imports_router
+from routers.vmix import vmix_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -120,6 +121,7 @@ api_router.include_router(roles_router)
 api_router.include_router(zerotier_router)
 api_router.include_router(notifications_router)
 api_router.include_router(xml_imports_router)
+api_router.include_router(vmix_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
@@ -453,6 +455,18 @@ async def get_avatar_file(file_key: str):
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="File not found")
     
+    media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
+    return FileResponse(file_path, media_type=media_type)
+
+
+@api_router.get("/uploads/vmix_logos/{file_key}")
+async def get_vmix_logo_file(file_key: str):
+    """Serve a vMix logo file."""
+    import pathlib
+    file_path = pathlib.Path(UPLOADS_DIR) / "vmix_logos" / file_key
+    if not file_path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="File not found")
     media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
     return FileResponse(file_path, media_type=media_type)
 
