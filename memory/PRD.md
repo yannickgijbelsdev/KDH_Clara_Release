@@ -2825,6 +2825,27 @@ now = now_brussels()  # Automatically handles CET/CEST
   - All toast messages translated to English
 - Tested: 16/16 backend + 100% frontend (iteration_67.json)
 
+### March 8, 2026 - Network Dashboard Sidebar & Per-Site Notifications
+- [x] **Network Dashboard Sidebar (COMPLETE)**:
+  - Replaced toolbar buttons with a fixed left sidebar matching main site layout pattern
+  - Sidebar groups: Overview (Sites Overview), Management (Network Admins, Notifications), Debug & Audit (Permission Audit, User Access), Security (Account Security), External (Backups, API Explorer)
+  - Collapsible sidebar with toggle button
+  - User profile dropdown at bottom of sidebar
+  - All panels (NetworkAdmins, Notifications, PermissionAudit, UserAccess, Security) render inline in main content area instead of as dialogs
+  - `activeSection` state controls which panel is displayed
+- [x] **Per-Site Notification Settings (COMPLETE)**:
+  - New site selector dropdown in Role Notifications tab
+  - Options: Global (all sites - fallback), or any specific main site
+  - Per-site role fetching via `GET /api/notifications/site-roles/{main_site_id}` (includes custom roles)
+  - Per-site settings storage with `main_site_id` field in notification_config collection
+  - `trigger_notification()` now checks per-site settings first, then falls back to global
+  - Daily digest scheduler updated to process all per-site settings
+- [x] **Full English Translation Expanded (COMPLETE)**:
+  - TwoFactorSetup.js: All labels, messages, descriptions translated
+  - NetworkAdminManager.js: All buttons, toast messages, permission labels translated
+  - All remaining Dutch text eliminated from UI
+- Tested: 11/11 backend + 100% frontend (iteration_68.json)
+
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py

@@ -74,7 +74,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
       fetchStatus();
       if (onUpdate) onUpdate();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Ongeldige code');
+      toast.error(error.response?.data?.detail || 'Invalid code');
     } finally {
       setVerifying(false);
     }
@@ -84,13 +84,13 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
     setDisabling(true);
     try {
       await axios.post(`${API}/auth/2fa/disable`, { code: disableCode });
-      toast.success('2FA is uitgeschakeld');
+      toast.success('2FA has been disabled');
       setDisableDialogOpen(false);
       setDisableCode('');
       fetchStatus();
       if (onUpdate) onUpdate();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Ongeldige code');
+      toast.error(error.response?.data?.detail || 'Invalid code');
     } finally {
       setDisabling(false);
     }
@@ -102,10 +102,10 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
       const response = await axios.post(`${API}/auth/2fa/regenerate-backup-codes`, { code: regenerateCode });
       setBackupCodes(response.data.backup_codes);
       setRegenerateCode('');
-      toast.success('Nieuwe backup codes gegenereerd');
+      toast.success('New backup codes generated');
       fetchStatus();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Ongeldige code');
+      toast.error(error.response?.data?.detail || 'Invalid code');
     } finally {
       setRegenerating(false);
     }
@@ -119,14 +119,14 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
 
   const copyAllCodes = () => {
     navigator.clipboard.writeText(backupCodes.join('\n'));
-    toast.success('Alle codes gekopieerd');
+    toast.success('All codes copied');
   };
 
   if (loading) {
     return (
       <div className="flex items-center gap-2 text-zinc-400">
         <Loader2 className="w-4 h-4 animate-spin" />
-        Laden...
+        Loading...
       </div>
     );
   }
@@ -145,10 +145,10 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
             </div>
           )}
           <div>
-            <h3 className="font-medium text-white">Twee-factor authenticatie</h3>
+            <h3 className="font-medium text-white">Two-factor authentication</h3>
             <p className="text-sm text-zinc-400">
               {status.enabled 
-                ? `Actief - ${status.backup_codes_remaining} backup codes over`
+                ? `Active - ${status.backup_codes_remaining} backup codes remaining`
                 : 'Niet actief - Stel in voor extra beveiliging'
               }
             </p>
@@ -174,13 +174,13 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                 className="gap-2 text-red-400 hover:text-red-300 hover:bg-red-500/10"
               >
                 <ShieldOff className="w-4 h-4" />
-                Uitschakelen
+                Disable
               </Button>
             </>
           ) : (
             <Button onClick={startSetup} className="gap-2 bg-emerald-600 hover:bg-emerald-700">
               <Shield className="w-4 h-4" />
-              2FA instellen
+              Setup 2FA
             </Button>
           )}
         </div>
@@ -190,10 +190,10 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
           <div>
-            <p className="text-amber-200 font-medium">Beveilig je account</p>
+            <p className="text-amber-200 font-medium">Secure your account</p>
             <p className="text-amber-200/70 text-sm">
-              Twee-factor authenticatie voegt een extra beveiligingslaag toe aan je account. 
-              We raden sterk aan om dit in te schakelen.
+              Two-factor authentication adds an extra layer of security to your account. 
+              We strongly recommend enabling it.
             </p>
           </div>
         </div>
@@ -205,12 +205,12 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-emerald-500" />
-              2FA instellen
+              Setup 2FA
             </DialogTitle>
             <DialogDescription>
-              {setupStep === 1 && 'Scan de QR code met je authenticator app'}
-              {setupStep === 2 && 'Voer de code in van je authenticator app'}
-              {setupStep === 3 && 'Bewaar deze backup codes op een veilige plek'}
+              {setupStep === 1 && 'Scan the QR code with your authenticator app'}
+              {setupStep === 2 && 'Enter the code from your authenticator app'}
+              {setupStep === 3 && 'Save these backup codes in a safe place'}
             </DialogDescription>
           </DialogHeader>
 
@@ -227,7 +227,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                 Gebruik Google Authenticator, Authy, of een andere TOTP app
               </p>
               <div className="bg-zinc-800 rounded-lg p-3">
-                <p className="text-xs text-zinc-500 mb-1">Of voer deze code handmatig in:</p>
+                <p className="text-xs text-zinc-500 mb-1">Or enter this code manually:</p>
                 <code className="text-sm text-white font-mono break-all">{setupData.secret}</code>
               </div>
               <Button onClick={() => setSetupStep(2)} className="w-full">
@@ -239,7 +239,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
           {setupStep === 2 && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Verificatiecode</Label>
+                <Label>Verification code</Label>
                 <Input
                   type="text"
                   inputMode="numeric"
@@ -260,7 +260,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                   disabled={verifyCode.length !== 6 || verifying}
                   className="flex-1"
                 >
-                  {verifying ? 'Verifiëren...' : 'Verifiëren'}
+                  {verifying ? 'Verifying...' : 'Verify'}
                 </Button>
               </div>
             </div>
@@ -271,7 +271,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
                 <p className="text-amber-200 text-sm flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
-                  Bewaar deze codes veilig! Je kunt ze gebruiken als je geen toegang hebt tot je authenticator.
+                  Store these codes safely! You can use them if you lose access to your authenticator.
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -316,8 +316,8 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               2FA uitschakelen
             </DialogTitle>
             <DialogDescription>
-              Voer je huidige authenticator code in om 2FA uit te schakelen.
-              Dit maakt je account minder veilig.
+              Enter your current authenticator code to disable 2FA.
+              This makes your account less secure.
             </DialogDescription>
           </DialogHeader>
 
@@ -340,14 +340,14 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                 setDisableDialogOpen(false);
                 setDisableCode('');
               }} className="flex-1">
-                Annuleren
+                Cancel
               </Button>
               <Button 
                 onClick={disable2FA}
                 disabled={disableCode.length !== 6 || disabling}
                 className="flex-1 bg-red-600 hover:bg-red-700"
               >
-                {disabling ? 'Uitschakelen...' : 'Uitschakelen'}
+                {disabling ? 'Disabling...' : 'Disable'}
               </Button>
             </div>
           </div>
