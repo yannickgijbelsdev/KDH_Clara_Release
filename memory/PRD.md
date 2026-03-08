@@ -2914,6 +2914,20 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files: `MainSiteDashboardLayout.js`, `NetworkDashboard.js`, `DashboardLayout.js`
 
 
+### March 8, 2026 - vMix Director Module (NEW FEATURE - COMPLETE)
+- [x] **vMix Director Canvas Editor**: Full video director environment for managing vMix overlay elements
+  - **Backend**: New router `/api/vmix/` with config CRUD, logo upload, ticker messages CRUD, now playing data, HTML overlay endpoints
+  - **Frontend**: Canvas-based 16:9 preview editor with draggable overlay elements
+  - **5 Overlay Elements**: Logo (uploadable), Clock (live), Ticker (scrolling/static), Now Playing Show, Now Playing Track
+  - **Ticker Features**: Configurable separators (bullet, dash, pipe, star, custom), scrolling toggle, text/bg colors, font size
+  - **Now Playing**: Linked to XML Server imports for show/track data, presenter photo support
+  - **vMix Integration**: Public HTML overlay URLs for vMix Web Browser Input (no auth required)
+  - **Overlay URLs Section**: Copy URL buttons for each overlay type
+  - **Testing**: 17/17 backend tests passed, all frontend features verified
+  - **DB Collections**: `vmix_configs`, `vmix_ticker_messages`
+  - **Files**: `backend/routers/vmix.py`, `frontend/src/pages/Server/VmixDirector.js`
+  - **Feature ID**: `vmix_director` (added to AVAILABLE_FEATURES and enabled on server sites)
+
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py

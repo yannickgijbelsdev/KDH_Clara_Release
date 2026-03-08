@@ -30,6 +30,9 @@ const SEPARATORS = [
   { id: 'custom', label: 'Custom', preview: '...' },
 ];
 
+// Strip alpha from hex colors for HTML5 color input (only supports 6-char hex)
+const toHex6 = (c) => c && c.startsWith('#') ? '#' + c.replace('#','').slice(0,6) : c || '#000000';
+
 export default function VmixDirector() {
   const { mainSite } = useMainSite();
   const [config, setConfig] = useState(null);
@@ -445,12 +448,12 @@ export default function VmixDirector() {
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
-                        <Input type="color" value={config.ticker_text_color} onChange={e => setConfig(p => ({ ...p, ticker_text_color: e.target.value }))}
+                        <Input type="color" value={toHex6(config.ticker_text_color)} onChange={e => setConfig(p => ({ ...p, ticker_text_color: e.target.value }))}
                           className="h-8 bg-zinc-800 border-zinc-700" />
                       </div>
                       <div>
                         <label className="text-[10px] text-zinc-500 uppercase">BG Color</label>
-                        <Input type="color" value={config.ticker_bg_color} onChange={e => setConfig(p => ({ ...p, ticker_bg_color: e.target.value }))}
+                        <Input type="color" value={toHex6(config.ticker_bg_color)} onChange={e => setConfig(p => ({ ...p, ticker_bg_color: e.target.value }))}
                           className="h-8 bg-zinc-800 border-zinc-700" />
                       </div>
                     </div>
@@ -491,7 +494,7 @@ export default function VmixDirector() {
                       <div>
                         <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
                         <Input type="color"
-                          value={activeEl.type === 'now_playing_show' ? config.now_playing_show_text_color : config.now_playing_track_text_color}
+                          value={toHex6(activeEl.type === 'now_playing_show' ? config.now_playing_show_text_color : config.now_playing_track_text_color)}
                           onChange={e => setConfig(p => ({
                             ...p,
                             [activeEl.type === 'now_playing_show' ? 'now_playing_show_text_color' : 'now_playing_track_text_color']: e.target.value
@@ -501,7 +504,7 @@ export default function VmixDirector() {
                       <div>
                         <label className="text-[10px] text-zinc-500 uppercase">BG Color</label>
                         <Input type="color"
-                          value={activeEl.type === 'now_playing_show' ? config.now_playing_show_bg : config.now_playing_track_bg}
+                          value={toHex6(activeEl.type === 'now_playing_show' ? config.now_playing_show_bg : config.now_playing_track_bg)}
                           onChange={e => setConfig(p => ({
                             ...p,
                             [activeEl.type === 'now_playing_show' ? 'now_playing_show_bg' : 'now_playing_track_bg']: e.target.value
