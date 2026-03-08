@@ -801,7 +801,7 @@ export default function NetworkDashboard() {
                   </div>
                   {mainSites.slice(0, 5).map(site => {
                     const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : 'Standard';
-                    const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-blue-400' : 'text-zinc-600';
+                    const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : 'text-zinc-600';
                     return (
                       <DropdownMenuItem
                         key={site.id}
@@ -1006,14 +1006,14 @@ export default function NetworkDashboard() {
           <>
           <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-3'}>
             {mainSites.map(site => viewMode === 'list' ? (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardContent className="flex items-center gap-4 p-4">
                   <Link to={`/${site.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
                     {site.logo_url ? (
                       <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                     ) : (
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : 'bg-zinc-800'}`}>
-                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-blue-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-red-500/10' : 'bg-zinc-800'}`}>
+                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-red-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                       </div>
                     )}
                     <div className="min-w-0">
@@ -1022,8 +1022,11 @@ export default function NetworkDashboard() {
                         {site.cloned_from && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 flex-shrink-0">Clone</span>
                         )}
-                        {site.site_type === 'technical' && (
+                        {site.site_type === 'technical' && !site.cloned_from && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">Technical</span>
+                        )}
+                        {site.site_type === 'server' && !site.cloned_from && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex-shrink-0">Server</span>
                         )}
                       </div>
                       <span className="text-xs text-zinc-500">/{site.slug}</span>
@@ -1043,15 +1046,15 @@ export default function NetworkDashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       {site.logo_url ? (
                         <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                       ) : (
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : 'bg-zinc-800'}`}>
-                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-red-500/10' : 'bg-zinc-800'}`}>
+                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-red-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                         </div>
                       )}
                       <div>
@@ -1060,9 +1063,14 @@ export default function NetworkDashboard() {
                           {site.cloned_from && (
                             <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 font-normal">Clone</span>
                           )}
-                          {site.site_type === 'technical' && (
+                          {site.site_type === 'technical' && !site.cloned_from && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-normal">
                               Technical
+                            </span>
+                          )}
+                          {site.site_type === 'server' && !site.cloned_from && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-normal">
+                              Server
                             </span>
                           )}
                         </CardTitle>

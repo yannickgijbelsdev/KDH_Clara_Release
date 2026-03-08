@@ -163,14 +163,15 @@ async def create_main_site(
     logger.info(f"Main site created: {data.name} ({slug}) by {current_user['email']}")
 
     # Log and notify system admin
+    type_label = {"server": "Server Site", "technical": "Technical Site"}.get(data.site_type, "Main Site")
     asyncio.create_task(log_action(
-        action="Main Site Created",
+        action=f"{type_label} Created",
         category="system",
         user_id=current_user.get("id"),
         user_name=current_user.get("name", ""),
         user_email=current_user.get("email", ""),
         main_site_id=main_site_id,
-        details={"description": f"Main site '{data.name}' (slug: {slug}) created by {current_user.get('name', '')}"},
+        details={"description": f"{type_label} '{data.name}' (slug: {slug}) created by {current_user.get('name', '')}"},
         target_type="main_site",
         target_id=main_site_id,
         target_name=data.name,
@@ -309,14 +310,15 @@ async def update_main_site(
 
     # Log and notify system admin
     changed_fields = [k for k in update_data if k != "updated_at"]
+    type_label = {"server": "Server Site", "technical": "Technical Site"}.get(updated.get("site_type", ""), "Main Site")
     asyncio.create_task(log_action(
-        action="Main Site Updated",
+        action=f"{type_label} Updated",
         category="system",
         user_id=current_user.get("id"),
         user_name=current_user.get("name", ""),
         user_email=current_user.get("email", ""),
         main_site_id=main_site_id,
-        details={"description": f"Main site '{updated.get('name', '')}' updated by {current_user.get('name', '')} (fields: {', '.join(changed_fields)})"},
+        details={"description": f"{type_label} '{updated.get('name', '')}' updated by {current_user.get('name', '')} (fields: {', '.join(changed_fields)})"},
         target_type="main_site",
         target_id=main_site_id,
         target_name=updated.get("name", ""),
@@ -350,13 +352,14 @@ async def delete_main_site(
     logger.info(f"Main site deleted: {main_site['name']} by {current_user['email']}")
 
     # Log and notify system admin
+    type_label = {"server": "Server Site", "technical": "Technical Site"}.get(main_site.get("site_type", ""), "Main Site")
     asyncio.create_task(log_action(
-        action="Main Site Deleted",
+        action=f"{type_label} Deleted",
         category="system",
         user_id=current_user.get("id"),
         user_name=current_user.get("name", ""),
         user_email=current_user.get("email", ""),
-        details={"description": f"Main site '{main_site.get('name', '')}' deleted by {current_user.get('name', '')}"},
+        details={"description": f"{type_label} '{main_site.get('name', '')}' deleted by {current_user.get('name', '')}"},
         target_type="main_site",
         target_name=main_site.get("name", ""),
     ))
