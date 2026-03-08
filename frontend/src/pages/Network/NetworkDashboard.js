@@ -344,7 +344,8 @@ export default function NetworkDashboard() {
     name: '',
     slug: '',
     enabled_features: [],
-    site_type: 'radio'
+    site_type: 'radio',
+    linked_main_site_id: ''
   });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, siteId: null, siteName: '' });
   const [healthCheck, setHealthCheck] = useState({ open: false, siteId: null, siteName: '', loading: false, result: null, history: [] });
@@ -491,7 +492,7 @@ export default function NetworkDashboard() {
       if (res.ok) {
         toast.success('Main site created successfully');
         setShowCreateDialog(false);
-        setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
+        setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio', linked_main_site_id: '' });
         fetchMainSites();
       } else {
         const err = await res.json();
@@ -518,7 +519,7 @@ export default function NetworkDashboard() {
       if (res.ok) {
         toast.success('Main site updated successfully');
         setEditingSite(null);
-        setFormData({ name: '', slug: '', enabled_features: [] });
+        setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio', linked_main_site_id: '' });
         fetchMainSites();
       } else {
         const err = await res.json();
@@ -1339,6 +1340,25 @@ export default function NetworkDashboard() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Linked Main Site selector for Server sites */}
+            {formData.site_type === 'server' && !editingSite && (
+              <div className="space-y-2">
+                <Label>Linked Main Site</Label>
+                <p className="text-xs text-zinc-500">Select the main site this server edition belongs to</p>
+                <select
+                  value={formData.linked_main_site_id || ''}
+                  onChange={e => setFormData({ ...formData, linked_main_site_id: e.target.value })}
+                  className="w-full h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-white px-3 text-sm"
+                  data-testid="linked-main-site-select"
+                >
+                  <option value="">-- Select main site --</option>
+                  {mainSites.filter(s => s.site_type !== 'server' && s.site_type !== 'technical').map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
             )}
 

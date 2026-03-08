@@ -51,6 +51,7 @@ class MainSiteCreate(BaseModel):
     description: Optional[str] = None
     enabled_features: List[str] = []  # List of feature IDs
     site_type: str = "radio"  # "radio", "technical", or "server"
+    linked_main_site_id: Optional[str] = None  # For server sites: linked parent main site
 
 
 class MainSiteUpdate(BaseModel):
@@ -60,6 +61,7 @@ class MainSiteUpdate(BaseModel):
     description: Optional[str] = None
     logo_url: Optional[str] = None
     enabled_features: Optional[List[str]] = None
+    linked_main_site_id: Optional[str] = None
 
 
 class MainSiteResponse(BaseModel):
@@ -71,8 +73,10 @@ class MainSiteResponse(BaseModel):
     logo_url: Optional[str] = None
     enabled_features: List[str] = []
     site_type: str = "radio"
-    site_count: int = 0  # Number of mini sites
-    user_count: int = 0  # Number of users with access
+    linked_main_site_id: Optional[str] = None
+    linked_main_site_name: Optional[str] = None
+    site_count: int = 0
+    user_count: int = 0
     cloned_from: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -87,6 +91,8 @@ class MainSiteListResponse(BaseModel):
     logo_url: Optional[str] = None
     enabled_features: List[str] = []
     site_type: str = "radio"
+    linked_main_site_id: Optional[str] = None
+    linked_main_site_name: Optional[str] = None
     site_count: int = 0
     user_count: int = 0
     cloned_from: Optional[str] = None

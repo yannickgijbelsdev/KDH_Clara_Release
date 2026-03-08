@@ -336,6 +336,13 @@ const MainSiteDashboardContent = () => {
     return 0;
   };
 
+  // Brand name based on site type
+  const brandName = mainSite?.site_type === 'server' ? 'Clara Server' : mainSite?.site_type === 'technical' ? 'Clara Technical' : 'Clara';
+  // Display name: for server sites, show linked main site name
+  const displayName = mainSite?.site_type === 'server' && mainSite?.linked_main_site_name
+    ? mainSite.linked_main_site_name
+    : mainSite?.name;
+
   // Build navigation groups based on enabled features
   const buildNavGroups = () => {
     if (!mainSite) return [];
@@ -757,7 +764,7 @@ const MainSiteDashboardContent = () => {
               <div className="p-2 bg-orange-500 rounded-lg">
                 <span className="text-white font-black text-sm">C</span>
               </div>
-              <span className="text-lg font-bold text-white">Clara</span>
+              <span className="text-lg font-bold text-white">{brandName}</span>
             </div>
             <Button
               variant="ghost"
@@ -782,7 +789,7 @@ const MainSiteDashboardContent = () => {
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
           <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'text-center'}`}>
-            <span className="text-white font-black text-base">Clara</span>
+            <span className="text-white font-black text-base">{brandName}</span>
           </div>
 
           {/* Navigation */}
@@ -911,7 +918,7 @@ const MainSiteDashboardContent = () => {
                 <div className="p-2 bg-orange-500 rounded-lg">
                   <span className="text-white font-black text-sm">C</span>
                 </div>
-                <span className="text-lg font-bold text-white">Clara</span>
+                <span className="text-lg font-bold text-white">{brandName}</span>
               </div>
               <Button
                 variant="ghost"
@@ -998,8 +1005,8 @@ const MainSiteDashboardContent = () => {
                 <div>
                   {isInSiteContext && currentSite ? (
                     <p className="text-sm font-medium text-white">{currentSite.name}</p>
-                  ) : mainSite?.name && (
-                    <p className="text-sm font-medium text-white">{mainSite.name}</p>
+                  ) : displayName && (
+                    <p className="text-sm font-medium text-white">{displayName}</p>
                   )}
                 </div>
                 <div className="text-right">

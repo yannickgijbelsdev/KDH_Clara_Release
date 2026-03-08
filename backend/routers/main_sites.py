@@ -99,12 +99,20 @@ async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
                 filtered.append(site)
         main_sites = filtered
     
-    # Add counts
+    # Add counts and resolve linked names
+    linked_ids = [s["linked_main_site_id"] for s in main_sites if s.get("linked_main_site_id")]
+    linked_names = {}
+    if linked_ids:
+        linked_docs = await db.main_sites.find({"id": {"$in": linked_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
+        linked_names = {d["id"]: d["name"] for d in linked_docs}
+
     for site in main_sites:
         site_count = await db.sites.count_documents({"main_site_id": site["id"]})
         user_count = await db.main_site_users.count_documents({"main_site_id": site["id"]})
         site["site_count"] = site_count
         site["user_count"] = user_count
+        if site.get("linked_main_site_id"):
+            site["linked_main_site_name"] = linked_names.get(site["linked_main_site_id"])
     
     return main_sites
 
@@ -142,6 +150,7 @@ async def create_main_site(
         "logo_url": None,
         "enabled_features": data.enabled_features,
         "site_type": data.site_type,
+        "linked_main_site_id": data.linked_main_site_id,
         "created_at": now,
         "updated_at": now
     }
@@ -194,6 +203,11 @@ async def get_main_site(
     main_site["site_count"] = await db.sites.count_documents({"main_site_id": main_site_id})
     main_site["user_count"] = await db.main_site_users.count_documents({"main_site_id": main_site_id})
     
+    # Resolve linked main site name for server sites
+    if main_site.get("linked_main_site_id"):
+        linked = await db.main_sites.find_one({"id": main_site["linked_main_site_id"]}, {"_id": 0, "name": 1})
+        main_site["linked_main_site_name"] = linked["name"] if linked else None
+
     return main_site
 
 
@@ -221,6 +235,11 @@ async def get_main_site_by_slug(
     main_site["site_count"] = await db.sites.count_documents({"main_site_id": main_site['id']})
     main_site["user_count"] = await db.main_site_users.count_documents({"main_site_id": main_site['id']})
     
+    # Resolve linked main site name for server sites
+    if main_site.get("linked_main_site_id"):
+        linked = await db.main_sites.find_one({"id": main_site["linked_main_site_id"]}, {"_id": 0, "name": 1})
+        main_site["linked_main_site_name"] = linked["name"] if linked else None
+
     return main_site
 
 
@@ -270,7 +289,10 @@ async def update_main_site(
             if feature_id not in valid_feature_ids:
                 raise HTTPException(status_code=400, detail=f"Invalid feature: {feature_id}")
         update_data["enabled_features"] = data.enabled_features
-    
+
+    if data.linked_main_site_id is not None:
+        update_data["linked_main_site_id"] = data.linked_main_site_id
+
     await db.main_sites.update_one(
         {"id": main_site_id},
         {"$set": update_data}
@@ -279,6 +301,11 @@ async def update_main_site(
     updated = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0})
     updated["site_count"] = await db.sites.count_documents({"main_site_id": main_site_id})
     updated["user_count"] = await db.main_site_users.count_documents({"main_site_id": main_site_id})
+
+    # Resolve linked main site name
+    if updated.get("linked_main_site_id"):
+        linked = await db.main_sites.find_one({"id": updated["linked_main_site_id"]}, {"_id": 0, "name": 1})
+        updated["linked_main_site_name"] = linked["name"] if linked else None
 
     # Log and notify system admin
     changed_fields = [k for k in update_data if k != "updated_at"]
