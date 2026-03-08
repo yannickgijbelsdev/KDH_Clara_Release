@@ -2928,6 +2928,17 @@ now = now_brussels()  # Automatically handles CET/CEST
   - **Files**: `backend/routers/vmix.py`, `frontend/src/pages/Server/VmixDirector.js`
   - **Feature ID**: `vmix_director` (added to AVAILABLE_FEATURES and enabled on server sites)
 
+### March 9, 2026 - Backup Support for Server & Technical Sites
+- [x] **Backend**: Server-specifieke collections (xml_imports, api_keys, vmix_configs, vmix_ticker_messages) toegevoegd aan backup/restore/clone
+- [x] **Frontend**: Site type labels (Server/Technical) toegevoegd aan Backup page site selector
+- [x] **Verified**: Server backup bevat xml_imports (3), vmix_configs (1), vmix_ticker_messages (1). Technical backup werkt ook correct.
+
+### March 9, 2026 - Server Mode Selection (XML vs vMix)
+- [x] XML Imports en vMix Director zijn nu mutually exclusive keuzes bij het aanmaken van een Server site
+- [x] Technical sites tonen ZeroTier als always-enabled grayed-out feature
+- [x] Beide types: team_settings, firewall, activity_logs als togglebare optional features
+
+
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py

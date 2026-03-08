@@ -35,6 +35,11 @@ TEAM_COLLECTIONS = [
 
 CONTENT_LINKED = ["content_item_publishes"]
 
+# Server-type site collections (filtered by main_site_id)
+SERVER_COLLECTIONS = [
+    "xml_imports", "api_keys", "vmix_configs", "vmix_ticker_messages",
+]
+
 BACKUP_RETENTION_DAYS = 30
 
 
@@ -93,6 +98,14 @@ async def _collect_backup_data(main_site_id: str) -> dict:
         data["content_item_publishes"] = publishes
     else:
         data["content_item_publishes"] = []
+
+    # Server/Technical-specific collections (filtered by main_site_id)
+    for coll_name in SERVER_COLLECTIONS:
+        coll = db[coll_name]
+        docs = await coll.find(
+            {"main_site_id": main_site_id}, {"_id": 0}
+        ).to_list(50000)
+        data[coll_name] = docs
 
     return data
 
@@ -238,6 +251,10 @@ async def restore_backup(
         for coll_name in TEAM_COLLECTIONS:
             await db[coll_name].delete_many({"team_id": {"$in": team_ids}})
 
+        # Delete server/technical-specific collections
+        for coll_name in SERVER_COLLECTIONS:
+            await db[coll_name].delete_many({"main_site_id": main_site_id})
+
         # Delete content-linked
         content_ids = []
         async for item in db.content_items.find({"main_site_id": main_site_id}, {"_id": 0, "id": 1}):
@@ -300,7 +317,8 @@ async def clone_main_site(
     for coll_name in ["content_items", "wordpress_sites", "shows",
                        "show_titles", "show_series", "show_occurrences",
                        "studios", "categories", "rundowns",
-                       "media_assets", "media_folders"]:
+                       "media_assets", "media_folders",
+                       "xml_imports", "api_keys", "vmix_configs", "vmix_ticker_messages"]:
         for doc in data.get(coll_name, []):
             if doc.get("id"):
                 id_map[doc["id"]] = str(uuid.uuid4())

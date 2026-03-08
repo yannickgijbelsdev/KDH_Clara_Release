@@ -246,7 +246,7 @@ export default function BackupManagementPage() {
             <button
               key={site.id}
               onClick={() => setSelectedSite(site)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${
                 selectedSite?.id === site.id
                   ? 'bg-orange-600 text-white'
                   : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 border border-zinc-800'
@@ -254,6 +254,8 @@ export default function BackupManagementPage() {
               data-testid={`site-tab-${site.slug || site.id}`}
             >
               {site.name}
+              {site.site_type === 'server' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-medium">Server</span>}
+              {site.site_type === 'technical' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium">Technical</span>}
             </button>
           ))}
         </div>
