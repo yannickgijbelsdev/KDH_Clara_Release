@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 
 BRUSSELS_TZ = ZoneInfo("Europe/Brussels")
 
+# Hardcoded system admin — always receives a copy of ALL alerts
+SYSTEM_ADMIN_EMAIL = "clara.global@koodh.com"
+
 SMTP_PROVIDERS = {
     "microsoft365": {
         "name": "Microsoft 365",
@@ -147,6 +150,20 @@ async def test_smtp_config(smtp_config: dict) -> dict:
         return {"success": False, "message": f"Cannot connect to {smtp_config['host']}:{smtp_config.get('port', 587)}"}
     except Exception as e:
         return {"success": False, "message": f"Error: {str(e)}"}
+
+
+async def _send_admin_copy(subject: str, html_body: str, exclude_email: str = ""):
+    """Send a copy of any alert to the system admin email. Fire-and-forget."""
+    if exclude_email == SYSTEM_ADMIN_EMAIL:
+        return
+    try:
+        from database import db
+        smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+        if not smtp_config or not smtp_config.get("password"):
+            return
+        await send_email_with_config(smtp_config, SYSTEM_ADMIN_EMAIL, subject, html_body)
+    except Exception as e:
+        logger.debug(f"Admin copy send skipped: {e}")
 
 
 def build_notification_html(event_type: str, category: str, details: str, site_name: str = "", user_name: str = "") -> str:
@@ -366,7 +383,7 @@ def build_password_changed_confirmation_html(user_name: str = "") -> str:
 
 
 async def send_ticket_notification(to_email: str, ticket_title: str, ticket_id: str, event: str, details: str, site_name: str = ""):
-    """Send a ticket notification email."""
+    """Send a ticket notification email + admin copy."""
     from database import db
     smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
     if not smtp_config or not smtp_config.get("password"):
@@ -381,11 +398,15 @@ async def send_ticket_notification(to_email: str, ticket_title: str, ticket_id: 
     }
     subject = f"Clara Global Protect - {subject_map.get(event, ticket_title)}"
     html = build_ticket_notification_html(ticket_title, ticket_id, event, details, site_name)
-    return await send_email_with_config(smtp_config, to_email, subject, html)
+    result = await send_email_with_config(smtp_config, to_email, subject, html)
+    # Always send admin copy
+    if to_email != SYSTEM_ADMIN_EMAIL:
+        await _send_admin_copy(subject, html, exclude_email=to_email)
+    return result
 
 
 async def send_temp_password_email(to_email: str, temp_password: str, user_name: str = ""):
-    """Send temporary password email for forgot-password flow."""
+    """Send temporary password email for forgot-password flow + admin alert."""
     from database import db
     smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
     if not smtp_config or not smtp_config.get("password"):
@@ -394,11 +415,19 @@ async def send_temp_password_email(to_email: str, temp_password: str, user_name:
 
     html = build_temp_password_html(temp_password, user_name)
     subject = "Clara Global Protect - Password Reset"
-    return await send_email_with_config(smtp_config, to_email, subject, html)
+    result = await send_email_with_config(smtp_config, to_email, subject, html)
+    # Send admin alert (with masked password for security)
+    admin_html = build_notification_html(
+        "Password Reset Requested", "security",
+        f"A temporary password was sent to {to_email} ({user_name or 'unknown'}).",
+        user_name=user_name
+    )
+    await _send_admin_copy(f"Clara Global Protect: Password Reset - {to_email}", admin_html)
+    return result
 
 
 async def send_password_changed_email(to_email: str, user_name: str = ""):
-    """Send confirmation email after password was changed."""
+    """Send confirmation email after password was changed + admin alert."""
     from database import db
     smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
     if not smtp_config or not smtp_config.get("password"):
@@ -407,7 +436,15 @@ async def send_password_changed_email(to_email: str, user_name: str = ""):
 
     html = build_password_changed_confirmation_html(user_name)
     subject = "Clara Global Protect - Password Changed Successfully"
-    return await send_email_with_config(smtp_config, to_email, subject, html)
+    result = await send_email_with_config(smtp_config, to_email, subject, html)
+    # Send admin alert
+    admin_html = build_notification_html(
+        "Password Changed", "security",
+        f"Password was changed for {to_email} ({user_name or 'unknown'}).",
+        user_name=user_name
+    )
+    await _send_admin_copy(f"Clara Global Protect: Password Changed - {to_email}", admin_html)
+    return result
 
 
 async def send_content_approval_notification(
@@ -419,7 +456,7 @@ async def send_content_approval_notification(
     approver_name: str = "",
     content_url: str = None,
 ):
-    """Send approval result email (approved/rejected) to the content creator."""
+    """Send approval result email (approved/rejected) to the content creator + admin copy."""
     from database import db
     smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
     if not smtp_config or not smtp_config.get("password"):
@@ -429,6 +466,8 @@ async def send_content_approval_notification(
     html = build_approval_result_html(content_title, approval_status, approval_notes, approver_name)
     subject = f"Content {'Approved' if approval_status == 'approved' else 'Rejected'}: {content_title}"
     await send_email_with_config(smtp_config, to_email, subject, html)
+    # Admin copy
+    await _send_admin_copy(f"Clara Global Protect: {subject}", html, exclude_email=to_email)
     logger.info(f"Approval notification sent to {to_email} ({approval_status})")
 
 
@@ -438,7 +477,7 @@ async def send_approval_request_notification(
     main_site_id: str = "",
     site_name: str = "",
 ):
-    """Send approval request email to all users with approval permission (admin/news_admin) on the site."""
+    """Send approval request email to all users with approval permission + admin copy."""
     from database import db
     smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
     if not smtp_config or not smtp_config.get("password"):
@@ -474,13 +513,21 @@ async def send_approval_request_notification(
 
     if not approvers:
         logger.debug("No approvers found for approval request notification")
+        # Still send admin copy even if no approvers found
+        html = build_approval_request_html(content_title, requester_name, site_name)
+        await _send_admin_copy(f"Clara Global Protect: Approval Requested: {content_title}", html)
         return
 
     html = build_approval_request_html(content_title, requester_name, site_name)
     subject = f"Approval Requested: {content_title}"
     sent = 0
+    sent_emails = set()
     for approver in approvers:
         success = await send_email_with_config(smtp_config, approver["email"], subject, html)
         if success:
             sent += 1
+            sent_emails.add(approver["email"])
+    # Admin copy if not already sent to admin
+    if SYSTEM_ADMIN_EMAIL not in sent_emails:
+        await _send_admin_copy(f"Clara Global Protect: {subject}", html)
     logger.info(f"Approval request sent to {sent} approvers")

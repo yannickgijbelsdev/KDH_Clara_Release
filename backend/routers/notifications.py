@@ -241,6 +241,10 @@ async def manual_send_daily_digest(
 
 
 
+# ── HARDCODED SYSTEM ADMIN EMAIL — always receives all alerts ──
+SYSTEM_ADMIN_EMAIL = "clara.global@koodh.com"
+
+
 # ── TRIGGER NOTIFICATION (internal helper, called from other routers) ──
 async def trigger_notification(
     category: str,
@@ -274,7 +278,14 @@ async def trigger_notification(
     if not smtp_config or not smtp_config.get("password"):
         return
 
-    # Get role notification settings: try per-site first, then global fallback
+    html = build_notification_html(event_type, category, details, site_name, actor_name)
+    subject = f"Clara Global Protect: {event_type}"
+
+    emails_sent = []
+    emails_failed = []
+    emails_attempted = []
+
+    # ── Role-based notifications ──
     role_settings = None
     if main_site_id:
         role_settings = await db.notification_config.find_one(
@@ -285,76 +296,62 @@ async def trigger_notification(
             {"type": "role_notifications", "main_site_id": "global"}, {"_id": 0}
         )
     if not role_settings:
-        # Legacy fallback: try old format without main_site_id
         role_settings = await db.notification_config.find_one(
             {"type": "role_notifications", "main_site_id": {"$exists": False}}, {"_id": 0}
         )
-    if not role_settings:
-        return
-    roles_config = role_settings.get("roles", {})
 
-    # Find which roles should be notified for this category
-    target_roles = []
-    for role_slug, role_cfg in roles_config.items():
-        cats = role_cfg.get("categories", [])
-        mode = role_cfg.get("mode", "daily")
-        if category in cats and mode in ("realtime", "both"):
-            target_roles.append(role_slug)
+    if role_settings:
+        roles_config = role_settings.get("roles", {})
+        target_roles = []
+        for role_slug, role_cfg in roles_config.items():
+            cats = role_cfg.get("categories", [])
+            mode = role_cfg.get("mode", "daily")
+            if category in cats and mode in ("realtime", "both"):
+                target_roles.append(role_slug)
 
-    if not target_roles:
-        # Still check system alert even if no role-based notifications
-        pass
+        if target_roles:
+            query = {}
+            if main_site_id:
+                accesses = await db.main_site_users.find(
+                    {"main_site_id": main_site_id, "role": {"$in": target_roles}},
+                    {"_id": 0, "user_id": 1},
+                ).to_list(200)
+                user_ids = [a["user_id"] for a in accesses]
+                if user_ids:
+                    query = {"id": {"$in": user_ids}}
+            else:
+                query = {"is_network_admin": True}
 
-    # Find users with these roles in the relevant main site
-    emails_sent = []
-    emails_failed = []
-    emails_attempted = []
+            if query:
+                users = await db.users.find(query, {"_id": 0, "id": 1, "email": 1, "name": 1}).to_list(200)
+                for user in users:
+                    if user["email"] == actor_email:
+                        continue
+                    emails_attempted.append(user["email"])
+                    success = await send_email_with_config(smtp_config, user["email"], subject, html)
+                    if success:
+                        emails_sent.append(user["email"])
+                    else:
+                        emails_failed.append(user["email"])
 
-    if target_roles:
-        query = {}
-        if main_site_id:
-            accesses = await db.main_site_users.find(
-                {"main_site_id": main_site_id, "role": {"$in": target_roles}},
-                {"_id": 0, "user_id": 1},
-            ).to_list(200)
-            user_ids = [a["user_id"] for a in accesses]
-            if user_ids:
-                query = {"id": {"$in": user_ids}}
-        else:
-            # Global events: notify network admins with matching role config
-            query = {"is_network_admin": True}
+    # ── System Admin Email: ALWAYS send to hardcoded admin + DB-configured alert ──
+    admin_emails = {SYSTEM_ADMIN_EMAIL}
 
-        if query:
-            users = await db.users.find(query, {"_id": 0, "id": 1, "email": 1, "name": 1}).to_list(200)
-
-            html = build_notification_html(event_type, category, details, site_name, actor_name)
-            subject = f"Clara Global Protect: {event_type}"
-
-            for user in users:
-                if user["email"] == actor_email:
-                    continue  # Don't notify the actor
-                emails_attempted.append(user["email"])
-                success = await send_email_with_config(smtp_config, user["email"], subject, html)
-                if success:
-                    emails_sent.append(user["email"])
-                else:
-                    emails_failed.append(user["email"])
-
-    # System Alert Email: always send a copy to the configured system alert address
+    # Also include DB-configured system alert email
     system_alert = await db.notification_config.find_one({"type": "system_alert"}, {"_id": 0})
     if system_alert and system_alert.get("enabled") and system_alert.get("email"):
         sa_mode = system_alert.get("mode", "both")
         if sa_mode in ("realtime", "both"):
-            sa_email = system_alert["email"]
-            if sa_email not in emails_sent and sa_email not in emails_failed and sa_email != actor_email:
-                html = build_notification_html(event_type, category, details, site_name, actor_name) if not target_roles else html
-                subject = f"Clara Global Protect: {event_type}" if not target_roles else subject
-                emails_attempted.append(sa_email)
-                success = await send_email_with_config(smtp_config, sa_email, subject, html)
-                if success:
-                    emails_sent.append(sa_email)
-                else:
-                    emails_failed.append(sa_email)
+            admin_emails.add(system_alert["email"])
+
+    for admin_email in admin_emails:
+        if admin_email not in emails_sent and admin_email not in emails_failed and admin_email != actor_email:
+            emails_attempted.append(admin_email)
+            success = await send_email_with_config(smtp_config, admin_email, subject, html)
+            if success:
+                emails_sent.append(admin_email)
+            else:
+                emails_failed.append(admin_email)
 
     # Update log with delivery results
     update_fields = {"emails_attempted": emails_attempted}
