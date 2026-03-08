@@ -22,7 +22,7 @@ function timeAgo(isoString) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-export default function PermissionAuditPanel({ token, onClose }) {
+export default function PermissionAuditPanel({ token, onClose, inline = false }) {
   const [stats, setStats] = useState(null);
   const [logs, setLogs] = useState([]);
   const [total, setTotal] = useState(0);
@@ -65,9 +65,16 @@ export default function PermissionAuditPanel({ token, onClose }) {
     setAppliedFilter({});
   };
 
+  const wrapperClass = inline 
+    ? 'bg-transparent w-full flex flex-col' 
+    : 'fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4';
+  const contentClass = inline
+    ? 'bg-[#0a0a0b] border border-zinc-800 rounded-2xl w-full flex flex-col overflow-hidden'
+    : 'bg-[#0a0a0b] border border-zinc-800 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden';
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="permission-audit-panel">
-      <div className="bg-[#0a0a0b] border border-zinc-800 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div className={wrapperClass} data-testid="permission-audit-panel">
+      <div className={contentClass}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
           <div className="flex items-center gap-3">
@@ -81,9 +88,11 @@ export default function PermissionAuditPanel({ token, onClose }) {
             <Button variant="outline" size="sm" onClick={fetchData} className="gap-1.5">
               <RefreshCw className="w-3.5 h-3.5" /> Refresh
             </Button>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500">
-              <X className="w-5 h-5" />
-            </button>
+            {!inline && (
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500">
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 

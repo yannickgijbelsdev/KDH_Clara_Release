@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import {
   Mail, Shield, Flame, FileText, Tv, Users, Globe, Server,
   ChevronDown, Loader2, Check, Send, AlertCircle, Bell, BellRing,
-  Clock, Zap, History, Play,
+  Clock, Zap, History, Play, Monitor,
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -26,7 +26,7 @@ const MODE_OPTIONS = [
   { id: 'both', label: 'Both', icon: BellRing, desc: 'Real-time + summary' },
 ];
 
-export default function NotificationSettings({ open, onClose }) {
+export default function NotificationSettings({ open, onClose, inline = false, mainSites = [] }) {
   const { token } = useAuth();
   const [tab, setTab] = useState('smtp');
   const [providers, setProviders] = useState([]);
@@ -45,6 +45,8 @@ export default function NotificationSettings({ open, onClose }) {
   const [notifLog, setNotifLog] = useState([]);
   const [loadingLog, setLoadingLog] = useState(false);
   const [sendingDigest, setSendingDigest] = useState(false);
+  const [selectedSiteId, setSelectedSiteId] = useState('');
+  const [siteDropdownOpen, setSiteDropdownOpen] = useState(false);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -54,14 +56,19 @@ export default function NotificationSettings({ open, onClose }) {
     if (tab === 'history') fetchLog();
   }, [open, tab]);
 
+  // When selected site changes, re-fetch roles and role-settings for that site
+  useEffect(() => {
+    if (!open || tab !== 'roles') return;
+    fetchSiteRoles(selectedSiteId);
+    fetchRoleSettings(selectedSiteId);
+  }, [open, tab, selectedSiteId]);
+
   const fetchAll = async () => {
     try {
-      const [provRes, catRes, cfgRes, roleRes, rolesListRes] = await Promise.all([
+      const [provRes, catRes, cfgRes] = await Promise.all([
         fetch(`${API}/api/notifications/smtp-providers`, { headers }),
         fetch(`${API}/api/notifications/categories`, { headers }),
         fetch(`${API}/api/notifications/smtp-config`, { headers }),
-        fetch(`${API}/api/notifications/role-settings`, { headers }),
-        fetchRoles(),
       ]);
       if (provRes.ok) setProviders(await provRes.json());
       if (catRes.ok) setCategories(await catRes.json());
@@ -72,38 +79,37 @@ export default function NotificationSettings({ open, onClose }) {
           setSmtpForm(prev => ({ ...prev, provider: cfg.provider || 'custom', host: cfg.host || '', port: cfg.port || 587, use_tls: cfg.use_tls !== false, username: cfg.username || '', password: cfg.password || '', from_email: cfg.from_email || '', from_name: cfg.from_name || 'Clara Radio Dashboard' }));
         }
       }
-      if (roleRes.ok) setRoleSettings(await roleRes.json());
     } catch (err) {
       console.error(err);
     }
   };
 
-  const fetchRoles = async () => {
+  const fetchSiteRoles = async (siteId) => {
     setLoadingRoles(true);
     try {
-      const msRes = await fetch(`${API}/api/main-sites`, { headers });
-      if (!msRes.ok) return;
-      const sites = await msRes.json();
-      const allRoles = new Map();
-      allRoles.set('admin', { slug: 'admin', name: 'Admin' });
-      allRoles.set('presenter', { slug: 'presenter', name: 'Presenter' });
-      allRoles.set('editor', { slug: 'editor', name: 'Editor' });
-      allRoles.set('viewer', { slug: 'viewer', name: 'Viewer' });
-      for (const site of sites.slice(0, 5)) {
-        try {
-          const rRes = await fetch(`${API}/api/roles/${site.id}/list`, { headers });
-          if (rRes.ok) {
-            const rolesList = await rRes.json();
-            for (const r of rolesList) {
-              if (!allRoles.has(r.slug)) allRoles.set(r.slug, r);
-            }
-          }
-        } catch {}
+      if (siteId) {
+        // Fetch roles for specific site
+        const res = await fetch(`${API}/api/notifications/site-roles/${siteId}`, { headers });
+        if (res.ok) setRoles(await res.json());
+      } else {
+        // Fetch default roles
+        setRoles([
+          { slug: 'admin', name: 'Admin' },
+          { slug: 'presenter', name: 'Presenter' },
+          { slug: 'editor', name: 'Editor' },
+          { slug: 'viewer', name: 'Viewer' },
+        ]);
       }
-      setRoles(Array.from(allRoles.values()));
-    } catch {} finally {
-      setLoadingRoles(false);
-    }
+    } catch {} finally { setLoadingRoles(false); }
+  };
+
+  const fetchRoleSettings = async (siteId) => {
+    try {
+      const qs = siteId ? `?main_site_id=${siteId}` : '';
+      const res = await fetch(`${API}/api/notifications/role-settings${qs}`, { headers });
+      if (res.ok) setRoleSettings(await res.json());
+      else setRoleSettings({});
+    } catch { setRoleSettings({}); }
   };
 
   const fetchLog = async () => {
@@ -190,7 +196,7 @@ export default function NotificationSettings({ open, onClose }) {
   const saveRoleSettings = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API}/api/notifications/role-settings`, { method: 'PUT', headers, body: JSON.stringify({ roles: roleSettings }) });
+      const res = await fetch(`${API}/api/notifications/role-settings`, { method: 'PUT', headers, body: JSON.stringify({ roles: roleSettings, main_site_id: selectedSiteId || '' }) });
       if (res.ok) toast.success('Role notification settings saved');
       else toast.error('Save failed');
     } catch { toast.error('Save failed'); }
@@ -201,34 +207,28 @@ export default function NotificationSettings({ open, onClose }) {
 
   if (!open) return null;
 
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-800 max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="notification-settings">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Bell className="w-5 h-5 text-orange-400" />
-            Email Notifications
-          </DialogTitle>
-        </DialogHeader>
+  const selectedSiteName = mainSites.find(s => s.id === selectedSiteId)?.name || 'Global (all sites)';
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-zinc-800/50 rounded-lg p-1 mb-4">
-          {[
-            { id: 'smtp', label: 'SMTP Config', icon: Mail },
-            { id: 'roles', label: 'Role Notifications', icon: Users },
-            { id: 'history', label: 'History', icon: History },
-          ].map(t => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm transition-colors ${tab === t.id ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
-              data-testid={`notif-tab-${t.id}`}
-            >
-              <t.icon className="w-4 h-4" />
-              {t.label}
-            </button>
-          ))}
-        </div>
+  const content = (
+    <>
+      {/* Tabs */}
+      <div className="flex gap-1 bg-zinc-800/50 rounded-lg p-1 mb-4">
+        {[
+          { id: 'smtp', label: 'SMTP Config', icon: Mail },
+          { id: 'roles', label: 'Role Notifications', icon: Users },
+          { id: 'history', label: 'History', icon: History },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm transition-colors ${tab === t.id ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+            data-testid={`notif-tab-${t.id}`}
+          >
+            <t.icon className="w-4 h-4" />
+            {t.label}
+          </button>
+        ))}
+      </div>
 
         {/* SMTP Config Tab */}
         {tab === 'smtp' && (
@@ -351,6 +351,57 @@ export default function NotificationSettings({ open, onClose }) {
         {/* Role Notification Settings Tab */}
         {tab === 'roles' && (
           <div className="space-y-4">
+            {/* Site Selector */}
+            <div className="space-y-2">
+              <Label className="text-xs text-zinc-400">Select Site</Label>
+              <div className="relative">
+                <button
+                  onClick={() => setSiteDropdownOpen(!siteDropdownOpen)}
+                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-left"
+                  data-testid="site-selector"
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-zinc-400" />
+                    <span className="text-sm font-medium text-white">{selectedSiteName}</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${siteDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {siteDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                    <button
+                      onClick={() => { setSelectedSiteId(''); setSiteDropdownOpen(false); }}
+                      className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-700 transition-colors ${!selectedSiteId ? 'bg-zinc-700/50' : ''}`}
+                      data-testid="site-option-global"
+                    >
+                      <Globe className="w-4 h-4 text-zinc-400 flex-shrink-0" />
+                      <div>
+                        <span className="text-sm font-medium text-white block">Global (all sites)</span>
+                        <span className="text-xs text-zinc-500">Default fallback settings</span>
+                      </div>
+                      {!selectedSiteId && <Check className="w-4 h-4 text-orange-400 ml-auto" />}
+                    </button>
+                    {mainSites.map(site => (
+                      <button
+                        key={site.id}
+                        onClick={() => { setSelectedSiteId(site.id); setSiteDropdownOpen(false); }}
+                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-700 transition-colors ${selectedSiteId === site.id ? 'bg-zinc-700/50' : ''}`}
+                        data-testid={`site-option-${site.slug}`}
+                      >
+                        <div className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : 'bg-zinc-700'}`}>
+                          {site.site_type === 'technical' ? <Monitor className="w-3.5 h-3.5 text-emerald-400" /> : <Globe className="w-3.5 h-3.5 text-zinc-400" />}
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-white block">{site.name}</span>
+                          <span className="text-xs text-zinc-500">/{site.slug}</span>
+                        </div>
+                        {selectedSiteId === site.id && <Check className="w-4 h-4 text-orange-400 ml-auto" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <p className="text-sm text-zinc-400">Choose per role which notifications they receive and whether real-time or as a daily summary.</p>
 
             {loadingRoles ? (
@@ -502,6 +553,25 @@ export default function NotificationSettings({ open, onClose }) {
             )}
           </div>
         )}
+      </>
+    );
+
+  // Inline mode: render content directly without dialog wrapper
+  if (inline) {
+    return <div data-testid="notification-settings">{content}</div>;
+  }
+
+  // Dialog mode
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="bg-zinc-900 border-zinc-800 max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="notification-settings">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Bell className="w-5 h-5 text-orange-400" />
+            Email Notifications
+          </DialogTitle>
+        </DialogHeader>
+        {content}
       </DialogContent>
     </Dialog>
   );

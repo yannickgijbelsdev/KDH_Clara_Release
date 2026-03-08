@@ -136,23 +136,29 @@ async def send_test_email(
 
 # ── ROLE NOTIFICATION SETTINGS ──────────────────────────────────
 @notifications_router.get("/role-settings")
-async def get_role_notification_settings(current_user: dict = Depends(require_network_admin)):
-    """Get notification settings per role across all main sites."""
-    settings = await db.notification_config.find_one({"type": "role_notifications"}, {"_id": 0})
+async def get_role_notification_settings(
+    main_site_id: str = "",
+    current_user: dict = Depends(require_network_admin),
+):
+    """Get notification settings per role for a specific main site (or global)."""
+    query = {"type": "role_notifications", "main_site_id": main_site_id or "global"}
+    settings = await db.notification_config.find_one(query, {"_id": 0})
     return settings.get("roles", {}) if settings else {}
 
 
 @notifications_router.put("/role-settings")
 async def save_role_notification_settings(data: dict, current_user: dict = Depends(require_network_admin)):
-    """Save notification settings per role.
+    """Save notification settings per role for a specific main site.
     
-    Format: { "roles": { "admin": { "categories": ["security","firewall",...], "mode": "realtime"|"daily"|"both" }, ... } }
+    Format: { "main_site_id": "...", "roles": { "admin": { "categories": [...], "mode": "realtime"|"daily"|"both" }, ... } }
     """
+    main_site_id = data.get("main_site_id", "global") or "global"
     roles = data.get("roles", {})
     await db.notification_config.update_one(
-        {"type": "role_notifications"},
+        {"type": "role_notifications", "main_site_id": main_site_id},
         {"$set": {
             "type": "role_notifications",
+            "main_site_id": main_site_id,
             "roles": roles,
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "updated_by": current_user["id"],
@@ -160,6 +166,27 @@ async def save_role_notification_settings(data: dict, current_user: dict = Depen
         upsert=True,
     )
     return {"message": "Settings saved", "roles": roles}
+
+
+@notifications_router.get("/site-roles/{main_site_id}")
+async def get_site_roles(main_site_id: str, current_user: dict = Depends(require_network_admin)):
+    """Get all roles defined for a specific main site."""
+    roles = await db.roles.find(
+        {"main_site_id": main_site_id},
+        {"_id": 0, "slug": 1, "name": 1}
+    ).to_list(100)
+    # Always include default roles
+    defaults = [
+        {"slug": "admin", "name": "Admin"},
+        {"slug": "presenter", "name": "Presenter"},
+        {"slug": "editor", "name": "Editor"},
+        {"slug": "viewer", "name": "Viewer"},
+    ]
+    seen = {r["slug"] for r in roles}
+    for d in defaults:
+        if d["slug"] not in seen:
+            roles.insert(0, d)
+    return roles
 
 
 # ── NOTIFICATION LOG (for daily summaries) ──────────────────────
@@ -218,8 +245,21 @@ async def trigger_notification(
     if not smtp_config or not smtp_config.get("password"):
         return
 
-    # Get role notification settings
-    role_settings = await db.notification_config.find_one({"type": "role_notifications"}, {"_id": 0})
+    # Get role notification settings: try per-site first, then global fallback
+    role_settings = None
+    if main_site_id:
+        role_settings = await db.notification_config.find_one(
+            {"type": "role_notifications", "main_site_id": main_site_id}, {"_id": 0}
+        )
+    if not role_settings:
+        role_settings = await db.notification_config.find_one(
+            {"type": "role_notifications", "main_site_id": "global"}, {"_id": 0}
+        )
+    if not role_settings:
+        # Legacy fallback: try old format without main_site_id
+        role_settings = await db.notification_config.find_one(
+            {"type": "role_notifications", "main_site_id": {"$exists": False}}, {"_id": 0}
+        )
     if not role_settings:
         return
     roles_config = role_settings.get("roles", {})

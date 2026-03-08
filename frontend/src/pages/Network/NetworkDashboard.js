@@ -23,7 +23,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -234,6 +234,98 @@ function DebugContent({ data }) {
   );
 }
 
+// User Access Section (inline, replaces dialog)
+function UserAccessSection({ token, API }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`${API}/api/main-sites/debug/all-user-access`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) setData(await res.json());
+      } catch {} finally { setLoading(false); }
+    })();
+  }, [token, API]);
+
+  if (loading) return <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-zinc-400" /></div>;
+  if (!data) return <p className="text-zinc-500 text-center py-8">Failed to load data</p>;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">User Access</h1>
+          <p className="text-sm text-zinc-400">View user access records across all main sites</p>
+        </div>
+      </div>
+      <div className="space-y-6">
+        <div className="grid grid-cols-3 gap-4">
+          <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-4"><div className="text-2xl font-bold text-white">{data.total_users}</div><div className="text-xs text-zinc-400">Total Users</div></CardContent></Card>
+          <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-4"><div className="text-2xl font-bold text-white">{data.total_main_sites}</div><div className="text-xs text-zinc-400">Main Sites</div></CardContent></Card>
+          <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-4"><div className="text-2xl font-bold text-white">{data.total_access_records}</div><div className="text-xs text-zinc-400">Access Records</div></CardContent></Card>
+        </div>
+        {data.users_without_site_access?.length > 0 && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+            <h3 className="text-amber-400 font-semibold mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              Users WITHOUT site access ({data.users_without_site_access.length})
+            </h3>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {data.users_without_site_access.map((u, idx) => (
+                <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-800/50 rounded p-2">
+                  <span className="text-white font-medium">{u.user_name}</span>
+                  <span className="text-zinc-500">{u.user_email}</span>
+                  <span className="text-xs bg-zinc-700 px-2 py-0.5 rounded">{u.user_global_role}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div>
+          <h3 className="text-white font-semibold mb-3">Access per Main Site</h3>
+          <div className="space-y-4">
+            {Object.entries(data.access_by_site || {}).map(([siteName, users]) => (
+              <Card key={siteName} className="bg-zinc-900 border-zinc-800">
+                <CardContent className="p-4">
+                  <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-blue-400" />
+                    {siteName}
+                    <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">{users.length} users</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {users.map((access, idx) => {
+                      const RIcon = roleIcons[access.site_role] || Eye;
+                      return (
+                        <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-800/30 rounded p-2">
+                          <RIcon className="w-4 h-4 text-zinc-400" />
+                          <span className="text-white font-medium min-w-[150px]">{access.user_name}</span>
+                          <span className="text-zinc-500 min-w-[200px]">{access.user_email}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            access.site_role === 'admin' ? 'bg-orange-500/20 text-orange-400' :
+                            access.site_role === 'news_admin' ? 'bg-emerald-500/20 text-emerald-400' :
+                            access.site_role === 'editor' ? 'bg-violet-500/20 text-violet-400' :
+                            'bg-zinc-700 text-zinc-400'
+                          }`}>
+                            {roleLabels[access.site_role] || access.site_role}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 export default function NetworkDashboard() {
   const { user, token, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
@@ -258,6 +350,25 @@ export default function NetworkDashboard() {
   const [adminManagerOpen, setAdminManagerOpen] = useState(false);
   const [notifSettingsOpen, setNotifSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
+  const [activeSection, setActiveSection] = useState('sites'); // sidebar active section
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Sidebar navigation items
+  const SIDEBAR_ITEMS = [
+    { id: 'sites', label: 'Sites Overview', icon: Globe, group: 'main' },
+    { id: 'admins', label: 'Network Admins', icon: Crown, group: 'management' },
+    { id: 'notifications', label: 'Notifications', icon: Bell, group: 'management' },
+    { id: 'audit', label: 'Permission Audit', icon: ShieldAlert, group: 'debug' },
+    { id: 'user-access', label: 'User Access', icon: UserCog, group: 'debug' },
+    { id: 'security', label: 'Account Security', icon: Shield, group: 'security' },
+  ];
+
+  const SIDEBAR_GROUPS = [
+    { id: 'main', label: 'Overview' },
+    { id: 'management', label: 'Management' },
+    { id: 'debug', label: 'Debug & Audit' },
+    { id: 'security', label: 'Security' },
+  ];
 
   const RoleIcon = roleIcons[user?.role] || Network;
 
@@ -486,214 +597,198 @@ export default function NetworkDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white">
-      {/* Header - matches MainSiteDashboardLayout style */}
-      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
-        <div className="flex items-center justify-between px-6 py-3">
-          {/* Left: Clara Global branding */}
-          <div className="flex items-center gap-3">
-            <span className="text-white font-black text-lg">Clara Global</span>
-          </div>
+    <div className="min-h-screen bg-[#09090b] text-white flex">
+      {/* Sidebar */}
+      <aside className={`fixed top-0 left-0 bottom-0 z-40 flex flex-col bg-[#0c0c0e] border-r border-white/[0.06] transition-all duration-200 ${sidebarOpen ? 'w-56' : 'w-14'}`}>
+        {/* Sidebar Header */}
+        <div className="flex items-center gap-2.5 px-3 h-14 border-b border-white/[0.06] flex-shrink-0">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1.5 rounded-md hover:bg-white/5 text-zinc-400" data-testid="sidebar-toggle">
+            <Menu className="w-4 h-4" />
+          </button>
+          {sidebarOpen && <span className="text-white font-bold text-sm tracking-wide">Clara Global</span>}
+        </div>
 
-          {/* Right: Backups & User dropdown */}
-          <div className="flex items-center gap-2">
-            <Link to="/backups">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs" data-testid="nav-backups-btn">
-                <HardDrive className="w-3.5 h-3.5" />
-                Backups
-              </Button>
-            </Link>
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="flex items-center gap-3 px-3 h-11 rounded-xl hover:bg-orange-500/10"
-              >
-                {user?.avatar?.url || user?.avatar?.file_key ? (
-                  <img 
-                    src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
-                    alt={user?.name}
-                    className="w-9 h-9 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+          {SIDEBAR_GROUPS.map(group => {
+            const items = SIDEBAR_ITEMS.filter(i => i.group === group.id);
+            if (!items.length) return null;
+            return (
+              <div key={group.id}>
+                {sidebarOpen && (
+                  <p className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">{group.label}</p>
                 )}
-                <div className="text-left hidden sm:block">
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-zinc-500">{roleLabels[user?.role]}</p>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#18181b] border-zinc-800">
-              <div className="px-3 py-2 flex items-center gap-3">
-                {user?.avatar?.url || user?.avatar?.file_key ? (
-                  <img 
-                    src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
-                    alt={user?.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-zinc-500">{user?.email}</p>
+                <div className="space-y-0.5">
+                  {items.map(item => {
+                    const Icon = item.icon;
+                    const isActive = activeSection === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveSection(item.id)}
+                        className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm transition-colors ${
+                          isActive
+                            ? 'bg-orange-500/10 text-orange-400 font-medium'
+                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`}
+                        data-testid={`sidebar-${item.id}`}
+                        title={!sidebarOpen ? item.label : undefined}
+                      >
+                        <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-orange-400' : ''}`} />
+                        {sidebarOpen && <span className="truncate">{item.label}</span>}
+                        {!sidebarOpen && item.id === 'security' && user?.totp_enabled && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 absolute right-1.5" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-              <DropdownMenuSeparator className="bg-zinc-800" />
-              <DropdownMenuItem className="text-zinc-400 cursor-default">
-                <RoleIcon className="w-4 h-4 mr-2" />
-                {roleLabels[user?.role]}
-              </DropdownMenuItem>
-              {/* Main Sites quick access */}
-              {mainSites.length > 0 && (
-                <>
-                  <DropdownMenuSeparator className="bg-zinc-800" />
-                  <div className="px-2 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wide">
-                    Main Sites
+            );
+          })}
+
+          {/* External Links */}
+          {sidebarOpen && (
+            <div>
+              <p className="px-2 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">External</p>
+              <div className="space-y-0.5">
+                <Link to="/backups" className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5" data-testid="sidebar-backups">
+                  <HardDrive className="w-4 h-4 flex-shrink-0" />
+                  <span>Backups</span>
+                  <ExternalLink className="w-3 h-3 ml-auto text-zinc-600" />
+                </Link>
+                <Link to="/explorer" className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5" data-testid="sidebar-api-explorer">
+                  <Code className="w-4 h-4 flex-shrink-0" />
+                  <span>API Explorer</span>
+                  <ExternalLink className="w-3 h-3 ml-auto text-zinc-600" />
+                </Link>
+              </div>
+            </div>
+          )}
+          {!sidebarOpen && (
+            <div className="space-y-0.5">
+              <Link to="/backups" className="w-full flex items-center justify-center px-2.5 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5" title="Backups">
+                <HardDrive className="w-4 h-4" />
+              </Link>
+              <Link to="/explorer" className="w-full flex items-center justify-center px-2.5 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5" title="API Explorer">
+                <Code className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
+        </nav>
+
+        {/* User dropdown at bottom */}
+        <div className="border-t border-white/[0.06] p-2 flex-shrink-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/5 transition-colors">
+                {user?.avatar?.url || user?.avatar?.file_key ? (
+                  <img 
+                    src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
+                    alt={user?.name}
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-xs flex-shrink-0">
+                    {user?.name?.charAt(0).toUpperCase()}
                   </div>
-                  {mainSites.slice(0, 5).map(site => (
-                    <DropdownMenuItem
-                      key={site.id}
-                      onClick={() => navigate(`/${site.slug}`)}
-                      className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
-                    >
-                      <Globe className="w-4 h-4 mr-2" />
-                      {site.name}
-                    </DropdownMenuItem>
-                  ))}
-                </>
-              )}
+                )}
+                {sidebarOpen && (
+                  <div className="text-left min-w-0">
+                    <p className="text-xs font-medium text-white truncate">{user?.name}</p>
+                    <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
+                  </div>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-56 bg-[#18181b] border-zinc-800">
+              <div className="px-3 py-2">
+                <p className="text-sm font-medium text-white">{user?.name}</p>
+                <p className="text-xs text-zinc-500">{roleLabels[user?.role]}</p>
+              </div>
               <DropdownMenuSeparator className="bg-zinc-800" />
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10"
-              >
+              {mainSites.slice(0, 5).map(site => (
+                <DropdownMenuItem
+                  key={site.id}
+                  onClick={() => navigate(`/${site.slug}`)}
+                  className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
+                >
+                  <Globe className="w-4 h-4 mr-2" />
+                  {site.name}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator className="bg-zinc-800" />
+              <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10">
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          </div>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content - with padding for fixed header */}
-      <main className="max-w-7xl mx-auto px-6 py-8 pt-24">
-        {/* Security Warning Banner - shown if 2FA not enabled */}
-        {!user?.totp_enabled && (
-          <div className="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/20 rounded-lg">
-                <Shield className="w-5 h-5 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-amber-200 font-medium">Beveilig je account met 2FA</p>
-                <p className="text-amber-200/70 text-sm">
-                  Twee-factor authenticatie is nog niet ingesteld. Stel dit in voor extra beveiliging.
-                </p>
-              </div>
-            </div>
-            <Button 
-              onClick={() => setSecurityPanelOpen(true)}
-              className="bg-amber-500 hover:bg-amber-600 text-black gap-2"
-            >
-              <Shield className="w-4 h-4" />
-              2FA Setup
-            </Button>
-          </div>
-        )}
+      {/* Main Content */}
+      <main className={`flex-1 transition-all duration-200 ${sidebarOpen ? 'ml-56' : 'ml-14'}`}>
+        <div className="max-w-7xl mx-auto px-6 py-6">
 
-        {/* Page Title */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold">Network Admin</h1>
-            <p className="text-sm text-zinc-400">Manage all main sites</p>
-          </div>
-          <div className="flex gap-2 items-center">
-            {/* View mode toggle */}
-            <div className="flex bg-zinc-800 rounded-lg p-0.5 border border-zinc-700">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`w-8 h-8 rounded-md ${viewMode === 'grid' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-                onClick={() => toggleViewMode('grid')}
-                data-testid="view-mode-grid"
+          {/* Security Warning Banner */}
+          {!user?.totp_enabled && activeSection === 'sites' && (
+            <div className="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/20 rounded-lg">
+                  <Shield className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-amber-200 font-medium">Secure your account with 2FA</p>
+                  <p className="text-amber-200/70 text-sm">Two-factor authentication is not yet set up.</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => setActiveSection('security')}
+                className="bg-amber-500 hover:bg-amber-600 text-black gap-2"
               >
-                <LayoutGrid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`w-8 h-8 rounded-md ${viewMode === 'list' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-                onClick={() => toggleViewMode('list')}
-                data-testid="view-mode-list"
-              >
-                <List className="w-4 h-4" />
+                <Shield className="w-4 h-4" />
+                Setup 2FA
               </Button>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => setSecurityPanelOpen(true)} 
-              className={`gap-2 ${user?.totp_enabled ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20' : 'bg-zinc-800 border-zinc-700 hover:bg-zinc-700'}`}
-            >
-              <Shield className="w-4 h-4" />
-              {user?.totp_enabled ? '2FA Active' : 'Security'}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setAdminManagerOpen(true)}
-              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
-              data-testid="network-admins-btn"
-            >
-              <Crown className="w-4 h-4" />
-              Network Admins
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setNotifSettingsOpen(true)}
-              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
-              data-testid="notification-settings-btn"
-            >
-              <Bell className="w-4 h-4" />
-              Notifications
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/explorer')} 
-              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
-            >
-              <Code className="w-4 h-4" />
-              API Explorer
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setAuditOpen(true)}
-              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
-              data-testid="permission-audit-btn"
-            >
-              <ShieldAlert className="w-4 h-4" />
-              Permission Audit
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={openUserAccessPanel} 
-              className="gap-2 bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
-            >
-              <UserCog className="w-4 h-4" />
-              User Access Debug
-            </Button>
-            <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              New Main Site
-            </Button>
-          </div>
-        </div>
-        {mainSites.length === 0 ? (
+          )}
+
+          {/* ═══════════ SITES OVERVIEW ═══════════ */}
+          {activeSection === 'sites' && (
+            <>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">Sites Overview</h1>
+                  <p className="text-sm text-zinc-400">{mainSites.length} main sites</p>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <div className="flex bg-zinc-800 rounded-lg p-0.5 border border-zinc-700">
+                    <Button
+                      variant="ghost" size="icon"
+                      className={`w-8 h-8 rounded-md ${viewMode === 'grid' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                      onClick={() => toggleViewMode('grid')}
+                      data-testid="view-mode-grid"
+                    >
+                      <LayoutGrid className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost" size="icon"
+                      className={`w-8 h-8 rounded-md ${viewMode === 'list' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                      onClick={() => toggleViewMode('list')}
+                      data-testid="view-mode-list"
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Button onClick={() => setShowCreateDialog(true)} className="gap-2" data-testid="create-site-btn">
+                    <Plus className="w-4 h-4" />
+                    New Main Site
+                  </Button>
+                </div>
+              </div>
+
+              {/* Sites Content */}
+              {mainSites.length === 0 ? (
           <div className="space-y-6">
             {/* Empty State */}
             <Card className="bg-zinc-900 border-zinc-800">
@@ -897,6 +992,75 @@ export default function NetworkDashboard() {
 
           </>
         )}
+            </>
+          )}
+
+          {/* ═══════════ NETWORK ADMINS ═══════════ */}
+          {activeSection === 'admins' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">Network Admins</h1>
+                  <p className="text-sm text-zinc-400">Manage network administrator access and permissions</p>
+                </div>
+              </div>
+              <NetworkAdminManager open={true} onClose={() => setActiveSection('sites')} inline />
+            </div>
+          )}
+
+          {/* ═══════════ NOTIFICATIONS ═══════════ */}
+          {activeSection === 'notifications' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">Notifications</h1>
+                  <p className="text-sm text-zinc-400">Configure email notifications per site and role</p>
+                </div>
+              </div>
+              <NotificationSettings open={true} onClose={() => setActiveSection('sites')} inline mainSites={mainSites} />
+            </div>
+          )}
+
+          {/* ═══════════ PERMISSION AUDIT ═══════════ */}
+          {activeSection === 'audit' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">Permission Audit</h1>
+                  <p className="text-sm text-zinc-400">Audit and verify role permissions across all sites</p>
+                </div>
+              </div>
+              <PermissionAuditPanel token={token} onClose={() => setActiveSection('sites')} inline />
+            </div>
+          )}
+
+          {/* ═══════════ USER ACCESS DEBUG ═══════════ */}
+          {activeSection === 'user-access' && (
+            <UserAccessSection token={token} API={API} openUserAccessPanel={openUserAccessPanel} userAccessPanel={userAccessPanel} mainSites={mainSites} roleIcons={roleIcons} roleLabels={roleLabels} />
+          )}
+
+          {/* ═══════════ ACCOUNT SECURITY ═══════════ */}
+          {activeSection === 'security' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">Account Security</h1>
+                  <p className="text-sm text-zinc-400">Manage your two-factor authentication settings</p>
+                </div>
+                {user?.totp_enabled && (
+                  <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
+                    <CheckCircle className="w-3.5 h-3.5" /> 2FA Active
+                  </span>
+                )}
+              </div>
+              <Card className="bg-zinc-900 border-zinc-800 max-w-lg">
+                <CardContent className="p-6">
+                  <TwoFactorSetup user={user} onUpdate={refreshUser} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Create/Edit Dialog */}
@@ -1179,125 +1343,7 @@ export default function NetworkDashboard() {
         </DialogContent>
       </Dialog>
 
-      {/* User Access Debug Panel */}
-      <Dialog open={userAccessPanel.open} onOpenChange={(open) => !open && setUserAccessPanel({ open: false, loading: false, data: null })}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-5xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="flex items-center gap-2">
-                <UserCog className="w-5 h-5 text-blue-400" />
-                User Access Debug
-              </DialogTitle>
-              <Button variant="ghost" size="sm" onClick={openUserAccessPanel} className="gap-1.5">
-                <Activity className="w-3.5 h-3.5" />
-                Refresh
-              </Button>
-            </div>
-          </DialogHeader>
-          
-          {userAccessPanel.loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
-              <span className="ml-3 text-zinc-400">Loading user access info...</span>
-            </div>
-          ) : userAccessPanel.data ? (
-            <div className="space-y-6">
-              {/* Summary */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-zinc-800/50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-white">{userAccessPanel.data.total_users}</div>
-                  <div className="text-xs text-zinc-400">Total Users</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-white">{userAccessPanel.data.total_main_sites}</div>
-                  <div className="text-xs text-zinc-400">Main Sites</div>
-                </div>
-                <div className="bg-zinc-800/50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-white">{userAccessPanel.data.total_access_records}</div>
-                  <div className="text-xs text-zinc-400">Access Records</div>
-                </div>
-              </div>
-
-              {/* Users without access */}
-              {userAccessPanel.data.users_without_site_access?.length > 0 && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                  <h3 className="text-amber-400 font-semibold mb-3 flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4" />
-                    Users WITHOUT site access ({userAccessPanel.data.users_without_site_access.length})
-                  </h3>
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {userAccessPanel.data.users_without_site_access.map((user, idx) => (
-                      <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-800/50 rounded p-2">
-                        <span className="text-white font-medium">{user.user_name}</span>
-                        <span className="text-zinc-500">{user.user_email}</span>
-                        <span className="text-xs bg-zinc-700 px-2 py-0.5 rounded">{user.user_global_role}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Access by Site */}
-              <div>
-                <h3 className="text-white font-semibold mb-3">Access per Main Site</h3>
-                <div className="space-y-4">
-                  {Object.entries(userAccessPanel.data.access_by_site || {}).map(([siteName, users]) => (
-                    <div key={siteName} className="bg-zinc-800/50 rounded-lg p-4">
-                      <h4 className="text-white font-medium mb-3 flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-blue-400" />
-                        {siteName}
-                        <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
-                          {users.length} users
-                        </span>
-                      </h4>
-                      <div className="space-y-2">
-                        {users.map((access, idx) => {
-                          const RIcon = roleIcons[access.site_role] || Eye;
-                          return (
-                            <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-900/50 rounded p-2">
-                              <RIcon className="w-4 h-4 text-zinc-400" />
-                              <span className="text-white font-medium min-w-[150px]">{access.user_name}</span>
-                              <span className="text-zinc-500 min-w-[200px]">{access.user_email}</span>
-                              <span className={`text-xs px-2 py-0.5 rounded ${
-                                access.site_role === 'admin' ? 'bg-orange-500/20 text-orange-400' :
-                                access.site_role === 'news_admin' ? 'bg-emerald-500/20 text-emerald-400' :
-                                access.site_role === 'editor' ? 'bg-violet-500/20 text-violet-400' :
-                                'bg-zinc-700 text-zinc-400'
-                              }`}>
-                                {roleLabels[access.site_role] || access.site_role}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="text-zinc-500 text-center py-8">No data</p>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Security / 2FA Panel */}
-      <Dialog open={securityPanelOpen} onOpenChange={setSecurityPanelOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg" data-testid="security-panel-dialog">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-emerald-500" />
-              Account Security
-            </DialogTitle>
-            <DialogDescription>
-              Manage your two-factor authentication settings.
-            </DialogDescription>
-          </DialogHeader>
-          <TwoFactorSetup user={user} onUpdate={refreshUser} />
-        </DialogContent>
-      </Dialog>
-
-      {/* Roles Manager Panel */}
+      {/* Roles Manager Panel - remains as dialog (per-site action) */}
       {rolesPanel.open && (
         <RolesManager
           mainSiteId={rolesPanel.siteId}
@@ -1306,26 +1352,6 @@ export default function NetworkDashboard() {
           onClose={() => setRolesPanel({ open: false, siteId: null, siteName: '' })}
         />
       )}
-
-      {/* Permission Audit Panel */}
-      {auditOpen && (
-        <PermissionAuditPanel
-          token={token}
-          onClose={() => setAuditOpen(false)}
-        />
-      )}
-
-      {/* Network Admin Manager */}
-      <NetworkAdminManager
-        open={adminManagerOpen}
-        onClose={() => setAdminManagerOpen(false)}
-      />
-
-      {/* Notification Settings */}
-      <NotificationSettings
-        open={notifSettingsOpen}
-        onClose={() => setNotifSettingsOpen(false)}
-      />
     </div>
   );
 }

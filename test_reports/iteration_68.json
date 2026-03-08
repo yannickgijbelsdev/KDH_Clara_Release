@@ -1,0 +1,101 @@
+{
+  "summary": "Tested Network Dashboard sidebar navigation and per-site notification settings. Backend: All 11 API tests PASSED. Frontend: All sidebar navigation items work correctly (Sites Overview, Network Admins, Notifications, Permission Audit, User Access, Account Security). Per-site notification settings with site selector dropdown working. External links (Backups, API Explorer) present. Sidebar toggle collapses/expands correctly. User profile dropdown at bottom of sidebar.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "TwoFactorSetup.js (Account Security section)",
+        "issues": [
+          "Dutch text 'Twee-factor authenticatie' should be 'Two-factor authentication' (line 148)",
+          "Dutch text 'Actief' should be 'Active' (line 151)",
+          "Dutch text 'Uitschakelen' should be 'Disable' (lines 177, 350)",
+          "Dutch text in description 'Twee-factor authenticatie voegt een extra beveiligingslaag...' should be English (line 195)"
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_sidebar_notification_persite.py",
+    "/app/test_reports/pytest/sidebar_notification_persite_results.xml"
+  ],
+  "action_items": [
+    "Translate Dutch text in TwoFactorSetup.js to English - see design_issues for specific lines"
+  ],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_sidebar_notification_persite.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "100% (Sidebar navigation and notification settings working correctly)"
+  },
+  "seed_data_creation": "Per-site role notification settings saved for test site",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Network Dashboard sidebar navigation fully functional. Sidebar groups: Overview (Sites Overview), Management (Network Admins, Notifications), Debug & Audit (Permission Audit, User Access), Security (Account Security), External (Backups, API Explorer). Per-site notification settings work - site selector dropdown fetches roles via GET /api/notifications/site-roles/{main_site_id} and saves via PUT /api/notifications/role-settings with main_site_id. All panels render inline instead of dialogs. NOTE: TwoFactorSetup.js has Dutch text that needs translation.",
+  "features_tested": {
+    "sidebar_navigation": {
+      "passed": [
+        "Sidebar toggle button collapses/expands sidebar",
+        "Sites Overview item (default section) renders sites grid/list",
+        "Network Admins item renders NetworkAdminManager inline (not as dialog)",
+        "Notifications item renders NotificationSettings inline (not as dialog)",
+        "Permission Audit item renders PermissionAuditPanel inline",
+        "User Access item renders user access data inline",
+        "Account Security item renders TwoFactorSetup inline",
+        "Backups external link present with external icon",
+        "API Explorer external link present with external icon",
+        "User profile dropdown at bottom of sidebar with sign out option"
+      ],
+      "failed": []
+    },
+    "per_site_notification_settings": {
+      "passed": [
+        "Site selector dropdown shows 'Global (all sites)' and all main sites",
+        "GET /api/notifications/site-roles/{main_site_id} returns roles including default roles (admin, presenter, editor, viewer)",
+        "GET /api/notifications/role-settings?main_site_id=xxx returns per-site settings",
+        "PUT /api/notifications/role-settings with main_site_id saves per-site settings",
+        "Role notification cards expand to show mode selector (Real-time, Daily, Both) and category toggles",
+        "Save Settings button saves configuration"
+      ],
+      "failed": []
+    },
+    "network_admin_manager_english": {
+      "passed": [
+        "'Add Network Admin' button text is in English",
+        "'Cancel' and 'Add' buttons in dialog are in English",
+        "'Read Only' toggle label is in English",
+        "'Save' button in edit permissions dialog is in English",
+        "Permission labels (Manage Main Sites, Manage Users, etc.) are in English"
+      ],
+      "failed": []
+    },
+    "backend_api_tests": {
+      "passed": [
+        "GET /api/main-sites returns list of sites with id, name, slug",
+        "GET /api/notifications/site-roles/{site_id} returns roles including defaults",
+        "GET /api/notifications/role-settings (global) returns settings object",
+        "GET /api/notifications/role-settings?main_site_id=xxx (per-site) returns settings",
+        "PUT /api/notifications/role-settings with main_site_id saves and returns success",
+        "GET /api/notifications/smtp-providers returns providers list",
+        "GET /api/notifications/categories returns categories with English descriptions",
+        "GET /api/users/network-admins returns admin list",
+        "GET /api/roles/audit/stats returns audit statistics",
+        "GET /api/roles/audit/logs returns log entries",
+        "GET /api/main-sites/debug/all-user-access returns access data"
+      ],
+      "failed": []
+    }
+  },
+  "test_credentials": {
+    "network_admin": {
+      "email": "admkoodh@koodh.com",
+      "password": "KYLovie13monx"
+    }
+  }
+}

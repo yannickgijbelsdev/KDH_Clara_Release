@@ -25,23 +25,14 @@ async def send_daily_digest():
             logger.debug("Daily digest: SMTP not configured, skipping")
             return
 
-        # Get role notification settings
-        role_settings_doc = await db.notification_config.find_one({"type": "role_notifications"}, {"_id": 0})
-        if not role_settings_doc:
+        # Get ALL role notification settings (per-site and global)
+        all_settings = await db.notification_config.find(
+            {"type": "role_notifications"},
+            {"_id": 0}
+        ).to_list(100)
+
+        if not all_settings:
             logger.debug("Daily digest: No role settings configured, skipping")
-            return
-        roles_config = role_settings_doc.get("roles", {})
-
-        # Find roles with daily or both mode
-        daily_roles = {}
-        for role_slug, role_cfg in roles_config.items():
-            mode = role_cfg.get("mode", "daily")
-            cats = role_cfg.get("categories", [])
-            if mode in ("daily", "both") and cats:
-                daily_roles[role_slug] = cats
-
-        if not daily_roles:
-            logger.debug("Daily digest: No roles configured for daily mode")
             return
 
         # Get events from the last 24 hours
@@ -55,43 +46,79 @@ async def send_daily_digest():
             logger.info("Daily digest: No events in last 24 hours")
             return
 
-        # For each role, filter relevant events and find users
+        # Process each settings doc (per-site or global)
         emails_sent = 0
-        for role_slug, categories in daily_roles.items():
-            role_events = [e for e in events if e.get("category") in categories]
-            if not role_events:
+        notified_users = set()  # Avoid double notifications
+
+        for settings_doc in all_settings:
+            site_id = settings_doc.get("main_site_id", "global")
+            roles_config = settings_doc.get("roles", {})
+
+            # Find roles with daily or both mode
+            daily_roles = {}
+            for role_slug, role_cfg in roles_config.items():
+                mode = role_cfg.get("mode", "daily")
+                cats = role_cfg.get("categories", [])
+                if mode in ("daily", "both") and cats:
+                    daily_roles[role_slug] = cats
+
+            if not daily_roles:
                 continue
 
-            # Find users with this role across all main sites
-            accesses = await db.main_site_users.find(
-                {"role": role_slug}, {"_id": 0, "user_id": 1}
-            ).to_list(500)
-            user_ids = list(set(a["user_id"] for a in accesses))
-
-            if not user_ids:
-                # Check for network admins if role is 'admin'
-                if role_slug == "admin":
-                    users = await db.users.find(
-                        {"is_network_admin": True},
-                        {"_id": 0, "email": 1, "name": 1}
-                    ).to_list(100)
-                else:
-                    continue
+            # Filter events for this site
+            if site_id and site_id != "global":
+                site_events = [e for e in events if e.get("main_site_id") == site_id]
             else:
-                users = await db.users.find(
-                    {"id": {"$in": user_ids}},
-                    {"_id": 0, "email": 1, "name": 1}
-                ).to_list(500)
+                site_events = events
 
-            html = build_daily_summary_html(role_events)
-            subject = f"Clara Daily Summary — {len(role_events)} notifications"
+            if not site_events:
+                continue
 
-            for user in users:
-                success = await send_email_with_config(
-                    smtp_config, user["email"], subject, html
-                )
-                if success:
-                    emails_sent += 1
+            for role_slug, categories in daily_roles.items():
+                role_events = [e for e in site_events if e.get("category") in categories]
+                if not role_events:
+                    continue
+
+                # Find users with this role
+                if site_id and site_id != "global":
+                    accesses = await db.main_site_users.find(
+                        {"main_site_id": site_id, "role": role_slug},
+                        {"_id": 0, "user_id": 1}
+                    ).to_list(500)
+                    user_ids = list(set(a["user_id"] for a in accesses))
+                else:
+                    accesses = await db.main_site_users.find(
+                        {"role": role_slug}, {"_id": 0, "user_id": 1}
+                    ).to_list(500)
+                    user_ids = list(set(a["user_id"] for a in accesses))
+
+                if not user_ids:
+                    if role_slug == "admin":
+                        users = await db.users.find(
+                            {"is_network_admin": True},
+                            {"_id": 0, "email": 1, "name": 1}
+                        ).to_list(100)
+                    else:
+                        continue
+                else:
+                    users = await db.users.find(
+                        {"id": {"$in": user_ids}},
+                        {"_id": 0, "email": 1, "name": 1}
+                    ).to_list(500)
+
+                html = build_daily_summary_html(role_events)
+                subject = f"Clara Daily Summary — {len(role_events)} notifications"
+
+                for user in users:
+                    user_key = f"{user['email']}:{role_slug}:{site_id}"
+                    if user_key in notified_users:
+                        continue
+                    notified_users.add(user_key)
+                    success = await send_email_with_config(
+                        smtp_config, user["email"], subject, html
+                    )
+                    if success:
+                        emails_sent += 1
 
         logger.info(f"Daily digest: Sent {emails_sent} summary emails")
 

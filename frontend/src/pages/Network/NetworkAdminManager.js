@@ -15,15 +15,15 @@ import {
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const PERMISSION_CATEGORIES = [
-  { id: 'manage_sites', label: 'Main Sites beheren', description: 'Aanmaken, bewerken en verwijderen', icon: Globe },
-  { id: 'manage_users', label: 'Gebruikers beheren', description: 'Uitnodigen, rollen toewijzen', icon: Users },
-  { id: 'manage_roles', label: 'Rollen beheren', description: 'Rollen aanmaken en bewerken', icon: ShieldCheck },
-  { id: 'view_firewall', label: 'Firewall bekijken', description: 'Firewall logs en sessies', icon: Shield },
-  { id: 'view_logs', label: 'Activity Logs bekijken', description: 'Audit logs inzien', icon: Eye },
-  { id: 'manage_settings', label: 'Instellingen beheren', description: 'Systeem configuratie', icon: Settings },
+  { id: 'manage_sites', label: 'Manage Main Sites', description: 'Create, edit and delete sites', icon: Globe },
+  { id: 'manage_users', label: 'Manage Users', description: 'Invite and assign roles', icon: Users },
+  { id: 'manage_roles', label: 'Manage Roles', description: 'Create and edit roles', icon: ShieldCheck },
+  { id: 'view_firewall', label: 'View Firewall', description: 'Firewall logs and sessions', icon: Shield },
+  { id: 'view_logs', label: 'View Activity Logs', description: 'View audit logs', icon: Eye },
+  { id: 'manage_settings', label: 'Manage Settings', description: 'System configuration', icon: Settings },
 ];
 
-export default function NetworkAdminManager({ open, onClose }) {
+export default function NetworkAdminManager({ open, onClose, inline = false }) {
   const { token, user } = useAuth();
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,10 +77,10 @@ export default function NetworkAdminManager({ open, onClose }) {
           resetForm();
         }
       } else {
-        toast.error(data.detail || 'Fout bij aanmaken');
+        toast.error(data.detail || 'Failed to add admin');
       }
     } catch (err) {
-      toast.error('Fout bij aanmaken');
+      toast.error('Failed to add admin');
     } finally {
       setSaving(false);
     }
@@ -97,37 +97,37 @@ export default function NetworkAdminManager({ open, onClose }) {
         body: JSON.stringify({ network_permissions: na_permissions })
       });
       if (res.ok) {
-        toast.success('Permissies bijgewerkt');
+        toast.success('Permissions updated');
         setEditingAdmin(null);
         resetForm();
         fetchAdmins();
       } else {
         const data = await res.json();
-        toast.error(data.detail || 'Fout bij bijwerken');
+        toast.error(data.detail || 'Failed to update');
       }
     } catch (err) {
-      toast.error('Fout bij bijwerken');
+      toast.error('Failed to update');
     } finally {
       setSaving(false);
     }
   };
 
   const handleRemove = async (adminId) => {
-    if (!confirm('Weet je zeker dat je deze network admin wilt verwijderen?')) return;
+    if (!confirm('Are you sure you want to remove this network admin?')) return;
     try {
       const res = await fetch(`${API}/api/users/network-admins/${adminId}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        toast.success('Network admin verwijderd');
+        toast.success('Network admin removed');
         fetchAdmins();
       } else {
         const data = await res.json();
-        toast.error(data.detail || 'Fout bij verwijderen');
+        toast.error(data.detail || 'Failed to remove');
       }
     } catch (err) {
-      toast.error('Fout bij verwijderen');
+      toast.error('Failed to remove');
     }
   };
 
@@ -151,8 +151,8 @@ export default function NetworkAdminManager({ open, onClose }) {
         <div className="flex items-center gap-3">
           <Lock className="w-4 h-4 text-amber-400" />
           <div>
-            <p className="text-sm font-medium text-white">Alleen lezen</p>
-            <p className="text-xs text-zinc-500">Kan alles zien maar niets wijzigen</p>
+            <p className="text-sm font-medium text-white">Read Only</p>
+            <p className="text-xs text-zinc-500">Can view everything but cannot make changes</p>
           </div>
         </div>
         <Switch
@@ -189,6 +189,163 @@ export default function NetworkAdminManager({ open, onClose }) {
 
   if (!open) return null;
 
+  const content = (
+    <>
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {admins.map(admin => (
+            <Card key={admin.id} className={`bg-zinc-800/50 border-zinc-700 ${admin.is_primary_network_admin ? 'border-orange-500/30' : ''}`}>
+              <CardContent className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${admin.is_primary_network_admin ? 'bg-gradient-to-br from-orange-500 to-amber-600 text-white' : 'bg-zinc-700 text-zinc-300'}`}>
+                    {admin.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-white">{admin.name}</span>
+                      {admin.is_primary_network_admin && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/20">
+                          Primary
+                        </span>
+                      )}
+                      {admin.network_permissions?.read_only && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20">
+                          Read-only
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500">{admin.email}</p>
+                  </div>
+                </div>
+                {isPrimary && !admin.is_primary_network_admin && (
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" onClick={() => openEditPermissions(admin)} data-testid={`edit-admin-${admin.id}`}>
+                      <Edit className="w-4 h-4 text-zinc-400" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => handleRemove(admin.id)} data-testid={`remove-admin-${admin.id}`}>
+                      <Trash2 className="w-4 h-4 text-red-400" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+
+          {isPrimary && (
+            <Button
+              onClick={() => { resetForm(); setShowAddDialog(true); }}
+              className="w-full gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 border-dashed"
+              variant="outline"
+              data-testid="add-network-admin-btn"
+            >
+              <UserPlus className="w-4 h-4" />
+              Add Network Admin
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Add Admin Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={(v) => { if (!v) { setShowAddDialog(false); resetForm(); } }}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="add-admin-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-emerald-400" />
+              {tempPassword ? 'Admin Created' : 'Add Network Admin'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {tempPassword ? (
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <p className="text-sm text-emerald-400 mb-2">Temporary password:</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 p-2 bg-zinc-800 rounded text-white font-mono text-sm">{tempPassword}</code>
+                  <Button size="icon" variant="ghost" onClick={() => { navigator.clipboard.writeText(tempPassword); toast.success('Copied!'); }}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-zinc-500 mt-2">Share this password securely with the new admin. They must change it on first login.</p>
+              </div>
+              <Button onClick={() => { setShowAddDialog(false); resetForm(); }} className="w-full">Close</Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-3">
+                <div>
+                  <Label>Name</Label>
+                  <Input
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    className="bg-zinc-800 border-zinc-700"
+                    data-testid="admin-name-input"
+                  />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                    className="bg-zinc-800 border-zinc-700"
+                    data-testid="admin-email-input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-sm text-zinc-300 mb-2 block">Permissions</Label>
+                <PermissionToggles />
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); }}>Cancel</Button>
+                <Button onClick={handleAdd} disabled={saving} className="gap-2">
+                  {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Add
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Permissions Dialog */}
+      <Dialog open={!!editingAdmin} onOpenChange={(v) => { if (!v) { setEditingAdmin(null); resetForm(); } }}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="edit-permissions-dialog">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-400" />
+              Permissions: {editingAdmin?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          <PermissionToggles />
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditingAdmin(null); resetForm(); }}>Cancel</Button>
+            <Button onClick={handleUpdatePermissions} disabled={saving} className="gap-2">
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+
+  // Inline mode: render content directly
+  if (inline) {
+    return <div data-testid="network-admin-manager">{content}</div>;
+  }
+
+  // Dialog mode
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="network-admin-manager">
@@ -198,153 +355,7 @@ export default function NetworkAdminManager({ open, onClose }) {
             Network Admins
           </DialogTitle>
         </DialogHeader>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {admins.map(admin => (
-              <Card key={admin.id} className={`bg-zinc-800/50 border-zinc-700 ${admin.is_primary_network_admin ? 'border-orange-500/30' : ''}`}>
-                <CardContent className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${admin.is_primary_network_admin ? 'bg-gradient-to-br from-orange-500 to-amber-600 text-white' : 'bg-zinc-700 text-zinc-300'}`}>
-                      {admin.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-white">{admin.name}</span>
-                        {admin.is_primary_network_admin && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/20">
-                            Primary
-                          </span>
-                        )}
-                        {admin.network_permissions?.read_only && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/20">
-                            Read-only
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-zinc-500">{admin.email}</p>
-                    </div>
-                  </div>
-                  {isPrimary && !admin.is_primary_network_admin && (
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEditPermissions(admin)} data-testid={`edit-admin-${admin.id}`}>
-                        <Edit className="w-4 h-4 text-zinc-400" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleRemove(admin.id)} data-testid={`remove-admin-${admin.id}`}>
-                        <Trash2 className="w-4 h-4 text-red-400" />
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-
-            {isPrimary && (
-              <Button
-                onClick={() => { resetForm(); setShowAddDialog(true); }}
-                className="w-full gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 border-dashed"
-                variant="outline"
-                data-testid="add-network-admin-btn"
-              >
-                <UserPlus className="w-4 h-4" />
-                Network Admin toevoegen
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Add Admin Dialog */}
-        <Dialog open={showAddDialog} onOpenChange={(v) => { if (!v) { setShowAddDialog(false); resetForm(); } }}>
-          <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="add-admin-dialog">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-emerald-400" />
-                {tempPassword ? 'Admin aangemaakt' : 'Network Admin toevoegen'}
-              </DialogTitle>
-            </DialogHeader>
-
-            {tempPassword ? (
-              <div className="space-y-4">
-                <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                  <p className="text-sm text-emerald-400 mb-2">Tijdelijk wachtwoord:</p>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 p-2 bg-zinc-800 rounded text-white font-mono text-sm">{tempPassword}</code>
-                    <Button size="icon" variant="ghost" onClick={() => { navigator.clipboard.writeText(tempPassword); toast.success('Gekopieerd!'); }}>
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-zinc-500 mt-2">Deel dit wachtwoord veilig met de nieuwe admin. Ze moeten het bij eerste login wijzigen.</p>
-                </div>
-                <Button onClick={() => { setShowAddDialog(false); resetForm(); }} className="w-full">Sluiten</Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid gap-3">
-                  <div>
-                    <Label>Naam</Label>
-                    <Input
-                      placeholder="Jan Jansen"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      className="bg-zinc-800 border-zinc-700"
-                      data-testid="admin-name-input"
-                    />
-                  </div>
-                  <div>
-                    <Label>E-mail</Label>
-                    <Input
-                      type="email"
-                      placeholder="jan@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                      className="bg-zinc-800 border-zinc-700"
-                      data-testid="admin-email-input"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm text-zinc-300 mb-2 block">Permissies</Label>
-                  <PermissionToggles />
-                </div>
-
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => { setShowAddDialog(false); resetForm(); }}>Annuleren</Button>
-                  <Button onClick={handleAdd} disabled={saving} className="gap-2">
-                    {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                    Toevoegen
-                  </Button>
-                </DialogFooter>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Permissions Dialog */}
-        <Dialog open={!!editingAdmin} onOpenChange={(v) => { if (!v) { setEditingAdmin(null); resetForm(); } }}>
-          <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="edit-permissions-dialog">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-blue-400" />
-                Permissies: {editingAdmin?.name}
-              </DialogTitle>
-            </DialogHeader>
-
-            <PermissionToggles />
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => { setEditingAdmin(null); resetForm(); }}>Annuleren</Button>
-              <Button onClick={handleUpdatePermissions} disabled={saving} className="gap-2">
-                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Opslaan
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {content}
       </DialogContent>
     </Dialog>
   );
