@@ -2826,25 +2826,19 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: 16/16 backend + 100% frontend (iteration_67.json)
 
 ### March 8, 2026 - Network Dashboard Sidebar & Per-Site Notifications
-- [x] **Network Dashboard Sidebar (COMPLETE)**:
-  - Replaced toolbar buttons with a fixed left sidebar matching main site layout pattern
-  - Sidebar groups: Overview (Sites Overview), Management (Network Admins, Notifications), Debug & Audit (Permission Audit, User Access), Security (Account Security), External (Backups, API Explorer)
-  - Collapsible sidebar with toggle button
-  - User profile dropdown at bottom of sidebar
-  - All panels (NetworkAdmins, Notifications, PermissionAudit, UserAccess, Security) render inline in main content area instead of as dialogs
-  - `activeSection` state controls which panel is displayed
-- [x] **Per-Site Notification Settings (COMPLETE)**:
-  - New site selector dropdown in Role Notifications tab
-  - Options: Global (all sites - fallback), or any specific main site
-  - Per-site role fetching via `GET /api/notifications/site-roles/{main_site_id}` (includes custom roles)
-  - Per-site settings storage with `main_site_id` field in notification_config collection
-  - `trigger_notification()` now checks per-site settings first, then falls back to global
-  - Daily digest scheduler updated to process all per-site settings
-- [x] **Full English Translation Expanded (COMPLETE)**:
-  - TwoFactorSetup.js: All labels, messages, descriptions translated
-  - NetworkAdminManager.js: All buttons, toast messages, permission labels translated
-  - All remaining Dutch text eliminated from UI
-- Tested: 11/11 backend + 100% frontend (iteration_68.json)
+- [x] **Network Dashboard Sidebar (COMPLETE)**: Exact match met MainSiteDashboardLayout — glass background, Collapsible groups, orange active state, user dropdown, sticky header, mobile responsive
+- [x] **Per-Site Notification Settings (COMPLETE)**: Site selector, per-site role fetching, per-site settings storage with fallback to global
+- [x] **Full English Translation Expanded (COMPLETE)**: TwoFactorSetup, NetworkAdminManager, all remaining Dutch text
+
+### March 8, 2026 - System Alert Email, Approval Notifications, Brussels TZ
+- [x] **System Alert Email (COMPLETE)**: Fixed email address (clara.global@koodh.com) that receives ALL notifications from ALL sites. Configurable mode (realtime/daily/both). New "System Alert" tab in UI.
+- [x] **Content Approval Notifications (COMPLETE)**:
+  - When content status → "ready" (pending approval): email to all admins/news_admins on that site + network admins
+  - When approved/rejected: email to the content creator with status + reason
+  - HTML templates: green gradient (approved), red gradient (rejected), amber gradient (pending)
+- [x] **Brussels Timezone (COMPLETE)**: All email timestamps use `Europe/Brussels` (CET/CEST, auto DST)
+- [x] **Clara Global Protect Branding (COMPLETE)**: Footer in all emails, test email subject, daily digest subject
+- Tested: 17/17 backend + 100% frontend (iteration_69.json)
 
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
