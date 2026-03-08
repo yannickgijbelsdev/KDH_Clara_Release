@@ -2873,6 +2873,25 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] System alert email (`clara.global@koodh.com`) receives all these events automatically
 
 
+### Clara Server Edition - XML Import Module (COMPLETE - Feb 2026)
+- [x] New `server` site_type added alongside `radio` and `technical`
+- [x] Network Dashboard shows "Clara Server" as third option with "XML imports & sync" description
+- [x] Server sites auto-redirect to `/xml-imports` on entry
+- [x] **XML Import Dashboard**: Table with search, status filters (All/Processing/Success/Failed), date sort, pagination
+- [x] **XML Upload**: Drag-and-drop zone, .xml validation, max 50MB, background processing
+- [x] **XML Details**: Full import info, parsed metadata (project, version, date, elements), XML preview
+- [x] **XML Parsing**: Extracts project_name, version, date from XML content; handles errors gracefully
+- [x] **API Key Management**: Create/list/deactivate keys per main site, key shown only once, hashed storage
+- [x] **Agent Upload API**: `POST /api/xml-imports/agent/upload` with `Authorization: Bearer <key>` (no JWT needed)
+- [x] **Team Settings**: Server sites support user assignment with roles, same as other site types
+- [x] S3 storage with local fallback for XML files
+- [x] Sidebar: "Server" nav group with XML Imports + API Keys
+- Database: `xml_imports` collection, `xml_api_keys` collection
+- Backend: `/app/backend/routers/xml_imports.py`
+- Frontend: `/app/frontend/src/pages/Server/` (XmlDashboard, XmlUpload, XmlDetails, ApiKeysPage)
+- Tested: 20/20 backend + 100% frontend (iteration_71.json)
+
+
 ### Upcoming Tasks
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
