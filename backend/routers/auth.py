@@ -367,23 +367,32 @@ async def skip_2fa_setup(current_user: dict = Depends(get_current_user)):
     )
     
     return {"totp_skip_count": new_count, "skips_remaining": 3 - new_count}
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+@auth_router.post("/change-password")
 async def change_password(
-    password_data: dict,
+    body: ChangePasswordRequest,
     request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Change user's password."""
-    old_password = password_data.get('old_password')
-    new_password = password_data.get('new_password')
-    
     user = await db.users.find_one({"id": current_user['id']})
-    if not verify_password(old_password, user['password_hash']):
+    if not verify_password(body.current_password, user['password_hash']):
         raise HTTPException(status_code=400, detail="Invalid current password")
     
     await db.users.update_one(
         {"id": current_user['id']},
         {
-            "$set": {"password_hash": hash_password(new_password), "password_changed_at": datetime.now(timezone.utc).isoformat()},
+            "$set": {"password_hash": hash_password(body.new_password), "password_changed_at": datetime.now(timezone.utc).isoformat()},
             "$unset": {"temp_password": "", "force_password_change": ""}
         }
     )
@@ -399,7 +408,53 @@ async def change_password(
         ip_address=get_client_ip(request)
     )
     
+    # Send confirmation email
+    import asyncio
+    from services.email_service import send_password_changed_email
+    asyncio.create_task(send_password_changed_email(current_user['email'], current_user.get('name', '')))
+    
     return {"message": "Password changed successfully"}
+
+
+@auth_router.post("/forgot-password")
+async def forgot_password(body: ForgotPasswordRequest, request: Request):
+    """Send a temporary password to the user's email. No authentication required."""
+    import secrets
+    from services.email_service import send_temp_password_email
+
+    user = await db.users.find_one({"email": body.email}, {"_id": 0})
+    if not user:
+        # Return success even if user not found (security: don't reveal if email exists)
+        return {"message": "If the email exists, a temporary password has been sent."}
+
+    # Generate random temporary password
+    temp_password = secrets.token_urlsafe(10)
+
+    # Update user: set temp password hash and force password change
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {
+            "password_hash": hash_password(temp_password),
+            "force_password_change": True,
+            "temp_password_issued_at": datetime.now(timezone.utc).isoformat(),
+        }}
+    )
+
+    # Send email with temp password
+    await send_temp_password_email(user["email"], temp_password, user.get("name", ""))
+
+    # Log the action
+    await log_action(
+        action="Password Reset Requested",
+        category="auth",
+        user_id=user["id"],
+        user_name=user.get("name", ""),
+        user_email=user["email"],
+        ip_address=get_client_ip(request),
+        details={"method": "forgot_password"}
+    )
+
+    return {"message": "If the email exists, a temporary password has been sent."}
 
 
 # ============== TWO-FACTOR AUTHENTICATION ==============

@@ -1,5 +1,6 @@
 """Ticketing Router — Support ticket system with conversations and user journey tracking."""
 import uuid
+import asyncio
 from datetime import datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
@@ -7,8 +8,11 @@ from pydantic import BaseModel
 from database import db
 from services.auth import get_current_user
 from services.main_site_context import get_main_site_id_from_header
+from services.email_service import send_ticket_notification
 
 ticket_router = APIRouter(prefix="/tickets", tags=["tickets"])
+
+SUPPORT_EMAIL = "support.ops.clara@koodh.com"
 
 
 class TicketCreate(BaseModel):
@@ -72,6 +76,16 @@ async def create_ticket(
     }
 
     await db.tickets.insert_one({**ticket})
+
+    # Send email notifications for ticket creation
+    asyncio.create_task(_send_ticket_emails(
+        ticket_title=body.title,
+        ticket_id=ticket_id,
+        event="created",
+        details=f"New ticket created by {current_user.get('name', current_user.get('email', ''))}.\n\n{body.description[:200]}",
+        site_name=site_name,
+        creator_email=current_user.get("email", ""),
+    ))
 
     # Create notification for all admins of this site
     if main_site_id:
@@ -280,6 +294,17 @@ async def add_message(
             "created_at": now,
         })
 
+    # Send email notifications for new message
+    asyncio.create_task(_send_ticket_emails(
+        ticket_title=ticket.get("title", ""),
+        ticket_id=ticket_id,
+        event="message",
+        details=f"New reply from {current_user.get('name', current_user.get('email', ''))}:\n\n{body.message[:200]}",
+        site_name=ticket.get("site_name", ""),
+        creator_email=ticket.get("creator_email", ""),
+        exclude_email=current_user.get("email", ""),
+    ))
+
     return message
 
 
@@ -316,4 +341,44 @@ async def update_ticket_status(
         {"$set": {"status": body.status, "updated_at": now}},
     )
 
+    # Send email notifications for status change
+    event = "closed" if body.status == "closed" else "updated"
+    asyncio.create_task(_send_ticket_emails(
+        ticket_title=ticket.get("title", ""),
+        ticket_id=ticket_id,
+        event=event,
+        details=f"Ticket status changed to '{body.status}' by {current_user.get('name', current_user.get('email', ''))}.",
+        site_name=ticket.get("site_name", ""),
+        creator_email=ticket.get("creator_email", ""),
+        exclude_email=current_user.get("email", ""),
+    ))
+
     return {"status": body.status, "ticket_id": ticket_id}
+
+
+async def _send_ticket_emails(
+    ticket_title: str,
+    ticket_id: str,
+    event: str,
+    details: str,
+    site_name: str = "",
+    creator_email: str = "",
+    exclude_email: str = "",
+):
+    """Helper: send ticket notification emails to creator and support address."""
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        recipients = set()
+        # Always notify support email
+        recipients.add(SUPPORT_EMAIL)
+        # Notify ticket creator
+        if creator_email:
+            recipients.add(creator_email)
+        # Don't notify the person who triggered the action
+        recipients.discard(exclude_email)
+
+        for email in recipients:
+            await send_ticket_notification(email, ticket_title, ticket_id, event, details, site_name)
+    except Exception as e:
+        logger.error(f"Failed to send ticket email notifications: {e}")

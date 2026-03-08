@@ -2,43 +2,35 @@
 The user's initial request for a ticketing system has evolved into building a comprehensive, multi-tenant security and management platform for their radio business.
 
 PRODUCT REQUIREMENTS from this session:
-1.  **ZeroTier Integration Completion (Completed):** Finalize the ZeroTier monitoring feature, including UI/backend logic for creating and managing technical sites.
-2.  **UI/UX Enhancements for Site Management (Completed):**
-    *   Add labels (Standard, Technical, Clone) to the site selection dropdown.
-    *   Create distinct visual styles (coloring, icons) for Standard, Technical, and Cloned sites on the main dashboard.
-    *   Integrate cloned sites into the main list instead of a separate section.
-    *   Hide/disable irrelevant features and buttons for technical sites.
-3.  **Critical RBAC Bug Fix (Completed):** A user with correct permissions for Show Management was being redirected away from the page due to a hardcoded admin check. This needed to be fixed for all similar admin-only pages.
-4.  **Network Admin Dashboard Enhancements (Completed):**
-    *   Implement a user-preference-based List/Grid view toggle for the main site dashboard.
-    *   Allow the creation and management of multiple Network Admins.
-    *   Introduce a Primary Network Admin role that cannot be removed.
-    *   Implement granular permissions for Network Admins.
-5.  **ZeroTier Client Management (Completed):** Add the ability to rename and authorize/de-authorize ZeroTier clients directly from the UI.
-6.  **Email Notification System (In Progress):** Create a comprehensive system for sending email notifications.
-    *   Allow Network Admins to configure SMTP settings (with presets for M365, Google, etc.).
-    *   Allow Network Admins to define which user roles receive notifications for specific event categories (Security, Firewall, Content, Shows, etc.).
-    *   Notifications should be available in real-time or as a daily summary.
-    *   UI should be in English, not Dutch.
+1.  **Email Notification System Activation (Completed):** The configuration UI was built previously. This session's task was to activate it by translating all UI text to English, implementing the backend logic to trigger real-time emails from events, and creating a scheduled daily digest.
+2.  **Per-Site Notification Settings (Completed):** The global notification settings needed to be enhanced to allow configuration on a per-main-site basis, with a dropdown in the UI to switch between sites.
+3.  **Network Dashboard UI Overhaul (Completed):** The user requested the Network Admin dashboard's layout be completely changed from a top-bar navigation to a sidebar layout to exactly match the design of the main site dashboards for consistency.
+4.  **Add Network Admin Button Bug (Completed):** The button to add new network admins was missing for all but the primary admin. This needed to be fixed.
+5.  **Branding and Timezone Updates (Completed):**
+    *   Change the sidebar branding to Clara Global.
+    *   Change the email branding to Clara Global Protect.
+    *   Standardize all user-facing timestamps in emails and logs to the  timezone.
+6.  **New Notification Types (Completed):**
+    *   A System Alert feature to send a copy of every single notification to a hardcoded email ().
+    *   Email notifications for the content approval workflow (request sent, request approved/rejected).
+7.  **Ticket System Notifications (New Request):** Implement email notifications for the ticketing system. The ticket creator should receive an email on creation and on every update. A support email () should receive an email on creation, updates, and closure.
+8.  **Forgot Password Flow (New Request):** Implement a Forgot Password button on the login page. This should email the user a random temporary password and force them to set a new password immediately upon logging in, with a final confirmation email.
 
-**User's preferred language**: Dutch. However, the user has explicitly requested that all UI elements and code be in **English**. The next agent MUST respond in Dutch but ensure all development output is in English.
+**User's preferred language**: The user communicates in Dutch. The next agent MUST respond in **Dutch**. However, all UI elements, code, comments, and documentation must be written in **English**.
 
 **what currently exists?**
-The application is a full-stack React/FastAPI multi-tenant radio management platform. Core features include user/role management, a firewall, ticketing, WebRTC, and RDS management.
+The application is a full-stack React/FastAPI multi-tenant radio management platform. Core features include user/role management, a firewall, ticketing, ZeroTier integration, and extensive admin dashboards.
 
-In this highly productive session, the agent:
--   **Completed the ZeroTier integration**, including creating a new technical site type with a restricted UI, adding management controls for clients, and allowing admins to create these sites.
--   **Overhauled the main dashboard UI** with distinct visual branding for Standard, Technical, and Cloned sites, and added a persistent list/grid view toggle.
--   **Fixed a critical, widespread RBAC bug** where pages incorrectly used a hardcoded  check instead of respecting granular role permissions, blocking access for non-admin users. This involved fixing a race condition in the frontend permission loading.
--   **Significantly expanded Network Admin capabilities**, adding a panel to manage multiple network admins, introducing a protected primary admin, and adding granular permissions.
--   **Built the complete UI and backend configuration for a new Email Notification System**. This includes a UI for setting SMTP credentials and a detailed matrix for assigning notification categories to user roles.
+In this session, the agent successfully activated and completed the end-to-end email notification system. This involved translating all remaining Dutch text, creating a background scheduler for daily digests, and hooking the email service into the central audit log so that events automatically trigger notifications.
+
+The agent also completed a major UI/UX overhaul of the Network Admin Dashboard, refactoring it to use a consistent sidebar layout. As part of this, the notification system was enhanced to support per-site configurations. Finally, new notification types for content approvals and a global system alert were added, along with branding and timezone updates as requested.
 
 **Last working item**:
--   **Last item agent was working:** Translating the newly-created Email Notification system's UI from Dutch to English, as per the user's request.
--   **Status:** IN PROGRESS
--   **Agent Testing Done:** N (for the translation)
--   **Which testing method agent to use?** screenshot tool. A simple visual check is needed to confirm all Dutch text in the Notification Settings panel has been replaced with English.
--   **User Testing Done:** N
+- **Last item agent was working:** The user requested two major new features: Ticket Notifications and a Forgot Password flow. The agent had just begun analyzing the existing  and  routers to plan the implementation.
+- **Status:** NOT STARTED
+- **Agent Testing Done:** N
+- **Which testing method agent to use?** both. This involves significant backend logic (email sending, token generation, password reset) and frontend changes (new UI on login page, password reset form, popups). A full E2E test by the testing agent is required after implementation.
+- **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
 -   **Issue 1: (P1) Cannot log into cloned sites on production.**
@@ -65,105 +57,92 @@ In this highly productive session, the agent:
     -   **Blocked on other issue:** None.
 
 **In progress Task List**:
--   **Task 1: (P0) Finalize and Activate Email Notification System**
-    -   **Description:** The configuration UI and backend settings are complete, but the system is not yet active. The  function and other event-generating parts of the code do not yet trigger the email service.
-    -   **Where to resume:**
-        1.  **Translate UI:** Finish translating  from Dutch to English.
-        2.  **Trigger Emails:** Modify the  function (and potentially other key locations like login failure handlers) to check the notification settings from the database.
-        3.  **Send Emails:** Based on the settings, call the  to send the notification to the relevant users. Consider if this should be done asynchronously (e.g., with background tasks) to avoid blocking API responses.
-        4.  **Implement Daily Digest:** Create a scheduled task (e.g., a cron job or a background scheduler) that aggregates daily events and sends summary emails to users who have opted for them.
-    -   **What will be achieved with this?** A fully functional, end-to-end email notification system as requested by the user.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on something:** None.
+-   None.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
+    *   **(P0) Implement Ticket Notification System:** Build the logic to send emails on ticket creation, updates, and closure to the creator and a support address.
+    *   **(P0) Implement Forgot Password Flow:** Add a Forgot Password button and the full backend/frontend flow for password reset.
     *   **(P1) Finalize WordPress Plugin Integration:** Guide the user through installing and configuring the custom  plugin.
-    *   **(P1) Cleanup Obsolete ProRadio Sync Code:** After the new plugin is confirmed to be working, remove the old ProRadio integration code (, ).
+    *   **(P1) Cleanup Obsolete ProRadio Sync Code:** After the new plugin is confirmed to be working, remove the old ProRadio integration code.
     *   **(P1) Configurable Stale Now Playing Timeout:** Add a UI to configure the 15-minute hardcoded timeout in .
 *   **Future Tasks:**
     *   **(P2) Stream Monitor VU Meters:** Implement functional VU meters on the stream monitor page.
 
 **Completed work in this session**
--   **Email Notification System (Foundation DONE):** Built the complete backend and frontend for configuring a new email notification system.
--   **Critical RBAC Bugfix (DONE):** Replaced hardcoded  checks with dynamic permission hooks () across multiple admin pages (, , etc.), fixing a critical access control bug.
--   **Network Admin Management (DONE):** Implemented a full UI and backend for creating, editing, and deleting multiple network admins with granular permissions and a protected primary admin.
--   **Dashboard View & Style Overhaul (DONE):**
-    -   Added a persistent list/grid view toggle to the main dashboard.
-    -   Implemented distinct green (Technical) and blue (Clone) branding for site cards in both list and grid views.
-    -   Merged Cloned sites into the main list for a unified view.
--   **ZeroTier Integration Completion (DONE):**
-    -   Added inline client renaming and authorization controls.
-    -   Finalized UI restrictions, disabling/hiding irrelevant features and buttons on technical sites.
--   **Site Dropdown Labels (DONE):** Added Standard, Technical, and Clone badges to the site selector dropdown menu.
+-   **Full Email Notification System Activation (DONE):** Activated the entire notification system by translating all text, implementing email triggers in the central audit log, creating a daily digest scheduler, and adding a notification history UI.
+-   **Network Dashboard UI Overhaul (DONE):** Completely refactored the  page to use a sidebar layout identical to main sites, improving UI consistency and usability.
+-   **Per-Site Notification Settings (DONE):** Enhanced the notification system to support settings on a per-site basis, with a UI dropdown to manage them.
+-   **System Alert & Approval Notifications (DONE):** Implemented a new System Alert feature to send all notifications to a global email and added notifications for the content approval workflow.
+-   **Branding and Timezone Standardization (DONE):** Updated all email templates and UI to use Clara Global Protect branding and the Europe/Brussels timezone.
+-   **Bug Fix (DONE):** Fixed an issue where the Add Network Admin button was not visible to all network admins.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Cannot log into cloned sites on production:** This is a recurring, high-priority issue that remains blocked on user feedback.
 -   **RDS settings page not loading:** User reported this, but the agent could not reproduce it. This needs to be revisited with the user.
 
 **Known issue recurrence from previous fork**
--   **Multi-Tenant Logic:** The RBAC bug (hardcoded admin checks instead of per-site role checks) was another instance of this architectural challenge. The fix reinforces the importance of using the permission system, which is tenant-aware, instead of global role checks.
+-   **Multi-Tenant Logic:** The architecture continues to evolve to better handle multi-tenancy. The move from global to per-site notification settings is a positive step in this direction, reinforcing the need for tenant-aware logic.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **User Preference Persistence:** A new backend endpoint and frontend hook were created to save and retrieve user-specific UI preferences (like list/grid view) from the database.
--   **Conditional UI Rendering based on :** The dashboard now heavily uses the  property to conditionally render styles, icons, buttons, and feature lists, creating distinct experiences for Standard, Technical, and Cloned sites.
--   **Primary Admin Pattern:** A boolean flag  was added to the user model to protect one admin account from being deleted or modified by other admins, ensuring there is always a superuser.
--   **Permission Loading Race Condition:** Fixed a critical bug where UI redirects would trigger before async permission data had loaded. The solution was to use a  state from the  hook to delay rendering/redirects.
--   **Dynamic Component Rendering:** The main dashboard now dynamically renders a  or  panel based on UI state, keeping the main component cleaner.
+-   **Component Reusability ( mode):** Key components like  and  were refactored to accept an  prop. This allows them to render either as modals or as embedded sections within a larger page, enabling the new sidebar layout.
+-   **Per-Tenant Configuration:** The notification system was refactored from a global configuration to a per-site model, with a Global fallback. This involved changing backend models/endpoints to store and query settings against a .
+-   **Centralized Event-Driven Notifications:** Instead of placing notification triggers in dozens of locations, the agent hooked into the central  service. This is a robust pattern ensuring any action that gets logged can now also trigger a notification.
+-   **Asynchronous Scheduled Tasks:** A background scheduler () was implemented for the daily email digest, which runs independently of API requests.
+-   **UI Layout Replication:** The complex responsive layout from  (sidebar, header, collapsible groups) was successfully replicated in  to create a consistent UX.
 
 **key DB schema**
--   **users:** 
--   **network_settings:** (New collection) 
+-   **network_settings:**
+    -   Document  structure changed to:  to accommodate per-site and global settings.
+    -   New document  created: .
+-   **notification_log:** New collection created to store a history of all sent email notifications.
 
 **changes in tech stack**
--   None.
+-    was added to  to handle the scheduled daily digest emails.
 
 **All files of reference**
-*   : Heavily modified file for the dashboard overhaul, view toggle, and new admin panels.
-*   : New component for the email notification system UI.
-*   : New component for the network admin management UI.
-*   : Contains new endpoints for managing network admins.
-*   : Contains new endpoints for managing notification settings.
-*   : Modified to use database-driven SMTP configuration.
-*    (and other admin pages): Files where the critical  check was replaced with the  hook.
+*   : The file was completely rewritten to implement the new sidebar layout.
+*   : Heavily modified to support inline rendering, per-site settings, and the new System Alert tab.
+*   : Central hub for all notification logic; heavily modified for new templates, timezones, and per-site lookups.
+*   : Backend API for all notification settings; heavily modified for per-site and system alert CRUD.
+*   : The central logging service, now also the primary trigger for all notifications.
+*   : New file containing the logic for the daily digest background job.
 
 **Areas that need refactoring**:
 -   The obsolete ProRadio sync code (, ) still needs to be removed.
 
 **key api endpoints**
--   : Manage SMTP and notification rule settings.
--   : Test the configured SMTP settings.
--   : List all network admins.
--   : CRUD operations for network admins.
--   : Save user-specific UI preferences.
--   : Rename a ZeroTier client.
+-   : Manage notification rules for a specific site (or global).
+-   : Manage the global system alert email configuration.
+-   : Manually trigger the daily digest.
+-   : Retrieve the history of sent notifications.
+-   : Endpoints for updating content now trigger approval-related emails.
 
 **Critical Info for New Agent**
 -   **Language:** The user communicates in Dutch, but you MUST write all UI code and text in **English**.
--   **Top Priority (P0):** The email notification system is only half-built. The configuration UI is done, but it doesn't actually *send* any emails yet. Your first task is to finish the translation and then implement the logic to trigger and send emails based on the user's settings.
--   **Blocked Bugs:** The cloned site login and RDS settings page bugs are still blocked pending user feedback. You can re-inquire about these after making progress on the notification system.
+-   **Top Priority (P0):** The next actions are to implement the two new user requests: the **Ticket Notification System** and the **Forgot Password Flow**. Begin by planning these two features.
+-   **Architectural Patterns:** Follow the established patterns. Use the per-site settings model for new configurable features. Replicate the new sidebar layout for any future global admin pages.
 
 **documents and test reports created in this job**
--    (ZeroTier Completion Test)
--    (Network Admin & View Toggle Test)
--    (Email Notification System Config Test)
+-   
+-   
+-   
 -    (updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **User:** Requests that cloned sites be integrated into the main list with a blue color, not kept separate. (Completed)
-9.  **User:** Requests that technical sites also get branded styling (green color, wrench icon). (Completed)
-8.  **User:** Asks if new ZeroTier clients will appear automatically. (Agent confirms yes).
-7.  **User:** Requests the ability to rename and authorize ZeroTier clients. (Completed)
-6.  **User:** Requests that for technical sites, certain features/buttons should be grayed out/hidden. (Completed)
-5.  **User:** Points out that some buttons are still visible for technical sites in the list view. (Agent investigated and pushed a fix).
-4.  **User:** Provides a large feature request for a full email notification system (SMTP config, presets, role-based rules, categories). (Task started)
-3.  **User:** Confirms the agent's detailed plan for the notification system. (Plan approved)
-2.  **User:** Points out that the newly built notification UI is in Dutch and must be in English. (Task started)
-1.  **Agent:** Starts translating the notification UI to English. (Last action)
+10. : Confirmed agent's plan for sidebar layout and per-site notifications. (Plan Approved)
+9.  : Pointed out that the Add Network Admin button was missing in the new UI. (Issue Raised)
+8.  : Showed the fix for the missing Add Network Admin button. (Issue Resolved)
+7.  : Requested the Network Dashboard sidebar and header be made *exactly* identical to the main site layout. (Task Created)
+6.  : Requested the brand name Clara in the sidebar header be changed to Clara Global. (Task Created)
+5.  : Requested timezone change to  and rebranding to Clara Global Protect in emails. (Task Created)
+4.  : Requested a global System Administrator email to receive all notifications, and for notifications to be added to the content approval workflow. (Task Created)
+3.  : Confirmed agent's plan for the approval workflow notifications. (Plan Approved)
+2.  : Showed passing test results for all the implemented notification features and UI changes. (Task Completed)
+1.  : Requested two major new features: a full ticket notification system and a forgot password flow. (Current Task)
 
 **Project Health Check:**
 -   **Broken:**
@@ -179,9 +158,10 @@ In this highly productive session, the agent:
 -   **reportlab:** Backend library for server-side PDF generation.
 -   **boto3:** For interacting with S3-compatible storage.
 -   **ZeroTier:** Integrated via its public HTTP API.
+-   **apscheduler:** For running the daily notification digest job.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES, used successfully three times for major feature completions.
+-   **Testing agent used after significant changes:** YES, used successfully three times for major feature validation and regression testing.
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** None
 -   **Known regressions:** None from this session. The cloned site login issue is a pre-existing regression.
@@ -193,4 +173,4 @@ In this highly productive session, the agent:
 -   **Password:** 
 
 **What agent forgot to execute**
--   The most critical omission is that the new **Email Notification System is not actually triggered anywhere**. The configuration part is done, but no code was added to the activity log service or other event sources to process the rules and send emails. This must be the next immediate step.</analysis>
+-   Nothing was forgotten. The agent successfully completed a large set of user requests and was just assigned two new major features at the end of the session.</analysis>

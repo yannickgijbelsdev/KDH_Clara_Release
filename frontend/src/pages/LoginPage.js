@@ -4,7 +4,9 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import { Shield, ArrowLeft, KeyRound } from 'lucide-react';
+import { Shield, ArrowLeft, KeyRound, Mail, Loader2 } from 'lucide-react';
+
+const API = process.env.REACT_APP_BACKEND_URL;
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +16,10 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
   const [useBackupCode, setUseBackupCode] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
   const { login } = useAuth();
 
   const handleSubmit = async (e) => {
@@ -54,6 +60,29 @@ const LoginPage = () => {
     setUseBackupCode(false);
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+    setForgotLoading(true);
+    try {
+      const res = await fetch(`${API}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail }),
+      });
+      if (res.ok) {
+        setForgotSent(true);
+        toast.success('If the email exists, a temporary password has been sent.');
+      } else {
+        const d = await res.json().catch(() => ({}));
+        toast.error(d.detail || 'Something went wrong');
+      }
+    } catch {
+      toast.error('Connection error');
+    }
+    setForgotLoading(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#09090b] flex">
       {/* Left side - Hero */}
@@ -90,7 +119,77 @@ const LoginPage = () => {
           </div>
 
           <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-8">
-            {!requires2FA ? (
+            {showForgotPassword ? (
+              // Forgot Password View
+              <>
+                <button
+                  onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotEmail(''); }}
+                  className="flex items-center gap-2 text-zinc-400 hover:text-white mb-6 transition-colors"
+                  data-testid="forgot-back-btn"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to login
+                </button>
+
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-orange-500/10 rounded-lg">
+                    <Mail className="w-6 h-6 text-orange-500" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-white">
+                    Forgot password
+                  </h2>
+                </div>
+
+                {!forgotSent ? (
+                  <>
+                    <p className="text-zinc-400 mb-8">
+                      Enter your email address and we will send you a temporary password.
+                    </p>
+                    <form onSubmit={handleForgotPassword} className="space-y-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="forgot-email" className="text-zinc-300">Email</Label>
+                        <Input
+                          id="forgot-email"
+                          data-testid="forgot-email-input"
+                          type="email"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          placeholder="you@example.com"
+                          required
+                          autoFocus
+                          className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 h-12"
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        data-testid="forgot-submit-btn"
+                        disabled={forgotLoading}
+                        className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-semibold shadow-lg shadow-orange-500/20"
+                      >
+                        {forgotLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Sending...</> : 'Send temporary password'}
+                      </Button>
+                    </form>
+                  </>
+                ) : (
+                  <div className="mt-6" data-testid="forgot-success-message">
+                    <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-6 text-center">
+                      <Mail className="w-10 h-10 text-green-400 mx-auto mb-3" />
+                      <p className="text-green-300 font-medium mb-2">Email sent!</p>
+                      <p className="text-zinc-400 text-sm">
+                        If an account exists for <strong className="text-zinc-300">{forgotEmail}</strong>, a temporary password has been sent. Check your inbox and use it to log in.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => { setShowForgotPassword(false); setForgotSent(false); setForgotEmail(''); }}
+                      className="w-full h-12 mt-4 bg-zinc-800 hover:bg-zinc-700 text-white"
+                      data-testid="forgot-back-to-login-btn"
+                    >
+                      Back to login
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : !requires2FA ? (
               // Step 1: Email & Password
               <>
                 <h2 className="text-2xl font-bold text-white mb-2">
@@ -137,6 +236,15 @@ const LoginPage = () => {
                   >
                     {isLoading ? 'Signing in...' : 'Sign in'}
                   </Button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotPassword(true); setForgotEmail(email); }}
+                    className="w-full text-center text-sm text-zinc-400 hover:text-orange-400 transition-colors mt-1"
+                    data-testid="forgot-password-link"
+                  >
+                    Forgot password?
+                  </button>
                 </form>
               </>
             ) : (

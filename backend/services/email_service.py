@@ -266,6 +266,139 @@ def build_approval_request_html(content_title: str, requester_name: str, site_na
     </div>"""
 
 
+def build_ticket_notification_html(ticket_title: str, ticket_id: str, event: str, details: str, site_name: str = "") -> str:
+    """Build HTML for ticket-related email notifications."""
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    color_map = {
+        "created": ("linear-gradient(135deg,#3b82f6,#2563eb)", "New Ticket"),
+        "updated": ("linear-gradient(135deg,#f59e0b,#d97706)", "Ticket Updated"),
+        "closed": ("linear-gradient(135deg,#22c55e,#16a34a)", "Ticket Closed"),
+        "message": ("linear-gradient(135deg,#8b5cf6,#7c3aed)", "New Reply"),
+    }
+    gradient, label = color_map.get(event, ("linear-gradient(135deg,#f97316,#ea580c)", event.title()))
+
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:{gradient};padding:20px 24px;">
+            <h1 style="margin:0;font-size:18px;color:white;">{label}</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
+        </div>
+        <div style="padding:24px;">
+            <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:12px;">
+                <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Ticket</p>
+                <p style="margin:0;font-size:15px;font-weight:600;color:white;">{ticket_title}</p>
+            </div>
+            <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:12px;">
+                <p style="margin:0;font-size:13px;color:#a1a1aa;">{details}</p>
+            </div>
+            <table style="width:100%;font-size:12px;color:#71717a;">
+                <tr>
+                    <td>Site: <strong style="color:#a1a1aa;">{site_name or 'Global'}</strong></td>
+                    <td style="text-align:right;">{now}</td>
+                </tr>
+                <tr><td colspan="2" style="padding-top:4px;">ID: <span style="color:#52525b;">{ticket_id[:8]}...</span></td></tr>
+            </table>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
+    </div>"""
+
+
+def build_temp_password_html(temp_password: str, user_name: str = "") -> str:
+    """Build HTML email for temporary password (forgot password flow)."""
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:20px 24px;">
+            <h1 style="margin:0;font-size:18px;color:white;">Password Reset</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
+        </div>
+        <div style="padding:24px;">
+            <p style="margin:0 0 16px;font-size:14px;color:#a1a1aa;">
+                {f'Hello {user_name},' if user_name else 'Hello,'}
+            </p>
+            <p style="margin:0 0 16px;font-size:13px;color:#a1a1aa;">
+                A password reset was requested for your account. Use the temporary password below to log in. You will be required to set a new password immediately.
+            </p>
+            <div style="background:#27272a;border:2px dashed #f97316;border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;">
+                <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Temporary Password</p>
+                <p style="margin:0;font-size:22px;font-weight:700;color:#f97316;letter-spacing:2px;font-family:monospace;">{temp_password}</p>
+            </div>
+            <p style="margin:0 0 4px;font-size:12px;color:#ef4444;">
+                This temporary password is valid for a single login. Change your password immediately after logging in.
+            </p>
+            <p style="margin:16px 0 0;font-size:12px;color:#52525b;">{now}</p>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
+    </div>"""
+
+
+def build_password_changed_confirmation_html(user_name: str = "") -> str:
+    """Build HTML email confirming password was changed successfully."""
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:20px 24px;">
+            <h1 style="margin:0;font-size:18px;color:white;">Password Changed</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
+        </div>
+        <div style="padding:24px;">
+            <p style="margin:0 0 16px;font-size:14px;color:#a1a1aa;">
+                {f'Hello {user_name},' if user_name else 'Hello,'}
+            </p>
+            <p style="margin:0 0 16px;font-size:13px;color:#a1a1aa;">
+                Your password has been successfully changed. If you did not make this change, please contact your administrator immediately.
+            </p>
+            <p style="margin:16px 0 0;font-size:12px;color:#52525b;">{now}</p>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
+    </div>"""
+
+
+async def send_ticket_notification(to_email: str, ticket_title: str, ticket_id: str, event: str, details: str, site_name: str = ""):
+    """Send a ticket notification email."""
+    from database import db
+    smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+    if not smtp_config or not smtp_config.get("password"):
+        logger.debug("Ticket notification: SMTP not configured")
+        return False
+
+    subject_map = {
+        "created": f"New Ticket: {ticket_title}",
+        "updated": f"Ticket Updated: {ticket_title}",
+        "closed": f"Ticket Closed: {ticket_title}",
+        "message": f"New Reply on Ticket: {ticket_title}",
+    }
+    subject = f"Clara Global Protect - {subject_map.get(event, ticket_title)}"
+    html = build_ticket_notification_html(ticket_title, ticket_id, event, details, site_name)
+    return await send_email_with_config(smtp_config, to_email, subject, html)
+
+
+async def send_temp_password_email(to_email: str, temp_password: str, user_name: str = ""):
+    """Send temporary password email for forgot-password flow."""
+    from database import db
+    smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+    if not smtp_config or not smtp_config.get("password"):
+        logger.debug("Temp password email: SMTP not configured")
+        return False
+
+    html = build_temp_password_html(temp_password, user_name)
+    subject = "Clara Global Protect - Password Reset"
+    return await send_email_with_config(smtp_config, to_email, subject, html)
+
+
+async def send_password_changed_email(to_email: str, user_name: str = ""):
+    """Send confirmation email after password was changed."""
+    from database import db
+    smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+    if not smtp_config or not smtp_config.get("password"):
+        logger.debug("Password changed email: SMTP not configured")
+        return False
+
+    html = build_password_changed_confirmation_html(user_name)
+    subject = "Clara Global Protect - Password Changed Successfully"
+    return await send_email_with_config(smtp_config, to_email, subject, html)
+
+
 async def send_content_approval_notification(
     to_email: str,
     to_name: str,
