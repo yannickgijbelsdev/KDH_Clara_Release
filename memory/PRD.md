@@ -2956,6 +2956,22 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] Updated Pydantic model `MainSiteUserResponse` to include `avatar_url` field
 - Tested: iteration_78 (6/6 backend + 100% frontend verified)
 
+### March 9, 2026 (Session 3d) - Platform Branding & Login Customization (COMPLETE)
+- [x] **Quick fix**: "Clara Tasks" → "Tasks" in all site type labels/badges
+- [x] **Platform Branding** (Network Admin):
+  - Backend: `GET/PUT /api/branding`, upload endpoints for logo, favicon, login images
+  - Frontend: BrandingSettings page with full customization controls
+  - Dynamic brand name/logo in all sidebars (DashboardLayout, MainSiteDashboardLayout, NetworkDashboard)
+  - BrandingContext provider for app-wide branding data
+  - BrandLogo component replaces all hardcoded "Clara" text
+  - Dynamic favicon updates via BrandingContext
+- [x] **Login Page Customization**:
+  - Image position: left, right, or fullscreen
+  - Image type: static or carousel (with auto-rotate)
+  - Upload/delete login background images
+  - Live preview in settings
+- Tested: iteration_79 (11/11 backend + 100% frontend verified)
+
   - **5 Overlay Elements**: Logo (uploadable), Clock (live), Ticker (scrolling/static), Now Playing Show, Now Playing Track
   - **Ticker Features**: Configurable separators (bullet, dash, pipe, star, custom), scrolling toggle, text/bg colors, font size
   - **Now Playing**: Linked to XML Server imports for show/track data, presenter photo support
