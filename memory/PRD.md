@@ -2949,13 +2949,21 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] Beide types: team_settings, firewall, activity_logs als togglebare optional features
 
 
+### March 9, 2026 (Session 2) - vMix Enhancements + Emails + Board Members
+- [x] **vMix Director: Production URL fixed** — hardcoded to `https://clara.koodh.com`, not editable
+- [x] **vMix Director: Alignment Grid** — toggleable grid overlay with rule-of-thirds, center crosshair, quarter marks, safe area (90%)
+- [x] **vMix Director: Advanced Backgrounds** — all overlay elements (ticker, clock, now_playing) support: transparent, solid color, gradient (2 colors + angle), high-res image upload
+- [x] **Email: Clara Tasks site label** — creating a task_scheduler site shows "Clara Tasks" in notification emails
+- [x] **Email: User Invite** — team settings invite sends branded email with Clara logo, temp password, site name, role. User gets `force_password_change: true`
+- [x] **Email: Task Status Notifications** — moving tasks between columns emails all board members + assignee with status change details
+- [x] **Task Scheduler: Board Members** — per-board member selection (not everyone from team settings). Avatar display in board header. Member picker dropdown.
+- Tested: iteration_75 (13/13 backend + all frontend verified)
+
 ### Upcoming Tasks
-- **P0: Task Scheduler Calendar Integration** - Google Calendar and Outlook two-way sync for task deadlines
-- **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
-- **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
-- **P1: Configurable "Stale Now Playing" Timeout** - Make 15-min timeout configurable via UI
-- **P2: Stream Monitor VU Meters** - Implement functional VU meters (blocked by browser security)
-- **P2: Frontend RBAC cleanup** - Update component-level action buttons (Delete, Edit) to use canCreate/canDelete hooks
+- **P0: Rundown member avatars + live viewers (WebSocket)** — show who's in the rundown + real-time live viewer indicator
+- **P0: Calendar Integration** — Google Calendar & Outlook sync for task deadlines
+- **P0: Production email alerts** — wacht op feedback
+- **P1: Clone login bug op productie** — geblokkeerd
 
 
 ### March 9, 2026 - Task Scheduler / Kanban Boards (COMPLETE)
