@@ -2936,6 +2936,16 @@ now = now_brussels()  # Automatically handles CET/CEST
 ### March 9, 2026 - Server Mode Selection (XML vs vMix)
 - [x] XML Imports en vMix Director zijn nu mutually exclusive keuzes bij het aanmaken van een Server site
 - [x] Technical sites tonen ZeroTier als always-enabled grayed-out feature
+
+### March 9, 2026 - Mini Site Form Builder Enhancement (COMPLETE)
+- [x] **New field types**: date picker, number (with min/max), letters only, dropdown (select), file upload
+- [x] **File upload per field**: Supports image, audio, video or all file types with S3 storage
+- [x] **Field configuration**: Placeholder text, required toggle, type-specific options
+- [x] **Backend model extended**: FormField model now supports `placeholder`, `file_accept`, `min_value`, `max_value`
+- [x] **Public form renders all new types**: Date picker, number input, letters-only validation, dropdown, per-field file upload
+- [x] **Admin form builder UI**: Enhanced with all new types, inline placeholder editing, file accept filter buttons, min/max for numbers, textarea for dropdown options
+- Files: `backend/models/sites.py`, `frontend/src/pages/Sites/SiteDashboard.js`, `frontend/src/pages/Sites/PublicSitePage.js`
+
 - [x] Beide types: team_settings, firewall, activity_logs als togglebare optional features
 
 

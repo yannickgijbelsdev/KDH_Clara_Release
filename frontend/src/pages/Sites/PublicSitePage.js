@@ -22,6 +22,7 @@ export default function PublicSitePage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [fieldFiles, setFieldFiles] = useState({});
   const [uploading, setUploading] = useState(false);
   
   const audioRef = useRef(null);
@@ -179,6 +180,25 @@ export default function PublicSitePage() {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleFieldFileUpload = async (fieldId, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formDataObj = new FormData();
+    formDataObj.append('file', file);
+    try {
+      const res = await fetch(`${API}${apiPath}/upload-file`, { method: 'POST', body: formDataObj });
+      if (res.ok) {
+        const data = await res.json();
+        setFieldFiles(prev => ({ ...prev, [fieldId]: { url: data.file_url, name: data.filename, type: data.content_type } }));
+        setFormData(prev => ({ ...prev, [fieldId]: data.file_url }));
+      } else {
+        toast.error('Upload failed');
+      }
+    } catch { toast.error('Upload error'); }
+    setUploading(false);
+  };
+
   const getFileIcon = (type) => {
     if (type?.startsWith('image/')) return FileImage;
     if (type?.startsWith('audio/')) return FileAudio;
@@ -201,6 +221,7 @@ export default function PublicSitePage() {
           custom_fields: Object.fromEntries(
             Object.entries(formData).filter(([key]) => !['name', 'phone', 'message'].includes(key))
           ),
+          field_files: fieldFiles,
           file_urls: uploadedFiles.map(f => f.url)
         })
       });
@@ -469,15 +490,83 @@ export default function PublicSitePage() {
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
                         rows={3}
+                        placeholder={field.placeholder || ''}
                         className="w-full bg-zinc-800 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none"
                         style={{ '--tw-ring-color': buttonColor }}
                       />
+                    ) : field.type === 'select' ? (
+                      <select
+                        value={formData[field.id] || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        required={field.required}
+                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
+                      >
+                        <option value="">{field.placeholder || 'Select...'}</option>
+                        {(field.options || []).map(opt => (
+                          <option key={opt} value={opt}>{opt}</option>
+                        ))}
+                      </select>
+                    ) : field.type === 'date' ? (
+                      <Input
+                        type="date"
+                        value={formData[field.id] || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        required={field.required}
+                        className="bg-zinc-800 border-transparent text-sm [color-scheme:dark]"
+                      />
+                    ) : field.type === 'number' ? (
+                      <Input
+                        type="number"
+                        value={formData[field.id] || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
+                        required={field.required}
+                        min={field.min_value ?? undefined}
+                        max={field.max_value ?? undefined}
+                        placeholder={field.placeholder || ''}
+                        className="bg-zinc-800 border-transparent text-sm"
+                      />
+                    ) : field.type === 'letters' ? (
+                      <Input
+                        type="text"
+                        value={formData[field.id] || ''}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ\s'-]/g, '');
+                          setFormData(prev => ({ ...prev, [field.id]: val }));
+                        }}
+                        required={field.required}
+                        placeholder={field.placeholder || 'Letters only'}
+                        className="bg-zinc-800 border-transparent text-sm"
+                      />
+                    ) : field.type === 'file' ? (
+                      <div className="space-y-2">
+                        {fieldFiles[field.id] ? (
+                          <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg text-sm">
+                            {(() => { const FileIcon = getFileIcon(fieldFiles[field.id].type); return <FileIcon className="h-4 w-4 text-zinc-400" />; })()}
+                            <span className="flex-1 truncate text-zinc-300">{fieldFiles[field.id].name}</span>
+                            <button type="button" onClick={() => { setFieldFiles(prev => { const n = {...prev}; delete n[field.id]; return n; }); setFormData(prev => ({ ...prev, [field.id]: '' })); }} className="text-zinc-500 hover:text-red-400">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="cursor-pointer block">
+                            <input type="file"
+                              accept={field.file_accept === 'image' ? 'image/*' : field.file_accept === 'audio' ? 'audio/*' : field.file_accept === 'video' ? 'video/*' : 'image/*,audio/*,video/*'}
+                              onChange={(e) => handleFieldFileUpload(field.id, e)}
+                              className="hidden" disabled={uploading} />
+                            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-700/50 text-sm text-zinc-400">
+                              <Upload className="h-4 w-4" />
+                              {uploading ? 'Uploading...' : `Upload ${field.file_accept === 'all' ? 'file' : field.file_accept || 'file'}`}
+                            </div>
+                          </label>
+                        )}
+                      </div>
                     ) : (
                       <Input
                         type={field.type}
                         value={formData[field.id] || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
+                        placeholder={field.placeholder || ''}
                         className="bg-zinc-800 border-transparent text-sm"
                       />
                     )}

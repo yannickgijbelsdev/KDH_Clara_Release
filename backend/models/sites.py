@@ -8,9 +8,13 @@ class FormField(BaseModel):
     """Custom form field configuration."""
     id: str
     label: str
-    type: str = "text"  # text, email, tel, textarea, select
+    type: str = "text"  # text, email, tel, textarea, select, date, number, letters, file
     required: bool = False
     options: Optional[List[str]] = None  # For select fields
+    placeholder: Optional[str] = None
+    file_accept: Optional[str] = None  # For file fields: "image", "audio", "video", or "all"
+    min_value: Optional[float] = None  # For number fields
+    max_value: Optional[float] = None  # For number fields
 
 
 class SiteCreate(BaseModel):

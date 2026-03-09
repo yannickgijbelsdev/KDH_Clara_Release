@@ -263,7 +263,10 @@ export default function SiteDashboard() {
       id: `field_${Date.now()}`,
       label: 'New field',
       type: 'text',
-      required: false
+      required: false,
+      placeholder: '',
+      file_accept: 'all',
+      options: [],
     };
     setSite(prev => ({
       ...prev,
@@ -757,42 +760,92 @@ export default function SiteDashboard() {
                   {(site.form_fields || []).map((field) => (
                     <div 
                       key={field.id}
-                      className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg"
+                      className="p-3 bg-zinc-800/50 rounded-lg space-y-2"
                     >
-                      <Input
-                        value={field.label}
-                        onChange={(e) => updateFormField(field.id, { label: e.target.value })}
-                        className="bg-zinc-800 border-zinc-700 flex-1"
-                        placeholder="Field name"
-                      />
-                      <select
-                        value={field.type}
-                        onChange={(e) => updateFormField(field.id, { type: e.target.value })}
-                        className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm"
-                      >
-                        <option value="text">Text</option>
-                        <option value="email">Email</option>
-                        <option value="tel">Phone</option>
-                        <option value="textarea">Textarea</option>
-                      </select>
-                      <label className="flex items-center gap-2 text-sm whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={field.required}
-                          onChange={(e) => updateFormField(field.id, { required: e.target.checked })}
-                          className="rounded"
+                      {/* Row 1: Label, Type, Required, Delete */}
+                      <div className="flex items-center gap-3">
+                        <Input
+                          value={field.label}
+                          onChange={(e) => updateFormField(field.id, { label: e.target.value })}
+                          className="bg-zinc-800 border-zinc-700 flex-1"
+                          placeholder="Field name"
                         />
-                        Required
-                      </label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFormField(field.id)}
-                        disabled={['name', 'phone', 'message'].includes(field.id)}
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                        <select
+                          value={field.type}
+                          onChange={(e) => updateFormField(field.id, { type: e.target.value })}
+                          className="bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-white"
+                        >
+                          <option value="text">Text</option>
+                          <option value="email">Email</option>
+                          <option value="tel">Phone</option>
+                          <option value="textarea">Textarea</option>
+                          <option value="number">Number</option>
+                          <option value="letters">Letters only</option>
+                          <option value="date">Date picker</option>
+                          <option value="select">Dropdown</option>
+                          <option value="file">File upload</option>
+                        </select>
+                        <label className="flex items-center gap-2 text-sm whitespace-nowrap">
+                          <input
+                            type="checkbox"
+                            checked={field.required}
+                            onChange={(e) => updateFormField(field.id, { required: e.target.checked })}
+                            className="rounded"
+                          />
+                          Required
+                        </label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFormField(field.id)}
+                          disabled={['name', 'phone', 'message'].includes(field.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {/* Row 2: Placeholder */}
+                      <Input
+                        value={field.placeholder || ''}
+                        onChange={(e) => updateFormField(field.id, { placeholder: e.target.value })}
+                        className="bg-zinc-800 border-zinc-700 text-sm h-8"
+                        placeholder="Placeholder text (optional)"
+                      />
+                      {/* Row 3: Type-specific options */}
+                      {field.type === 'file' && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-400 whitespace-nowrap">Accepted files:</span>
+                          {['all', 'image', 'audio', 'video'].map(opt => (
+                            <button
+                              key={opt}
+                              onClick={() => updateFormField(field.id, { file_accept: opt })}
+                              className={`px-2 py-1 rounded text-xs capitalize ${(field.file_accept || 'all') === opt ? 'bg-orange-500 text-white' : 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600'}`}
+                            >
+                              {opt}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {field.type === 'number' && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-zinc-400">Min:</span>
+                          <Input type="number" value={field.min_value ?? ''} onChange={(e) => updateFormField(field.id, { min_value: e.target.value ? parseFloat(e.target.value) : null })} className="bg-zinc-800 border-zinc-700 h-8 text-xs w-24" />
+                          <span className="text-xs text-zinc-400">Max:</span>
+                          <Input type="number" value={field.max_value ?? ''} onChange={(e) => updateFormField(field.id, { max_value: e.target.value ? parseFloat(e.target.value) : null })} className="bg-zinc-800 border-zinc-700 h-8 text-xs w-24" />
+                        </div>
+                      )}
+                      {field.type === 'select' && (
+                        <div className="space-y-1">
+                          <span className="text-xs text-zinc-400">Options (one per line):</span>
+                          <textarea
+                            value={(field.options || []).join('\n')}
+                            onChange={(e) => updateFormField(field.id, { options: e.target.value.split('\n').filter(Boolean) })}
+                            rows={3}
+                            className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-2 text-sm text-white resize-none"
+                            placeholder="Option 1&#10;Option 2&#10;Option 3"
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
