@@ -2947,6 +2947,15 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Backend: WebSocket disconnect sends `editing_end` to all remaining viewers
 - Tested: iteration_77 (9/9 backend + 100% frontend verified)
 
+### March 9, 2026 (Session 3c) - Platform-wide Avatar Fix (COMPLETE)
+- [x] **Unified avatar resolution** — created `getAvatarUrl()` utility for frontend and `resolve_avatar_url()` for backend
+  - Backend: resolves `avatar.s3_url` (S3) or `avatar.file_key` (local → `/api/uploads/avatars/{file_key}`)
+  - Frontend: `frontend/src/utils/avatar.js` handles all avatar formats (flat avatar_url, avatar.s3_url, avatar.url, avatar.file_key)
+- [x] **Fixed 12+ frontend files**: DashboardLayout, MainSiteDashboardLayout, RundownEditor, SortableRundownItem, CreateShowDialog, ShowDetailPage, ShowManagementPage, TaskBoardsPage, TeamSettingsPage, NetworkDashboard, StatisticsPage, ChatPage
+- [x] **Fixed 4 backend files**: shows.py, task_boards.py, main_sites.py, server.py (WebSocket)
+- [x] Updated Pydantic model `MainSiteUserResponse` to include `avatar_url` field
+- Tested: iteration_78 (6/6 backend + 100% frontend verified)
+
   - **5 Overlay Elements**: Logo (uploadable), Clock (live), Ticker (scrolling/static), Now Playing Show, Now Playing Track
   - **Ticker Features**: Configurable separators (bullet, dash, pipe, star, custom), scrolling toggle, text/bg colors, font size
   - **Now Playing**: Linked to XML Server imports for show/track data, presenter photo support
