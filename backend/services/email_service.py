@@ -531,3 +531,103 @@ async def send_approval_request_notification(
     if SYSTEM_ADMIN_EMAIL not in sent_emails:
         await _send_admin_copy(f"Clara Global Protect: {subject}", html)
     logger.info(f"Approval request sent to {sent} approvers")
+
+
+def build_invite_email_html(user_name: str, site_name: str, role: str, temp_password: str, inviter_name: str = "") -> str:
+    """Build HTML email for user invitation with temporary password."""
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:24px;">
+            <h1 style="margin:0;font-size:22px;color:white;">Clara</h1>
+            <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.85);">You've been invited!</p>
+        </div>
+        <div style="padding:24px;">
+            <p style="margin:0 0 16px;font-size:14px;color:#e4e4e7;">
+                Hello {user_name},
+            </p>
+            <p style="margin:0 0 16px;font-size:13px;color:#a1a1aa;">
+                {f'<strong style="color:white;">{inviter_name}</strong> has invited you' if inviter_name else 'You have been invited'} to join <strong style="color:white;">{site_name}</strong> as <strong style="color:#f97316;">{role}</strong>.
+            </p>
+            <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:16px;">
+                <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Site</p>
+                <p style="margin:0;font-size:15px;font-weight:600;color:white;">{site_name}</p>
+            </div>
+            <div style="background:#27272a;border:2px dashed #f97316;border-radius:8px;padding:20px;text-align:center;margin-bottom:16px;">
+                <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Your Temporary Password</p>
+                <p style="margin:0;font-size:22px;font-weight:700;color:#f97316;letter-spacing:2px;font-family:monospace;">{temp_password}</p>
+            </div>
+            <p style="margin:0 0 16px;font-size:13px;color:#a1a1aa;">
+                Log in at <a href="https://clara.koodh.com" style="color:#f97316;text-decoration:none;font-weight:600;">clara.koodh.com</a> using your email and this temporary password. You will be asked to set a new password immediately.
+            </p>
+            <p style="margin:0;font-size:12px;color:#ef4444;">
+                This temporary password is for a single use only. Please change it upon your first login.
+            </p>
+            <p style="margin:16px 0 0;font-size:12px;color:#52525b;">{now}</p>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
+    </div>"""
+
+
+async def send_invite_email(to_email: str, user_name: str, site_name: str, role: str, temp_password: str, inviter_name: str = ""):
+    """Send invitation email with temporary password."""
+    from database import db
+    smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+    if not smtp_config or not smtp_config.get("password"):
+        logger.debug("Invite email: SMTP not configured")
+        return False
+
+    html = build_invite_email_html(user_name, site_name, role, temp_password, inviter_name)
+    subject = f"Clara - You've been invited to {site_name}"
+    result = await send_email_with_config(smtp_config, to_email, subject, html)
+    await _send_admin_copy(f"Clara: User Invited - {to_email} to {site_name}", html, exclude_email=to_email)
+    return result
+
+
+def build_task_status_html(task_title: str, board_name: str, old_status: str, new_status: str, mover_name: str, site_name: str = "") -> str:
+    """Build HTML email for task status change notification."""
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    status_colors = {
+        "To Do": "#71717a", "In Progress": "#3b82f6", "Review": "#f59e0b", "Done": "#22c55e"
+    }
+    color = status_colors.get(new_status, "#8b5cf6")
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,{color},{color}dd);padding:20px 24px;">
+            <h1 style="margin:0;font-size:18px;color:white;">Task Status Update</h1>
+            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Tasks</p>
+        </div>
+        <div style="padding:24px;">
+            <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:16px;">
+                <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Task</p>
+                <p style="margin:0;font-size:15px;font-weight:600;color:white;">{task_title}</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                <span style="background:#27272a;border-radius:6px;padding:6px 12px;font-size:13px;color:#a1a1aa;">{old_status}</span>
+                <span style="color:#71717a;font-size:14px;">&#8594;</span>
+                <span style="background:{color}22;border:1px solid {color}44;border-radius:6px;padding:6px 12px;font-size:13px;color:{color};font-weight:600;">{new_status}</span>
+            </div>
+            <table style="width:100%;font-size:12px;color:#71717a;">
+                <tr><td>Board: <strong style="color:#a1a1aa;">{board_name}</strong></td></tr>
+                <tr><td>Moved by: <strong style="color:#a1a1aa;">{mover_name}</strong></td></tr>
+                {f'<tr><td>Site: <strong style="color:#a1a1aa;">{site_name}</strong></td></tr>' if site_name else ''}
+                <tr><td style="padding-top:8px;">{now}</td></tr>
+            </table>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
+    </div>"""
+
+
+async def send_task_status_notification(task_title: str, board_name: str, old_status: str, new_status: str, mover_name: str, notify_emails: list, site_name: str = ""):
+    """Send task status change email to all involved parties."""
+    from database import db
+    smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+    if not smtp_config or not smtp_config.get("password"):
+        logger.debug("Task status notification: SMTP not configured")
+        return
+
+    html = build_task_status_html(task_title, board_name, old_status, new_status, mover_name, site_name)
+    subject = f"Clara Tasks - {task_title}: {old_status} → {new_status}"
+    for email in notify_emails:
+        await send_email_with_config(smtp_config, email, subject, html)
+    await _send_admin_copy(subject, html)

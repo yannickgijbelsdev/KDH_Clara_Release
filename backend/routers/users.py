@@ -6,6 +6,7 @@ from pathlib import Path
 import uuid
 import mimetypes
 import aiofiles
+import asyncio
 
 from database import db, AVATARS_DIR
 from models.auth import (
@@ -18,6 +19,15 @@ from services.auth import (
 from services.audit import log_action, get_client_ip
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
 from services.main_site_context import get_main_site_id_from_header, get_effective_role
+
+
+async def _send_invite_email_async(to_email, user_name, site_name, role, temp_password, inviter_name):
+    """Fire-and-forget wrapper for invite email."""
+    try:
+        from services.email_service import send_invite_email
+        await send_invite_email(to_email, user_name, site_name, role, temp_password, inviter_name)
+    except Exception:
+        pass
 
 users_router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -123,6 +133,7 @@ async def invite_user(
         "role": invite_data.role,
         "team_id": current_user['team_id'],
         "temp_password": temp_password,
+        "force_password_change": True,
         "created_at": now
     }
     
@@ -138,6 +149,18 @@ async def invite_user(
             "created_at": now
         }
         await db.main_site_users.insert_one(access_doc)
+    
+    # Send invitation email with temporary password
+    site_name = "Clara"
+    if main_site_id:
+        main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "name": 1})
+        if main_site:
+            site_name = main_site["name"]
+    
+    asyncio.create_task(_send_invite_email_async(
+        invite_data.email, invite_data.name, site_name,
+        invite_data.role, temp_password, current_user.get('name', '')
+    ))
     
     # Log the user invitation
     await log_action(

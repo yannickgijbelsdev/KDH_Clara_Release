@@ -498,7 +498,8 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
   const [newColName, setNewColName] = useState('');
   const [editCol, setEditCol] = useState(null);
   const [editColName, setEditColName] = useState('');
-
+  const [showMemberPicker, setShowMemberPicker] = useState(false);
+  const [boardMembers, setBoardMembers] = useState([]);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor)
@@ -514,6 +515,11 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
       setBoard(boardRes.data);
       setColumns(colsRes.data);
       setTasks(tasksRes.data);
+      // Fetch members separately so it doesn't block
+      try {
+        const membersRes = await axios.get(`${API}/task-boards/boards/${boardId}/members`, { headers });
+        setBoardMembers(membersRes.data);
+      } catch { setBoardMembers([]); }
     } catch (err) {
       toast.error('Failed to load board');
     }
@@ -619,6 +625,20 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
     } catch { toast.error('Failed to delete column'); }
   };
 
+  const toggleBoardMember = async (userId) => {
+    const currentMembers = board.members || [];
+    const newMembers = currentMembers.includes(userId)
+      ? currentMembers.filter(id => id !== userId)
+      : [...currentMembers, userId];
+    try {
+      const res = await axios.put(`${API}/task-boards/boards/${boardId}`, { members: newMembers }, { headers });
+      setBoard(res.data);
+      // Refresh members
+      const membersRes = await axios.get(`${API}/task-boards/boards/${boardId}/members`, { headers });
+      setBoardMembers(membersRes.data);
+    } catch { toast.error('Failed to update members'); }
+  };
+
   const handleDragStart = (event) => { setActiveId(event.active.id); };
 
   const handleDragEnd = async (event) => {
@@ -676,7 +696,57 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: board.color }} />
         <h2 className="text-lg font-bold text-white">{board.name}</h2>
         <span className="text-xs text-zinc-500">{tasks.length} tasks</span>
-        <div className="ml-auto">
+
+        {/* Member avatars */}
+        <div className="flex items-center ml-4 -space-x-2" data-testid="board-members-avatars">
+          {boardMembers.slice(0, 6).map(member => (
+            <div key={member.id} title={member.name} className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+              {member.avatar_url ? (
+                <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                member.name?.charAt(0).toUpperCase() || '?'
+              )}
+            </div>
+          ))}
+          {boardMembers.length > 6 && (
+            <div className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-400">
+              +{boardMembers.length - 6}
+            </div>
+          )}
+        </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          {/* Member picker */}
+          <div className="relative">
+            <Button variant="outline" size="sm" onClick={() => setShowMemberPicker(p => !p)}
+              className="border-zinc-700 text-zinc-300 text-xs h-7" data-testid="manage-members-btn">
+              <User className="w-3.5 h-3.5 mr-1" /> Members ({boardMembers.length})
+            </Button>
+            {showMemberPicker && (
+              <div className="absolute right-0 top-9 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl w-64 max-h-72 overflow-y-auto" data-testid="member-picker-dropdown">
+                <div className="p-2 border-b border-zinc-800">
+                  <p className="text-xs font-semibold text-zinc-300">Board Members</p>
+                  <p className="text-[10px] text-zinc-500">Select who can participate</p>
+                </div>
+                {users.map(u => {
+                  const isMember = (board.members || []).includes(u.id);
+                  return (
+                    <div key={u.id} onClick={() => toggleBoardMember(u.id)}
+                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${isMember ? 'bg-orange-500/10' : 'hover:bg-zinc-800'}`}>
+                      <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white">
+                        {u.name?.charAt(0).toUpperCase() || '?'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-white truncate">{u.name}</p>
+                        <p className="text-[10px] text-zinc-500 truncate">{u.email}</p>
+                      </div>
+                      {isMember && <div className="w-2 h-2 rounded-full bg-orange-500" />}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
           <Button variant="outline" size="sm" onClick={() => setShowAddCol(true)} className="border-zinc-700 text-zinc-300 text-xs h-7" data-testid="add-column-btn">
             <Plus className="w-3.5 h-3.5 mr-1" /> Column
           </Button>

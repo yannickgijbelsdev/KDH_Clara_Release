@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import {
   Monitor, Image, Clock, Type, Music, Radio, Upload, Save, Eye, EyeOff,
   Trash2, Plus, GripVertical, Copy, Settings, Play, ChevronDown, ChevronUp,
-  Link2, RefreshCw, Loader2, ExternalLink
+  Link2, RefreshCw, Loader2, ExternalLink, Grid
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -21,6 +21,8 @@ const ELEMENT_TYPES = {
   now_playing_show: { label: 'Now Playing (Show)', icon: Radio, color: '#8b5cf6' },
   now_playing_track: { label: 'Now Playing (Track)', icon: Music, color: '#ec4899' },
 };
+
+const PRODUCTION_URL = 'https://clara.koodh.com';
 
 const BG_TYPES = [
   { id: 'transparent', label: 'Transparent' },
@@ -137,6 +139,7 @@ export default function VmixDirector() {
   const [activeElement, setActiveElement] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [dragging, setDragging] = useState(null);
+  const [showGrid, setShowGrid] = useState(true);
   const canvasRef = useRef(null);
 
   const fetchAll = useCallback(async () => {
@@ -298,8 +301,7 @@ export default function VmixDirector() {
   }, [dragging, config]);
 
   const copyOverlayUrl = (type) => {
-    const overlayBase = (config?.overlay_base_url || 'https://clara.koodh.com').replace(/\/+$/, '');
-    const url = `${overlayBase}/api/vmix/overlay/${mainSite.id}/${type}`;
+    const url = `${PRODUCTION_URL}/api/vmix/overlay/${mainSite.id}/${type}`;
     navigator.clipboard.writeText(url);
     toast.success('URL copied to clipboard');
   };
@@ -336,7 +338,14 @@ export default function VmixDirector() {
               <h2 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
                 <Monitor className="w-4 h-4" /> Live Canvas Preview
               </h2>
-              <span className="text-[10px] text-zinc-500">16:9 — Drag elements to reposition</span>
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowGrid(g => !g)}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] transition-colors ${showGrid ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}
+                  data-testid="vmix-grid-toggle">
+                  <Grid className="w-3 h-3" /> Grid
+                </button>
+                <span className="text-[10px] text-zinc-500">16:9 — Drag to reposition</span>
+              </div>
             </div>
             <div
               ref={canvasRef}
@@ -344,6 +353,32 @@ export default function VmixDirector() {
               className="relative w-full rounded-lg overflow-hidden border border-white/10"
               style={{ aspectRatio: '16/9', background: config.canvas_bg }}
             >
+              {/* Alignment Grid */}
+              {showGrid && (
+                <div className="absolute inset-0 pointer-events-none z-30">
+                  {/* Thirds - vertical */}
+                  <div className="absolute top-0 bottom-0 left-[33.33%] w-px bg-cyan-500/20" />
+                  <div className="absolute top-0 bottom-0 left-[66.66%] w-px bg-cyan-500/20" />
+                  {/* Thirds - horizontal */}
+                  <div className="absolute left-0 right-0 top-[33.33%] h-px bg-cyan-500/20" />
+                  <div className="absolute left-0 right-0 top-[66.66%] h-px bg-cyan-500/20" />
+                  {/* Center crosshair */}
+                  <div className="absolute top-0 bottom-0 left-[50%] w-px bg-cyan-500/30" />
+                  <div className="absolute left-0 right-0 top-[50%] h-px bg-cyan-500/30" />
+                  {/* Quarters */}
+                  <div className="absolute top-0 bottom-0 left-[25%] w-px bg-cyan-500/10" />
+                  <div className="absolute top-0 bottom-0 left-[75%] w-px bg-cyan-500/10" />
+                  <div className="absolute left-0 right-0 top-[25%] h-px bg-cyan-500/10" />
+                  <div className="absolute left-0 right-0 top-[75%] h-px bg-cyan-500/10" />
+                  {/* Safe area (90%) */}
+                  <div className="absolute border border-dashed border-yellow-500/15" style={{ left: '5%', top: '5%', right: '5%', bottom: '5%' }} />
+                  {/* Corner markers */}
+                  <div className="absolute top-2 left-2 text-[8px] text-cyan-500/40 font-mono">0,0</div>
+                  <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2">
+                    <div className="w-2 h-2 rounded-full bg-cyan-500/20" />
+                  </div>
+                </div>
+              )}
               {config.elements.filter(el => el.enabled).map(el => {
                 const meta = ELEMENT_TYPES[el.type];
                 const Icon = meta?.icon || Monitor;
@@ -395,17 +430,10 @@ export default function VmixDirector() {
             <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
               <Link2 className="w-4 h-4" /> vMix Overlay URLs
             </h2>
-            <div className="flex items-center gap-2 mb-3">
-              <label className="text-[10px] text-zinc-500 uppercase whitespace-nowrap">Production URL</label>
-              <Input value={config?.overlay_base_url || 'https://clara.koodh.com'} 
-                onChange={e => setConfig(p => ({ ...p, overlay_base_url: e.target.value }))}
-                className="h-7 text-xs bg-zinc-800 border-zinc-700 flex-1" placeholder="https://clara.koodh.com" />
-            </div>
-            <p className="text-xs text-zinc-500 mb-3">Copy these URLs into vMix as Web Browser Input sources</p>
+            <p className="text-xs text-zinc-500 mb-3">Copy these URLs into vMix as Web Browser Input sources &mdash; <span className="text-zinc-400">{PRODUCTION_URL}</span></p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {Object.entries(ELEMENT_TYPES).map(([type, meta]) => {
                 const urlType = type === 'now_playing_show' ? 'now-playing-show' : type === 'now_playing_track' ? 'now-playing-track' : type;
-                const overlayBase = (config?.overlay_base_url || 'https://clara.koodh.com').replace(/\/+$/, '');
                 return (
                   <div key={type} className="flex items-center gap-2 bg-zinc-800/50 rounded-lg px-3 py-2">
                     <meta.icon className="w-4 h-4 flex-shrink-0" style={{ color: meta.color }} />
@@ -413,7 +441,7 @@ export default function VmixDirector() {
                     <Button size="sm" variant="ghost" onClick={() => copyOverlayUrl(urlType)} className="h-7 px-2 text-xs text-zinc-400 hover:text-white">
                       <Copy className="w-3 h-3 mr-1" /> Copy URL
                     </Button>
-                    <a href={`${overlayBase}/api/vmix/overlay/${mainSite?.id}/${urlType}`} target="_blank" rel="noreferrer">
+                    <a href={`${PRODUCTION_URL}/api/vmix/overlay/${mainSite?.id}/${urlType}`} target="_blank" rel="noreferrer">
                       <ExternalLink className="w-3.5 h-3.5 text-zinc-500 hover:text-white" />
                     </a>
                   </div>

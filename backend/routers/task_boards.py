@@ -1,6 +1,7 @@
 """Task Board Router — Kanban boards with tasks, columns, and calendar sync."""
 import uuid
 import os
+import asyncio
 from datetime import datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
@@ -21,12 +22,14 @@ class BoardCreate(BaseModel):
     name: str
     description: str = ""
     color: str = "#f59e0b"
+    members: List[str] = []  # list of user IDs
 
 
 class BoardUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
+    members: Optional[List[str]] = None
 
 
 class ColumnCreate(BaseModel):
@@ -118,6 +121,7 @@ async def create_board(
         "slug": slug,
         "description": body.description,
         "color": body.color,
+        "members": body.members if body.members else [current_user.get("id")],
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user.get("id"),
@@ -181,6 +185,26 @@ async def delete_board(
     await db.task_columns.delete_many({"board_id": board_id})
     await db.tasks.delete_many({"board_id": board_id})
     return {"status": "deleted"}
+
+
+@task_boards_router.get("/boards/{board_id}/members")
+async def get_board_members(
+    board_id: str,
+    main_site_id: str = Depends(get_main_site_id_from_header),
+    current_user: dict = Depends(get_current_user),
+):
+    """Get detailed member info for a board."""
+    board = await db.task_boards.find_one({"id": board_id, "main_site_id": main_site_id}, {"_id": 0, "members": 1})
+    if board is None:
+        raise HTTPException(status_code=404, detail="Board not found")
+    member_ids = board.get("members", [])
+    if not member_ids:
+        return []
+    users = await db.users.find(
+        {"id": {"$in": member_ids}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "avatar_url": 1}
+    ).to_list(100)
+    return users
 
 
 # ── Columns CRUD ──
@@ -385,12 +409,63 @@ async def move_task(
     main_site_id: str = Depends(get_main_site_id_from_header),
     current_user: dict = Depends(get_current_user),
 ):
+    # Get old task state for status change detection
+    old_task = await db.tasks.find_one({"id": task_id, "board_id": board_id}, {"_id": 0})
+    old_column_id = old_task.get("column_id") if old_task else None
+
     await db.tasks.update_one(
         {"id": task_id, "board_id": board_id, "main_site_id": main_site_id},
         {"$set": {"column_id": body.column_id, "order": body.order, "updated_at": datetime.now(timezone.utc).isoformat()}},
     )
     task = await db.tasks.find_one({"id": task_id}, {"_id": 0})
+
+    # Send status change notification if column changed
+    if old_column_id and old_column_id != body.column_id:
+        asyncio.create_task(_notify_task_status_change(
+            task, board_id, main_site_id, old_column_id, body.column_id, current_user
+        ))
+
     return task
+
+
+async def _notify_task_status_change(task, board_id, main_site_id, old_col_id, new_col_id, mover):
+    """Send email notifications when a task changes columns (status)."""
+    try:
+        from services.email_service import send_task_status_notification
+        old_col = await db.task_columns.find_one({"id": old_col_id}, {"_id": 0, "name": 1})
+        new_col = await db.task_columns.find_one({"id": new_col_id}, {"_id": 0, "name": 1})
+        board = await db.task_boards.find_one({"id": board_id}, {"_id": 0, "name": 1, "members": 1})
+        main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "name": 1})
+
+        if not all([old_col, new_col, board]):
+            return
+
+        # Get emails of board members
+        member_ids = board.get("members", [])
+        notify_emails = []
+        if member_ids:
+            users = await db.users.find({"id": {"$in": member_ids}}, {"_id": 0, "email": 1}).to_list(100)
+            notify_emails = [u["email"] for u in users if u.get("email") and u["email"] != mover.get("email")]
+
+        # Also notify assignee if different from mover
+        assignee_id = task.get("assignee_id")
+        if assignee_id and assignee_id != mover.get("id"):
+            assignee = await db.users.find_one({"id": assignee_id}, {"_id": 0, "email": 1})
+            if assignee and assignee["email"] not in notify_emails:
+                notify_emails.append(assignee["email"])
+
+        if notify_emails:
+            await send_task_status_notification(
+                task_title=task.get("title", "Untitled"),
+                board_name=board.get("name", ""),
+                old_status=old_col.get("name", ""),
+                new_status=new_col.get("name", ""),
+                mover_name=mover.get("name", ""),
+                notify_emails=notify_emails,
+                site_name=main_site.get("name", "") if main_site else "",
+            )
+    except Exception as e:
+        logger.error(f"Failed to send task status notification: {e}")
 
 
 # ── Task Comments ──
