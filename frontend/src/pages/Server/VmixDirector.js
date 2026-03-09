@@ -22,6 +22,13 @@ const ELEMENT_TYPES = {
   now_playing_track: { label: 'Now Playing (Track)', icon: Music, color: '#ec4899' },
 };
 
+const BG_TYPES = [
+  { id: 'transparent', label: 'Transparent' },
+  { id: 'solid', label: 'Solid Color' },
+  { id: 'gradient', label: 'Gradient' },
+  { id: 'image', label: 'Image' },
+];
+
 const SEPARATORS = [
   { id: 'bullet', label: 'Bullet', preview: '\u2022' },
   { id: 'dash', label: 'Dash', preview: '\u2014' },
@@ -32,6 +39,93 @@ const SEPARATORS = [
 
 // Strip alpha from hex colors for HTML5 color input (only supports 6-char hex)
 const toHex6 = (c) => c && c.startsWith('#') ? '#' + c.replace('#','').slice(0,6) : c || '#000000';
+
+// Build CSS background from config fields for a given element prefix
+const buildBgCss = (config, prefix) => {
+  const bgType = config[`${prefix}_bg_type`] || 'solid';
+  if (bgType === 'transparent') return 'transparent';
+  if (bgType === 'gradient') {
+    const start = config[`${prefix}_bg_gradient_start`] || '#000000';
+    const end = config[`${prefix}_bg_gradient_end`] || '#333333';
+    const angle = config[`${prefix}_bg_gradient_angle`] || 90;
+    return `linear-gradient(${angle}deg, ${start}, ${end})`;
+  }
+  if (bgType === 'image') {
+    const url = config[`${prefix}_bg_image_url`];
+    if (url) {
+      const fullUrl = url.startsWith('http') ? url : `${BASE}${url}`;
+      return `url('${fullUrl}') center/cover no-repeat`;
+    }
+  }
+  return config[`${prefix}_bg_color`] || '#000000cc';
+};
+
+// Reusable background editor for overlay elements
+function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
+  const bgType = config[`${prefix}_bg_type`] || 'solid';
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] text-zinc-500 uppercase">Background Type</label>
+      <div className="flex gap-1">
+        {BG_TYPES.map(t => (
+          <button key={t.id} onClick={() => setConfig(p => ({ ...p, [`${prefix}_bg_type`]: t.id }))}
+            className={`px-2 py-1 rounded text-[10px] transition-colors ${bgType === t.id ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {bgType === 'solid' && (
+        <div>
+          <label className="text-[10px] text-zinc-500 uppercase">Color</label>
+          <Input type="color" value={toHex6(config[`${prefix}_bg_color`])}
+            onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_color`]: e.target.value }))}
+            className="h-8 bg-zinc-800 border-zinc-700" />
+        </div>
+      )}
+
+      {bgType === 'gradient' && (
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] text-zinc-500 uppercase">Start</label>
+              <Input type="color" value={config[`${prefix}_bg_gradient_start`] || '#000000'}
+                onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_gradient_start`]: e.target.value }))}
+                className="h-8 bg-zinc-800 border-zinc-700" />
+            </div>
+            <div>
+              <label className="text-[10px] text-zinc-500 uppercase">End</label>
+              <Input type="color" value={config[`${prefix}_bg_gradient_end`] || '#333333'}
+                onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_gradient_end`]: e.target.value }))}
+                className="h-8 bg-zinc-800 border-zinc-700" />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] text-zinc-500 uppercase">Angle ({config[`${prefix}_bg_gradient_angle`] || 90}°)</label>
+            <input type="range" min={0} max={360} value={config[`${prefix}_bg_gradient_angle`] || 90}
+              onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_gradient_angle`]: parseInt(e.target.value) }))}
+              className="w-full accent-orange-500" />
+          </div>
+          <div className="h-6 rounded" style={{ background: `linear-gradient(${config[`${prefix}_bg_gradient_angle`] || 90}deg, ${config[`${prefix}_bg_gradient_start`] || '#000'}, ${config[`${prefix}_bg_gradient_end`] || '#333'})` }} />
+        </div>
+      )}
+
+      {bgType === 'image' && (
+        <div className="space-y-2">
+          {config[`${prefix}_bg_image_url`] && (
+            <div className="h-12 rounded bg-zinc-800 overflow-hidden">
+              <img src={config[`${prefix}_bg_image_url`]?.startsWith('http') ? config[`${prefix}_bg_image_url`] : `${BASE}${config[`${prefix}_bg_image_url`]}`}
+                alt="" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <Input type="file" accept="image/*" className="h-8 text-xs bg-zinc-800 border-zinc-700"
+            onChange={e => { if (e.target.files[0]) uploadBgImage(e.target.files[0], prefix); }} />
+          <p className="text-[10px] text-zinc-500">Max 10MB. Use high-res for best quality.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function VmixDirector() {
   const { mainSite } = useMainSite();
@@ -94,6 +188,22 @@ export default function VmixDirector() {
       toast.success('Logo uploaded');
     } catch (err) {
       toast.error('Failed to upload logo');
+    }
+  };
+
+  const uploadBgImage = async (file, elementKey) => {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('element', elementKey);
+    try {
+      const token = localStorage.getItem('token');
+      const { data } = await axios.post(`${API}/vmix/background/upload`, form, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Main-Site-ID': mainSite.id },
+      });
+      setConfig(prev => ({ ...prev, [`${elementKey}_bg_image_url`]: data.bg_url, [`${elementKey}_bg_type`]: 'image' }));
+      toast.success('Background image uploaded');
+    } catch (err) {
+      toast.error('Failed to upload background image');
     }
   };
 
@@ -188,7 +298,8 @@ export default function VmixDirector() {
   }, [dragging, config]);
 
   const copyOverlayUrl = (type) => {
-    const url = `${BASE}/api/vmix/overlay/${mainSite.id}/${type}`;
+    const overlayBase = (config?.overlay_base_url || 'https://clara.koodh.com').replace(/\/+$/, '');
+    const url = `${overlayBase}/api/vmix/overlay/${mainSite.id}/${type}`;
     navigator.clipboard.writeText(url);
     toast.success('URL copied to clipboard');
   };
@@ -247,10 +358,10 @@ export default function VmixDirector() {
                     style={{
                       left: `${el.x}%`, top: `${el.y}%`,
                       width: `${el.width}%`, height: `${el.height}%`,
-                      background: el.type === 'ticker' ? (config.ticker_bg_color || '#000c') :
-                                  el.type === 'clock' ? (config.clock_bg_color || 'transparent') :
-                                  el.type === 'now_playing_show' ? (config.now_playing_show_bg || '#000c') :
-                                  el.type === 'now_playing_track' ? (config.now_playing_track_bg || '#000c') :
+                      background: el.type === 'ticker' ? buildBgCss(config, 'ticker') :
+                                  el.type === 'clock' ? buildBgCss(config, 'clock') :
+                                  el.type === 'now_playing_show' ? buildBgCss(config, 'now_playing_show') :
+                                  el.type === 'now_playing_track' ? buildBgCss(config, 'now_playing_track') :
                                   'rgba(0,0,0,0.4)',
                       borderRadius: '4px',
                     }}
@@ -284,10 +395,17 @@ export default function VmixDirector() {
             <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
               <Link2 className="w-4 h-4" /> vMix Overlay URLs
             </h2>
+            <div className="flex items-center gap-2 mb-3">
+              <label className="text-[10px] text-zinc-500 uppercase whitespace-nowrap">Production URL</label>
+              <Input value={config?.overlay_base_url || 'https://clara.koodh.com'} 
+                onChange={e => setConfig(p => ({ ...p, overlay_base_url: e.target.value }))}
+                className="h-7 text-xs bg-zinc-800 border-zinc-700 flex-1" placeholder="https://clara.koodh.com" />
+            </div>
             <p className="text-xs text-zinc-500 mb-3">Copy these URLs into vMix as Web Browser Input sources</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {Object.entries(ELEMENT_TYPES).map(([type, meta]) => {
                 const urlType = type === 'now_playing_show' ? 'now-playing-show' : type === 'now_playing_track' ? 'now-playing-track' : type;
+                const overlayBase = (config?.overlay_base_url || 'https://clara.koodh.com').replace(/\/+$/, '');
                 return (
                   <div key={type} className="flex items-center gap-2 bg-zinc-800/50 rounded-lg px-3 py-2">
                     <meta.icon className="w-4 h-4 flex-shrink-0" style={{ color: meta.color }} />
@@ -295,7 +413,7 @@ export default function VmixDirector() {
                     <Button size="sm" variant="ghost" onClick={() => copyOverlayUrl(urlType)} className="h-7 px-2 text-xs text-zinc-400 hover:text-white">
                       <Copy className="w-3 h-3 mr-1" /> Copy URL
                     </Button>
-                    <a href={`${BASE}/api/vmix/overlay/${mainSite?.id}/${urlType}`} target="_blank" rel="noreferrer">
+                    <a href={`${overlayBase}/api/vmix/overlay/${mainSite?.id}/${urlType}`} target="_blank" rel="noreferrer">
                       <ExternalLink className="w-3.5 h-3.5 text-zinc-500 hover:text-white" />
                     </a>
                   </div>
@@ -396,18 +514,10 @@ export default function VmixDirector() {
                         <option value="HH:mm">HH:mm</option>
                       </select>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
-                        <Input type="color" value={config.clock_text_color} onChange={e => setConfig(p => ({ ...p, clock_text_color: e.target.value }))}
-                          className="h-8 bg-zinc-800 border-zinc-700" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-zinc-500 uppercase">BG Color</label>
-                        <Input type="color" value={config.clock_bg_color === 'transparent' ? '#000000' : config.clock_bg_color}
-                          onChange={e => setConfig(p => ({ ...p, clock_bg_color: e.target.value }))}
-                          className="h-8 bg-zinc-800 border-zinc-700" />
-                      </div>
+                    <div>
+                      <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
+                      <Input type="color" value={config.clock_text_color} onChange={e => setConfig(p => ({ ...p, clock_text_color: e.target.value }))}
+                        className="h-8 bg-zinc-800 border-zinc-700" />
                     </div>
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Font Size (px)</label>
@@ -415,6 +525,7 @@ export default function VmixDirector() {
                         onChange={e => setConfig(p => ({ ...p, clock_font_size: parseInt(e.target.value) || 48 }))}
                         className="h-8 text-xs bg-zinc-800 border-zinc-700" />
                     </div>
+                    <BgEditor config={config} setConfig={setConfig} prefix="clock" uploadBgImage={uploadBgImage} />
                   </div>
                 )}
 
@@ -445,17 +556,10 @@ export default function VmixDirector() {
                           className="h-8 text-xs bg-zinc-800 border-zinc-700 mt-1" />
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
-                        <Input type="color" value={toHex6(config.ticker_text_color)} onChange={e => setConfig(p => ({ ...p, ticker_text_color: e.target.value }))}
-                          className="h-8 bg-zinc-800 border-zinc-700" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-zinc-500 uppercase">BG Color</label>
-                        <Input type="color" value={toHex6(config.ticker_bg_color)} onChange={e => setConfig(p => ({ ...p, ticker_bg_color: e.target.value }))}
-                          className="h-8 bg-zinc-800 border-zinc-700" />
-                      </div>
+                    <div>
+                      <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
+                      <Input type="color" value={toHex6(config.ticker_text_color)} onChange={e => setConfig(p => ({ ...p, ticker_text_color: e.target.value }))}
+                        className="h-8 bg-zinc-800 border-zinc-700" />
                     </div>
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Font Size (px)</label>
@@ -463,6 +567,7 @@ export default function VmixDirector() {
                         onChange={e => setConfig(p => ({ ...p, ticker_font_size: parseInt(e.target.value) || 24 }))}
                         className="h-8 text-xs bg-zinc-800 border-zinc-700" />
                     </div>
+                    <BgEditor config={config} setConfig={setConfig} prefix="ticker" uploadBgImage={uploadBgImage} />
                   </div>
                 )}
 
@@ -490,28 +595,17 @@ export default function VmixDirector() {
                         </button>
                       </div>
                     )}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
-                        <Input type="color"
-                          value={toHex6(activeEl.type === 'now_playing_show' ? config.now_playing_show_text_color : config.now_playing_track_text_color)}
-                          onChange={e => setConfig(p => ({
-                            ...p,
-                            [activeEl.type === 'now_playing_show' ? 'now_playing_show_text_color' : 'now_playing_track_text_color']: e.target.value
-                          }))}
-                          className="h-8 bg-zinc-800 border-zinc-700" />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-zinc-500 uppercase">BG Color</label>
-                        <Input type="color"
-                          value={toHex6(activeEl.type === 'now_playing_show' ? config.now_playing_show_bg : config.now_playing_track_bg)}
-                          onChange={e => setConfig(p => ({
-                            ...p,
-                            [activeEl.type === 'now_playing_show' ? 'now_playing_show_bg' : 'now_playing_track_bg']: e.target.value
-                          }))}
-                          className="h-8 bg-zinc-800 border-zinc-700" />
-                      </div>
+                    <div>
+                      <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
+                      <Input type="color"
+                        value={toHex6(activeEl.type === 'now_playing_show' ? config.now_playing_show_text_color : config.now_playing_track_text_color)}
+                        onChange={e => setConfig(p => ({
+                          ...p,
+                          [activeEl.type === 'now_playing_show' ? 'now_playing_show_text_color' : 'now_playing_track_text_color']: e.target.value
+                        }))}
+                        className="h-8 bg-zinc-800 border-zinc-700" />
                     </div>
+                    <BgEditor config={config} setConfig={setConfig} prefix={activeEl.type} uploadBgImage={uploadBgImage} />
                   </div>
                 )}
               </div>

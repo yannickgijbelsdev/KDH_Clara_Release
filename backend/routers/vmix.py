@@ -37,21 +37,42 @@ class OverlayElement(BaseModel):
 class VmixConfigUpdate(BaseModel):
     elements: List[OverlayElement]
     canvas_bg: str = "#000000"
+    overlay_base_url: str = "https://clara.koodh.com"  # Production URL for vMix overlay links
     ticker_separator: str = "bullet"  # "bullet", "dash", "pipe", "star", "custom"
     ticker_custom_separator: str = ""
     ticker_scroll: bool = True
     ticker_speed: int = 50  # pixels per second
+    ticker_bg_type: str = "solid"  # "transparent", "solid", "gradient", "image"
     ticker_bg_color: str = "#000000cc"
+    ticker_bg_gradient_start: str = "#000000"
+    ticker_bg_gradient_end: str = "#333333"
+    ticker_bg_gradient_angle: int = 90
+    ticker_bg_image_url: Optional[str] = None
     ticker_text_color: str = "#ffffff"
     ticker_font_size: int = 24
     clock_format: str = "HH:mm:ss"
     clock_text_color: str = "#ffffff"
+    clock_bg_type: str = "transparent"
     clock_bg_color: str = "transparent"
+    clock_bg_gradient_start: str = "#000000"
+    clock_bg_gradient_end: str = "#333333"
+    clock_bg_gradient_angle: int = 90
+    clock_bg_image_url: Optional[str] = None
     clock_font_size: int = 48
     now_playing_xml_server_id: Optional[str] = None  # linked server site main_site_id
+    now_playing_show_bg_type: str = "solid"
     now_playing_show_bg: str = "#000000cc"
+    now_playing_show_bg_gradient_start: str = "#000000"
+    now_playing_show_bg_gradient_end: str = "#333333"
+    now_playing_show_bg_gradient_angle: int = 90
+    now_playing_show_bg_image_url: Optional[str] = None
     now_playing_show_text_color: str = "#ffffff"
+    now_playing_track_bg_type: str = "solid"
     now_playing_track_bg: str = "#000000cc"
+    now_playing_track_bg_gradient_start: str = "#000000"
+    now_playing_track_bg_gradient_end: str = "#333333"
+    now_playing_track_bg_gradient_angle: int = 90
+    now_playing_track_bg_image_url: Optional[str] = None
     now_playing_track_text_color: str = "#ffffff"
     now_playing_show_photo: bool = True
 
@@ -147,6 +168,50 @@ async def upload_logo(
     )
 
     return {"logo_url": logo_url}
+
+
+# ── Background Image Upload ──
+
+VMIX_BG_DIR = os.path.join(UPLOADS_DIR, "vmix_backgrounds")
+os.makedirs(VMIX_BG_DIR, exist_ok=True)
+
+
+@vmix_router.post("/background/upload")
+async def upload_background(
+    file: UploadFile = File(...),
+    element: str = Form(...),  # "ticker", "clock", "now_playing_show", "now_playing_track"
+    main_site_id: str = Depends(get_main_site_id_from_header),
+    current_user: dict = Depends(get_current_user),
+):
+    """Upload a background image for an overlay element."""
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    content = await file.read()
+    if len(content) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "png"
+    filename = f"vmix_bg_{element}_{main_site_id}.{ext}"
+
+    if is_s3_configured():
+        s3_key = f"vmix_backgrounds/{filename}"
+        upload_file_to_s3(content, s3_key, file.content_type)
+        bg_url = get_s3_url(s3_key)
+    else:
+        filepath = os.path.join(VMIX_BG_DIR, filename)
+        with open(filepath, "wb") as f:
+            f.write(content)
+        bg_url = f"/api/uploads/vmix_backgrounds/{filename}"
+
+    field_name = f"{element}_bg_image_url"
+    await db.vmix_configs.update_one(
+        {"main_site_id": main_site_id},
+        {"$set": {field_name: bg_url, f"{element}_bg_type": "image", "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+
+    return {"bg_url": bg_url, "element": element}
 
 
 # ── Ticker Messages CRUD ──
@@ -262,6 +327,28 @@ def _get_base_url():
     return os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 
 
+def _build_bg_css(config: dict, prefix: str) -> str:
+    """Build CSS background property from config fields for a given element prefix."""
+    bg_type = config.get(f"{prefix}_bg_type", "solid")
+    if bg_type == "transparent":
+        return "transparent"
+    elif bg_type == "gradient":
+        start = config.get(f"{prefix}_bg_gradient_start", "#000000")
+        end = config.get(f"{prefix}_bg_gradient_end", "#333333")
+        angle = config.get(f"{prefix}_bg_gradient_angle", 90)
+        return f"linear-gradient({angle}deg, {start}, {end})"
+    elif bg_type == "image":
+        url = config.get(f"{prefix}_bg_image_url", "")
+        base = _get_base_url()
+        if url and not url.startswith("http"):
+            url = f"{base}{url}"
+        if url:
+            return f"url('{url}') center/cover no-repeat"
+        return config.get(f"{prefix}_bg_color", "#000000cc")
+    else:
+        return config.get(f"{prefix}_bg_color", "#000000cc")
+
+
 @vmix_router.get("/overlay/{main_site_id}/logo", response_class=HTMLResponse)
 async def overlay_logo(main_site_id: str):
     """Serve HTML overlay for logo — vMix loads this as Web Browser Input."""
@@ -293,14 +380,14 @@ async def overlay_clock(main_site_id: str):
     config = await db.vmix_configs.find_one({"main_site_id": main_site_id}, {"_id": 0})
     fmt = config.get("clock_format", "HH:mm:ss") if config else "HH:mm:ss"
     text_color = config.get("clock_text_color", "#ffffff") if config else "#ffffff"
-    bg_color = config.get("clock_bg_color", "transparent") if config else "transparent"
+    bg = _build_bg_css(config, "clock") if config else "transparent"
     font_size = config.get("clock_font_size", 48) if config else 48
 
     return f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <style>
   * {{ margin:0; padding:0; }}
-  body {{ background: {bg_color}; overflow:hidden; width:100vw; height:100vh; display:flex; align-items:center; justify-content:center; }}
+  body {{ background: {bg}; overflow:hidden; width:100vw; height:100vh; display:flex; align-items:center; justify-content:center; }}
   #clock {{ font-family: 'Segoe UI', Arial, sans-serif; font-size:{font_size}px; font-weight:700; color:{text_color}; letter-spacing:2px; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }}
 </style></head>
 <body>
@@ -329,7 +416,7 @@ async def overlay_ticker(main_site_id: str):
 
     scroll = config.get("ticker_scroll", True) if config else True
     speed = config.get("ticker_speed", 50) if config else 50
-    bg = config.get("ticker_bg_color", "#000000cc") if config else "#000000cc"
+    bg = _build_bg_css(config, "ticker") if config else "#000000cc"
     text_color = config.get("ticker_text_color", "#ffffff") if config else "#ffffff"
     font_size = config.get("ticker_font_size", 24) if config else 24
     sep_type = config.get("ticker_separator", "bullet") if config else "bullet"
@@ -379,7 +466,7 @@ async def overlay_now_playing_show(main_site_id: str):
     """Serve HTML overlay for current show with optional presenter photo."""
     config = await db.vmix_configs.find_one({"main_site_id": main_site_id}, {"_id": 0})
     base = _get_base_url()
-    bg = config.get("now_playing_show_bg", "#000000cc") if config else "#000000cc"
+    bg = _build_bg_css(config, "now_playing_show") if config else "#000000cc"
     text_color = config.get("now_playing_show_text_color", "#ffffff") if config else "#ffffff"
     show_photo = config.get("now_playing_show_photo", True) if config else True
 
@@ -430,7 +517,7 @@ async def overlay_now_playing_track(main_site_id: str):
     """Serve HTML overlay for current track."""
     config = await db.vmix_configs.find_one({"main_site_id": main_site_id}, {"_id": 0})
     base = _get_base_url()
-    bg = config.get("now_playing_track_bg", "#000000cc") if config else "#000000cc"
+    bg = _build_bg_css(config, "now_playing_track") if config else "#000000cc"
     text_color = config.get("now_playing_track_text_color", "#ffffff") if config else "#ffffff"
 
     return f"""<!DOCTYPE html>
@@ -499,22 +586,43 @@ def _default_config(main_site_id: str) -> dict:
             {"id": "now_playing_track", "type": "now_playing_track", "enabled": True, "x": 60, "y": 75, "width": 35, "height": 15, "style": {}},
         ],
         "canvas_bg": "#000000",
+        "overlay_base_url": "https://clara.koodh.com",
         "logo_url": None,
         "ticker_separator": "bullet",
         "ticker_custom_separator": "",
         "ticker_scroll": True,
         "ticker_speed": 50,
+        "ticker_bg_type": "solid",
         "ticker_bg_color": "#000000cc",
+        "ticker_bg_gradient_start": "#000000",
+        "ticker_bg_gradient_end": "#333333",
+        "ticker_bg_gradient_angle": 90,
+        "ticker_bg_image_url": None,
         "ticker_text_color": "#ffffff",
         "ticker_font_size": 24,
         "clock_format": "HH:mm:ss",
         "clock_text_color": "#ffffff",
+        "clock_bg_type": "transparent",
         "clock_bg_color": "transparent",
+        "clock_bg_gradient_start": "#000000",
+        "clock_bg_gradient_end": "#333333",
+        "clock_bg_gradient_angle": 90,
+        "clock_bg_image_url": None,
         "clock_font_size": 48,
         "now_playing_xml_server_id": None,
+        "now_playing_show_bg_type": "solid",
         "now_playing_show_bg": "#000000cc",
+        "now_playing_show_bg_gradient_start": "#000000",
+        "now_playing_show_bg_gradient_end": "#333333",
+        "now_playing_show_bg_gradient_angle": 90,
+        "now_playing_show_bg_image_url": None,
         "now_playing_show_text_color": "#ffffff",
+        "now_playing_track_bg_type": "solid",
         "now_playing_track_bg": "#000000cc",
+        "now_playing_track_bg_gradient_start": "#000000",
+        "now_playing_track_bg_gradient_end": "#333333",
+        "now_playing_track_bg_gradient_angle": 90,
+        "now_playing_track_bg_image_url": None,
         "now_playing_track_text_color": "#ffffff",
         "now_playing_show_photo": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
