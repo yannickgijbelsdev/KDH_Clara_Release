@@ -1033,6 +1033,9 @@ export default function NetworkDashboard() {
                         {site.site_type === 'task_scheduler' && !site.cloned_from && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 flex-shrink-0">Task Scheduler</span>
                         )}
+                        {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 flex-shrink-0">Standard</span>
+                        )}
                       </div>
                       <span className="text-xs text-zinc-500">/{site.slug}</span>
                     </div>
@@ -1081,6 +1084,11 @@ export default function NetworkDashboard() {
                           {site.site_type === 'task_scheduler' && !site.cloned_from && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 font-normal">
                               Task Scheduler
+                            </span>
+                          )}
+                          {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 font-normal">
+                              Standard
                             </span>
                           )}
                         </CardTitle>
