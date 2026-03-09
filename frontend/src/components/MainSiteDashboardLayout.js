@@ -345,7 +345,7 @@ const MainSiteDashboardContent = () => {
   };
 
   // Brand: always "Clara", labels only in page header bar
-  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : mainSite?.site_type === 'task_scheduler' ? 'Task Scheduler' : 'Standard';
+  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : mainSite?.site_type === 'task_scheduler' ? 'Clara Tasks' : 'Standard';
   const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : mainSite?.site_type === 'task_scheduler' ? 'bg-violet-500/15 text-violet-400 border-violet-500/25' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25';
   // Display name: for server sites, show linked main site name
   const displayName = mainSite?.site_type === 'server' && mainSite?.linked_main_site_name
@@ -376,7 +376,7 @@ const MainSiteDashboardContent = () => {
       }];
     }
 
-    // Task Scheduler sites show task_boards + optional admin features
+    // Clara Tasks sites show task_boards + optional admin features
     if (mainSite.site_type === 'task_scheduler') {
       const enabledFeatures = mainSite.enabled_features || [];
       const coreItems = ['task_boards']
@@ -910,7 +910,7 @@ const MainSiteDashboardContent = () => {
                       My Sites
                     </div>
                     {myMainSites.map(site => {
-                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Task Scheduler' : 'Standard';
+                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Clara Tasks' : 'Standard';
                       const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
                       return (
                       <DropdownMenuItem

@@ -801,7 +801,7 @@ export default function NetworkDashboard() {
                     Main Sites
                   </div>
                   {mainSites.slice(0, 5).map(site => {
-                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Task Scheduler' : 'Standard';
+                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Clara Tasks' : 'Standard';
                     const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
                     return (
                       <DropdownMenuItem
@@ -1031,7 +1031,7 @@ export default function NetworkDashboard() {
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex-shrink-0">Server</span>
                         )}
                         {site.site_type === 'task_scheduler' && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 flex-shrink-0">Task Scheduler</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 flex-shrink-0">Tasks</span>
                         )}
                         {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 flex-shrink-0">Standard</span>
@@ -1083,7 +1083,7 @@ export default function NetworkDashboard() {
                           )}
                           {site.site_type === 'task_scheduler' && !site.cloned_from && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 font-normal">
-                              Task Scheduler
+                              Tasks
                             </span>
                           )}
                           {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
@@ -1382,7 +1382,7 @@ export default function NetworkDashboard() {
                   >
                     <LayoutGrid className="w-5 h-5 text-violet-400" />
                     <div>
-                      <span className="text-sm font-medium text-white">Task Scheduler</span>
+                      <span className="text-sm font-medium text-white">Clara Tasks</span>
                       <p className="text-xs text-zinc-400">Kanban boards & tasks</p>
                     </div>
                   </div>
@@ -1409,7 +1409,7 @@ export default function NetworkDashboard() {
               </div>
             )}
 
-            {/* Enabled Features for Technical, Server & Task Scheduler - core features grayed out, common features toggleable */}
+            {/* Enabled Features for Technical, Server & Clara Tasks - core features grayed out, common features toggleable */}
             {(formData.site_type === 'technical' || formData.site_type === 'server' || formData.site_type === 'task_scheduler') && (
             <div className="space-y-3">
               <Label>Enabled Features</Label>
@@ -1467,7 +1467,7 @@ export default function NetworkDashboard() {
                 </div>
               </div>
               )}
-              {/* Task Scheduler: task boards always enabled */}
+              {/* Clara Tasks: task boards always enabled */}
               {formData.site_type === 'task_scheduler' && (
               <div className="space-y-2">
                 <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Task Features (always enabled)</h4>
