@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status, Query, UploadFile, File, Request, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from typing import Optional, List
+from pydantic import BaseModel
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 import uuid
@@ -2015,3 +2016,54 @@ def generate_print_html(show: dict, items_html: str, now: str, status_labels: di
     </body>
     </html>
     '''
+
+
+# ── Show Members (editorial team) ──
+
+class ShowMembersUpdate(BaseModel):
+    member_ids: List[str]
+
+
+@shows_router.get("/{show_id}/members")
+async def get_show_members(
+    show_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Get detailed member info for a show."""
+    show = await db.shows.find_one({"id": show_id}, {"_id": 0, "members": 1})
+    if show is None:
+        return []
+    member_ids = show.get("members", [])
+    if not member_ids:
+        return []
+    users = await db.users.find(
+        {"id": {"$in": member_ids}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "avatar": 1}
+    ).to_list(100)
+    for u in users:
+        avatar = u.pop("avatar", None)
+        u["avatar_url"] = avatar.get("s3_url") if avatar else None
+    return users
+
+
+@shows_router.put("/{show_id}/members")
+async def update_show_members(
+    show_id: str,
+    body: ShowMembersUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Update the editorial members of a show."""
+    await db.shows.update_one(
+        {"id": show_id},
+        {"$set": {"members": body.member_ids, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if not body.member_ids:
+        return []
+    users = await db.users.find(
+        {"id": {"$in": body.member_ids}},
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "avatar": 1}
+    ).to_list(100)
+    for u in users:
+        avatar = u.pop("avatar", None)
+        u["avatar_url"] = avatar.get("s3_url") if avatar else None
+    return users

@@ -400,13 +400,15 @@ async def get_main_site_users(
     for su in site_users:
         user = await db.users.find_one(
             {"id": su["user_id"]},
-            {"_id": 0, "name": 1, "email": 1}
+            {"_id": 0, "name": 1, "email": 1, "avatar": 1}
         )
         if user:
+            avatar = user.get("avatar")
             result.append({
                 **su,
                 "user_name": user.get("name", "Unknown"),
-                "user_email": user.get("email", "")
+                "user_email": user.get("email", ""),
+                "avatar_url": avatar.get("s3_url") if avatar else None
             })
     
     return result

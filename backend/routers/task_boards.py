@@ -202,8 +202,11 @@ async def get_board_members(
         return []
     users = await db.users.find(
         {"id": {"$in": member_ids}},
-        {"_id": 0, "id": 1, "name": 1, "email": 1, "avatar_url": 1}
+        {"_id": 0, "id": 1, "name": 1, "email": 1, "avatar": 1}
     ).to_list(100)
+    for u in users:
+        avatar = u.pop("avatar", None)
+        u["avatar_url"] = avatar.get("s3_url") if avatar else None
     return users
 
 

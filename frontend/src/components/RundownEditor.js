@@ -14,13 +14,17 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Plus, Music, Mic, FileText, Radio, ListOrdered, Play, Pause, Users, User } from 'lucide-react';
+import { Plus, Music, Mic, FileText, Radio, ListOrdered, Play, Pause, Users, User, Eye, UserPlus, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
+import { Input } from './ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { toast } from 'sonner';
 import SortableRundownItem from './SortableRundownItem';
 import RundownItemDialog from './RundownItemDialog';
+import useRundownWebSocket from '../hooks/useRundownWebSocket';
+import { useMainSite } from '../context/MainSiteContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -93,7 +97,7 @@ const calculateTimestamps = (items, showStartTime) => {
   });
 };
 
-const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenters = [] }) => {
+const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenters = [], occurrenceId = null }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -104,6 +108,22 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
   const [currentTime, setCurrentTime] = useState(null);
   const [activeItemIndex, setActiveItemIndex] = useState(-1);
   const activeItemRef = useRef(null);
+
+  // Members state
+  const [showMemberDialog, setShowMemberDialog] = useState(false);
+  const [siteUsers, setSiteUsers] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [memberSearch, setMemberSearch] = useState('');
+
+  // Get mainSiteId from context
+  const { mainSite } = useMainSite();
+  const mainSiteId = mainSite?.id || '';
+
+  // WebSocket presence for live viewers
+  const token = localStorage.getItem('token');
+  const wsType = occurrenceId ? 'occurrence' : 'show';
+  const wsId = occurrenceId || showId;
+  const { isConnected, presence } = useRundownWebSocket(wsId, token, null, wsType);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -118,7 +138,38 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
 
   useEffect(() => {
     fetchRundown();
+    fetchMembers();
   }, [showId]);
+
+  const fetchMembers = async () => {
+    try {
+      const res = await axios.get(`${API}/shows/${showId}/members`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Main-Site-ID': mainSiteId },
+      });
+      setMembers(res.data);
+    } catch { /* feature may not exist for older shows */ }
+  };
+
+  const fetchSiteUsers = async () => {
+    if (!mainSiteId) return;
+    try {
+      const res = await axios.get(`${API}/main-sites/${mainSiteId}/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSiteUsers(res.data.map(u => ({ id: u.user_id, name: u.user_name, email: u.user_email, avatar_url: u.avatar_url })));
+    } catch { /* ignore */ }
+  };
+
+  const toggleMember = async (userId) => {
+    const current = members.map(m => m.id);
+    const updated = current.includes(userId) ? current.filter(id => id !== userId) : [...current, userId];
+    try {
+      await axios.put(`${API}/shows/${showId}/members`, { member_ids: updated }, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Main-Site-ID': mainSiteId, 'Content-Type': 'application/json' },
+      });
+      await fetchMembers();
+    } catch { toast.error('Failed to update members'); }
+  };
 
   // Live mode timer - update current time every second
   useEffect(() => {
@@ -328,9 +379,56 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
             )}
           </div>
         </div>
-      </div>
 
-      {/* Presenters Display */}
+        {/* Live Viewers + Members Row */}
+        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-800/30">
+          {/* Members avatars */}
+          <div className="flex items-center gap-2" data-testid="rundown-members">
+            <Users className="w-3.5 h-3.5 text-zinc-500" />
+            <div className="flex -space-x-1.5">
+              {members.slice(0, 8).map(m => (
+                <div key={m.id} title={m.name} className="w-6 h-6 rounded-full border-2 border-[#18181b] bg-zinc-700 flex items-center justify-center text-[9px] font-bold text-white overflow-hidden">
+                  {m.avatar_url ? <img src={m.avatar_url} alt="" className="w-full h-full object-cover" /> : m.name?.charAt(0).toUpperCase()}
+                </div>
+              ))}
+              {members.length > 8 && (
+                <div className="w-6 h-6 rounded-full border-2 border-[#18181b] bg-zinc-800 flex items-center justify-center text-[9px] text-zinc-400">+{members.length - 8}</div>
+              )}
+            </div>
+            {canEdit && (
+              <button onClick={() => { setShowMemberDialog(true); fetchSiteUsers(); }}
+                className="w-6 h-6 rounded-full border border-dashed border-zinc-600 flex items-center justify-center hover:border-violet-500 transition-colors"
+                data-testid="add-rundown-member-btn">
+                <UserPlus className="w-3 h-3 text-zinc-500" />
+              </button>
+            )}
+          </div>
+
+          {/* Live viewers */}
+          {presence && presence.length > 0 && (
+            <div className="flex items-center gap-2 ml-auto" data-testid="rundown-live-viewers">
+              <div className="flex items-center gap-1">
+                <Eye className="w-3.5 h-3.5 text-green-400" />
+                <span className="text-[10px] text-green-400 font-medium">LIVE</span>
+              </div>
+              <div className="flex -space-x-1.5">
+                {presence.map((viewer, i) => (
+                  <div key={i} title={viewer.name || 'Unknown'} className="w-6 h-6 rounded-full border-2 border-[#18181b] bg-green-900/50 flex items-center justify-center text-[9px] font-bold text-green-300 ring-1 ring-green-500/50 overflow-hidden">
+                    {viewer.avatar_url ? <img src={viewer.avatar_url} alt="" className="w-full h-full object-cover" /> : (viewer.initials || viewer.name?.charAt(0).toUpperCase() || '?')}
+                  </div>
+                ))}
+              </div>
+              <span className="text-[10px] text-zinc-500">{presence.length} viewing</span>
+            </div>
+          )}
+          {isConnected && (!presence || presence.length === 0) && (
+            <div className="flex items-center gap-1 ml-auto">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="text-[10px] text-zinc-500">Connected</span>
+            </div>
+          )}
+        </div>
+      </div>
       {presenters && presenters.length > 0 && (
         <div className="flex items-center gap-2 mb-4 pb-4 border-b border-zinc-800/50">
           <Users className="w-4 h-4 text-violet-400" />
@@ -417,6 +515,38 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
           onSaved={handleItemSaved}
         />
       )}
+
+      {/* Member Picker Dialog */}
+      <Dialog open={showMemberDialog} onOpenChange={setShowMemberDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Rundown Members</DialogTitle>
+            <DialogDescription className="text-zinc-400">Select team members who participate in this rundown</DialogDescription>
+          </DialogHeader>
+          <Input value={memberSearch} onChange={e => setMemberSearch(e.target.value)} placeholder="Search members..."
+            className="bg-zinc-800 border-zinc-700 text-white text-sm h-8 mb-2" />
+          <div className="max-h-64 overflow-y-auto space-y-1">
+            {siteUsers.filter(u => !memberSearch || u.name?.toLowerCase().includes(memberSearch.toLowerCase()) || u.email?.toLowerCase().includes(memberSearch.toLowerCase())).map(u => {
+              const isMember = members.some(m => m.id === u.id);
+              const isPresenter = presenters.some(p => p.id === u.id);
+              return (
+                <div key={u.id} onClick={() => toggleMember(u.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isMember ? 'bg-violet-500/10 border border-violet-500/30' : 'hover:bg-zinc-800 border border-transparent'}`}>
+                  <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+                    {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : u.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{u.name}</p>
+                    <p className="text-[10px] text-zinc-500 truncate">{u.email}</p>
+                  </div>
+                  {isPresenter && <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">Presenter</span>}
+                  {isMember && <div className="w-2 h-2 rounded-full bg-violet-500" />}
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

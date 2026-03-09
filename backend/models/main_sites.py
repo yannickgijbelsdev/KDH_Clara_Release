@@ -123,6 +123,7 @@ class MainSiteUserResponse(BaseModel):
     user_email: str
     role: str
     created_at: str
+    avatar_url: Optional[str] = None
 
 
 class AvailableFeaturesResponse(BaseModel):

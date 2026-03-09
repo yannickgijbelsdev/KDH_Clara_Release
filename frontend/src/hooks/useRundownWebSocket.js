@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 const WS_BASE_URL = process.env.REACT_APP_BACKEND_URL?.replace('https://', 'wss://').replace('http://', 'ws://');
 
-export const useRundownWebSocket = (occurrenceId, token, onMessage) => {
+export const useRundownWebSocket = (resourceId, token, onMessage, wsType = 'show') => {
   const [isConnected, setIsConnected] = useState(false);
   const [presence, setPresence] = useState([]);
   const wsRef = useRef(null);
@@ -10,11 +10,12 @@ export const useRundownWebSocket = (occurrenceId, token, onMessage) => {
   const pingIntervalRef = useRef(null);
 
   const connect = useCallback(() => {
-    if (!occurrenceId || !token || wsRef.current?.readyState === WebSocket.OPEN) {
+    if (!resourceId || !token || wsRef.current?.readyState === WebSocket.OPEN) {
       return;
     }
 
-    const wsUrl = `${WS_BASE_URL}/ws/rundown/${occurrenceId}?token=${token}`;
+    const wsPath = wsType === 'occurrence' ? 'rundown' : 'show';
+    const wsUrl = `${WS_BASE_URL}/ws/${wsPath}/${resourceId}?token=${token}`;
     
     try {
       const ws = new WebSocket(wsUrl);
@@ -72,7 +73,7 @@ export const useRundownWebSocket = (occurrenceId, token, onMessage) => {
     } catch (error) {
       console.error('Failed to create WebSocket:', error);
     }
-  }, [occurrenceId, token, onMessage]);
+  }, [resourceId, token, onMessage, wsType]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimeoutRef.current) {

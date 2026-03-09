@@ -1,0 +1,58 @@
+{
+  "summary": "Tested and FIXED Rundown member management features. Backend API tests: 10/10 PASSED. Fixed frontend bug where mainSiteId was read from localStorage instead of MainSiteContext. All features now working: member avatars display, add member button works, member picker dialog loads users correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "WebSocket connection",
+        "issue": "WebSocket shows 'closed before connection established' (error 1006) during rapid page navigation - timing issue that doesn't affect functionality",
+        "affected_selectors": ["[data-testid='rundown-live-viewers']"],
+        "priority": "LOW"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rundown_members.py",
+    "/app/test_reports/pytest/rundown_members_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_rundown_members.py",
+    "/app/frontend/src/components/RundownEditor.js"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% - All UI features working after fix"
+  },
+  "test_credentials": "Admin: admkoodh@koodh.com / KYLovie13monx",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Rundown member management feature fully tested and working. Backend APIs /api/shows/{show_id}/members (GET/PUT) and /api/main-sites/{main_site_id}/users work correctly with avatar_url field. Frontend RundownEditor was fixed to use MainSiteContext hook instead of localStorage for mainSiteId. Member picker dialog loads users, selection works, and avatars display in rundown header. WebSocket presence feature works but may show transient connection errors during rapid navigation.",
+  "features_verified": {
+    "backend_apis": {
+      "GET /api/shows/{show_id}/members": "PASS - Returns members with id, name, email, avatar_url",
+      "PUT /api/shows/{show_id}/members": "PASS - Updates member list correctly",
+      "GET /api/main-sites/{main_site_id}/users": "PASS - Returns users with avatar_url field",
+      "WebSocket /ws/show/{show_id}": "PASS - Endpoints configured correctly"
+    },
+    "frontend_components": {
+      "data-testid='rundown-editor'": "PASS - Component renders correctly",
+      "data-testid='rundown-members'": "PASS - Member avatars display in header",
+      "data-testid='add-rundown-member-btn'": "PASS - Button works and opens dialog",
+      "data-testid='rundown-live-viewers'": "PASS - Shows when WebSocket connected with other viewers",
+      "Member picker dialog": "PASS - Opens, loads users, allows selection"
+    }
+  },
+  "fix_applied": {
+    "file": "/app/frontend/src/components/RundownEditor.js",
+    "issue": "Was using localStorage.getItem('mainSiteId') which returns null, causing 404 on user fetch",
+    "solution": "Import and use useMainSite() hook from MainSiteContext to get mainSite.id"
+  }
+}

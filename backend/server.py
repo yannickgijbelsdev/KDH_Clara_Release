@@ -747,10 +747,11 @@ async def rundown_websocket(
         await websocket.close(code=4004, reason="Occurrence not found")
         return
     
+    avatar = user.get('avatar') or {}
     user_info = {
         "id": user['id'],
         "name": user.get('name', 'Unknown'),
-        "avatar_url": user.get('avatar_url')
+        "avatar_url": avatar.get('s3_url')
     }
     
     await ws_manager.connect(websocket, occurrence_id, user_info)
@@ -804,10 +805,11 @@ async def show_rundown_websocket(
     
     room_id = f"show_{show_id}"
     
+    avatar = user.get('avatar') or {}
     user_info = {
         "id": user['id'],
         "name": user.get('name', 'Unknown'),
-        "avatar_url": user.get('avatar_url')
+        "avatar_url": avatar.get('s3_url')
     }
     
     await ws_manager.connect(websocket, room_id, user_info)
