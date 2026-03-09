@@ -38,11 +38,11 @@ DEFAULT_BRANDING = {
 
 
 async def get_branding():
-    """Get branding settings, return defaults if none exist."""
+    """Get branding settings, merge with defaults for missing fields."""
     doc = await db.platform_settings.find_one({"id": "platform_branding"}, {"_id": 0})
     if not doc:
         return {**DEFAULT_BRANDING}
-    return doc
+    return {**DEFAULT_BRANDING, **doc}
 
 
 @branding_router.get("")
