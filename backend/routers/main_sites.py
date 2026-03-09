@@ -13,6 +13,7 @@ from models.main_sites import (
 )
 from services.auth import get_current_user
 from services.audit import log_action
+from routers.shows import resolve_avatar_url
 
 import logging
 logger = logging.getLogger(__name__)
@@ -408,7 +409,7 @@ async def get_main_site_users(
                 **su,
                 "user_name": user.get("name", "Unknown"),
                 "user_email": user.get("email", ""),
-                "avatar_url": avatar.get("s3_url") if avatar else None
+                "avatar_url": resolve_avatar_url(avatar)
             })
     
     return result

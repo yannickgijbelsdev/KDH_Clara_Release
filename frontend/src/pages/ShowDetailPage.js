@@ -61,6 +61,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import RundownEditor from '../components/RundownEditor';
 import { cn } from '../lib/utils';
+import { getAvatarUrl } from '../utils/avatar';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const WS_BASE_URL = process.env.REACT_APP_BACKEND_URL?.replace('https://', 'wss://').replace('http://', 'ws://');
@@ -112,9 +113,9 @@ const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
                   className="w-7 h-7 rounded-full bg-orange-500/20 border-2 border-[#18181b] flex items-center justify-center cursor-default"
                   style={{ zIndex: maxDisplay - idx }}
                 >
-                  {user.avatar_url ? (
+                  {getAvatarUrl(user) ? (
                     <img 
-                      src={user.avatar_url} 
+                      src={getAvatarUrl(user)} 
                       alt={user.name} 
                       className="w-full h-full rounded-full object-cover"
                     />
@@ -708,8 +709,8 @@ const ShowDetailPage = () => {
                           }`}
                         >
                           <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
-                            {user.avatar?.s3_url ? (
-                              <img src={user.avatar.s3_url} alt={user.name} className="w-full h-full object-cover" />
+                            {getAvatarUrl(user) ? (
+                              <img src={getAvatarUrl(user)} alt={user.name} className="w-full h-full object-cover" />
                             ) : (
                               <User className="w-4 h-4 text-zinc-400" />
                             )}
@@ -748,8 +749,8 @@ const ShowDetailPage = () => {
                       className="flex items-center gap-2 px-2 py-1 bg-violet-500/10 border border-violet-500/30 rounded-full"
                     >
                       <div className="w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
-                        {presenter.avatar?.s3_url ? (
-                          <img src={presenter.avatar.s3_url} alt={presenter.name} className="w-full h-full object-cover" />
+                        {getAvatarUrl(presenter) ? (
+                          <img src={getAvatarUrl(presenter)} alt={presenter.name} className="w-full h-full object-cover" />
                         ) : (
                           <User className="w-3 h-3 text-zinc-400" />
                         )}

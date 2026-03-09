@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from database import db
 from services.auth import get_current_user
 from services.main_site_context import get_main_site_id_from_header
+from routers.shows import resolve_avatar_url
 import logging
 
 logger = logging.getLogger(__name__)
@@ -206,7 +207,7 @@ async def get_board_members(
     ).to_list(100)
     for u in users:
         avatar = u.pop("avatar", None)
-        u["avatar_url"] = avatar.get("s3_url") if avatar else None
+        u["avatar_url"] = resolve_avatar_url(avatar)
     return users
 
 

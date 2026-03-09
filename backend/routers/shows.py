@@ -1458,13 +1458,24 @@ async def get_rundown(
     return items
 
 
+def resolve_avatar_url(avatar: dict) -> str:
+    """Resolve avatar URL from avatar object. Returns s3_url, local endpoint, or None."""
+    if not avatar:
+        return None
+    if avatar.get("s3_url"):
+        return avatar["s3_url"]
+    if avatar.get("file_key"):
+        return f"/api/uploads/avatars/{avatar['file_key']}"
+    return None
+
+
 async def _get_user_attribution(user: dict) -> dict:
     """Build a compact user attribution dict for rundown items."""
     avatar = user.get("avatar") or {}
     return {
         "id": user["id"],
         "name": user.get("name", "Unknown"),
-        "avatar_url": avatar.get("s3_url")
+        "avatar_url": resolve_avatar_url(avatar)
     }
 
 
@@ -2078,7 +2089,7 @@ async def get_show_members(
     ).to_list(100)
     for u in users:
         avatar = u.pop("avatar", None)
-        u["avatar_url"] = avatar.get("s3_url") if avatar else None
+        u["avatar_url"] = resolve_avatar_url(avatar)
     return users
 
 
@@ -2101,5 +2112,5 @@ async def update_show_members(
     ).to_list(100)
     for u in users:
         avatar = u.pop("avatar", None)
-        u["avatar_url"] = avatar.get("s3_url") if avatar else None
+        u["avatar_url"] = resolve_avatar_url(avatar)
     return users

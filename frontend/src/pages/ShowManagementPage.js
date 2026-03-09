@@ -55,6 +55,7 @@ import {
   PopoverTrigger,
 } from '../components/ui/popover';
 import { toast } from 'sonner';
+import { getAvatarUrl } from '../utils/avatar';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -711,8 +712,8 @@ const ShowManagementPage = () => {
                         }`}
                       >
                         <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
-                          {user.avatar?.s3_url ? (
-                            <img src={user.avatar.s3_url} alt={user.name} className="w-full h-full object-cover" />
+                          {getAvatarUrl(user) ? (
+                            <img src={getAvatarUrl(user)} alt={user.name} className="w-full h-full object-cover" />
                           ) : (
                             <User className="w-4 h-4 text-zinc-400" />
                           )}

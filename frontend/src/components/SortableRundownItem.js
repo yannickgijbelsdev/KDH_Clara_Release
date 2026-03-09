@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Music, Mic, FileText, Radio, Edit2, Trash2, Clock, Wand2, Pencil } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
+import { getAvatarUrl } from '../utils/avatar';
 
 const typeIcons = {
   music: Music,
@@ -49,8 +50,8 @@ const UserAvatar = ({ user, size = 'sm', ring = false, ringColor = 'violet' }) =
             data-testid={`item-avatar-${user.id}`}
             className={`${sizeClass} ${ringClass} rounded-full bg-zinc-700 flex items-center justify-center font-bold text-white overflow-hidden shrink-0 cursor-default`}
           >
-            {user.avatar_url ? (
-              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+            {getAvatarUrl(user) ? (
+              <img src={getAvatarUrl(user)} alt="" className="w-full h-full object-cover" />
             ) : (
               user.name?.charAt(0).toUpperCase() || '?'
             )}

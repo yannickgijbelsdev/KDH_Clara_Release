@@ -44,6 +44,7 @@ import NetworkAdminManager from './NetworkAdminManager';
 import NotificationSettings from './NotificationSettings';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import { useNavigate } from 'react-router-dom';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -754,9 +755,9 @@ export default function NetworkDashboard() {
                 data-testid="user-menu-trigger"
                 className="w-full justify-start gap-3 px-3 h-12 rounded-xl hover:bg-orange-500/10"
               >
-                {user?.avatar?.url || user?.avatar?.file_key ? (
+                {getAvatarUrl(user) ? (
                   <img 
-                    src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
+                    src={getAvatarUrl(user)}
                     alt={user?.name}
                     className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                   />
@@ -773,9 +774,9 @@ export default function NetworkDashboard() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-56 bg-[#18181b] border-zinc-800 ml-2">
               <div className="px-3 py-2 flex items-center gap-3">
-                {user?.avatar?.url || user?.avatar?.file_key ? (
+                {getAvatarUrl(user) ? (
                   <img 
-                    src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`}
+                    src={getAvatarUrl(user)}
                     alt={user?.name}
                     className="w-10 h-10 rounded-full object-cover"
                   />
@@ -884,8 +885,8 @@ export default function NetworkDashboard() {
 
           <div className="pt-4 border-t border-white/10 mt-4">
             <div className="flex items-center gap-3 p-3">
-              {user?.avatar?.url || user?.avatar?.file_key ? (
-                <img src={user?.avatar?.url || `${API}/api/uploads/avatars/${user.avatar.file_key}`} alt={user?.name} className="w-10 h-10 rounded-full object-cover" />
+              {getAvatarUrl(user) ? (
+                <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-full object-cover" />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
                   {user?.name?.charAt(0).toUpperCase()}

@@ -34,6 +34,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible';
+import { getAvatarUrl } from '../utils/avatar';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -860,9 +861,9 @@ const MainSiteDashboardContent = () => {
                   data-testid="user-menu-trigger"
                   className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-orange-500/10`}
                 >
-                  {user?.avatar?.url || user?.avatar?.file_key ? (
+                  {getAvatarUrl(user) ? (
                     <img 
-                      src={user?.avatar?.url || `${API}/uploads/avatars/${user.avatar.file_key}`}
+                      src={getAvatarUrl(user)}
                       alt={user?.name}
                       className="w-9 h-9 rounded-full object-cover flex-shrink-0"
                     />
@@ -881,9 +882,9 @@ const MainSiteDashboardContent = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align={useGroupedMenu ? "end" : "start"} side={useGroupedMenu ? "top" : "right"} className="w-56 bg-[#18181b] border-zinc-800 ml-2">
                 <div className="px-3 py-2 flex items-center gap-3">
-                  {user?.avatar?.url || user?.avatar?.file_key ? (
+                  {getAvatarUrl(user) ? (
                     <img 
-                      src={user?.avatar?.url || `${API}/uploads/avatars/${user.avatar.file_key}`}
+                      src={getAvatarUrl(user)}
                       alt={user?.name}
                       className="w-10 h-10 rounded-full object-cover"
                     />
@@ -1023,9 +1024,9 @@ const MainSiteDashboardContent = () => {
             {/* User section at bottom */}
             <div className="pt-4 border-t border-white/10 mt-4">
               <div className="flex items-center gap-3 p-3">
-                {user?.avatar?.url || user?.avatar?.file_key ? (
+                {getAvatarUrl(user) ? (
                   <img 
-                    src={user?.avatar?.url || `${API}/uploads/avatars/${user.avatar.file_key}`}
+                    src={getAvatarUrl(user)}
                     alt={user?.name}
                     className="w-10 h-10 rounded-full object-cover"
                   />

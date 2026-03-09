@@ -61,6 +61,7 @@ import {
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { getAvatarUrl } from '../utils/avatar';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -510,12 +511,12 @@ const TeamSettingsPage = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
-                    {member.avatar ? (
+                    {getAvatarUrl(member) ? (
                       <img
-                        src={member.avatar.s3_url || `${API}/uploads/avatars/${member.avatar.file_key}`}
+                        src={getAvatarUrl(member)}
                         alt={member.name}
                         className="w-full h-full object-cover"
-                        key={member.avatar.s3_url || member.avatar.file_key}
+                        key={getAvatarUrl(member)}
                       />
                     ) : (
                       <span className="text-white font-medium">

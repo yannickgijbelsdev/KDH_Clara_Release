@@ -46,6 +46,7 @@ import {
 import { cn } from '../lib/utils';
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
+import { getAvatarUrl } from '../utils/avatar';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -850,7 +851,11 @@ const ChatPage = () => {
                         className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500/30 to-violet-500/30 border-2 border-[#18181b] flex items-center justify-center"
                         title={member.name}
                       >
-                        <span className="text-xs font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                        {getAvatarUrl(member) ? (
+                          <img src={getAvatarUrl(member)} alt="" className="w-full h-full rounded-full object-cover" />
+                        ) : (
+                          <span className="text-xs font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                        )}
                       </div>
                     ))}
                     {activeThread.members?.length > 4 && (

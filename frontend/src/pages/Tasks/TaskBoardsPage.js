@@ -24,6 +24,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '../../components/ui/dropdown-menu';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -701,8 +702,8 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
         <div className="flex items-center ml-4 -space-x-2" data-testid="board-members-avatars">
           {boardMembers.slice(0, 6).map(member => (
             <div key={member.id} title={member.name} className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
-              {member.avatar_url ? (
-                <img src={member.avatar_url} alt="" className="w-full h-full object-cover" />
+              {getAvatarUrl(member) ? (
+                <img src={getAvatarUrl(member)} alt="" className="w-full h-full object-cover" />
               ) : (
                 member.name?.charAt(0).toUpperCase() || '?'
               )}

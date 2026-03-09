@@ -12,6 +12,7 @@ import {
   BarChart3, CheckCircle, Clock, AlertTriangle, Loader2,
   Globe, Award, ChevronDown,
 } from 'lucide-react';
+import { getAvatarUrl } from '../../utils/avatar';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -429,9 +430,9 @@ function KPICard({ icon: Icon, label, value, color }) {
 }
 
 function AuthorAvatar({ author }) {
-  if (author.avatar?.url || author.avatar?.file_key) {
-    const src = author.avatar.url || `${API}/api/uploads/avatars/${author.avatar.file_key}`;
-    return <img src={src} alt="" className="w-8 h-8 rounded-full object-cover" />;
+  const avatarSrc = getAvatarUrl(author);
+  if (avatarSrc) {
+    return <img src={avatarSrc} alt="" className="w-8 h-8 rounded-full object-cover" />;
   }
   return (
     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xs font-bold">

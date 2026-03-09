@@ -25,6 +25,7 @@ import SortableRundownItem from './SortableRundownItem';
 import RundownItemDialog from './RundownItemDialog';
 import useRundownWebSocket from '../hooks/useRundownWebSocket';
 import { useMainSite } from '../context/MainSiteContext';
+import { getAvatarUrl } from '../utils/avatar';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -404,7 +405,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
             <div className="flex -space-x-1.5">
               {members.slice(0, 8).map(m => (
                 <div key={m.id} title={m.name} className="w-6 h-6 rounded-full border-2 border-[#18181b] bg-zinc-700 flex items-center justify-center text-[9px] font-bold text-white overflow-hidden">
-                  {m.avatar_url ? <img src={m.avatar_url} alt="" className="w-full h-full object-cover" /> : m.name?.charAt(0).toUpperCase()}
+                  {getAvatarUrl(m) ? <img src={getAvatarUrl(m)} alt="" className="w-full h-full object-cover" /> : m.name?.charAt(0).toUpperCase()}
                 </div>
               ))}
               {members.length > 8 && (
@@ -430,7 +431,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
               <div className="flex -space-x-1.5">
                 {presence.map((viewer, i) => (
                   <div key={i} title={viewer.name || 'Unknown'} className="w-6 h-6 rounded-full border-2 border-[#18181b] bg-green-900/50 flex items-center justify-center text-[9px] font-bold text-green-300 ring-1 ring-green-500/50 overflow-hidden">
-                    {viewer.avatar_url ? <img src={viewer.avatar_url} alt="" className="w-full h-full object-cover" /> : (viewer.initials || viewer.name?.charAt(0).toUpperCase() || '?')}
+                    {getAvatarUrl(viewer) ? <img src={getAvatarUrl(viewer)} alt="" className="w-full h-full object-cover" /> : (viewer.initials || viewer.name?.charAt(0).toUpperCase() || '?')}
                   </div>
                 ))}
               </div>
@@ -456,8 +457,8 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
                 className="flex items-center gap-1.5 px-2 py-1 bg-violet-500/10 rounded-full"
               >
                 <div className="w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
-                  {presenter.avatar?.s3_url ? (
-                    <img src={presenter.avatar.s3_url} alt={presenter.name} className="w-full h-full object-cover" />
+                  {getAvatarUrl(presenter) ? (
+                    <img src={getAvatarUrl(presenter)} alt={presenter.name} className="w-full h-full object-cover" />
                   ) : (
                     <User className="w-3 h-3 text-zinc-400" />
                   )}
@@ -551,7 +552,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
                 <div key={u.id} onClick={() => toggleMember(u.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isMember ? 'bg-violet-500/10 border border-violet-500/30' : 'hover:bg-zinc-800 border border-transparent'}`}>
                   <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
-                    {u.avatar_url ? <img src={u.avatar_url} alt="" className="w-full h-full object-cover" /> : u.name?.charAt(0).toUpperCase()}
+                    {getAvatarUrl(u) ? <img src={getAvatarUrl(u)} alt="" className="w-full h-full object-cover" /> : u.name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white truncate">{u.name}</p>

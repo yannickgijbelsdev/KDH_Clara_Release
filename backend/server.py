@@ -63,6 +63,7 @@ from routers.task_boards import task_boards_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
+from routers.shows import resolve_avatar_url
 
 # Create the main app
 app = FastAPI(title="Radio Show Planner API")
@@ -751,7 +752,7 @@ async def rundown_websocket(
     user_info = {
         "id": user['id'],
         "name": user.get('name', 'Unknown'),
-        "avatar_url": avatar.get('s3_url')
+        "avatar_url": resolve_avatar_url(avatar)
     }
     
     await ws_manager.connect(websocket, occurrence_id, user_info)
@@ -818,7 +819,7 @@ async def show_rundown_websocket(
     user_info = {
         "id": user['id'],
         "name": user.get('name', 'Unknown'),
-        "avatar_url": avatar.get('s3_url')
+        "avatar_url": resolve_avatar_url(avatar)
     }
     
     await ws_manager.connect(websocket, room_id, user_info)
