@@ -256,6 +256,7 @@ export default function BackupManagementPage() {
               {site.name}
               {site.site_type === 'server' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-medium">Server</span>}
               {site.site_type === 'technical' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium">Technical</span>}
+              {site.site_type === 'task_scheduler' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-500/20 text-violet-400 border border-violet-500/30 font-medium">Task Scheduler</span>}
             </button>
           ))}
         </div>

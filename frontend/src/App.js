@@ -269,6 +269,12 @@ const MainSiteIndexInner = () => {
         return;
       }
 
+      // Task scheduler sites always go to task-boards
+      if (mainSite.site_type === 'task_scheduler') {
+        navigate(`/${mainSiteSlug}/task-boards`, { replace: true });
+        return;
+      }
+
       // Server sites always go to xml-imports
       if (mainSite.site_type === 'server') {
         navigate(`/${mainSiteSlug}/xml-imports`, { replace: true });

@@ -75,7 +75,8 @@ const FEATURE_GROUPS = {
   sites: { name: 'Sites', Icon: Globe },
   admin: { name: 'Administration', Icon: Cog },
   technical: { name: 'Technical', Icon: Monitor },
-  server: { name: 'Server', Icon: Monitor }
+  server: { name: 'Server', Icon: Monitor },
+  tasks: { name: 'Tasks', Icon: LayoutGrid }
 };
 
 // Debug Content Component
@@ -800,8 +801,8 @@ export default function NetworkDashboard() {
                     Main Sites
                   </div>
                   {mainSites.slice(0, 5).map(site => {
-                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : 'Standard';
-                    const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : 'text-zinc-600';
+                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Task Scheduler' : 'Standard';
+                    const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
                     return (
                       <DropdownMenuItem
                         key={site.id}
@@ -1013,8 +1014,8 @@ export default function NetworkDashboard() {
                     {site.logo_url ? (
                       <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                     ) : (
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-red-500/10' : 'bg-zinc-800'}`}>
-                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-red-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-red-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : 'bg-zinc-800'}`}>
+                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-red-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                       </div>
                     )}
                     <div className="min-w-0">
@@ -1028,6 +1029,9 @@ export default function NetworkDashboard() {
                         )}
                         {site.site_type === 'server' && !site.cloned_from && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex-shrink-0">Server</span>
+                        )}
+                        {site.site_type === 'task_scheduler' && !site.cloned_from && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 flex-shrink-0">Task Scheduler</span>
                         )}
                       </div>
                       <span className="text-xs text-zinc-500">/{site.slug}</span>
@@ -1047,15 +1051,15 @@ export default function NetworkDashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       {site.logo_url ? (
                         <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                       ) : (
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-red-500/10' : 'bg-zinc-800'}`}>
-                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-red-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-red-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : 'bg-zinc-800'}`}>
+                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-red-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                         </div>
                       )}
                       <div>
@@ -1072,6 +1076,11 @@ export default function NetworkDashboard() {
                           {site.site_type === 'server' && !site.cloned_from && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-normal">
                               Server
+                            </span>
+                          )}
+                          {site.site_type === 'task_scheduler' && !site.cloned_from && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 font-normal">
+                              Task Scheduler
                             </span>
                           )}
                         </CardTitle>
@@ -1308,7 +1317,7 @@ export default function NetworkDashboard() {
             {!editingSite && (
               <div className="space-y-2">
                 <Label>Site Type</Label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div
                     className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
                       formData.site_type === 'radio'
@@ -1354,6 +1363,21 @@ export default function NetworkDashboard() {
                       <p className="text-xs text-zinc-400">XML imports, sync & vMix</p>
                     </div>
                   </div>
+                  <div
+                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                      formData.site_type === 'task_scheduler'
+                        ? 'bg-violet-500/20 border border-violet-500/50'
+                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
+                    }`}
+                    onClick={() => setFormData({ ...formData, site_type: 'task_scheduler', enabled_features: ['task_boards', 'team_settings', 'firewall', 'activity_logs'] })}
+                    data-testid="site-type-task-scheduler"
+                  >
+                    <LayoutGrid className="w-5 h-5 text-violet-400" />
+                    <div>
+                      <span className="text-sm font-medium text-white">Task Scheduler</span>
+                      <p className="text-xs text-zinc-400">Kanban boards & tasks</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -1377,8 +1401,8 @@ export default function NetworkDashboard() {
               </div>
             )}
 
-            {/* Enabled Features for Technical & Server - core features grayed out, common features toggleable */}
-            {(formData.site_type === 'technical' || formData.site_type === 'server') && (
+            {/* Enabled Features for Technical, Server & Task Scheduler - core features grayed out, common features toggleable */}
+            {(formData.site_type === 'technical' || formData.site_type === 'server' || formData.site_type === 'task_scheduler') && (
             <div className="space-y-3">
               <Label>Enabled Features</Label>
               {/* Technical: core features always enabled */}
@@ -1435,6 +1459,18 @@ export default function NetworkDashboard() {
                 </div>
               </div>
               )}
+              {/* Task Scheduler: task boards always enabled */}
+              {formData.site_type === 'task_scheduler' && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Task Features (always enabled)</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 opacity-50 cursor-not-allowed">
+                    <Checkbox checked={true} disabled className="pointer-events-none" />
+                    <span className="text-sm text-zinc-400">Task Boards</span>
+                  </div>
+                </div>
+              </div>
+              )}
               {/* Toggleable common features */}
               <div className="space-y-2">
                 <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Optional Features</h4>
@@ -1465,11 +1501,11 @@ export default function NetworkDashboard() {
             </div>
             )}
 
-            {formData.site_type !== 'technical' && formData.site_type !== 'server' && (
+            {formData.site_type !== 'technical' && formData.site_type !== 'server' && formData.site_type !== 'task_scheduler' && (
             <div className="space-y-3">
               <Label>Enabled Features</Label>
               <div className="grid gap-4">
-                {Object.entries(groupedFeatures).filter(([groupId]) => groupId !== 'technical' && groupId !== 'server').map(([groupId, features]) => {
+                {Object.entries(groupedFeatures).filter(([groupId]) => groupId !== 'technical' && groupId !== 'server' && groupId !== 'tasks').map(([groupId, features]) => {
                   const GroupIcon = FEATURE_GROUPS[groupId]?.Icon || Layers;
                   return (
                   <div key={groupId} className="space-y-2">

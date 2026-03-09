@@ -345,8 +345,8 @@ const MainSiteDashboardContent = () => {
   };
 
   // Brand: always "Clara", labels only in page header bar
-  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : 'Standard';
-  const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25';
+  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : mainSite?.site_type === 'task_scheduler' ? 'Task Scheduler' : 'Standard';
+  const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : mainSite?.site_type === 'task_scheduler' ? 'bg-violet-500/15 text-violet-400 border-violet-500/25' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25';
   // Display name: for server sites, show linked main site name
   const displayName = mainSite?.site_type === 'server' && mainSite?.linked_main_site_name
     ? mainSite.linked_main_site_name
@@ -374,6 +374,52 @@ const MainSiteDashboardContent = () => {
         icon: Monitor,
         items
       }];
+    }
+
+    // Task Scheduler sites show task_boards + optional admin features
+    if (mainSite.site_type === 'task_scheduler') {
+      const enabledFeatures = mainSite.enabled_features || [];
+      const coreItems = ['task_boards']
+        .map(featureId => {
+          const navItem = FEATURE_NAV_ITEMS[featureId];
+          if (!navItem) return null;
+          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId };
+        })
+        .filter(Boolean);
+      const adminItems = ['team_settings', 'firewall', 'activity_logs']
+        .filter(f => enabledFeatures.includes(f))
+        .map(featureId => {
+          const navItem = FEATURE_NAV_ITEMS[featureId];
+          if (!navItem) return null;
+          if (navItem.adminOnly && !userIsAdmin) return null;
+          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId };
+        })
+        .filter(Boolean);
+      const groups = [{
+        id: 'tasks',
+        label: 'Tasks',
+        icon: LayoutList,
+        items: coreItems
+      }];
+      if (adminItems.length > 0) {
+        groups.push({
+          id: 'admin',
+          label: 'Administration',
+          icon: Settings,
+          items: adminItems
+        });
+      }
+      // Always add support tickets
+      const supportItem = FEATURE_NAV_ITEMS['support_tickets'];
+      if (supportItem) {
+        groups.push({
+          id: 'support',
+          label: 'Support',
+          icon: LifeBuoy,
+          items: [{ ...supportItem, to: `/${mainSiteSlug}/${supportItem.to}`, featureId: 'support_tickets' }]
+        });
+      }
+      return groups;
     }
     
     const enabledFeatures = mainSite.enabled_features || [];
@@ -864,8 +910,8 @@ const MainSiteDashboardContent = () => {
                       My Sites
                     </div>
                     {myMainSites.map(site => {
-                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : 'Standard';
-                      const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : 'text-zinc-600';
+                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Task Scheduler' : 'Standard';
+                      const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
                       return (
                       <DropdownMenuItem
                         key={site.id}

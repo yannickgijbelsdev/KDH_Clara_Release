@@ -55,7 +55,7 @@ class MainSiteCreate(BaseModel):
     slug: str  # URL path, e.g., "radiogroep" for /radiogroep
     description: Optional[str] = None
     enabled_features: List[str] = []  # List of feature IDs
-    site_type: str = "radio"  # "radio", "technical", or "server"
+    site_type: str = "radio"  # "radio", "technical", "server", or "task_scheduler"
     linked_main_site_id: Optional[str] = None  # For server sites: linked parent main site
 
 

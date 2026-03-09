@@ -38,6 +38,7 @@ CONTENT_LINKED = ["content_item_publishes"]
 # Server-type site collections (filtered by main_site_id)
 SERVER_COLLECTIONS = [
     "xml_imports", "api_keys", "vmix_configs", "vmix_ticker_messages",
+    "task_boards", "task_columns", "tasks",
 ]
 
 BACKUP_RETENTION_DAYS = 30
