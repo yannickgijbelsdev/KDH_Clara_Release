@@ -1,67 +1,59 @@
 <analysis>**original_problem_statement:**
-The user's initial request was for a ticketing system, which has since evolved into a comprehensive, multi-tenant security and management platform for their radio business.
+The user's initial request was for a ticketing system, which has evolved into a comprehensive, multi-tenant security and management platform for their radio business.
 
-In this session, the user requested the implementation of two key features: a ticket notification system and a Forgot Password flow, both of which were completed.
+Recent major features implemented include:
+*   A Server site type to manage XML file imports and, as a separate mode, a vMix Director for live video overlay management.
+*   An advanced, dynamic form builder for Mini Sites, allowing admins to create custom forms with various field types (text, date, number, dropdown, file uploads) and validation rules.
+*   Extension of the backup system to fully support all site types, including Server and Technical sites.
+*   Numerous UI/UX refinements across the platform to standardize headers, labels, and the site creation process.
 
-The user then provided a detailed product requirements document (PRD) for a major new feature: a Server site type dedicated to managing XML file imports. This involved creating a new section in the application with a dashboard, upload functionality, and detailed views. A secure API for an external Sync Agent was also required. This entire feature was successfully implemented.
-
-Following the implementation, the user provided several iterative feedback points to refine the UI/UX, including changing branding dynamically for Server sites, linking them to Main Sites, applying a distinct red color theme, and fixing various UI display bugs in headers and menus.
+The current request is to build a new major feature: a **Task Scheduler** site type, envisioned as a Trello-like application with Kanban boards and integration with Google and Outlook calendars.
 
 PRODUCT REQUIREMENTS:
-1.  **Ticket System Notifications (Completed):** Implement email notifications for ticket creation, updates, and closure.
-2.  **Forgot Password Flow (Completed):** Implement a Forgot Password button and the full backend/frontend flow for password reset.
-3.  **System Alerts for Backups & Site Management (Completed):** Send an email to  when a main site is created, updated, deleted, or when a backup is created/restored.
-4.  **Global Admin Email Copy (Completed):** Ensure  receives a copy of ALL user-related notifications (tickets, password resets, system alerts, etc.).
-5.  **Email Delivery Debugging (In Progress):** Investigate and fix why emails are not being received on the user's production environment. The agent improved logging and error handling, but the root cause on production remains unconfirmed.
-6.  **XML Import Module (Server Site Type) (Completed):** Build a new module for uploading, managing, and parsing XML files. This includes:
-    *   A new Server  that can be linked to a Main Site.
-    *   Three new frontend pages: Import Dashboard, Upload XML, and Import Details, all integrated into the existing Clara layout.
-    *   Backend API endpoints for an external Sync Agent, secured with per-main-site API keys.
-    *   S3 integration for XML file storage.
-7.  **UI/UX Refinements for Server Type (Completed):**
-    *   Apply a red color theme and Server tag to all UI elements related to server sites.
-    *   Dynamically change header branding for Server sites.
-    *   Fix UI bugs in dropdown menus and headers where Server types were not handled correctly or role names were displayed incorrectly.
+1.  **Task Scheduler Feature (New):**
+    *   Create a new site type: Task Scheduler.
+    *   The core UI should be a Kanban-style board with draggable columns and cards.
+    *   Cards must support: title, description, attachments, comments, due dates, labels, and assigned users.
+    *   Users should be able to create an unlimited number of boards, with each board appearing in the sidebar navigation menu.
+    *   Implement two-way synchronization for tasks/to-dos with user's Google Calendar and/or Outlook Calendar.
+2.  **Email Delivery on Production (Ongoing):** Fix the critical issue where system alert emails are not being received in the user's production environment.
+3.  **Cloned Site Login on Production (Ongoing):** Fix the long-standing bug preventing logins to cloned sites on production.
 
 **User's preferred language**: The user communicates in Dutch. The next agent MUST respond in **Dutch**. All UI elements, code, comments, and documentation MUST be written in **English**.
 
 **what currently exists?**
-The application is a full-stack React/FastAPI multi-tenant radio management platform. Key features include user/role management, a firewall, ticketing, ZeroTier integration, content approval workflows, and extensive admin dashboards.
+The application is a full-stack React/FastAPI multi-tenant radio management platform. Key features include user/role management, a firewall, ticketing, ZeroTier integration, and extensive admin dashboards.
 
-In this session, a major new Server entity was introduced to handle XML file imports. This includes new backend models (, ), API routers, S3 storage integration, and three corresponding frontend pages fully integrated into the existing design system. The ticket notification and forgot password flows were also completed. Significant work was done to enhance the email notification system's reliability by improving logging and ensuring a global admin email receives a copy of all communications.
+Recent additions in this session:
+*   **vMix Director:** A new mode for Server sites, providing a canvas-based editor to design and manage live video overlays (logos, clocks, tickers). The backend serves dynamic HTML endpoints that vMix can consume. This feature passed a full suite of tests from the testing agent.
+*   **Dynamic Form Builder:** A powerful form builder for Mini Sites that allows admins to add, edit, and remove custom fields (including date pickers, number inputs, and file uploads to S3) with per-field validation rules.
+*   **Comprehensive Backups:** The backup, restore, and clone functionalities now fully support Server and Technical sites, including their specific database collections.
+*   **UI/UX Standardization:** The platform's UI has been significantly refactored for consistency. Labels for site types (e.g., Standard, Server, Global) now appear exclusively in the page header bar, not in the sidebar. The site creation flow has been streamlined with clear, mutually exclusive options and always-on feature displays.
 
 **Last working item**:
--   **Last item agent was working:** The user reported several UI display bugs in the user dropdown menu and dashboard headers. Specifically, Server site types were missing labels, role names were incorrect (Admin instead of Network Admin), and some text was in Dutch (actief). The agent identified the issues in  and  and implemented fixes to correct the logic and text.
--   **Status:** USER VERIFICATION PENDING
+-   **Last item agent was working:** The user requested a new Task Scheduler site type, specifying it should be a Trello-like application with calendar integration. The agent gathered detailed requirements, confirmed the scope (Kanban boards, unlimited boards, Google/Outlook sync), and performed an initial exploration of the existing codebase to prepare for implementation.
+-   **Status:** NOT STARTED
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** The screenshot tool should be sufficient to verify these cosmetic UI fixes.
+-   **Which testing method agent to use?** This is a large feature. The backend should be tested with  during development. Once the backend and frontend are built, use the  to test the full feature, including drag-and-drop, task creation, and calendar sync setup.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
 -   **Issue 1: (P0) Email alerts not being received on production.**
-    -   **Description:** The user reports that emails (specifically the system alerts to ) are not arriving on their production environment. The agent found and fixed several logic bugs (e.g., early  statements) and improved logging to track email delivery status (, , ). The agent confirmed the new code correctly attempts to send emails on the preview environment (though they fail there due to invalid SMTP test credentials). The user's issue on production persists.
-    -   **Attempted fixes:** Refactored  and  to ensure the system alert is always triggered and a copy of all direct emails is sent. Improved  schema and UI for better tracking.
+    -   **Description:** A critical, recurring issue where emails (specifically system alerts to ) are not arriving on the user's production environment. The agent has confirmed the sending logic works in the preview environment.
     -   **Next debug checklist:**
         1.  Ask the user to trigger a new event on production (e.g., update a main site).
         2.  Request the user to check the Notification History in the UI for that new event.
-        3.  Ask for a screenshot of the new log entry. This will show if the email is in the  or  list, which will isolate the problem to either the application logic or the SMTP server configuration.
-    -   **Why fix this issue and what will be achieved with the fix?** This is a critical feature for the user to monitor system activity.
+        3.  Ask for a screenshot of the new log entry to see if the email status is  or . This will isolate the problem to the application logic versus the production SMTP server configuration.
     -   **Status:** IN PROGRESS
     -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** backend
-    -   **Blocked on other issue:** None.
 -   **Issue 2: (P1) Cannot log into cloned sites on production.**
-    -   **Description:** A long-standing critical bug where users cannot log into cloned main sites on their production environment. The agent could not reproduce this in the preview environment.
+    -   **Description:** A long-standing critical bug where users cannot log into cloned main sites on their production environment. The agent cannot reproduce this in the preview environment.
     -   **Status:** BLOCKED (on user feedback)
     -   **Is recurring issue?** Y
--   **Issue 3: (P1) Cannot create Server site on production.**
-    -   **Description:** The user received an error when trying to create a Server site on production. The agent diagnosed this as a backend error () likely caused by the  constant in  being outdated on the production server.
-    -   **Attempted fixes:** The agent made a minor frontend improvement to prevent sending an empty .
-    -   **Next debug checklist:** This is likely a deployment issue. The agent should inform the user that a full deployment of the latest backend code is required to resolve this. No code fix is needed.
-    -   **Status:** BLOCKED (on deployment)
-    -   **Is recurring issue?** N
--   **Issue 4: (P2) RDS Settings page not loading.**
-    -   **Description:** The user previously reported the RDS settings page was not loading. This was not revisited.
+    -   **Should Test frontend/backend/both after fix?** backend
+-   **Issue 3: (P2) RDS Settings page not loading.**
+    -   **Description:** An older, unconfirmed report that the RDS settings page was not loading. This has not been revisited.
     -   **Status:** BLOCKED (on user feedback)
     -   **Is recurring issue?** N
 
@@ -70,111 +62,113 @@ In this session, a major new Server entity was introduced to handle XML file imp
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
+    *   **(P0) Implement Task Scheduler feature:** Begin development of the new Trello-like site type. This is the next immediate task.
+        *   Phase 1: Backend development (new models for boards, columns, tasks; new API router).
+        *   Phase 2: Frontend development (Kanban board UI with drag-and-drop).
+        *   Phase 3: Calendar integration (Google & Outlook).
     *   **(P1) Finalize WordPress Plugin Integration:** Guide the user through installing and configuring the custom  plugin.
-    *   **(P1) Cleanup Obsolete ProRadio Sync Code:** Remove the old ProRadio integration code from  and .
-    *   **(P1) Configurable Stale Now Playing Timeout:** Add a UI to configure the 15-minute hardcoded timeout in .
+    *   **(P1) Cleanup Obsolete ProRadio Sync Code:** Remove the old ProRadio integration code.
+    *   **(P1) Configurable Stale Now Playing Timeout:** Add a UI to configure the hardcoded 15-minute timeout.
 *   **Future Tasks:**
-    *   **(P2) Stream Monitor VU Meters:** Implement functional VU meters on the stream monitor page.
+    *   **(P2) Stream Monitor VU Meters:** Implement functional VU meters.
 
 **Completed work in this session**
--   **New Feature: Server Site & XML Imports (DONE):** Successfully designed and implemented the entire Server site feature for XML import management, including backend APIs, database models, S3 storage, and a full set of integrated frontend pages.
--   **Ticket Notification System (DONE):** Implemented email notifications for ticket creation, updates, and closure.
--   **Forgot Password Flow (DONE):** Added the complete forgot password functionality to the login page.
--   **Centralized Admin Email (DONE):** Reworked the email and audit services to ensure a copy of all user-related alerts is sent to .
--   **Email Delivery Enhancement (DONE):** Improved the notification logging system to accurately track attempted, sent, and failed emails and reflect this status in the UI.
--   **System Alert Auto-Initialization (DONE):** Added a server startup task to automatically enable the System Alert configuration, improving system resilience.
--   **UI/UX Refinements (DONE):** Implemented all user-requested UI changes for the Server site type, including a red color theme, dynamic branding, and fixing numerous display bugs in headers and menus.
+-   **New Feature: vMix Director (DONE):** Successfully implemented a video overlay management system for Server sites, including a canvas-based editor, backend APIs, and dynamic HTML endpoints.
+-   **New Feature: Mini-Site Form Builder (DONE):** Created a dynamic form builder for mini-sites, supporting custom fields like date pickers, number inputs, and S3 file uploads with validation.
+-   **Feature Enhancement: Comprehensive Backups (DONE):** Extended the backup/restore/clone system to fully support Server and Technical site types and their specific data.
+-   **UI/UX Refinement: Header & Label Standardization (DONE):** Refactored all layouts to ensure consistent placement of site-type labels in the header bar across the entire platform.
+-   **UI/UX Refinement: Site Creation Flow (DONE):** Made the Server site modes (XML vs. vMix) mutually exclusive and standardized the display of enabled/optional features for Server and Technical sites.
+-   **Bug Fix: Server Creation Failure (DONE):** Resolved a backend error that prevented the creation of new server sites by adding  to the list of .
 
 **Earlier issues found/mentioned but not fixed**
--   See . The key unresolved issues are the production email delivery, the inability to log into cloned sites, and the error when creating a Server site on production.
+-   See .
 
 **Known issue recurrence from previous fork**
--   **Multi-Tenant Logic:** The architecture continues to evolve with the addition of the Server site type and its link to Main Sites, reinforcing the complexity and importance of tenant-aware logic.
--   **Cloned Site Login Issue:** This critical bug from a previous session remains unresolved and blocked on user feedback.
+-   **Cloned Site Login Issue:** This critical bug from a previous session remains unresolved and blocked.
+-   **Production Environment Discrepancies:** The unresolved email delivery issue highlights the ongoing challenge of debugging problems that only manifest on the user's production environment, likely due to deployment or configuration differences.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **New Entity Type (Server):** Demonstrated the extensibility of the multi-tenant model by adding a new  with its own unique features and UI.
--   **Entity Linking:** Introduced a  to create a relationship between Server and Main sites.
--   **API for External Agents:** Designed and built a secure, API-key-based endpoint () for future automation.
--   **File Upload & Parsing:** Implemented multipart form upload for XML files to S3 and server-side parsing with .
--   **Resilient Notification System:** Refactored email and audit logic to be more robust, with better logging and a guaranteed admin copy () for all communications.
--   **System Initialization on Startup:** Added a task to  to pre-populate critical DB configurations, reducing manual setup.
+-   **Mutually Exclusive Features:** Implemented UI logic in  to handle either/or feature selection for Server sites (XML Imports vs. vMix Director).
+-   **Dynamic Form Builder:** A comprehensive system where admins define form structures (fields, types, validation) stored in MongoDB, which are then dynamically rendered on a public-facing page with full functionality, including per-field file uploads to S3.
+-   **Live Canvas Editor:** A React-based WYSIWYG editor for designing video overlays, providing an intuitive user experience for a technical task.
+-   **Dynamic HTML Endpoints:** Backend API endpoints that generate simple HTML/CSS content on the fly, serving as data sources for external software like vMix.
+-   **Type-Aware Backup System:** The backup service was refactored to be aware of different  values and include the relevant, type-specific database collections in backup, restore, and clone operations.
 
 **key DB schema**
--   **main_sites:** Added  (now includes 'server'), .
--   **xml_imports:** (NEW) uid=0(root) gid=0(root) groups=0(root), , , , , , , , .
--   **api_keys:** (NEW) , , , , .
--   **notification_log:** Modified to include , , .
+-   **vmix_configs:** (NEW) 
+-   **vmix_ticker_messages:** (NEW) 
+-   **form_fields:** (MODIFIED in  collection) The  array within a  document now supports objects with , , .
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   : Contains the core logic for sending all emails and the new improved logging.
--   : Contains the logic for triggering system-wide event notifications.
--   : The new API for the XML import feature.
--   : Defines the different site types and their available features.
--   : The main layout file, heavily modified for branding, navigation, and bug fixes.
--   : The page for creating new sites, updated to support the Server type.
+-   : Defines site types, features, and contains the  model.
+-   : Contains all logic for backups, restores, and clones.
+-   : The new API for the vMix Director feature.
+-   : The UI for creating all site types.
+-   : The main layout file governing consistent headers and sidebars.
+-   : The canvas editor UI for vMix.
+-   : The admin page containing the mini-site form builder.
+-   : The public page that renders the dynamic forms.
 
 **Areas that need refactoring**:
--   The obsolete ProRadio sync code (, ) should be removed.
+-   The obsolete ProRadio sync code (, ) should be removed when time permits.
 
 **key api endpoints**
--   : Uploads an XML file for processing.
--   : Lists all XML imports for a given site.
--   : Manage API keys for a site.
--   : Initiates the password reset flow.
+-   : Manages the vMix overlay configuration for a site.
+-   : Serves the live HTML for a specific vMix overlay element (e.g., , ).
+-   : The endpoint used by the form builder to save the updated  array.
+-   : Modified to handle multipart form data containing per-field file uploads.
 
 **Critical Info for New Agent**
--   **Language:** You MUST respond to the user in **Dutch**. All code, comments, and UI text must be in **English**.
--   **Production vs. Preview:** Be acutely aware of environment differences. The preview environment uses placeholder SMTP credentials (), so email sending will always fail in logs. The user's most critical issues (email delivery, creating Server sites) only manifest on their production environment and may be related to deployment lag rather than code bugs.
--   **Email Delivery Issue (P0):** Your top priority is to help the user debug why emails are not being received on production. Use the newly implemented notification history and its detailed status (/) to diagnose the problem.
--   **Server Site Type:** This is a major new feature. It's a special type of site linked to a regular main site and has its own navigation section and features (, ).
+-   **Language:** You MUST respond to the user in **Dutch**. All code must be in **English**.
+-   **Top Priority:** Your first task is to start building the **Task Scheduler** feature. The user has given clear initial requirements. Plan this large feature in phases (backend, frontend, integration) and seek user feedback along the way.
+-   **Calendar Integration:** The Task Scheduler requires Google and Outlook calendar integration. You will need to use the  tool to get the correct implementation plan for these third-party APIs.
+-   **Production Issues:** Be aware of the unresolved, production-only issues (email delivery, cloned site login). While your primary task is new feature development, be prepared to assist in debugging these if the user provides new information.
 
 **documents and test reports created in this job**
--   
--   
--    (updated)
+-    (for vMix Director feature)
+-    (updated multiple times)
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **Request (Done):** User asks to change header from Clara Server to Clara with a small Server label next to it for better design.
-9.  **Issue Report (Done):** User reports UI bugs in dropdown menus (missing Server label) and headers (shows Admin instead of Network Admin).
-8.  **Request (Done):** User asks to make the Server site theme red and update audit log emails to be more specific about site type.
-7.  **Issue Report (Blocked):** User shows an error message when trying to create a Server site on production. (Diagnosed as a deployment issue).
-6.  **Request (Done):** User requests to change the header branding for server sites to Clara Server and display the linked main site's name.
-5.  **Task Clarification (Done):** User confirms that Server sites are linked to Main Sites and API keys are per main site.
-4.  **Feature Request (Done):** User provides detailed PRD for the new Server / XML Import feature.
-3.  **Issue Report (In Progress):** User states that although logs show an email was sent, they did not receive it.
-2.  **Request (Done):** User asks for  to receive a copy of *all* user-related alerts, including password resets.
-1.  **Request (Done):** User asks for system alerts for backup/restore and main site management actions.
+1.  **Request:** User asks for a new Task Scheduler site type, like Trello, with Outlook/Google Calendar integration. (Status: **Pending Implementation**)
+2.  **Clarification:** User provides details for the Task Scheduler: calendar sync is a must, Kanban layout, full-featured cards, and unlimited boards. (Status: **Acknowledged**)
+3.  **Request:** User asks for a dynamic form builder for mini-sites with custom fields (date, number, file upload, etc.). (Status: **Completed**)
+4.  **Issue:** User reports an error when creating a server site. (Status: **Completed/Fixed**)
+5.  **Request:** User asks for backups to be enabled for Server and Technical sites. (Status: **Completed**)
+6.  **Clarification:** User specifies that Server sites must choose between XML Imports or vMix Director; they cannot have both. (Status: **Completed**)
+7.  **Request:** User asks for UI consistency in the site creation form for Server and Technical sites. (Status: **Completed**)
+8.  **Request:** User asks for a new vMix Director module to manage video overlays. (Status: **Completed**)
+9.  **Clarification:** User provides detailed requirements for the vMix module, including a canvas editor and live preview. (Status: **Completed**)
+10. **Request:** User gives final, specific instructions for standardizing UI labels across the platform. (Status: **Completed**)
 
 **Project Health Check:**
 -   **Broken:**
-    -   Login functionality for cloned sites on production (unresolved, P1).
-    -   Email delivery for system alerts on production (unconfirmed fix, P0).
-    -   Creation of Server sites on production (diagnosed as deployment lag, P1).
-    -   RDS Settings page may not be loading for the user (unconfirmed, P2).
+    -   Login functionality for cloned sites on production (P1, recurring, blocked).
+    -   Email delivery for system alerts on production (P0, recurring, in progress).
+    -   RDS Settings page may not be loading (P2, unconfirmed, blocked).
 -   **Mocked:**
     -   None.
 
 **3rd Party Integrations**
--   **pyotp:** Backend library for TOTP generation/verification.
--   **qrcode.react:** Frontend library to display QR codes for 2FA setup.
--   **WordPress:** Integration for category sync and post import.
--   **reportlab:** Backend library for server-side PDF generation.
--   **boto3:** For interacting with S3-compatible storage.
+-   **boto3:** S3 for file uploads.
 -   **ZeroTier:** Integrated via its public HTTP API.
--   **apscheduler:** For running the daily notification digest job.
+-   **apscheduler:** For running scheduled jobs.
+-   **pyotp / qrcode.react:** For 2FA.
+-   **WordPress:** For content sync.
+-   **reportlab:** For PDF generation.
+-   **Google Calendar API (Requested):** For the upcoming Task Scheduler feature.
+-   **Microsoft Graph API (Outlook) (Requested):** For the upcoming Task Scheduler feature.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES, used successfully to test the Ticket Notification/Forgot Password features and the new XML Import feature.
+-   **Testing agent used after significant changes:** YES, used for the vMix Director feature with a 100% success rate.
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** None
--   **Known regressions:** The cloned site login issue is a pre-existing regression. The production-only errors are new to this session.
+-   **Known regressions:** The cloned site login issue is a known, pre-existing regression.
 
 **Credentials to test flow:**
 -   **Network Admin:** 
@@ -183,4 +177,4 @@ In this session, a major new Server entity was introduced to handle XML file imp
 -   **Password:** 
 
 **What agent forgot to execute**
--   The agent did not perform a final test (e.g., screenshot) after implementing the last set of UI bug fixes for the headers and dropdowns. This is a minor omission.</analysis>
+-   The agent correctly transitioned from completing the previous set of features to planning the next major user request (Task Scheduler). No tasks were forgotten.</analysis>
