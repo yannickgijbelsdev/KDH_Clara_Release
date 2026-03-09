@@ -761,11 +761,20 @@ async def rundown_websocket(
             data = await websocket.receive_text()
             try:
                 message = json.loads(data)
-                if message.get("type") == "ping":
+                msg_type = message.get("type")
+                if msg_type == "ping":
                     await websocket.send_json({"type": "pong"})
+                elif msg_type in ("editing_start", "editing_update", "editing_end"):
+                    message["user"] = user_info
+                    await ws_manager.broadcast(occurrence_id, message, exclude=websocket)
             except json.JSONDecodeError:
                 pass
     except WebSocketDisconnect:
+        await ws_manager.broadcast(occurrence_id, {
+            "type": "editing_end",
+            "item_id": None,
+            "user": user_info
+        })
         await ws_manager.disconnect(websocket, occurrence_id)
     except Exception:
         await ws_manager.disconnect(websocket, occurrence_id)
@@ -819,11 +828,22 @@ async def show_rundown_websocket(
             data = await websocket.receive_text()
             try:
                 message = json.loads(data)
-                if message.get("type") == "ping":
+                msg_type = message.get("type")
+                if msg_type == "ping":
                     await websocket.send_json({"type": "pong"})
+                elif msg_type in ("editing_start", "editing_update", "editing_end"):
+                    # Relay live editing events to all other viewers
+                    message["user"] = user_info
+                    await ws_manager.broadcast(room_id, message, exclude=websocket)
             except json.JSONDecodeError:
                 pass
     except WebSocketDisconnect:
+        # Notify others that this user stopped editing
+        await ws_manager.broadcast(room_id, {
+            "type": "editing_end",
+            "item_id": None,
+            "user": user_info
+        })
         await ws_manager.disconnect(websocket, room_id)
     except Exception:
         await ws_manager.disconnect(websocket, room_id)

@@ -119,11 +119,27 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
   const { mainSite } = useMainSite();
   const mainSiteId = mainSite?.id || '';
 
-  // WebSocket presence for live viewers
+  // WebSocket presence for live viewers + live edits
   const token = localStorage.getItem('token');
   const wsType = occurrenceId ? 'occurrence' : 'show';
   const wsId = occurrenceId || showId;
-  const { isConnected, presence } = useRundownWebSocket(wsId, token, null, wsType);
+
+  const handleWsMessage = useCallback((data) => {
+    if (data.type === 'item_created' && data.item) {
+      setItems(prev => {
+        if (prev.some(i => i.id === data.item.id)) return prev;
+        return [...prev, data.item];
+      });
+    } else if (data.type === 'item_updated' && data.item) {
+      setItems(prev => prev.map(i => i.id === data.item.id ? data.item : i));
+    } else if (data.type === 'item_deleted' && data.item_id) {
+      setItems(prev => prev.filter(i => i.id !== data.item_id));
+    } else if (data.type === 'items_reordered' && data.items) {
+      setItems(data.items);
+    }
+  }, []);
+
+  const { isConnected, presence, liveEdits, sendMessage } = useRundownWebSocket(wsId, token, handleWsMessage, wsType);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -498,6 +514,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
                     onDelete={canEdit ? () => handleDeleteItem(item.id) : undefined}
                     canEdit={canEdit}
                     isActive={liveMode && index === activeItemIndex}
+                    liveEdit={liveEdits[item.id] || null}
                   />
                 </div>
               ))}
@@ -513,6 +530,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
           showId={showId}
           editingItem={editingItem}
           onSaved={handleItemSaved}
+          sendWsMessage={sendMessage}
         />
       )}
 

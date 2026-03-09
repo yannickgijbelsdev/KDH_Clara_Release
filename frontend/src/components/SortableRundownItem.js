@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Music, Mic, FileText, Radio, Edit2, Trash2, Clock, Wand2 } from 'lucide-react';
+import { GripVertical, Music, Mic, FileText, Radio, Edit2, Trash2, Clock, Wand2, Pencil } from 'lucide-react';
 import { Button } from './ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
 
 const typeIcons = {
   music: Music,
@@ -25,7 +26,6 @@ const typeLabels = {
   ad: 'Ad',
 };
 
-// Average speaking rate: 150 words per minute
 const WORDS_PER_MINUTE = 150;
 
 const calculateSpeakingDuration = (text) => {
@@ -37,7 +37,34 @@ const calculateSpeakingDuration = (text) => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit = true, isActive = false }) => {
+const UserAvatar = ({ user, size = 'sm', ring = false, ringColor = 'violet' }) => {
+  if (!user) return null;
+  const sizeClass = size === 'sm' ? 'w-5 h-5 text-[8px]' : 'w-6 h-6 text-[9px]';
+  const ringClass = ring ? `ring-2 ring-${ringColor}-500/60` : '';
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            data-testid={`item-avatar-${user.id}`}
+            className={`${sizeClass} ${ringClass} rounded-full bg-zinc-700 flex items-center justify-center font-bold text-white overflow-hidden shrink-0 cursor-default`}
+          >
+            {user.avatar_url ? (
+              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              user.name?.charAt(0).toUpperCase() || '?'
+            )}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="bg-zinc-800 border-zinc-700 text-white text-xs px-2 py-1">
+          {user.name}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
+const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit = true, isActive = false, liveEdit = null }) => {
   const {
     attributes,
     listeners,
@@ -53,16 +80,19 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
   };
 
   const Icon = typeIcons[item.type] || FileText;
+  const isBeingEdited = !!liveEdit;
 
-  // Calculate estimated duration from notes for non-music items
   const estimatedDuration = useMemo(() => {
     if (item.type === 'music' || item.duration) return null;
     return calculateSpeakingDuration(item.notes);
   }, [item.notes, item.type, item.duration]);
 
-  // Get display duration (actual or estimated)
   const displayDuration = item.duration || estimatedDuration;
   const isEstimated = !item.duration && estimatedDuration;
+
+  // Show live values if someone else is editing
+  const displayTitle = liveEdit?.fields?.title ?? item.title;
+  const displayNotes = liveEdit?.fields?.notes ?? item.notes;
 
   return (
     <div
@@ -71,11 +101,22 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
       data-testid={`rundown-item-${index}`}
       className={`group relative flex items-start gap-4 bg-[#27272a] rounded-lg p-4 ${typeColors[item.type]} ${
         isDragging ? 'dragging z-50' : ''
-      } ${isActive ? 'ring-2 ring-green-500 bg-green-500/10' : ''}`}
+      } ${isActive ? 'ring-2 ring-green-500 bg-green-500/10' : ''} ${
+        isBeingEdited ? 'ring-2 ring-amber-500/60 bg-amber-500/5' : ''
+      }`}
     >
       {/* Live indicator */}
       {isActive && (
         <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-8 bg-green-500 rounded-r-full animate-pulse" />
+      )}
+
+      {/* Live editing indicator */}
+      {isBeingEdited && (
+        <div className="absolute -top-2.5 right-3 flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full" data-testid={`live-edit-indicator-${index}`}>
+          <UserAvatar user={liveEdit.user} size="sm" />
+          <Pencil className="w-3 h-3 text-amber-400 animate-pulse" />
+          <span className="text-[10px] text-amber-300 font-medium">{liveEdit.user?.name?.split(' ')[0]} is editing</span>
+        </div>
       )}
       
       {/* Drag Handle */}
@@ -120,9 +161,19 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
             {typeLabels[item.type]}
           </span>
         </div>
-        <h4 className="text-white font-medium break-words">{item.title}</h4>
-        {item.notes && (
-          <p className="text-zinc-300 text-sm break-words whitespace-pre-wrap mt-1">{item.notes}</p>
+        <h4 className={`text-white font-medium break-words ${isBeingEdited ? 'text-amber-100' : ''}`}>{displayTitle}</h4>
+        {displayNotes && (
+          <p className={`text-sm break-words whitespace-pre-wrap mt-1 ${isBeingEdited ? 'text-amber-200/70' : 'text-zinc-300'}`}>{displayNotes}</p>
+        )}
+      </div>
+
+      {/* Attribution Avatar */}
+      <div className="flex items-center gap-1 mt-1 shrink-0">
+        {item.last_edited_by && item.last_edited_by.id !== item.created_by?.id && (
+          <UserAvatar user={item.last_edited_by} size="sm" ring ringColor="blue" />
+        )}
+        {item.created_by && (
+          <UserAvatar user={item.created_by} size="sm" />
         )}
       </div>
 

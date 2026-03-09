@@ -1,0 +1,74 @@
+{
+  "summary": "Tested rundown attribution and live collaborative editing features. Backend API tests: 9/9 PASSED. Frontend tests: Attribution avatars display correctly on rundown items with tooltip on hover. Edit dialog opens correctly and WebSocket connection established for live editing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "WebSocket connection",
+        "issue": "WebSocket shows transient 'error' event on rapid page load - this is normal Cloudflare/browser behavior and doesn't affect functionality",
+        "affected_selectors": [],
+        "priority": "LOW"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_rundown_attribution.py",
+    "/app/test_reports/pytest/rundown_attribution_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_rundown_attribution.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% - All attribution and live editing features working"
+  },
+  "test_credentials": "Admin: admkoodh@koodh.com / KYLovie13monx",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Rundown attribution and live collaborative editing features fully tested. Backend APIs POST/PUT /api/shows/{show_id}/rundown return created_by and last_edited_by attribution objects with {id, name, avatar_url}. Frontend SortableRundownItem displays avatars with tooltips on hover. RundownItemDialog sends editing_start/update/end WebSocket messages. Members can create/edit rundown items (permission check implemented in backend).",
+  "features_verified": {
+    "backend_apis": {
+      "POST /api/shows/{show_id}/rundown": "PASS - Returns created_by and last_edited_by attribution",
+      "PUT /api/shows/{show_id}/rundown/{item_id}": "PASS - Updates last_edited_by attribution",
+      "GET /api/shows/{show_id}/rundown": "PASS - Returns items with attribution fields",
+      "GET /api/shows/{show_id}/members": "PASS - Returns member list",
+      "PUT /api/shows/{show_id}/members": "PASS - Updates member list",
+      "Member permission check": "PASS - Editors/admins/members can create/edit items"
+    },
+    "frontend_components": {
+      "data-testid='rundown-editor'": "PASS - Component renders correctly",
+      "data-testid='item-avatar-*'": "PASS - Attribution avatars display on items",
+      "Attribution tooltip": "PASS - Shows user name on avatar hover",
+      "data-testid='add-rundown-item-btn'": "PASS - Opens add item dialog",
+      "data-testid='edit-item-*'": "PASS - Opens edit dialog",
+      "Edit dialog WebSocket": "PASS - Sends editing_start when opening existing item",
+      "Live editing throttle": "PASS - Broadcasts editing_update (150ms throttle)",
+      "Dialog close": "PASS - Sends editing_end when closing"
+    },
+    "websocket": {
+      "/ws/show/{show_id}": "PASS - Relays editing_start/update/end messages",
+      "Presence feature": "PASS - Shows live viewers in rundown header",
+      "Disconnect handling": "PASS - Broadcasts editing_end on disconnect"
+    }
+  },
+  "attribution_test_details": {
+    "created_by_fields": ["id", "name", "avatar_url"],
+    "last_edited_by_fields": ["id", "name", "avatar_url"],
+    "avatar_display": "Small circle with initial or image on right side of rundown items",
+    "tooltip_behavior": "Name appears on hover"
+  },
+  "live_editing_test_details": {
+    "editing_start": "Sent when edit dialog opens for existing item",
+    "editing_update": "Sent on field change (throttled 150ms)",
+    "editing_end": "Sent on dialog close or disconnect",
+    "live_edit_indicator": "Amber border + pencil icon when someone else is editing"
+  }
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
 import {
   Dialog,
@@ -29,25 +29,18 @@ const itemTypes = [
   { value: 'ad', label: 'Ad', icon: Radio },
 ];
 
-// Average speaking rate: 150 words per minute
 const WORDS_PER_MINUTE = 150;
 
 const calculateSpeakingDuration = (text) => {
   if (!text || text.trim() === '') return null;
-  
-  // Count words (split by whitespace)
   const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
-  
-  // Calculate minutes
   const totalMinutes = words / WORDS_PER_MINUTE;
   const minutes = Math.floor(totalMinutes);
   const seconds = Math.round((totalMinutes - minutes) * 60);
-  
-  // Format as MM:SS
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved }) => {
+const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, sendWsMessage }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     type: 'music',
@@ -55,6 +48,8 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
     notes: '',
     duration: '',
   });
+  const throttleRef = useRef(null);
+  const editingStartedRef = useRef(false);
 
   useEffect(() => {
     if (editingItem) {
@@ -74,14 +69,44 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
     }
   }, [editingItem, open]);
 
-  // Calculate estimated speaking duration from notes
+  // Send editing_start when dialog opens for an existing item
+  useEffect(() => {
+    if (open && editingItem && sendWsMessage && !editingStartedRef.current) {
+      editingStartedRef.current = true;
+      sendWsMessage({ type: 'editing_start', item_id: editingItem.id });
+    }
+    if (!open && editingStartedRef.current) {
+      if (editingItem && sendWsMessage) {
+        sendWsMessage({ type: 'editing_end', item_id: editingItem.id });
+      }
+      editingStartedRef.current = false;
+    }
+  }, [open, editingItem, sendWsMessage]);
+
+  // Throttled broadcast of field changes
+  const broadcastChange = useCallback((field, value) => {
+    if (!editingItem || !sendWsMessage) return;
+    if (throttleRef.current) clearTimeout(throttleRef.current);
+    throttleRef.current = setTimeout(() => {
+      sendWsMessage({
+        type: 'editing_update',
+        item_id: editingItem.id,
+        field,
+        value
+      });
+    }, 150);
+  }, [editingItem, sendWsMessage]);
+
+  const handleFieldChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    broadcastChange(field, value);
+  };
+
   const estimatedDuration = useMemo(() => {
-    // Only calculate for talk, item, or ad types (not music)
     if (formData.type === 'music') return null;
     return calculateSpeakingDuration(formData.notes);
   }, [formData.notes, formData.type]);
 
-  // Word count for display
   const wordCount = useMemo(() => {
     if (!formData.notes || formData.notes.trim() === '') return 0;
     return formData.notes.trim().split(/\s+/).filter(w => w.length > 0).length;
@@ -89,7 +114,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
 
   const applyEstimatedDuration = () => {
     if (estimatedDuration) {
-      setFormData({ ...formData, duration: estimatedDuration });
+      handleFieldChange('duration', estimatedDuration);
       toast.success('Duration estimated from text');
     }
   };
@@ -108,6 +133,11 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
       } else {
         response = await axios.post(`${API}/shows/${showId}/rundown`, formData);
       }
+      // Send editing_end before closing
+      if (editingItem && sendWsMessage) {
+        sendWsMessage({ type: 'editing_end', item_id: editingItem.id });
+        editingStartedRef.current = false;
+      }
       onSaved(response.data);
       toast.success(editingItem ? 'Item updated' : 'Item added');
     } catch (error) {
@@ -117,8 +147,16 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
     }
   };
 
+  const handleClose = (isOpen) => {
+    if (!isOpen && editingItem && sendWsMessage && editingStartedRef.current) {
+      sendWsMessage({ type: 'editing_end', item_id: editingItem.id });
+      editingStartedRef.current = false;
+    }
+    onOpenChange(isOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
@@ -131,7 +169,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
             <Label className="text-zinc-300">Type</Label>
             <Select
               value={formData.type}
-              onValueChange={(value) => setFormData({ ...formData, type: value })}
+              onValueChange={(value) => handleFieldChange('type', value)}
             >
               <SelectTrigger
                 data-testid="item-type-select"
@@ -164,7 +202,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
             <Input
               data-testid="item-title-input"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) => handleFieldChange('title', e.target.value)}
               placeholder="Enter title..."
               required
               className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
@@ -183,7 +221,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
             <Textarea
               data-testid="item-notes-input"
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) => handleFieldChange('notes', e.target.value)}
               placeholder="Additional notes or script text..."
               className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 resize-none"
               rows={4}
@@ -216,7 +254,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
             <Input
               data-testid="item-duration-input"
               value={formData.duration}
-              onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+              onChange={(e) => handleFieldChange('duration', e.target.value)}
               placeholder="MM:SS"
               className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 font-mono"
             />
@@ -227,7 +265,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved })
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleClose(false)}
               className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
             >
               Cancel

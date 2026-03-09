@@ -173,6 +173,8 @@ class RundownItemResponse(BaseModel):
     duration: str
     order: int
     created_at: str
+    created_by: Optional[dict] = None
+    last_edited_by: Optional[dict] = None
 
 
 class ReorderRequest(BaseModel):
@@ -193,6 +195,8 @@ class RundownItemWithContentResponse(BaseModel):
     duration: str
     order: int
     created_at: str
+    created_by: Optional[dict] = None
+    last_edited_by: Optional[dict] = None
     content_ids: List[str] = []
 
 

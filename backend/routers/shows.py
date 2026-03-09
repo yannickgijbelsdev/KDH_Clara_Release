@@ -1458,15 +1458,24 @@ async def get_rundown(
     return items
 
 
+async def _get_user_attribution(user: dict) -> dict:
+    """Build a compact user attribution dict for rundown items."""
+    avatar = user.get("avatar") or {}
+    return {
+        "id": user["id"],
+        "name": user.get("name", "Unknown"),
+        "avatar_url": avatar.get("s3_url")
+    }
+
+
 @shows_router.post("/{show_id}/rundown", response_model=RundownItemResponse, status_code=status.HTTP_201_CREATED)
 async def create_rundown_item(
     show_id: str,
     request: Request,
     item_data: RundownItemCreate,
-    current_user: dict = Depends(require_editor_or_admin)
+    current_user: dict = Depends(get_current_user)
 ):
-    """Add a rundown item (editor or admin only)."""
-    # Check for main_site_id header (multisite context)
+    """Add a rundown item. Allowed for editors, admins, and show members."""
     main_site_id = await get_main_site_id_from_header(request)
     
     if main_site_id:
@@ -1477,6 +1486,12 @@ async def create_rundown_item(
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
+    # Allow editors/admins OR show members
+    role = current_user.get("role", "viewer")
+    is_member = current_user["id"] in (show.get("members") or [])
+    if role not in ("admin", "editor") and not is_member:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this rundown")
+    
     last_item = await db.rundown_items.find_one(
         {"show_id": show_id},
         sort=[("order", -1)]
@@ -1486,6 +1501,10 @@ async def create_rundown_item(
     item_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
+    # Fetch full user for avatar info
+    full_user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0}) or current_user
+    attribution = await _get_user_attribution(full_user)
+    
     item_doc = {
         "id": item_id,
         "show_id": show_id,
@@ -1494,17 +1513,19 @@ async def create_rundown_item(
         "notes": item_data.notes or "",
         "duration": item_data.duration or "",
         "order": next_order,
-        "created_at": now
+        "created_at": now,
+        "created_by": attribution,
+        "last_edited_by": attribution
     }
     
     await db.rundown_items.insert_one(item_doc)
     item_doc.pop('_id', None)
     
-    # Broadcast WebSocket event for legacy shows
+    # Broadcast WebSocket event
     await ws_manager.broadcast(f"show_{show_id}", {
         "type": "item_created",
         "item": item_doc,
-        "user": {"id": current_user['id'], "name": current_user.get('name')}
+        "user": attribution
     })
     
     return item_doc
@@ -1549,21 +1570,36 @@ async def reorder_rundown(
 async def update_rundown_item(
     show_id: str,
     item_id: str,
+    request: Request,
     item_data: RundownItemUpdate,
-    current_user: dict = Depends(require_editor_or_admin)
+    current_user: dict = Depends(get_current_user)
 ):
-    """Update a rundown item (editor or admin only)."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')}
-    )
+    """Update a rundown item. Allowed for editors, admins, and show members."""
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    if main_site_id:
+        show = await db.shows.find_one({"id": show_id, "main_site_id": main_site_id})
+    else:
+        show = await db.shows.find_one({"id": show_id, "team_id": current_user.get('team_id')})
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
+    
+    # Allow editors/admins OR show members
+    role = current_user.get("role", "viewer")
+    is_member = current_user["id"] in (show.get("members") or [])
+    if role not in ("admin", "editor") and not is_member:
+        raise HTTPException(status_code=403, detail="Not authorized to edit this rundown")
     
     item = await db.rundown_items.find_one({"id": item_id, "show_id": show_id})
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     
     update_dict = {k: v for k, v in item_data.model_dump().items() if v is not None}
+    
+    # Add editor attribution
+    full_user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0}) or current_user
+    attribution = await _get_user_attribution(full_user)
+    update_dict["last_edited_by"] = attribution
     
     if update_dict:
         await db.rundown_items.update_one(
@@ -1573,11 +1609,11 @@ async def update_rundown_item(
     
     updated_item = await db.rundown_items.find_one({"id": item_id}, {"_id": 0})
     
-    # Broadcast WebSocket event for legacy shows
+    # Broadcast WebSocket event
     await ws_manager.broadcast(f"show_{show_id}", {
         "type": "item_updated",
         "item": updated_item,
-        "user": {"id": current_user['id'], "name": current_user.get('name')}
+        "user": attribution
     })
     
     return updated_item
