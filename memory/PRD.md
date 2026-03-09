@@ -2950,8 +2950,49 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 
 ### Upcoming Tasks
+- **P0: Task Scheduler Calendar Integration** - Google Calendar and Outlook two-way sync for task deadlines
 - **P1: WordPress Plugin Integration** - Guide user through installing clara-radio-schedule plugin
 - **P1: ProRadio Sync Code Cleanup** - Remove obsolete proradio_service.py and proradio.py
 - **P1: Configurable "Stale Now Playing" Timeout** - Make 15-min timeout configurable via UI
 - **P2: Stream Monitor VU Meters** - Implement functional VU meters (blocked by browser security)
 - **P2: Frontend RBAC cleanup** - Update component-level action buttons (Delete, Edit) to use canCreate/canDelete hooks
+
+
+### March 9, 2026 - Task Scheduler / Kanban Boards (COMPLETE)
+- [x] **New Feature: Task Boards (Kanban)**
+  - Trello-like Kanban board system for project management
+  - Board CRUD: Create unlimited boards with name, description, color
+  - Default columns auto-created: To Do, In Progress, Review, Done
+  - Column CRUD: Add, rename, delete, reorder columns
+  - Task CRUD: Create, update, delete, move tasks between columns
+  - Task cards with: title, description, priority (low/medium/high/urgent), deadline, assignee, labels, checklist, comments, attachments
+  - Drag-and-drop task movement between columns via @dnd-kit
+  - Task detail modal with all editable fields
+  - File attachments upload (S3 with local fallback, max 10MB)
+  - Comments system with add/delete
+  - Inline task creation from column footer
+  - Board list view with task counts per board
+  - Feature flag: `task_boards` (group: tasks)
+  - Sidebar navigation under "Tasks" group
+
+- **Backend**: `/app/backend/routers/task_boards.py`
+  - `GET /api/task-boards/boards` - List boards
+  - `POST /api/task-boards/boards` - Create board (auto-creates 4 default columns)
+  - `GET/PUT/DELETE /api/task-boards/boards/{boardId}` - Board CRUD
+  - `GET /api/task-boards/boards/{boardId}/columns` - List columns
+  - `POST /api/task-boards/boards/{boardId}/columns` - Add column
+  - `PUT /api/task-boards/boards/{boardId}/columns/reorder` - Reorder columns
+  - `PUT/DELETE /api/task-boards/boards/{boardId}/columns/{columnId}` - Column CRUD
+  - `GET/POST /api/task-boards/boards/{boardId}/tasks` - List/create tasks
+  - `PUT/DELETE /api/task-boards/boards/{boardId}/tasks/{taskId}` - Task CRUD
+  - `PUT /api/task-boards/boards/{boardId}/tasks/{taskId}/move` - Move task to column
+  - `POST /api/task-boards/boards/{boardId}/tasks/{taskId}/comments` - Add comment
+  - `DELETE /api/task-boards/boards/{boardId}/tasks/{taskId}/comments/{commentId}` - Delete comment
+  - `POST /api/task-boards/boards/{boardId}/tasks/{taskId}/attachments` - Upload attachment
+  - `DELETE /api/task-boards/boards/{boardId}/tasks/{taskId}/attachments/{attachmentId}` - Delete attachment
+
+- **Frontend**: `/app/frontend/src/pages/Tasks/TaskBoardsPage.js`
+  - Route: `/:mainSiteSlug/task-boards` (board list) and `/:mainSiteSlug/task-boards/:boardId` (kanban)
+
+- **DB Collections**: `task_boards`, `task_columns`, `tasks`
+- Tested: 24/24 backend tests passed + 100% frontend verified (iteration_73.json)
