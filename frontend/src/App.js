@@ -311,20 +311,24 @@ const MainSiteIndexInner = () => {
   );
 };
 
+import { BrandingProvider } from './context/BrandingContext';
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <JourneyProvider>
-          <CallProvider>
-            <TwoFactorEnforcementWrapper />
-            <ForcePasswordChangeModal />
-            <AppRoutes />
-            <CallWidget />
-            <SessionWarningModal />
-            <Toaster position="bottom-right" richColors />
-          </CallProvider>
-        </JourneyProvider>
+        <BrandingProvider>
+          <JourneyProvider>
+            <CallProvider>
+              <TwoFactorEnforcementWrapper />
+              <ForcePasswordChangeModal />
+              <AppRoutes />
+              <CallWidget />
+              <SessionWarningModal />
+              <Toaster position="bottom-right" richColors />
+            </CallProvider>
+          </JourneyProvider>
+        </BrandingProvider>
       </AuthProvider>
     </BrowserRouter>
   );

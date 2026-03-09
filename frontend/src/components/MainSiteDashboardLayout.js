@@ -35,6 +35,8 @@ import {
   CollapsibleTrigger,
 } from './ui/collapsible';
 import { getAvatarUrl } from '../utils/avatar';
+import { BrandLogo } from './BrandLogo';
+import { useBranding } from '../context/BrandingContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -159,6 +161,8 @@ const getSiteNavGroup = (currentSite) => ({
 
 const MainSiteDashboardContent = () => {
   const { user, logout, impersonating, exitImpersonation } = useAuth();
+  const { branding: brandingData } = useBranding();
+  const brandName = brandingData.platform_name || 'Clara';
   const { mainSite, mainSiteSlug, userRole, loading, error, hasFeature, isAdmin } = useMainSite();
   const { canView, canCreate, canEdit, canDelete } = usePermissions();
   const navigate = useNavigate();
@@ -287,7 +291,7 @@ const MainSiteDashboardContent = () => {
     } else if (mainSite?.name) {
       document.title = `Clara | ${mainSite.name}`;
     } else {
-      document.title = 'Clara';
+      document.title = brandName;
     }
   }, [isInSiteContext, currentSite, mainSite?.name]);
 
@@ -346,7 +350,7 @@ const MainSiteDashboardContent = () => {
   };
 
   // Brand: always "Clara", labels only in page header bar
-  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : mainSite?.site_type === 'task_scheduler' ? 'Clara Tasks' : 'Standard';
+  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Server' : mainSite?.site_type === 'technical' ? 'Technical' : mainSite?.site_type === 'task_scheduler' ? 'Tasks' : 'Standard';
   const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : mainSite?.site_type === 'task_scheduler' ? 'bg-violet-500/15 text-violet-400 border-violet-500/25' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25';
   // Display name: for server sites, show linked main site name
   const displayName = mainSite?.site_type === 'server' && mainSite?.linked_main_site_name
@@ -820,7 +824,7 @@ const MainSiteDashboardContent = () => {
               <div className="p-2 bg-orange-500 rounded-lg">
                 <span className="text-white font-black text-sm">C</span>
               </div>
-              <span className="text-lg font-bold text-white">Clara</span>
+              <BrandLogo className="text-lg font-bold text-white" />
             </div>
             <Button
               variant="ghost"
@@ -845,7 +849,7 @@ const MainSiteDashboardContent = () => {
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
           <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'px-2 text-center'}`}>
-            <span className="text-white font-black text-base">Clara</span>
+            <BrandLogo className="text-white font-black text-base" />
           </div>
 
           {/* Navigation */}
@@ -911,7 +915,7 @@ const MainSiteDashboardContent = () => {
                       My Sites
                     </div>
                     {myMainSites.map(site => {
-                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Clara Tasks' : 'Standard';
+                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Tasks' : 'Standard';
                       const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
                       return (
                       <DropdownMenuItem
@@ -974,7 +978,7 @@ const MainSiteDashboardContent = () => {
                 <div className="p-2 bg-orange-500 rounded-lg">
                   <span className="text-white font-black text-sm">C</span>
                 </div>
-                <span className="text-lg font-bold text-white">Clara</span>
+                <BrandLogo className="text-lg font-bold text-white" />
               </div>
               <Button
                 variant="ghost"

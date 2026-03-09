@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useBranding } from '../context/BrandingContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -7,6 +8,11 @@ import { toast } from 'sonner';
 import { Shield, ArrowLeft, KeyRound, Mail, Loader2 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+
+const resolveUrl = (url) => {
+  if (!url) return null;
+  return url.startsWith('/') ? `${API}${url}` : url;
+};
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +26,24 @@ const LoginPage = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   const { login } = useAuth();
+  const { branding } = useBranding();
+
+  const images = (branding.login_images || []).map(resolveUrl).filter(Boolean);
+  const layout = branding.login_layout || 'left';
+  const imageType = branding.login_image_type || 'static';
+  const platformName = branding.platform_name || 'Clara';
+  const logoUrl = branding.logo_type === 'image' && branding.logo_url ? resolveUrl(branding.logo_url) : null;
+
+  // Carousel timer
+  useEffect(() => {
+    if (imageType !== 'carousel' || images.length <= 1) return;
+    const interval = setInterval(() => {
+      setCarouselIndex(prev => (prev + 1) % images.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [imageType, images.length]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,42 +106,78 @@ const LoginPage = () => {
     setForgotLoading(false);
   };
 
-  return (
-    <div className="min-h-screen bg-[#09090b] flex">
-      {/* Left side - Hero */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1654198340681-a2e0fc449f1b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwxfHxkYXJrJTIwcHVycGxlJTIwZ3JhZGllbnQlMjBhYnN0cmFjdCUyMHdhdmVzfGVufDB8fHx8MTc3MTExNTk5Mnww&ixlib=rb-4.1.0&q=85)',
-            filter: 'brightness(0.6)'
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#09090b] via-transparent to-transparent" />
-        <div className="relative z-10 flex flex-col justify-center px-12">
-          <div className="mb-6">
-            <span className="text-2xl font-bold text-white">Clara</span>
+  const LogoElement = () => logoUrl ? (
+    <img src={logoUrl} alt={platformName} className="h-8 object-contain" />
+  ) : (
+    <span className="text-2xl font-bold text-white">{platformName}</span>
+  );
+
+  const ImagePanel = ({ className = '' }) => (
+    <div className={`relative overflow-hidden ${className}`}>
+      {images.length > 0 ? (
+        images.map((img, i) => (
+          <div
+            key={img}
+            className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+            style={{
+              backgroundImage: `url(${img})`,
+              filter: layout === 'fullscreen' ? 'brightness(0.3)' : 'brightness(0.6)',
+              opacity: imageType === 'carousel' ? (i === carouselIndex ? 1 : 0) : (i === 0 ? 1 : 0),
+            }}
+          />
+        ))
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-zinc-900 to-zinc-800" />
+      )}
+      {layout !== 'fullscreen' && (
+        <>
+          <div className={`absolute inset-0 ${layout === 'right' ? 'bg-gradient-to-l' : 'bg-gradient-to-r'} from-[#09090b] via-transparent to-transparent`} />
+          <div className="relative z-10 flex flex-col justify-center px-12 h-full">
+            <div className="mb-6"><LogoElement /></div>
+            <h1 className="text-5xl font-black text-white leading-tight mb-4">
+              Manage Your<br />
+              <span className="text-orange-500">Network</span><br />
+              With Ease
+            </h1>
+            <p className="text-zinc-400 text-lg max-w-md">
+              The all-in-one dashboard for managing your sites, content, and broadcasts from a single place.
+            </p>
           </div>
-          <h1 className="text-5xl font-black text-white leading-tight mb-4">
-            Manage Your<br />
-            <span className="text-orange-500">Network</span><br />
-            With Ease
-          </h1>
-          <p className="text-zinc-400 text-lg max-w-md">
-            The all-in-one dashboard for managing your sites, content, and broadcasts from a single place.
-          </p>
+        </>
+      )}
+      {/* Carousel dots */}
+      {imageType === 'carousel' && images.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setCarouselIndex(i)}
+              className={`w-2 h-2 rounded-full transition-colors ${i === carouselIndex ? 'bg-white' : 'bg-white/30'}`}
+            />
+          ))}
         </div>
-      </div>
+      )}
+    </div>
+  );
 
-      {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+  return (
+    <div className={`min-h-screen bg-[#09090b] ${layout === 'fullscreen' ? 'relative' : 'flex'}`}>
+      {/* Image panel */}
+      {layout === 'fullscreen' ? (
+        <ImagePanel className="absolute inset-0" />
+      ) : (
+        <ImagePanel className={`hidden lg:flex lg:w-1/2 ${layout === 'right' ? 'order-2' : ''}`} />
+      )}
+
+      {/* Form panel */}
+      <div className={`${layout === 'fullscreen' ? 'relative z-10 min-h-screen flex items-center justify-center p-8' : `w-full lg:w-1/2 flex items-center justify-center p-8 ${layout === 'right' ? 'order-1' : ''}`}`}>
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8 justify-center">
-            <span className="text-xl font-bold text-white">Clara</span>
+          {/* Mobile logo or fullscreen logo */}
+          <div className={`${layout === 'fullscreen' ? 'flex' : 'lg:hidden flex'} items-center gap-3 mb-8 justify-center`}>
+            <LogoElement />
           </div>
 
-          <div className="bg-[#18181b] border border-zinc-800 rounded-2xl p-8">
+          <div className={`bg-[#18181b] border border-zinc-800 rounded-2xl p-8 ${layout === 'fullscreen' ? 'bg-[#18181b]/90 backdrop-blur-xl' : ''}`}>
             {showForgotPassword ? (
               // Forgot Password View
               <>

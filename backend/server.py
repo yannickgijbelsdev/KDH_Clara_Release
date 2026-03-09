@@ -60,6 +60,7 @@ from routers.notifications import notifications_router
 from routers.xml_imports import xml_imports_router
 from routers.vmix import vmix_router
 from routers.task_boards import task_boards_router
+from routers.branding import branding_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -125,6 +126,7 @@ api_router.include_router(notifications_router)
 api_router.include_router(xml_imports_router)
 api_router.include_router(vmix_router)
 api_router.include_router(task_boards_router)
+api_router.include_router(branding_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
@@ -472,6 +474,17 @@ async def get_vmix_logo_file(file_key: str):
         raise HTTPException(status_code=404, detail="File not found")
     media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
     return FileResponse(file_path, media_type=media_type)
+
+
+@api_router.get("/uploads/branding/{file_key}")
+async def get_branding_file(file_key: str):
+    """Serve a branding file (logo, favicon, login images)."""
+    import pathlib
+    file_path = pathlib.Path("/app/backend/uploads/branding") / file_key
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
+    return FileResponse(file_path, media_type=media_type, headers={"Cache-Control": "public, max-age=3600"})
 
 
 @api_router.get("/share/{share_token}")

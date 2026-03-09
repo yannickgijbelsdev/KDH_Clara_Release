@@ -30,6 +30,8 @@ import {
   CollapsibleTrigger,
 } from './ui/collapsible';
 import { getAvatarUrl } from '../utils/avatar';
+import { BrandLogo } from './BrandLogo';
+import { useBranding } from '../context/BrandingContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -134,6 +136,8 @@ const flatNavItems = [
 
 const DashboardLayout = () => {
   const { user, logout, isAdmin, impersonating, exitImpersonation } = useAuth();
+  const { branding: brandingData } = useBranding();
+  const brandName = brandingData.platform_name || 'Clara';
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -267,13 +271,13 @@ const DashboardLayout = () => {
   // Update browser tab title dynamically
   useEffect(() => {
     if (isInSiteContext && currentSite) {
-      document.title = `Clara | ${currentSite.name}`;
+      document.title = `${brandName} | ${currentSite.name}`;
     } else if (user?.team_name) {
-      document.title = `Clara | ${user.team_name}`;
+      document.title = `${brandName} | ${user.team_name}`;
     } else {
-      document.title = 'Clara';
+      document.title = brandName;
     }
-  }, [isInSiteContext, currentSite, user?.team_name]);
+  }, [isInSiteContext, currentSite, user?.team_name, brandName]);
 
   // Mark chat as read when visiting chat page
   useEffect(() => {
@@ -296,11 +300,11 @@ const DashboardLayout = () => {
   // Set browser tab title dynamically
   useEffect(() => {
     if (user?.team_name) {
-      document.title = `Clara | ${user.team_name}`;
+      document.title = `${brandName} | ${user.team_name}`;
     } else {
-      document.title = 'Clara';
+      document.title = brandName;
     }
-  }, [user?.team_name]);
+  }, [user?.team_name, brandName]);
 
   const handleLogout = () => {
     logout();
@@ -422,7 +426,7 @@ const DashboardLayout = () => {
               <div className="p-2 bg-orange-500 rounded-lg">
                 <span className="text-white font-black text-sm">C</span>
               </div>
-              <span className="text-lg font-bold text-white">Clara</span>
+              <BrandLogo className="text-lg font-bold text-white" />
             </div>
             <Button
               variant="ghost"
@@ -448,7 +452,7 @@ const DashboardLayout = () => {
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
           <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'px-2 text-center'}`}>
-            <span className="text-white font-black text-base">Clara</span>
+            <BrandLogo className="text-white font-black text-base" />
           </div>
 
           {/* Navigation */}
@@ -808,7 +812,7 @@ const DashboardLayout = () => {
                 <div className="p-2 bg-orange-500 rounded-lg">
                   <span className="text-white font-black text-sm">C</span>
                 </div>
-                <span className="text-lg font-bold text-white">Clara</span>
+                <BrandLogo className="text-lg font-bold text-white" />
               </div>
               <Button
                 variant="ghost"

@@ -23,7 +23,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -43,8 +43,10 @@ import PermissionAuditPanel from './PermissionAuditPanel';
 import NetworkAdminManager from './NetworkAdminManager';
 import NotificationSettings from './NotificationSettings';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
+import BrandingSettings from './BrandingSettings';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
+import { BrandLogo } from '../../components/BrandLogo';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -380,6 +382,7 @@ export default function NetworkDashboard() {
       items: [
         { id: 'admins', icon: Crown, label: 'Network Admins' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
+        { id: 'branding', icon: Paintbrush, label: 'Branding' },
       ]
     },
     {
@@ -659,7 +662,7 @@ export default function NetworkDashboard() {
             <div className="p-2 bg-orange-500 rounded-lg">
               <span className="text-white font-black text-sm">C</span>
             </div>
-            <span className="text-lg font-bold text-white">Clara</span>
+            <BrandLogo className="text-lg font-bold text-white" imgClass="h-6 object-contain" />
           </div>
           <Button
             variant="ghost"
@@ -684,7 +687,7 @@ export default function NetworkDashboard() {
       <aside className="hidden lg:flex fixed top-0 left-0 h-full z-50 w-56 flex-col py-6 glass border-r border-white/10 transition-all duration-300">
         {/* Logo */}
         <div className="mb-6 px-4">
-          <span className="text-white font-black text-base">Clara</span>
+          <BrandLogo className="text-white font-black text-base" />
         </div>
 
         {/* Navigation */}
@@ -802,7 +805,7 @@ export default function NetworkDashboard() {
                     Main Sites
                   </div>
                   {mainSites.slice(0, 5).map(site => {
-                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Clara Tasks' : 'Standard';
+                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Tasks' : 'Standard';
                     const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
                     return (
                       <DropdownMenuItem
@@ -842,7 +845,7 @@ export default function NetworkDashboard() {
               <div className="p-2 bg-orange-500 rounded-lg">
                 <span className="text-white font-black text-sm">C</span>
               </div>
-              <span className="text-lg font-bold text-white">Clara</span>
+              <BrandLogo className="text-lg font-bold text-white" />
             </div>
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-white">
               <X className="w-5 h-5" />
@@ -1242,6 +1245,20 @@ export default function NetworkDashboard() {
             </div>
           )}
 
+          {/* ═══════════ BRANDING ═══════════ */}
+          {activeSection === 'branding' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">Branding</h1>
+                  <p className="text-sm text-zinc-400">Customize platform name, logo, favicon, and login page</p>
+                </div>
+              </div>
+              <BrandingSettings />
+            </div>
+          )}
+
+
           {/* ═══════════ PERMISSION AUDIT ═══════════ */}
           {activeSection === 'audit' && (
             <div>
@@ -1383,7 +1400,7 @@ export default function NetworkDashboard() {
                   >
                     <LayoutGrid className="w-5 h-5 text-violet-400" />
                     <div>
-                      <span className="text-sm font-medium text-white">Clara Tasks</span>
+                      <span className="text-sm font-medium text-white">Tasks</span>
                       <p className="text-xs text-zinc-400">Kanban boards & tasks</p>
                     </div>
                   </div>
