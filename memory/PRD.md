@@ -2934,6 +2934,19 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Added `avatar_url` field to `MainSiteUserResponse` Pydantic model
 - Tested: iteration_76 (10/10 backend + 100% frontend verified)
 
+### March 9, 2026 (Session 3b) - Rundown Attribution + Live Collaborative Editing (COMPLETE)
+- [x] **Rundown Item Attribution** — each rundown item shows who created/last edited it
+  - Backend: `created_by` and `last_edited_by` fields with `{id, name, avatar_url}` on create/update
+  - Frontend: UserAvatar component with tooltip on hover showing user name
+  - Show members (not just editors/admins) can now add/edit rundown items
+- [x] **Live Collaborative Editing** — real-time editing via WebSocket
+  - WebSocket relay: `editing_start`, `editing_update`, `editing_end` message types
+  - Frontend: RundownItemDialog broadcasts field changes as user types (150ms throttle)
+  - Frontend: SortableRundownItem shows amber border + pencil icon when someone else edits
+  - Frontend: Live text preview - other users see typed text updating in real-time
+  - Backend: WebSocket disconnect sends `editing_end` to all remaining viewers
+- Tested: iteration_77 (9/9 backend + 100% frontend verified)
+
   - **5 Overlay Elements**: Logo (uploadable), Clock (live), Ticker (scrolling/static), Now Playing Show, Now Playing Track
   - **Ticker Features**: Configurable separators (bullet, dash, pipe, star, custom), scrolling toggle, text/bg colors, font size
   - **Now Playing**: Linked to XML Server imports for show/track data, presenter photo support
