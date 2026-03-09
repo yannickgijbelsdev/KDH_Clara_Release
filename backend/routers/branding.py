@@ -7,6 +7,7 @@ import uuid
 import os
 
 from services.auth import get_current_user
+from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
 from database import db
 
 branding_router = APIRouter(prefix="/branding", tags=["branding"])
@@ -20,8 +21,8 @@ class BrandingUpdate(BaseModel):
     login_images: Optional[List[str]] = None
 
 
-UPLOAD_DIR = "/app/backend/uploads/branding"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+LOCAL_UPLOAD_DIR = "/app/backend/uploads/branding"
+os.makedirs(LOCAL_UPLOAD_DIR, exist_ok=True)
 
 DEFAULT_BRANDING = {
     "id": "platform_branding",
@@ -35,6 +36,41 @@ DEFAULT_BRANDING = {
         "https://images.unsplash.com/photo-1654198340681-a2e0fc449f1b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwxfHxkYXJrJTIwcHVycGxlJTIwZ3JhZGllbnQlMjBhYnN0cmFjdCUyMHdhdmVzfGVufDB8fHx8MTc3MTExNTk5Mnww&ixlib=rb-4.1.0&q=85"
     ],
 }
+
+
+async def _upload_branding_file(content: bytes, filename: str, content_type: str, prefix: str) -> str:
+    """Upload a branding file to S3 (preferred) or local storage. Returns URL."""
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "png"
+    unique_name = f"{prefix}_{uuid.uuid4().hex[:8]}.{ext}"
+    s3_key = f"branding/{unique_name}"
+
+    if is_s3_configured():
+        result = await upload_file_to_s3(content, s3_key, content_type)
+        return result["url"]
+    else:
+        filepath = os.path.join(LOCAL_UPLOAD_DIR, unique_name)
+        with open(filepath, "wb") as f:
+            f.write(content)
+        return f"/api/uploads/branding/{unique_name}"
+
+
+async def _delete_branding_file(url: str):
+    """Delete a branding file from S3 or local storage."""
+    if not url:
+        return
+    if url.startswith("/api/uploads/branding/"):
+        local_name = url.split("/")[-1]
+        local_path = os.path.join(LOCAL_UPLOAD_DIR, local_name)
+        if os.path.exists(local_path):
+            os.unlink(local_path)
+    elif is_s3_configured():
+        # Extract S3 key from URL
+        try:
+            # S3 URLs contain the key after the bucket path
+            key = "branding/" + url.split("branding/")[-1].split("?")[0]
+            await delete_file_from_s3(key)
+        except Exception:
+            pass
 
 
 async def get_branding():
@@ -76,7 +112,7 @@ async def upload_logo(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
 ):
-    """Upload a platform logo image."""
+    """Upload a platform logo image to S3."""
     if not current_user.get("is_network_admin") and current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Network admin access required")
 
@@ -84,13 +120,16 @@ async def upload_logo(
     if ext not in ("png", "jpg", "jpeg", "svg", "webp"):
         raise HTTPException(status_code=400, detail="Invalid image format")
 
-    filename = f"logo_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
     content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
+    content_type = file.content_type or "image/png"
 
-    url = f"/api/uploads/branding/{filename}"
+    # Delete old logo if exists
+    branding = await get_branding()
+    if branding.get("logo_url"):
+        await _delete_branding_file(branding["logo_url"])
+
+    url = await _upload_branding_file(content, file.filename, content_type, "logo")
+
     await db.platform_settings.update_one(
         {"id": "platform_branding"},
         {"$set": {"logo_url": url, "logo_type": "image", "updated_at": datetime.now(timezone.utc).isoformat()}},
@@ -104,7 +143,7 @@ async def upload_favicon(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
 ):
-    """Upload a custom favicon."""
+    """Upload a custom favicon to S3."""
     if not current_user.get("is_network_admin") and current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Network admin access required")
 
@@ -112,13 +151,16 @@ async def upload_favicon(
     if ext not in ("ico", "png", "svg"):
         raise HTTPException(status_code=400, detail="Invalid favicon format. Use .ico, .png, or .svg")
 
-    filename = f"favicon_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
     content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
+    content_type = file.content_type or "image/x-icon"
 
-    url = f"/api/uploads/branding/{filename}"
+    # Delete old favicon if exists
+    branding = await get_branding()
+    if branding.get("favicon_url"):
+        await _delete_branding_file(branding["favicon_url"])
+
+    url = await _upload_branding_file(content, file.filename, content_type, "favicon")
+
     await db.platform_settings.update_one(
         {"id": "platform_branding"},
         {"$set": {"favicon_url": url, "updated_at": datetime.now(timezone.utc).isoformat()}},
@@ -132,7 +174,7 @@ async def upload_login_image(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
 ):
-    """Upload a login page background image."""
+    """Upload a login page background image to S3."""
     if not current_user.get("is_network_admin") and current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Network admin access required")
 
@@ -140,13 +182,10 @@ async def upload_login_image(
     if ext not in ("png", "jpg", "jpeg", "webp"):
         raise HTTPException(status_code=400, detail="Invalid image format")
 
-    filename = f"login_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = os.path.join(UPLOAD_DIR, filename)
     content = await file.read()
-    with open(filepath, "wb") as f:
-        f.write(content)
+    content_type = file.content_type or "image/jpeg"
 
-    url = f"/api/uploads/branding/{filename}"
+    url = await _upload_branding_file(content, file.filename, content_type, "login")
 
     # Add to login_images array
     branding = await get_branding()
@@ -169,6 +208,9 @@ async def delete_login_image(
     """Remove a login page background image."""
     if not current_user.get("is_network_admin") and current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Network admin access required")
+
+    # Delete from storage
+    await _delete_branding_file(image_url)
 
     branding = await get_branding()
     images = branding.get("login_images", [])
