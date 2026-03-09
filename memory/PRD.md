@@ -2918,6 +2918,22 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **vMix Director Canvas Editor**: Full video director environment for managing vMix overlay elements
   - **Backend**: New router `/api/vmix/` with config CRUD, logo upload, ticker messages CRUD, now playing data, HTML overlay endpoints
   - **Frontend**: Canvas-based 16:9 preview editor with draggable overlay elements
+
+### March 9, 2026 (Session 3) - Rundown Enhancement: Members + Live Viewers (COMPLETE)
+- [x] **Rundown Member Management** — per-show member management (editorial staff, not just presenters)
+  - Backend: `GET/PUT /api/shows/{show_id}/members` endpoints
+  - Frontend: Member avatars in rundown header + member picker dialog
+  - Fixed: avatar field resolution (avatar object → avatar_url flat field)
+  - Fixed: MainSiteContext hook usage (was using localStorage incorrectly)
+- [x] **Live Viewer Presence (WebSocket)** — real-time display of who is viewing a rundown
+  - Backend: `/ws/show/{show_id}` WebSocket endpoint with presence broadcasting
+  - Frontend: Green live viewer indicators with avatars + count
+  - Fixed: WebSocket hook now supports both show and occurrence paths via `wsType` parameter
+- [x] **Avatar URL fixes across platform**
+  - Fixed `shows.py`, `task_boards.py`, `server.py` WebSocket, `main_sites.py` to correctly resolve `avatar.s3_url`
+  - Added `avatar_url` field to `MainSiteUserResponse` Pydantic model
+- Tested: iteration_76 (10/10 backend + 100% frontend verified)
+
   - **5 Overlay Elements**: Logo (uploadable), Clock (live), Ticker (scrolling/static), Now Playing Show, Now Playing Track
   - **Ticker Features**: Configurable separators (bullet, dash, pipe, star, custom), scrolling toggle, text/bg colors, font size
   - **Now Playing**: Linked to XML Server imports for show/track data, presenter photo support
@@ -2960,10 +2976,10 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 ### Upcoming Tasks
-- **P0: Rundown member avatars + live viewers (WebSocket)** — show who's in the rundown + real-time live viewer indicator
-- **P0: Calendar Integration** — Google Calendar & Outlook sync for task deadlines
+- **P1: Calendar Integration** — Google Calendar & Outlook sync for task deadlines
 - **P0: Production email alerts** — wacht op feedback
 - **P1: Clone login bug op productie** — geblokkeerd
+- **P2: RDS Settings page laadt niet** — onbevestigd
 
 
 ### March 9, 2026 - Task Scheduler / Kanban Boards (COMPLETE)
