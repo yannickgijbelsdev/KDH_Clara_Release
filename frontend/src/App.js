@@ -49,6 +49,7 @@ import XmlUpload from './pages/Server/XmlUpload';
 import XmlDetails from './pages/Server/XmlDetails';
 import ApiKeysPage from './pages/Server/ApiKeysPage';
 import VmixDirector from './pages/Server/VmixDirector';
+import TaskBoardsPage from './pages/Tasks/TaskBoardsPage';
 import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import './App.css';
@@ -235,6 +236,8 @@ const AppRoutes = () => {
         <Route path="xml-imports/:importId" element={<XmlDetails />} />
         <Route path="api-keys" element={<ApiKeysPage />} />
         <Route path="vmix-director" element={<VmixDirector />} />
+        <Route path="task-boards" element={<TaskBoardsPage />} />
+        <Route path="task-boards/:boardId" element={<TaskBoardsPage />} />
       </Route>
 
       {/* Public Call Page - /call/:callToken (no auth required) */}

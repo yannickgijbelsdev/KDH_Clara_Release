@@ -222,6 +222,25 @@ async def create_column(
     return col
 
 
+class ColumnsReorder(BaseModel):
+    column_ids: List[str]
+
+
+@task_boards_router.put("/boards/{board_id}/columns/reorder")
+async def reorder_columns(
+    board_id: str,
+    body: ColumnsReorder,
+    main_site_id: str = Depends(get_main_site_id_from_header),
+    current_user: dict = Depends(get_current_user),
+):
+    for idx, col_id in enumerate(body.column_ids):
+        await db.task_columns.update_one(
+            {"id": col_id, "board_id": board_id},
+            {"$set": {"order": idx}},
+        )
+    return {"status": "reordered"}
+
+
 @task_boards_router.put("/boards/{board_id}/columns/{column_id}")
 async def update_column(
     board_id: str,
@@ -246,6 +265,38 @@ async def delete_column(
     await db.task_columns.delete_one({"id": column_id, "board_id": board_id})
     await db.tasks.delete_many({"column_id": column_id})
     return {"status": "deleted"}
+
+
+@task_boards_router.delete("/boards/{board_id}/tasks/{task_id}/attachments/{attachment_id}")
+async def delete_attachment(
+    board_id: str,
+    task_id: str,
+    attachment_id: str,
+    main_site_id: str = Depends(get_main_site_id_from_header),
+    current_user: dict = Depends(get_current_user),
+):
+    await db.tasks.update_one(
+        {"id": task_id, "board_id": board_id, "main_site_id": main_site_id},
+        {"$pull": {"attachments": {"id": attachment_id}}},
+    )
+    task = await db.tasks.find_one({"id": task_id}, {"_id": 0})
+    return task
+
+
+@task_boards_router.delete("/boards/{board_id}/tasks/{task_id}/comments/{comment_id}")
+async def delete_comment(
+    board_id: str,
+    task_id: str,
+    comment_id: str,
+    main_site_id: str = Depends(get_main_site_id_from_header),
+    current_user: dict = Depends(get_current_user),
+):
+    await db.tasks.update_one(
+        {"id": task_id, "board_id": board_id, "main_site_id": main_site_id},
+        {"$pull": {"comments": {"id": comment_id}}},
+    )
+    task = await db.tasks.find_one({"id": task_id}, {"_id": 0})
+    return task
 
 
 # ── Tasks CRUD ──

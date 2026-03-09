@@ -59,6 +59,7 @@ from routers.zerotier import zerotier_router
 from routers.notifications import notifications_router
 from routers.xml_imports import xml_imports_router
 from routers.vmix import vmix_router
+from routers.task_boards import task_boards_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -122,6 +123,7 @@ api_router.include_router(zerotier_router)
 api_router.include_router(notifications_router)
 api_router.include_router(xml_imports_router)
 api_router.include_router(vmix_router)
+api_router.include_router(task_boards_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============

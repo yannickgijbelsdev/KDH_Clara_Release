@@ -80,6 +80,7 @@ const FEATURE_NAV_ITEMS = {
   xml_imports: { to: 'xml-imports', icon: FileText, label: 'XML Imports' },
   server_api_keys: { to: 'api-keys', icon: Shield, label: 'API Keys', adminOnly: true },
   vmix_director: { to: 'vmix-director', icon: Monitor, label: 'vMix Director' },
+  task_boards: { to: 'task-boards', icon: LayoutList, label: 'Task Boards' },
 };
 
 // Navigation groups with feature mapping
@@ -125,6 +126,12 @@ const NAV_GROUPS = [
     label: 'Server',
     icon: Monitor,
     features: ['xml_imports', 'server_api_keys', 'vmix_director']
+  },
+  {
+    id: 'tasks',
+    label: 'Tasks',
+    icon: LayoutList,
+    features: ['task_boards']
   },
   {
     id: 'support',
