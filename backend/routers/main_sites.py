@@ -289,6 +289,10 @@ async def update_main_site(
         for feature_id in data.enabled_features:
             if feature_id not in valid_feature_ids:
                 raise HTTPException(status_code=400, detail=f"Invalid feature: {feature_id}")
+        # task_boards is exclusive to task_scheduler sites
+        site_type = main_site.get("site_type", "radio")
+        if site_type != "task_scheduler" and "task_boards" in data.enabled_features:
+            data.enabled_features = [f for f in data.enabled_features if f != "task_boards"]
         update_data["enabled_features"] = data.enabled_features
 
     if data.linked_main_site_id is not None:
