@@ -3013,6 +3013,16 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Task Scheduler: Board Members** — per-board member selection (not everyone from team settings). Avatar display in board header. Member picker dropdown.
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
+
+### March 10, 2026 - Dynamic Email Branding (COMPLETE)
+- [x] **Dynamic Email Headers**: All email templates now use a centralized `_build_dynamic_header()` helper that renders either the uploaded brand logo (img tag) or the platform name (h1 tag) based on the branding settings configured in Network Admin.
+- [x] **_get_branding_info() helper**: New async function that fetches `brand_name` and `brand_logo_url` from the `platform_settings` MongoDB collection.
+- [x] **Invitation Email**: Deliberately has NO "Clara Global Protect" footer — uses only the dynamic brand identity.
+- [x] **All Other Emails**: Notification, ticket, password reset, password changed, approval, task status, and daily summary emails all retain the "Clara Global Protect" footer while using dynamic headers.
+- [x] **Updated callers**: `routers/notifications.py` and `services/notification_scheduler.py` now fetch and pass branding info to email builders.
+- Files: `backend/services/email_service.py`, `backend/routers/notifications.py`, `backend/services/notification_scheduler.py`
+- Tested: iteration_80 (29/29 backend tests passed, 100%)
+
 ### Upcoming Tasks
 - **P1: Calendar Integration** — Google Calendar & Outlook sync for task deadlines
 - **P0: Production email alerts** — wacht op feedback
