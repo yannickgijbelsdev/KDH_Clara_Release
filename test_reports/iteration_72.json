@@ -143,10 +143,10 @@
     }
   },
   "overlay_urls_for_reference": {
-    "logo": "https://clara-radio-platform.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/logo",
-    "clock": "https://clara-radio-platform.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/clock",
-    "ticker": "https://clara-radio-platform.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/ticker",
-    "now_playing_show": "https://clara-radio-platform.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/now-playing-show",
-    "now_playing_track": "https://clara-radio-platform.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/now-playing-track"
+    "logo": "https://rundown-editor.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/logo",
+    "clock": "https://rundown-editor.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/clock",
+    "ticker": "https://rundown-editor.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/ticker",
+    "now_playing_show": "https://rundown-editor.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/now-playing-show",
+    "now_playing_track": "https://rundown-editor.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/now-playing-track"
   }
 }

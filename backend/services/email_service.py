@@ -85,6 +85,37 @@ NOTIFICATION_CATEGORIES = {
 }
 
 
+async def _get_brand_name() -> str:
+    """Get platform brand name from branding settings."""
+    from database import db
+    doc = await db.platform_settings.find_one({"id": "platform_branding"}, {"_id": 0, "platform_name": 1})
+    return (doc or {}).get("platform_name", "Clara")
+
+
+async def _get_branding_info() -> dict:
+    """Get platform brand name and logo URL from branding settings."""
+    from database import db
+    doc = await db.platform_settings.find_one(
+        {"id": "platform_branding"},
+        {"_id": 0, "platform_name": 1, "logo_url": 1, "logo_type": 1}
+    )
+    doc = doc or {}
+    return {
+        "brand_name": doc.get("platform_name", "Clara"),
+        "brand_logo_url": doc.get("logo_url") if doc.get("logo_type") == "image" else None,
+    }
+
+
+def _build_dynamic_header(brand_name: str, brand_logo_url: str = None, subtitle: str = "", gradient: str = "linear-gradient(135deg,#f97316,#ea580c)") -> str:
+    """Build a dynamic email header with either a logo image or brand name text."""
+    if brand_logo_url:
+        brand_html = f'<img src="{brand_logo_url}" alt="{brand_name}" style="max-height:36px;max-width:180px;display:block;" />'
+    else:
+        brand_html = f'<h1 style="margin:0;font-size:18px;color:white;">{brand_name}</h1>'
+    subtitle_html = f'<p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">{subtitle}</p>' if subtitle else ""
+    return f'<div style="background:{gradient};padding:20px 24px;">{brand_html}{subtitle_html}</div>'
+
+
 async def send_email_with_config(smtp_config: dict, to_email: str, subject: str, html_body: str) -> bool:
     """Send an email using a stored SMTP config dict."""
     try:
@@ -166,18 +197,16 @@ async def _send_admin_copy(subject: str, html_body: str, exclude_email: str = ""
         logger.debug(f"Admin copy send skipped: {e}")
 
 
-def build_notification_html(event_type: str, category: str, details: str, site_name: str = "", user_name: str = "") -> str:
+def build_notification_html(event_type: str, category: str, details: str, site_name: str = "", user_name: str = "", brand_name: str = "Clara", brand_logo_url: str = None) -> str:
     """Build HTML email body for a real-time notification."""
     cat_info = NOTIFICATION_CATEGORIES.get(category, {})
     cat_name = cat_info.get("name", category.title())
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    header = _build_dynamic_header(brand_name, brand_logo_url, f"{cat_name} &middot; Clara Global Protect")
 
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Clara Notification</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">{cat_name}</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:16px;">
                 <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:white;">{event_type}</p>
@@ -195,7 +224,7 @@ def build_notification_html(event_type: str, category: str, details: str, site_n
     </div>"""
 
 
-def build_daily_summary_html(events: list) -> str:
+def build_daily_summary_html(events: list, brand_name: str = "Clara", brand_logo_url: str = None) -> str:
     """Build HTML for daily summary email."""
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y")
     rows = ""
@@ -215,12 +244,11 @@ def build_daily_summary_html(events: list) -> str:
             <td style="padding:8px 12px;font-size:12px;color:#a1a1aa;">{evt.get('details','')[:80]}</td>
         </tr>"""
 
+    header = _build_dynamic_header(brand_name, brand_logo_url, f"{now} &middot; {len(events)} notifications &middot; Daily Summary")
+
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:700px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Clara Daily Summary</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">{now} &middot; {len(events)} notifications</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <table style="width:100%;border-collapse:collapse;">
                 <thead><tr style="border-bottom:2px solid #27272a;">
@@ -244,18 +272,16 @@ def _approval_color(status: str) -> tuple:
     return ("linear-gradient(135deg,#f59e0b,#d97706)", "Pending Approval")
 
 
-def build_approval_result_html(content_title: str, status: str, notes: str = "", approver_name: str = "") -> str:
+def build_approval_result_html(content_title: str, status: str, notes: str = "", approver_name: str = "", brand_name: str = "Clara", brand_logo_url: str = None) -> str:
     """Email to the content creator when their article is approved or rejected."""
     gradient, label = _approval_color(status)
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
     notes_block = f'<div style="background:#27272a;border-radius:8px;padding:12px 16px;margin-top:12px;"><p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Reason</p><p style="margin:0;font-size:13px;color:#e4e4e7;">{notes}</p></div>' if notes else ""
+    header = _build_dynamic_header(brand_name, brand_logo_url, f"Content {label} &middot; Clara Global Protect", gradient)
 
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:{gradient};padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Content {label}</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:12px;">
                 <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Article</p>
@@ -271,15 +297,14 @@ def build_approval_result_html(content_title: str, status: str, notes: str = "",
     </div>"""
 
 
-def build_approval_request_html(content_title: str, requester_name: str, site_name: str = "") -> str:
+def build_approval_request_html(content_title: str, requester_name: str, site_name: str = "", brand_name: str = "Clara", brand_logo_url: str = None) -> str:
     """Email to approvers when a content item is submitted for approval."""
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    header = _build_dynamic_header(brand_name, brand_logo_url, "Approval Requested &middot; Clara Global Protect", "linear-gradient(135deg,#f59e0b,#d97706)")
+
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Approval Requested</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:12px;">
                 <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Article</p>
@@ -294,7 +319,7 @@ def build_approval_request_html(content_title: str, requester_name: str, site_na
     </div>"""
 
 
-def build_ticket_notification_html(ticket_title: str, ticket_id: str, event: str, details: str, site_name: str = "") -> str:
+def build_ticket_notification_html(ticket_title: str, ticket_id: str, event: str, details: str, site_name: str = "", brand_name: str = "Clara", brand_logo_url: str = None) -> str:
     """Build HTML for ticket-related email notifications."""
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
     color_map = {
@@ -304,13 +329,11 @@ def build_ticket_notification_html(ticket_title: str, ticket_id: str, event: str
         "message": ("linear-gradient(135deg,#8b5cf6,#7c3aed)", "New Reply"),
     }
     gradient, label = color_map.get(event, ("linear-gradient(135deg,#f97316,#ea580c)", event.title()))
+    header = _build_dynamic_header(brand_name, brand_logo_url, f"{label} &middot; Clara Global Protect", gradient)
 
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:{gradient};padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">{label}</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:12px;">
                 <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Ticket</p>
@@ -331,15 +354,14 @@ def build_ticket_notification_html(ticket_title: str, ticket_id: str, event: str
     </div>"""
 
 
-def build_temp_password_html(temp_password: str, user_name: str = "") -> str:
+def build_temp_password_html(temp_password: str, user_name: str = "", brand_name: str = "Clara", brand_logo_url: str = None) -> str:
     """Build HTML email for temporary password (forgot password flow)."""
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    header = _build_dynamic_header(brand_name, brand_logo_url, "Password Reset &middot; Clara Global Protect", "linear-gradient(135deg,#ef4444,#dc2626)")
+
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#ef4444,#dc2626);padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Password Reset</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <p style="margin:0 0 16px;font-size:14px;color:#a1a1aa;">
                 {f'Hello {user_name},' if user_name else 'Hello,'}
@@ -360,15 +382,14 @@ def build_temp_password_html(temp_password: str, user_name: str = "") -> str:
     </div>"""
 
 
-def build_password_changed_confirmation_html(user_name: str = "") -> str:
+def build_password_changed_confirmation_html(user_name: str = "", brand_name: str = "Clara", brand_logo_url: str = None) -> str:
     """Build HTML email confirming password was changed successfully."""
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    header = _build_dynamic_header(brand_name, brand_logo_url, "Password Changed &middot; Clara Global Protect", "linear-gradient(135deg,#22c55e,#16a34a)")
+
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Password Changed</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Global Protect</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <p style="margin:0 0 16px;font-size:14px;color:#a1a1aa;">
                 {f'Hello {user_name},' if user_name else 'Hello,'}
@@ -396,8 +417,9 @@ async def send_ticket_notification(to_email: str, ticket_title: str, ticket_id: 
         "closed": f"Ticket Closed: {ticket_title}",
         "message": f"New Reply on Ticket: {ticket_title}",
     }
+    branding = await _get_branding_info()
     subject = f"Clara Global Protect - {subject_map.get(event, ticket_title)}"
-    html = build_ticket_notification_html(ticket_title, ticket_id, event, details, site_name)
+    html = build_ticket_notification_html(ticket_title, ticket_id, event, details, site_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
     result = await send_email_with_config(smtp_config, to_email, subject, html)
     # Always send admin copy
     if to_email != SYSTEM_ADMIN_EMAIL:
@@ -413,14 +435,14 @@ async def send_temp_password_email(to_email: str, temp_password: str, user_name:
         logger.debug("Temp password email: SMTP not configured")
         return False
 
-    html = build_temp_password_html(temp_password, user_name)
+    branding = await _get_branding_info()
+    html = build_temp_password_html(temp_password, user_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
     subject = "Clara Global Protect - Password Reset"
     result = await send_email_with_config(smtp_config, to_email, subject, html)
-    # Send admin alert (with masked password for security)
     admin_html = build_notification_html(
         "Password Reset Requested", "security",
         f"A temporary password was sent to {to_email} ({user_name or 'unknown'}).",
-        user_name=user_name
+        user_name=user_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"]
     )
     await _send_admin_copy(f"Clara Global Protect: Password Reset - {to_email}", admin_html)
     return result
@@ -434,14 +456,14 @@ async def send_password_changed_email(to_email: str, user_name: str = ""):
         logger.debug("Password changed email: SMTP not configured")
         return False
 
-    html = build_password_changed_confirmation_html(user_name)
+    branding = await _get_branding_info()
+    html = build_password_changed_confirmation_html(user_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
     subject = "Clara Global Protect - Password Changed Successfully"
     result = await send_email_with_config(smtp_config, to_email, subject, html)
-    # Send admin alert
     admin_html = build_notification_html(
         "Password Changed", "security",
         f"Password was changed for {to_email} ({user_name or 'unknown'}).",
-        user_name=user_name
+        user_name=user_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"]
     )
     await _send_admin_copy(f"Clara Global Protect: Password Changed - {to_email}", admin_html)
     return result
@@ -463,10 +485,10 @@ async def send_content_approval_notification(
         logger.debug("Approval notification: SMTP not configured")
         return
 
-    html = build_approval_result_html(content_title, approval_status, approval_notes, approver_name)
+    branding = await _get_branding_info()
+    html = build_approval_result_html(content_title, approval_status, approval_notes, approver_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
     subject = f"Content {'Approved' if approval_status == 'approved' else 'Rejected'}: {content_title}"
     await send_email_with_config(smtp_config, to_email, subject, html)
-    # Admin copy
     await _send_admin_copy(f"Clara Global Protect: {subject}", html, exclude_email=to_email)
     logger.info(f"Approval notification sent to {to_email} ({approval_status})")
 
@@ -483,6 +505,8 @@ async def send_approval_request_notification(
     if not smtp_config or not smtp_config.get("password"):
         logger.debug("Approval request notification: SMTP not configured")
         return
+
+    branding = await _get_branding_info()
 
     # Find users with approval rights for this site
     approver_roles = ['admin', 'news_admin']
@@ -514,11 +538,11 @@ async def send_approval_request_notification(
     if not approvers:
         logger.debug("No approvers found for approval request notification")
         # Still send admin copy even if no approvers found
-        html = build_approval_request_html(content_title, requester_name, site_name)
+        html = build_approval_request_html(content_title, requester_name, site_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
         await _send_admin_copy(f"Clara Global Protect: Approval Requested: {content_title}", html)
         return
 
-    html = build_approval_request_html(content_title, requester_name, site_name)
+    html = build_approval_request_html(content_title, requester_name, site_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
     subject = f"Approval Requested: {content_title}"
     sent = 0
     sent_emails = set()
@@ -533,15 +557,14 @@ async def send_approval_request_notification(
     logger.info(f"Approval request sent to {sent} approvers")
 
 
-def build_invite_email_html(user_name: str, site_name: str, role: str, temp_password: str, inviter_name: str = "") -> str:
-    """Build HTML email for user invitation with temporary password."""
+def build_invite_email_html(user_name: str, site_name: str, role: str, temp_password: str, inviter_name: str = "", brand_name: str = "Clara", brand_logo_url: str = None) -> str:
+    """Build HTML email for user invitation with temporary password. No Clara Global Protect footer."""
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+    header = _build_dynamic_header(brand_name, brand_logo_url, "You've been invited!")
+
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:24px;">
-            <h1 style="margin:0;font-size:22px;color:white;">Clara</h1>
-            <p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.85);">You've been invited!</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <p style="margin:0 0 16px;font-size:14px;color:#e4e4e7;">
                 Hello {user_name},
@@ -565,7 +588,6 @@ def build_invite_email_html(user_name: str, site_name: str, role: str, temp_pass
             </p>
             <p style="margin:16px 0 0;font-size:12px;color:#52525b;">{now}</p>
         </div>
-        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
     </div>"""
 
 
@@ -577,26 +599,26 @@ async def send_invite_email(to_email: str, user_name: str, site_name: str, role:
         logger.debug("Invite email: SMTP not configured")
         return False
 
-    html = build_invite_email_html(user_name, site_name, role, temp_password, inviter_name)
-    subject = f"Clara - You've been invited to {site_name}"
+    branding = await _get_branding_info()
+    html = build_invite_email_html(user_name, site_name, role, temp_password, inviter_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
+    subject = f"{branding['brand_name']} - You've been invited to {site_name}"
     result = await send_email_with_config(smtp_config, to_email, subject, html)
-    await _send_admin_copy(f"Clara: User Invited - {to_email} to {site_name}", html, exclude_email=to_email)
+    await _send_admin_copy(f"{branding['brand_name']}: User Invited - {to_email} to {site_name}", html, exclude_email=to_email)
     return result
 
 
-def build_task_status_html(task_title: str, board_name: str, old_status: str, new_status: str, mover_name: str, site_name: str = "") -> str:
+def build_task_status_html(task_title: str, board_name: str, old_status: str, new_status: str, mover_name: str, site_name: str = "", brand_name: str = "Clara", brand_logo_url: str = None) -> str:
     """Build HTML email for task status change notification."""
     now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
     status_colors = {
         "To Do": "#71717a", "In Progress": "#3b82f6", "Review": "#f59e0b", "Done": "#22c55e"
     }
     color = status_colors.get(new_status, "#8b5cf6")
+    header = _build_dynamic_header(brand_name, brand_logo_url, "Task Status Update &middot; Clara Global Protect", f"linear-gradient(135deg,{color},{color}dd)")
+
     return f"""
     <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
-        <div style="background:linear-gradient(135deg,{color},{color}dd);padding:20px 24px;">
-            <h1 style="margin:0;font-size:18px;color:white;">Task Status Update</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:rgba(255,255,255,0.8);">Clara Tasks</p>
-        </div>
+        {header}
         <div style="padding:24px;">
             <div style="background:#27272a;border-radius:8px;padding:16px;margin-bottom:16px;">
                 <p style="margin:0 0 4px;font-size:11px;color:#71717a;text-transform:uppercase;">Task</p>
@@ -626,7 +648,8 @@ async def send_task_status_notification(task_title: str, board_name: str, old_st
         logger.debug("Task status notification: SMTP not configured")
         return
 
-    html = build_task_status_html(task_title, board_name, old_status, new_status, mover_name, site_name)
+    branding = await _get_branding_info()
+    html = build_task_status_html(task_title, board_name, old_status, new_status, mover_name, site_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
     subject = f"Clara Tasks - {task_title}: {old_status} → {new_status}"
     for email in notify_emails:
         await send_email_with_config(smtp_config, email, subject, html)

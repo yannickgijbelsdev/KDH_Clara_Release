@@ -8,7 +8,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 
 from database import db
-from services.email_service import send_email_with_config, build_daily_summary_html
+from services.email_service import send_email_with_config, build_daily_summary_html, _get_branding_info
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +45,8 @@ async def send_daily_digest():
         if not events:
             logger.info("Daily digest: No events in last 24 hours")
             return
+
+        branding = await _get_branding_info()
 
         # Process each settings doc (per-site or global)
         emails_sent = 0
@@ -106,7 +108,7 @@ async def send_daily_digest():
                         {"_id": 0, "email": 1, "name": 1}
                     ).to_list(500)
 
-                html = build_daily_summary_html(role_events)
+                html = build_daily_summary_html(role_events, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
                 subject = f"Clara Global Protect — Daily Summary ({len(role_events)} notifications)"
 
                 for user in users:
@@ -127,7 +129,7 @@ async def send_daily_digest():
         if system_alert and system_alert.get("enabled") and system_alert.get("email"):
             sa_mode = system_alert.get("mode", "both")
             if sa_mode in ("daily", "both") and events:
-                html = build_daily_summary_html(events)
+                html = build_daily_summary_html(events, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
                 subject = f"Clara Global Protect — Daily Summary ({len(events)} notifications)"
                 success = await send_email_with_config(smtp_config, system_alert["email"], subject, html)
                 if success:

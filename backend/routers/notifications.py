@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from services.auth import get_current_user
 from services.email_service import (
     SMTP_PROVIDERS, NOTIFICATION_CATEGORIES,
-    test_smtp_config, send_email_with_config, build_notification_html
+    test_smtp_config, send_email_with_config, build_notification_html,
+    _get_branding_info
 )
 from database import db
 
@@ -121,11 +122,14 @@ async def send_test_email(
     if not smtp_config or not smtp_config.get("password"):
         raise HTTPException(400, "SMTP not configured")
 
+    branding = await _get_branding_info()
     html = build_notification_html(
         "Test Notification",
         "system",
         "This is a test email from Clara Global Protect. If you receive this, the SMTP configuration is working correctly!",
         user_name=current_user.get("name", ""),
+        brand_name=branding["brand_name"],
+        brand_logo_url=branding["brand_logo_url"],
     )
 
     success = await send_email_with_config(smtp_config, to_email, "Clara Global Protect — Test", html)
@@ -278,7 +282,8 @@ async def trigger_notification(
     if not smtp_config or not smtp_config.get("password"):
         return
 
-    html = build_notification_html(event_type, category, details, site_name, actor_name)
+    branding = await _get_branding_info()
+    html = build_notification_html(event_type, category, details, site_name, actor_name, brand_name=branding["brand_name"], brand_logo_url=branding["brand_logo_url"])
     subject = f"Clara Global Protect: {event_type}"
 
     emails_sent = []
