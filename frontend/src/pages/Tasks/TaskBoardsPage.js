@@ -432,14 +432,19 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
             <label className="text-xs text-zinc-400 mb-1.5 block flex items-center gap-1"><Paperclip className="w-3 h-3" /> Attachments</label>
             {(task.attachments || []).length > 0 && (
               <div className="space-y-1 mb-2">
-                {task.attachments.map(att => (
-                  <div key={att.id} className="flex items-center gap-2 text-xs bg-zinc-800 rounded px-2 py-1.5 group">
+                {task.attachments.map(att => {
+                  const attUrl = att.url && att.url.includes('objectstorage.com')
+                    ? `${API}/task-boards/attachments/download/${att.url.split('/').slice(4).join('/')}`
+                    : att.url?.startsWith('/api/') ? `${API}${att.url.replace('/api/', '/')}` : att.url;
+                  return (
+                  <div key={att.id} className="flex items-center gap-2 text-xs bg-zinc-800 rounded px-2 py-1.5 group" data-testid={`attachment-${att.id}`}>
                     <Paperclip className="w-3 h-3 text-zinc-400" />
-                    <a href={att.url} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline flex-1 truncate">{att.name}</a>
+                    <a href={attUrl} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline flex-1 truncate">{att.name}</a>
                     <span className="text-zinc-500">{(att.size / 1024).toFixed(0)} KB</span>
                     <X className="w-3.5 h-3.5 text-zinc-500 cursor-pointer opacity-0 group-hover:opacity-100" onClick={() => onDeleteAttachment(task.id, att.id)} />
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             <label className={`flex items-center gap-2 text-xs text-zinc-400 cursor-pointer border border-dashed border-zinc-700 rounded px-3 py-2 hover:border-zinc-500 transition-colors ${uploading ? 'opacity-50' : ''}`}>

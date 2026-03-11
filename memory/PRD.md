@@ -3014,7 +3014,15 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 
-### March 10, 2026 - Dynamic Email Branding (COMPLETE)
+### March 11, 2026 - S3 Attachment AccessDenied Bug Fix (COMPLETE)
+- [x] **Bug Fix: Missing `await` on `upload_file_to_s3`** — Fixed in `task_boards.py` (line 521) and `vmix.py` (lines 156, 199) where the async upload function was called without await, causing files to never actually upload to S3.
+- [x] **S3 Presigned URL Download Proxy** — Created `GET /api/task-boards/attachments/download/{file_key}` endpoint that generates presigned URLs for secure S3 file access, bypassing bucket ACL restrictions.
+- [x] **Server.py S3 Redirect Fix** — Updated `featured_images` and `media` file-serving endpoints to use presigned URLs instead of direct S3 URLs.
+- [x] **Frontend URL Rewriting** — Updated task attachment links in `TaskBoardsPage.js` to detect direct S3 URLs and route them through the download proxy.
+- [x] **Migration Endpoint** — Created `POST /api/task-boards/migrate-attachment-urls` for network admins to batch-update existing direct S3 URLs in the database to proxy format.
+- Files: `backend/routers/task_boards.py`, `backend/routers/vmix.py`, `backend/server.py`, `frontend/src/pages/Tasks/TaskBoardsPage.js`
+- Tested: curl verification (download 302, migration endpoint OK)
+
 - [x] **Dynamic Email Headers**: All email templates now use a centralized `_build_dynamic_header()` helper that renders either the uploaded brand logo (img tag) or the platform name (h1 tag) based on the branding settings configured in Network Admin.
 - [x] **_get_branding_info() helper**: New async function that fetches `brand_name` and `brand_logo_url` from the `platform_settings` MongoDB collection.
 - [x] **Invitation Email**: Deliberately has NO "Clara Global Protect" footer — uses only the dynamic brand identity.

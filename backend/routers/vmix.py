@@ -153,7 +153,7 @@ async def upload_logo(
 
     if is_s3_configured():
         s3_key = f"vmix_logos/{filename}"
-        upload_file_to_s3(content, s3_key, file.content_type)
+        await upload_file_to_s3(content, s3_key, file.content_type)
         logo_url = get_s3_url(s3_key)
     else:
         filepath = os.path.join(VMIX_LOGOS_DIR, filename)
@@ -196,7 +196,7 @@ async def upload_background(
 
     if is_s3_configured():
         s3_key = f"vmix_backgrounds/{filename}"
-        upload_file_to_s3(content, s3_key, file.content_type)
+        await upload_file_to_s3(content, s3_key, file.content_type)
         bg_url = get_s3_url(s3_key)
     else:
         filepath = os.path.join(VMIX_BG_DIR, filename)

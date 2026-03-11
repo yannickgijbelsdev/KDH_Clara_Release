@@ -400,13 +400,14 @@ async def exit_impersonation(request: Request, current_user: dict = Depends(get_
 # File serving endpoints
 @api_router.get("/uploads/featured_images/{file_key:path}")
 async def get_featured_image_file(file_key: str):
-    """Serve a featured image file - redirects to S3 if stored there."""
+    """Serve a featured image file - redirects to S3 presigned URL if stored there."""
     from fastapi.responses import RedirectResponse
+    from services.s3_storage import generate_presigned_url
     
     # Check if this is an S3 key (starts with content/ or featured/)
     if (file_key.startswith("content/") or file_key.startswith("featured/")) and is_s3_configured():
-        s3_url = get_s3_url(file_key)
-        return RedirectResponse(url=s3_url, status_code=302)
+        presigned = await generate_presigned_url(file_key, expiration=3600)
+        return RedirectResponse(url=presigned, status_code=302)
     
     # Local file
     file_path = UPLOADS_DIR / file_key
@@ -420,14 +421,14 @@ async def get_featured_image_file(file_key: str):
 
 @api_router.get("/uploads/media/{file_key:path}")
 async def get_media_file(file_key: str):
-    """Serve a media file - redirects to S3 if the file is stored there."""
+    """Serve a media file - redirects to S3 presigned URL if the file is stored there."""
     from fastapi.responses import RedirectResponse
+    from services.s3_storage import generate_presigned_url
     
     # Check if this is an S3 key (starts with media/)
     if file_key.startswith("media/") and is_s3_configured():
-        # Redirect to S3 URL
-        s3_url = get_s3_url(file_key)
-        return RedirectResponse(url=s3_url, status_code=302)
+        presigned = await generate_presigned_url(file_key, expiration=3600)
+        return RedirectResponse(url=presigned, status_code=302)
     
     # Local file
     file_path = MEDIA_UPLOADS_DIR / file_key

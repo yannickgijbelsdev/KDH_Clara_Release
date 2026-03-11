@@ -518,8 +518,8 @@ async def add_attachment(
 
     if is_s3_configured():
         s3_key = f"task_attachments/{filename}"
-        upload_file_to_s3(content, s3_key, file.content_type or "application/octet-stream")
-        file_url = get_s3_url(s3_key)
+        await upload_file_to_s3(content, s3_key, file.content_type or "application/octet-stream")
+        file_url = f"/api/task-boards/attachments/download/{s3_key}"
     else:
         uploads_dir = os.path.join(os.environ.get("UPLOADS_DIR", "/app/backend/uploads"), "task_attachments")
         os.makedirs(uploads_dir, exist_ok=True)
@@ -587,3 +587,62 @@ async def disconnect_calendar(
 ):
     await db.calendar_sync_configs.delete_one({"main_site_id": main_site_id})
     return {"status": "disconnected"}
+
+
+# ── Attachment Download (S3 presigned URL) ──
+
+@task_boards_router.get("/attachments/download/{file_key:path}")
+async def download_attachment(file_key: str):
+    """Generate a presigned URL for an S3 attachment and redirect to it."""
+    from services.s3_storage import generate_presigned_url, is_s3_configured
+    from fastapi.responses import RedirectResponse
+
+    if not is_s3_configured():
+        raise HTTPException(status_code=404, detail="S3 not configured")
+
+    try:
+        url = await generate_presigned_url(file_key, expiration=3600)
+        return RedirectResponse(url=url, status_code=302)
+    except Exception as e:
+        logger.error(f"Failed to generate presigned URL for {file_key}: {e}")
+        raise HTTPException(status_code=404, detail="File not found")
+
+
+# ── Migrate existing S3 attachment URLs ──
+
+@task_boards_router.post("/migrate-attachment-urls")
+async def migrate_attachment_urls(
+    current_user: dict = Depends(get_current_user),
+):
+    """Migrate existing direct S3 URLs in task attachments to use the download proxy.
+    This fixes AccessDenied errors for files uploaded before the proxy was implemented."""
+    if not current_user.get("is_network_admin"):
+        raise HTTPException(status_code=403, detail="Network admin required")
+
+    from services.s3_storage import S3_ENDPOINT, S3_BUCKET
+
+    s3_prefix = f"{S3_ENDPOINT}/{S3_BUCKET}/"
+    proxy_prefix = "/api/task-boards/attachments/download/"
+
+    tasks = await db.tasks.find(
+        {"attachments": {"$exists": True, "$ne": []}},
+        {"_id": 0, "id": 1, "board_id": 1, "main_site_id": 1, "attachments": 1}
+    ).to_list(5000)
+
+    updated = 0
+    for task in tasks:
+        changed = False
+        for att in task.get("attachments", []):
+            url = att.get("url", "")
+            if url.startswith(s3_prefix):
+                s3_key = url[len(s3_prefix):]
+                att["url"] = f"{proxy_prefix}{s3_key}"
+                changed = True
+        if changed:
+            await db.tasks.update_one(
+                {"id": task["id"]},
+                {"$set": {"attachments": task["attachments"]}}
+            )
+            updated += 1
+
+    return {"migrated_tasks": updated, "total_tasks_with_attachments": len(tasks)}
