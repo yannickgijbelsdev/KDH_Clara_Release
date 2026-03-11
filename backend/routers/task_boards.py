@@ -101,9 +101,17 @@ async def list_boards(
     boards = await db.task_boards.find(
         {"main_site_id": main_site_id}, {"_id": 0}
     ).sort("created_at", -1).to_list(100)
-    # Add task count per board
+    # Add task count per board (exclude tasks in "Done" columns)
     for board in boards:
-        board["task_count"] = await db.tasks.count_documents({"board_id": board["id"], "main_site_id": main_site_id})
+        done_cols = await db.task_columns.find(
+            {"board_id": board["id"], "name": {"$regex": "^done$", "$options": "i"}},
+            {"_id": 0, "id": 1}
+        ).to_list(10)
+        done_col_ids = [c["id"] for c in done_cols]
+        query = {"board_id": board["id"], "main_site_id": main_site_id}
+        if done_col_ids:
+            query["column_id"] = {"$nin": done_col_ids}
+        board["task_count"] = await db.tasks.count_documents(query)
     return boards
 
 

@@ -1,0 +1,64 @@
+{
+  "summary": "Calendar View and Task Count features fully tested. All 10 backend tests pass. All UI features verified: Calendar Month/Week views, task exclusion for Done column, navigation, task click modal, and Kanban toggle. Board list correctly shows task_count=4 (excluding Done column). Login page branding images loading correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_calendar_view_and_task_count.py",
+    "/app/test_reports/pytest/calendar_view_task_count_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Calendar view correctly filters Done column tasks using doneColumnIds.includes(task.column_id) check",
+    "Task count in list_boards() correctly queries for Done columns and excludes them using $nin operator",
+    "Branding proxy endpoint /api/branding/file/{file_key} is public (no auth required) - correct for login page use"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_calendar_view_and_task_count.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (all UI features verified)"
+  },
+  "test_credentials": {
+    "admin_email": "admkoodh@koodh.com",
+    "admin_password": "KYLovie13monx"
+  },
+  "seed_data_creation": "Fixed test data - set main_site_id on task_columns collection (was null), cleaned up duplicate columns",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Calendar View feature is fully working. Test Board (ID: aafd21b9-2c9b-42a9-bc23-630d98c1432e) on radiogroep site has 3 columns (To Do, In Progress, Done) with 5 tasks. Done column ID is 6f1c0420-1507-4c71-9a64-433d740683b9. Task count shows 4 (excludes 1 Done task). Calendar shows 4 tasks on their deadline dates with priority color coding. Branding images work via /api/branding/file/ proxy.",
+  "features_tested": {
+    "calendar_view_toggle": "PASS - Kanban/Calendar toggle buttons work",
+    "calendar_month_view": "PASS - Shows tasks on correct deadline dates",
+    "calendar_week_view": "PASS - Shows tasks for week with priority labels",
+    "calendar_navigation": "PASS - Previous/Next/Today buttons work",
+    "calendar_month_week_toggle": "PASS - Switch between Month and Week modes",
+    "calendar_excludes_done_tasks": "PASS - Done column task not shown in calendar",
+    "calendar_overdue_counter": "PASS - Shows '1 overdue' correctly",
+    "calendar_task_click_modal": "PASS - Clicking task opens detail modal",
+    "task_count_excludes_done": "PASS - Board list shows 4 tasks (not 5)",
+    "kanban_view_still_works": "PASS - Toggle back to Kanban shows board",
+    "login_page_branding_image": "PASS - Background image loads correctly",
+    "branding_proxy_endpoint": "PASS - /api/branding/file/ returns presigned URLs"
+  },
+  "pytest_results": {
+    "total_tests": 10,
+    "passed": 10,
+    "failed": 0,
+    "test_classes": [
+      "TestTaskCountExcludesDone (2 tests)",
+      "TestColumnsAPI (2 tests)",
+      "TestTaskDeadlines (2 tests)",
+      "TestBrandingProxyEndpoint (3 tests)",
+      "TestBoardDetails (1 test)"
+    ]
+  },
+  "data_fix_applied": "Set main_site_id for task_columns that had null values, removed 4 duplicate columns without tasks"
+}

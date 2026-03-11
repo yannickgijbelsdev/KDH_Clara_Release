@@ -16,10 +16,11 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/dialog';
 import { Textarea } from '../../components/ui/textarea';
+import TaskCalendarView from './TaskCalendarView';
 import {
   Plus, MoreHorizontal, Trash2, Pencil, Calendar, User, Tag, Paperclip,
   MessageSquare, CheckSquare, Clock, ArrowLeft, GripVertical, X, ChevronDown,
-  Upload, Flag, LayoutList
+  Upload, Flag, LayoutList, CalendarDays, Columns3
 } from 'lucide-react';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -506,6 +507,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
   const [editColName, setEditColName] = useState('');
   const [showMemberPicker, setShowMemberPicker] = useState(false);
   const [boardMembers, setBoardMembers] = useState([]);
+  const [viewMode, setViewMode] = useState('kanban'); // 'kanban' or 'calendar'
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor)
@@ -722,6 +724,23 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          {/* View toggle */}
+          <div className="flex bg-zinc-800 rounded-lg p-0.5" data-testid="view-toggle">
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+              data-testid="kanban-view-btn"
+            >
+              <Columns3 className="w-3.5 h-3.5" /> Kanban
+            </button>
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+              data-testid="calendar-view-btn"
+            >
+              <CalendarDays className="w-3.5 h-3.5" /> Calendar
+            </button>
+          </div>
           {/* Member picker */}
           <div className="relative">
             <Button variant="outline" size="sm" onClick={() => setShowMemberPicker(p => !p)}
@@ -760,6 +779,13 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
       </div>
 
       {/* Board content */}
+      {viewMode === 'calendar' ? (
+        <TaskCalendarView
+          tasks={tasks}
+          columns={columns}
+          onTaskClick={setSelectedTask}
+        />
+      ) : (
       <div className="flex-1 overflow-x-auto p-4">
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="flex gap-4 h-full">
@@ -790,6 +816,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           </DragOverlay>
         </DndContext>
       </div>
+      )}
 
       {/* Task detail modal */}
       <TaskDetailModal

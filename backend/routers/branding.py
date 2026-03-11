@@ -39,14 +39,14 @@ DEFAULT_BRANDING = {
 
 
 async def _upload_branding_file(content: bytes, filename: str, content_type: str, prefix: str) -> str:
-    """Upload a branding file to S3 (preferred) or local storage. Returns URL."""
+    """Upload a branding file to S3 (preferred) or local storage. Returns proxy URL."""
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "png"
     unique_name = f"{prefix}_{uuid.uuid4().hex[:8]}.{ext}"
     s3_key = f"branding/{unique_name}"
 
     if is_s3_configured():
-        result = await upload_file_to_s3(content, s3_key, content_type)
-        return result["url"]
+        await upload_file_to_s3(content, s3_key, content_type)
+        return f"/api/branding/file/{s3_key}"
     else:
         filepath = os.path.join(LOCAL_UPLOAD_DIR, unique_name)
         with open(filepath, "wb") as f:
@@ -222,3 +222,65 @@ async def delete_login_image(
         upsert=True,
     )
     return await get_branding()
+
+
+@branding_router.get("/file/{file_key:path}")
+async def serve_branding_file(file_key: str):
+    """Serve a branding file from S3 via presigned URL. Public endpoint (needed for login page)."""
+    from services.s3_storage import generate_presigned_url, is_s3_configured as s3_ok
+    from fastapi.responses import RedirectResponse
+
+    if not s3_ok():
+        raise HTTPException(status_code=404, detail="S3 not configured")
+
+    try:
+        url = await generate_presigned_url(file_key, expiration=3600)
+        return RedirectResponse(url=url, status_code=302)
+    except Exception:
+        raise HTTPException(status_code=404, detail="File not found")
+
+
+@branding_router.post("/migrate-urls")
+async def migrate_branding_urls(
+    current_user: dict = Depends(get_current_user),
+):
+    """Migrate direct S3 URLs in branding settings to proxy format."""
+    if not current_user.get("is_network_admin") and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Network admin access required")
+
+    from services.s3_storage import S3_ENDPOINT, S3_BUCKET
+    s3_prefix = f"{S3_ENDPOINT}/{S3_BUCKET}/"
+    proxy_prefix = "/api/branding/file/"
+
+    branding = await get_branding()
+    updates = {}
+
+    # Fix logo_url
+    if branding.get("logo_url", "").startswith(s3_prefix):
+        updates["logo_url"] = proxy_prefix + branding["logo_url"][len(s3_prefix):]
+
+    # Fix favicon_url
+    if branding.get("favicon_url", "") and branding["favicon_url"].startswith(s3_prefix):
+        updates["favicon_url"] = proxy_prefix + branding["favicon_url"][len(s3_prefix):]
+
+    # Fix login_images
+    images = branding.get("login_images", [])
+    new_images = []
+    changed = False
+    for img in images:
+        if img.startswith(s3_prefix):
+            new_images.append(proxy_prefix + img[len(s3_prefix):])
+            changed = True
+        else:
+            new_images.append(img)
+    if changed:
+        updates["login_images"] = new_images
+
+    if updates:
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.platform_settings.update_one(
+            {"id": "platform_branding"},
+            {"$set": updates},
+        )
+
+    return {"migrated_fields": list(updates.keys()), "branding": await get_branding()}
