@@ -3014,7 +3014,12 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 
-### March 11, 2026 - Calendar View, Task Count Fix & Login Image Fix (COMPLETE)
+### March 13, 2026 - Calendar Permissions Bug Fix (COMPLETE)
+- [x] **Root Cause**: Users with "Redactie Verantwoordelijke" role had Calendar permissions but couldn't edit/delete shows because: (1) `/api/shows` only checked "shows" permissions, not "calendar", (2) `require_admin` at endpoint level blocked all non-admin users regardless of role permissions.
+- [x] **Fix**: (a) Added `FEATURE_ALIASES` in middleware so "shows" and "calendar" permissions are interchangeable, (b) Middleware sets `request.state.permission_approved = True` when approved, (c) Legacy auth dependencies (`require_admin`, `require_editor_or_admin`, etc.) check this flag and skip legacy role check, (d) `/api/auth/me/permissions` merges alias permissions for frontend UI.
+- Files: `backend/middleware/permission_middleware.py`, `backend/services/auth.py`, `backend/services/permissions.py`
+- Tested: iteration_82 (14/14 backend tests passed, 100%)
+
 - [x] **Calendar View for Tasks**: New `TaskCalendarView.js` component with Month and Week views, toggle button in board header, priority color coding, overdue counter, and Done-task exclusion.
 - [x] **Task Count Fix**: Board list now shows only non-Done tasks in the count (backend query excludes tasks in columns named "Done").
 - [x] **Login Page Image Fix**: Fixed S3 AccessDenied errors by migrating direct S3 URLs to proxy URLs (`/api/branding/file/{key}`). Created migration endpoint and public download proxy.
