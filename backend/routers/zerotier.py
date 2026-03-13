@@ -21,6 +21,14 @@ class ZeroTierConfigUpdate(BaseModel):
     network_id: Optional[str] = None
 
 
+class MemberCategoryUpdate(BaseModel):
+    category: str  # "client" or "server"
+
+
+class MemberIpUpdate(BaseModel):
+    ip_assignments: list  # ["10.147.17.50"]
+
+
 # ============== Helpers ==============
 
 async def get_zt_config(main_site_id: str) -> dict:
@@ -129,13 +137,19 @@ async def get_network_info(main_site_id: str, current_user: dict = Depends(get_c
 
 @zerotier_router.get("/{main_site_id}/members")
 async def list_members(main_site_id: str, current_user: dict = Depends(get_current_user)):
-    """List all ZeroTier network members with status."""
+    """List all ZeroTier network members with status and category."""
     await require_site_access(main_site_id, current_user)
     config = await get_zt_config(main_site_id)
     if not config.get("api_token") or not config.get("network_id"):
         raise HTTPException(400, "ZeroTier not configured. Set API token and Network ID first.")
 
     members_raw = await zt_request("GET", f"/network/{config['network_id']}/member", config["api_token"])
+
+    # Fetch categories from our DB
+    categories_cursor = db.zerotier_member_meta.find(
+        {"main_site_id": main_site_id}, {"_id": 0, "member_id": 1, "category": 1}
+    )
+    categories_map = {doc["member_id"]: doc.get("category", "client") async for doc in categories_cursor}
 
     now_ts = datetime.now(timezone.utc).timestamp() * 1000  # ZT uses milliseconds
 
@@ -146,8 +160,9 @@ async def list_members(main_site_id: str, current_user: dict = Depends(get_curre
         is_online = (now_ts - last_seen) < 300_000 if last_seen > 0 else False
 
         member_config = m.get("config", {})
+        node_id = m.get("nodeId") or m.get("id", "")
         members.append({
-            "id": m.get("nodeId") or m.get("id", ""),
+            "id": node_id,
             "name": m.get("name") or m.get("description") or "",
             "description": m.get("description", ""),
             "online": is_online,
@@ -158,6 +173,7 @@ async def list_members(main_site_id: str, current_user: dict = Depends(get_curre
             "authorized": member_config.get("authorized", False),
             "active_bridge": member_config.get("activeBridge", False),
             "hidden": m.get("hidden", False),
+            "category": categories_map.get(node_id, "client"),
         })
 
     # Sort: online first, then by name
@@ -252,8 +268,9 @@ async def delete_member(main_site_id: str, member_id: str, current_user: dict = 
         config["api_token"],
     )
 
-    # Clean up alert settings for this member
+    # Clean up alert settings and member meta for this member
     await db.zerotier_alerts.delete_one({"main_site_id": main_site_id, "member_id": member_id})
+    await db.zerotier_member_meta.delete_one({"main_site_id": main_site_id, "member_id": member_id})
 
     return {"status": "ok", "message": f"Member {member_id} deleted from network"}
 
@@ -280,6 +297,55 @@ async def update_member_name(
     )
     return {"status": "ok", "message": f"Member renamed to '{name}'"}
 
+
+# ============== Category & IP Endpoints ==============
+
+@zerotier_router.put("/{main_site_id}/member/{member_id}/category")
+async def update_member_category(
+    main_site_id: str,
+    member_id: str,
+    data: MemberCategoryUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Set the category (client/server) for a ZeroTier member."""
+    await require_site_access(main_site_id, current_user)
+    if data.category not in ("client", "server"):
+        raise HTTPException(400, "Category must be 'client' or 'server'")
+
+    await db.zerotier_member_meta.update_one(
+        {"main_site_id": main_site_id, "member_id": member_id},
+        {"$set": {
+            "main_site_id": main_site_id,
+            "member_id": member_id,
+            "category": data.category,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user.get("email", ""),
+        }},
+        upsert=True,
+    )
+    return {"status": "ok", "message": f"Category set to '{data.category}'"}
+
+
+@zerotier_router.put("/{main_site_id}/member/{member_id}/ip")
+async def update_member_ip(
+    main_site_id: str,
+    member_id: str,
+    data: MemberIpUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Update IP assignments for a ZeroTier member. This may make the device unreachable."""
+    await require_site_access(main_site_id, current_user)
+    config = await get_zt_config(main_site_id)
+    if not config.get("api_token") or not config.get("network_id"):
+        raise HTTPException(400, "ZeroTier not configured.")
+
+    await zt_request(
+        "POST",
+        f"/network/{config['network_id']}/member/{member_id}",
+        config["api_token"],
+        json_data={"config": {"ipAssignments": data.ip_assignments}},
+    )
+    return {"status": "ok", "message": f"IP assignments updated to {data.ip_assignments}"}
 
 
 # ============== Alert Settings Endpoints ==============

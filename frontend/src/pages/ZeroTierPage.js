@@ -39,6 +39,9 @@ const ZeroTierPage = () => {
   const [activeTab, setActiveTab] = useState('members'); // 'members' or 'history'
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [sendingSummary, setSendingSummary] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState('all'); // 'all', 'client', 'server'
+  const [ipEditMember, setIpEditMember] = useState(null);
+  const [ipEditValue, setIpEditValue] = useState('');
 
   const fetchMainSite = useCallback(async () => {
     try {
@@ -123,12 +126,12 @@ const ZeroTierPage = () => {
     if (!mainSite || !editNameValue.trim()) return;
     try {
       await axios.put(`${API}/zerotier/${mainSite.id}/member/${memberId}/name`, { name: editNameValue.trim() });
-      toast.success('Naam bijgewerkt');
+      toast.success('Name updated');
       setEditingName(null);
       setEditNameValue('');
       await fetchData();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Naam wijzigen mislukt');
+      toast.error(err.response?.data?.detail || 'Failed to rename');
     }
   };
 
@@ -191,11 +194,11 @@ const ZeroTierPage = () => {
         enabled: alertRecipients.length > 0,
         recipients: alertRecipients,
       });
-      toast.success(alertRecipients.length > 0 ? 'Alert ingeschakeld' : 'Alert uitgeschakeld');
+      toast.success(alertRecipients.length > 0 ? 'Alert enabled' : 'Alert disabled');
       setAlertDialogMember(null);
       await fetchAlertSettings();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Opslaan mislukt');
+      toast.error(err.response?.data?.detail || 'Save failed');
     }
   };
 
@@ -205,7 +208,7 @@ const ZeroTierPage = () => {
     if (existing?.enabled) {
       // Disable alert
       await axios.put(`${API}/zerotier/${mainSite.id}/member/${member.id}/alert`, { enabled: false, recipients: [] });
-      toast.success('Alert uitgeschakeld');
+      toast.success('Alert disabled');
       await fetchAlertSettings();
     } else {
       // Open dialog to configure recipients
@@ -239,6 +242,40 @@ const ZeroTierPage = () => {
       setSendingSummary(false);
     }
   };
+
+  const handleSetCategory = async (memberId, category) => {
+    if (!mainSite) return;
+    try {
+      await axios.put(`${API}/zerotier/${mainSite.id}/member/${memberId}/category`, { category });
+      toast.success(`Category set to ${category}`);
+      await fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to update category');
+    }
+  };
+
+  const handleUpdateIp = async () => {
+    if (!mainSite || !ipEditMember) return;
+    const ips = ipEditValue.split(',').map(ip => ip.trim()).filter(Boolean);
+    if (ips.length === 0) {
+      toast.error('Enter at least one IP address');
+      return;
+    }
+    try {
+      await axios.put(`${API}/zerotier/${mainSite.id}/member/${ipEditMember.id}/ip`, { ip_assignments: ips });
+      toast.success('IP assignments updated');
+      setIpEditMember(null);
+      setIpEditValue('');
+      await fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to update IP');
+    }
+  };
+
+  const filteredMembers = members?.members?.filter(m => {
+    if (categoryFilter === 'all') return true;
+    return m.category === categoryFilter;
+  }) || [];
 
   const formatLastSeen = (ts) => {
     if (!ts) return 'Never';
@@ -434,15 +471,39 @@ const ZeroTierPage = () => {
                 <h3 className="text-white font-medium">Network Members</h3>
                 <p className="text-xs text-zinc-600 mt-0.5">Clients offline for 30+ days are automatically deauthorized</p>
               </div>
-              <span className="text-xs text-zinc-500">Auto-refresh: 30s</span>
+              <div className="flex items-center gap-3">
+                {/* Category filter */}
+                <div className="flex bg-zinc-800 rounded-lg p-0.5" data-testid="zt-category-filter">
+                  {[
+                    { key: 'all', label: 'All' },
+                    { key: 'client', label: 'Clients', icon: Monitor },
+                    { key: 'server', label: 'Servers', icon: Server },
+                  ].map(f => (
+                    <button
+                      key={f.key}
+                      onClick={() => setCategoryFilter(f.key)}
+                      className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                        categoryFilter === f.key
+                          ? 'bg-zinc-700 text-white'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                      data-testid={`zt-filter-${f.key}`}
+                    >
+                      {f.icon && <f.icon className="w-3 h-3" />}
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-xs text-zinc-500">Auto-refresh: 30s</span>
+              </div>
             </div>
-            {!members?.members?.length ? (
+            {!filteredMembers.length ? (
               <div className="p-8 text-center text-zinc-500">
-                {members === null ? 'Loading members...' : 'No members found'}
+                {members === null ? 'Loading members...' : categoryFilter !== 'all' ? `No ${categoryFilter}s found` : 'No members found'}
               </div>
             ) : (
               <div className="divide-y divide-zinc-800/50">
-                {members.members.map(member => (
+                {filteredMembers.map(member => (
                   <div key={member.id}>
                     <div
                       className="px-5 py-3 flex items-center gap-4 hover:bg-zinc-800/30 transition-colors cursor-pointer group"
@@ -476,6 +537,13 @@ const ZeroTierPage = () => {
                             <>
                               <span className="text-white font-medium truncate">
                                 {member.name || member.id}
+                              </span>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                member.category === 'server'
+                                  ? 'bg-blue-500/15 text-blue-400 border border-blue-500/25'
+                                  : 'bg-zinc-700/50 text-zinc-500 border border-zinc-600/25'
+                              }`} data-testid={`zt-category-badge-${member.id}`}>
+                                {member.category === 'server' ? 'Server' : 'Client'}
                               </span>
                               <Button
                                 size="icon"
@@ -567,16 +635,25 @@ const ZeroTierPage = () => {
                     {/* Expanded member detail */}
                     {selectedMember?.id === member.id && (
                       <div className="px-5 py-4 bg-zinc-800/30 border-t border-zinc-700/50">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                           <div>
                             <span className="text-xs text-zinc-500 block">Node ID</span>
                             <span className="text-sm text-white font-mono">{selectedMember.id}</span>
                           </div>
                           <div>
                             <span className="text-xs text-zinc-500 block">IP Assignments</span>
-                            <span className="text-sm text-white font-mono">
+                            <button
+                              className="text-sm text-white font-mono hover:text-blue-400 transition-colors flex items-center gap-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIpEditMember(member);
+                                setIpEditValue(member.ip_assignments?.join(', ') || '');
+                              }}
+                              data-testid={`zt-ip-edit-btn-${member.id}`}
+                            >
                               {selectedMember.ip_assignments?.join(', ') || 'None'}
-                            </span>
+                              <Pencil className="w-3 h-3 text-zinc-600" />
+                            </button>
                           </div>
                           <div>
                             <span className="text-xs text-zinc-500 block">Physical Address</span>
@@ -588,8 +665,33 @@ const ZeroTierPage = () => {
                             <span className="text-xs text-zinc-500 block">Client Version</span>
                             <span className="text-sm text-white">{selectedMember.client_version || 'Unknown'}</span>
                           </div>
+                          <div>
+                            <span className="text-xs text-zinc-500 block mb-1">Category</span>
+                            <div className="flex gap-1" onClick={e => e.stopPropagation()} data-testid={`zt-category-toggle-${member.id}`}>
+                              <button
+                                onClick={() => handleSetCategory(member.id, 'client')}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                  member.category !== 'server'
+                                    ? 'bg-zinc-600 text-white'
+                                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                }`}
+                              >
+                                <Monitor className="w-3 h-3" /> Client
+                              </button>
+                              <button
+                                onClick={() => handleSetCategory(member.id, 'server')}
+                                className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
+                                  member.category === 'server'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                }`}
+                              >
+                                <Server className="w-3 h-3" /> Server
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button
                             size="sm"
                             variant="outline"
@@ -749,6 +851,48 @@ const ZeroTierPage = () => {
               data-testid="zt-delete-confirm-btn"
             >
               <Trash2 className="w-4 h-4 mr-1" /> Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* IP Edit Dialog */}
+      <AlertDialog open={!!ipEditMember} onOpenChange={() => setIpEditMember(null)}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-400" />
+              Change IP Assignment
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              <span className="block mb-3">
+                You are about to change the IP assignment for <strong className="text-white">{ipEditMember?.name || ipEditMember?.id}</strong>.
+              </span>
+              <span className="block p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm">
+                <strong>Warning:</strong> Changing the IP address may cause the device to become unreachable on the network. Make sure you have alternative access to the device before proceeding.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="mt-2">
+            <label className="text-xs text-zinc-500 block mb-1">IP Address(es)</label>
+            <Input
+              value={ipEditValue}
+              onChange={e => setIpEditValue(e.target.value)}
+              placeholder="e.g. 10.147.17.50"
+              className="bg-zinc-800 border-zinc-700 text-white font-mono"
+              onKeyDown={e => { if (e.key === 'Enter') handleUpdateIp(); }}
+              data-testid="zt-ip-edit-input"
+            />
+            <p className="text-xs text-zinc-600 mt-1">Separate multiple IPs with commas</p>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={handleUpdateIp}
+              data-testid="zt-ip-edit-confirm-btn"
+            >
+              Update IP
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
