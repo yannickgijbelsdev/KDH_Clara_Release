@@ -259,3 +259,55 @@ async def update_member_name(
     )
     return {"status": "ok", "message": f"Member renamed to '{name}'"}
 
+
+
+# ============== Alert Settings Endpoints ==============
+
+class AlertSettingsUpdate(BaseModel):
+    enabled: bool = True
+    recipients: list = []  # [{ user_id, email, name }]
+
+
+@zerotier_router.get("/{main_site_id}/alert-settings")
+async def get_all_alert_settings(main_site_id: str, current_user: dict = Depends(get_current_user)):
+    """Get all ZeroTier alert settings for a site."""
+    await require_site_access(main_site_id, current_user)
+    settings = await db.zerotier_alerts.find(
+        {"main_site_id": main_site_id}, {"_id": 0}
+    ).to_list(500)
+    return {"settings": settings}
+
+
+@zerotier_router.get("/{main_site_id}/member/{member_id}/alert")
+async def get_member_alert(main_site_id: str, member_id: str, current_user: dict = Depends(get_current_user)):
+    """Get alert settings for a specific member."""
+    await require_site_access(main_site_id, current_user)
+    doc = await db.zerotier_alerts.find_one(
+        {"main_site_id": main_site_id, "member_id": member_id}, {"_id": 0}
+    )
+    return doc or {"main_site_id": main_site_id, "member_id": member_id, "enabled": False, "recipients": []}
+
+
+@zerotier_router.put("/{main_site_id}/member/{member_id}/alert")
+async def update_member_alert(
+    main_site_id: str,
+    member_id: str,
+    data: AlertSettingsUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    """Update alert settings for a specific ZeroTier member."""
+    await require_site_access(main_site_id, current_user)
+
+    await db.zerotier_alerts.update_one(
+        {"main_site_id": main_site_id, "member_id": member_id},
+        {"$set": {
+            "main_site_id": main_site_id,
+            "member_id": member_id,
+            "enabled": data.enabled,
+            "recipients": data.recipients,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user.get("email", ""),
+        }},
+        upsert=True,
+    )
+    return {"status": "ok", "message": f"Alert settings updated for {member_id}"}

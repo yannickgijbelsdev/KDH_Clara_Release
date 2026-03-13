@@ -6,10 +6,11 @@ import { toast } from 'sonner';
 import {
   Monitor, Wifi, WifiOff, Shield, ShieldOff, Settings, RefreshCw,
   Globe, Server, Clock, ChevronRight, AlertCircle, Save, Eye, EyeOff,
-  Pencil, Check, X,
+  Pencil, Check, X, Bell, BellOff, UserPlus, Users,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -29,6 +30,10 @@ const ZeroTierPage = () => {
   const [selectedMember, setSelectedMember] = useState(null);
   const [editingName, setEditingName] = useState(null);
   const [editNameValue, setEditNameValue] = useState('');
+  const [alertSettings, setAlertSettings] = useState({});
+  const [alertDialogMember, setAlertDialogMember] = useState(null);
+  const [alertRecipients, setAlertRecipients] = useState([]);
+  const [siteUsers, setSiteUsers] = useState([]);
 
   const fetchMainSite = useCallback(async () => {
     try {
@@ -119,6 +124,78 @@ const ZeroTierPage = () => {
       await fetchData();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Naam wijzigen mislukt');
+    }
+  };
+
+  // ── Alert Functions ──
+  const fetchAlertSettings = useCallback(async () => {
+    if (!mainSite) return;
+    try {
+      const res = await axios.get(`${API}/zerotier/${mainSite.id}/alert-settings`);
+      const map = {};
+      for (const s of res.data.settings || []) {
+        map[s.member_id] = s;
+      }
+      setAlertSettings(map);
+    } catch {}
+  }, [mainSite]);
+
+  const fetchSiteUsers = useCallback(async () => {
+    if (!mainSite) return;
+    try {
+      const res = await axios.get(`${API}/main-sites/${mainSite.id}/users`);
+      const users = res.data.users || res.data || [];
+      setSiteUsers(users);
+    } catch {}
+  }, [mainSite]);
+
+  useEffect(() => {
+    if (mainSite) {
+      fetchAlertSettings();
+      fetchSiteUsers();
+    }
+  }, [mainSite, fetchAlertSettings, fetchSiteUsers]);
+
+  const openAlertDialog = (member) => {
+    const existing = alertSettings[member.id];
+    setAlertRecipients(existing?.recipients || []);
+    setAlertDialogMember(member);
+  };
+
+  const toggleRecipient = (u) => {
+    setAlertRecipients(prev => {
+      const exists = prev.find(r => r.user_id === (u.user_id || u.id));
+      if (exists) return prev.filter(r => r.user_id !== (u.user_id || u.id));
+      return [...prev, { user_id: u.user_id || u.id, email: u.email, name: u.name }];
+    });
+  };
+
+  const saveAlertSettings = async () => {
+    if (!mainSite || !alertDialogMember) return;
+    try {
+      await axios.put(`${API}/zerotier/${mainSite.id}/member/${alertDialogMember.id}/alert`, {
+        enabled: alertRecipients.length > 0,
+        recipients: alertRecipients,
+      });
+      toast.success(alertRecipients.length > 0 ? 'Alert ingeschakeld' : 'Alert uitgeschakeld');
+      setAlertDialogMember(null);
+      await fetchAlertSettings();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Opslaan mislukt');
+    }
+  };
+
+  const quickToggleAlert = async (member) => {
+    if (!mainSite) return;
+    const existing = alertSettings[member.id];
+    if (existing?.enabled) {
+      // Disable alert
+      await axios.put(`${API}/zerotier/${mainSite.id}/member/${member.id}/alert`, { enabled: false, recipients: [] });
+      toast.success('Alert uitgeschakeld');
+      await fetchAlertSettings();
+    } else {
+      // Open dialog to configure recipients
+      openAlertDialog(member);
     }
   };
 
@@ -345,6 +422,34 @@ const ZeroTierPage = () => {
                         </div>
                       </div>
 
+                      {/* Alert toggle */}
+                      <div className="flex-shrink-0" onClick={e => e.stopPropagation()}>
+                        {alertSettings[member.id]?.enabled ? (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="w-8 h-8 text-amber-400 hover:text-amber-300 relative"
+                            onClick={() => openAlertDialog(member)}
+                            title={`Alert active (${alertSettings[member.id]?.recipients?.length || 0} recipients)`}
+                            data-testid={`zt-alert-on-${member.id}`}
+                          >
+                            <Bell className="w-4 h-4" />
+                            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-400 rounded-full border border-zinc-900" />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="w-8 h-8 text-zinc-600 hover:text-amber-400 opacity-0 group-hover:opacity-100"
+                            onClick={() => openAlertDialog(member)}
+                            title="Enable alert"
+                            data-testid={`zt-alert-off-${member.id}`}
+                          >
+                            <BellOff className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+
                       {/* Auth toggle */}
                       <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
                         {member.authorized ? (
@@ -408,6 +513,18 @@ const ZeroTierPage = () => {
                           <Button
                             size="sm"
                             variant="outline"
+                            className={`border-zinc-700 ${alertSettings[member.id]?.enabled ? 'text-amber-400 border-amber-500/30' : ''}`}
+                            onClick={(e) => { e.stopPropagation(); openAlertDialog(member); }}
+                            data-testid="zt-alert-expanded-btn"
+                          >
+                            <Bell className="w-3.5 h-3.5 mr-1" />
+                            {alertSettings[member.id]?.enabled
+                              ? `Alert (${alertSettings[member.id]?.recipients?.length || 0} recipients)`
+                              : 'Configure Alert'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
                             className="border-zinc-700"
                             onClick={(e) => { e.stopPropagation(); setEditingName(member.id); setEditNameValue(member.name || ''); }}
                             data-testid="zt-rename-expanded-btn"
@@ -443,6 +560,85 @@ const ZeroTierPage = () => {
           </div>
         </>
       )}
+
+      {/* Alert Configuration Dialog */}
+      <Dialog open={!!alertDialogMember} onOpenChange={() => setAlertDialogMember(null)}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-amber-400" />
+              Alert for {alertDialogMember?.name || alertDialogMember?.id}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-zinc-400 -mt-2">
+            Select which team members receive an email when this client goes offline or comes back online.
+          </p>
+          <div className="space-y-1 max-h-64 overflow-y-auto mt-2">
+            {siteUsers.length === 0 ? (
+              <p className="text-zinc-500 text-sm text-center py-4">No team members found</p>
+            ) : (
+              siteUsers.map(u => {
+                const uid = u.user_id || u.id;
+                const selected = alertRecipients.some(r => r.user_id === uid);
+                return (
+                  <button
+                    key={uid}
+                    onClick={() => toggleRecipient(u)}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                      selected ? 'bg-amber-500/15 border border-amber-500/30' : 'border border-transparent hover:bg-zinc-800'
+                    }`}
+                    data-testid={`alert-recipient-${uid}`}
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                      selected ? 'bg-amber-500 text-white' : 'bg-zinc-700 text-zinc-400'
+                    }`}>
+                      {(u.name || u.email || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-white truncate">{u.name || u.email}</div>
+                      <div className="text-xs text-zinc-500 truncate">{u.email}</div>
+                    </div>
+                    {selected && <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <div className="flex justify-between items-center mt-4 pt-3 border-t border-zinc-800">
+            <span className="text-xs text-zinc-500">
+              {alertRecipients.length} recipient{alertRecipients.length !== 1 ? 's' : ''} selected
+            </span>
+            <div className="flex gap-2">
+              {alertSettings[alertDialogMember?.id]?.enabled && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-400 hover:bg-red-500/10"
+                  onClick={async () => {
+                    setAlertRecipients([]);
+                    await axios.put(`${API}/zerotier/${mainSite.id}/member/${alertDialogMember.id}/alert`, { enabled: false, recipients: [] });
+                    toast.success('Alert uitgeschakeld');
+                    setAlertDialogMember(null);
+                    fetchAlertSettings();
+                  }}
+                  data-testid="zt-alert-disable-btn"
+                >
+                  Disable Alert
+                </Button>
+              )}
+              <Button
+                size="sm"
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={saveAlertSettings}
+                disabled={alertRecipients.length === 0}
+                data-testid="zt-alert-save-btn"
+              >
+                <Bell className="w-3.5 h-3.5 mr-1" /> Save Alert
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

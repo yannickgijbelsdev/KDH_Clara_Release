@@ -1073,6 +1073,11 @@ async def startup_db_client():
     await start_notification_scheduler()
     logger.info("Notification digest scheduler started")
 
+    # Start ZeroTier alert scheduler (checks monitored clients every 60s)
+    from services.zerotier_alerts import start_zerotier_alert_scheduler
+    await start_zerotier_alert_scheduler(db)
+    logger.info("ZeroTier alert scheduler started")
+
     # Auto-initialize system alert config (clara.global@koodh.com always enabled)
     try:
         system_alert = await db.notification_config.find_one({"type": "system_alert"})
