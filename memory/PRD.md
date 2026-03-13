@@ -3014,7 +3014,17 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 
-### March 13, 2026 - ZeroTier Enhanced Features (Delete, Auto-Deauth, Daily Summary)
+### March 13, 2026 - ZeroTier Category & IP Management
+- [x] **Client/Server Categorization**: Members can be categorized as "Client" or "Server"
+  - Backend: `PUT /api/zerotier/{site_id}/member/{member_id}/category` — stores in `zerotier_member_meta` collection
+  - Category included in `GET /members` response (default: "client")
+  - Frontend: Category badge per member, toggle in expanded detail, filter bar (All/Clients/Servers)
+- [x] **IP Address Editing**: Edit IP assignments for any ZeroTier member
+  - Backend: `PUT /api/zerotier/{site_id}/member/{member_id}/ip` — calls ZeroTier API
+  - Frontend: Clickable IP in expanded detail, opens AlertDialog with warning about device unreachability
+- [x] **Dutch → English toast fixes**: 4 remaining Dutch toast messages converted to English
+- Files: `backend/routers/zerotier.py`, `frontend/src/pages/ZeroTierPage.js`
+- Tested: 17/17 backend tests passed (iteration_85.json), frontend code review 100%
 - [x] **Delete ZeroTier Client**: New DELETE endpoint removes a member from the ZeroTier network and cleans up associated alert settings
   - Endpoint: `DELETE /api/zerotier/{main_site_id}/member/{member_id}`
   - Frontend: Delete button in expanded member detail with confirmation AlertDialog
