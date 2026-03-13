@@ -19,7 +19,7 @@ import asyncio
 sys.path.insert(0, '/app/backend')
 
 # Get BASE_URL from environment, fallback to production URL
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://rundown-editor.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://radio-mgmt-platform.preview.emergentagent.com').rstrip('/')
 
 # Test credentials
 TEST_EMAIL = "admkoodh@koodh.com"

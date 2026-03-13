@@ -120,6 +120,18 @@ async def _check_alerts(db):
 
                 logger.info(f"ZeroTier alert: {member_name} ({member_id}) changed from {last_status} to {current_status}")
 
+                # Save to alert history
+                await db.zerotier_alert_history.insert_one({
+                    "main_site_id": main_site_id,
+                    "member_id": member_id,
+                    "member_name": member_name,
+                    "old_status": last_status,
+                    "new_status": current_status,
+                    "site_name": site_name,
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "notified_count": len([r for r in recipients if r.get("email")]),
+                })
+
             # Update last known status
             await db.zerotier_alerts.update_one(
                 {"main_site_id": main_site_id, "member_id": member_id},

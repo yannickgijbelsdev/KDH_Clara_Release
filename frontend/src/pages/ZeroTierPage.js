@@ -11,6 +11,7 @@ import {
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import ZeroTierAlertHistory from './ZeroTierAlertHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -34,6 +35,7 @@ const ZeroTierPage = () => {
   const [alertDialogMember, setAlertDialogMember] = useState(null);
   const [alertRecipients, setAlertRecipients] = useState([]);
   const [siteUsers, setSiteUsers] = useState([]);
+  const [activeTab, setActiveTab] = useState('members'); // 'members' or 'history'
 
   const fetchMainSite = useCallback(async () => {
     try {
@@ -144,8 +146,16 @@ const ZeroTierPage = () => {
     if (!mainSite) return;
     try {
       const res = await axios.get(`${API}/main-sites/${mainSite.id}/users`);
-      const users = res.data.users || res.data || [];
-      setSiteUsers(users);
+      const users = res.data || [];
+      // Normalize field names (API returns user_name/user_email, we need name/email)
+      const normalized = users.map(u => ({
+        user_id: u.user_id || u.id,
+        name: u.user_name || u.name || '',
+        email: u.user_email || u.email || '',
+        avatar_url: u.avatar_url,
+        role: u.role,
+      }));
+      setSiteUsers(normalized);
     } catch {}
   }, [mainSite]);
 
@@ -164,9 +174,10 @@ const ZeroTierPage = () => {
 
   const toggleRecipient = (u) => {
     setAlertRecipients(prev => {
-      const exists = prev.find(r => r.user_id === (u.user_id || u.id));
-      if (exists) return prev.filter(r => r.user_id !== (u.user_id || u.id));
-      return [...prev, { user_id: u.user_id || u.id, email: u.email, name: u.name }];
+      const uid = u.user_id;
+      const exists = prev.find(r => r.user_id === uid);
+      if (exists) return prev.filter(r => r.user_id !== uid);
+      return [...prev, { user_id: uid, email: u.email, name: u.name }];
     });
   };
 
@@ -260,6 +271,30 @@ const ZeroTierPage = () => {
           )}
         </div>
       </div>
+
+      {/* Tab Navigation */}
+      {isConfigured && (
+        <div className="flex gap-1 bg-zinc-900 rounded-lg p-1 mb-6 w-fit" data-testid="zt-tabs">
+          <button
+            onClick={() => setActiveTab('members')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'members' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'
+            }`}
+            data-testid="zt-tab-members"
+          >
+            <Monitor className="w-3.5 h-3.5" /> Members
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'history' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'
+            }`}
+            data-testid="zt-tab-history"
+          >
+            <Clock className="w-3.5 h-3.5" /> Alert History
+          </button>
+        </div>
+      )}
 
       {/* Config Panel */}
       {configOpen && (

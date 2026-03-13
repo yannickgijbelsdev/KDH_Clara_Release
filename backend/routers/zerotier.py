@@ -311,3 +311,44 @@ async def update_member_alert(
         upsert=True,
     )
     return {"status": "ok", "message": f"Alert settings updated for {member_id}"}
+
+
+@zerotier_router.get("/{main_site_id}/alert-history")
+async def get_alert_history(
+    main_site_id: str,
+    member_id: str = None,
+    limit: int = 100,
+    current_user: dict = Depends(get_current_user),
+):
+    """Get ZeroTier alert history for a site, optionally filtered by member."""
+    await require_site_access(main_site_id, current_user)
+
+    query = {"main_site_id": main_site_id}
+    if member_id:
+        query["member_id"] = member_id
+
+    events = await db.zerotier_alert_history.find(
+        query, {"_id": 0}
+    ).sort("timestamp", -1).limit(limit).to_list(limit)
+
+    # Calculate uptime stats per monitored member
+    alert_settings = await db.zerotier_alerts.find(
+        {"main_site_id": main_site_id, "enabled": True}, {"_id": 0}
+    ).to_list(500)
+
+    stats = []
+    for a in alert_settings:
+        mid = a["member_id"]
+        member_events = [e for e in events if e["member_id"] == mid]
+        offline_count = sum(1 for e in member_events if e["new_status"] == "offline")
+        online_count = sum(1 for e in member_events if e["new_status"] == "online")
+        stats.append({
+            "member_id": mid,
+            "last_known_status": a.get("last_known_status", "unknown"),
+            "last_checked": a.get("last_checked"),
+            "offline_events": offline_count,
+            "recovery_events": online_count,
+            "recipients_count": len(a.get("recipients", [])),
+        })
+
+    return {"events": events, "stats": stats}
