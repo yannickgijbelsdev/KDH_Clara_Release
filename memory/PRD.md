@@ -3014,13 +3014,21 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 
-### March 13, 2026 - ZeroTier Client Alerts (COMPLETE)
-- [x] **Backend API**: CRUD endpoints for alert settings per ZeroTier member (`GET /api/zerotier/{site}/alert-settings`, `GET/PUT /api/zerotier/{site}/member/{id}/alert`)
-- [x] **Scheduler**: Runs every 60 seconds, checks monitored clients via ZeroTier API, sends email notifications when a client goes offline or comes back online.
-- [x] **Frontend**: Alert bell icon per member with dialog to select recipients from team members. Active alerts show amber bell with dot indicator. "Disable Alert" and "Save Alert" buttons in the dialog.
-- [x] **Email Notifications**: Uses existing dynamic branding email system with "Clara Global Protect" footer.
-- Files: `backend/routers/zerotier.py`, `backend/services/zerotier_alerts.py` (new), `backend/server.py`, `frontend/src/pages/ZeroTierPage.js`
-- Tested: iteration_83 (13/13 backend tests passed, 100%)
+### March 13, 2026 - ZeroTier Enhanced Features (Delete, Auto-Deauth, Daily Summary)
+- [x] **Delete ZeroTier Client**: New DELETE endpoint removes a member from the ZeroTier network and cleans up associated alert settings
+  - Endpoint: `DELETE /api/zerotier/{main_site_id}/member/{member_id}`
+  - Frontend: Delete button in expanded member detail with confirmation AlertDialog
+- [x] **Auto-Deauthorize after 30 Days Offline**: Scheduler automatically deauthorizes clients that have been offline for 30+ days
+  - Runs as part of the existing 60-second alert check loop
+  - Logs auto-deauthorize events to `zerotier_alert_history` with `new_status: "auto_deauthorized"`
+  - At-risk clients (offline 20+ days) highlighted in daily summary emails
+- [x] **Daily ZeroTier Summary Email**: Comprehensive network status report sent daily at 07:00 UTC
+  - Recipients: All team members from team settings + `clara.global@koodh.com`
+  - Content: Online/offline member counts, member tables with IPs, at-risk warnings, recent events (last 24h), auto-deauthorize policy notice
+  - Manual trigger: `POST /api/zerotier/{main_site_id}/send-daily-summary` + "Send Summary" button in UI
+  - Scheduler: `_daily_summary_loop()` calculates wait until next 07:00 UTC
+- Files: `backend/routers/zerotier.py`, `backend/services/zerotier_alerts.py`, `frontend/src/pages/ZeroTierPage.js`
+- Tested: 14/14 backend tests passed (iteration_84.json), 100% frontend verified
 
 - [x] **Root Cause**: Users with "Redactie Verantwoordelijke" role had Calendar permissions but couldn't edit/delete shows because: (1) `/api/shows` only checked "shows" permissions, not "calendar", (2) `require_admin` at endpoint level blocked all non-admin users regardless of role permissions.
 - [x] **Fix**: (a) Added `FEATURE_ALIASES` in middleware so "shows" and "calendar" permissions are interchangeable, (b) Middleware sets `request.state.permission_approved = True` when approved, (c) Legacy auth dependencies (`require_admin`, `require_editor_or_admin`, etc.) check this flag and skip legacy role check, (d) `/api/auth/me/permissions` merges alias permissions for frontend UI.
