@@ -46,6 +46,15 @@ SKIP_PREFIXES = (
     "/api/notifications",  # Notification config (has own auth)
 )
 
+# Features that share permission scope — if a user has permission for ANY
+# feature in the group, the action is allowed.  For instance, shows
+# scheduled on the calendar can be edited when the role has either the
+# "shows" or the "calendar" edit right.
+FEATURE_ALIASES = {
+    "shows": ["calendar"],
+    "calendar": ["shows"],
+}
+
 METHOD_TO_ACTION = {
     "GET": "view",
     "HEAD": "view",
@@ -154,6 +163,7 @@ class PermissionMiddleware(BaseHTTPMiddleware):
 
         # Admin role always has access
         if role_slug == "admin":
+            request.state.permission_approved = True
             return await call_next(request)
 
         # Look up role permissions
@@ -174,11 +184,22 @@ class PermissionMiddleware(BaseHTTPMiddleware):
         permissions = role.get("permissions", {})
         feature_perms = permissions.get(feature, {})
 
-        if not feature_perms.get(action, False):
-            await self._log_denial(user_id, user_email, role_slug, main_site_id, feature, action, path, method, client_ip)
-            return JSONResponse(
-                status_code=403,
-                content={"detail": f"You don't have {action} permission for {feature}"},
-            )
+        # Check primary feature permission
+        if feature_perms.get(action, False):
+            request.state.permission_approved = True
+            return await call_next(request)
+
+        # Check alias features (e.g. "calendar" also grants access to "shows" and vice versa)
+        for alias_feature in FEATURE_ALIASES.get(feature, []):
+            alias_perms = permissions.get(alias_feature, {})
+            if alias_perms.get(action, False):
+                request.state.permission_approved = True
+                return await call_next(request)
+
+        await self._log_denial(user_id, user_email, role_slug, main_site_id, feature, action, path, method, client_ip)
+        return JSONResponse(
+            status_code=403,
+            content={"detail": f"You don't have {action} permission for {feature}"},
+        )
 
         return await call_next(request)

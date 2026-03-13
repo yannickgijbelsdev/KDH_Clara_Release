@@ -46,15 +46,53 @@ async def get_user_permissions(request: Request, current_user: dict) -> dict:
     if role.get("is_system") and role.get("slug") == "admin":
         return {"_full_access": True}
 
-    return role.get("permissions", {})
+    return _merge_alias_permissions(role.get("permissions", {}))
+
+
+# Features that share permission scope — mirrors the middleware FEATURE_ALIASES.
+_FEATURE_ALIASES = {
+    "shows": ["calendar"],
+    "calendar": ["shows"],
+}
+
+
+def _merge_alias_permissions(permissions: dict) -> dict:
+    """Merge alias feature permissions so that e.g. 'calendar.edit' also
+    grants 'shows.edit' in the permissions matrix sent to the frontend."""
+    if not permissions or permissions.get("_full_access"):
+        return permissions
+
+    merged = {k: dict(v) if isinstance(v, dict) else v for k, v in permissions.items()}
+
+    for feature, aliases in _FEATURE_ALIASES.items():
+        for alias in aliases:
+            alias_perms = permissions.get(alias, {})
+            if not isinstance(alias_perms, dict):
+                continue
+            if feature not in merged:
+                merged[feature] = {}
+            if not isinstance(merged[feature], dict):
+                continue
+            for action in ("view", "create", "edit", "delete"):
+                if alias_perms.get(action) and not merged[feature].get(action):
+                    merged[feature][action] = True
+
+    return merged
 
 
 def has_permission(permissions: dict, feature: str, action: str) -> bool:
-    """Check if a permissions dict grants a specific feature+action."""
+    """Check if a permissions dict grants a specific feature+action (including aliases)."""
     if permissions.get("_full_access"):
         return True
     feature_perms = permissions.get(feature, {})
-    return feature_perms.get(action, False)
+    if feature_perms.get(action, False):
+        return True
+    # Check alias features
+    for alias in _FEATURE_ALIASES.get(feature, []):
+        alias_perms = permissions.get(alias, {})
+        if isinstance(alias_perms, dict) and alias_perms.get(action, False):
+            return True
+    return False
 
 
 async def check_permission(request: Request, current_user: dict, feature: str, action: str):

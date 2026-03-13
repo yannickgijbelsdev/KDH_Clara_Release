@@ -1,0 +1,70 @@
+{
+  "summary": "Backend permission alias fix fully tested. All 14 tests PASSED. The bug fix correctly implements: (1) FEATURE_ALIASES allowing calendar and shows permissions to be interchangeable, (2) request.state.permission_approved flag set by middleware, (3) Legacy auth dependencies (require_admin, etc.) checking this flag to skip legacy role checks, (4) /api/auth/me/permissions returns merged alias permissions.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_calendar_shows_permission_alias.py",
+    "/app/test_reports/pytest/calendar_shows_permission_alias_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "FEATURE_ALIASES in permission_middleware.py (lines 53-56) correctly maps shows<->calendar bidirectionally",
+    "request.state.permission_approved flag is properly set on lines 166, 189, 196 when permissions pass",
+    "require_admin (line 86-91), require_editor_or_admin (line 95-102), require_can_approve_content (line 105-111), require_can_edit_content (line 114-120) all check permission_approved flag before applying legacy role checks",
+    "_merge_alias_permissions in permissions.py correctly merges permissions for frontend display"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_calendar_shows_permission_alias.py"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 tests passed)",
+    "frontend": "N/A (backend only testing requested)"
+  },
+  "test_credentials": {
+    "admin": "admkoodh@koodh.com / KYLovie13monx",
+    "presenter_redactie_verantwoordelijke": "testpresenter@test.com / TestPassword123!",
+    "viewer_only": "testviewer@test.com / ViewerPass123!"
+  },
+  "seed_data_creation": "Test users already exist: testpresenter@test.com (redactie_verantwoordelijke role), testviewer@test.com (test_viewer_only role)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Permission alias fix is working correctly. Users with 'redactie_verantwoordelijke' role that have Calendar permissions (view, create, edit, delete) can now successfully access /api/shows endpoints for PUT/DELETE operations (previously blocked by require_admin). Viewer-only users are correctly blocked with 403. The FEATURE_ALIASES mechanism allows shows and calendar permissions to be interchangeable.",
+  "features_tested": {
+    "presenter_get_shows": "PASS - GET /api/shows returns 200",
+    "presenter_post_shows": "PASS - POST /api/shows not blocked by 403",
+    "presenter_put_show_bypass_require_admin": "PASS - PUT /api/shows/{id} returns 404 (not 403)",
+    "presenter_delete_show_bypass_require_admin": "PASS - DELETE /api/shows/{id} returns 404 (not 403)",
+    "viewer_get_shows": "PASS - GET /api/shows returns 200 (view allowed)",
+    "viewer_blocked_put": "PASS - PUT /api/shows/{id} returns 403 (correctly blocked)",
+    "viewer_blocked_delete": "PASS - DELETE /api/shows/{id} returns 403 (correctly blocked)",
+    "viewer_blocked_post": "PASS - POST /api/shows returns 403 (correctly blocked)",
+    "admin_full_access": "PASS - Admin has full access to all show endpoints",
+    "merged_alias_permissions_endpoint": "PASS - /api/auth/me/permissions returns merged calendar<->shows permissions",
+    "permission_middleware_integration": "PASS - request.state.permission_approved flag correctly bypasses require_admin"
+  },
+  "pytest_results": {
+    "total_tests": 14,
+    "passed": 14,
+    "failed": 0,
+    "test_classes": [
+      "TestRedactieVerantwoordelijkeShowsAccess (4 tests) - All PASS",
+      "TestViewerOnlyIsBlocked (4 tests) - All PASS",
+      "TestAdminFullAccess (3 tests) - All PASS",
+      "TestMergedAliasPermissions (2 tests) - All PASS",
+      "TestPermissionMiddlewareIntegration (1 test) - PASS"
+    ]
+  },
+  "bug_fix_verified": {
+    "original_issue": "Users with 'Redactie Verantwoordelijke' role had Calendar permissions (View, Create, Edit, Delete) but could not edit or delete shows from the calendar",
+    "root_cause": "(1) Permission middleware mapped /api/shows to 'shows' feature but not 'calendar', (2) endpoint-level 'require_admin' dependencies blocked non-admin users regardless of role permissions",
+    "fix_applied": "(a) Added FEATURE_ALIASES so 'shows' and 'calendar' permissions are interchangeable, (b) Middleware sets 'request.state.permission_approved = True' when it approves, (c) Legacy auth dependencies check this flag and skip legacy role check if middleware approved, (d) /api/auth/me/permissions merges alias permissions",
+    "verification_result": "All tests pass - fix is working correctly"
+  }
+}

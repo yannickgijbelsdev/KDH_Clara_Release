@@ -1,5 +1,5 @@
 """Authentication helpers and dependencies."""
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timezone
 import bcrypt
@@ -83,28 +83,38 @@ async def require_network_admin(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
-async def require_admin(current_user: dict = Depends(get_current_user)):
+async def require_admin(request: Request = None, current_user: dict = Depends(get_current_user)):
+    # If the permission middleware already approved this request (role-based), allow it
+    if request and getattr(request.state, 'permission_approved', False):
+        return current_user
     if current_user.get('role') != 'admin':
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
 
-async def require_editor_or_admin(current_user: dict = Depends(get_current_user)):
+async def require_editor_or_admin(request: Request = None, current_user: dict = Depends(get_current_user)):
     """Editors, News Admins, and Admins have full content editing access."""
+    # If the permission middleware already approved this request (role-based), allow it
+    if request and getattr(request.state, 'permission_approved', False):
+        return current_user
     if current_user.get('role') not in ['admin', 'news_admin', 'editor']:
         raise HTTPException(status_code=403, detail="Editor or admin access required")
     return current_user
 
 
-async def require_can_approve_content(current_user: dict = Depends(get_current_user)):
+async def require_can_approve_content(request: Request = None, current_user: dict = Depends(get_current_user)):
     """Only Admins and News Admins can approve/reject content."""
+    if request and getattr(request.state, 'permission_approved', False):
+        return current_user
     if current_user.get('role') not in ['admin', 'news_admin']:
         raise HTTPException(status_code=403, detail="Content approval access required")
     return current_user
 
 
-async def require_can_edit_content(current_user: dict = Depends(get_current_user)):
+async def require_can_edit_content(request: Request = None, current_user: dict = Depends(get_current_user)):
     """Editors, News Admins, Presenters, and Admins can manage content/media."""
+    if request and getattr(request.state, 'permission_approved', False):
+        return current_user
     if current_user.get('role') not in ['admin', 'news_admin', 'editor', 'presenter']:
         raise HTTPException(status_code=403, detail="Content editing access required")
     return current_user
