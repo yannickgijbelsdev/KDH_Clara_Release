@@ -3014,7 +3014,14 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 
-### March 13, 2026 - Calendar Permissions Bug Fix (COMPLETE)
+### March 13, 2026 - ZeroTier Client Alerts (COMPLETE)
+- [x] **Backend API**: CRUD endpoints for alert settings per ZeroTier member (`GET /api/zerotier/{site}/alert-settings`, `GET/PUT /api/zerotier/{site}/member/{id}/alert`)
+- [x] **Scheduler**: Runs every 60 seconds, checks monitored clients via ZeroTier API, sends email notifications when a client goes offline or comes back online.
+- [x] **Frontend**: Alert bell icon per member with dialog to select recipients from team members. Active alerts show amber bell with dot indicator. "Disable Alert" and "Save Alert" buttons in the dialog.
+- [x] **Email Notifications**: Uses existing dynamic branding email system with "Clara Global Protect" footer.
+- Files: `backend/routers/zerotier.py`, `backend/services/zerotier_alerts.py` (new), `backend/server.py`, `frontend/src/pages/ZeroTierPage.js`
+- Tested: iteration_83 (13/13 backend tests passed, 100%)
+
 - [x] **Root Cause**: Users with "Redactie Verantwoordelijke" role had Calendar permissions but couldn't edit/delete shows because: (1) `/api/shows` only checked "shows" permissions, not "calendar", (2) `require_admin` at endpoint level blocked all non-admin users regardless of role permissions.
 - [x] **Fix**: (a) Added `FEATURE_ALIASES` in middleware so "shows" and "calendar" permissions are interchangeable, (b) Middleware sets `request.state.permission_approved = True` when approved, (c) Legacy auth dependencies (`require_admin`, `require_editor_or_admin`, etc.) check this flag and skip legacy role check, (d) `/api/auth/me/permissions` merges alias permissions for frontend UI.
 - Files: `backend/middleware/permission_middleware.py`, `backend/services/auth.py`, `backend/services/permissions.py`
