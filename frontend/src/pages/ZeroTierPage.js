@@ -6,11 +6,12 @@ import { toast } from 'sonner';
 import {
   Monitor, Wifi, WifiOff, Shield, ShieldOff, Settings, RefreshCw,
   Globe, Server, Clock, ChevronRight, AlertCircle, Save, Eye, EyeOff,
-  Pencil, Check, X, Bell, BellOff, UserPlus, Users,
+  Pencil, Check, X, Bell, BellOff, UserPlus, Users, Trash2, Mail,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
 import ZeroTierAlertHistory from './ZeroTierAlertHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -36,6 +37,8 @@ const ZeroTierPage = () => {
   const [alertRecipients, setAlertRecipients] = useState([]);
   const [siteUsers, setSiteUsers] = useState([]);
   const [activeTab, setActiveTab] = useState('members'); // 'members' or 'history'
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [sendingSummary, setSendingSummary] = useState(false);
 
   const fetchMainSite = useCallback(async () => {
     try {
@@ -210,6 +213,33 @@ const ZeroTierPage = () => {
     }
   };
 
+  const handleDeleteMember = async (member) => {
+    if (!mainSite) return;
+    try {
+      await axios.delete(`${API}/zerotier/${mainSite.id}/member/${member.id}`);
+      toast.success(`${member.name || member.id} deleted from network`);
+      setDeleteConfirm(null);
+      setSelectedMember(null);
+      await fetchData();
+      await fetchAlertSettings();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to delete member');
+    }
+  };
+
+  const handleSendDailySummary = async () => {
+    if (!mainSite) return;
+    setSendingSummary(true);
+    try {
+      await axios.post(`${API}/zerotier/${mainSite.id}/send-daily-summary`);
+      toast.success('Daily summary is being sent');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to send summary');
+    } finally {
+      setSendingSummary(false);
+    }
+  };
+
   const formatLastSeen = (ts) => {
     if (!ts) return 'Never';
     const date = new Date(ts);
@@ -258,16 +288,28 @@ const ZeroTierPage = () => {
             <Settings className="w-4 h-4 mr-1" /> Config
           </Button>
           {isConfigured && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="border-zinc-700 text-zinc-300"
-              data-testid="zt-refresh-btn"
-            >
-              <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSendDailySummary}
+                disabled={sendingSummary}
+                className="border-zinc-700 text-zinc-300"
+                data-testid="zt-send-summary-btn"
+              >
+                <Mail className={`w-4 h-4 mr-1 ${sendingSummary ? 'animate-pulse' : ''}`} /> {sendingSummary ? 'Sending...' : 'Send Summary'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="border-zinc-700 text-zinc-300"
+                data-testid="zt-refresh-btn"
+              >
+                <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -388,7 +430,10 @@ const ZeroTierPage = () => {
           {/* Members List */}
           <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-              <h3 className="text-white font-medium">Network Members</h3>
+              <div>
+                <h3 className="text-white font-medium">Network Members</h3>
+                <p className="text-xs text-zinc-600 mt-0.5">Clients offline for 30+ days are automatically deauthorized</p>
+              </div>
               <span className="text-xs text-zinc-500">Auto-refresh: 30s</span>
             </div>
             {!members?.members?.length ? (
@@ -585,6 +630,15 @@ const ZeroTierPage = () => {
                               <Shield className="w-3.5 h-3.5 mr-1" /> Authorize
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                            onClick={(e) => { e.stopPropagation(); setDeleteConfirm(member); }}
+                            data-testid={`zt-delete-btn-${member.id}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -652,7 +706,7 @@ const ZeroTierPage = () => {
                   onClick={async () => {
                     setAlertRecipients([]);
                     await axios.put(`${API}/zerotier/${mainSite.id}/member/${alertDialogMember.id}/alert`, { enabled: false, recipients: [] });
-                    toast.success('Alert uitgeschakeld');
+                    toast.success('Alert disabled');
                     setAlertDialogMember(null);
                     fetchAlertSettings();
                   }}
@@ -674,6 +728,31 @@ const ZeroTierPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-400" />
+              Delete Member
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-400">
+              Are you sure you want to delete <strong className="text-white">{deleteConfirm?.name || deleteConfirm?.id}</strong> from the ZeroTier network? This action cannot be undone. The client will need to be re-authorized if it reconnects.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => handleDeleteMember(deleteConfirm)}
+              data-testid="zt-delete-confirm-btn"
+            >
+              <Trash2 className="w-4 h-4 mr-1" /> Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

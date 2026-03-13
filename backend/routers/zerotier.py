@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from database import db
 from services.auth import get_current_user
+from services.zerotier_alerts import _send_daily_summary
 
 zerotier_router = APIRouter(prefix="/zerotier", tags=["zerotier"])
 
@@ -237,6 +238,26 @@ async def deauthorize_member(main_site_id: str, member_id: str, current_user: di
     return {"status": "ok", "message": f"Member {member_id} deauthorized"}
 
 
+@zerotier_router.delete("/{main_site_id}/member/{member_id}")
+async def delete_member(main_site_id: str, member_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a member from the ZeroTier network."""
+    await require_site_access(main_site_id, current_user)
+    config = await get_zt_config(main_site_id)
+    if not config.get("api_token") or not config.get("network_id"):
+        raise HTTPException(400, "ZeroTier not configured.")
+
+    await zt_request(
+        "DELETE",
+        f"/network/{config['network_id']}/member/{member_id}",
+        config["api_token"],
+    )
+
+    # Clean up alert settings for this member
+    await db.zerotier_alerts.delete_one({"main_site_id": main_site_id, "member_id": member_id})
+
+    return {"status": "ok", "message": f"Member {member_id} deleted from network"}
+
+
 @zerotier_router.put("/{main_site_id}/member/{member_id}/name")
 async def update_member_name(
     main_site_id: str,
@@ -352,3 +373,13 @@ async def get_alert_history(
         })
 
     return {"events": events, "stats": stats}
+
+
+
+@zerotier_router.post("/{main_site_id}/send-daily-summary")
+async def trigger_daily_summary(main_site_id: str, current_user: dict = Depends(get_current_user)):
+    """Manually trigger the ZeroTier daily summary email."""
+    await require_site_access(main_site_id, current_user)
+    import asyncio
+    asyncio.create_task(_send_daily_summary(db))
+    return {"status": "ok", "message": "Daily summary is being sent"}
