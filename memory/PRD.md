@@ -3014,7 +3014,14 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 
-### March 13, 2026 - ZeroTier Category & IP Management
+### March 14, 2026 - RDS Monitor Performance Fix
+- [x] **Fixed page hanging/freezing**: Refactored RDSMonitorPage.js to fix critical performance issues:
+  - Moved `StationCard` outside parent component + wrapped with `React.memo()` to prevent unmount/remount cycles
+  - Consolidated 3 separate countdown state updates per second into 1 using refs
+  - Increased auto-sync throttle from 10s to 30s to prevent refresh storms
+  - Moved helper functions outside component to avoid recreation on each render
+- Files: `frontend/src/pages/RDSMonitorPage.js`
+- Tested: Visual verification on preview, API response times confirmed < 0.25s
 - [x] **Client/Server Categorization**: Members can be categorized as "Client" or "Server"
   - Backend: `PUT /api/zerotier/{site_id}/member/{member_id}/category` — stores in `zerotier_member_meta` collection
   - Category included in `GET /members` response (default: "client")
