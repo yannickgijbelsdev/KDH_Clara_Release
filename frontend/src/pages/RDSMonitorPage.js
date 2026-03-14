@@ -27,15 +27,6 @@ const formatCountdown = (seconds) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
-// Helper to calculate seconds until stale
-const getSecondsUntilStale = (staleAt) => {
-  if (!staleAt) return null;
-  const staleTime = new Date(staleAt);
-  const now = new Date();
-  const diff = (staleTime - now) / 1000;
-  return diff;
-};
-
 const getItemTypeIcon = (type) => {
   switch (type) {
     case 'show_name': return <Radio className="w-4 h-4" />;
@@ -265,26 +256,89 @@ const RDSMonitorPage = () => {
   const [lastAutoSync, setLastAutoSync] = useState(null);
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
+  const fetchingRef = useRef(false); // Prevent overlapping fetches
+  const abortRef = useRef(null); // AbortController for cancellation
 
-  // Use refs for countdown values to avoid re-renders every second
-  const countdownsRef = useRef({ mfy: null, grk: null });
-  const showEndRef = useRef({ mfy: null, grk: null });
-  const scheduledTextRef = useRef({ mfy: null, grk: null });
-  const [tick, setTick] = useState(0); // Only incremented to trigger selective re-render
+  // Store countdown target timestamps (not relative seconds) to survive tab throttling
+  const countdownTargetsRef = useRef({ mfy: null, grk: null });
+  const showEndTargetsRef = useRef({ mfy: null, grk: null });
+  const scheduledTextTargetsRef = useRef({ mfy: null, grk: null });
+  const [tick, setTick] = useState(0);
+
+  // ... (fetchMonitorData defined above)
+
+  // Initialize countdown TARGET TIMESTAMPS when monitorData changes
+  useEffect(() => {
+    if (!monitorData?.stations) return;
+
+    const now = Date.now();
+
+    // stale_at is an absolute timestamp from the server
+    for (const s of ['mfy', 'grk']) {
+      const staleAt = monitorData.stations[s]?.now_playing?.stale_at;
+      countdownTargetsRef.current[s] = staleAt ? new Date(staleAt).getTime() : null;
+
+      const secEnd = monitorData.stations[s]?.calendar_live_show?.seconds_until_end;
+      showEndTargetsRef.current[s] = secEnd != null ? now + secEnd * 1000 : null;
+
+      const secSched = monitorData.stations[s]?.next_scheduled_text?.seconds_until;
+      scheduledTextTargetsRef.current[s] = secSched != null ? now + secSched * 1000 : null;
+    }
+    setTick(t => t + 1);
+  }, [monitorData]);
+
+  // Single countdown interval — compute remaining from absolute targets (tab-throttling safe)
+  useEffect(() => {
+    countdownRef.current = setInterval(() => {
+      setTick(t => t + 1); // one re-render per second
+    }, 1000);
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, []);
+
+  // Derive countdown SECONDS from target timestamps (computed on every tick)
+  const now = Date.now();
+  const countdowns = {
+    mfy: countdownTargetsRef.current.mfy ? Math.max(0, Math.floor((countdownTargetsRef.current.mfy - now) / 1000)) : null,
+    grk: countdownTargetsRef.current.grk ? Math.max(0, Math.floor((countdownTargetsRef.current.grk - now) / 1000)) : null,
+  };
+  const showEndCountdowns = {
+    mfy: showEndTargetsRef.current.mfy ? Math.max(0, Math.floor((showEndTargetsRef.current.mfy - now) / 1000)) : null,
+    grk: showEndTargetsRef.current.grk ? Math.max(0, Math.floor((showEndTargetsRef.current.grk - now) / 1000)) : null,
+  };
+  const scheduledTextCountdowns = {
+    mfy: scheduledTextTargetsRef.current.mfy ? Math.max(0, Math.floor((scheduledTextTargetsRef.current.mfy - now) / 1000)) : null,
+    grk: scheduledTextTargetsRef.current.grk ? Math.max(0, Math.floor((scheduledTextTargetsRef.current.grk - now) / 1000)) : null,
+  };
 
   const fetchMonitorData = useCallback(async () => {
+    // Prevent overlapping fetches
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
+
+    // Cancel any previous in-flight request
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
-      const response = await axios.get(`${API}/rds-builder/monitor`);
+      const response = await axios.get(`${API}/rds-builder/monitor`, {
+        signal: controller.signal,
+        timeout: 8000, // 8s timeout to prevent hanging requests
+      });
       setMonitorData(response.data);
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('Failed to fetch monitor data:', error);
+      if (!axios.isCancel(error) && error.code !== 'ERR_CANCELED') {
+        console.error('Failed to fetch monitor data:', error);
+      }
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
   }, []);
 
   const forceRefresh = useCallback(async (isAutomatic = false) => {
+    if (forceRefreshing) return; // Already refreshing
     setForceRefreshing(true);
     if (isAutomatic) {
       setLastAutoSync(new Date());
@@ -292,15 +346,17 @@ const RDSMonitorPage = () => {
     try {
       await axios.post(`${API}/rds-builder/monitor/force-refresh`);
       await new Promise(resolve => setTimeout(resolve, 500));
+      // Reset fetching lock so the fetch can proceed
+      fetchingRef.current = false;
       await fetchMonitorData();
     } catch (error) {
       console.error('Force refresh failed:', error);
     } finally {
       setForceRefreshing(false);
     }
-  }, [fetchMonitorData]);
+  }, [fetchMonitorData, forceRefreshing]);
 
-  // Auto-sync: force refresh when cache is stale (throttled to 30s)
+  // Auto-sync: force refresh when cache is stale (throttled to 60s)
   const lastAutoSyncRef = useRef(0);
   useEffect(() => {
     if (!autoSync || !monitorData?.stations) return;
@@ -309,55 +365,13 @@ const RDSMonitorPage = () => {
     const grkStale = monitorData.stations.grk?.cache_stale;
 
     if ((mfyStale || grkStale) && !forceRefreshing) {
-      const now = Date.now();
-      if (now - lastAutoSyncRef.current > 30000) {
-        lastAutoSyncRef.current = now;
+      const ts = Date.now();
+      if (ts - lastAutoSyncRef.current > 60000) { // 60s throttle
+        lastAutoSyncRef.current = ts;
         forceRefresh(true);
       }
     }
   }, [monitorData, forceRefreshing, forceRefresh, autoSync]);
-
-  // Initialize countdown refs when monitorData changes
-  useEffect(() => {
-    if (!monitorData?.stations) return;
-
-    countdownsRef.current = {
-      mfy: getSecondsUntilStale(monitorData.stations.mfy?.now_playing?.stale_at),
-      grk: getSecondsUntilStale(monitorData.stations.grk?.now_playing?.stale_at),
-    };
-    showEndRef.current = {
-      mfy: monitorData.stations.mfy?.calendar_live_show?.seconds_until_end ?? null,
-      grk: monitorData.stations.grk?.calendar_live_show?.seconds_until_end ?? null,
-    };
-    scheduledTextRef.current = {
-      mfy: monitorData.stations.mfy?.next_scheduled_text?.seconds_until ?? null,
-      grk: monitorData.stations.grk?.next_scheduled_text?.seconds_until ?? null,
-    };
-    // Force one re-render with fresh values
-    setTick(t => t + 1);
-  }, [monitorData]);
-
-  // Single countdown interval — mutate refs, trigger one state update per second
-  useEffect(() => {
-    countdownRef.current = setInterval(() => {
-      let changed = false;
-      for (const ref of [countdownsRef, showEndRef, scheduledTextRef]) {
-        for (const key of ['mfy', 'grk']) {
-          if (ref.current[key] !== null && ref.current[key] > 0) {
-            ref.current[key] -= 1;
-            changed = true;
-          }
-        }
-      }
-      if (changed) {
-        setTick(t => t + 1); // Single re-render per second instead of 3
-      }
-    }, 1000);
-
-    return () => {
-      if (countdownRef.current) clearInterval(countdownRef.current);
-    };
-  }, []);
 
   // Data refresh every 10 seconds
   useEffect(() => {
@@ -367,6 +381,8 @@ const RDSMonitorPage = () => {
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      // Cancel any pending request on unmount
+      if (abortRef.current) abortRef.current.abort();
     };
   }, [fetchMonitorData, autoRefresh]);
 
@@ -458,17 +474,17 @@ const RDSMonitorPage = () => {
             station="mfy"
             stationName="Radio MFY"
             data={monitorData?.stations?.mfy}
-            staleCountdown={countdownsRef.current.mfy}
-            showEndCountdown={showEndRef.current.mfy}
-            scheduledTextCountdown={scheduledTextRef.current.mfy}
+            staleCountdown={countdowns.mfy}
+            showEndCountdown={showEndCountdowns.mfy}
+            scheduledTextCountdown={scheduledTextCountdowns.mfy}
           />
           <StationCard
             station="grk"
             stationName="Radio GRK"
             data={monitorData?.stations?.grk}
-            staleCountdown={countdownsRef.current.grk}
-            showEndCountdown={showEndRef.current.grk}
-            scheduledTextCountdown={scheduledTextRef.current.grk}
+            staleCountdown={countdowns.grk}
+            showEndCountdown={showEndCountdowns.grk}
+            scheduledTextCountdown={scheduledTextCountdowns.grk}
           />
         </div>
 
