@@ -589,12 +589,13 @@ async def upload_editor_file(
     # Read file content
     contents = await file.read()
     
-    # Validate file size (100MB max for video, 10MB for others)
-    is_video = file.content_type and file.content_type.startswith('video/') or file_ext in ['mp4', 'mov', 'webm', 'avi']
-    max_size = 100 * 1024 * 1024 if is_video else 10 * 1024 * 1024
+    # Validate file size (100MB max for video/audio, 10MB for others)
+    is_video = (file.content_type and file.content_type.startswith('video/')) or file_ext in ['mp4', 'mov', 'webm', 'avi']
+    is_audio = (file.content_type and file.content_type.startswith('audio/')) or file_ext in ['mp3', 'wav', 'ogg', 'm4a']
+    max_size = 100 * 1024 * 1024 if (is_video or is_audio) else 10 * 1024 * 1024
     
     if len(contents) > max_size:
-        max_mb = 100 if is_video else 10
+        max_mb = 100 if (is_video or is_audio) else 10
         raise HTTPException(status_code=400, detail=f"File too large. Maximum size is {max_mb}MB")
     
     # Generate unique filename

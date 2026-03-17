@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Editor } from '@tinymce/tinymce-react';
 import axios from 'axios';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -21,6 +21,8 @@ const RichTextEditor = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadFileName, setUploadFileName] = useState('');
+  const [uploadError, setUploadError] = useState(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   const handleEditorChange = (content) => {
     onChange(content);
@@ -32,6 +34,7 @@ const RichTextEditor = ({
       setIsUploading(true);
       setUploadFileName(blobInfo.filename());
       setUploadProgress(0);
+      setUploadError(null);
       
       const formData = new FormData();
       formData.append('file', blobInfo.blob(), blobInfo.filename());
@@ -63,6 +66,9 @@ const RichTextEditor = ({
     } catch (error) {
       setIsUploading(false);
       setUploadProgress(0);
+      const errorMsg = error.response?.data?.detail || error.message || 'Upload failed';
+      setUploadError(`Image upload failed: ${errorMsg}`);
+      setTimeout(() => setUploadError(null), 5000);
       // Fallback to base64 encoding
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -94,6 +100,7 @@ const RichTextEditor = ({
         setIsUploading(true);
         setUploadFileName(file.name);
         setUploadProgress(0);
+        setUploadError(null);
         
         const formData = new FormData();
         formData.append('file', file);
@@ -109,32 +116,28 @@ const RichTextEditor = ({
           }
         });
         
-        setIsUploading(false);
-        setUploadProgress(0);
-        
         if (response.data && response.data.url) {
-          callback(response.data.url, { title: file.name });
+          // Show brief success before closing overlay
+          setUploadSuccess(true);
+          setTimeout(() => {
+            setIsUploading(false);
+            setUploadProgress(0);
+            setUploadSuccess(false);
+            callback(response.data.url, { title: file.name });
+          }, 800);
         } else {
-          // Fallback to base64 for images
-          if (meta.filetype === 'image') {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-              callback(e.target.result, { title: file.name });
-            };
-            reader.readAsDataURL(file);
-          }
+          // No URL in response - show error
+          setIsUploading(false);
+          setUploadProgress(0);
+          setUploadError('Upload completed but no URL was returned. Please try again.');
+          setTimeout(() => setUploadError(null), 5000);
         }
       } catch (error) {
         setIsUploading(false);
         setUploadProgress(0);
-        // Fallback to base64 for images
-        if (meta.filetype === 'image') {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            callback(e.target.result, { title: file.name });
-          };
-          reader.readAsDataURL(file);
-        }
+        const errorMsg = error.response?.data?.detail || error.message || 'Upload failed';
+        setUploadError(`Upload failed: ${errorMsg}`);
+        setTimeout(() => setUploadError(null), 5000);
       }
     };
 
@@ -148,23 +151,51 @@ const RichTextEditor = ({
         <div 
           className="fixed inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm"
           style={{ zIndex: 100000 }}
+          data-testid="editor-upload-overlay"
         >
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-2xl min-w-[320px]">
             <div className="flex items-center gap-3 mb-4">
-              <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+              {uploadSuccess ? (
+                <CheckCircle className="w-6 h-6 text-green-500" />
+              ) : (
+                <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+              )}
               <div>
-                <p className="text-white font-medium">Bestand uploaden...</p>
+                <p className="text-white font-medium">
+                  {uploadSuccess ? 'Upload complete!' : 'Bestand uploaden...'}
+                </p>
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
               </div>
             </div>
             <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-300 ease-out"
+                className={`h-full rounded-full transition-all duration-300 ease-out ${
+                  uploadSuccess ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-orange-500 to-orange-400'
+                }`}
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-center text-orange-400 text-sm font-medium mt-2">{uploadProgress}%</p>
+            <p className={`text-center text-sm font-medium mt-2 ${uploadSuccess ? 'text-green-400' : 'text-orange-400'}`}>
+              {uploadSuccess ? 'Inserting...' : `${uploadProgress}%`}
+            </p>
           </div>
+        </div>
+      )}
+      {/* Error notification */}
+      {uploadError && (
+        <div 
+          className="fixed top-4 right-4 bg-red-900/90 border border-red-700 rounded-lg p-4 shadow-2xl max-w-[400px] flex items-start gap-3 animate-in slide-in-from-top"
+          style={{ zIndex: 100001 }}
+          data-testid="editor-upload-error"
+        >
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-red-200 text-sm font-medium">Upload Error</p>
+            <p className="text-red-300 text-xs mt-1">{uploadError}</p>
+          </div>
+          <button onClick={() => setUploadError(null)} className="text-red-400 hover:text-red-200 ml-2">
+            &times;
+          </button>
         </div>
       )}
       <Editor
