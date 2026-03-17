@@ -1441,3 +1441,41 @@ async def get_active_scheduled_text(station: str):
     
     return JSONResponse(content={"active": False, "text": None})
 
+
+
+# ============== Stale Now Playing Config ==============
+
+class StaleConfigUpdate(BaseModel):
+    timeout_minutes: Optional[int] = None
+    recovery_seconds: Optional[int] = None
+    fallback_text: Optional[dict] = None
+
+
+@rds_builder_router.get("/stale-config")
+async def get_stale_config_endpoint(current_user: dict = Depends(require_admin)):
+    """Get stale now playing configuration."""
+    from services.shoutcast import get_stale_config
+    config = await get_stale_config()
+    return config
+
+
+@rds_builder_router.put("/stale-config")
+async def update_stale_config_endpoint(data: StaleConfigUpdate, current_user: dict = Depends(require_admin)):
+    """Update stale now playing configuration."""
+    update = {}
+    if data.timeout_minutes is not None:
+        if data.timeout_minutes < 1 or data.timeout_minutes > 120:
+            raise HTTPException(400, "Timeout must be between 1 and 120 minutes")
+        update["timeout_minutes"] = data.timeout_minutes
+    if data.recovery_seconds is not None:
+        if data.recovery_seconds < 5 or data.recovery_seconds > 300:
+            raise HTTPException(400, "Recovery threshold must be between 5 and 300 seconds")
+        update["recovery_seconds"] = data.recovery_seconds
+    if data.fallback_text is not None:
+        update["fallback_text"] = data.fallback_text
+
+    if update:
+        await db.stale_config.update_one({}, {"$set": update}, upsert=True)
+
+    from services.shoutcast import get_stale_config
+    return await get_stale_config()

@@ -663,11 +663,8 @@ const MediaLibraryPage = () => {
   };
 
   const getFileUrl = (asset) => {
-    // Use S3 URL directly if available, otherwise use the API endpoint
-    if (asset.s3_url) {
-      return asset.s3_url;
-    }
-    return `${API}/uploads/media/${asset.file_storage_key}`;
+    // Always use proxy endpoint to serve files (avoids S3 AccessDenied)
+    return `${API}/media/serve/${asset.id}`;
   };
 
   const canPreview = (asset) => {

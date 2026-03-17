@@ -485,6 +485,7 @@ async def get_branding_file(file_key: str):
     import pathlib
     file_path = pathlib.Path("/app/backend/uploads/branding") / file_key
     if not file_path.exists():
+        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="File not found")
     media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
     return FileResponse(file_path, media_type=media_type, headers={"Cache-Control": "public, max-age=3600"})
@@ -603,8 +604,11 @@ async def upload_editor_file(
     # Upload to S3 if configured
     if is_s3_configured():
         try:
-            result = await upload_file_to_s3(contents, file_key, file.content_type)
-            return {"url": result['url'], "filename": file.filename, "size": len(contents)}
+            await upload_file_to_s3(contents, file_key, file.content_type)
+            # Return proxy URL instead of direct S3 URL to avoid AccessDenied
+            base_url = os.environ.get('REACT_APP_BACKEND_URL', '')
+            proxy_url = f"{base_url}/api/uploads/editor-files/s3/{file_key}"
+            return {"url": proxy_url, "filename": file.filename, "size": len(contents)}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload to storage: {str(e)}")
     
@@ -619,6 +623,23 @@ async def upload_editor_file(
     url = f"{base_url}/api/uploads/editor-files/{local_file_key}"
     
     return {"url": url, "filename": file.filename, "size": len(contents)}
+
+
+@api_router.get("/uploads/editor-files/s3/{file_key:path}")
+async def get_editor_file_s3(file_key: str):
+    """Serve an S3-stored editor file via presigned URL redirect."""
+    from fastapi import HTTPException
+    from fastapi.responses import RedirectResponse
+    from services.s3_storage import generate_presigned_url, is_s3_configured
+    
+    if not is_s3_configured():
+        raise HTTPException(status_code=404, detail="S3 not configured")
+    
+    try:
+        presigned_url = await generate_presigned_url(file_key, expiration=3600)
+        return RedirectResponse(url=presigned_url, status_code=302)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to serve file: {str(e)}")
 
 
 @api_router.get("/uploads/editor-files/{file_key}")
@@ -1130,6 +1151,19 @@ async def startup_db_client():
         )
     except Exception as e:
         logger.warning(f"Radioplayer config init failed: {e}")
+
+    # Migrate S3 URLs in content bodies to proxy URLs
+    try:
+        import re
+        base_url = os.environ.get('REACT_APP_BACKEND_URL', '')
+        s3_pattern = r'https://[^"\'>\s]*\.your-objectstorage\.com/koodh-clara/editor/([^"\'>\s]+)'
+        async for content in db.content.find({"body": {"$regex": "objectstorage.*editor"}}, {"_id": 0, "id": 1, "body": 1}):
+            new_body = re.sub(s3_pattern, f'{base_url}/api/uploads/editor-files/s3/editor/\\1', content["body"])
+            if new_body != content["body"]:
+                await db.content.update_one({"id": content["id"]}, {"$set": {"body": new_body}})
+                logger.info(f"Migrated S3 URLs in content {content['id']}")
+    except Exception as e:
+        logger.warning(f"S3 URL migration failed: {e}")
 
 
 @app.on_event("shutdown")

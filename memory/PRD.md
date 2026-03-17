@@ -3014,6 +3014,26 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 
+### March 17, 2026 - Configurable Stale Now Playing Timeout
+- [x] **Configurable timeout**: Previously hardcoded 15-min stale timeout is now configurable (1-120 min) from RDS Settings page
+  - DB: `stale_config` collection with `timeout_minutes`, `recovery_seconds`, `fallback_text`
+  - Backend: `GET/PUT /api/rds-builder/stale-config` with validation
+  - Frontend: New section on RDS Settings page with timeout input, recovery threshold, and per-station fallback text
+  - Shoutcast service loads config from DB on every cycle (no restart needed)
+- Files: `services/shoutcast.py`, `routers/rds_builder.py`, `pages/RDSSettingsPage.js`
+- Tested: API endpoints verified with curl (get, update, validation)
+
+### March 17, 2026 - Media/Audio S3 AccessDenied Fix
+- [x] **Fixed audio/media upload in content library**: Direct S3 URLs returned by editor-files upload and media library were inaccessible (AccessDenied)
+  - Created proxy endpoint `GET /api/uploads/editor-files/s3/{file_key}` — 302 redirect to presigned URL
+  - Created proxy endpoint `GET /api/media/serve/{asset_id}` — 302 redirect to presigned URL for media library
+  - Editor upload now returns proxy URL instead of direct S3 URL
+  - Frontend `getFileUrl()` now uses `/api/media/serve/{id}` proxy
+  - Added `audio_template_callback` in TinyMCE for proper audio embeds
+  - Startup migration: existing content with direct S3 URLs auto-migrated to proxy URLs
+- Files: `server.py`, `routers/media.py`, `pages/MediaLibraryPage.js`, `components/RichTextEditor.js`
+- Tested: 12/12 tests passed (testing agent), uploads verified with S3 presigned URL redirect
+
 ### March 17, 2026 - Radioplayer.org Integration
 - [x] **Radioplayer Ingest API Integration**: Full backend service for pushing data to Radioplayer.org
   - **Now Playing Push**: Automatically pushes current track (artist/title) as SPI XML PE (Programme Event) when GRK song changes via shoutcast scheduler hook

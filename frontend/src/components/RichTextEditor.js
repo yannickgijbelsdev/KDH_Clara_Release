@@ -209,6 +209,12 @@ const RichTextEditor = ({
           file_picker_types: 'image media file',
           file_picker_callback: handleFilePicker,
           
+          // Media settings - allow audio and video embeds
+          media_live_embeds: true,
+          audio_template_callback: (data) => {
+            return `<audio controls src="${data.source}"><source src="${data.source}" /></audio>`;
+          },
+          
           // Quick toolbars
           quickbars_selection_toolbar: 'bold italic | quicklink h2 h3 blockquote',
           quickbars_insert_toolbar: 'quickimage quicktable',

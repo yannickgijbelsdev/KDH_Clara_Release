@@ -8,6 +8,7 @@ from typing import Optional, Dict, List
 from datetime import datetime, timedelta
 
 from services.timezone_utils import now_brussels, BRUSSELS_TZ
+from database import db
 
 logger = logging.getLogger(__name__)
 
@@ -23,13 +24,29 @@ SHOUTCAST_SERVERS = {
     }
 }
 
-# Stale now playing settings
-STALE_TIMEOUT_MINUTES = 15  # Show fallback after this many minutes of same song
-STALE_RECOVERY_THRESHOLD_SECONDS = 30  # Song must be different for at least this many seconds to recover from stale
-STALE_FALLBACK_TEXT = {
+# Stale now playing settings (defaults — overridden by DB config)
+DEFAULT_STALE_TIMEOUT_MINUTES = 15
+DEFAULT_STALE_RECOVERY_SECONDS = 30
+DEFAULT_STALE_FALLBACK = {
     "mfy": "altijd dichtbij",
     "grk": "the feelgood station"
 }
+
+
+async def get_stale_config():
+    """Get stale now playing config from DB, with defaults."""
+    config = await db.stale_config.find_one({}, {"_id": 0})
+    if not config:
+        return {
+            "timeout_minutes": DEFAULT_STALE_TIMEOUT_MINUTES,
+            "recovery_seconds": DEFAULT_STALE_RECOVERY_SECONDS,
+            "fallback_text": DEFAULT_STALE_FALLBACK,
+        }
+    return {
+        "timeout_minutes": config.get("timeout_minutes", DEFAULT_STALE_TIMEOUT_MINUTES),
+        "recovery_seconds": config.get("recovery_seconds", DEFAULT_STALE_RECOVERY_SECONDS),
+        "fallback_text": config.get("fallback_text", DEFAULT_STALE_FALLBACK),
+    }
 
 # Track when song titles last changed (in-memory state)
 _song_change_tracker: Dict[str, Dict] = {}
@@ -310,6 +327,12 @@ async def cache_now_playing(db, station: str) -> Dict:
     now = now_brussels()
     timestamp = now.isoformat()
     
+    # Load configurable stale settings
+    stale_cfg = await get_stale_config()
+    stale_timeout = stale_cfg["timeout_minutes"]
+    recovery_seconds = stale_cfg["recovery_seconds"]
+    fallback_text = stale_cfg["fallback_text"]
+    
     data = await get_now_playing(station, db, apply_filter=True)
     
     current_song = data.get("song_title", "")
@@ -334,7 +357,7 @@ async def cache_now_playing(db, station: str) -> Dict:
             if tracker["pending_new_song"] == current_song:
                 # Same new song as before - check if threshold passed
                 time_since_first_seen = now - tracker["pending_song_first_seen"]
-                if time_since_first_seen >= timedelta(seconds=STALE_RECOVERY_THRESHOLD_SECONDS):
+                if time_since_first_seen >= timedelta(seconds=recovery_seconds):
                     # Threshold passed - actually recover from stale
                     tracker["last_song"] = current_song
                     tracker["last_change_time"] = now
@@ -376,11 +399,11 @@ async def cache_now_playing(db, station: str) -> Dict:
             tracker["pending_song_first_seen"] = None
         
         time_since_change = now - tracker["last_change_time"]
-        stale_threshold = timedelta(minutes=STALE_TIMEOUT_MINUTES)
+        stale_threshold = timedelta(minutes=stale_timeout)
         
         if time_since_change >= stale_threshold and current_song:
             if not tracker["is_stale"]:
-                logger.info(f"[{station}] Now playing stale for {STALE_TIMEOUT_MINUTES} min, showing fallback")
+                logger.info(f"[{station}] Now playing stale for {stale_timeout} min, showing fallback")
                 tracker["is_stale"] = True
     
     # Determine the effective song title to display
@@ -389,7 +412,7 @@ async def cache_now_playing(db, station: str) -> Dict:
     
     if is_stale:
         # Use fallback text instead of stale song
-        effective_song_title = STALE_FALLBACK_TEXT.get(station, "")
+        effective_song_title = fallback_text.get(station, "")
     
     # Save to cache with both original and effective titles
     cache_data = {
@@ -398,7 +421,7 @@ async def cache_now_playing(db, station: str) -> Dict:
         "original_song_title": current_song,  # Keep the original for reference
         "is_stale": is_stale,
         "song_started_at": tracker["last_change_time"].isoformat(),
-        "stale_at": (tracker["last_change_time"] + timedelta(minutes=STALE_TIMEOUT_MINUTES)).isoformat(),
+        "stale_at": (tracker["last_change_time"] + timedelta(minutes=stale_timeout)).isoformat(),
         "cached_at": timestamp,
         "updated_at": timestamp
     }

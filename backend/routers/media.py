@@ -14,7 +14,7 @@ from models.media import (
 )
 from services.auth import get_current_user, require_can_edit_content
 from services.s3_storage import (
-    upload_file_to_s3, delete_file_from_s3, is_s3_configured
+    upload_file_to_s3, delete_file_from_s3, is_s3_configured, generate_presigned_url
 )
 from services.main_site_context import get_main_site_id_from_header
 from services.audit import log_action, get_client_ip
@@ -189,6 +189,34 @@ async def upload_media_asset(
     )
     
     return asset_doc
+
+
+@media_router.get("/serve/{asset_id}")
+async def serve_media_file(asset_id: str):
+    """Serve a media file via presigned URL (S3) or local file."""
+    from fastapi.responses import RedirectResponse, FileResponse
+    
+    asset = await db.media_assets.find_one({"id": asset_id}, {"_id": 0})
+    if not asset:
+        raise HTTPException(status_code=404, detail="Media asset not found")
+    
+    storage_key = asset.get("file_storage_key", "")
+    
+    # If stored in S3, redirect to presigned URL
+    if asset.get("s3_url") and is_s3_configured():
+        try:
+            presigned_url = await generate_presigned_url(storage_key, expiration=3600)
+            return RedirectResponse(url=presigned_url, status_code=302)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to serve file: {str(e)}")
+    
+    # Fallback to local file
+    file_path = MEDIA_UPLOADS_DIR / storage_key
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    
+    media_type = asset.get("mime_type") or mimetypes.guess_type(str(file_path))[0] or "application/octet-stream"
+    return FileResponse(file_path, media_type=media_type)
 
 
 @media_router.get("/{asset_id}", response_model=MediaAssetResponse)

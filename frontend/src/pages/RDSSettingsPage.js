@@ -46,16 +46,21 @@ const RDSSettingsPage = () => {
   const [grkFilters, setGrkFilters] = useState([]);
   const [editingFilters, setEditingFilters] = useState(null); // 'mfy' or 'grk'
   const [savingFilters, setSavingFilters] = useState(false);
+  
+  // Stale config state
+  const [staleConfig, setStaleConfig] = useState(null);
+  const [savingStale, setSavingStale] = useState(false);
 
   const fetchData = useCallback(async () => {
     try {
-      const [settingsRes, endpointsRes, logsRes, shoutcastLogsRes, mfyFiltersRes, grkFiltersRes] = await Promise.all([
+      const [settingsRes, endpointsRes, logsRes, shoutcastLogsRes, mfyFiltersRes, grkFiltersRes, staleRes] = await Promise.all([
         axios.get(`${API}/rds/settings`),
         axios.get(`${API}/rds/endpoints`),
         axios.get(`${API}/rds/logs?limit=20`),
         axios.get(`${API}/rds/shoutcast/logs?limit=50`),
         axios.get(`${API}/rds/shoutcast/filters/mfy`),
         axios.get(`${API}/rds/shoutcast/filters/grk`),
+        axios.get(`${API}/rds-builder/stale-config`).catch(() => ({ data: null })),
       ]);
       setSettings(settingsRes.data);
       setEndpoints(endpointsRes.data);
@@ -63,6 +68,7 @@ const RDSSettingsPage = () => {
       setShoutcastLogs(shoutcastLogsRes.data);
       setMfyFilters(mfyFiltersRes.data.filters || []);
       setGrkFilters(grkFiltersRes.data.filters || []);
+      if (staleRes.data) setStaleConfig(staleRes.data);
       setEditData({
         production_base_url: settingsRes.data.production_base_url,
         cache_refresh_interval: settingsRes.data.cache_refresh_interval,
@@ -92,6 +98,19 @@ const RDSSettingsPage = () => {
       toast.error('Could not save settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveStaleConfig = async () => {
+    setSavingStale(true);
+    try {
+      const res = await axios.put(`${API}/rds-builder/stale-config`, staleConfig);
+      setStaleConfig(res.data);
+      toast.success('Stale timeout settings saved');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not save stale config');
+    } finally {
+      setSavingStale(false);
     }
   };
 
@@ -662,6 +681,83 @@ const RDSSettingsPage = () => {
           )}
         </div>
       </div>
+
+      {/* Stale Now Playing Config */}
+      {staleConfig && (
+        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-amber-400" />
+              <h2 className="text-lg font-semibold text-white">Stale Now Playing Timeout</h2>
+            </div>
+            <Button
+              onClick={handleSaveStaleConfig}
+              disabled={savingStale}
+              size="sm"
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              data-testid="save-stale-config-btn"
+            >
+              <Save className={`w-3.5 h-3.5 mr-1 ${savingStale ? 'animate-pulse' : ''}`} />
+              {savingStale ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+          <p className="text-xs text-zinc-500 mb-4">
+            When no song change is detected for the timeout period, the now playing text is replaced with a fallback text per station.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div>
+              <Label className="text-xs text-zinc-400">Timeout (minutes)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={120}
+                value={staleConfig.timeout_minutes || 15}
+                onChange={e => setStaleConfig({...staleConfig, timeout_minutes: parseInt(e.target.value) || 15})}
+                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                data-testid="stale-timeout-input"
+              />
+              <p className="text-[10px] text-zinc-600 mt-1">After this many minutes of the same song, show fallback text</p>
+            </div>
+            <div>
+              <Label className="text-xs text-zinc-400">Recovery threshold (seconds)</Label>
+              <Input
+                type="number"
+                min={5}
+                max={300}
+                value={staleConfig.recovery_seconds || 30}
+                onChange={e => setStaleConfig({...staleConfig, recovery_seconds: parseInt(e.target.value) || 30})}
+                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                data-testid="stale-recovery-input"
+              />
+              <p className="text-[10px] text-zinc-600 mt-1">New song must persist this long to recover from stale</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs text-zinc-400">MFY Fallback Text</Label>
+              <Input
+                value={staleConfig.fallback_text?.mfy || ''}
+                onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, mfy: e.target.value}})}
+                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                placeholder="e.g. altijd dichtbij"
+                data-testid="stale-fallback-mfy"
+              />
+            </div>
+            <div>
+              <Label className="text-xs text-zinc-400">GRK Fallback Text</Label>
+              <Input
+                value={staleConfig.fallback_text?.grk || ''}
+                onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, grk: e.target.value}})}
+                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                placeholder="e.g. the feelgood station"
+                data-testid="stale-fallback-grk"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Shoutcast Logs Section */}
       <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
