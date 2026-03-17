@@ -165,7 +165,7 @@ const MainSiteDashboardContent = () => {
   const { branding: brandingData } = useBranding();
   const brandName = brandingData.platform_name || 'Clara';
   const { mainSite, mainSiteSlug, userRole, loading, error, hasFeature, isAdmin } = useMainSite();
-  const { canView, canCreate, canEdit, canDelete } = usePermissions();
+  const { canView, canCreate, canEdit, canDelete, roleInfo } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
   const { siteId } = useParams();
@@ -339,6 +339,7 @@ const MainSiteDashboardContent = () => {
   };
 
   const RoleIcon = roleIcons[userRole] || roleIcons[user?.role] || User;
+  const displayRoleName = roleInfo?.name || roleLabels[userRole] || roleLabels[user?.role] || (userRole?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
 
   // Get badge count for a route
   const getBadgeCount = (route) => {
@@ -880,7 +881,7 @@ const MainSiteDashboardContent = () => {
                   {useGroupedMenu && (
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                      <p className="text-xs text-zinc-500 truncate">{roleLabels[userRole] || roleLabels[user?.role]}</p>
+                      <p className="text-xs text-zinc-500 truncate">{displayRoleName}</p>
                     </div>
                   )}
                 </Button>
@@ -906,7 +907,7 @@ const MainSiteDashboardContent = () => {
                 <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem className="text-zinc-400 cursor-default">
                   <RoleIcon className="w-4 h-4 mr-2" />
-                  {roleLabels[userRole] || roleLabels[user?.role]}
+                  {displayRoleName}
                 </DropdownMenuItem>
                 {/* Main Sites Switcher - always show if there are sites */}
                 {myMainSites.length > 0 && (
@@ -1075,7 +1076,7 @@ const MainSiteDashboardContent = () => {
                   <p className="text-sm font-medium text-white">{user?.name}</p>
                   <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
                     <RoleIcon className="w-3 h-3" />
-                    {roleLabels[userRole] || roleLabels[user?.role]}
+                    {displayRoleName}
                   </p>
                 </div>
               </div>

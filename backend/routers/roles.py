@@ -76,6 +76,13 @@ DEFAULT_ROLES = [
         "color": "#ef4444",
     },
     {
+        "name": "News Admin",
+        "slug": "news_admin",
+        "is_system": False,
+        "description": "Can manage news content, approve articles, and manage shows",
+        "color": "#8b5cf6",
+    },
+    {
         "name": "Editor",
         "slug": "editor",
         "is_system": False,
@@ -116,6 +123,14 @@ def _generate_default_permissions(slug):
     if slug == "admin":
         for pid in all_ids:
             permissions[pid] = {"view": True, "create": True, "edit": True, "delete": True}
+    elif slug == "news_admin":
+        for pid in all_ids:
+            if pid in ("firewall",):
+                permissions[pid] = {"view": False, "create": False, "edit": False, "delete": False}
+            elif pid in ("team_settings", "wordpress", "activity_logs"):
+                permissions[pid] = {"view": True, "create": False, "edit": False, "delete": False}
+            else:
+                permissions[pid] = {"view": True, "create": True, "edit": True, "delete": True}
     elif slug == "editor":
         for pid in all_ids:
             if pid in ("team_settings", "firewall", "wordpress", "activity_logs"):
@@ -372,6 +387,65 @@ async def migrate_add_rundown_permission():
     if count > 0:
         import logging
         logging.getLogger(__name__).info(f"Migrated {count} roles: added 'rundown' permission")
+
+
+async def migrate_create_missing_roles():
+    """Create role documents for any role slugs used in main_site_users but missing from roles collection."""
+    import logging
+    log = logging.getLogger(__name__)
+    
+    # Find all distinct (main_site_id, role) pairs in main_site_users
+    pipeline = [
+        {"$group": {"_id": {"main_site_id": "$main_site_id", "role": "$role"}}},
+    ]
+    count = 0
+    async for doc in db.main_site_users.aggregate(pipeline):
+        ms_id = doc["_id"]["main_site_id"]
+        role_slug = doc["_id"]["role"]
+        if not ms_id or not role_slug:
+            continue
+        # Check if role exists
+        existing = await db.roles.find_one({"main_site_id": ms_id, "slug": role_slug})
+        if existing:
+            continue
+        # Find matching template
+        template = next((t for t in DEFAULT_ROLES if t["slug"] == role_slug), None)
+        if template:
+            name = template["name"]
+            color = template["color"]
+            description = template["description"]
+            is_system = template["is_system"]
+        else:
+            # Custom role not in templates - create with editor-like permissions
+            name = role_slug.replace("_", " ").title()
+            color = "#6b7280"
+            description = f"Auto-created role for {name}"
+            is_system = False
+        
+        permissions = _generate_default_permissions(role_slug)
+        last = await db.roles.find_one({"main_site_id": ms_id}, sort=[("sort_order", -1)])
+        sort_order = (last.get("sort_order", 0) + 1) if last else 0
+        
+        role_doc = {
+            "id": str(uuid.uuid4()),
+            "main_site_id": ms_id,
+            "name": name,
+            "slug": role_slug,
+            "is_system": is_system,
+            "description": description,
+            "color": color,
+            "permissions": permissions,
+            "sort_order": sort_order,
+            "created_at": _now(),
+            "updated_at": _now(),
+        }
+        await db.roles.insert_one({**role_doc})
+        count += 1
+        log.info(f"Created missing role '{name}' (slug={role_slug}) for main_site {ms_id}")
+    
+    if count > 0:
+        log.info(f"Migration: created {count} missing role(s)")
+
 
 
 # ============== PERMISSION AUDIT LOGS ==============

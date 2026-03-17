@@ -1,0 +1,70 @@
+{
+  "summary": "News Admin Role Bug Fixes - All tests PASSED. Backend: 8/8 tests passed (100%). Frontend: Role display verified working via API. Both bugs fixed: 1) news_admin role now returns role_info with name/slug/color from /api/auth/me/permissions, 2) news_admin user can access shows and content endpoints (not 403 anymore).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_news_admin_role.py",
+    "/app/test_reports/pytest/news_admin_role_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend roles.py: DEFAULT_ROLES now includes news_admin with proper permissions definition (lines 79-85)",
+    "Backend roles.py: migrate_create_missing_roles function (lines 392-447) creates role documents for role slugs used in main_site_users but missing from roles collection",
+    "Backend server.py: startup calls migrate_create_missing_roles (lines 1132-1136) to ensure role documents exist",
+    "Backend auth.py: /api/auth/me/permissions endpoint (lines 322-352) returns role_slug AND role_info (name, slug, color) from roles collection",
+    "Frontend DashboardLayout.js: displayRoleName uses roleInfo?.name from PermissionsContext with fallback to hardcoded labels (line 336)",
+    "Frontend MainSiteDashboardLayout.js: Same pattern - displayRoleName uses roleInfo?.name (line 342)",
+    "Frontend PermissionsContext.js: Fetches roleInfo from /api/auth/me/permissions endpoint (lines 31-35)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_news_admin_role.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 tests passed)",
+    "frontend": "100% (API verification confirms role display working)"
+  },
+  "test_credentials": {
+    "admin_email": "admkoodh@koodh.com",
+    "admin_password": "KYLovie13monx",
+    "news_admin_user_id": "e5ca5f3d-7c62-4711-81e3-e65049dfbf3a",
+    "news_admin_user_name": "Hadewig Weyen",
+    "main_site_id": "db23c31a-7776-4805-a4a5-bd019dd7c2be",
+    "main_site_slug": "radiogroep"
+  },
+  "seed_data_creation": "No new seed data created - used existing user Hadewig Weyen",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "News admin role bug fixes verified. The migrate_create_missing_roles startup function now automatically creates role documents for any role slugs used in main_site_users but missing from roles collection. The frontend displayRoleName now uses roleInfo.name from PermissionsContext which fetches from /api/auth/me/permissions.",
+  "features_tested": {
+    "GET /api/auth/me/permissions - role_slug": "PASS - Returns 'news_admin'",
+    "GET /api/auth/me/permissions - role_info": "PASS - Returns {name: 'News Admin', slug: 'news_admin', color: '#8b5cf6'}",
+    "GET /api/auth/me/permissions - permissions.shows.view": "PASS - Returns true",
+    "GET /api/auth/me/permissions - permissions.shows.edit": "PASS - Returns true",
+    "GET /api/auth/me/permissions - permissions.content_library.view": "PASS - Returns true",
+    "GET /api/auth/me/permissions - permissions.content_library.create": "PASS - Returns true",
+    "GET /api/shows (news_admin)": "PASS - Returns 200 with 416 shows (not 403)",
+    "GET /api/content (news_admin)": "PASS - Returns 200 (not 403)",
+    "GET /api/roles/{main_site_id}/available": "PASS - Includes news_admin role with name='News Admin' and color='#8b5cf6'"
+  },
+  "bug_fix_verification": {
+    "bug_1": {
+      "description": "Custom role name doesn't appear in header - showing blank/undefined",
+      "root_cause": "Frontend was using hardcoded roleLabels which returned undefined for custom roles like 'news_admin'",
+      "fix_applied": "Frontend now uses roleInfo.name from PermissionsContext with fallback to hardcoded labels",
+      "status": "VERIFIED FIXED"
+    },
+    "bug_2": {
+      "description": "User gets 'failed to load shows' error because news_admin role had no permissions defined in roles collection",
+      "root_cause": "The news_admin role slug was used in main_site_users but no corresponding role document existed in the roles collection",
+      "fix_applied": "Added news_admin to DEFAULT_ROLES and created migrate_create_missing_roles startup migration that creates role documents for missing role slugs",
+      "status": "VERIFIED FIXED"
+    }
+  }
+}

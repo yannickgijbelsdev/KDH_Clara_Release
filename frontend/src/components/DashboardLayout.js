@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation, useParams } from 'react-rout
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
+import { usePermissions } from '../context/PermissionsContext';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
@@ -137,6 +138,7 @@ const flatNavItems = [
 const DashboardLayout = () => {
   const { user, logout, isAdmin, impersonating, exitImpersonation } = useAuth();
   const { branding: brandingData } = useBranding();
+  const { roleInfo, roleSlug } = usePermissions();
   const brandName = brandingData.platform_name || 'Clara';
   const navigate = useNavigate();
   const location = useLocation();
@@ -330,7 +332,8 @@ const DashboardLayout = () => {
     );
   };
 
-  const RoleIcon = roleIcons[user?.role] || User;
+  const RoleIcon = roleIcons[roleSlug] || roleIcons[user?.role] || User;
+  const displayRoleName = roleInfo?.name || roleLabels[roleSlug] || roleLabels[user?.role] || (user?.role?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
 
   // Get badge count for a route
   const getBadgeCount = (route) => {
@@ -716,7 +719,7 @@ const DashboardLayout = () => {
                   {useGroupedMenu && (
                     <div className="flex-1 text-left min-w-0">
                       <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                      <p className="text-xs text-zinc-500 truncate">{roleLabels[user?.role]}</p>
+                      <p className="text-xs text-zinc-500 truncate">{displayRoleName}</p>
                     </div>
                   )}
                 </Button>
@@ -742,7 +745,7 @@ const DashboardLayout = () => {
                 <DropdownMenuSeparator className="bg-zinc-800" />
                 <DropdownMenuItem className="text-zinc-400">
                   <RoleIcon className="w-4 h-4 mr-2" />
-                  {roleLabels[user?.role]}
+                  {displayRoleName}
                 </DropdownMenuItem>
                 {user?.team_name && (
                   <DropdownMenuItem 
@@ -962,7 +965,7 @@ const DashboardLayout = () => {
                   <p className="text-sm font-medium text-white">{user?.name}</p>
                   <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
                     <RoleIcon className="w-3 h-3" />
-                    {roleLabels[user?.role]}
+                    {displayRoleName}
                   </p>
                 </div>
               </div>

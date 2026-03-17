@@ -1128,6 +1128,13 @@ async def startup_db_client():
     except Exception as e:
         logger.warning(f"Rundown permission migration failed: {e}")
 
+    # Migrate: create missing role documents for role slugs used in main_site_users
+    try:
+        from routers.roles import migrate_create_missing_roles
+        await migrate_create_missing_roles()
+    except Exception as e:
+        logger.warning(f"Missing roles migration failed: {e}")
+
     # Initialize Radioplayer config if not exists
     try:
         existing_rp = await db.radioplayer_config.find_one({})
