@@ -3178,3 +3178,10 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Upload overlay enhanced**: Shows success checkmark after completion, error toast on failure
 - [x] **Operator precedence bug fixed**: `is_video` check in backend had incorrect boolean evaluation
 - Tested: iteration_88 (14/14 backend, 100% frontend features verified)
+
+### Bug Fix: News Admin Role Permissions & Header Display (March 17, 2026)
+- [x] **news_admin role missing from roles collection**: Created `news_admin` in DEFAULT_ROLES with near-full permissions
+- [x] **Startup migration**: `migrate_create_missing_roles()` auto-creates role documents for any role slugs used in `main_site_users` but missing from `roles` collection
+- [x] **Dynamic role display in header**: DashboardLayout and MainSiteDashboardLayout now use `roleInfo.name` from PermissionsContext instead of hardcoded labels - supports all custom roles
+- [x] **Hadewig Weyen (news_admin)**: Can now load shows (416), edit shows, access content - all verified
+- Tested: iteration_89 (8/8 backend, 100% API verification)
