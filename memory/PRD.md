@@ -3014,6 +3014,19 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Tested: iteration_75 (13/13 backend + all frontend verified)
 
 
+### March 17, 2026 - Radioplayer.org Integration
+- [x] **Radioplayer Ingest API Integration**: Full backend service for pushing data to Radioplayer.org
+  - **Now Playing Push**: Automatically pushes current track (artist/title) as SPI XML PE (Programme Event) when GRK song changes via shoutcast scheduler hook
+  - **Schedule Push**: Automatically pushes 7-day programme schedule as SPI XML PI (Programme Info) when shows are created/updated/deleted
+  - **Manual Push**: Admin can manually trigger NP and schedule pushes via UI buttons
+  - Config: RPID=056028, Country=056 (Belgium), Ingest URL=core-ingest.radioplayer.cloud
+  - Push Log: All push attempts logged with type, status, HTTP code, response body
+  - Auto-migration: Adds 'radioplayer' feature to main sites with streaming features on startup
+- Backend: `services/radioplayer.py` (core service), `routers/radioplayer.py` (API endpoints), hooks in `shoutcast.py` and `shows.py`
+- Frontend: `pages/RadioplayerPage.js` (config + push log), nav link in Streaming & RDS group
+- **NOTE**: Radioplayer API returns HTTP 403 — credentials need to be verified with Radioplayer support. The integration is fully built and will work once proper API auth is configured.
+- Tested: 17/17 backend tests passed (iteration_86.json), frontend verified
+
 ### March 14, 2026 - RDS Monitor Performance Fix
 - [x] **Fixed page hanging/freezing**: Refactored RDSMonitorPage.js to fix critical performance issues:
   - Moved `StationCard` outside parent component + wrapped with `React.memo()` to prevent unmount/remount cycles

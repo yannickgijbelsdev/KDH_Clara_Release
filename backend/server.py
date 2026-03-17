@@ -1123,6 +1123,11 @@ async def startup_db_client():
                 "auto_schedule": True,
             })
             logger.info("Radioplayer config initialized")
+        # Add radioplayer feature to all main sites that have streaming features
+        await db.main_sites.update_many(
+            {"enabled_features": {"$in": ["rds_settings", "rds_builder", "rds_monitor", "stream_monitor"]}},
+            {"$addToSet": {"enabled_features": "radioplayer"}}
+        )
     except Exception as e:
         logger.warning(f"Radioplayer config init failed: {e}")
 
