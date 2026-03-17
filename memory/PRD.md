@@ -3131,3 +3131,37 @@ now = now_brussels()  # Automatically handles CET/CEST
   - 18 API endpoints in `/api/task-boards/*`
 
 - Tested: iteration_73 (24/24 backend), iteration_74 (9/9 backend + all frontend flows)
+
+
+### March 17, 2026 - Media Library: Upload Progress & Audio/Video Compression
+
+- [x] **Upload Progress Overlay**:
+  - Full-screen overlay with file name, progress bar, and percentage during uploads
+  - data-testid='upload-progress-overlay' for testing
+  - Prevents user confusion about "hanging" uploads
+
+- [x] **Axios Timeout (5 minutes)**:
+  - Set 300000ms timeout on media upload and editor upload requests
+  - Prevents indefinite hanging on network issues
+
+- [x] **Audio/Video Compression (FFmpeg.wasm)**:
+  - New `MediaCompressDialog` component (similar to existing ImageResizeDialog)
+  - Triggers for audio/video files > 5MB
+  - Audio: Compressed to 128kbps MP3, stereo, 44.1kHz
+  - Video: Compressed to max 720p, CRF 28, AAC audio
+  - "Upload without compressing" skip option available
+  - Uses @ffmpeg/ffmpeg v0.12.15 + @ffmpeg/util v0.12.2
+  - Files: `frontend/src/utils/mediaCompress.js`, `frontend/src/components/MediaCompressDialog.js`
+
+- [x] **Video File Support**:
+  - File input accept attribute extended with .mp4, .mov, .webm
+  - Video type filter option in dropdown (alongside Documents, Audio, Images)
+  - Purple icon/badge for video assets
+  - Video preview in preview dialog
+  - Video thumbnail placeholder in asset cards
+
+- [x] **RichTextEditor Upload Improvements**:
+  - Added 5-minute timeout on editor file uploads
+  - Prevents hanging during large file uploads in content editor
+
+- Tested: iteration_87 (11/11 backend, 100% frontend features verified)
