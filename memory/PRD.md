@@ -3171,3 +3171,10 @@ now = now_brussels()  # Automatically handles CET/CEST
   - S3 files uploaded with ACL='public-read', direct access confirmed working (HTTP 200)
 
 - Tested: iteration_87 (11/11 backend, 100% frontend features verified)
+
+### Bug Fix: Rich Text Editor Media Upload (March 17, 2026)
+- [x] **Audio file size limit increased**: Editor upload endpoint now allows 100MB for audio AND video (was 10MB for audio)
+- [x] **Error handling improved**: Non-image file uploads now show error notifications instead of failing silently
+- [x] **Upload overlay enhanced**: Shows success checkmark after completion, error toast on failure
+- [x] **Operator precedence bug fixed**: `is_video` check in backend had incorrect boolean evaluation
+- Tested: iteration_88 (14/14 backend, 100% frontend features verified)
