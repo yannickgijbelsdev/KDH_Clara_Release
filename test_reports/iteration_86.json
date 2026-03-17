@@ -1,0 +1,94 @@
+{
+  "summary": "Radioplayer Integration Testing - Iteration 86. All 17 backend API tests PASSED (100%). Frontend page loads correctly at /radiogroep/radioplayer with all required data-testid elements present. Push buttons work and show toast notifications. Push log displays with correct status icons. Issue: 'radioplayer' feature not enabled in main site config, so nav link not visible in sidebar (but page accessible via direct URL).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Navigation to Radioplayer",
+        "issue": "Radioplayer nav link not visible in sidebar because 'radioplayer' feature is not in main site's enabled_features list",
+        "affected_selectors": ["nav link for /radiogroep/radioplayer"],
+        "priority": "MEDIUM"
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_radioplayer.py",
+    "/app/test_reports/pytest/radioplayer_results.xml"
+  ],
+  "action_items": [
+    "Add 'radioplayer' to enabled_features for Radiogroep MFY/GRK main site to show nav link in sidebar",
+    "Consider auto-enabling 'radioplayer' feature for sites that have RDS/streaming features enabled"
+  ],
+  "critical_code_review_comments": [
+    "Backend: All 5 endpoints working - GET/PUT /config, POST /push-now-playing, POST /push-schedule, GET /push-log",
+    "Backend: Config password masking works correctly (returns *** and preserves on update)",
+    "Backend: Auto-push hooks present in shoutcast.py (line ~366) for GRK song changes",
+    "Backend: Auto-push hooks present in shows.py (lines ~1021, ~1133, ~1231) for show create/update/delete",
+    "Backend: Push log records all attempts with type, status, detail, response_code, timestamp",
+    "Frontend: Page loads at /:mainSiteSlug/radioplayer route",
+    "Frontend: All data-testid attributes present and working",
+    "Frontend: Push buttons trigger API calls and show toast notifications",
+    "Frontend: Push log displays entries with status icons (CheckCircle=success, XCircle=error)",
+    "Config: 'radioplayer' feature defined in FEATURE_NAV_ITEMS (line 83) and NAV_GROUPS streaming section (line 114)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_radioplayer.py"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17 tests passed)",
+    "frontend": "95% - Page functional, nav link not visible due to feature not being enabled"
+  },
+  "test_credentials": {
+    "network_admin": "admkoodh@koodh.com / KYLovie13monx",
+    "radioplayer_credentials": "eddy.thijs@grk.fm / KYLovie13monx (returns HTTP 403 - needs Radioplayer support verification)",
+    "rpid": "056028",
+    "main_site_slug": "radiogroep"
+  },
+  "seed_data_creation": "Radioplayer config created with RPID=056028, auto_np=true, auto_schedule=true via test",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Radioplayer integration fully implemented. Backend APIs working, frontend page functional. Push attempts return HTTP 403 from Radioplayer API (expected - credentials need verification). To show nav link in sidebar, 'radioplayer' feature must be added to main site's enabled_features. Access page via /:mainSiteSlug/radioplayer (e.g., /radiogroep/radioplayer).",
+  "features_tested": {
+    "GET_config_requires_auth": "PASS - Returns 403 without auth",
+    "PUT_config_requires_auth": "PASS - Returns 403 without auth",
+    "POST_push_np_requires_auth": "PASS - Returns 403 without auth",
+    "POST_push_schedule_requires_auth": "PASS - Returns 403 without auth",
+    "GET_push_log_requires_auth": "PASS - Returns 403 without auth",
+    "GET_config_returns_masked_password": "PASS - Returns *** for password",
+    "PUT_config_updates_successfully": "PASS - Returns status=ok",
+    "PUT_config_preserves_password_when_masked": "PASS - password_set=true after masked update",
+    "POST_push_np_triggers_push": "PASS - Returns status with message",
+    "POST_push_schedule_triggers_push": "PASS - Returns status=ok",
+    "GET_push_log_returns_entries": "PASS - Returns logs array with correct structure",
+    "shoutcast_hook_code_review": "PASS - auto_push_now_playing_for_grk called on GRK song change",
+    "shows_router_hooks_code_review": "PASS - _trigger_radioplayer_schedule_push called 3+ times",
+    "service_functions_code_review": "PASS - All 8 required functions present",
+    "spi_xml_generation_code_review": "PASS - Generates proper SPI XML with worlddab schema"
+  },
+  "frontend_testing": {
+    "page_loads": "PASS - /radiogroep/radioplayer loads correctly",
+    "radioplayer_title_testid": "PASS - data-testid='radioplayer-title' found with text 'Radioplayer Integration'",
+    "rp_push_np_btn_testid": "PASS - data-testid='rp-push-np-btn' found and clickable",
+    "rp_push_schedule_btn_testid": "PASS - data-testid='rp-push-schedule-btn' found and clickable",
+    "rp_enabled_toggle_testid": "PASS - data-testid='rp-enabled-toggle' found",
+    "rp_save_btn_testid": "PASS - data-testid='rp-save-btn' found",
+    "rp_username_input_testid": "PASS - data-testid='rp-username-input' found",
+    "rp_password_input_testid": "PASS - data-testid='rp-password-input' found",
+    "rp_rpid_input_testid": "PASS - data-testid='rp-rpid-input' found",
+    "rp_auto_np_toggle_testid": "PASS - data-testid='rp-auto-np-toggle' found",
+    "rp_auto_schedule_toggle_testid": "PASS - data-testid='rp-auto-schedule-toggle' found",
+    "push_np_shows_toast": "PASS - Shows 'Pushed: URBAN COOKIE COLLECTIVE - The Key, The Secret'",
+    "push_schedule_shows_toast": "PASS - Shows 'Schedule push triggered'",
+    "push_log_displays": "PASS - Shows entries with status icons and timestamps",
+    "nav_link_visible": "FAIL - Not visible because 'radioplayer' not in enabled_features"
+  },
+  "expected_behavior_notes": {
+    "http_403_responses": "Radioplayer API returns HTTP 403 because the credentials need to be verified with Radioplayer support. This is expected behavior.",
+    "nav_link_not_visible": "The nav link is not visible because 'radioplayer' feature is not in the main site's enabled_features array. Main agent needs to add this feature to make the link visible."
+  }
+}

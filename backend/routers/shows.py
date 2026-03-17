@@ -33,6 +33,15 @@ logger = logging.getLogger(__name__)
 
 shows_router = APIRouter(prefix="/shows", tags=["Shows"])
 
+
+async def _trigger_radioplayer_schedule_push():
+    """Background task to push schedule to Radioplayer after show changes."""
+    try:
+        from services.radioplayer import auto_push_schedule_for_grk
+        await auto_push_schedule_for_grk()
+    except Exception as e:
+        logger.error(f"Radioplayer schedule push error: {e}")
+
 # Create show images directory (fallback for local storage)
 SHOW_IMAGES_DIR = UPLOADS_DIR.parent / 'show_images'
 SHOW_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -1008,6 +1017,9 @@ async def get_show(
     if show.get('presenter_ids'):
         show['presenters'] = await get_presenters_info(show['presenter_ids'], main_site_id, current_user.get('team_id'))
     
+    # Auto-push schedule to Radioplayer
+    background_tasks.add_task(_trigger_radioplayer_schedule_push)
+    
     return show
 
 
@@ -1117,6 +1129,9 @@ async def update_show(
         details={"update_all": update_all, "fields_changed": list(update_dict.keys())}
     )
     
+    # Auto-push schedule to Radioplayer
+    background_tasks.add_task(_trigger_radioplayer_schedule_push)
+    
     return updated_show
 
 
@@ -1211,6 +1226,9 @@ async def delete_show(
         target_name=show.get('title'),
         details={"delete_all": delete_all, "recurring": show.get('is_recurring', False)}
     )
+
+    # Auto-push schedule to Radioplayer
+    background_tasks.add_task(_trigger_radioplayer_schedule_push)
 
 
 # ============== RECURRENCE SETTINGS ==============

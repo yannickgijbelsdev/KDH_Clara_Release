@@ -61,6 +61,7 @@ from routers.xml_imports import xml_imports_router
 from routers.vmix import vmix_router
 from routers.task_boards import task_boards_router
 from routers.branding import branding_router
+from routers.radioplayer import radioplayer_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -127,6 +128,7 @@ api_router.include_router(xml_imports_router)
 api_router.include_router(vmix_router)
 api_router.include_router(task_boards_router)
 api_router.include_router(branding_router)
+api_router.include_router(radioplayer_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
@@ -1105,6 +1107,24 @@ async def startup_db_client():
         await migrate_add_rundown_permission()
     except Exception as e:
         logger.warning(f"Rundown permission migration failed: {e}")
+
+    # Initialize Radioplayer config if not exists
+    try:
+        existing_rp = await db.radioplayer_config.find_one({})
+        if not existing_rp:
+            await db.radioplayer_config.insert_one({
+                "enabled": True,
+                "username": "eddy.thijs@grk.fm",
+                "password": "KYLovie13monx",
+                "rpid": "056028",
+                "country_code": "056",
+                "ingest_base_url": "https://core-ingest.radioplayer.cloud",
+                "auto_np": True,
+                "auto_schedule": True,
+            })
+            logger.info("Radioplayer config initialized")
+    except Exception as e:
+        logger.warning(f"Radioplayer config init failed: {e}")
 
 
 @app.on_event("shutdown")

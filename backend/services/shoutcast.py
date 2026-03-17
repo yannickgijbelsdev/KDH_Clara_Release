@@ -342,6 +342,13 @@ async def cache_now_playing(db, station: str) -> Dict:
                     tracker["pending_new_song"] = None
                     tracker["pending_song_first_seen"] = None
                     logger.info(f"[{station}] Recovered from stale - new song confirmed: {current_song}")
+                    # Auto-push to Radioplayer for GRK
+                    if station == "grk":
+                        try:
+                            from services.radioplayer import auto_push_now_playing_for_grk
+                            asyncio.create_task(auto_push_now_playing_for_grk(current_song))
+                        except Exception as e:
+                            logger.error(f"[{station}] Radioplayer NP push error: {e}")
                 # else: still waiting for threshold
             else:
                 # New song detected while stale - start tracking it
@@ -354,6 +361,13 @@ async def cache_now_playing(db, station: str) -> Dict:
             tracker["last_change_time"] = now
             tracker["is_stale"] = False
             logger.info(f"[{station}] Song changed to: {current_song}")
+            # Auto-push to Radioplayer for GRK
+            if station == "grk":
+                try:
+                    from services.radioplayer import auto_push_now_playing_for_grk
+                    asyncio.create_task(auto_push_now_playing_for_grk(current_song))
+                except Exception as e:
+                    logger.error(f"[{station}] Radioplayer NP push error: {e}")
     else:
         # Same song (or empty) - check if stale
         # Also reset pending song if we're back to the old song

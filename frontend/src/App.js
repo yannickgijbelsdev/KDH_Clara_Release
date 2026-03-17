@@ -44,6 +44,7 @@ import PublicCallPage from './pages/PublicCallPage';
 import { JourneyProvider } from './context/JourneyContext';
 import { CallProvider } from './context/CallContext';
 import ZeroTierPage from './pages/ZeroTierPage';
+import RadioplayerPage from './pages/RadioplayerPage';
 import XmlDashboard from './pages/Server/XmlDashboard';
 import XmlUpload from './pages/Server/XmlUpload';
 import XmlDetails from './pages/Server/XmlDetails';
@@ -231,6 +232,7 @@ const AppRoutes = () => {
         <Route path="firewall" element={<FirewallPage />} />
         <Route path="call-studio" element={<CallPage />} />
         <Route path="zerotier" element={<ZeroTierPage />} />
+        <Route path="radioplayer" element={<RadioplayerPage />} />
         <Route path="xml-imports" element={<XmlDashboard />} />
         <Route path="xml-upload" element={<XmlUpload />} />
         <Route path="xml-imports/:importId" element={<XmlDetails />} />
