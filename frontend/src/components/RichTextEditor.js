@@ -37,15 +37,16 @@ const RichTextEditor = ({
       formData.append('file', blobInfo.blob(), blobInfo.filename());
       
       const response = await axios.post(`${API}/uploads/editor-files`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (e) => {
-          if (e.total) {
-            const percent = Math.round((e.loaded / e.total) * 100);
-            setUploadProgress(percent);
-            progress(percent);
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 300000, // 5 minute timeout
+          onUploadProgress: (e) => {
+            if (e.total) {
+              const percent = Math.round((e.loaded / e.total) * 100);
+              setUploadProgress(percent);
+              progress(percent);
+            }
           }
-        }
-      });
+        });
       
       setIsUploading(false);
       setUploadProgress(0);
@@ -99,6 +100,7 @@ const RichTextEditor = ({
         
         const response = await axios.post(`${API}/uploads/editor-files`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 300000, // 5 minute timeout
           onUploadProgress: (e) => {
             if (e.total) {
               const percent = Math.round((e.loaded / e.total) * 100);

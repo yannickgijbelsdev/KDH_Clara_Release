@@ -4,6 +4,8 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import { isImageFile, isOversized } from '../utils/imageResize';
+import MediaCompressDialog from '../components/MediaCompressDialog';
+import { isAudioFile, isVideoFile, isMediaOversized } from '../utils/mediaCompress';
 import {
   DndContext,
   DragOverlay,
@@ -122,6 +124,14 @@ const MediaLibraryPage = () => {
   const [resizeFile, setResizeFile] = useState(null);
   const [pendingFiles, setPendingFiles] = useState([]);
   
+  // Media compress state
+  const [compressFile, setCompressFile] = useState(null);
+  const [compressPendingFiles, setCompressPendingFiles] = useState([]);
+  
+  // Upload progress state
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadFileName, setUploadFileName] = useState('');
+  
   const fileInputRef = useRef(null);
   const audioPreviewRef = useRef(null);
 
@@ -191,18 +201,31 @@ const MediaLibraryPage = () => {
 
     const filesToUpload = [];
     let oversizedImage = null;
+    let oversizedMedia = null;
     const remaining = [];
 
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Check for oversized images
       if (isImageFile(file) && isOversized(file)) {
         if (!oversizedImage) {
           oversizedImage = file;
+          remaining.push(...Array.from(files).slice(i + 1));
+          break;
         }
-        // Keep remaining files to upload after resize
-        remaining.push(...Array.from(files).slice(Array.from(files).indexOf(file) + 1));
-        break;
       }
-      filesToUpload.push(file);
+      // Check for oversized audio/video
+      else if ((isAudioFile(file) || isVideoFile(file)) && isMediaOversized(file)) {
+        if (!oversizedMedia) {
+          oversizedMedia = file;
+          remaining.push(...Array.from(files).slice(i + 1));
+          break;
+        }
+      }
+      else {
+        filesToUpload.push(file);
+      }
     }
 
     // Upload files that are fine
@@ -212,8 +235,13 @@ const MediaLibraryPage = () => {
 
     // Show resize dialog for oversized image
     if (oversizedImage) {
-      setPendingFiles(remaining.filter(f => !(isImageFile(f) && isOversized(f))));
+      setPendingFiles(remaining);
       setResizeFile(oversizedImage);
+    }
+    // Show compress dialog for oversized audio/video
+    else if (oversizedMedia) {
+      setCompressPendingFiles(remaining);
+      setCompressFile(oversizedMedia);
     }
 
     if (fileInputRef.current) {
@@ -227,15 +255,24 @@ const MediaLibraryPage = () => {
 
     for (const file of files) {
       try {
+        setUploadFileName(file.name);
+        setUploadProgress(0);
+        
         const formData = new FormData();
         formData.append('file', file);
 
         await axios.post(`${API}/media`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 300000, // 5 minute timeout for large files
+          onUploadProgress: (e) => {
+            if (e.total) {
+              setUploadProgress(Math.round((e.loaded / e.total) * 100));
+            }
+          }
         });
         successCount++;
       } catch (error) {
-        const errorMsg = error.response?.data?.detail || 'Upload failed';
+        const errorMsg = error.response?.data?.detail || error.message || 'Upload failed';
         toast.error(`Failed to upload ${file.name}: ${errorMsg}`);
       }
     }
@@ -246,12 +283,26 @@ const MediaLibraryPage = () => {
     }
     
     setUploading(false);
+    setUploadProgress(0);
+    setUploadFileName('');
   };
 
   const handleResized = async (resizedFile) => {
     setResizeFile(null);
     await uploadFiles([resizedFile, ...pendingFiles]);
     setPendingFiles([]);
+  };
+
+  const handleCompressed = async (compressedFile) => {
+    setCompressFile(null);
+    await uploadFiles([compressedFile, ...compressPendingFiles]);
+    setCompressPendingFiles([]);
+  };
+
+  const handleCompressSkip = async (originalFile) => {
+    setCompressFile(null);
+    await uploadFiles([originalFile, ...compressPendingFiles]);
+    setCompressPendingFiles([]);
   };
 
   const handleDeleteAsset = async (asset) => {
@@ -657,6 +708,7 @@ const MediaLibraryPage = () => {
 
   const getFileIcon = (kind, mimeType) => {
     if (kind === 'audio') return Music;
+    if (kind === 'video') return Tv;
     if (kind === 'image' || mimeType?.startsWith('image/')) return Image;
     if (mimeType?.includes('pdf')) return FileText;
     return File;
@@ -671,6 +723,7 @@ const MediaLibraryPage = () => {
     const mimeType = asset.mime_type?.toLowerCase() || '';
     return (
       asset.kind === 'audio' ||
+      asset.kind === 'video' ||
       mimeType.startsWith('image/') ||
       mimeType === 'application/pdf' ||
       mimeType === 'text/plain'
@@ -680,6 +733,7 @@ const MediaLibraryPage = () => {
   const getPreviewType = (asset) => {
     const mimeType = asset.mime_type?.toLowerCase() || '';
     if (asset.kind === 'audio') return 'audio';
+    if (asset.kind === 'video' || mimeType.startsWith('video/')) return 'video';
     if (mimeType.startsWith('image/')) return 'image';
     if (mimeType === 'application/pdf') return 'pdf';
     if (mimeType === 'text/plain') return 'text';
@@ -725,7 +779,7 @@ const MediaLibraryPage = () => {
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept=".pdf,.docx,.txt,.mp3,.wav,.m4a,.jpg,.jpeg,.png,.gif,.webp"
+                accept=".pdf,.docx,.txt,.mp3,.wav,.m4a,.ogg,.aac,.flac,.jpg,.jpeg,.png,.gif,.webp,.mp4,.mov,.webm"
                 onChange={handleFileUpload}
                 className="hidden"
               />
@@ -736,11 +790,16 @@ const MediaLibraryPage = () => {
                 className="bg-orange-500 hover:bg-orange-600"
               >
                 {uploading ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {uploadProgress > 0 ? `${uploadProgress}%` : 'Uploading...'}
+                  </>
                 ) : (
-                  <Upload className="w-4 h-4 mr-2" />
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload
+                  </>
                 )}
-                Upload
               </Button>
             </>
           )}
@@ -799,6 +858,7 @@ const MediaLibraryPage = () => {
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="document">Documents</SelectItem>
                   <SelectItem value="audio">Audio</SelectItem>
+                  <SelectItem value="video">Video</SelectItem>
                   <SelectItem value="image">Images</SelectItem>
                 </SelectContent>
               </Select>
@@ -858,12 +918,14 @@ const MediaLibraryPage = () => {
                     <div className={cn(
                       'p-3 rounded-lg flex-shrink-0',
                       asset.kind === 'audio' ? 'bg-amber-500/20' : 
+                      asset.kind === 'video' ? 'bg-purple-500/20' :
                       asset.mime_type?.startsWith('image/') ? 'bg-green-500/20' :
                       'bg-blue-500/20'
                     )}>
                       <FileIcon className={cn(
                         'w-6 h-6',
                         asset.kind === 'audio' ? 'text-amber-500' : 
+                        asset.kind === 'video' ? 'text-purple-500' :
                         asset.mime_type?.startsWith('image/') ? 'text-green-500' :
                         'text-blue-500'
                       )} />
@@ -975,6 +1037,13 @@ const MediaLibraryPage = () => {
                         className="w-full h-8"
                         src={getFileUrl(asset)}
                       />
+                    </div>
+                  )}
+
+                  {/* Video Thumbnail */}
+                  {asset.kind === 'video' && (
+                    <div className="mt-3 rounded-lg overflow-hidden bg-zinc-800 h-32 flex items-center justify-center">
+                      <Tv className="w-8 h-8 text-purple-400" />
                     </div>
                   )}
                   
@@ -1430,6 +1499,22 @@ const MediaLibraryPage = () => {
                 </div>
               )}
 
+              {/* Video Preview */}
+              {getPreviewType(previewAsset) === 'video' && (
+                <div className="p-4 bg-zinc-900 rounded-lg">
+                  <video
+                    controls
+                    autoPlay
+                    className="w-full max-h-[60vh] rounded"
+                    src={getFileUrl(previewAsset)}
+                  />
+                  <div className="text-center mt-3">
+                    <p className="text-sm text-zinc-400">{previewAsset.original_filename}</p>
+                    <p className="text-xs text-zinc-500 mt-1">{formatFileSize(previewAsset.size)}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Text Preview */}
               {getPreviewType(previewAsset) === 'text' && (
                 <TextFilePreview url={getFileUrl(previewAsset)} />
@@ -1587,6 +1672,40 @@ const MediaLibraryPage = () => {
         onClose={() => { setResizeFile(null); setPendingFiles([]); }}
         onResized={handleResized}
       />
+
+      {/* Media Compress Dialog (Audio/Video) */}
+      <MediaCompressDialog
+        file={compressFile}
+        open={!!compressFile}
+        onClose={() => { setCompressFile(null); setCompressPendingFiles([]); }}
+        onCompressed={handleCompressed}
+        onSkip={handleCompressSkip}
+      />
+
+      {/* Upload Progress Overlay */}
+      {uploading && uploadFileName && (
+        <div
+          className="fixed inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm z-50"
+          data-testid="upload-progress-overlay"
+        >
+          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-2xl min-w-[320px]">
+            <div className="flex items-center gap-3 mb-4">
+              <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
+              <div>
+                <p className="text-white font-medium">Uploading file...</p>
+                <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
+              </div>
+            </div>
+            <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-center text-orange-400 text-sm font-medium mt-2">{uploadProgress}%</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
