@@ -162,7 +162,7 @@ const RichTextEditor = ({
               )}
               <div>
                 <p className="text-white font-medium">
-                  {uploadSuccess ? 'Upload complete!' : 'Bestand uploaden...'}
+                  {uploadSuccess ? 'Upload complete!' : 'Uploading file...'}
                 </p>
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
               </div>
