@@ -604,11 +604,9 @@ async def upload_editor_file(
     # Upload to S3 if configured
     if is_s3_configured():
         try:
-            await upload_file_to_s3(contents, file_key, file.content_type)
-            # Return proxy URL instead of direct S3 URL to avoid AccessDenied
-            base_url = os.environ.get('REACT_APP_BACKEND_URL', '')
-            proxy_url = f"{base_url}/api/uploads/editor-files/s3/{file_key}"
-            return {"url": proxy_url, "filename": file.filename, "size": len(contents)}
+            result = await upload_file_to_s3(contents, file_key, file.content_type)
+            # Return direct S3 URL (files are uploaded with ACL='public-read')
+            return {"url": result['url'], "filename": file.filename, "size": len(contents)}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload to storage: {str(e)}")
     
@@ -1152,18 +1150,22 @@ async def startup_db_client():
     except Exception as e:
         logger.warning(f"Radioplayer config init failed: {e}")
 
-    # Migrate S3 URLs in content bodies to proxy URLs
+    # Migrate proxy URLs in content bodies back to direct S3 URLs
+    # (S3 files are uploaded with ACL='public-read', so direct access works)
     try:
         import re
         base_url = os.environ.get('REACT_APP_BACKEND_URL', '')
-        s3_pattern = r'https://[^"\'>\s]*\.your-objectstorage\.com/koodh-clara/editor/([^"\'>\s]+)'
-        async for content in db.content.find({"body": {"$regex": "objectstorage.*editor"}}, {"_id": 0, "id": 1, "body": 1}):
-            new_body = re.sub(s3_pattern, f'{base_url}/api/uploads/editor-files/s3/editor/\\1', content["body"])
-            if new_body != content["body"]:
-                await db.content.update_one({"id": content["id"]}, {"$set": {"body": new_body}})
-                logger.info(f"Migrated S3 URLs in content {content['id']}")
+        if base_url:
+            # Convert proxy URLs back to direct S3 URLs
+            proxy_pattern = re.escape(base_url) + r'/api/uploads/editor-files/s3/(editor/[^"\'>\s]+)'
+            s3_base = f"{os.environ.get('S3_ENDPOINT', 'https://nbg1.your-objectstorage.com')}/{os.environ.get('S3_BUCKET', 'koodh-clara')}"
+            async for content in db.content.find({"body": {"$regex": "editor-files/s3/editor"}}, {"_id": 0, "id": 1, "body": 1}):
+                new_body = re.sub(proxy_pattern, f'{s3_base}/\\1', content["body"])
+                if new_body != content["body"]:
+                    await db.content.update_one({"id": content["id"]}, {"$set": {"body": new_body}})
+                    logger.info(f"Restored direct S3 URLs in content {content['id']}")
     except Exception as e:
-        logger.warning(f"S3 URL migration failed: {e}")
+        logger.warning(f"S3 URL restoration failed: {e}")
 
 
 @app.on_event("shutdown")

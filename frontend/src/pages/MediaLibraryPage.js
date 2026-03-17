@@ -715,7 +715,11 @@ const MediaLibraryPage = () => {
   };
 
   const getFileUrl = (asset) => {
-    // Always use proxy endpoint to serve files (avoids S3 AccessDenied)
+    // Use direct S3 URL when available (faster, no proxy needed)
+    if (asset.s3_url) {
+      return asset.s3_url;
+    }
+    // Fallback to proxy endpoint for local files
     return `${API}/media/serve/${asset.id}`;
   };
 

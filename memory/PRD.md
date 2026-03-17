@@ -3164,4 +3164,10 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Added 5-minute timeout on editor file uploads
   - Prevents hanging during large file uploads in content editor
 
+- [x] **Direct S3 URLs** (replaces proxy redirect approach):
+  - Frontend `getFileUrl` now uses `s3_url` directly when available
+  - Editor upload endpoint returns direct S3 URLs instead of proxy URLs
+  - Startup migration reversed: proxy URLs in content bodies converted back to direct S3 URLs
+  - S3 files uploaded with ACL='public-read', direct access confirmed working (HTTP 200)
+
 - Tested: iteration_87 (11/11 backend, 100% frontend features verified)
