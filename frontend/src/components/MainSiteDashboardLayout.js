@@ -1100,18 +1100,9 @@ const MainSiteDashboardContent = () => {
                   )}
                   {!licenseLoading && licenseInfo?.has_license && licenseInfo?.days_remaining !== null && licenseInfo.days_remaining <= 30 && (
                     <span 
-                      className={`text-[10px] px-2 py-0.5 rounded-full border font-medium flex items-center gap-1 ${
-                        licenseInfo.days_remaining <= 7 
-                          ? 'bg-red-500/15 text-red-400 border-red-500/25' 
-                          : licenseInfo.days_remaining <= 14
-                            ? 'bg-amber-500/15 text-amber-400 border-amber-500/25'
-                            : 'bg-blue-500/15 text-blue-400 border-blue-500/25'
-                      }`}
+                      className="text-[11px] text-red-500 font-medium flex items-center gap-1"
                       data-testid="license-expiry-badge"
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
                       License expires in {licenseInfo.days_remaining} day{licenseInfo.days_remaining !== 1 ? 's' : ''}
                     </span>
                   )}
