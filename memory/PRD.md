@@ -3197,3 +3197,11 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Payment Preparation**: Data model includes `payment_provider` and `payment_reference` fields for future Mollie/Stripe integration
 - [x] **Network Admin Navigation**: License Manager added to Management section in sidebar
 - Tested: iteration_90 (13/13 backend, 100% frontend verification)
+
+### Enhancement: License Blocking & Demo Mode (March 18, 2026)
+- [x] **No License = Blocked**: Sites without a license show a full-page "No Active License" block with info@koodh.com contact
+- [x] **Demo Mode**: Sites marked as `is_demo=true` bypass license requirements and show all content
+- [x] **Demo Badge**: "Demo" label in amber shown in the header next to the site type badge
+- [x] **Demo Toggle**: Network Admin can toggle demo mode per site from the License Manager overview
+- [x] **Backend `is_demo` field**: Added to MainSiteCreate, MainSiteUpdate, MainSiteResponse, MainSiteListResponse models
+- Tested: iteration_91 (10/10 backend, 100% frontend verification)
