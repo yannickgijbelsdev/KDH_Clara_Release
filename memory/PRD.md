@@ -3185,3 +3185,15 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Dynamic role display in header**: DashboardLayout and MainSiteDashboardLayout now use `roleInfo.name` from PermissionsContext instead of hardcoded labels - supports all custom roles
 - [x] **Hadewig Weyen (news_admin)**: Can now load shows (416), edit shows, access content - all verified
 - Tested: iteration_89 (8/8 backend, 100% API verification)
+
+### Feature: License Manager (March 18, 2026)
+- [x] **License Package CRUD**: Create, edit, delete license packages with features, pricing (monthly/yearly), and currency
+- [x] **3 Default Packages**: Standard (10 features), Technical (8 features), Server (5 features) - auto-seeded at startup
+- [x] **License Assignments**: Assign/remove licenses to/from main sites with Monthly/Yearly/Lifetime billing cycles
+- [x] **Lifetime Licenses**: Lifetime option requires no payment, marked with `is_lifetime=true`
+- [x] **Feature Sync**: When a license is assigned, the site's `enabled_features` are synced to match the package
+- [x] **License Overview**: Dashboard showing all sites with their license status, stats cards
+- [x] **No License Banner**: Sites without a license show a warning banner with contact info (info@koodh.com)
+- [x] **Payment Preparation**: Data model includes `payment_provider` and `payment_reference` fields for future Mollie/Stripe integration
+- [x] **Network Admin Navigation**: License Manager added to Management section in sidebar
+- Tested: iteration_90 (13/13 backend, 100% frontend verification)
