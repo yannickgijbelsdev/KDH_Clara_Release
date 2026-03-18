@@ -3228,11 +3228,11 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 
 ### March 18, 2026 - Bug Fixes (Environment Button & License Expiry Text)
-- [x] **Bug Fix: "New Environment" button not visible (P0)**:
-  - Verified backend `/api/auth/me` returns `is_system_admin: true` for System Administrator
-  - Confirmed EnvironmentManager.js correctly checks `user?.is_system_admin` and renders button
-  - Button with `data-testid="create-env-btn"` is visible and functional
-  - Status: VERIFIED WORKING (iteration_93)
+- [x] **Bug Fix: "New Environment" button not visible on production (P0)**:
+  - Root cause: `is_system_admin` migration only ran during first-time environment creation; on production the environment already existed so migration was skipped
+  - Fix: Moved `is_system_admin` update to run BEFORE environment existence check in `seed_default_environment()`, so it always runs on server startup
+  - File: `backend/routers/environments.py` lines 61-67
+  - Status: FIXED (requires production deployment to take effect)
 
 - [x] **Bug Fix: License expiry warning as plain red text (P2)**:
   - Changed from `text-[11px] text-red-500 font-medium` to `text-sm text-red-600 font-semibold`

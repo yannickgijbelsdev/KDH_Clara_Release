@@ -60,6 +60,14 @@ class EnvironmentAdminAdd(BaseModel):
 
 async def seed_default_environment():
     """Create the default Production environment if it doesn't exist."""
+    # Always ensure is_system_admin is set on primary network admins
+    result = await db.users.update_many(
+        {"is_primary_network_admin": True, "is_system_admin": {"$ne": True}},
+        {"$set": {"is_system_admin": True}}
+    )
+    if result.modified_count > 0:
+        logger.info(f"Set is_system_admin=True on {result.modified_count} primary network admin(s)")
+
     existing = await db.environments.find_one({"is_default": True})
     if existing:
         return existing["id"]
@@ -85,12 +93,6 @@ async def seed_default_environment():
     )
     if result.modified_count > 0:
         logger.info(f"Linked {result.modified_count} existing sites to Production environment")
-
-    # Migrate: set is_system_admin on primary network admin
-    await db.users.update_many(
-        {"is_primary_network_admin": True},
-        {"$set": {"is_system_admin": True}}
-    )
 
     # Add all current network admins as environment admins for Production
     net_admins = await db.users.find(
