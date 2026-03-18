@@ -3214,3 +3214,14 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **HTML email template**: Branded, shows days remaining, site name, package, billing cycle, "Contact Us to Renew" button
 - [x] **days_remaining in API**: `/api/licenses/check/{id}` returns days_remaining for frontend
 - Tested: Screenshot verified - expiry badge shows "License expires in 19 days" in header
+
+### Feature: Multi-Environment System (March 18, 2026)
+- [x] **Environments**: Create/edit/delete Clara environments (Production auto-seeded as default)
+- [x] **System Administrator**: Global admin role (`is_system_admin`), cannot be deleted, access to everything
+- [x] **Environment Admins**: Assign network admins per environment
+- [x] **Site Copy**: Copy site structure (features, roles) to another environment (data stays empty)
+- [x] **Environment Badge**: Non-Production environments show colored badge in site header
+- [x] **Grouped Site Selector**: MainSiteSelector groups sites by environment with color-coded headers
+- [x] **Backend Migration**: All existing sites linked to Production environment, primary admin set as System Admin
+- [x] **Network Dashboard**: "Environments" section added to Management navigation
+- Tested: iteration_92 (10/11 backend, 100% frontend verification)
