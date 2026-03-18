@@ -60,13 +60,23 @@ class EnvironmentAdminAdd(BaseModel):
 
 async def seed_default_environment():
     """Create the default Production environment if it doesn't exist."""
-    # Always ensure is_system_admin is set on primary network admins
-    result = await db.users.update_many(
-        {"is_primary_network_admin": True, "is_system_admin": {"$ne": True}},
-        {"$set": {"is_system_admin": True}}
-    )
-    if result.modified_count > 0:
-        logger.info(f"Set is_system_admin=True on {result.modified_count} primary network admin(s)")
+    # Always ensure at least one system admin exists
+    has_system_admin = await db.users.find_one({"is_system_admin": True}, {"_id": 0, "id": 1})
+    if not has_system_admin:
+        # Try primary network admin first
+        primary = await db.users.find_one({"is_primary_network_admin": True}, {"_id": 0, "id": 1})
+        if primary:
+            await db.users.update_one({"id": primary["id"]}, {"$set": {"is_system_admin": True}})
+            logger.info(f"Set is_system_admin=True on primary network admin {primary['id']}")
+        else:
+            # Fallback: first network admin becomes system admin
+            first_na = await db.users.find_one({"is_network_admin": True}, {"_id": 0, "id": 1})
+            if first_na:
+                await db.users.update_one(
+                    {"id": first_na["id"]},
+                    {"$set": {"is_system_admin": True, "is_primary_network_admin": True}}
+                )
+                logger.info(f"Promoted first network admin {first_na['id']} to system admin")
 
     existing = await db.environments.find_one({"is_default": True})
     if existing:

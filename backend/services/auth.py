@@ -76,6 +76,9 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     # Ensure is_system_admin field exists (defaults to False)
     if 'is_system_admin' not in user:
         user['is_system_admin'] = False
+    # Network admins who are primary are always system admins
+    if user.get('is_primary_network_admin') and not user.get('is_system_admin'):
+        user['is_system_admin'] = True
     # System admins are always network admins
     if user.get('is_system_admin'):
         user['is_network_admin'] = True
