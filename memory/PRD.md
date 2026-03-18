@@ -3225,3 +3225,18 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Backend Migration**: All existing sites linked to Production environment, primary admin set as System Admin
 - [x] **Network Dashboard**: "Environments" section added to Management navigation
 - Tested: iteration_92 (10/11 backend, 100% frontend verification)
+
+
+### March 18, 2026 - Bug Fixes (Environment Button & License Expiry Text)
+- [x] **Bug Fix: "New Environment" button not visible (P0)**:
+  - Verified backend `/api/auth/me` returns `is_system_admin: true` for System Administrator
+  - Confirmed EnvironmentManager.js correctly checks `user?.is_system_admin` and renders button
+  - Button with `data-testid="create-env-btn"` is visible and functional
+  - Status: VERIFIED WORKING (iteration_93)
+
+- [x] **Bug Fix: License expiry warning as plain red text (P2)**:
+  - Changed from `text-[11px] text-red-500 font-medium` to `text-sm text-red-600 font-semibold`
+  - Removed `flex items-center gap-1` layout classes for simpler text appearance
+  - Updated `data-testid` from "license-expiry-badge" to "license-expiry-warning"
+  - File: `frontend/src/components/MainSiteDashboardLayout.js` lines 1114-1121
+  - Status: VERIFIED WORKING (iteration_93)
