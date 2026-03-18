@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { Globe, ChevronRight, LogOut } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/card';
+import { Globe, ChevronRight, LogOut, Server } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -52,6 +52,17 @@ export default function MainSiteSelector() {
     }
   };
 
+  // Group sites by environment
+  const grouped = mainSites.reduce((acc, site) => {
+    const envName = site.environment_name || 'Unknown';
+    const envColor = site.environment_color || '#6b7280';
+    if (!acc[envName]) acc[envName] = { color: envColor, sites: [] };
+    acc[envName].sites.push(site);
+    return acc;
+  }, {});
+  const envNames = Object.keys(grouped);
+  const hasMultipleEnvs = envNames.length > 1;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
@@ -98,38 +109,60 @@ export default function MainSiteSelector() {
         </div>
       </header>
 
-      {/* Site Selection */}
+      {/* Site Selection - grouped by environment */}
       <main className="max-w-3xl mx-auto px-6 py-8">
-        <div className="space-y-3">
-          {mainSites.map(site => (
-            <Card
-              key={site.id}
-              className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 cursor-pointer transition-all hover:bg-zinc-800/50"
-              onClick={() => navigate(`/${site.slug}`)}
-            >
-              <CardContent className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-4">
-                  {site.logo_url ? (
-                    <img src={site.logo_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center">
-                      <Globe className="w-6 h-6 text-zinc-500" />
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="font-semibold text-lg">{site.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm text-zinc-500">/{site.slug}</span>
-                      <span className={`px-2 py-0.5 text-xs rounded-full ${getRoleBadgeColor(site.role)}`}>
-                        {site.role}
-                      </span>
-                    </div>
+        <div className="space-y-6">
+          {envNames.map(envName => {
+            const { color, sites } = grouped[envName];
+            return (
+              <div key={envName} data-testid={`env-group-${envName.toLowerCase().replace(/\s+/g, '-')}`}>
+                {hasMultipleEnvs && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <Server className="w-4 h-4" style={{ color }} />
+                    <span className="text-sm font-medium" style={{ color }}>{envName}</span>
+                    <div className="flex-1 h-px bg-zinc-800" />
                   </div>
+                )}
+                <div className="space-y-3">
+                  {sites.map(site => (
+                    <Card
+                      key={site.id}
+                      className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 cursor-pointer transition-all hover:bg-zinc-800/50"
+                      onClick={() => navigate(`/${site.slug}`)}
+                      data-testid={`site-card-${site.slug}`}
+                    >
+                      <CardContent className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-4">
+                          {site.logo_url ? (
+                            <img src={site.logo_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-zinc-800 flex items-center justify-center" style={{ borderLeft: `3px solid ${color}` }}>
+                              <Globe className="w-6 h-6 text-zinc-500" />
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="font-semibold text-lg">{site.name}</h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-sm text-zinc-500">/{site.slug}</span>
+                              <span className={`px-2 py-0.5 text-xs rounded-full ${getRoleBadgeColor(site.role)}`}>
+                                {site.role}
+                              </span>
+                              {hasMultipleEnvs && (
+                                <span className="px-1.5 py-0.5 text-[10px] rounded-full border font-medium" style={{ color, borderColor: `${color}33`, backgroundColor: `${color}15` }}>
+                                  {envName}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-zinc-500" />
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <ChevronRight className="w-5 h-5 text-zinc-500" />
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </main>
     </div>

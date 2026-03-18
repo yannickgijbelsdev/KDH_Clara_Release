@@ -1095,6 +1095,19 @@ const MainSiteDashboardContent = () => {
                     <p className="text-sm font-medium text-white">{displayName}</p>
                   )}
                   {!isInSiteContext && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
+                  {mainSite?.environment_name && mainSite.environment_name !== 'Production' && (
+                    <span 
+                      className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium"
+                      style={{ 
+                        color: mainSite.environment_color || '#3b82f6',
+                        borderColor: `${mainSite.environment_color || '#3b82f6'}33`,
+                        backgroundColor: `${mainSite.environment_color || '#3b82f6'}15`,
+                      }}
+                      data-testid="environment-badge"
+                    >
+                      {mainSite.environment_name}
+                    </span>
+                  )}
                   {!licenseLoading && licenseInfo?.is_demo && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium bg-amber-500/15 text-amber-400 border-amber-500/25" data-testid="demo-badge">Demo</span>
                   )}

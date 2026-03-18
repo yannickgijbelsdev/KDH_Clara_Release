@@ -243,6 +243,13 @@ async def get_main_site_by_slug(
         linked = await db.main_sites.find_one({"id": main_site["linked_main_site_id"]}, {"_id": 0, "name": 1})
         main_site["linked_main_site_name"] = linked["name"] if linked else None
 
+    # Resolve environment info
+    if main_site.get("environment_id"):
+        env = await db.environments.find_one({"id": main_site["environment_id"]}, {"_id": 0, "name": 1, "color": 1})
+        if env:
+            main_site["environment_name"] = env["name"]
+            main_site["environment_color"] = env.get("color")
+
     return main_site
 
 
@@ -654,8 +661,17 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
     if is_network_admin:
         # Network admin has access to all
         main_sites = await db.main_sites.find({}, {"_id": 0}).to_list(100)
+
+        # Get environment info for each site
+        env_ids = list(set(ms.get("environment_id") for ms in main_sites if ms.get("environment_id")))
+        envs = {}
+        if env_ids:
+            env_docs = await db.environments.find({"id": {"$in": env_ids}}, {"_id": 0, "id": 1, "name": 1, "slug": 1, "color": 1}).to_list(50)
+            envs = {e["id"]: e for e in env_docs}
+
         return {
             "is_network_admin": True,
+            "is_system_admin": current_user.get("is_system_admin", False),
             "main_sites": [
                 {
                     "id": ms["id"],
@@ -664,6 +680,9 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
                     "logo_url": ms.get("logo_url"),
                     "site_type": ms.get("site_type", "radio"),
                     "cloned_from": ms.get("cloned_from"),
+                    "environment_id": ms.get("environment_id"),
+                    "environment_name": envs.get(ms.get("environment_id"), {}).get("name"),
+                    "environment_color": envs.get(ms.get("environment_id"), {}).get("color"),
                     "role": "network_admin"
                 }
                 for ms in main_sites
@@ -694,8 +713,16 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
         elif cloned_from in admin_site_ids or ms["id"] in admin_site_ids:
             filtered.append(ms)
     
+    # Get environment info
+    env_ids = list(set(ms.get("environment_id") for ms in filtered if ms.get("environment_id")))
+    envs = {}
+    if env_ids:
+        env_docs = await db.environments.find({"id": {"$in": env_ids}}, {"_id": 0, "id": 1, "name": 1, "slug": 1, "color": 1}).to_list(50)
+        envs = {e["id"]: e for e in env_docs}
+
     return {
         "is_network_admin": False,
+        "is_system_admin": False,
         "main_sites": [
             {
                 "id": ms["id"],
@@ -704,6 +731,9 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
                 "logo_url": ms.get("logo_url"),
                 "site_type": ms.get("site_type", "radio"),
                 "cloned_from": ms.get("cloned_from"),
+                "environment_id": ms.get("environment_id"),
+                "environment_name": envs.get(ms.get("environment_id"), {}).get("name"),
+                "environment_color": envs.get(ms.get("environment_id"), {}).get("color"),
                 "role": access_by_id.get(ms["id"], "viewer")
             }
             for ms in filtered

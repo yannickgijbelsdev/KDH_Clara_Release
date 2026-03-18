@@ -73,12 +73,18 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     # Ensure is_network_admin field exists (defaults to False)
     if 'is_network_admin' not in user:
         user['is_network_admin'] = False
+    # Ensure is_system_admin field exists (defaults to False)
+    if 'is_system_admin' not in user:
+        user['is_system_admin'] = False
+    # System admins are always network admins
+    if user.get('is_system_admin'):
+        user['is_network_admin'] = True
     return user
 
 
 async def require_network_admin(current_user: dict = Depends(get_current_user)):
-    """Require network admin access for multi-site management."""
-    if not current_user.get('is_network_admin'):
+    """Require network admin or system admin access for multi-site management."""
+    if not current_user.get('is_network_admin') and not current_user.get('is_system_admin'):
         raise HTTPException(status_code=403, detail="Network admin access required")
     return current_user
 

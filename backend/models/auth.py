@@ -37,6 +37,7 @@ class UserResponse(BaseModel):
     avatar: Optional[dict] = None
     is_network_admin: bool = False
     is_primary_network_admin: bool = False
+    is_system_admin: bool = False
     network_permissions: Optional[dict] = None
 
 
@@ -53,6 +54,7 @@ class UserWithTeamResponse(BaseModel):
     preferences: Optional[dict] = None
     is_network_admin: bool = False
     is_primary_network_admin: bool = False
+    is_system_admin: bool = False
     totp_enabled: bool = False
     totp_skip_count: int = 0
 

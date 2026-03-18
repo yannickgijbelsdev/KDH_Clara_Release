@@ -1,0 +1,79 @@
+{
+  "summary": "Multi-Environment System feature tested successfully - Backend: 10/11 tests PASSED (90.9%, 1 skipped), Frontend: All UI elements verified working. Production and Staging environments shown, System Administrator badge visible, environment badge in site header, sites grouped by environment in API.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "DELETE /api/environments/{env_id}/admins/{id}",
+        "issue": "Test skipped - no system admin found in staging environment admins to test removal protection",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Staging site - staging-radiogroep",
+        "issues": ["Site shows 'No Active License' - expected since staging sites don't have licenses by default. Consider enabling demo mode for staging environments."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_multi_environment.py",
+    "/app/test_reports/pytest/multi_environment_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend environments.py: Well-structured with proper auth helpers (require_system_admin, require_env_admin)",
+    "Backend environments.py: seed_default_environment correctly migrates existing sites to Production",
+    "Backend environments.py: Cannot delete default Production environment (400 error)",
+    "Backend environments.py: Cannot remove System Administrator from environment (400 error)",
+    "Backend environments.py: copy-site endpoint properly copies site structure with environment_id",
+    "Backend main_sites.py: /my/access returns environment_id, environment_name, environment_color for each site",
+    "Backend main_sites.py: /by-slug/{slug} resolves environment info from environments collection",
+    "Backend auth.py: is_system_admin field properly handled with default False",
+    "Frontend EnvironmentManager.js: Production and Staging cards displayed with correct colors and counts",
+    "Frontend EnvironmentManager.js: System Administrator badge shows for is_system_admin users",
+    "Frontend EnvironmentManager.js: 'New Environment' button only visible for system admins",
+    "Frontend MainSiteDashboardLayout.js: environment badge (data-testid='environment-badge') shows for non-Production environments",
+    "Frontend MainSiteSelector.js: Sites grouped by environment_name with color-coded headers"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_multi_environment.py"
+  ],
+  "success_rate": {
+    "backend": "90.9% (10/11 tests passed, 1 skipped)",
+    "frontend": "100% (All UI elements verified)"
+  },
+  "test_credentials": {
+    "admin_email": "admkoodh@koodh.com",
+    "admin_password": "KYLovie13monx",
+    "production_env_id": "found via GET /api/environments where is_default=true",
+    "staging_env_id": "08ba8bd4-a1e1-437f-9ec9-d557f13cdb63",
+    "staging_site_slug": "staging-radiogroep"
+  },
+  "seed_data_creation": "No new seed data - tested with existing Production and Staging environments",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Multi-environment system fully implemented. Production (9 sites) and Staging (2 sites) environments exist. Admin user is System Administrator (is_system_admin=true). Environment badge shows in header for non-Production sites. MainSiteSelector groups sites by environment. Staging sites don't have licenses by default (shows 'No Active License').",
+  "features_tested": {
+    "GET /api/environments": "PASS - Returns list with Production (is_default=true) and Staging",
+    "POST /api/environments": "PASS - Creates new environment (system admin only), validates slug uniqueness",
+    "PUT /api/environments/{id}": "PASS - Updates environment description, color, etc.",
+    "DELETE /api/environments/{id}": "PASS - Cannot delete default Production environment (400 error)",
+    "GET /api/environments/{env_id}/admins": "PASS - Returns admin list with user details and is_system_admin flag",
+    "POST /api/environments/{env_id}/admins": "PASS - Adds admin to environment",
+    "DELETE /api/environments/{env_id}/admins/{id}": "SKIPPED - No system admin in staging to test removal protection",
+    "POST /api/environments/{env_id}/copy-site/{source_id}": "PASS - Endpoint accessible, returns copied site with environment_id",
+    "GET /api/main-sites/my/access": "PASS - Returns is_system_admin, environment_id, environment_name, environment_color per site",
+    "GET /api/main-sites/by-slug/{slug}": "PASS - Returns environment_name and environment_color for staging-radiogroep",
+    "GET /api/auth/me": "PASS - Returns is_system_admin=true for admin user",
+    "Frontend - Environments page": "PASS - Production and Staging cards visible with counts, colors, edit/delete/admins buttons",
+    "Frontend - System Administrator badge": "PASS - Badge visible in EnvironmentManager and header",
+    "Frontend - New Environment button": "PASS - Visible for system admin",
+    "Frontend - Environment badge in header": "PASS - 'Staging' badge shows in site header for staging-radiogroep",
+    "Frontend - Sites grouped by environment": "PASS - API returns sites grouped, UI shows environment grouping"
+  }
+}

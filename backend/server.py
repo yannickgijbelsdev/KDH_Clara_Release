@@ -57,6 +57,7 @@ from routers.firewall import firewall_router
 from routers.calls import calls_router
 from routers.roles import roles_router
 from routers.licenses import licenses_router
+from routers.environments import environments_router
 from routers.zerotier import zerotier_router
 from routers.notifications import notifications_router
 from routers.xml_imports import xml_imports_router
@@ -132,6 +133,7 @@ api_router.include_router(task_boards_router)
 api_router.include_router(branding_router)
 api_router.include_router(radioplayer_router)
 api_router.include_router(licenses_router)
+api_router.include_router(environments_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
@@ -1144,6 +1146,13 @@ async def startup_db_client():
         await seed_default_packages()
     except Exception as e:
         logger.warning(f"License package seeding failed: {e}")
+
+    # Seed default environment and migrate existing data
+    try:
+        from routers.environments import seed_default_environment
+        await seed_default_environment()
+    except Exception as e:
+        logger.warning(f"Environment seeding failed: {e}")
 
     # Start license expiry reminder scheduler
     try:

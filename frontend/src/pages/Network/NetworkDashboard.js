@@ -23,7 +23,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -45,6 +45,7 @@ import NotificationSettings from './NotificationSettings';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import BrandingSettings from './BrandingSettings';
 import LicenseManager from './LicenseManager';
+import EnvironmentManager from './EnvironmentManager';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
 import { BrandLogo } from '../../components/BrandLogo';
@@ -382,6 +383,7 @@ export default function NetworkDashboard() {
       icon: Settings,
       items: [
         { id: 'admins', icon: Crown, label: 'Network Admins' },
+        { id: 'environments', icon: Server, label: 'Environments' },
         { id: 'licenses', icon: Shield, label: 'License Manager' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'branding', icon: Paintbrush, label: 'Branding' },
@@ -1270,6 +1272,19 @@ export default function NetworkDashboard() {
                 </div>
               </div>
               <LicenseManager />
+            </div>
+          )}
+
+          {/* ═══════════ ENVIRONMENTS ═══════════ */}
+          {activeSection === 'environments' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">Environments</h1>
+                  <p className="text-sm text-zinc-400">Manage Clara environments, admins, and site assignments</p>
+                </div>
+              </div>
+              <EnvironmentManager />
             </div>
           )}
 
