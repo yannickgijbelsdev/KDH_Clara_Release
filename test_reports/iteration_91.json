@@ -1,0 +1,67 @@
+{
+  "summary": "License Manager Demo Mode feature tested - Backend: 10/10 tests PASSED (100%), Frontend: All UI elements verified working. The Demo Mode feature allows sites without licenses to be marked as 'Demo' to bypass license restrictions while showing a 'Demo' badge.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_license_demo_mode.py",
+    "/app/test_reports/pytest/license_demo_mode_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend main_sites.py: is_demo field properly added to MainSiteCreate, MainSiteUpdate, MainSiteResponse, MainSiteListResponse models",
+    "Backend main_sites.py: PUT /api/main-sites/{id} correctly handles is_demo field updates",
+    "Backend licenses.py: GET /api/licenses/check/{main_site_id} returns is_demo field from main_site document",
+    "Backend licenses.py: GET /api/licenses/overview returns is_demo field for each site",
+    "Frontend MainSiteDashboardLayout.js: License check logic blocks content when has_license=false AND is_demo=false",
+    "Frontend MainSiteDashboardLayout.js: Demo badge (data-testid='demo-badge') shows in header for demo sites with amber styling",
+    "Frontend MainSiteDashboardLayout.js: No-license-block (data-testid='no-license-block') displays correctly with lock icon, title, and info@koodh.com contact",
+    "Frontend LicenseManager.js: Demo toggle buttons (data-testid='toggle-demo-{slug}') work correctly and update state",
+    "Frontend LicenseManager.js: Demo count displayed in stats (Demo: 1, 2, etc.) updates when toggling",
+    "Frontend LicenseManager.js: Demo badges appear next to site names in the unlicensed sites list"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_license_demo_mode.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (All UI elements verified)"
+  },
+  "test_credentials": {
+    "admin_email": "admkoodh@koodh.com",
+    "admin_password": "KYLovie13monx",
+    "demo_site_id": "db23c31a-7776-4805-a4a5-bd019dd7c2be",
+    "demo_site_slug": "radiogroep",
+    "non_demo_site_id": "fc37cb22-b93e-4fc8-9d77-818b3af45d35",
+    "non_demo_site_slug": "dbntstudio"
+  },
+  "seed_data_creation": "No new seed data - Radiogroep is_demo=true, DBNT Studio is_demo=false (restored after testing)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Demo Mode feature is fully tested. Backend returns is_demo in license check and overview endpoints. Frontend blocks unlicensed non-demo sites with no-license-block, shows Demo badge for demo sites, and License Manager has toggle buttons for all unlicensed sites.",
+  "features_tested": {
+    "PUT /api/main-sites/{id} with is_demo=true": "PASS - Updates site's is_demo field and persists",
+    "PUT /api/main-sites/{id} with is_demo=false": "PASS - Updates site's is_demo field and persists",
+    "PUT /api/main-sites/{id} toggle demo": "PASS - Can toggle is_demo on and off",
+    "GET /api/licenses/check/{id} - demo site": "PASS - Returns is_demo=true for demo sites",
+    "GET /api/licenses/check/{id} - non-demo site": "PASS - Returns is_demo=false for non-demo sites",
+    "GET /api/licenses/check/{id} - demo without license": "PASS - Returns has_license=false, is_demo=true",
+    "GET /api/licenses/overview - is_demo field": "PASS - All sites have is_demo field (boolean)",
+    "GET /api/licenses/overview - correct values": "PASS - Radiogroep is_demo=true, DBNT Studio is_demo=false",
+    "GET /api/main-sites/{id} - is_demo field": "PASS - Response includes is_demo field",
+    "GET /api/main-sites - is_demo field": "PASS - List response includes is_demo for all sites",
+    "Frontend - unlicensed non-demo site blocked": "PASS - DBNT Studio shows no-license-block with lock icon, 'No Active License' title, info@koodh.com button",
+    "Frontend - demo site accessible": "PASS - Radiogroep shows normal content (Shows page)",
+    "Frontend - Demo badge in header": "PASS - Demo badge (data-testid='demo-badge') shows in header with amber styling",
+    "Frontend - License Manager loads": "PASS - Page loads with License Overview and Packages tabs",
+    "Frontend - Demo toggle buttons present": "PASS - 9 toggle buttons found for unlicensed sites",
+    "Frontend - Demo toggle functionality": "PASS - Toggle buttons change state (Demo Off → Demo On → Demo Off)",
+    "Frontend - Demo count updates": "PASS - Stats show Demo: 1, updates to Demo: 2 when toggling"
+  }
+}

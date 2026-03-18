@@ -315,6 +315,9 @@ async def delete_assignment(
 @licenses_router.get("/check/{main_site_id}")
 async def check_license(main_site_id: str, current_user: dict = Depends(get_current_user)):
     """Check the license status for a main site."""
+    site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "is_demo": 1})
+    is_demo = site.get("is_demo", False) if site else False
+
     assignment = await db.license_assignments.find_one(
         {"main_site_id": main_site_id, "status": "active"},
         {"_id": 0}
@@ -322,6 +325,7 @@ async def check_license(main_site_id: str, current_user: dict = Depends(get_curr
     if not assignment:
         return {
             "has_license": False,
+            "is_demo": is_demo,
             "package": None,
             "assignment": None,
         }
@@ -329,6 +333,7 @@ async def check_license(main_site_id: str, current_user: dict = Depends(get_curr
     pkg = await db.license_packages.find_one({"id": assignment["package_id"]}, {"_id": 0})
     return {
         "has_license": True,
+        "is_demo": is_demo,
         "package": pkg,
         "assignment": assignment,
     }
@@ -358,6 +363,7 @@ async def license_overview(current_user: dict = Depends(require_network_admin)):
             "site_name": site["name"],
             "site_slug": site["slug"],
             "site_type": site.get("site_type", "radio"),
+            "is_demo": site.get("is_demo", False),
             "enabled_features": site.get("enabled_features", []),
             "has_license": assignment is not None,
             "license_package": pkg["name"] if pkg else None,

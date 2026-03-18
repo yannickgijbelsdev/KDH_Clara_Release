@@ -152,6 +152,7 @@ async def create_main_site(
         "enabled_features": data.enabled_features,
         "site_type": data.site_type,
         "linked_main_site_id": data.linked_main_site_id,
+        "is_demo": data.is_demo,
         "created_at": now,
         "updated_at": now
     }
@@ -298,6 +299,9 @@ async def update_main_site(
 
     if data.linked_main_site_id is not None:
         update_data["linked_main_site_id"] = data.linked_main_site_id
+
+    if data.is_demo is not None:
+        update_data["is_demo"] = data.is_demo
 
     await db.main_sites.update_one(
         {"id": main_site_id},

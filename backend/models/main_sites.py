@@ -57,6 +57,7 @@ class MainSiteCreate(BaseModel):
     enabled_features: List[str] = []  # List of feature IDs
     site_type: str = "radio"  # "radio", "technical", "server", or "task_scheduler"
     linked_main_site_id: Optional[str] = None  # For server sites: linked parent main site
+    is_demo: bool = False  # Demo sites bypass license requirements
 
 
 class MainSiteUpdate(BaseModel):
@@ -67,6 +68,7 @@ class MainSiteUpdate(BaseModel):
     logo_url: Optional[str] = None
     enabled_features: Optional[List[str]] = None
     linked_main_site_id: Optional[str] = None
+    is_demo: Optional[bool] = None
 
 
 class MainSiteResponse(BaseModel):
@@ -83,6 +85,7 @@ class MainSiteResponse(BaseModel):
     site_count: int = 0
     user_count: int = 0
     cloned_from: Optional[str] = None
+    is_demo: bool = False
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
 
@@ -101,6 +104,7 @@ class MainSiteListResponse(BaseModel):
     site_count: int = 0
     user_count: int = 0
     cloned_from: Optional[str] = None
+    is_demo: bool = False
 
 
 class MainSiteUserCreate(BaseModel):

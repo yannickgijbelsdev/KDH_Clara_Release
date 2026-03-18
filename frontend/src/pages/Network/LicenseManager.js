@@ -180,6 +180,23 @@ export default function LicenseManager() {
     }));
   };
 
+  const toggleDemo = async (siteId, currentDemo) => {
+    try {
+      const res = await fetch(`${API}/api/main-sites/${siteId}`, {
+        method: 'PUT', headers,
+        body: JSON.stringify({ is_demo: !currentDemo }),
+      });
+      if (!res.ok) {
+        toast.error('Failed to toggle demo mode');
+        return;
+      }
+      toast.success(!currentDemo ? 'Demo mode enabled' : 'Demo mode disabled');
+      fetchData();
+    } catch {
+      toast.error('Failed to toggle demo mode');
+    }
+  };
+
   const featureGroups = availableFeatures.reduce((acc, f) => {
     if (!acc[f.group]) acc[f.group] = [];
     acc[f.group].push(f);
@@ -225,10 +242,11 @@ export default function LicenseManager() {
       {activeTab === 'overview' && (
         <div className="space-y-6">
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <StatCard label="Total Sites" value={overview.length} icon={Globe} color="text-blue-400" />
             <StatCard label="Licensed" value={assignedSites.length} icon={Check} color="text-green-400" />
-            <StatCard label="No License" value={unassignedSites.length} icon={AlertTriangle} color="text-red-400" />
+            <StatCard label="No License" value={unassignedSites.filter(s => !s.is_demo).length} icon={AlertTriangle} color="text-red-400" />
+            <StatCard label="Demo" value={overview.filter(s => s.is_demo).length} icon={Globe} color="text-amber-400" />
             <StatCard label="Lifetime" value={assignedSites.filter(s => s.is_lifetime).length} icon={Infinity} color="text-purple-400" />
           </div>
 
@@ -249,11 +267,27 @@ export default function LicenseManager() {
                         {SITE_TYPE_LABELS[site.site_type] || site.site_type}
                       </span>
                       <span className="text-sm text-zinc-200">{site.site_name}</span>
+                      {site.is_demo && (
+                        <span className="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Demo</span>
+                      )}
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => openAssign(site.site_id)} className="h-7 text-xs" data-testid={`assign-license-${site.site_slug}`}>
-                      <CreditCard className="w-3 h-3 mr-1" />
-                      Assign License
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleDemo(site.site_id, site.is_demo)}
+                        className={`h-7 px-2 text-xs rounded border transition-colors ${
+                          site.is_demo
+                            ? 'bg-amber-600/20 border-amber-600/40 text-amber-400 hover:bg-amber-600/30'
+                            : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                        data-testid={`toggle-demo-${site.site_slug}`}
+                      >
+                        {site.is_demo ? 'Demo On' : 'Demo Off'}
+                      </button>
+                      <Button size="sm" variant="outline" onClick={() => openAssign(site.site_id)} className="h-7 text-xs" data-testid={`assign-license-${site.site_slug}`}>
+                        <CreditCard className="w-3 h-3 mr-1" />
+                        Assign License
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </CardContent>
@@ -281,6 +315,9 @@ export default function LicenseManager() {
                         <span className="px-2 py-0.5 rounded text-xs bg-green-500/20 text-green-400">
                           {site.license_package}
                         </span>
+                        {site.is_demo && (
+                          <span className="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Demo</span>
+                        )}
                         {site.is_lifetime && (
                           <span className="px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400 flex items-center gap-1">
                             <Infinity className="w-3 h-3" /> Lifetime
