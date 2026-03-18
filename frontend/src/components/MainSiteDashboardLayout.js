@@ -694,6 +694,9 @@ const MainSiteDashboardContent = () => {
   // Build flat nav items array for icon sidebar
   const flatNavItems = navGroups.flatMap(group => group.items || []);
 
+  // Check if site access is blocked (no license and not demo)
+  const isLicenseBlocked = !licenseLoading && licenseInfo && !licenseInfo.has_license && !licenseInfo.is_demo;
+
   // Render icon-only sidebar navigation
   const renderIconNavigation = () => {
     return (
@@ -755,14 +758,20 @@ const MainSiteDashboardContent = () => {
         {/* Normal navigation icons when not in site context */}
         {!isInSiteContext && flatNavItems.map((item) => {
           const Icon = item.icon;
-          // item.to already contains the full path like /radiogroep/shows
-          const isActive = location.pathname === item.to || location.pathname.startsWith(item.to + '/');
-          const pathSegment = item.to.split('/').pop(); // Get last segment for badge lookup
+          const isActive = !isLicenseBlocked && (location.pathname === item.to || location.pathname.startsWith(item.to + '/'));
+          const pathSegment = item.to.split('/').pop();
           const badgeCount = getBadgeCount(pathSegment);
-          const isHighlight = ['chat', 'approvals'].includes(pathSegment);
           return (
             <Tooltip key={item.to}>
               <TooltipTrigger asChild>
+                {isLicenseBlocked ? (
+                  <div
+                    className="w-11 h-11 flex items-center justify-center rounded-xl opacity-20 cursor-not-allowed"
+                    data-testid={`nav-disabled-${pathSegment}`}
+                  >
+                    <Icon className="w-5 h-5 text-zinc-600" />
+                  </div>
+                ) : (
                 <NavLink
                   to={item.to}
                   onClick={closeSidebar}
@@ -781,9 +790,10 @@ const MainSiteDashboardContent = () => {
                     </span>
                   )}
                 </NavLink>
+                )}
               </TooltipTrigger>
               <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
-                {item.label} {badgeCount > 0 && `(${badgeCount})`}
+                {isLicenseBlocked ? `${item.label} (No license)` : item.label} {!isLicenseBlocked && badgeCount > 0 && `(${badgeCount})`}
               </TooltipContent>
             </Tooltip>
           );
