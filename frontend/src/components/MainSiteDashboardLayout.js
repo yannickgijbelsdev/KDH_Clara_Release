@@ -1113,8 +1113,8 @@ const MainSiteDashboardContent = () => {
                   )}
                   {!licenseLoading && licenseInfo?.has_license && licenseInfo?.days_remaining !== null && licenseInfo.days_remaining <= 30 && (
                     <span 
-                      className="text-[11px] text-red-500 font-medium flex items-center gap-1"
-                      data-testid="license-expiry-badge"
+                      className="text-sm text-red-600 font-semibold"
+                      data-testid="license-expiry-warning"
                     >
                       License expires in {licenseInfo.days_remaining} day{licenseInfo.days_remaining !== 1 ? 's' : ''}
                     </span>
