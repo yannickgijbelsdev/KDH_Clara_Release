@@ -55,6 +55,7 @@ from routers.tickets import ticket_router
 from routers.firewall import firewall_router
 from routers.calls import calls_router
 from routers.roles import roles_router
+from routers.licenses import licenses_router
 from routers.zerotier import zerotier_router
 from routers.notifications import notifications_router
 from routers.xml_imports import xml_imports_router
@@ -129,6 +130,7 @@ api_router.include_router(vmix_router)
 api_router.include_router(task_boards_router)
 api_router.include_router(branding_router)
 api_router.include_router(radioplayer_router)
+api_router.include_router(licenses_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
@@ -1134,6 +1136,13 @@ async def startup_db_client():
         await migrate_create_missing_roles()
     except Exception as e:
         logger.warning(f"Missing roles migration failed: {e}")
+
+    # Seed default license packages
+    try:
+        from routers.licenses import seed_default_packages
+        await seed_default_packages()
+    except Exception as e:
+        logger.warning(f"License package seeding failed: {e}")
 
     # Initialize Radioplayer config if not exists
     try:

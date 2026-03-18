@@ -44,6 +44,7 @@ import NetworkAdminManager from './NetworkAdminManager';
 import NotificationSettings from './NotificationSettings';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import BrandingSettings from './BrandingSettings';
+import LicenseManager from './LicenseManager';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
 import { BrandLogo } from '../../components/BrandLogo';
@@ -381,6 +382,7 @@ export default function NetworkDashboard() {
       icon: Settings,
       items: [
         { id: 'admins', icon: Crown, label: 'Network Admins' },
+        { id: 'licenses', icon: Shield, label: 'License Manager' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'branding', icon: Paintbrush, label: 'Branding' },
       ]
@@ -1255,6 +1257,19 @@ export default function NetworkDashboard() {
                 </div>
               </div>
               <BrandingSettings />
+            </div>
+          )}
+
+          {/* ═══════════ LICENSE MANAGER ═══════════ */}
+          {activeSection === 'licenses' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">License Manager</h1>
+                  <p className="text-sm text-zinc-400">Manage license packages and site assignments</p>
+                </div>
+              </div>
+              <LicenseManager />
             </div>
           )}
 
