@@ -1098,6 +1098,23 @@ const MainSiteDashboardContent = () => {
                   {!licenseLoading && licenseInfo?.is_demo && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium bg-amber-500/15 text-amber-400 border-amber-500/25" data-testid="demo-badge">Demo</span>
                   )}
+                  {!licenseLoading && licenseInfo?.has_license && licenseInfo?.days_remaining !== null && licenseInfo.days_remaining <= 30 && (
+                    <span 
+                      className={`text-[10px] px-2 py-0.5 rounded-full border font-medium flex items-center gap-1 ${
+                        licenseInfo.days_remaining <= 7 
+                          ? 'bg-red-500/15 text-red-400 border-red-500/25' 
+                          : licenseInfo.days_remaining <= 14
+                            ? 'bg-amber-500/15 text-amber-400 border-amber-500/25'
+                            : 'bg-blue-500/15 text-blue-400 border-blue-500/25'
+                      }`}
+                      data-testid="license-expiry-badge"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      License expires in {licenseInfo.days_remaining} day{licenseInfo.days_remaining !== 1 ? 's' : ''}
+                    </span>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-white">{user?.name}</p>

@@ -18,6 +18,7 @@ from fastapi.responses import PlainTextResponse, FileResponse
 from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
+import asyncio
 from datetime import datetime, timezone
 import uuid
 import jwt
@@ -1143,6 +1144,14 @@ async def startup_db_client():
         await seed_default_packages()
     except Exception as e:
         logger.warning(f"License package seeding failed: {e}")
+
+    # Start license expiry reminder scheduler
+    try:
+        from services.license_scheduler import start_license_scheduler
+        asyncio.create_task(start_license_scheduler())
+        logger.info("License expiry scheduler started")
+    except Exception as e:
+        logger.warning(f"License scheduler start failed: {e}")
 
     # Initialize Radioplayer config if not exists
     try:

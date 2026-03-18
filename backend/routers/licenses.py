@@ -1,6 +1,6 @@
 """License management routes."""
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 
 from database import db
@@ -241,6 +241,14 @@ async def create_assignment(
 
     is_lifetime = data.billing_cycle == "lifetime"
 
+    now = datetime.now(timezone.utc)
+    if data.billing_cycle == "monthly":
+        expires_at = (now + timedelta(days=30)).isoformat()
+    elif data.billing_cycle == "yearly":
+        expires_at = (now + timedelta(days=365)).isoformat()
+    else:
+        expires_at = None  # lifetime
+
     doc = {
         "id": str(uuid.uuid4()),
         "main_site_id": data.main_site_id,
@@ -252,7 +260,8 @@ async def create_assignment(
         "payment_provider": None,
         "payment_reference": None,
         "starts_at": _now(),
-        "expires_at": None,
+        "expires_at": expires_at,
+        "last_reminder_sent_at": None,
         "created_at": _now(),
         "updated_at": _now(),
     }
@@ -326,14 +335,26 @@ async def check_license(main_site_id: str, current_user: dict = Depends(get_curr
         return {
             "has_license": False,
             "is_demo": is_demo,
+            "days_remaining": None,
             "package": None,
             "assignment": None,
         }
+
+    # Calculate days remaining
+    days_remaining = None
+    if assignment.get("expires_at") and not assignment.get("is_lifetime"):
+        try:
+            expires = datetime.fromisoformat(assignment["expires_at"])
+            now = datetime.now(timezone.utc)
+            days_remaining = max(0, (expires - now).days)
+        except (ValueError, TypeError):
+            pass
 
     pkg = await db.license_packages.find_one({"id": assignment["package_id"]}, {"_id": 0})
     return {
         "has_license": True,
         "is_demo": is_demo,
+        "days_remaining": days_remaining,
         "package": pkg,
         "assignment": assignment,
     }

@@ -3205,3 +3205,12 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [x] **Demo Toggle**: Network Admin can toggle demo mode per site from the License Manager overview
 - [x] **Backend `is_demo` field**: Added to MainSiteCreate, MainSiteUpdate, MainSiteResponse, MainSiteListResponse models
 - Tested: iteration_91 (10/10 backend, 100% frontend verification)
+
+### Enhancement: License Expiry Reminders & Header Warning (March 18, 2026)
+- [x] **Expiry badge in header**: Shows "License expires in X days" when < 30 days (blue > amber > red based on urgency)
+- [x] **expires_at calculated**: Monthly = +30 days, Yearly = +365 days, Lifetime = null
+- [x] **Reminder scheduler**: Daily check for expiring licenses, sends emails every 10 days
+- [x] **Email recipients**: Site admins + network admins + clara.license@koodh.com
+- [x] **HTML email template**: Branded, shows days remaining, site name, package, billing cycle, "Contact Us to Renew" button
+- [x] **days_remaining in API**: `/api/licenses/check/{id}` returns days_remaining for frontend
+- Tested: Screenshot verified - expiry badge shows "License expires in 19 days" in header
