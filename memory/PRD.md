@@ -3406,6 +3406,20 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files: `frontend/src/App.js` (LoginWizardWrapper), `frontend/src/context/AuthContext.js` (logout)
   - Status: VERIFIED (iteration_103 - 100% pass rate)
 
+### March 2026 - Domain Management System (Fase 1 + 2 + 3 voorbereiding)
+- [x] **Feature: Domain Manager**:
+  - Full domain management UI in Network Dashboard (sidebar: "Domain Manager")
+  - 4 tabs: Overzicht, Site Domeinen, Subdomain Routing, Cloudflare
+  - Per-site domain configuration: koodh.com subdomain (auto-verified, SSL) or custom domain with CNAME verification flow
+  - Subdomain routing system: clara.koodh.com (app), login.koodh.com (auth), global.koodh.com (network) — Microsoft-style architecture
+  - Routes can be toggled active/inactive, edited, or new custom routes added
+  - Cloudflare API integration prepared (placeholder for API Token + Zone ID)
+  - DNS verification using dnspython for custom domain CNAME checks
+  - Backend: `routers/domains.py` — full CRUD for domain configs, subdomain routes, and Cloudflare config
+  - Frontend: `pages/Network/DomainManager.js` — complete UI with dialogs, toggles, status indicators
+  - DB collections: `domain_configs`, `subdomain_routes`, `cloudflare_config`
+  - Status: VERIFIED (iteration_104 - 100% backend + 100% frontend pass rate)
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
@@ -3414,3 +3428,4 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [ ] (P2) Canva Director feature verification on new server sites (USER VERIFICATION PENDING)
 - [ ] (P2) Payment Gateway integration (Stripe/Mollie)
 - [ ] (P2) Stream Monitor VU Meters
+- [ ] (P2) Cloudflare API actief verbinden (na invoeren API Token + Zone ID door gebruiker)
