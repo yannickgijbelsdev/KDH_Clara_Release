@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent } from './ui/dialog';
-import { Shield, Server, Layout, Menu, Coffee, Lock, Check } from 'lucide-react';
+import { Shield, Server, Layout, Menu, Coffee, Lock, Check, FileText } from 'lucide-react';
 
 const SITE_TYPE_LABELS = {
   radio: 'main site',
@@ -17,6 +17,7 @@ const STEPS = (siteType) => [
   { icon: Coffee, text: "We are preparing the last things, maybe it's time to sip from your coffee, tea or other drinks.", duration: 3000 },
   { icon: Shield, text: 'Setting up the firewall, to keep everything safe.', duration: 2000 },
   { icon: Lock, text: 'Setting up Clara Global Protect.', duration: 1800 },
+  { icon: FileText, text: 'A license request has been sent to your license administrator.', duration: 2000 },
   { icon: Check, text: 'We are done! Enjoy your new workspace.', duration: 0 },
 ];
 

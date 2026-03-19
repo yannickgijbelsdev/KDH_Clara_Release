@@ -13,6 +13,7 @@ from models.main_sites import (
 )
 from services.auth import get_current_user
 from services.audit import log_action
+from services.license_request import send_license_request
 from routers.shows import resolve_avatar_url
 
 import logging
@@ -196,6 +197,18 @@ async def create_main_site(
         target_type="main_site",
         target_id=main_site_id,
         target_name=data.name,
+    ))
+
+    # Send license request email
+    asyncio.create_task(send_license_request(
+        site_name=data.name,
+        site_type=data.site_type,
+        site_slug=slug,
+        site_id=main_site_id,
+        environment_id=main_site_doc.get("environment_id", ""),
+        requester_id=current_user.get("id", ""),
+        requester_name=current_user.get("name", ""),
+        requester_email=current_user.get("email", ""),
     ))
 
     return main_site_doc

@@ -9,7 +9,7 @@ import { Checkbox } from '../../components/ui/checkbox';
 import { toast } from 'sonner';
 import {
   Package, Plus, Edit, Trash2, Shield, Globe, Check, X, CreditCard,
-  Infinity, AlertTriangle, Loader2, ChevronDown
+  Infinity, AlertTriangle, Loader2, ChevronDown, Clock, CheckCircle, XCircle, FileText
 } from 'lucide-react';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -62,21 +62,25 @@ export default function LicenseManager() {
 
   // Delete confirmation
   const [deleteDialog, setDeleteDialog] = useState({ open: false, type: '', id: '', name: '' });
+  // License requests
+  const [licenseRequests, setLicenseRequests] = useState([]);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [pkgRes, overRes, featRes] = await Promise.all([
+      const [pkgRes, overRes, featRes, reqRes] = await Promise.all([
         fetch(`${API}/api/licenses/packages`, { headers }),
         fetch(`${API}/api/licenses/overview`, { headers }),
         fetch(`${API}/api/main-sites/features`, { headers }),
+        fetch(`${API}/api/licenses/requests`, { headers }),
       ]);
       setPackages(await pkgRes.json());
       setOverview(await overRes.json());
       const featData = await featRes.json();
       setAvailableFeatures(featData.features || []);
+      if (reqRes.ok) setLicenseRequests(await reqRes.json());
     } catch {
       toast.error('Failed to load license data');
     }
@@ -197,6 +201,23 @@ export default function LicenseManager() {
     }
   };
 
+  const handleRequestAction = async (requestId, status) => {
+    try {
+      const res = await fetch(`${API}/api/licenses/requests/${requestId}`, {
+        method: 'PUT', headers,
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        toast.error('Failed to update request');
+        return;
+      }
+      toast.success(status === 'approved' ? 'Request approved' : 'Request denied');
+      fetchData();
+    } catch {
+      toast.error('Failed to update request');
+    }
+  };
+
   const featureGroups = availableFeatures.reduce((acc, f) => {
     if (!acc[f.group]) acc[f.group] = [];
     acc[f.group].push(f);
@@ -220,6 +241,7 @@ export default function LicenseManager() {
       <div className="flex gap-2 border-b border-zinc-800 pb-2">
         {[
           { id: 'overview', label: 'License Overview', icon: Globe },
+          { id: 'requests', label: 'Requests', icon: FileText, badge: licenseRequests.filter(r => r.status === 'pending').length },
           { id: 'packages', label: 'Packages', icon: Package },
         ].map(tab => (
           <button
@@ -234,6 +256,9 @@ export default function LicenseManager() {
           >
             <tab.icon className="w-4 h-4" />
             {tab.label}
+            {tab.badge > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-orange-500 text-white">{tab.badge}</span>
+            )}
           </button>
         ))}
       </div>
@@ -340,6 +365,88 @@ export default function LicenseManager() {
                 </div>
               </CardContent>
             </Card>
+          )}
+        </div>
+      )}
+
+      {/* Requests Tab */}
+      {activeTab === 'requests' && (
+        <div className="space-y-4" data-testid="license-requests-tab">
+          <p className="text-sm text-zinc-400">
+            License requests are automatically created when a new site is created. Review and approve or deny them below.
+          </p>
+
+          {licenseRequests.length === 0 ? (
+            <Card className="bg-zinc-900 border-zinc-800">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <FileText className="w-12 h-12 text-zinc-600 mb-3" />
+                <p className="text-zinc-400 text-sm">No license requests yet</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {licenseRequests.map(req => {
+                const isPending = req.status === 'pending';
+                const isApproved = req.status === 'approved';
+                const isDenied = req.status === 'denied';
+                const statusColor = isPending ? 'bg-amber-500/15 text-amber-400 border-amber-500/25' : isApproved ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : 'bg-red-500/15 text-red-400 border-red-500/25';
+                const StatusIcon = isPending ? Clock : isApproved ? CheckCircle : XCircle;
+                return (
+                  <Card key={req.id} className="bg-zinc-900 border-zinc-800" data-testid={`license-request-${req.id}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-white font-medium">{req.site_name}</span>
+                            <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[req.site_type] || 'bg-zinc-700 text-zinc-300'}`}>
+                              {SITE_TYPE_LABELS[req.site_type] || req.site_type}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-xs border ${statusColor}`}>
+                              <StatusIcon className="w-3 h-3 inline mr-1" />
+                              {req.status}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-zinc-400">
+                            <div><span className="text-zinc-600">Slug:</span> <span className="text-zinc-300 font-mono">/{req.site_slug}</span></div>
+                            <div><span className="text-zinc-600">Environment:</span> <span className="text-zinc-300">{req.environment_name}</span></div>
+                            <div><span className="text-zinc-600">Requested by:</span> <span className="text-zinc-300">{req.requester_name}</span></div>
+                            <div><span className="text-zinc-600">Date:</span> <span className="text-zinc-300">{new Date(req.created_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
+                          </div>
+                          {req.reviewed_by && (
+                            <p className="text-xs text-zinc-500 mt-2">
+                              Reviewed by {req.reviewed_by} on {new Date(req.reviewed_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                            </p>
+                          )}
+                        </div>
+                        {isPending && (
+                          <div className="flex gap-2 flex-shrink-0">
+                            <Button
+                              size="sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+                              onClick={() => handleRequestAction(req.id, 'approved')}
+                              data-testid={`approve-request-${req.id}`}
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-red-800 text-red-400 hover:bg-red-950 gap-1.5"
+                              onClick={() => handleRequestAction(req.id, 'denied')}
+                              data-testid={`deny-request-${req.id}`}
+                            >
+                              <X className="w-3.5 h-3.5" />
+                              Deny
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           )}
         </div>
       )}

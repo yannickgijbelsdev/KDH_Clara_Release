@@ -419,3 +419,50 @@ async def _sync_features_for_package(package_id: str):
     ).to_list(500)
     for a in assignments:
         await _sync_site_features(a["main_site_id"], pkg["features"])
+
+
+
+# ─── LICENSE REQUESTS ─────────────────────────────────────────────
+
+@licenses_router.get("/requests")
+async def list_license_requests(current_user: dict = Depends(get_current_user)):
+    """List all license requests. Network admin only."""
+    if not current_user.get("is_network_admin"):
+        raise HTTPException(status_code=403, detail="Network admin access required")
+    requests = await db.license_requests.find(
+        {}, {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    return requests
+
+
+@licenses_router.put("/requests/{request_id}")
+async def update_license_request(
+    request_id: str,
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Approve or deny a license request."""
+    if not current_user.get("is_network_admin"):
+        raise HTTPException(status_code=403, detail="Network admin access required")
+
+    req = await db.license_requests.find_one({"id": request_id}, {"_id": 0})
+    if not req:
+        raise HTTPException(status_code=404, detail="License request not found")
+
+    new_status = data.get("status")
+    if new_status not in ("approved", "denied"):
+        raise HTTPException(status_code=400, detail="Status must be 'approved' or 'denied'")
+
+    now = datetime.now(timezone.utc).isoformat()
+    await db.license_requests.update_one(
+        {"id": request_id},
+        {"$set": {
+            "status": new_status,
+            "reviewed_by": current_user.get("name", ""),
+            "reviewed_at": now,
+            "notes": data.get("notes", ""),
+            "updated_at": now,
+        }}
+    )
+    logger.info(f"License request {request_id} {new_status} by {current_user.get('email')}")
+    return {"status": new_status, "id": request_id}
