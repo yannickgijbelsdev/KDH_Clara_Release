@@ -3316,3 +3316,34 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 - Status: ALL VERIFIED (iteration_94 - 100% pass rate)
 
+
+
+### February 2026 - Top Loader & Setup Wizard
+- [x] **Feature: Global Top Loading Bar (TopLoader)**:
+  - Thin 3px orange gradient progress bar at very top of page (z-[9999])
+  - Replaces old full-page loading spinners throughout the app
+  - Integrated via React Context (TopLoaderProvider) wrapping entire App
+  - Used in NetworkDashboard (fetchMainSites) and MainSiteDashboardLayout (loading state)
+  - Components: TopLoader.js (provider + hook + UI)
+  - Status: VERIFIED (iteration_98 - 100% pass rate)
+
+- [x] **Feature: Setup Wizard for Site Creation**:
+  - Multi-step popup modal when creating a new site
+  - 8 animated steps with icons and progress messages
+  - Steps: creating site, workspace setup, datacenter connection, menu creation, preparation, firewall setup, Global Protect setup, completion
+  - Green "Get Started" button appears when all steps complete
+  - Component: SetupWizard.js, triggered from NetworkDashboard.js
+  - Status: VERIFIED (iteration_98 - 100% pass rate)
+
+- [x] **Fix: License Expiry Warning Styling**:
+  - Confirmed as plain red text (text-red-600 font-semibold), not a badge
+  - data-testid="license-expiry-warning" in MainSiteDashboardLayout.js
+  - Status: VERIFIED (iteration_98 - already correct)
+
+## Pending/Backlog
+- [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
+- [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
+- [ ] (P1) WordPress Plugin Integration finalization
+- [ ] (P1) Cleanup old ProRadio sync code
+- [ ] (P2) Payment Gateway integration (Stripe/Mollie)
+- [ ] (P2) Stream Monitor VU Meters
