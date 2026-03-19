@@ -512,6 +512,10 @@ export default function NetworkDashboard() {
       if (!submitData.linked_main_site_id) {
         delete submitData.linked_main_site_id;
       }
+      // Assign to selected environment (or default if 'all')
+      if (selectedEnvId && selectedEnvId !== 'all') {
+        submitData.environment_id = selectedEnvId;
+      }
 
       const res = await fetch(`${API}/api/main-sites`, {
         method: 'POST',

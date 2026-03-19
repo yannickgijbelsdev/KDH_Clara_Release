@@ -165,9 +165,16 @@ async def create_main_site(
         "site_type": data.site_type,
         "linked_main_site_id": data.linked_main_site_id,
         "is_demo": data.is_demo,
+        "environment_id": data.environment_id,
         "created_at": now,
         "updated_at": now
     }
+    
+    # If no environment_id provided, assign to default environment
+    if not main_site_doc["environment_id"]:
+        default_env = await db.environments.find_one({"is_default": True}, {"_id": 0, "id": 1})
+        if default_env:
+            main_site_doc["environment_id"] = default_env["id"]
     
     await db.main_sites.insert_one(main_site_doc)
     main_site_doc.pop("_id", None)

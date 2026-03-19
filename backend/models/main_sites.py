@@ -58,6 +58,7 @@ class MainSiteCreate(BaseModel):
     site_type: str = "radio"  # "radio", "technical", "server", or "task_scheduler"
     linked_main_site_id: Optional[str] = None  # For server sites: linked parent main site
     is_demo: bool = False  # Demo sites bypass license requirements
+    environment_id: Optional[str] = None  # Assign to specific environment
 
 
 class MainSiteUpdate(BaseModel):
