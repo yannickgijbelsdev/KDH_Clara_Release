@@ -8,6 +8,7 @@ import { DevToolsProvider } from '../context/DevToolsContext';
 import DevToolsPanel from './DevTools/DevToolsPanel';
 import DevToolsInspector from './DevTools/DevToolsInspector';
 import HelpButton from './Tickets/HelpButton';
+import ClaraCLI from './ClaraCLI';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
@@ -1175,6 +1176,7 @@ const MainSiteDashboardContent = () => {
     {isClone && <DevToolsPanel />}
     {isClone && <DevToolsInspector />}
     {mainSite?.site_type !== 'technical' && <HelpButton />}
+    {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && <ClaraCLI />}
     </DevToolsProvider>
   );
 };
