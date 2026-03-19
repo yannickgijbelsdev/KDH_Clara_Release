@@ -5,7 +5,9 @@ import { MainSiteProvider, useMainSite } from './context/MainSiteContext';
 import { Toaster } from './components/ui/sonner';
 import { TopLoaderProvider } from './components/TopLoader';
 import SessionWarningModal from './components/SessionWarningModal';
-import TwoFactorEnforcement from './components/TwoFactorEnforcement';import LoginPage from './pages/LoginPage';
+import TwoFactorEnforcement from './components/TwoFactorEnforcement';
+import LoginWizard from './components/LoginWizard';
+import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
 import MainSiteDashboardLayout from './components/MainSiteDashboardLayout';
 import NetworkDashboard from './pages/Network/NetworkDashboard';
@@ -325,6 +327,7 @@ function App() {
             <CallProvider>
               <TwoFactorEnforcementWrapper />
               <ForcePasswordChangeModal />
+              <LoginWizardWrapper />
               <AppRoutes />
               <CallWidget />
               <SessionWarningModal />
@@ -361,6 +364,32 @@ const TwoFactorEnforcementWrapper = () => {
         refreshUser();
         setDismissed(true);
       }}
+    />
+  );
+};
+
+const LoginWizardWrapper = () => {
+  const [showWizard, setShowWizard] = useState(false);
+
+  useEffect(() => {
+    const flag = sessionStorage.getItem('show_login_wizard');
+    if (flag === 'true') {
+      sessionStorage.removeItem('show_login_wizard');
+      setShowWizard(true);
+    }
+  }, []);
+
+  // Listen for login wizard trigger
+  useEffect(() => {
+    const handler = () => setShowWizard(true);
+    window.addEventListener('show-login-wizard', handler);
+    return () => window.removeEventListener('show-login-wizard', handler);
+  }, []);
+
+  return (
+    <LoginWizard
+      open={showWizard}
+      onClose={() => setShowWizard(false)}
     />
   );
 };

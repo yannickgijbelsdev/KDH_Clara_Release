@@ -59,7 +59,8 @@ const LoginPage = () => {
         setRequires2FA(true);
         toast.info('Enter your 2FA code');
       } else {
-        toast.success('Welcome back!');
+        sessionStorage.setItem('show_login_wizard', 'true');
+        window.dispatchEvent(new Event('show-login-wizard'));
       }
     } catch (error) {
       const message = error.response?.data?.detail || 'Something went wrong';
