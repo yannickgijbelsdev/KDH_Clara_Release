@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTopLoader } from '../../components/TopLoader';
+import SetupWizard from '../../components/SetupWizard';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -367,7 +369,9 @@ export default function NetworkDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
   const [expandedGroups, setExpandedGroups] = useState(['overview', 'management']);
   const [environments, setEnvironments] = useState([]);
-  const [selectedEnvId, setSelectedEnvId] = useState(null); // will be set to first env on load
+  const [selectedEnvId, setSelectedEnvId] = useState(null);
+  const [setupWizard, setSetupWizard] = useState({ open: false, siteType: 'radio', siteName: '' });
+  const { startLoading, stopLoading } = useTopLoader();
 
   // Navigation groups matching MainSiteDashboardLayout pattern
   const NAV_GROUPS = [
@@ -456,6 +460,7 @@ export default function NetworkDashboard() {
   }, []);
 
   const fetchMainSites = async () => {
+    startLoading();
     try {
       const res = await fetch(`${API}/api/main-sites`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -468,6 +473,7 @@ export default function NetworkDashboard() {
       console.error('Failed to fetch main sites:', err);
     } finally {
       setLoading(false);
+      stopLoading();
     }
   };
 
@@ -535,8 +541,8 @@ export default function NetworkDashboard() {
       });
 
       if (res.ok) {
-        toast.success('Main site created successfully');
         setShowCreateDialog(false);
+        setSetupWizard({ open: true, siteType: formData.site_type || 'radio', siteName: formData.name });
         setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio', linked_main_site_id: '' });
         fetchMainSites();
       } else {
@@ -680,11 +686,7 @@ export default function NetworkDashboard() {
   }, {});
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
-        <div className="animate-pulse text-zinc-400">Loading...</div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -1819,6 +1821,14 @@ export default function NetworkDashboard() {
           onClose={() => setRolesPanel({ open: false, siteId: null, siteName: '' })}
         />
       )}
+
+      {/* Setup Wizard - shown after creating a new site */}
+      <SetupWizard
+        open={setupWizard.open}
+        onClose={() => setSetupWizard({ open: false, siteType: 'radio', siteName: '' })}
+        siteType={setupWizard.siteType}
+        siteName={setupWizard.siteName}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Outlet, NavLink, useNavigate, useLocation, useParams } from 'react-rout
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
+import { useTopLoader } from './TopLoader';
 import { PermissionsProvider, usePermissions } from '../context/PermissionsContext';
 import { DevToolsProvider } from '../context/DevToolsContext';
 import DevToolsPanel from './DevTools/DevToolsPanel';
@@ -167,9 +168,16 @@ const MainSiteDashboardContent = () => {
   const brandName = brandingData.platform_name || 'Clara';
   const { mainSite, mainSiteSlug, userRole, loading, error, hasFeature, isAdmin } = useMainSite();
   const { canView, canCreate, canEdit, canDelete, roleInfo } = usePermissions();
+  const { startLoading, stopLoading } = useTopLoader();
   const navigate = useNavigate();
   const location = useLocation();
   const { siteId } = useParams();
+
+  // Show top loader during main site loading
+  useEffect(() => {
+    if (loading) startLoading();
+    else stopLoading();
+  }, [loading]);
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState(['shows', 'content', 'site']);
@@ -487,11 +495,7 @@ const MainSiteDashboardContent = () => {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
-        <div className="animate-pulse text-zinc-400">Loading...</div>
-      </div>
-    );
+    return null;
   }
 
   // Error state
