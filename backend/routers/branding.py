@@ -122,7 +122,9 @@ async def upload_logo(
 
     content = await file.read()
     content_type = file.content_type or "image/png"
-
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, content_type)
     # Delete old logo if exists
     branding = await get_branding()
     if branding.get("logo_url"):
@@ -153,8 +155,8 @@ async def upload_favicon(
 
     content = await file.read()
     content_type = file.content_type or "image/x-icon"
-
-    # Delete old favicon if exists
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, content_type)
     branding = await get_branding()
     if branding.get("favicon_url"):
         await _delete_branding_file(branding["favicon_url"])
@@ -184,6 +186,8 @@ async def upload_login_image(
 
     content = await file.read()
     content_type = file.content_type or "image/jpeg"
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, content_type)
 
     url = await _upload_branding_file(content, file.filename, content_type, "login")
 

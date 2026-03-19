@@ -37,20 +37,31 @@ def is_s3_configured():
     """Check if S3 is properly configured."""
     return bool(S3_ACCESS_KEY and S3_SECRET_KEY and S3_ENDPOINT and S3_BUCKET)
 
-async def upload_file_to_s3(file_content: bytes, file_key: str, content_type: str = None) -> dict:
+async def upload_file_to_s3(
+    file_content: bytes, file_key: str, content_type: str = None,
+    main_site_id: str = None, user_id: str = None, user_name: str = None,
+) -> dict:
     """
-    Upload a file to S3 storage.
+    Upload a file to S3 storage (with Clara Global Protect scan).
     
     Args:
         file_content: The file bytes to upload
         file_key: The key/path where the file will be stored (e.g., 'media/uuid.jpg')
         content_type: Optional MIME type of the file
+        main_site_id: Optional site ID for scan logging
+        user_id: Optional user ID for scan logging
+        user_name: Optional user name for scan logging
         
     Returns:
         dict with 'url' and 'key' on success, or raises exception
     """
     if not is_s3_configured():
         raise Exception("S3 storage is not configured")
+    
+    # Clara Global Protect: scan file before upload
+    from services.global_protect import check_and_raise
+    filename = file_key.rsplit("/", 1)[-1] if "/" in file_key else file_key
+    await check_and_raise(file_content, filename, content_type, main_site_id, user_id, user_name)
     
     try:
         s3_client = get_s3_client()

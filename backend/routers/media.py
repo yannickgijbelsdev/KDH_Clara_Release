@@ -128,6 +128,13 @@ async def upload_media_asset(
     file_content = await file.read()
     file_size = len(file_content)
     
+    # Clara Global Protect: scan BEFORE any upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(
+        file_content, file.filename, content_type,
+        main_site_id=main_site_id, user_id=current_user.get("id"), user_name=current_user.get("name"),
+    )
+    
     if file_size > MAX_MEDIA_SIZE:
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 100MB")
     

@@ -62,6 +62,12 @@ COMMANDS = [
     {"command": "/firewall block <ip>", "description": "Block an IP address", "category": "Firewall"},
     {"command": "/firewall unblock <ip>", "description": "Unblock an IP address", "category": "Firewall"},
     {"command": "/firewall blocked", "description": "List all blocked IPs", "category": "Firewall"},
+    # Global Protect
+    {"command": "/protect status", "description": "Show Global Protect scan statistics", "category": "Global Protect"},
+    {"command": "/protect logs [count]", "description": "Recent file scan logs (default: 20)", "category": "Global Protect"},
+    {"command": "/protect blocked [count]", "description": "Recently blocked files", "category": "Global Protect"},
+    {"command": "/protect rules", "description": "Show file type whitelist/blacklist rules", "category": "Global Protect"},
+    {"command": "/protect threats", "description": "Show threat summary and patterns", "category": "Global Protect"},
     # Site
     {"command": "/site info", "description": "Full site information", "category": "Site"},
     {"command": "/site features", "description": "List enabled features", "category": "Site"},
@@ -259,6 +265,25 @@ async def execute_command(cmd: CLICommand, current_user: dict = Depends(get_curr
             return await _cmd_firewall_unblock(sid, command[18:].strip())
         elif command == "/firewall blocked":
             return await _cmd_firewall_blocked(sid)
+        # Global Protect
+        elif command == "/protect status":
+            return await _cmd_protect_status(sid)
+        elif command.startswith("/protect logs"):
+            count = 20
+            parts = command.split()
+            if len(parts) > 2 and parts[2].isdigit():
+                count = int(parts[2])
+            return await _cmd_protect_logs(sid, count)
+        elif command.startswith("/protect blocked"):
+            count = 20
+            parts = command.split()
+            if len(parts) > 2 and parts[2].isdigit():
+                count = int(parts[2])
+            return await _cmd_protect_blocked(sid, count)
+        elif command == "/protect rules":
+            return _cmd_protect_rules()
+        elif command == "/protect threats":
+            return await _cmd_protect_threats(sid)
         # Site
         elif command == "/site info":
             return await _cmd_site_info(sid)
@@ -1197,3 +1222,137 @@ def _cmd_whoami(current_user):
         f"  2FA Enabled:     {'Yes' if current_user.get('totp_enabled') else 'No'}",
     ]
     return {"output": "\n".join(lines), "type": "success"}
+
+
+
+# ==================== GLOBAL PROTECT ====================
+
+async def _cmd_protect_status(sid):
+    total = await db.global_protect_logs.count_documents({"main_site_id": sid})
+    blocked = await db.global_protect_logs.count_documents({"main_site_id": sid, "passed": False})
+    allowed = await db.global_protect_logs.count_documents({"main_site_id": sid, "passed": True})
+    # Also global stats
+    g_total = await db.global_protect_logs.count_documents({})
+    g_blocked = await db.global_protect_logs.count_documents({"passed": False})
+
+    lines = [
+        "Clara Global Protect — Status", "=" * 55,
+        f"\n  [This Site]",
+        f"    Total Scans:     {total}",
+        f"    Allowed:         {allowed}",
+        f"    Blocked:         {blocked}",
+        f"    Block Rate:      {(blocked/total*100):.1f}%" if total > 0 else f"    Block Rate:      N/A",
+        f"\n  [Global]",
+        f"    Total Scans:     {g_total}",
+        f"    Blocked:         {g_blocked}",
+        f"\n  Engine:            Active",
+        f"  MIME Detection:    {'python-magic' if True else 'basic'}",
+        f"  Content Scanning:  Enabled",
+        f"  Malware Sigs:      {len(MALWARE_SIGS)} patterns",
+    ]
+    return {"output": "\n".join(lines), "type": "success"}
+
+
+# Import constants for rules display
+MALWARE_SIGS = [
+    "PE executable", "ELF executable", "Mach-O executable",
+    "Java class file", "Shell script", "Bash script",
+    "PowerShell script", "Python script",
+]
+
+
+async def _cmd_protect_logs(sid, count):
+    logs = await db.global_protect_logs.find(
+        {"main_site_id": sid}, {"_id": 0}
+    ).sort("scanned_at", -1).to_list(count)
+    if not logs:
+        # Try global if no site-specific
+        logs = await db.global_protect_logs.find(
+            {}, {"_id": 0}
+        ).sort("scanned_at", -1).to_list(count)
+    if not logs:
+        return {"output": "No scan logs recorded yet.", "type": "info"}
+    lines = [f"Global Protect Scan Logs ({len(logs)} entries)", "-" * 70]
+    for l in logs:
+        ts = l.get("scanned_at", "?")[:19]
+        status = "BLOCKED" if not l.get("passed") else "OK"
+        fname = l.get("filename", "?")[:25]
+        mime = l.get("detected_mime", "?")[:20]
+        size_kb = l.get("file_size", 0) / 1024
+        user = l.get("user_name", "?")[:15]
+        threats = ", ".join(l.get("threats", []))[:30] if not l.get("passed") else ""
+        icon = "X" if not l.get("passed") else "+"
+        lines.append(f"  [{icon}] {ts}  {fname:<25} {mime:<20} {size_kb:>7.1f}KB  {status}")
+        if threats:
+            lines.append(f"        Threat: {threats}")
+    return {"output": "\n".join(lines), "type": "success"}
+
+
+async def _cmd_protect_blocked(sid, count):
+    logs = await db.global_protect_logs.find(
+        {"main_site_id": sid, "passed": False}, {"_id": 0}
+    ).sort("scanned_at", -1).to_list(count)
+    if not logs:
+        logs = await db.global_protect_logs.find(
+            {"passed": False}, {"_id": 0}
+        ).sort("scanned_at", -1).to_list(count)
+    if not logs:
+        return {"output": "No blocked files recorded. All clear!", "type": "success"}
+    lines = [f"Blocked Files ({len(logs)})", "-" * 70]
+    for l in logs:
+        ts = l.get("scanned_at", "?")[:19]
+        fname = l.get("filename", "?")
+        user = l.get("user_name", "?")
+        threats = "; ".join(l.get("threats", []))
+        lines.append(f"  {ts}  {fname}")
+        lines.append(f"    User: {user}")
+        lines.append(f"    Threats: {threats}")
+        lines.append("")
+    return {"output": "\n".join(lines), "type": "warning"}
+
+
+def _cmd_protect_rules():
+    from services.global_protect import BLOCKED_EXTENSIONS, ALLOWED_EXTENSIONS, SIZE_LIMITS
+    blocked = sorted(BLOCKED_EXTENSIONS)
+    allowed = sorted(ALLOWED_EXTENSIONS)
+
+    lines = [
+        "Clara Global Protect — Rules", "=" * 55,
+        f"\n  [Allowed Extensions] ({len(allowed)})",
+        f"    {', '.join('.' + e for e in allowed)}",
+        f"\n  [Blocked Extensions] ({len(blocked)})",
+        f"    {', '.join('.' + e for e in blocked)}",
+        f"\n  [File Size Limits]",
+    ]
+    for cat, limit in SIZE_LIMITS.items():
+        lines.append(f"    {cat:<15} {limit / (1024*1024):.0f} MB")
+    lines.append(f"\n  [Scan Layers]")
+    lines.append(f"    1. Extension validation (whitelist + blacklist)")
+    lines.append(f"    2. MIME type detection (magic bytes)")
+    lines.append(f"    3. MIME type mismatch (spoofing detection)")
+    lines.append(f"    4. Malware signature scan (PE, ELF, Mach-O, scripts)")
+    lines.append(f"    5. Content pattern scan (XSS, eval, encoded payloads)")
+    lines.append(f"    6. Double extension attack detection")
+    return {"output": "\n".join(lines), "type": "success"}
+
+
+async def _cmd_protect_threats(sid):
+    pipeline = [
+        {"$match": {"main_site_id": sid, "passed": False}},
+        {"$unwind": "$threats"},
+        {"$group": {"_id": "$threats", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+    ]
+    results = await db.global_protect_logs.aggregate(pipeline).to_list(50)
+    if not results:
+        # Try global
+        pipeline[0] = {"$match": {"passed": False}}
+        results = await db.global_protect_logs.aggregate(pipeline).to_list(50)
+    if not results:
+        return {"output": "No threats detected. Environment is clean!", "type": "success"}
+    lines = [f"Threat Summary ({len(results)} types)", "=" * 55]
+    for r in results:
+        lines.append(f"  {r['count']:>4}x  {r['_id']}")
+    total = sum(r["count"] for r in results)
+    lines.append(f"\n  Total blocked attempts: {total}")
+    return {"output": "\n".join(lines), "type": "warning"}

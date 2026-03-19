@@ -596,6 +596,13 @@ async def upload_editor_file(
     # Read file content
     contents = await file.read()
     
+    # Clara Global Protect: scan BEFORE any upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(
+        contents, file.filename, file.content_type,
+        main_site_id=None, user_id=current_user.get("id"), user_name=current_user.get("name"),
+    )
+    
     # Validate file size (100MB max for video/audio, 10MB for others)
     is_video = (file.content_type and file.content_type.startswith('video/')) or file_ext in ['mp4', 'mov', 'webm', 'avi']
     is_audio = (file.content_type and file.content_type.startswith('audio/')) or file_ext in ['mp3', 'wav', 'ogg', 'm4a']

@@ -253,6 +253,10 @@ async def upload_in_sound(
     file_path = os.path.join(AUDIO_TRIGGER_UPLOAD_DIR, filename)
     
     content = await file.read()
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, file.content_type,
+        user_id=current_user.get("id"), user_name=current_user.get("name"))
     with open(file_path, "wb") as f:
         f.write(content)
     
@@ -310,6 +314,10 @@ async def upload_out_sound(
     file_path = os.path.join(AUDIO_TRIGGER_UPLOAD_DIR, filename)
     
     content = await file.read()
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, file.content_type,
+        user_id=current_user.get("id"), user_name=current_user.get("name"))
     with open(file_path, "wb") as f:
         f.write(content)
     

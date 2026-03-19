@@ -329,6 +329,11 @@ async def upload_site_logo(
     content = await file.read()
     ext = file.filename.split(".")[-1] if "." in file.filename else "png"
     
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, file.content_type,
+        user_id=current_user.get("id"), user_name=current_user.get("name"))
+    
     if is_s3_configured():
         # Upload to S3
         file_key = f"sites/{site_id}/logo.{ext}"
@@ -378,6 +383,11 @@ async def upload_site_header(
     
     content = await file.read()
     ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, file.content_type,
+        user_id=current_user.get("id"), user_name=current_user.get("name"))
     
     if is_s3_configured():
         # Upload to S3
@@ -429,6 +439,11 @@ async def upload_site_audio(
     content = await file.read()
     ext = file.filename.split(".")[-1] if "." in file.filename else "mp3"
     audio_format = "aac" if ext.lower() == "aac" else "mp3"
+    
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, file.content_type,
+        user_id=current_user.get("id"), user_name=current_user.get("name"))
     
     if is_s3_configured():
         # Upload to S3

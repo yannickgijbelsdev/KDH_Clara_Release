@@ -709,6 +709,12 @@ async def upload_chat_attachment(
     # Read file content
     content = await file.read()
     
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    main_site_id = await get_main_site_id_from_header(request) if hasattr(request, 'headers') else None
+    await check_and_raise(content, file.filename, content_type,
+        main_site_id=main_site_id, user_id=current_user.get("id"), user_name=current_user.get("name"))
+    
     # Generate unique filename
     ext = os.path.splitext(file.filename)[1] if file.filename else ""
     unique_filename = f"{uuid.uuid4()}{ext}"

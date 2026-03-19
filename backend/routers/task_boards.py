@@ -518,6 +518,12 @@ async def add_attachment(
     from services.s3_storage import upload_file_to_s3, is_s3_configured, get_s3_url
 
     content = await file.read()
+    
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, file.content_type,
+        user_id=current_user.get("id"), user_name=current_user.get("name"))
+    
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large (max 10MB)")
 

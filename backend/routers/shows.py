@@ -308,6 +308,12 @@ async def upload_show_title_image(
     
     # Read file content
     content = await file.read()
+    
+    # Clara Global Protect: scan before upload
+    from services.global_protect import check_and_raise
+    await check_and_raise(content, file.filename, content_type,
+        user_id=current_user.get("id"), user_name=current_user.get("name"))
+    
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(status_code=400, detail="File too large. Max 10MB")
     
