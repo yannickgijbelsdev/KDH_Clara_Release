@@ -3294,6 +3294,23 @@ now = now_brussels()  # Automatically handles CET/CEST
   - File: backend/routers/cli.py (complete rewrite)
   - Status: VERIFIED (iteration_96 - 100% pass rate, 27/27 backend + all frontend)
 
+
+### March 19, 2026 - Clara Global Protect (File Security Scanner)
+- [x] **Feature: Clara Global Protect — 6-layer file scanning before S3 upload**:
+  - Layer 1: Extension validation (42 allowed, 49 blocked)
+  - Layer 2: MIME type detection (python-magic)
+  - Layer 3: MIME mismatch detection (anti-spoofing, e.g. exe renamed to .jpg)
+  - Layer 4: Malware signature scan (PE, ELF, Mach-O, Java, shell scripts)
+  - Layer 5: Content pattern scanning (XSS, eval, encoded payloads, EICAR)
+  - Layer 6: Double extension attack detection
+  - Integrated into ALL upload endpoints: editor-files, media, avatars, sites, branding, chat, task_boards, audio_trigger
+  - Blocked files return HTTP 403 with "Blocked by Clara Global Protect: [threat details]"
+  - All scans logged to `global_protect_logs` collection
+  - CLI commands: /protect status, /protect logs, /protect blocked, /protect rules, /protect threats
+  - File size limits: image 15MB, video 150MB, audio 100MB, document 25MB
+  - Backend: services/global_protect.py (new), s3_storage.py (modified), server.py, media.py, sites.py, users.py, chat.py, branding.py, task_boards.py, audio_trigger.py, shows.py (all modified)
+  - Status: VERIFIED (iteration_97 - 100% pass rate, 16/16 tests)
+
   - Status: VERIFIED (iteration_95 - 100% pass rate, 15/15 backend + all frontend)
 
 
