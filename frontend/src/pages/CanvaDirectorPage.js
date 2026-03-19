@@ -25,9 +25,10 @@ const CanvaDirectorPage = () => {
 
   // Config panel (collapsible, like ZeroTier)
   const [configOpen, setConfigOpen] = useState(false);
-  const [configForm, setConfigForm] = useState({ client_id: '', client_secret: '', redirect_uri: '' });
+  const [configForm, setConfigForm] = useState({ client_id: '', client_secret: '', redirect_uri: '', linked_main_site_ids: [] });
   const [savingConfig, setSavingConfig] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
+  const [allMainSites, setAllMainSites] = useState([]);
 
   // Create design
   const [createOpen, setCreateOpen] = useState(false);
@@ -50,7 +51,12 @@ const CanvaDirectorPage = () => {
       if (res.ok) {
         const data = await res.json();
         setConfig(data);
-        setConfigForm({ client_id: data.client_id || '', client_secret: '', redirect_uri: data.redirect_uri || '' });
+        setConfigForm({
+          client_id: data.client_id || '',
+          client_secret: '',
+          redirect_uri: data.redirect_uri || '',
+          linked_main_site_ids: data.linked_main_site_ids || [],
+        });
       }
     } catch { /* ignore */ }
   }, [token, mainSite?.id]);
@@ -88,6 +94,14 @@ const CanvaDirectorPage = () => {
       setLoading(true);
       await fetchConfig();
       await fetchAuthStatus();
+      // Fetch all main sites for linking
+      try {
+        const res = await fetch(`${API}/main-sites`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const sites = await res.json();
+          setAllMainSites(sites.filter(s => s.site_type !== 'server' && s.site_type !== 'task_scheduler'));
+        }
+      } catch { /* ignore */ }
       setLoading(false);
     };
     load();
@@ -120,6 +134,7 @@ const CanvaDirectorPage = () => {
         client_id: configForm.client_id,
         client_secret: configForm.client_secret || config.client_secret?.replace('****', ''),
         redirect_uri: configForm.redirect_uri,
+        linked_main_site_ids: configForm.linked_main_site_ids,
       };
       const res = await fetch(`${API}/canva/config`, { method: 'PUT', headers, body: JSON.stringify(body) });
       if (res.ok) {
@@ -348,6 +363,43 @@ const CanvaDirectorPage = () => {
               data-testid="canva-redirect-uri"
             />
             <p className="text-xs text-zinc-600 mt-1">Set this in your Canva Developer Portal as the callback URL</p>
+          </div>
+          <div className="mb-4">
+            <label className="text-sm text-zinc-400 mb-2 block">Linked Main Sites</label>
+            <p className="text-xs text-zinc-600 mb-2">Select which main sites can use this Canva Director for social media posts after publishing.</p>
+            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+              {allMainSites.map(site => {
+                const isLinked = configForm.linked_main_site_ids.includes(site.id);
+                return (
+                  <label
+                    key={site.id}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
+                      isLinked ? 'bg-[#7d2ae8]/15 border border-[#7d2ae8]/30' : 'bg-zinc-800/50 border border-zinc-800 hover:border-zinc-700'
+                    }`}
+                    data-testid={`canva-link-site-${site.id}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isLinked}
+                      onChange={() => {
+                        setConfigForm(p => ({
+                          ...p,
+                          linked_main_site_ids: isLinked
+                            ? p.linked_main_site_ids.filter(id => id !== site.id)
+                            : [...p.linked_main_site_ids, site.id]
+                        }));
+                      }}
+                      className="accent-[#7d2ae8] w-4 h-4"
+                    />
+                    <span className="text-sm text-white">{site.name}</span>
+                    <span className="text-[10px] text-zinc-500 ml-auto">{site.site_type === 'technical' ? 'Technical' : 'Standard'}</span>
+                  </label>
+                );
+              })}
+              {allMainSites.length === 0 && (
+                <p className="text-xs text-zinc-500 py-2">No main sites available</p>
+              )}
+            </div>
           </div>
           <Button
             onClick={handleSaveConfig}

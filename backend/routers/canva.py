@@ -27,6 +27,7 @@ class CanvaConfigUpdate(BaseModel):
     client_id: str
     client_secret: str
     redirect_uri: Optional[str] = None
+    linked_main_site_ids: Optional[List[str]] = None
 
 
 class CanvaDesignCreate(BaseModel):
@@ -157,6 +158,7 @@ async def get_config(
         "client_id": config.get("client_id", ""),
         "client_secret": config.get("client_secret", ""),
         "redirect_uri": config.get("redirect_uri", ""),
+        "linked_main_site_ids": config.get("linked_main_site_ids", []),
     }
 
 
@@ -176,18 +178,50 @@ async def update_config(
         raise HTTPException(status_code=403, detail="Admin access required")
 
     now = datetime.now(timezone.utc).isoformat()
+    update_fields = {
+        "main_site_id": main_site_id,
+        "client_id": data.client_id,
+        "client_secret": data.client_secret,
+        "redirect_uri": data.redirect_uri or "",
+        "updated_at": now,
+    }
+    if data.linked_main_site_ids is not None:
+        update_fields["linked_main_site_ids"] = data.linked_main_site_ids
     await db.canva_config.update_one(
         {"main_site_id": main_site_id},
-        {"$set": {
-            "main_site_id": main_site_id,
-            "client_id": data.client_id,
-            "client_secret": data.client_secret,
-            "redirect_uri": data.redirect_uri or "",
-            "updated_at": now,
-        }},
+        {"$set": update_fields},
         upsert=True,
     )
     return {"status": "ok", "message": "Canva configuration saved"}
+
+
+@canva_router.get("/check-linked/{main_site_id}")
+async def check_canva_linked(
+    main_site_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Check if a Canva Director is configured and linked to a given main site.
+    Called from the Content Library after publishing."""
+    config = await db.canva_config.find_one(
+        {
+            "linked_main_site_ids": main_site_id,
+            "client_id": {"$ne": ""},
+        },
+        {"_id": 0, "main_site_id": 1}
+    )
+    if not config:
+        return {"available": False}
+
+    # Get the server site slug for navigation
+    server_site = await db.main_sites.find_one(
+        {"id": config["main_site_id"]},
+        {"_id": 0, "slug": 1, "name": 1}
+    )
+    return {
+        "available": True,
+        "canva_server_slug": server_site.get("slug", "") if server_site else "",
+        "canva_server_name": server_site.get("name", "") if server_site else "",
+    }
 
 
 # ─── OAUTH FLOW ───────────────────────────────────────────────────

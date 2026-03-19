@@ -113,6 +113,8 @@ const ContentDetailPage = () => {
   // Image resize state
   const [resizeFile, setResizeFile] = useState(null);
   const [resizeSiteId, setResizeSiteId] = useState(null);
+  // Canva social media popup
+  const [canvaPrompt, setCanvaPrompt] = useState({ open: false, slug: '', name: '' });
   // Audit log state
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditLogsExpanded, setAuditLogsExpanded] = useState(false);
@@ -421,6 +423,24 @@ const ContentDetailPage = () => {
       // Refresh content to get updated publish statuses
       await fetchContent();
       setPublishDialogOpen(false);
+
+      // Check if Canva Director is available for social media posts
+      if (successCount > 0) {
+        try {
+          const mainSiteRes = await axios.get(`${API}/main-sites`);
+          const site = mainSiteRes.data.find(s => s.slug === mainSiteSlug);
+          if (site) {
+            const canvaRes = await axios.get(`${API}/canva/check-linked/${site.id}`);
+            if (canvaRes.data.available) {
+              setCanvaPrompt({
+                open: true,
+                slug: canvaRes.data.canva_server_slug,
+                name: canvaRes.data.canva_server_name,
+              });
+            }
+          }
+        } catch { /* Canva not available, no popup */ }
+      }
     } catch (error) {
       toast.error('Failed to publish to WordPress');
     } finally {
@@ -1309,6 +1329,38 @@ const ContentDetailPage = () => {
         onClose={() => { setResizeFile(null); setResizeSiteId(null); }}
         onResized={handleResized}
       />
+
+      {/* Social Media / Canva Prompt */}
+      <Dialog open={canvaPrompt.open} onOpenChange={open => !open && setCanvaPrompt({ open: false, slug: '', name: '' })}>
+        <DialogContent className="sm:max-w-md bg-[#0c0c0c] border-zinc-800" data-testid="canva-social-prompt">
+          <DialogHeader>
+            <DialogTitle className="text-white">Create Social Media Post?</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Your content has been published successfully. Would you like to create a social media post for it in Canva?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              variant="outline"
+              className="border-zinc-700 text-zinc-400"
+              onClick={() => setCanvaPrompt({ open: false, slug: '', name: '' })}
+              data-testid="canva-social-skip"
+            >
+              Skip
+            </Button>
+            <Button
+              className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white"
+              onClick={() => {
+                setCanvaPrompt({ open: false, slug: '', name: '' });
+                navigate(`/${canvaPrompt.slug}/canva`);
+              }}
+              data-testid="canva-social-go"
+            >
+              Open Canva Director
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
