@@ -3420,6 +3420,25 @@ now = now_brussels()  # Automatically handles CET/CEST
   - DB collections: `domain_configs`, `subdomain_routes`, `cloudflare_config`
   - Status: VERIFIED (iteration_104 - 100% backend + 100% frontend pass rate)
 
+### March 2026 - Cross-Subdomain Authentication (Exchange Token System)
+- [x] **Feature: Microsoft-style cross-subdomain login flow**:
+  - Niet-ingelogde gebruikers op clara.koodh.com worden doorgestuurd naar login.koodh.com
+  - Na succesvolle login wordt een eenmalig exchange token aangemaakt (30s geldig, single-use)
+  - Redirect terug naar clara.koodh.com met exchange token in URL
+  - Frontend wisselt het token automatisch in voor een echte JWT en ruimt de URL op
+  - Veiligheidsmaatregelen: eenmalig gebruik, 30s verloopdatum, IP tracking, audit logging
+  - Backend: 3 nieuwe endpoints in `routers/auth.py`:
+    - `POST /api/auth/exchange-token/create` (vereist auth)
+    - `POST /api/auth/exchange-token/redeem` (publiek endpoint)
+    - `GET /api/auth/subdomain-config` (publiek, retourneert actieve routing)
+  - Frontend: `services/subdomainAuth.js` (volledige helper service)
+  - Frontend: `AuthContext.js` redeemt exchange tokens bij initialisatie
+  - Frontend: `ProtectedRoute` (App.js) detecteert subdomain en redirect naar login.koodh.com
+  - Frontend: `LoginPage.js` maakt exchange token en redirect na cross-subdomain login
+  - Redirect activeert ALLEEN op *.koodh.com hostnames (preview omgeving onaangetast)
+  - DB collection: `exchange_tokens`
+  - Status: VERIFIED (iteration_105 - 100% pass rate, security checks verified)
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
