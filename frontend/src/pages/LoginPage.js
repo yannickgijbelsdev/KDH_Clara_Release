@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { Shield, ArrowLeft, KeyRound, Mail, Loader2 } from 'lucide-react';
+import { getRedirectParam, createExchangeToken, buildAppRedirectUrl, fetchSubdomainConfig } from '../services/subdomainAuth';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -59,6 +60,21 @@ const LoginPage = () => {
         setRequires2FA(true);
         toast.info('Enter your 2FA code');
       } else {
+        // Check if this is a cross-subdomain login (redirect parameter present)
+        const redirectUrl = getRedirectParam();
+        if (redirectUrl) {
+          // Cross-subdomain flow: create exchange token and redirect back
+          const token = localStorage.getItem('token');
+          const subConfig = await fetchSubdomainConfig();
+          const exchangeResult = await createExchangeToken(token, redirectUrl);
+          if (exchangeResult?.exchange_token) {
+            // Redirect to the original URL with exchange token
+            const targetUrl = buildAppRedirectUrl(subConfig, exchangeResult.exchange_token, redirectUrl);
+            window.location.href = targetUrl;
+            return;
+          }
+        }
+        // Normal login flow (no subdomain redirect)
         sessionStorage.setItem('show_login_wizard', 'true');
         window.dispatchEvent(new Event('show-login-wizard'));
       }

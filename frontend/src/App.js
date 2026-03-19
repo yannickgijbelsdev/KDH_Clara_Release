@@ -28,6 +28,7 @@ import LogsPage from './pages/LogsPage';
 import AdminApprovalPage from './pages/AdminApprovalPage';
 import TrashPage from './pages/TrashPage';
 import PersonalSettingsPage from './pages/PersonalSettingsPage';
+import { fetchSubdomainConfig, buildLoginRedirectUrl } from './services/subdomainAuth';
 import RDSSettingsPage from './pages/RDSSettingsPage';
 import RDSBuilderPage from './pages/RDSBuilderPage';
 import RDSSchedulerPage from './pages/RDSSchedulerPage';
@@ -60,8 +61,17 @@ import './App.css';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const [subdomainConfig, setSubdomainConfig] = useState(null);
+  const [configLoaded, setConfigLoaded] = useState(false);
   
-  if (loading) {
+  useEffect(() => {
+    fetchSubdomainConfig().then(config => {
+      setSubdomainConfig(config);
+      setConfigLoaded(true);
+    });
+  }, []);
+  
+  if (loading || !configLoaded) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="animate-pulse text-zinc-400">Loading...</div>
@@ -70,6 +80,22 @@ const ProtectedRoute = ({ children }) => {
   }
   
   if (!user) {
+    // If subdomain routing is enabled and we're on a configured subdomain,
+    // redirect to the login subdomain instead of local /login
+    if (subdomainConfig?.enabled && subdomainConfig?.login_url) {
+      const hostname = window.location.hostname;
+      const baseDomain = subdomainConfig.base_domain;
+      // Only redirect if we're actually on one of the configured subdomains
+      if (baseDomain && hostname.endsWith(`.${baseDomain}`)) {
+        const loginRedirectUrl = buildLoginRedirectUrl(subdomainConfig);
+        window.location.href = loginRedirectUrl;
+        return (
+          <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+            <div className="animate-pulse text-zinc-400">Redirecting to login...</div>
+          </div>
+        );
+      }
+    }
     return <Navigate to="/login" replace />;
   }
   

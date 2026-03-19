@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
+import { extractAndCleanExchangeToken, redeemExchangeToken } from '../services/subdomainAuth';
 
 const AuthContext = createContext(null);
 
@@ -84,6 +85,31 @@ export const AuthProvider = ({ children }) => {
   }, [clearSessionTimers]);
 
   useEffect(() => {
+    // Check for exchange token in URL (cross-subdomain auth)
+    const exchangeToken = extractAndCleanExchangeToken();
+    if (exchangeToken) {
+      redeemExchangeToken(exchangeToken).then(result => {
+        if (result?.token) {
+          localStorage.setItem('token', result.token);
+          if (result.expires_at) {
+            localStorage.setItem('session_expires_at', result.expires_at.toString());
+            setSessionExpiresAt(result.expires_at);
+            setupSessionTimers(result.expires_at);
+          }
+          axios.defaults.headers.common['Authorization'] = `Bearer ${result.token}`;
+          setToken(result.token);
+          setUser(result.user);
+          setLoading(false);
+          // Trigger login wizard for exchange token logins too
+          sessionStorage.setItem('show_login_wizard', 'true');
+          window.dispatchEvent(new Event('show-login-wizard'));
+        } else {
+          setLoading(false);
+        }
+      }).catch(() => setLoading(false));
+      return;
+    }
+
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUser();

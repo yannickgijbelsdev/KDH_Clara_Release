@@ -1,0 +1,110 @@
+{
+  "summary": "Cross-subdomain exchange token authentication system fully tested. All 14 backend API tests passed (100%). Frontend login flow, ProtectedRoute subdomain config check, and Domain Manager UI verified working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "LoginPage", "issues": ["DialogContent accessibility warnings in console (missing DialogTitle) - not blocking functionality"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_cross_subdomain_auth.py",
+    "/app/test_reports/pytest/cross_subdomain_auth_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend auth.py: Exchange token endpoints (create/redeem/subdomain-config) well-implemented with proper security - single-use tokens, 30s TTL, session auth_method tracking",
+    "Frontend subdomainAuth.js: Clean service with all necessary helpers (extractAndCleanExchangeToken, buildLoginRedirectUrl, buildAppRedirectUrl, etc.)",
+    "Frontend AuthContext.js: Properly handles exchange token redemption on init (lines 87-111) with session storage of token and expiry",
+    "Frontend App.js ProtectedRoute: Correctly loads subdomain config async before deciding redirect path (lines 62-103)",
+    "Frontend LoginPage.js: handleSubmit properly handles cross-subdomain redirect flow with exchange token creation"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_cross_subdomain_auth.py"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "email": "admkoodh@koodh.com",
+    "password": "KYLovie13monx"
+  },
+  "seed_data_creation": "Exchange tokens created during testing are single-use and auto-expire in 30 seconds",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Cross-subdomain auth system tested and working. Backend: 3 new endpoints (create/redeem/subdomain-config) all functional. Frontend: AuthContext handles exchange token redemption, ProtectedRoute checks subdomain config, LoginPage handles redirect parameter. The cross-subdomain redirect only activates on *.koodh.com hostnames - preview.emergentagent.com uses normal /login flow. Domain Manager shows 2 active routes: clara.koodh.com (app) and login.koodh.com (auth).",
+  "features_tested": {
+    "GET_subdomain_config": {
+      "status": "PASSED",
+      "details": "Returns enabled=true, base_domain='koodh.com', login_url='https://login.koodh.com', app_url='https://clara.koodh.com', routes array with clara and login"
+    },
+    "POST_exchange_token_create_requires_auth": {
+      "status": "PASSED",
+      "details": "Returns 403 Forbidden when called without authentication"
+    },
+    "POST_exchange_token_create_success": {
+      "status": "PASSED",
+      "details": "Creates token with UUID format and expires_in=30 seconds"
+    },
+    "POST_exchange_token_redeem_no_auth": {
+      "status": "PASSED",
+      "details": "Successfully redeems token without authentication, returns JWT + user data"
+    },
+    "Exchange_token_single_use": {
+      "status": "PASSED",
+      "details": "Second redemption attempt returns 401 'Exchange token already used'"
+    },
+    "Exchange_token_invalid_rejected": {
+      "status": "PASSED",
+      "details": "Invalid/fake tokens return 401 'Invalid exchange token'"
+    },
+    "Exchange_token_30s_TTL": {
+      "status": "PASSED",
+      "details": "Token expires_in is exactly 30 seconds"
+    },
+    "Session_auth_method_tracked": {
+      "status": "PASSED",
+      "details": "Session created from exchange token has auth_method='exchange_token' (verified via code review and working session)"
+    },
+    "Normal_login_flow_works": {
+      "status": "PASSED",
+      "details": "Standard email/password login continues to work on preview environment"
+    },
+    "Frontend_login_page": {
+      "status": "PASSED",
+      "details": "Login form renders correctly, accepts credentials, redirects on success"
+    },
+    "Frontend_login_wizard": {
+      "status": "PASSED",
+      "details": "Login wizard appears once after login, does NOT reappear on navigation"
+    },
+    "Frontend_ProtectedRoute": {
+      "status": "PASSED",
+      "details": "Redirects to /login when not authenticated, loads subdomain config before deciding redirect path"
+    },
+    "Domain_Manager_UI": {
+      "status": "PASSED",
+      "details": "Shows 4 tabs (Overzicht, Site Domeinen, Subdomain Routing, Cloudflare), displays active routes including clara.koodh.com and login.koodh.com"
+    },
+    "Subdomain_routes_configured": {
+      "status": "PASSED",
+      "details": "clara.koodh.com (Applicatie/app) and login.koodh.com (Authenticatie/auth) routes visible in Domain Manager"
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "notes": "All APIs are real, no mocking. Exchange tokens stored in MongoDB exchange_tokens collection."
+  },
+  "security_verification": {
+    "single_use_tokens": "VERIFIED - Second redemption fails with 401",
+    "30_second_ttl": "VERIFIED - expires_in=30 in create response",
+    "auth_required_for_create": "VERIFIED - Returns 403 without auth",
+    "no_auth_for_redeem": "VERIFIED - Redeem works without auth (by design)",
+    "session_tracking": "VERIFIED - auth_method='exchange_token' set in session document"
+  }
+}

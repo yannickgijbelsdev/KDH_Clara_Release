@@ -290,6 +290,172 @@ async def logout(request: Request, current_user: dict = Depends(get_current_user
     return {"message": "Logged out successfully"}
 
 
+# ---------- Cross-Subdomain Exchange Token System ----------
+
+class ExchangeTokenRequest(BaseModel):
+    redirect_url: Optional[str] = None
+
+
+class ExchangeTokenRedeemRequest(BaseModel):
+    exchange_token: str
+
+
+@auth_router.post("/exchange-token/create")
+async def create_exchange_token(
+    data: ExchangeTokenRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a short-lived, single-use exchange token for cross-subdomain auth.
+    
+    Used when redirecting from login.koodh.com back to clara.koodh.com.
+    Token is valid for 30 seconds and can only be used once.
+    """
+    exchange_token = str(uuid.uuid4())
+    
+    await db.exchange_tokens.insert_one({
+        "token": exchange_token,
+        "user_id": current_user["id"],
+        "redirect_url": data.redirect_url,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(seconds=30)).isoformat(),
+        "used": False,
+        "ip": get_client_ip(request),
+    })
+    
+    return {"exchange_token": exchange_token, "expires_in": 30}
+
+
+@auth_router.post("/exchange-token/redeem")
+async def redeem_exchange_token(data: ExchangeTokenRedeemRequest, request: Request):
+    """Redeem an exchange token for a real JWT session.
+    
+    This is called by the target subdomain (e.g. clara.koodh.com) after
+    receiving the exchange token via URL parameter from login.koodh.com.
+    The exchange token is invalidated immediately after use.
+    """
+    # Find the exchange token
+    doc = await db.exchange_tokens.find_one({"token": data.exchange_token}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=401, detail="Invalid exchange token")
+    
+    # Check if already used
+    if doc.get("used"):
+        raise HTTPException(status_code=401, detail="Exchange token already used")
+    
+    # Check if expired
+    expires_at = datetime.fromisoformat(doc["expires_at"])
+    if datetime.now(timezone.utc) > expires_at:
+        await db.exchange_tokens.delete_one({"token": data.exchange_token})
+        raise HTTPException(status_code=401, detail="Exchange token expired")
+    
+    # Mark as used immediately
+    await db.exchange_tokens.update_one(
+        {"token": data.exchange_token},
+        {"$set": {"used": True, "redeemed_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Get the user
+    user = await db.users.find_one({"id": doc["user_id"]}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    if user.get("is_blocked"):
+        raise HTTPException(status_code=403, detail="Account is blocked")
+    
+    team = await db.teams.find_one({"id": user.get("team_id")}, {"_id": 0})
+    team_name = team["name"] if team else "Unknown Team"
+    role = user.get("role", "editor")
+    team_id = user.get("team_id", "")
+    
+    # Create a new session
+    session_id = str(uuid.uuid4())
+    client_ip = get_client_ip(request)
+    user_agent = request.headers.get("user-agent", "Unknown")
+    session_expires = datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+    
+    session_doc = {
+        "id": session_id,
+        "user_id": user["id"],
+        "user_name": user.get("name", ""),
+        "user_email": user.get("email", ""),
+        "ip": client_ip,
+        "user_agent": user_agent,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "last_active": datetime.now(timezone.utc).isoformat(),
+        "expires_at": session_expires.isoformat(),
+        "active": True,
+        "team_id": team_id,
+        "auth_method": "exchange_token",
+    }
+    await db.sessions.insert_one({**session_doc})
+    
+    token, expires_at = create_token(user["id"], session_id=session_id)
+    
+    totp_enabled = user.get("totp_enabled", False)
+    user_response = UserWithTeamResponse(
+        id=user["id"],
+        email=user["email"],
+        name=user["name"],
+        role=role,
+        team_id=team_id,
+        team_name=team_name,
+        created_at=user["created_at"],
+        is_network_admin=user.get("is_network_admin", False),
+        is_primary_network_admin=user.get("is_primary_network_admin", False),
+        is_system_admin=user.get("is_system_admin", False) or user.get("is_primary_network_admin", False) or user.get("is_network_admin", False),
+        totp_enabled=totp_enabled,
+        totp_skip_count=user.get("totp_skip_count", 0)
+    )
+    
+    await log_action(
+        action="Login (Exchange Token)",
+        category="auth",
+        user_id=user["id"],
+        user_name=user["name"],
+        user_email=user["email"],
+        team_id=team_id,
+        ip_address=client_ip,
+        details={"auth_method": "exchange_token", "role": role}
+    )
+    
+    return {
+        "token": token,
+        "user": user_response,
+        "expires_at": expires_at,
+    }
+
+
+@auth_router.get("/subdomain-config")
+async def get_subdomain_config():
+    """Public endpoint: returns active subdomain routing config.
+    
+    This is called by the frontend to determine if subdomain-based
+    auth redirects are enabled and where to redirect.
+    """
+    routes = await db.subdomain_routes.find(
+        {"is_active": True},
+        {"_id": 0, "subdomain": 1, "route_type": 1, "target_path": 1}
+    ).to_list(50)
+    
+    cf_config = await db.cloudflare_config.find_one({"type": "global"}, {"_id": 0, "base_domain": 1})
+    base_domain = cf_config.get("base_domain", "koodh.com") if cf_config else "koodh.com"
+    
+    # Find the auth route (login subdomain)
+    auth_route = next((r for r in routes if r["route_type"] == "auth"), None)
+    app_route = next((r for r in routes if r["route_type"] == "app"), None)
+    
+    return {
+        "enabled": auth_route is not None,
+        "base_domain": base_domain,
+        "login_subdomain": auth_route["subdomain"] if auth_route else None,
+        "login_url": f"https://{auth_route['subdomain']}.{base_domain}" if auth_route else None,
+        "app_subdomain": app_route["subdomain"] if app_route else None,
+        "app_url": f"https://{app_route['subdomain']}.{base_domain}" if app_route else None,
+        "routes": routes,
+    }
+
+
 @auth_router.get("/me")
 async def get_me(current_user: dict = Depends(get_current_user)):
     team = await db.teams.find_one({"id": current_user.get('team_id')}, {"_id": 0})
