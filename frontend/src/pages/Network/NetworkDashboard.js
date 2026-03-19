@@ -1439,7 +1439,7 @@ export default function NetworkDashboard() {
                         ? 'bg-blue-500/20 border border-blue-500/50'
                         : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
                     }`}
-                    onClick={() => setFormData({ ...formData, site_type: 'server', enabled_features: ['xml_imports', 'server_api_keys', 'team_settings', 'firewall', 'activity_logs'] })}
+                    onClick={() => setFormData({ ...formData, site_type: 'server', enabled_features: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'team_settings', 'firewall', 'activity_logs'] })}
                     data-testid="site-type-server"
                   >
                     <FileText className="w-5 h-5 text-blue-400" />

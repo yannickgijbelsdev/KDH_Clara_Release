@@ -69,21 +69,42 @@ export default function LicenseManager() {
 
   const fetchData = useCallback(async () => {
     setLoading(true);
+    let hasError = false;
+
+    // Fetch each endpoint independently so one failure doesn't break everything
     try {
-      const [pkgRes, overRes, featRes, reqRes] = await Promise.all([
-        fetch(`${API}/api/licenses/packages`, { headers }),
-        fetch(`${API}/api/licenses/overview`, { headers }),
-        fetch(`${API}/api/main-sites/features`, { headers }),
-        fetch(`${API}/api/licenses/requests`, { headers }),
-      ]);
-      setPackages(await pkgRes.json());
-      setOverview(await overRes.json());
-      const featData = await featRes.json();
-      setAvailableFeatures(featData.features || []);
-      if (reqRes.ok) setLicenseRequests(await reqRes.json());
-    } catch {
-      toast.error('Failed to load license data');
-    }
+      const pkgRes = await fetch(`${API}/api/licenses/packages`, { headers });
+      if (pkgRes.ok) {
+        const data = await pkgRes.json();
+        setPackages(Array.isArray(data) ? data : []);
+      } else { hasError = true; }
+    } catch { hasError = true; }
+
+    try {
+      const overRes = await fetch(`${API}/api/licenses/overview`, { headers });
+      if (overRes.ok) {
+        const data = await overRes.json();
+        setOverview(Array.isArray(data) ? data : []);
+      } else { hasError = true; }
+    } catch { hasError = true; }
+
+    try {
+      const featRes = await fetch(`${API}/api/main-sites/features`, { headers });
+      if (featRes.ok) {
+        const featData = await featRes.json();
+        setAvailableFeatures(featData.features || []);
+      } else { hasError = true; }
+    } catch { hasError = true; }
+
+    try {
+      const reqRes = await fetch(`${API}/api/licenses/requests`, { headers });
+      if (reqRes.ok) {
+        const data = await reqRes.json();
+        setLicenseRequests(Array.isArray(data) ? data : []);
+      }
+    } catch { /* requests tab is non-critical */ }
+
+    if (hasError) toast.error('Some license data could not be loaded');
     setLoading(false);
   }, [token]);
 

@@ -177,6 +177,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('impersonating');
     localStorage.removeItem('session_expires_at');
+    sessionStorage.removeItem('login_wizard_shown');
+    sessionStorage.removeItem('show_login_wizard');
     delete axios.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);

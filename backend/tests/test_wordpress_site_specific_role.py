@@ -12,7 +12,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = "https://clara-loading-wizard.preview.emergentagent.com"
+BASE_URL = "https://clara-admin-portal.preview.emergentagent.com"
 DBNT_MAIN_SITE_ID = "fc37cb22-b93e-4fc8-9d77-818b3af45d35"
 
 # Test users

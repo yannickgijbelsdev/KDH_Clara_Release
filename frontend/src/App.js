@@ -376,16 +376,27 @@ const LoginWizardWrapper = () => {
   const { user, token } = useAuth();
 
   useEffect(() => {
+    // Only show if the flag is set AND we haven't shown it already this session
     const flag = sessionStorage.getItem('show_login_wizard');
-    if (flag === 'true') {
+    const alreadyShown = sessionStorage.getItem('login_wizard_shown');
+    if (flag === 'true' && alreadyShown !== 'true') {
       sessionStorage.removeItem('show_login_wizard');
+      sessionStorage.setItem('login_wizard_shown', 'true');
       setShowWizard(true);
+    } else if (flag === 'true') {
+      sessionStorage.removeItem('show_login_wizard');
     }
   }, []);
 
   // Listen for login wizard trigger
   useEffect(() => {
-    const handler = () => setShowWizard(true);
+    const handler = () => {
+      const alreadyShown = sessionStorage.getItem('login_wizard_shown');
+      if (alreadyShown !== 'true') {
+        sessionStorage.setItem('login_wizard_shown', 'true');
+        setShowWizard(true);
+      }
+    };
     window.addEventListener('show-login-wizard', handler);
     return () => window.removeEventListener('show-login-wizard', handler);
   }, []);
