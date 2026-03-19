@@ -3268,5 +3268,19 @@ now = now_brussels()  # Automatically handles CET/CEST
   - GET /api/main-sites now returns environment_id, environment_name, environment_color
   - File: `backend/routers/main_sites.py`, `backend/models/main_sites.py`
 
+### March 19, 2026 - Clara CLI Feature
+- [x] **Feature: Clara CLI - Server-level admin operations**:
+  - Terminal-like UI with monospace font, dark theme, color-coded output
+  - Commands: /commands, /help, /roles list|repair|sync|reset, /users list|reset-role, /site info|features, /health, /cache clear, /clear
+  - Access control: System/Network admins auto-approved, regular admins must request access
+  - Approval flow: POST /api/cli/request-access, GET /api/cli/pending-requests, PUT /api/cli/approve/{id}
+  - CLI button visible only for admins in main site dashboard (bottom-right corner)
+  - Arrow Up/Down for command history navigation
+  - Backend: /app/backend/routers/cli.py (new)
+  - Frontend: /app/frontend/src/components/ClaraCLI.js (new)
+  - DB collections: cli_access (access requests), cli_logs (command audit trail)
+  - Status: VERIFIED (iteration_95 - 100% pass rate, 15/15 backend + all frontend)
+
+
 - Status: ALL VERIFIED (iteration_94 - 100% pass rate)
 
