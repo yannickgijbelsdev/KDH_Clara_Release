@@ -7,26 +7,9 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 const MainSiteContext = createContext(null);
 
-// Helper function to setup axios interceptor
-const setupInterceptor = (interceptorRef, mainSiteId) => {
-  // Remove previous interceptor if it exists
-  if (interceptorRef.current !== null) {
-    axios.interceptors.request.eject(interceptorRef.current);
-    interceptorRef.current = null;
-  }
-
-  // Add new interceptor when mainSiteId is available
-  if (mainSiteId) {
-    interceptorRef.current = axios.interceptors.request.use(
-      (config) => {
-        // Add main site ID header to all API requests
-        config.headers['X-Main-Site-ID'] = mainSiteId;
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-  }
-};
+// Global ref to track the current main site ID (avoids stale closures in interceptor)
+let _currentMainSiteId = null;
+export const getCurrentMainSiteId = () => _currentMainSiteId;
 
 export const useMainSite = () => {
   const context = useContext(MainSiteContext);
@@ -48,12 +31,23 @@ export const MainSiteProvider = ({ children }) => {
   const interceptorRef = useRef(null);
 
   // Cleanup interceptor on unmount
+  // Setup interceptor once on mount, it reads from _currentMainSiteId
   useEffect(() => {
+    interceptorRef.current = axios.interceptors.request.use(
+      (config) => {
+        if (_currentMainSiteId) {
+          config.headers['X-Main-Site-ID'] = _currentMainSiteId;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
     return () => {
       if (interceptorRef.current !== null) {
         axios.interceptors.request.eject(interceptorRef.current);
         interceptorRef.current = null;
       }
+      _currentMainSiteId = null;
     };
   }, []);
 
@@ -75,10 +69,9 @@ export const MainSiteProvider = ({ children }) => {
       if (res.ok) {
         const data = await res.json();
         
-        // IMPORTANT: Setup interceptor BEFORE setting mainSite state
-        // This ensures the interceptor is ready before any child components
-        // start making API calls after the re-render
-        setupInterceptor(interceptorRef, data.id);
+        // IMPORTANT: Update the global site ID BEFORE setting mainSite state
+        // This ensures the interceptor sends the correct ID for any child component API calls
+        _currentMainSiteId = data.id;
         
         setMainSite(data);
         setError(null);
@@ -98,12 +91,12 @@ export const MainSiteProvider = ({ children }) => {
         }
       } else if (res.status === 404) {
         setError('Main site not found');
-        setupInterceptor(interceptorRef, null); // Clear interceptor
+        _currentMainSiteId = null;
         setMainSite(null);
       } else if (res.status === 401) {
         // Token expired or invalid, redirect to login
         setError('Session expired');
-        setupInterceptor(interceptorRef, null);
+        _currentMainSiteId = null;
         setMainSite(null);
       } else if (res.status === 403) {
         // Check if account is blocked
@@ -113,17 +106,17 @@ export const MainSiteProvider = ({ children }) => {
         } catch {
           setError('Access denied');
         }
-        setupInterceptor(interceptorRef, null); // Clear interceptor
+        _currentMainSiteId = null;
         setMainSite(null);
       } else {
         setError('Failed to load main site');
-        setupInterceptor(interceptorRef, null); // Clear interceptor
+        _currentMainSiteId = null;
         setMainSite(null);
       }
     } catch (err) {
       console.error('Failed to fetch main site:', err);
       setError('Failed to load main site');
-      setupInterceptor(interceptorRef, null); // Clear interceptor
+      _currentMainSiteId = null;
       setMainSite(null);
     } finally {
       setLoading(false);
@@ -134,7 +127,7 @@ export const MainSiteProvider = ({ children }) => {
   useEffect(() => {
     // Clear the interceptor immediately when slug changes
     // This prevents the old site's ID from being sent during the transition
-    setupInterceptor(interceptorRef, null);
+    _currentMainSiteId = null;
     setMainSite(null);
     setLoading(true);
     setError(null);
