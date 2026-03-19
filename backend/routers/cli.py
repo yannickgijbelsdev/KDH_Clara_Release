@@ -48,6 +48,7 @@ COMMANDS = [
     {"command": "/roles permissions <slug>", "description": "Show detailed permissions matrix for a role", "category": "Roles"},
     {"command": "/roles assign <email> <role>", "description": "Assign a role to a user in this site", "category": "Roles"},
     {"command": "/roles compare <slug1> <slug2>", "description": "Compare permissions between two roles", "category": "Roles"},
+    {"command": "/fix custom roles", "description": "Fix custom roles: ensure all features have proper permission entries", "category": "Roles"},
     # Users
     {"command": "/users list", "description": "List all users and their roles", "category": "Users"},
     {"command": "/users info <email>", "description": "Detailed information about a user", "category": "Users"},
@@ -227,6 +228,8 @@ async def execute_command(cmd: CLICommand, current_user: dict = Depends(get_curr
             if len(parts) < 2:
                 return {"output": "Usage: /roles compare <slug1> <slug2>", "type": "error"}
             return await _cmd_roles_compare(sid, parts[0], parts[1])
+        elif command == "/fix custom roles":
+            return await _cmd_fix_custom_roles(sid)
         # Users
         elif command == "/users list":
             return await _cmd_users_list(sid)
@@ -458,6 +461,58 @@ async def _cmd_roles_reset_all(sid):
     if reset:
         return {"output": f"Reset {len(reset)} role(s): {', '.join(reset)}", "type": "success"}
     return {"output": "All roles already have default permissions.", "type": "info"}
+
+
+async def _cmd_fix_custom_roles(sid):
+    """Fix custom roles: ensure all features have proper permission entries."""
+    # Get the editor role as template for missing feature permissions
+    editor = await db.roles.find_one({"main_site_id": sid, "slug": "editor"}, {"_id": 0})
+    editor_perms = editor.get("permissions", {}) if editor else {}
+
+    # Get enabled features for this site
+    site = await db.main_sites.find_one({"id": sid}, {"_id": 0, "enabled_features": 1})
+    enabled_features = site.get("enabled_features", []) if site else ALL_FEATURES
+
+    # Find all custom roles and non-default roles
+    custom_roles = await db.roles.find(
+        {"main_site_id": sid, "slug": {"$nin": ["admin", "editor", "presenter", "viewer", "news_admin"]}}
+    ).to_list(100)
+
+    if not custom_roles:
+        return {"output": "No custom roles found for this site.", "type": "info"}
+
+    fixed = []
+    for role in custom_roles:
+        perms = role.get("permissions", {})
+        changes = 0
+
+        # Ensure every enabled feature has a permission entry
+        for feature in enabled_features:
+            if feature not in perms:
+                # Copy from editor template, or create default with view-only
+                if feature in editor_perms:
+                    perms[feature] = {**editor_perms[feature]}
+                else:
+                    perms[feature] = {"view": True, "create": False, "edit": False, "delete": False}
+                changes += 1
+            elif isinstance(perms[feature], dict):
+                # Ensure all permission keys exist
+                for key in ("view", "create", "edit", "delete"):
+                    if key not in perms[feature]:
+                        perms[feature][key] = False
+                        changes += 1
+
+        if changes > 0:
+            await db.roles.update_one(
+                {"_id": role["_id"]},
+                {"$set": {"permissions": perms, "updated_at": _now()}}
+            )
+            fixed.append(f"  {role['name']} ({role['slug']}): +{changes} permission entries")
+
+    if fixed:
+        lines = [f"Fixed {len(fixed)} custom role(s):", ""] + fixed
+        return {"output": "\n".join(lines), "type": "success"}
+    return {"output": "All custom roles already have complete permissions.", "type": "info"}
 
 
 async def _cmd_roles_permissions(sid, slug):

@@ -59,6 +59,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popove
 import { Calendar as CalendarPicker } from '../components/ui/calendar';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/PermissionsContext';
 import RundownEditor from '../components/RundownEditor';
 import { cn } from '../lib/utils';
 import { getAvatarUrl } from '../utils/avatar';
@@ -152,7 +153,9 @@ const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
 const ShowDetailPage = () => {
   const { showId, mainSiteSlug } = useParams();
   const navigate = useNavigate();
-  const { isEditor, token } = useAuth();
+  const { isEditor: legacyIsEditor, token } = useAuth();
+  const { canEdit, canDelete, canCreate } = usePermissions();
+  const isEditor = canEdit('shows') || canCreate('shows') || legacyIsEditor;
   const [show, setShow] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);

@@ -62,6 +62,7 @@ import {
 } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../context/PermissionsContext';
 import RichTextEditor from '../components/RichTextEditor';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -92,7 +93,9 @@ const syncStatusConfig = {
 const ContentDetailPage = () => {
   const { contentId, mainSiteSlug } = useParams();
   const navigate = useNavigate();
-  const { isEditor, isAdmin } = useAuth();
+  const { isEditor: legacyIsEditor, isAdmin } = useAuth();
+  const { canEdit, canDelete, canCreate } = usePermissions();
+  const isEditor = canEdit('content_library') || canCreate('content_library') || legacyIsEditor;
   const [content, setContent] = useState(null);
   const [wpSites, setWpSites] = useState([]);
   const [categories, setCategories] = useState([]);

@@ -1,0 +1,79 @@
+{
+  "summary": "Tested custom roles bug fix. Backend: 7/7 tests passed - CLI '/fix custom roles' works, GET /api/auth/me/permissions returns correct permissions, roles API returns custom roles with proper permission structure. Frontend: Code review confirms usePermissions() is correctly imported and used in ShowDetailPage.js (line 62, 157-158) and ContentDetailPage.js (line 65, 97-98). Custom roles redactie_verantwoordelijke and test_viewer_only have complete permissions for all features including shows and content_library with view/create/edit/delete.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Welcome wizard dialog",
+        "issues": ["Welcome dialog with 'Greeting the Servers...' appears on page navigation and blocks UI. May interfere with user experience."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_custom_roles_fix.py",
+    "/app/test_reports/pytest/custom_roles_fix_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ShowDetailPage.js: Line 62 imports usePermissions from PermissionsContext. Line 157-158 uses canEdit/canCreate/canDelete from usePermissions() with fallback to legacyIsEditor: isEditor = canEdit('shows') || canCreate('shows') || legacyIsEditor",
+    "ContentDetailPage.js: Line 65 imports usePermissions from PermissionsContext. Line 97-98 uses canEdit/canCreate/canDelete from usePermissions() with fallback: isEditor = canEdit('content_library') || canCreate('content_library') || legacyIsEditor",
+    "CLI command '/fix custom roles' at cli.py line 466 correctly finds custom roles and ensures all features have proper permission entries with view/create/edit/delete keys",
+    "Custom roles 'redactie_verantwoordelijke' and 'test_viewer_only' verified to have complete permissions for shows and content_library features"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_custom_roles_fix.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "Code review passed - usePermissions correctly implemented"
+  },
+  "test_credentials": {
+    "email": "admkoodh@koodh.com",
+    "password": "KYLovie13monx"
+  },
+  "seed_data_creation": "None - used existing custom roles in test database",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Custom roles fix has been implemented and tested. CLI command '/fix custom roles' repairs custom roles by adding missing permission entries. Frontend components ShowDetailPage.js and ContentDetailPage.js now use usePermissions() context which checks actual DB permissions, not just hardcoded role names. The fallback to legacyIsEditor ensures backward compatibility with admin/editor/news_admin roles.",
+  "features_tested": {
+    "CLI_fix_custom_roles_command": {
+      "status": "PASSED",
+      "endpoint": "POST /api/cli/execute with command '/fix custom roles'",
+      "details": "Returns success/info message about custom roles fixed or already complete"
+    },
+    "GET_auth_me_permissions": {
+      "status": "PASSED",
+      "endpoint": "GET /api/auth/me/permissions",
+      "details": "Returns permissions object with _full_access for admin or feature-level permissions"
+    },
+    "Roles_API_returns_custom_roles": {
+      "status": "PASSED",
+      "endpoint": "GET /api/roles/{main_site_id}",
+      "details": "Returns roles including redactie_verantwoordelijke and test_viewer_only with complete permission structure"
+    },
+    "CLI_commands_list_fix_command": {
+      "status": "PASSED",
+      "endpoint": "POST /api/cli/execute with command '/commands'",
+      "details": "Help output includes '/fix custom roles' command"
+    },
+    "Custom_role_permissions_structure": {
+      "status": "PASSED",
+      "details": "Custom roles have shows: {view: true, create: true, edit: true, delete: true} and content_library: {view: true, create: true, edit: true, delete: true}"
+    },
+    "Frontend_ShowDetailPage_usePermissions": {
+      "status": "PASSED (code review)",
+      "component": "ShowDetailPage.js",
+      "details": "Line 62 imports usePermissions, Line 157-158 uses canEdit('shows') || canCreate('shows') || legacyIsEditor"
+    },
+    "Frontend_ContentDetailPage_usePermissions": {
+      "status": "PASSED (code review)",
+      "component": "ContentDetailPage.js",
+      "details": "Line 65 imports usePermissions, Line 97-98 uses canEdit('content_library') || canCreate('content_library') || legacyIsEditor"
+    }
+  }
+}
