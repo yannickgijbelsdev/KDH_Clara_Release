@@ -72,6 +72,14 @@ async def get_team_users(
     # Base filter to exclude system accounts
     base_filter = {"is_system_account": {"$ne": True}}
     
+    # Network admins / system admins without site context: return ALL users
+    if not main_site_id and (current_user.get('is_network_admin') or current_user.get('is_system_admin')):
+        users = await db.users.find(
+            base_filter,
+            {"_id": 0, "password_hash": 0}
+        ).to_list(500)
+        return users
+    
     if main_site_id:
         # Get users who have access to this main site
         user_accesses = await db.main_site_users.find(
@@ -101,7 +109,6 @@ async def get_team_users(
                 {"_id": 0, "password_hash": 0}
             ).to_list(100)
         else:
-            # User has no team_id (like bootstrap admin) - return empty
             users = []
     
     return users

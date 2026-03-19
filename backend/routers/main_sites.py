@@ -100,12 +100,19 @@ async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
                 filtered.append(site)
         main_sites = filtered
     
-    # Add counts and resolve linked names
+    # Add counts, resolve linked names, and add environment info
     linked_ids = [s["linked_main_site_id"] for s in main_sites if s.get("linked_main_site_id")]
     linked_names = {}
     if linked_ids:
         linked_docs = await db.main_sites.find({"id": {"$in": linked_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(100)
         linked_names = {d["id"]: d["name"] for d in linked_docs}
+
+    # Fetch all environments for lookup
+    env_ids = list(set(s.get("environment_id") for s in main_sites if s.get("environment_id")))
+    env_lookup = {}
+    if env_ids:
+        envs = await db.environments.find({"id": {"$in": env_ids}}, {"_id": 0, "id": 1, "name": 1, "color": 1}).to_list(50)
+        env_lookup = {e["id"]: e for e in envs}
 
     for site in main_sites:
         site_count = await db.sites.count_documents({"main_site_id": site["id"]})
@@ -114,6 +121,11 @@ async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
         site["user_count"] = user_count
         if site.get("linked_main_site_id"):
             site["linked_main_site_name"] = linked_names.get(site["linked_main_site_id"])
+        # Add environment info
+        env = env_lookup.get(site.get("environment_id"))
+        if env:
+            site["environment_name"] = env.get("name")
+            site["environment_color"] = env.get("color")
     
     return main_sites
 

@@ -366,6 +366,8 @@ export default function NetworkDashboard() {
   const [activeSection, setActiveSection] = useState('sites'); // sidebar active section
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
   const [expandedGroups, setExpandedGroups] = useState(['overview', 'management']);
+  const [environments, setEnvironments] = useState([]);
+  const [selectedEnvId, setSelectedEnvId] = useState('all'); // 'all' or environment id
 
   // Navigation groups matching MainSiteDashboardLayout pattern
   const NAV_GROUPS = [
@@ -444,6 +446,7 @@ export default function NetworkDashboard() {
   useEffect(() => {
     fetchMainSites();
     fetchFeatures();
+    fetchEnvironments();
     // Load view mode from preferences
     fetch(`${API}/api/users/me/preferences`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -481,6 +484,21 @@ export default function NetworkDashboard() {
       console.error('Failed to fetch features:', err);
     }
   };
+
+  const fetchEnvironments = async () => {
+    try {
+      const res = await fetch(`${API}/api/environments`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) setEnvironments(await res.json());
+    } catch {}
+  };
+
+  // Filter sites by selected environment
+  const filteredSites = selectedEnvId === 'all' 
+    ? mainSites 
+    : mainSites.filter(s => s.environment_id === selectedEnvId);
+
 
   const handleCreateSite = async () => {
     if (!formData.name || !formData.slug) {
@@ -918,9 +936,34 @@ export default function NetworkDashboard() {
         <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
           <div className="px-8 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <p className="text-sm font-medium text-white">Network Management</p>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium bg-yellow-500/15 text-yellow-400 border-yellow-500/25">Global</span>
+                {environments.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5 border-zinc-700 bg-zinc-800/50" data-testid="env-switcher">
+                        <Server className="w-3 h-3" />
+                        {selectedEnvId === 'all' ? 'All Environments' : environments.find(e => e.id === selectedEnvId)?.name || 'All'}
+                        <ChevronDown className="w-3 h-3 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="bg-zinc-900 border-zinc-700">
+                      <DropdownMenuItem onClick={() => setSelectedEnvId('all')} className={selectedEnvId === 'all' ? 'bg-zinc-800' : ''}>
+                        <Globe className="w-3.5 h-3.5 mr-2 text-zinc-400" />
+                        All Environments
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-zinc-800" />
+                      {environments.map(env => (
+                        <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={selectedEnvId === env.id ? 'bg-zinc-800' : ''}>
+                          <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
+                          {env.name}
+                          <span className="ml-auto text-xs text-zinc-500">{env.site_count || 0}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium text-white">{user?.name}</p>
@@ -963,7 +1006,7 @@ export default function NetworkDashboard() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-2xl font-bold text-white">Sites Overview</h1>
-                  <p className="text-sm text-zinc-400">{mainSites.length} main sites</p>
+                  <p className="text-sm text-zinc-400">{filteredSites.length} main sites{selectedEnvId !== 'all' && ` in ${environments.find(e => e.id === selectedEnvId)?.name || ''}`}</p>
                 </div>
                 <div className="flex gap-2 items-center">
                   <div className="flex bg-zinc-800 rounded-lg p-0.5 border border-zinc-700">
@@ -992,7 +1035,7 @@ export default function NetworkDashboard() {
               </div>
 
               {/* Sites Content */}
-              {mainSites.length === 0 ? (
+              {filteredSites.length === 0 ? (
           <div className="space-y-6">
             {/* Empty State */}
             <Card className="bg-zinc-900 border-zinc-800">
@@ -1015,7 +1058,7 @@ export default function NetworkDashboard() {
         ) : (
           <>
           <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-3'}>
-            {mainSites.map(site => viewMode === 'list' ? (
+            {filteredSites.map(site => viewMode === 'list' ? (
               <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardContent className="flex items-center gap-4 p-4">
                   <Link to={`/${site.slug}`} className="flex items-center gap-3 flex-1 min-w-0">

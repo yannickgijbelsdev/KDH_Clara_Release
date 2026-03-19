@@ -108,6 +108,9 @@ class MainSiteListResponse(BaseModel):
     user_count: int = 0
     cloned_from: Optional[str] = None
     is_demo: bool = False
+    environment_id: Optional[str] = None
+    environment_name: Optional[str] = None
+    environment_color: Optional[str] = None
 
 
 class MainSiteUserCreate(BaseModel):

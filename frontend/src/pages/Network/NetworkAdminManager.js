@@ -26,6 +26,7 @@ const PERMISSION_CATEGORIES = [
 export default function NetworkAdminManager({ open, onClose, inline = false }) {
   const { token, user } = useAuth();
   const [admins, setAdmins] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState(null);
@@ -39,8 +40,17 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
   const isNetworkAdmin = user?.is_network_admin || user?.role === 'admin';
 
   useEffect(() => {
-    if (open) fetchAdmins();
+    if (open) { fetchAdmins(); fetchAllUsers(); }
   }, [open]);
+
+  const fetchAllUsers = async () => {
+    try {
+      const res = await fetch(`${API}/api/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) setAllUsers(await res.json());
+    } catch {}
+  };
 
   const fetchAdmins = async () => {
     try {
@@ -276,6 +286,37 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
             </div>
           ) : (
             <div className="space-y-4">
+              {/* Select existing user */}
+              {allUsers.length > 0 && (
+                <div>
+                  <Label className="text-sm text-zinc-300 mb-2 block">Select existing user</Label>
+                  <select
+                    className="w-full h-10 px-3 rounded-md bg-zinc-800 border border-zinc-700 text-white text-sm"
+                    value=""
+                    onChange={(e) => {
+                      const selected = allUsers.find(u => u.id === e.target.value);
+                      if (selected) {
+                        setFormData({ name: selected.name, email: selected.email });
+                      }
+                    }}
+                    data-testid="select-existing-user"
+                  >
+                    <option value="">Select a user...</option>
+                    {allUsers
+                      .filter(u => !admins.some(a => a.id === u.id))
+                      .map(u => (
+                        <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                      ))
+                    }
+                  </select>
+                  <div className="flex items-center gap-2 my-3">
+                    <div className="h-px flex-1 bg-zinc-700" />
+                    <span className="text-xs text-zinc-500">or enter manually</span>
+                    <div className="h-px flex-1 bg-zinc-700" />
+                  </div>
+                </div>
+              )}
+
               <div className="grid gap-3">
                 <div>
                   <Label>Name</Label>
