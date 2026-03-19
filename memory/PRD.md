@@ -3358,6 +3358,21 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Status: VERIFIED (API returns 200, show detail page loads correctly)
 
   - Setup Wizard shows step: "A license request has been sent to your license administrator"
+
+### February 2026 - Canva Director (Server Site Feature)
+- [x] **Feature: Canva Director integration for Server sites**:
+  - Full Canva Connect API integration with OAuth 2.0 flow
+  - Configuration page: Client ID, Client Secret, Redirect URI (like ZeroTier)
+  - Designs tab: browse, search, create, edit (opens in Canva), export designs
+  - Activity log: tracks all design creation and export actions per site
+  - OAuth connect/disconnect per user
+  - Feature flag: canva_director (server group)
+  - Backend: routers/canva.py (config, auth, designs, exports, assets, activity endpoints)
+  - Frontend: CanvaDirectorPage.js with 3 tabs (Designs, Activity, Configuration)
+  - DB collections: canva_config, canva_tokens, canva_oauth_states, canva_activity
+  - Available to all users in the site, config restricted to admins
+  - Status: VERIFIED (iteration_100 - 100% pass rate, 8/8 backend + all frontend)
+
   - Backend: services/license_request.py (new), routers/main_sites.py (modified), routers/licenses.py (extended)
   - Frontend: LicenseManager.js (3 tabs: Overview, Requests, Packages), SetupWizard.js (9 steps)
   - DB collection: license_requests {id, main_site_id, site_name, site_type, site_slug, environment_id, environment_name, requester_id, requester_name, requester_email, status, created_at, updated_at, reviewed_by, reviewed_at, notes}
