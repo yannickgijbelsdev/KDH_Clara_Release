@@ -3279,6 +3279,21 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Backend: /app/backend/routers/cli.py (new)
   - Frontend: /app/frontend/src/components/ClaraCLI.js (new)
   - DB collections: cli_access (access requests), cli_logs (command audit trail)
+
+### March 19, 2026 - Clara CLI Expansion (45+ Commands)
+- [x] **Expanded CLI from 12 to ~45 commands across 8 categories:**
+  - **General**: /commands, /help, /clear
+  - **Roles**: /roles list, repair, sync, reset, reset-all, permissions, assign, compare
+  - **Users**: /users list, info, add, remove, sessions, search, reset-role
+  - **Firewall**: /firewall status, scan, logs, block, unblock, blocked
+  - **Site**: /site info, features, features enable/disable, demo on/off, stats
+  - **Environment**: /env list, info, admins, assign, sites
+  - **License**: /license info, packages, assign, remove
+  - **Logs**: /logs recent, cli, errors
+  - **System**: /health, /cache clear, /db stats, /backup list|create, /whoami
+  - File: backend/routers/cli.py (complete rewrite)
+  - Status: VERIFIED (iteration_96 - 100% pass rate, 27/27 backend + all frontend)
+
   - Status: VERIFIED (iteration_95 - 100% pass rate, 15/15 backend + all frontend)
 
 
