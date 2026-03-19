@@ -370,6 +370,8 @@ const TwoFactorEnforcementWrapper = () => {
 
 const LoginWizardWrapper = () => {
   const [showWizard, setShowWizard] = useState(false);
+  const [siteName, setSiteName] = useState('');
+  const { user, token } = useAuth();
 
   useEffect(() => {
     const flag = sessionStorage.getItem('show_login_wizard');
@@ -386,10 +388,24 @@ const LoginWizardWrapper = () => {
     return () => window.removeEventListener('show-login-wizard', handler);
   }, []);
 
+  // Fetch user's main sites to determine button label
+  useEffect(() => {
+    if (!showWizard || !token) return;
+    const API = process.env.REACT_APP_BACKEND_URL;
+    fetch(`${API}/api/main-sites`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : [])
+      .then(sites => {
+        if (sites.length === 1) setSiteName(sites[0].name);
+        else setSiteName('');
+      })
+      .catch(() => setSiteName(''));
+  }, [showWizard, token]);
+
   return (
     <LoginWizard
       open={showWizard}
       onClose={() => setShowWizard(false)}
+      siteName={siteName}
     />
   );
 };

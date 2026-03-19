@@ -9,7 +9,7 @@ const LOGIN_STEPS = [
   { icon: Check, text: 'Welcome back! Let\'s get started.', duration: 0 },
 ];
 
-export default function LoginWizard({ open, onClose }) {
+export default function LoginWizard({ open, onClose, siteName }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(false);
 
@@ -34,6 +34,7 @@ export default function LoginWizard({ open, onClose }) {
   const step = LOGIN_STEPS[currentStep];
   const Icon = step.icon;
   const progress = ((currentStep + 1) / LOGIN_STEPS.length) * 100;
+  const buttonLabel = siteName ? `Enter ${siteName}` : 'Enter Clara';
 
   return (
     <Dialog open={open} onOpenChange={() => completed && onClose?.()}>
@@ -79,7 +80,7 @@ export default function LoginWizard({ open, onClose }) {
               className="mt-6 px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
               data-testid="login-done-btn"
             >
-              Enter Workspace
+              {buttonLabel}
             </button>
           )}
         </div>
