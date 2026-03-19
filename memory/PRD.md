@@ -3348,6 +3348,15 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Email includes: site name, type, slug, environment, requester name/email, date
   - New "Requests" tab in License Manager with pending badge counter
   - Network admin can approve or deny requests
+
+### February 2026 - Bug Fix: Shows Not Loading (500 Error)
+- [x] **Bug Fix: GET /api/shows/{show_id} returning 500 error**:
+  - Root cause: `NameError: name 'background_tasks' is not defined` in `get_show()` function (shows.py line 1027)
+  - The function referenced `background_tasks.add_task(_trigger_radioplayer_schedule_push)` but didn't have `BackgroundTasks` as a parameter
+  - Fix: Added `background_tasks: BackgroundTasks` parameter to the `get_show` endpoint
+  - This broke: calendar → show detail navigation, direct show/rundown access
+  - Status: VERIFIED (API returns 200, show detail page loads correctly)
+
   - Setup Wizard shows step: "A license request has been sent to your license administrator"
   - Backend: services/license_request.py (new), routers/main_sites.py (modified), routers/licenses.py (extended)
   - Frontend: LicenseManager.js (3 tabs: Overview, Requests, Packages), SetupWizard.js (9 steps)

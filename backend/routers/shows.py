@@ -993,6 +993,7 @@ async def create_show(
 async def get_show(
     show_id: str,
     request: Request,
+    background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_user)
 ):
     """Get a single show (must be in user's main site or team)."""
