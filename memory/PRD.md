@@ -3340,6 +3340,20 @@ now = now_brussels()  # Automatically handles CET/CEST
   - data-testid="license-expiry-warning" in MainSiteDashboardLayout.js
   - Status: VERIFIED (iteration_98 - already correct)
 
+### February 2026 - License Request on Site Creation
+- [x] **Feature: Automatic License Request on Site Creation**:
+  - When any main site is created (standard, technical, server, tasks), a license request is automatically created
+  - Request stored in `license_requests` collection with status 'pending'
+  - Email notification sent to clara.license@koodh.com via Microsoft 365 SMTP
+  - Email includes: site name, type, slug, environment, requester name/email, date
+  - New "Requests" tab in License Manager with pending badge counter
+  - Network admin can approve or deny requests
+  - Setup Wizard shows step: "A license request has been sent to your license administrator"
+  - Backend: services/license_request.py (new), routers/main_sites.py (modified), routers/licenses.py (extended)
+  - Frontend: LicenseManager.js (3 tabs: Overview, Requests, Packages), SetupWizard.js (9 steps)
+  - DB collection: license_requests {id, main_site_id, site_name, site_type, site_slug, environment_id, environment_name, requester_id, requester_name, requester_email, status, created_at, updated_at, reviewed_by, reviewed_at, notes}
+  - Status: VERIFIED (iteration_99 - 100% pass rate, 6/6 backend + all frontend)
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
