@@ -3240,3 +3240,33 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Updated `data-testid` from "license-expiry-badge" to "license-expiry-warning"
   - File: `frontend/src/components/MainSiteDashboardLayout.js` lines 1114-1121
   - Status: VERIFIED WORKING (iteration_93)
+
+### March 19, 2026 - Environment Switcher + User List Fix + Admin Assignment
+- [x] **Feature: Environment Switcher Dropdown in Header**:
+  - Added dropdown in Network Management header (data-testid='env-switcher')
+  - Shows "All Environments", "Production" (9 sites), "Staging" (2 sites) with color indicators
+  - Filters Sites Overview grid by selected environment
+  - Files: `frontend/src/pages/Network/NetworkDashboard.js`
+
+- [x] **Bug Fix: Empty user list for Network Admins (P0)**:
+  - Root cause: GET /api/users returned 0 users for system admin (no team_id, no site context)
+  - Fix: Added check for is_network_admin/is_system_admin to return ALL users without site filter
+  - File: `backend/routers/users.py` lines 74-81
+
+- [x] **Feature: Select existing user in Add Network Admin dialog**:
+  - Added "Select existing user" dropdown (data-testid='select-existing-user')
+  - Auto-fills name and email when user selected
+  - Filters out users who are already admins
+  - File: `frontend/src/pages/Network/NetworkAdminManager.js`
+
+- [x] **Feature: Environment admin assignment with user list**:
+  - Admins dialog on environment cards now shows populated user dropdown
+  - Works because of the /api/users fix above
+  - File: `frontend/src/pages/Network/EnvironmentManager.js`
+
+- [x] **Backend: Main Sites enriched with environment data**:
+  - GET /api/main-sites now returns environment_id, environment_name, environment_color
+  - File: `backend/routers/main_sites.py`, `backend/models/main_sites.py`
+
+- Status: ALL VERIFIED (iteration_94 - 100% pass rate)
+
