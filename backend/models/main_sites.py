@@ -43,6 +43,7 @@ AVAILABLE_FEATURES = [
     {"id": "xml_imports", "name": "XML Imports", "group": "server"},
     {"id": "server_api_keys", "name": "API Keys", "group": "server"},
     {"id": "vmix_director", "name": "vMix Director", "group": "server"},
+    {"id": "canva_director", "name": "Canva Director", "group": "server"},
 
     # Task management group
     {"id": "task_boards", "name": "Task Boards", "group": "tasks"},

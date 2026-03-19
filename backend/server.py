@@ -66,6 +66,7 @@ from routers.task_boards import task_boards_router
 from routers.branding import branding_router
 from routers.radioplayer import radioplayer_router
 from routers.cli import cli_router
+from routers.canva import canva_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -136,6 +137,7 @@ api_router.include_router(radioplayer_router)
 api_router.include_router(licenses_router)
 api_router.include_router(environments_router)
 api_router.include_router(cli_router)
+api_router.include_router(canva_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============

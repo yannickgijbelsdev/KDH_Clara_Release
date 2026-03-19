@@ -86,6 +86,7 @@ const FEATURE_NAV_ITEMS = {
   xml_imports: { to: 'xml-imports', icon: FileText, label: 'XML Imports' },
   server_api_keys: { to: 'api-keys', icon: Shield, label: 'API Keys', adminOnly: true },
   vmix_director: { to: 'vmix-director', icon: Monitor, label: 'vMix Director' },
+  canva_director: { to: 'canva', icon: Palette, label: 'Canva Director' },
   task_boards: { to: 'task-boards', icon: LayoutList, label: 'Task Boards' },
 };
 
@@ -131,7 +132,7 @@ const NAV_GROUPS = [
     id: 'server',
     label: 'Server',
     icon: Monitor,
-    features: ['xml_imports', 'server_api_keys', 'vmix_director']
+    features: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director']
   },
   {
     id: 'tasks',

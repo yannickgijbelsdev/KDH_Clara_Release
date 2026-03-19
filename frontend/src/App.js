@@ -53,6 +53,7 @@ import XmlDetails from './pages/Server/XmlDetails';
 import ApiKeysPage from './pages/Server/ApiKeysPage';
 import VmixDirector from './pages/Server/VmixDirector';
 import TaskBoardsPage from './pages/Tasks/TaskBoardsPage';
+import CanvaDirectorPage from './pages/CanvaDirectorPage';
 import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import './App.css';
@@ -239,6 +240,7 @@ const AppRoutes = () => {
         <Route path="xml-upload" element={<XmlUpload />} />
         <Route path="xml-imports/:importId" element={<XmlDetails />} />
         <Route path="api-keys" element={<ApiKeysPage />} />
+        <Route path="canva" element={<CanvaDirectorPage />} />
         <Route path="vmix-director" element={<VmixDirector />} />
         <Route path="task-boards" element={<TaskBoardsPage />} />
         <Route path="task-boards/:boardId" element={<TaskBoardsPage />} />

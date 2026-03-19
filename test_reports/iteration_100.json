@@ -1,0 +1,103 @@
+{
+  "summary": "Completed full testing of Canva Director feature. Backend APIs (config GET/PUT, auth/status, auth/url, activity) all working. Fixed frontend issue: CanvaDirectorPage.js was missing X-Main-Site-ID header in API calls. After fix, configuration saves successfully and all UI components work correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_canva_director.py",
+    "/app/test_reports/pytest/canva_director_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "FIXED: CanvaDirectorPage.js was missing X-Main-Site-ID header in all API calls. Added mainSite.id to headers object and added mainSite?.id to useCallback dependencies to ensure headers are rebuilt when mainSite context is available.",
+    "canva.py: Well-structured router with proper async DB operations, config masking, OAuth state management, and activity logging",
+    "server.py: canva_router correctly registered on line 140",
+    "models/main_sites.py: canva_director feature defined on line 46",
+    "MainSiteDashboardLayout.js: canva_director in FEATURE_NAV_ITEMS (line 89) and NAV_GROUPS server group (line 136)"
+  ],
+  "updated_files": [
+    "/app/frontend/src/pages/CanvaDirectorPage.js",
+    "/app/backend/tests/test_canva_director.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 tests passed)",
+    "frontend": "100% (all UI elements verified)"
+  },
+  "test_credentials": {
+    "email": "admkoodh@koodh.com",
+    "password": "KYLovie13monx"
+  },
+  "seed_data_creation": "Temporarily enabled demo mode on clara-xml-server for testing. Disabled after tests completed.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Canva Director feature fully implemented and tested. The feature is available on server-type sites with canva_director enabled. API endpoints require X-Main-Site-ID header. Testing site: clara-xml-server (9d51a9a0-90ea-41c5-8324-d240fedbd99c). The actual Canva OAuth flow requires real Canva credentials - only local config/status endpoints were tested.",
+  "features_tested": {
+    "Backend_GET_canva_config": {
+      "status": "PASSED",
+      "endpoint": "GET /api/canva/config",
+      "details": "Returns configured=false initially, configured=true with masked secret after PUT"
+    },
+    "Backend_PUT_canva_config": {
+      "status": "PASSED",
+      "endpoint": "PUT /api/canva/config",
+      "details": "Saves client_id, client_secret (masked on GET), redirect_uri"
+    },
+    "Backend_GET_canva_auth_status": {
+      "status": "PASSED",
+      "endpoint": "GET /api/canva/auth/status",
+      "details": "Returns connected=false when no token exists"
+    },
+    "Backend_GET_canva_auth_url": {
+      "status": "PASSED",
+      "endpoint": "GET /api/canva/auth/url",
+      "details": "Returns 400 when not configured, returns Canva OAuth URL when configured"
+    },
+    "Backend_GET_canva_activity": {
+      "status": "PASSED",
+      "endpoint": "GET /api/canva/activity",
+      "details": "Returns empty array initially"
+    },
+    "Frontend_CanvaDirector_page_loads": {
+      "status": "PASSED",
+      "component": "CanvaDirectorPage.js",
+      "details": "Shows 'Canva Director' header with subtitle, 3 tabs (Designs, Activity, Configuration)"
+    },
+    "Frontend_not_configured_warning": {
+      "status": "PASSED",
+      "component": "CanvaDirectorPage.js",
+      "details": "Shows 'Canva not configured' warning with 'Configure Now' button when not configured"
+    },
+    "Frontend_configuration_form": {
+      "status": "PASSED",
+      "component": "CanvaDirectorPage.js",
+      "details": "Client ID, Client Secret, Redirect URI fields and Save Configuration button present",
+      "data_testids": ["canva-client-id", "canva-client-secret", "canva-redirect-uri", "canva-save-config"]
+    },
+    "Frontend_save_config_success": {
+      "status": "PASSED",
+      "component": "CanvaDirectorPage.js",
+      "details": "Configuration saves successfully, shows success toast and 'Canva API configured' badge"
+    },
+    "Frontend_connect_canva_prompt": {
+      "status": "PASSED",
+      "component": "CanvaDirectorPage.js",
+      "details": "After config saved, Designs tab shows 'Connect your Canva account' prompt with 'Connect Canva' button"
+    },
+    "Frontend_sidebar_icon": {
+      "status": "PASSED",
+      "component": "MainSiteDashboardLayout.js",
+      "details": "Canva Director (Palette icon) visible in sidebar for server sites with canva_director feature enabled"
+    }
+  },
+  "bug_fixed": {
+    "issue": "Frontend API calls failing with 400 errors",
+    "root_cause": "CanvaDirectorPage.js was not including X-Main-Site-ID header in fetch calls",
+    "fix_applied": "Added mainSite.id to headers object when mainSite is available, added mainSite?.id to useCallback dependencies"
+  }
+}

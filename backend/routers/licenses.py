@@ -64,7 +64,7 @@ DEFAULT_PACKAGES = [
         "slug": "server",
         "description": "Server-side tools for automation, imports and integrations",
         "features": [
-            "xml_imports", "server_api_keys", "vmix_director",
+            "xml_imports", "server_api_keys", "vmix_director", "canva_director",
             "team_settings", "activity_logs",
         ],
         "monthly_price": 0,
