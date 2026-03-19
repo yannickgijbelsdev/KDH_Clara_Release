@@ -1,15 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
-import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import {
   Settings, Link2, Unlink, Palette, Download, Plus, RefreshCw,
-  ExternalLink, Image, FileText, Video, Clock, User, Search,
-  Loader2, CheckCircle, XCircle, AlertTriangle
+  ExternalLink, Image, Clock, Search, Save, Eye, EyeOff,
+  Loader2, CheckCircle, AlertCircle
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -25,11 +23,13 @@ const CanvaDirectorPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Config form
+  // Config panel (collapsible, like ZeroTier)
+  const [configOpen, setConfigOpen] = useState(false);
   const [configForm, setConfigForm] = useState({ client_id: '', client_secret: '', redirect_uri: '' });
   const [savingConfig, setSavingConfig] = useState(false);
+  const [showSecret, setShowSecret] = useState(false);
 
-  // Create design form
+  // Create design
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ title: '', width: 1080, height: 1080 });
   const [creating, setCreating] = useState(false);
@@ -37,11 +37,10 @@ const CanvaDirectorPage = () => {
   // Export
   const [exporting, setExporting] = useState(null);
 
-  // Include X-Main-Site-ID header for backend to identify the main site context
-  const headers = mainSite ? { 
-    Authorization: `Bearer ${token}`, 
+  const headers = mainSite ? {
+    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
-    'X-Main-Site-ID': mainSite.id 
+    'X-Main-Site-ID': mainSite.id
   } : { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   const fetchConfig = useCallback(async () => {
@@ -74,7 +73,7 @@ const CanvaDirectorPage = () => {
         setDesigns(data.items || []);
       }
     } catch { /* ignore */ }
-  }, [token, searchQuery, mainSite?.id]);
+  }, [token, mainSite?.id, searchQuery]);
 
   const fetchActivity = useCallback(async () => {
     if (!mainSite?.id) return;
@@ -86,14 +85,13 @@ const CanvaDirectorPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      if (!mainSite) return; // Wait for mainSite context
       setLoading(true);
       await fetchConfig();
       await fetchAuthStatus();
       setLoading(false);
     };
     load();
-  }, [fetchConfig, fetchAuthStatus, mainSite]);
+  }, [fetchConfig, fetchAuthStatus]);
 
   useEffect(() => {
     if (authStatus.connected && activeTab === 'designs') fetchDesigns();
@@ -113,7 +111,7 @@ const CanvaDirectorPage = () => {
     return () => window.removeEventListener('message', handler);
   }, [fetchAuthStatus, fetchDesigns]);
 
-  const saveConfig = async () => {
+  const handleSaveConfig = async () => {
     if (!configForm.client_id) return toast.error('Client ID is required');
     if (!configForm.client_secret && !config.configured) return toast.error('Client Secret is required');
     setSavingConfig(true);
@@ -126,6 +124,7 @@ const CanvaDirectorPage = () => {
       const res = await fetch(`${API}/canva/config`, { method: 'PUT', headers, body: JSON.stringify(body) });
       if (res.ok) {
         toast.success('Configuration saved');
+        setConfigOpen(false);
         fetchConfig();
       } else {
         const err = await res.json();
@@ -169,11 +168,7 @@ const CanvaDirectorPage = () => {
     try {
       const res = await fetch(`${API}/canva/designs`, {
         method: 'POST', headers,
-        body: JSON.stringify({
-          title: createForm.title,
-          width: createForm.width,
-          height: createForm.height,
-        }),
+        body: JSON.stringify({ title: createForm.title, width: createForm.width, height: createForm.height }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -181,7 +176,6 @@ const CanvaDirectorPage = () => {
         setCreateOpen(false);
         setCreateForm({ title: '', width: 1080, height: 1080 });
         fetchDesigns();
-        // Open in Canva
         const editUrl = data.design?.urls?.edit_url;
         if (editUrl) window.open(editUrl, '_blank');
       } else {
@@ -204,10 +198,7 @@ const CanvaDirectorPage = () => {
       if (res.ok) {
         const data = await res.json();
         toast.success('Export started! Check back shortly.');
-        // Poll for export status
-        if (data.job?.id) {
-          pollExport(data.job.id);
-        }
+        if (data.job?.id) pollExport(data.job.id);
       } else {
         const err = await res.json();
         toast.error(err.detail || 'Export failed');
@@ -231,10 +222,7 @@ const CanvaDirectorPage = () => {
             window.open(data.job.urls[0], '_blank');
             return;
           }
-          if (data.job?.status === 'failed') {
-            toast.error('Export failed');
-            return;
-          }
+          if (data.job?.status === 'failed') { toast.error('Export failed'); return; }
         }
       } catch { /* ignore */ }
       if (attempts < 10) setTimeout(poll, 3000);
@@ -251,93 +239,161 @@ const CanvaDirectorPage = () => {
     );
   }
 
-  const TABS = [
-    { id: 'designs', label: 'Designs', icon: Palette },
-    { id: 'activity', label: 'Activity', icon: Clock },
-    ...(isAdmin ? [{ id: 'config', label: 'Configuration', icon: Settings }] : []),
-  ];
+  const isConfigured = config.configured;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6" data-testid="canva-director">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Canva Director</h1>
-          <p className="text-sm text-zinc-400 mt-1">Design, create and export directly from Canva</p>
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-[#7d2ae8]/20 rounded-xl">
+            <Palette className="w-5 h-5 text-[#7d2ae8]" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-white">Canva Director</h1>
+            <p className="text-sm text-zinc-500">Design, create and export directly from Canva</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          {authStatus.connected ? (
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfigOpen(!configOpen)}
+              className="border-zinc-700 text-zinc-300"
+              data-testid="canva-config-btn"
+            >
+              <Settings className="w-4 h-4 mr-1" /> Config
+            </Button>
+          )}
+          {isConfigured && authStatus.connected && (
             <>
-              <span className="flex items-center gap-1.5 text-xs text-emerald-400">
-                <CheckCircle className="w-3.5 h-3.5" />
-                Connected
-              </span>
-              <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-400 gap-1.5" onClick={disconnectCanva}>
-                <Unlink className="w-3.5 h-3.5" />
-                Disconnect
+              <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-300" onClick={disconnectCanva}>
+                <Unlink className="w-4 h-4 mr-1" /> Disconnect
+              </Button>
+              <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-300" onClick={fetchDesigns}>
+                <RefreshCw className="w-4 h-4 mr-1" /> Refresh
               </Button>
             </>
-          ) : config.configured ? (
-            <Button size="sm" className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white gap-1.5" onClick={connectCanva}>
-              <Link2 className="w-3.5 h-3.5" />
-              Connect Canva
-            </Button>
-          ) : null}
+          )}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-zinc-800 pb-2">
-        {TABS.map(tab => (
+      {/* Tab Navigation */}
+      {isConfigured && (
+        <div className="flex gap-1 bg-zinc-900 rounded-lg p-1 w-fit" data-testid="canva-tabs">
           <button
-            key={tab.id}
-            data-testid={`canva-tab-${tab.id}`}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              activeTab === tab.id
-                ? 'bg-zinc-800 text-white border-b-2 border-orange-500'
-                : 'text-zinc-400 hover:text-zinc-200'
+            onClick={() => setActiveTab('designs')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'designs' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'
             }`}
+            data-testid="canva-tab-designs"
           >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
+            <Palette className="w-3.5 h-3.5" /> Designs
           </button>
-        ))}
-      </div>
-
-      {/* Not configured state */}
-      {!config.configured && activeTab !== 'config' && (
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <AlertTriangle className="w-12 h-12 text-amber-500 mb-4" />
-            <p className="text-white font-medium mb-2">Canva not configured</p>
-            <p className="text-zinc-400 text-sm mb-4">An admin needs to configure the Canva API credentials first.</p>
-            {isAdmin && (
-              <Button size="sm" onClick={() => setActiveTab('config')} className="bg-orange-500 hover:bg-orange-600 text-white gap-1.5">
-                <Settings className="w-4 h-4" />
-                Configure Now
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+          <button
+            onClick={() => setActiveTab('activity')}
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'activity' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'
+            }`}
+            data-testid="canva-tab-activity"
+          >
+            <Clock className="w-3.5 h-3.5" /> Activity
+          </button>
+        </div>
       )}
 
-      {/* Not connected state */}
-      {config.configured && !authStatus.connected && activeTab === 'designs' && (
-        <Card className="bg-zinc-900 border-zinc-800">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Palette className="w-12 h-12 text-[#7d2ae8] mb-4" />
-            <p className="text-white font-medium mb-2">Connect your Canva account</p>
-            <p className="text-zinc-400 text-sm mb-4">Authorize Clara to access your Canva designs and assets.</p>
-            <Button size="sm" className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white gap-1.5" onClick={connectCanva}>
-              <Link2 className="w-4 h-4" />
-              Connect Canva
+      {/* Config Panel (collapsible, like ZeroTier) */}
+      {configOpen && (
+        <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 mb-6" data-testid="canva-config-panel">
+          <h3 className="text-white font-medium mb-4">Canva API Configuration</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="text-sm text-zinc-400 mb-1 block">Client ID</label>
+              <Input
+                value={configForm.client_id}
+                onChange={e => setConfigForm(p => ({ ...p, client_id: e.target.value }))}
+                placeholder={config.client_id || 'OC-AZ...'}
+                className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm"
+                data-testid="canva-client-id"
+              />
+              <p className="text-xs text-zinc-600 mt-1">
+                Get from <a href="https://www.canva.com/developers/" target="_blank" rel="noreferrer" className="text-[#7d2ae8] hover:underline">canva.com/developers</a>
+              </p>
+            </div>
+            <div>
+              <label className="text-sm text-zinc-400 mb-1 block">Client Secret</label>
+              <div className="flex gap-2">
+                <Input
+                  type={showSecret ? 'text' : 'password'}
+                  value={configForm.client_secret}
+                  onChange={e => setConfigForm(p => ({ ...p, client_secret: e.target.value }))}
+                  placeholder={config.configured ? '••••••••' : 'Enter client secret'}
+                  className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm"
+                  data-testid="canva-client-secret"
+                />
+                <Button variant="ghost" size="icon" onClick={() => setShowSecret(!showSecret)} className="text-zinc-400">
+                  {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="text-sm text-zinc-400 mb-1 block">Redirect URI (optional)</label>
+            <Input
+              value={configForm.redirect_uri}
+              onChange={e => setConfigForm(p => ({ ...p, redirect_uri: e.target.value }))}
+              placeholder="Auto-detected if empty"
+              className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm max-w-md"
+              data-testid="canva-redirect-uri"
+            />
+            <p className="text-xs text-zinc-600 mt-1">Set this in your Canva Developer Portal as the callback URL</p>
+          </div>
+          <Button
+            onClick={handleSaveConfig}
+            disabled={savingConfig}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            data-testid="canva-save-config"
+          >
+            <Save className="w-4 h-4 mr-1" /> {savingConfig ? 'Saving...' : 'Save Configuration'}
+          </Button>
+        </div>
+      )}
+
+      {/* Not Configured State */}
+      {!isConfigured && (
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-12 text-center">
+          <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+          <h2 className="text-white text-lg font-semibold mb-2">Canva Not Configured</h2>
+          <p className="text-zinc-400 mb-4">Enter your Client ID and Client Secret to start using Canva.</p>
+          {isAdmin && (
+            <Button onClick={() => setConfigOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="canva-configure-now-btn">
+              <Settings className="w-4 h-4 mr-1" /> Configure Now
             </Button>
-          </CardContent>
-        </Card>
+          )}
+        </div>
+      )}
+
+      {/* Not Connected State */}
+      {isConfigured && !authStatus.connected && activeTab === 'designs' && (
+        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-12 text-center">
+          <Palette className="w-12 h-12 text-[#7d2ae8] mx-auto mb-4" />
+          <h2 className="text-white text-lg font-semibold mb-2">Connect your Canva account</h2>
+          <p className="text-zinc-400 mb-4">Authorize Clara to access your Canva designs and assets.</p>
+          <Button className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white" onClick={connectCanva} data-testid="canva-connect-btn">
+            <Link2 className="w-4 h-4 mr-1" /> Connect Canva
+          </Button>
+          {authStatus.connected && (
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <CheckCircle className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm text-emerald-400">Connected</span>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Designs Tab */}
-      {activeTab === 'designs' && config.configured && authStatus.connected && (
+      {activeTab === 'designs' && isConfigured && authStatus.connected && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="relative flex-1 max-w-sm">
@@ -351,79 +407,70 @@ const CanvaDirectorPage = () => {
                 data-testid="canva-search"
               />
             </div>
-            <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-400" onClick={fetchDesigns}>
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-            <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white gap-1.5" onClick={() => setCreateOpen(true)} data-testid="canva-create-btn">
-              <Plus className="w-4 h-4" />
-              New Design
+            <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => setCreateOpen(true)} data-testid="canva-create-btn">
+              <Plus className="w-4 h-4 mr-1" /> New Design
             </Button>
           </div>
 
           {/* Create Design Form */}
           {createOpen && (
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardContent className="p-4 space-y-3">
-                <h3 className="text-sm font-medium text-white">Create New Design</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <Label className="text-zinc-400 text-xs">Title</Label>
-                    <Input
-                      value={createForm.title}
-                      onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))}
-                      placeholder="My Design"
-                      className="bg-zinc-800 border-zinc-700 text-white mt-1"
-                      data-testid="canva-design-title"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-zinc-400 text-xs">Width (px)</Label>
-                    <Input
-                      type="number"
-                      value={createForm.width}
-                      onChange={e => setCreateForm(p => ({ ...p, width: parseInt(e.target.value) || 0 }))}
-                      className="bg-zinc-800 border-zinc-700 text-white mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-zinc-400 text-xs">Height (px)</Label>
-                    <Input
-                      type="number"
-                      value={createForm.height}
-                      onChange={e => setCreateForm(p => ({ ...p, height: parseInt(e.target.value) || 0 }))}
-                      className="bg-zinc-800 border-zinc-700 text-white mt-1"
-                    />
-                  </div>
+            <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5">
+              <h3 className="text-white font-medium mb-4">Create New Design</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="text-sm text-zinc-400 mb-1 block">Title</label>
+                  <Input
+                    value={createForm.title}
+                    onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))}
+                    placeholder="My Design"
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                    data-testid="canva-design-title"
+                  />
                 </div>
-                <div className="flex gap-2 justify-end">
-                  <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-400" onClick={() => setCreateOpen(false)}>Cancel</Button>
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white gap-1.5" onClick={createDesign} disabled={creating} data-testid="canva-create-submit">
-                    {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                    Create
-                  </Button>
+                <div>
+                  <label className="text-sm text-zinc-400 mb-1 block">Width (px)</label>
+                  <Input
+                    type="number"
+                    value={createForm.width}
+                    onChange={e => setCreateForm(p => ({ ...p, width: parseInt(e.target.value) || 0 }))}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                  />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <label className="text-sm text-zinc-400 mb-1 block">Height (px)</label>
+                  <Input
+                    type="number"
+                    value={createForm.height}
+                    onChange={e => setCreateForm(p => ({ ...p, height: parseInt(e.target.value) || 0 }))}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-400" onClick={() => setCreateOpen(false)}>Cancel</Button>
+                <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white" onClick={createDesign} disabled={creating} data-testid="canva-create-submit">
+                  {creating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />}
+                  Create
+                </Button>
+              </div>
+            </div>
           )}
 
           {/* Designs Grid */}
           {designs.length === 0 ? (
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Palette className="w-12 h-12 text-zinc-600 mb-3" />
-                <p className="text-zinc-400 text-sm">No designs found</p>
-                <p className="text-zinc-500 text-xs mt-1">Create a new design or search for existing ones</p>
-              </CardContent>
-            </Card>
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-12 text-center">
+              <Palette className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
+              <p className="text-zinc-400 text-sm">No designs found</p>
+              <p className="text-zinc-500 text-xs mt-1">Create a new design or search for existing ones</p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {designs.map(design => {
                 const d = design.design || design;
                 const thumbnail = d.thumbnail?.url || d.urls?.thumbnail_url;
                 const editUrl = d.urls?.edit_url;
-                const viewUrl = d.urls?.view_url;
                 return (
-                  <Card key={d.id} className="bg-zinc-900 border-zinc-800 overflow-hidden group" data-testid={`canva-design-${d.id}`}>
+                  <div key={d.id} className="bg-zinc-900/80 border border-zinc-800 rounded-xl overflow-hidden group" data-testid={`canva-design-${d.id}`}>
                     <div className="aspect-video bg-zinc-800 relative overflow-hidden">
                       {thumbnail ? (
                         <img src={thumbnail} alt={d.title} className="w-full h-full object-cover" />
@@ -434,30 +481,29 @@ const CanvaDirectorPage = () => {
                       )}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         {editUrl && (
-                          <Button size="sm" className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white gap-1" onClick={() => window.open(editUrl, '_blank')}>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                            Edit
+                          <Button size="sm" className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white" onClick={() => window.open(editUrl, '_blank')}>
+                            <ExternalLink className="w-3.5 h-3.5 mr-1" /> Edit
                           </Button>
                         )}
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-zinc-600 text-white gap-1"
+                          className="border-zinc-600 text-white"
                           onClick={() => exportDesign(d.id)}
                           disabled={exporting === d.id}
                         >
-                          {exporting === d.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                          {exporting === d.id ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : <Download className="w-3.5 h-3.5 mr-1" />}
                           Export
                         </Button>
                       </div>
                     </div>
-                    <CardContent className="p-3">
+                    <div className="p-3">
                       <p className="text-sm font-medium text-white truncate">{d.title || 'Untitled'}</p>
                       <p className="text-xs text-zinc-500 mt-1">
                         {d.created_at ? new Date(d.created_at * 1000).toLocaleDateString('nl-BE') : ''}
                       </p>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -466,118 +512,34 @@ const CanvaDirectorPage = () => {
       )}
 
       {/* Activity Tab */}
-      {activeTab === 'activity' && (
+      {activeTab === 'activity' && isConfigured && (
         <div className="space-y-3">
           {activity.length === 0 ? (
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Clock className="w-12 h-12 text-zinc-600 mb-3" />
-                <p className="text-zinc-400 text-sm">No activity yet</p>
-              </CardContent>
-            </Card>
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-12 text-center">
+              <Clock className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
+              <p className="text-zinc-400 text-sm">No activity yet</p>
+            </div>
           ) : (
             activity.map((act, i) => (
-              <Card key={i} className="bg-zinc-900 border-zinc-800">
-                <CardContent className="p-3 flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${act.action === 'create_design' ? 'bg-emerald-500/15' : 'bg-blue-500/15'}`}>
-                    {act.action === 'create_design' ? (
-                      <Plus className="w-4 h-4 text-emerald-400" />
-                    ) : (
-                      <Download className="w-4 h-4 text-blue-400" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white">
-                      <span className="font-medium">{act.user_name}</span>
-                      {' '}
-                      {act.action === 'create_design' ? 'created' : 'exported'}
-                      {' '}
-                      <span className="text-zinc-400">{act.design_title || act.design_id}</span>
-                    </p>
-                    <p className="text-xs text-zinc-500">
-                      {new Date(act.created_at).toLocaleString('nl-BE')}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              <div key={i} className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-3 flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${act.action === 'create_design' ? 'bg-emerald-500/15' : 'bg-blue-500/15'}`}>
+                  {act.action === 'create_design' ? (
+                    <Plus className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Download className="w-4 h-4 text-blue-400" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white">
+                    <span className="font-medium">{act.user_name}</span>
+                    {' '}{act.action === 'create_design' ? 'created' : 'exported'}{' '}
+                    <span className="text-zinc-400">{act.design_title || act.design_id}</span>
+                  </p>
+                  <p className="text-xs text-zinc-500">{new Date(act.created_at).toLocaleString('nl-BE')}</p>
+                </div>
+              </div>
             ))
           )}
-        </div>
-      )}
-
-      {/* Config Tab */}
-      {activeTab === 'config' && isAdmin && (
-        <div className="space-y-6 max-w-xl">
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-[#7d2ae8]/20 rounded-lg">
-                  <Palette className="w-5 h-5 text-[#7d2ae8]" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium">Canva API Configuration</h3>
-                  <p className="text-xs text-zinc-500">
-                    Get your credentials from{' '}
-                    <a href="https://www.canva.com/developers/" target="_blank" rel="noreferrer" className="text-[#7d2ae8] hover:underline">
-                      canva.com/developers
-                    </a>
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-zinc-400 text-xs">Client ID</Label>
-                <Input
-                  value={configForm.client_id}
-                  onChange={e => setConfigForm(p => ({ ...p, client_id: e.target.value }))}
-                  placeholder="OC-AZ..."
-                  className="bg-zinc-800 border-zinc-700 text-white mt-1 font-mono text-sm"
-                  data-testid="canva-client-id"
-                />
-              </div>
-
-              <div>
-                <Label className="text-zinc-400 text-xs">Client Secret</Label>
-                <Input
-                  type="password"
-                  value={configForm.client_secret}
-                  onChange={e => setConfigForm(p => ({ ...p, client_secret: e.target.value }))}
-                  placeholder={config.configured ? '••••••••' : 'Enter client secret'}
-                  className="bg-zinc-800 border-zinc-700 text-white mt-1 font-mono text-sm"
-                  data-testid="canva-client-secret"
-                />
-              </div>
-
-              <div>
-                <Label className="text-zinc-400 text-xs">Redirect URI (optional)</Label>
-                <Input
-                  value={configForm.redirect_uri}
-                  onChange={e => setConfigForm(p => ({ ...p, redirect_uri: e.target.value }))}
-                  placeholder="Auto-detected if empty"
-                  className="bg-zinc-800 border-zinc-700 text-white mt-1 font-mono text-sm"
-                  data-testid="canva-redirect-uri"
-                />
-                <p className="text-[11px] text-zinc-600 mt-1">Set this in your Canva Developer Portal as the callback URL</p>
-              </div>
-
-              <Button
-                className="bg-orange-500 hover:bg-orange-600 text-white w-full gap-2"
-                onClick={saveConfig}
-                disabled={savingConfig}
-                data-testid="canva-save-config"
-              >
-                {savingConfig ? <Loader2 className="w-4 h-4 animate-spin" /> : <Settings className="w-4 h-4" />}
-                Save Configuration
-              </Button>
-
-              {config.configured && (
-                <div className="flex items-center gap-2 pt-2 border-t border-zinc-800">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs text-emerald-400">Canva API configured</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       )}
     </div>
