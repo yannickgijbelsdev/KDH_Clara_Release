@@ -47,6 +47,7 @@ import NotificationSettings from './NotificationSettings';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import BrandingSettings from './BrandingSettings';
 import LicenseManager from './LicenseManager';
+import DomainManager from './DomainManager';
 import EnvironmentManager from './EnvironmentManager';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
@@ -390,6 +391,7 @@ export default function NetworkDashboard() {
       items: [
         { id: 'admins', icon: Crown, label: 'Network Admins' },
         { id: 'environments', icon: Server, label: 'Environments' },
+        { id: 'domains', icon: Globe, label: 'Domain Manager' },
         { id: 'licenses', icon: Shield, label: 'License Manager' },
         { id: 'notifications', icon: Bell, label: 'Notifications' },
         { id: 'branding', icon: Paintbrush, label: 'Branding' },
@@ -1301,6 +1303,19 @@ export default function NetworkDashboard() {
                 </div>
               </div>
               <LicenseManager />
+            </div>
+          )}
+
+          {/* ═══════════ DOMAIN MANAGER ═══════════ */}
+          {activeSection === 'domains' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold">Domain Manager</h1>
+                  <p className="text-sm text-zinc-400">Beheer domeinen, subdomain routing en Cloudflare integratie</p>
+                </div>
+              </div>
+              <DomainManager />
             </div>
           )}
 
