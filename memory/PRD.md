@@ -3392,10 +3392,25 @@ now = now_brussels()  # Automatically handles CET/CEST
   - DB collection: license_requests {id, main_site_id, site_name, site_type, site_slug, environment_id, environment_name, requester_id, requester_name, requester_email, status, created_at, updated_at, reviewed_by, reviewed_at, notes}
   - Status: VERIFIED (iteration_99 - 100% pass rate, 6/6 backend + all frontend)
 
+### March 2026 - License Manager Resilience Fix
+- [x] **Bug Fix: License Manager broke when any single API call failed**:
+  - Root cause: `Promise.all` in `fetchData` caused ALL data to fail if any one of the 4 API endpoints returned an error
+  - Fix: Replaced with independent try-catch blocks per endpoint; partial data now loads even if one fails
+  - File: `frontend/src/pages/Network/LicenseManager.js` (lines 70-107)
+  - Status: VERIFIED (iteration_103 - 100% pass rate)
+
+### March 2026 - Login Wizard Persistence Fix
+- [x] **Bug Fix: Login wizard reappeared on every page navigation**:
+  - Root cause: No guard against re-showing the wizard; event listener and sessionStorage logic allowed multiple triggers
+  - Fix: Added `login_wizard_shown` sessionStorage flag that prevents re-showing; cleared on logout
+  - Files: `frontend/src/App.js` (LoginWizardWrapper), `frontend/src/context/AuthContext.js` (logout)
+  - Status: VERIFIED (iteration_103 - 100% pass rate)
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
 - [ ] (P1) WordPress Plugin Integration finalization
 - [ ] (P1) Cleanup old ProRadio sync code
+- [ ] (P2) Canva Director feature verification on new server sites (USER VERIFICATION PENDING)
 - [ ] (P2) Payment Gateway integration (Stripe/Mollie)
 - [ ] (P2) Stream Monitor VU Meters
