@@ -367,7 +367,7 @@ export default function NetworkDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // mobile sidebar
   const [expandedGroups, setExpandedGroups] = useState(['overview', 'management']);
   const [environments, setEnvironments] = useState([]);
-  const [selectedEnvId, setSelectedEnvId] = useState('all'); // 'all' or environment id
+  const [selectedEnvId, setSelectedEnvId] = useState(null); // will be set to first env on load
 
   // Navigation groups matching MainSiteDashboardLayout pattern
   const NAV_GROUPS = [
@@ -490,12 +490,20 @@ export default function NetworkDashboard() {
       const res = await fetch(`${API}/api/environments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.ok) setEnvironments(await res.json());
+      if (res.ok) {
+        const data = await res.json();
+        setEnvironments(data);
+        if (data.length > 0 && !selectedEnvId) {
+          // Default to first environment (usually Production)
+          const defaultEnv = data.find(e => e.is_default) || data[0];
+          setSelectedEnvId(defaultEnv.id);
+        }
+      }
     } catch {}
   };
 
   // Filter sites by selected environment
-  const filteredSites = selectedEnvId === 'all' 
+  const filteredSites = !selectedEnvId
     ? mainSites 
     : mainSites.filter(s => s.environment_id === selectedEnvId);
 
@@ -512,8 +520,8 @@ export default function NetworkDashboard() {
       if (!submitData.linked_main_site_id) {
         delete submitData.linked_main_site_id;
       }
-      // Assign to selected environment (or default if 'all')
-      if (selectedEnvId && selectedEnvId !== 'all') {
+      // Assign to selected environment
+      if (selectedEnvId) {
         submitData.environment_id = selectedEnvId;
       }
 
@@ -948,16 +956,11 @@ export default function NetworkDashboard() {
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5 border-zinc-700 bg-zinc-800/50" data-testid="env-switcher">
                         <Server className="w-3 h-3" />
-                        {selectedEnvId === 'all' ? 'All Environments' : environments.find(e => e.id === selectedEnvId)?.name || 'All'}
+                        {environments.find(e => e.id === selectedEnvId)?.name || 'Select Environment'}
                         <ChevronDown className="w-3 h-3 opacity-50" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="bg-zinc-900 border-zinc-700">
-                      <DropdownMenuItem onClick={() => setSelectedEnvId('all')} className={selectedEnvId === 'all' ? 'bg-zinc-800' : ''}>
-                        <Globe className="w-3.5 h-3.5 mr-2 text-zinc-400" />
-                        All Environments
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="bg-zinc-800" />
                       {environments.map(env => (
                         <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={selectedEnvId === env.id ? 'bg-zinc-800' : ''}>
                           <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
@@ -1010,7 +1013,7 @@ export default function NetworkDashboard() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-2xl font-bold text-white">Sites Overview</h1>
-                  <p className="text-sm text-zinc-400">{filteredSites.length} main sites{selectedEnvId !== 'all' && ` in ${environments.find(e => e.id === selectedEnvId)?.name || ''}`}</p>
+                  <p className="text-sm text-zinc-400">{filteredSites.length} main sites in {environments.find(e => e.id === selectedEnvId)?.name || 'environment'}</p>
                 </div>
                 <div className="flex gap-2 items-center">
                   <div className="flex bg-zinc-800 rounded-lg p-0.5 border border-zinc-700">
