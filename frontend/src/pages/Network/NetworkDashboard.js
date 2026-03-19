@@ -834,29 +834,6 @@ export default function NetworkDashboard() {
                 <RoleIcon className="w-4 h-4 mr-2" />
                 {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
               </DropdownMenuItem>
-              {mainSites.length > 0 && (
-                <>
-                  <DropdownMenuSeparator className="bg-zinc-800" />
-                  <div className="px-2 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wide">
-                    Main Sites
-                  </div>
-                  {mainSites.slice(0, 5).map(site => {
-                    const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Tasks' : 'Standard';
-                    const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
-                    return (
-                      <DropdownMenuItem
-                        key={site.id}
-                        onClick={() => navigate(`/${site.slug}`)}
-                        className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
-                      >
-                        <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">{site.name}</span>
-                        <span className={`ml-auto text-[10px] flex-shrink-0 ${labelColor}`}>{siteLabel}</span>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </>
-              )}
               <DropdownMenuSeparator className="bg-zinc-800" />
               <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10">
                 <LogOut className="w-4 h-4 mr-2" />
