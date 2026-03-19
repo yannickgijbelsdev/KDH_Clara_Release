@@ -3370,6 +3370,20 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Backend: routers/canva.py (config, auth, designs, exports, assets, activity endpoints)
   - Frontend: CanvaDirectorPage.js with 3 tabs (Designs, Activity, Configuration)
   - DB collections: canva_config, canva_tokens, canva_oauth_states, canva_activity
+
+### February 2026 - Custom Roles Permission Fix
+- [x] **Bug Fix: Custom roles not working in ShowDetailPage and ContentDetailPage**:
+  - Root cause: `isEditor` in AuthContext only checked hardcoded roles (admin/editor/news_admin). Custom roles were ignored.
+  - Fix: Added `usePermissions()` context to ShowDetailPage.js and ContentDetailPage.js with fallback to legacy `isEditor`
+  - ShowsPage and ContentLibraryPage were already fixed in a previous session
+  - Status: VERIFIED (iteration_102 - 100% pass rate)
+
+- [x] **Feature: CLI command `/fix custom roles`**:
+  - Finds all custom roles for the site
+  - Adds missing feature permission entries (uses editor template)
+  - Ensures all permission keys (view/create/edit/delete) exist
+  - Status: VERIFIED (iteration_102 - fixed 2 custom roles in test)
+
   - Available to all users in the site, config restricted to admins
   - Status: VERIFIED (iteration_100 - 100% pass rate, 8/8 backend + all frontend)
 
