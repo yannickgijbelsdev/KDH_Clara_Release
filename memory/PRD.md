@@ -3461,6 +3461,15 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files: `routers/auth.py`, `routers/main_sites.py`, `routers/environments.py`, `services/auth.py`, `pages/Network/NetworkDashboard.js`
   - Status: VERIFIED (iteration_107 - 100% pass rate, 15 backend tests + frontend verified)
 
+### March 2026 - ZeroTier Offline Alert Timer Fix
+- [x] **Bug Fix: ZeroTier client offline notificaties werkten niet**:
+  - Root cause: Oude logica miste eerste detectie (als `last_known_status` null was) en stuurde alerts onmiddellijk bij statuswijziging zonder 5-minuten bevestiging
+  - Nieuwe flow: (1) Client offline → `offline_since` timestamp opslaan (2) Na 5+ min bevestigd offline → melding versturen (3) Client terug online → recovery melding + timer resetten
+  - Nieuwe velden op `zerotier_alerts`: `offline_since` (ISO timestamp), `offline_alert_sent` (boolean)
+  - Constante: `OFFLINE_ALERT_DELAY_SECONDS = 300` (5 minuten)
+  - File: `services/zerotier_alerts.py` — volledige herschrijving van `_check_alerts` functie
+  - Status: VERIFIED (iteration_108 - 100% pass rate, 14 backend tests + code review verified)
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
