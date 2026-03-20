@@ -3470,6 +3470,20 @@ now = now_brussels()  # Automatically handles CET/CEST
   - File: `services/zerotier_alerts.py` — volledige herschrijving van `_check_alerts` functie
   - Status: VERIFIED (iteration_108 - 100% pass rate, 14 backend tests + code review verified)
 
+### March 2026 - Radioplayer Auto-Sync Scheduler + Custom Icon
+- [x] **Feature: Radioplayer auto-sync (zoals RDS monitor)**:
+  - `RadioplayerScheduler` class met twee sync loops:
+    - Now Playing: elke 60 seconden — controleert of het huidige nummer is veranderd, pusht naar Radioplayer
+    - Schedule: elke 30 minuten — pusht de komende 7 dagen showschema
+  - Alleen actief als `auto_np` / `auto_schedule` aan staan in de config
+  - Frontend: auto-refresh elke 30 seconden + "Auto-sync actief" indicator + handmatige refresh knop
+  - Files: `services/radioplayer_scheduler.py` (NEW), `server.py` (start/stop), `pages/RadioplayerPage.js`
+- [x] **Feature: Custom Radioplayer icoon**:
+  - SVG icon (cirkel + play driehoek + signaal golven), 24x24, stroke-based, erft `currentColor` (wit in sidebar)
+  - Gebruikt in sidebar + page header (vervangt generiek Radio icoon)
+  - Files: `components/icons/RadioplayerIcon.js` (NEW), `components/MainSiteDashboardLayout.js`, `pages/RadioplayerPage.js`
+  - Status: VERIFIED (iteration_109 - 100% pass rate, auto-refresh timestamp change bevestigd)
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
