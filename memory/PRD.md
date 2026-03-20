@@ -3449,6 +3449,18 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files: `middleware/no_cache_middleware.py` (NEW), `server.py`, `services/auth.py`, `AuthContext.js`
   - Status: VERIFIED (iteration_106 - 100% pass rate, security checks verified)
 
+### March 2026 - Permission Scoping Fix: Environment Admins vs System Admins
+- [x] **Bug Fix: Environment admin (Chiel) zag alles in Network Dashboard**:
+  - Root cause: `is_network_admin: true` werd in de `/me` response automatisch omgezet naar `is_system_admin: true`, waardoor ELKE environment admin volledige systeemtoegang kreeg
+  - Fix 1: `/me`, login en exchange token responses berekenen `is_system_admin` nu correct: alleen `true` als `is_system_admin: true` OF `is_primary_network_admin: true`
+  - Fix 2: `list_environments` gescopet — environment admins zien alleen hun toegewezen environments, niet alle
+  - Fix 3: `get_all_main_sites` gescopet — environment admins zien alleen sites in hun toegewezen environments
+  - Fix 4: `get_main_site` controleert environment scope voor niet-system admins
+  - Fix 5: Network Dashboard sidebar verbergt admin-only secties (Network Admins, Domains, Licenses, Branding, Debug, External) voor niet-system admins
+  - Helper: `get_admin_environment_ids()` in main_sites.py — retourneert `None` voor system admins (alles), of lijst van environment IDs voor environment admins
+  - Files: `routers/auth.py`, `routers/main_sites.py`, `routers/environments.py`, `services/auth.py`, `pages/Network/NetworkDashboard.js`
+  - Status: VERIFIED (iteration_107 - 100% pass rate, 15 backend tests + frontend verified)
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
