@@ -110,7 +110,30 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    // Guard against stale impersonation tokens:
+    // If there's a token but no 'impersonating' flag in localStorage,
+    // check if the token was created by impersonation (has 'impersonated_by' claim).
+    // If so, clear it — the impersonation session was not properly ended.
     if (token) {
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]));
+          if (payload.impersonated_by && !localStorage.getItem('impersonating')) {
+            console.warn('Stale impersonation token detected, clearing session');
+            localStorage.removeItem('token');
+            localStorage.removeItem('session_expires_at');
+            delete axios.defaults.headers.common['Authorization'];
+            setToken(null);
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch {
+        // Token decode failed, let fetchUser handle it
+      }
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       fetchUser();
       
@@ -130,7 +153,9 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get(`${API}/auth/me`);
+      const response = await axios.get(`${API}/auth/me`, {
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      });
       setUser(response.data);
       
       // Check if we're impersonating (stored in localStorage)
@@ -223,7 +248,9 @@ export const AuthProvider = ({ children }) => {
   const refreshUser = async () => {
     if (!token) return;
     try {
-      const response = await axios.get(`${API}/auth/me`);
+      const response = await axios.get(`${API}/auth/me`, {
+        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      });
       setUser(response.data);
       return response.data;
     } catch (error) {

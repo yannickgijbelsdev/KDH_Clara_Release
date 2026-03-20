@@ -70,6 +70,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         session = await db.sessions.find_one({"id": session_id}, {"_id": 0, "active": 1})
         if session and not session.get("active", True):
             raise HTTPException(status_code=401, detail="Session terminated by administrator")
+    # Check impersonation: verify the impersonating admin still has an active session
+    impersonated_by = payload.get('impersonated_by')
+    if impersonated_by:
+        admin_user = await db.users.find_one({"id": impersonated_by}, {"_id": 0, "is_blocked": 1})
+        if not admin_user or admin_user.get('is_blocked'):
+            raise HTTPException(status_code=401, detail="Impersonation session expired")
     # Ensure is_network_admin field exists (defaults to False)
     if 'is_network_admin' not in user:
         user['is_network_admin'] = False

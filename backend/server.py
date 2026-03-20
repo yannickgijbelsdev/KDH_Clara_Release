@@ -983,8 +983,10 @@ app.add_middleware(
 from database import JWT_ALGORITHM
 from middleware.firewall_middleware import FirewallMiddleware
 from middleware.permission_middleware import PermissionMiddleware
+from middleware.no_cache_middleware import NoCacheMiddleware
 app.add_middleware(FirewallMiddleware, jwt_secret=JWT_SECRET, jwt_algorithm=JWT_ALGORITHM)
 app.add_middleware(PermissionMiddleware, jwt_secret=JWT_SECRET, jwt_algorithm=JWT_ALGORITHM)
+app.add_middleware(NoCacheMiddleware)
 
 
 # ============== STARTUP/SHUTDOWN EVENTS ==============
