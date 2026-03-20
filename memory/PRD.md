@@ -3439,6 +3439,16 @@ now = now_brussels()  # Automatically handles CET/CEST
   - DB collection: `exchange_tokens`
   - Status: VERIFIED (iteration_105 - 100% pass rate, security checks verified)
 
+### March 2026 - Auth Security Fix: Anti-Cache + Stale Impersonation Protection
+- [x] **Bug Fix: Random user appearing as logged-in user**:
+  - Root cause: Geen anti-cache headers op API responses → CDN/proxy kon authenticated responses cachen en aan andere gebruikers serveren. Plus stale impersonation tokens in localStorage na het sluiten van een tab.
+  - Fix 1: `NoCacheMiddleware` — `Cache-Control: no-store, no-cache, must-revalidate` + `Vary: Authorization, X-Main-Site-ID` op ALLE `/api` responses
+  - Fix 2: Frontend detectie van stale impersonation tokens — JWT met `impersonated_by` claim maar zonder `impersonating` localStorage flag wordt automatisch gewist
+  - Fix 3: Backend validatie — `get_current_user` controleert of de impersonerende admin nog bestaat en niet geblokkeerd is
+  - Fix 4: Frontend `fetchUser`/`refreshUser` sturen `Cache-Control: no-cache` header mee
+  - Files: `middleware/no_cache_middleware.py` (NEW), `server.py`, `services/auth.py`, `AuthContext.js`
+  - Status: VERIFIED (iteration_106 - 100% pass rate, security checks verified)
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
