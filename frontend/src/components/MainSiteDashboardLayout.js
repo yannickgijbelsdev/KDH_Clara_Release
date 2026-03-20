@@ -18,6 +18,7 @@ import {
   ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor
 } from 'lucide-react';
 import { Button } from './ui/button';
+import RadioplayerIcon from './icons/RadioplayerIcon';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,7 +83,7 @@ const FEATURE_NAV_ITEMS = {
   call_studio: { to: 'call-studio', icon: Phone, label: 'Call Studio' },
   support_tickets: { to: 'tickets', icon: LifeBuoy, label: 'Support Tickets' },
   zerotier: { to: 'zerotier', icon: Monitor, label: 'ZeroTier', adminOnly: true },
-  radioplayer: { to: 'radioplayer', icon: Radio, label: 'Radioplayer', adminOnly: true },
+  radioplayer: { to: 'radioplayer', icon: RadioplayerIcon, label: 'Radioplayer', adminOnly: true },
   xml_imports: { to: 'xml-imports', icon: FileText, label: 'XML Imports' },
   server_api_keys: { to: 'api-keys', icon: Shield, label: 'API Keys', adminOnly: true },
   vmix_director: { to: 'vmix-director', icon: Monitor, label: 'vMix Director' },

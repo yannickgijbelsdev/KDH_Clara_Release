@@ -30,6 +30,7 @@ from database import db, client, JWT_SECRET, UPLOADS_DIR, MEDIA_UPLOADS_DIR, AVA
 from services.websocket import ws_manager
 from services.wp_scheduler import wp_scheduler
 from services.rds_scheduler import rds_scheduler
+from services.radioplayer_scheduler import radioplayer_scheduler
 from services.shoutcast import ShoutcastScheduler
 from services.rds_builder_scheduler import RDSBuilderScheduler
 from routers import (
@@ -1098,6 +1099,10 @@ async def startup_db_client():
     await rds_builder_scheduler.start()
     logger.info("RDS Builder scheduler started (1s interval)")
     
+    # Start the Radioplayer auto-sync scheduler
+    await radioplayer_scheduler.start()
+    logger.info("Radioplayer scheduler started (NP: 60s, Schedule: 30min)")
+    
     # Start the Audio Trigger scheduler for sound detection
     from services.audio_trigger import AudioTriggerScheduler
     global audio_trigger_scheduler
@@ -1235,6 +1240,10 @@ async def shutdown_db_client():
     # Stop the RDS Builder scheduler
     await rds_builder_scheduler.stop()
     logger.info("RDS Builder scheduler stopped")
+    
+    # Stop the Radioplayer scheduler
+    await radioplayer_scheduler.stop()
+    logger.info("Radioplayer scheduler stopped")
     
     # Stop the Audio Trigger scheduler
     global audio_trigger_scheduler

@@ -3,8 +3,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Radio, Settings, RefreshCw, CheckCircle, XCircle, Send,
-  Calendar, Music, Clock, AlertCircle, Save, Eye, EyeOff,
+  Calendar, Music, Clock, AlertCircle, Save, Eye, EyeOff, Activity,
 } from 'lucide-react';
+import RadioplayerIcon from '../components/icons/RadioplayerIcon';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 
@@ -18,6 +19,7 @@ const RadioplayerPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [pushingNP, setPushingNP] = useState(false);
   const [pushingSchedule, setPushingSchedule] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -27,6 +29,7 @@ const RadioplayerPage = () => {
       ]);
       setConfig(configRes.data);
       setPushLog(logRes.data.logs || []);
+      setLastRefresh(new Date());
     } catch (err) {
       console.error('Failed to fetch Radioplayer data:', err);
     } finally {
@@ -35,6 +38,12 @@ const RadioplayerPage = () => {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Auto-refresh every 30 seconds (like RDS monitor)
+  useEffect(() => {
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -90,14 +99,36 @@ const RadioplayerPage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
-              <Radio className="w-6 h-6 text-orange-400" />
+              <RadioplayerIcon size={24} className="text-orange-400" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-white" data-testid="radioplayer-title">Radioplayer Integration</h1>
-              <p className="text-sm text-zinc-400">Push now playing and schedule data to radioplayer.org</p>
+              <div className="flex items-center gap-3">
+                <p className="text-sm text-zinc-400">Push now playing and schedule data to radioplayer.org</p>
+                {config?.enabled && (
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <Activity className="w-3 h-3 text-emerald-400 animate-pulse" />
+                    <span className="text-emerald-400">Auto-sync actief</span>
+                    {lastRefresh && (
+                      <span className="text-zinc-600">
+                        — bijgewerkt {lastRefresh.toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-zinc-400"
+              onClick={fetchData}
+              data-testid="rp-refresh-btn"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
             <Button
               size="sm"
               variant="outline"
