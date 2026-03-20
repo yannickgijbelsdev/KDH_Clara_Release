@@ -40,10 +40,17 @@ async def _deauthorize_member(api_token: str, network_id: str, member_id: str):
 
 
 async def _check_alerts(db):
-    """Check all monitored ZeroTier clients and send alerts on status change.
+    """Check all monitored ZeroTier clients and send alerts when offline > 5 minutes.
     Also auto-deauthorizes clients offline for 30+ days.
+    
+    Flow:
+    1. Client goes offline → record offline_since timestamp
+    2. After 5+ minutes confirmed offline → send notification
+    3. Client comes back online → send recovery notification, clear offline_since
     """
     from services.email_service import send_email_with_config, build_notification_html, _get_branding_info
+
+    OFFLINE_ALERT_DELAY_SECONDS = 300  # 5 minutes before alerting
 
     configs = await db.zerotier_config.find(
         {"api_token": {"$exists": True, "$ne": ""}},
@@ -82,7 +89,8 @@ async def _check_alerts(db):
             logger.warning(f"ZeroTier API request failed for site {main_site_id}: {e}")
             continue
 
-        now_ts = datetime.now(timezone.utc).timestamp() * 1000
+        now = datetime.now(timezone.utc)
+        now_ts = now.timestamp() * 1000
         deauth_threshold_ms = AUTO_DEAUTH_DAYS * 24 * 60 * 60 * 1000
 
         status_map = {}
@@ -114,7 +122,7 @@ async def _check_alerts(db):
                             "old_status": "offline",
                             "new_status": "auto_deauthorized",
                             "site_name": "",
-                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "timestamp": now.isoformat(),
                             "notified_count": 0,
                             "reason": f"Offline for 30+ days (last seen: {datetime.fromtimestamp(last_seen/1000, tz=timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC)",
                         })
@@ -133,63 +141,116 @@ async def _check_alerts(db):
 
             last_status = alert.get("last_known_status")
             member_name = name_map.get(member_id, member_id)
+            offline_since = alert.get("offline_since")
+            alert_sent = alert.get("offline_alert_sent", False)
 
-            if last_status and current_status != last_status:
-                recipients = alert.get("recipients", [])
-                if not recipients:
-                    # Update status even without recipients
-                    await db.zerotier_alerts.update_one(
-                        {"main_site_id": main_site_id, "member_id": member_id},
-                        {"$set": {"last_known_status": current_status, "last_checked": datetime.now(timezone.utc).isoformat()}}
-                    )
-                    continue
+            update_fields = {
+                "last_known_status": current_status,
+                "last_checked": now.isoformat(),
+            }
 
-                if not smtp_config or not smtp_config.get("password"):
-                    await db.zerotier_alerts.update_one(
-                        {"main_site_id": main_site_id, "member_id": member_id},
-                        {"$set": {"last_known_status": current_status, "last_checked": datetime.now(timezone.utc).isoformat()}}
-                    )
-                    continue
+            if current_status == "offline":
+                # Client is offline
+                if not offline_since:
+                    # First detection of offline — start the timer
+                    update_fields["offline_since"] = now.isoformat()
+                    logger.info(f"ZeroTier: {member_name} ({member_id}) detected offline, starting 5min timer")
+                elif not alert_sent:
+                    # Check if 5 minutes have passed since first offline detection
+                    offline_start = datetime.fromisoformat(offline_since)
+                    offline_duration = (now - offline_start).total_seconds()
 
-                is_offline = current_status == "offline"
-                event_type = f"ZeroTier Client {'Offline' if is_offline else 'Back Online'}"
-                details = (
-                    f"Client '{member_name}' ({member_id}) on {site_name} is now "
-                    f"{'OFFLINE' if is_offline else 'back ONLINE'}."
-                )
+                    if offline_duration >= OFFLINE_ALERT_DELAY_SECONDS:
+                        # 5+ minutes offline — send alert
+                        recipients = alert.get("recipients", [])
+                        if recipients and smtp_config and smtp_config.get("password"):
+                            minutes_offline = int(offline_duration / 60)
+                            details = (
+                                f"Client '{member_name}' ({member_id}) op {site_name} is "
+                                f"al {minutes_offline} minuten OFFLINE."
+                            )
+                            html = build_notification_html(
+                                "ZeroTier Client Offline", "system", details, site_name,
+                                brand_name=branding["brand_name"],
+                                brand_logo_url=branding["brand_logo_url"],
+                            )
+                            subject = f"Clara Global Protect - {member_name} OFFLINE ({minutes_offline}min)"
 
-                html = build_notification_html(
-                    event_type, "system", details, site_name,
-                    brand_name=branding["brand_name"],
-                    brand_logo_url=branding["brand_logo_url"],
-                )
+                            for recipient in recipients:
+                                email = recipient.get("email")
+                                if email:
+                                    try:
+                                        await send_email_with_config(smtp_config, email, subject, html)
+                                    except Exception as e:
+                                        logger.error(f"Failed to send ZT alert to {email}: {e}")
 
-                subject = f"Clara Global Protect - {member_name} {'OFFLINE' if is_offline else 'Online'}"
+                            logger.info(f"ZeroTier alert sent: {member_name} offline for {minutes_offline}min")
 
-                for recipient in recipients:
-                    email = recipient.get("email")
-                    if email:
-                        try:
-                            await send_email_with_config(smtp_config, email, subject, html)
-                        except Exception as e:
-                            logger.error(f"Failed to send ZT alert to {email}: {e}")
+                            await db.zerotier_alert_history.insert_one({
+                                "main_site_id": main_site_id,
+                                "member_id": member_id,
+                                "member_name": member_name,
+                                "old_status": last_status or "unknown",
+                                "new_status": "offline",
+                                "site_name": site_name,
+                                "timestamp": now.isoformat(),
+                                "notified_count": len([r for r in recipients if r.get("email")]),
+                                "offline_duration_minutes": minutes_offline,
+                            })
 
-                logger.info(f"ZeroTier alert: {member_name} ({member_id}) changed from {last_status} to {current_status}")
+                        update_fields["offline_alert_sent"] = True
 
-                await db.zerotier_alert_history.insert_one({
-                    "main_site_id": main_site_id,
-                    "member_id": member_id,
-                    "member_name": member_name,
-                    "old_status": last_status,
-                    "new_status": current_status,
-                    "site_name": site_name,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "notified_count": len([r for r in recipients if r.get("email")]),
-                })
+            elif current_status == "online":
+                # Client is back online
+                if offline_since or last_status == "offline":
+                    # Send recovery notification
+                    recipients = alert.get("recipients", [])
+                    if recipients and smtp_config and smtp_config.get("password"):
+                        offline_duration_str = ""
+                        if offline_since:
+                            offline_start = datetime.fromisoformat(offline_since)
+                            minutes = int((now - offline_start).total_seconds() / 60)
+                            offline_duration_str = f" (was {minutes} minuten offline)"
+
+                        details = (
+                            f"Client '{member_name}' ({member_id}) op {site_name} is "
+                            f"weer ONLINE{offline_duration_str}."
+                        )
+                        html = build_notification_html(
+                            "ZeroTier Client Online", "system", details, site_name,
+                            brand_name=branding["brand_name"],
+                            brand_logo_url=branding["brand_logo_url"],
+                        )
+                        subject = f"Clara Global Protect - {member_name} Online"
+
+                        for recipient in recipients:
+                            email = recipient.get("email")
+                            if email:
+                                try:
+                                    await send_email_with_config(smtp_config, email, subject, html)
+                                except Exception as e:
+                                    logger.error(f"Failed to send ZT recovery alert to {email}: {e}")
+
+                        logger.info(f"ZeroTier recovery alert sent: {member_name} back online")
+
+                        await db.zerotier_alert_history.insert_one({
+                            "main_site_id": main_site_id,
+                            "member_id": member_id,
+                            "member_name": member_name,
+                            "old_status": "offline",
+                            "new_status": "online",
+                            "site_name": site_name,
+                            "timestamp": now.isoformat(),
+                            "notified_count": len([r for r in recipients if r.get("email")]),
+                        })
+
+                # Clear offline tracking
+                update_fields["offline_since"] = None
+                update_fields["offline_alert_sent"] = False
 
             await db.zerotier_alerts.update_one(
                 {"main_site_id": main_site_id, "member_id": member_id},
-                {"$set": {"last_known_status": current_status, "last_checked": datetime.now(timezone.utc).isoformat()}}
+                {"$set": update_fields}
             )
 
 

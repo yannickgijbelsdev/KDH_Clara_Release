@@ -1,0 +1,99 @@
+{
+  "summary": "ZeroTier offline timer bug fix verified. Backend starts correctly with updated zerotier_alerts.py. All 14 backend tests passed (100%). ZeroTier alert scheduler runs every 60 seconds. The _check_alerts function now correctly implements offline_since timer logic: (1) Records offline_since timestamp when client first goes offline, (2) Only sends notification after 5+ minutes confirmed offline, (3) Sends recovery notification when client comes back online and clears timer.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/zerotier/{site_id}/members", "issue": "Returns 400 'ZeroTier not configured' - this is expected behavior when API token/network_id not set for the site"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_zerotier_offline_timer.py",
+    "/app/test_reports/pytest/zerotier_offline_timer_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "zerotier_alerts.py line 53: OFFLINE_ALERT_DELAY_SECONDS = 300 (5 minutes) - correctly configured",
+    "zerotier_alerts.py lines 152-157: When client goes offline, offline_since timestamp is recorded and 5min timer starts",
+    "zerotier_alerts.py lines 159-201: Alert only sent after offline_duration >= OFFLINE_ALERT_DELAY_SECONDS (300s), then offline_alert_sent=True",
+    "zerotier_alerts.py lines 203-249: When client comes back online, recovery notification sent, offline_since cleared to None, offline_alert_sent reset to False",
+    "zerotier_alerts.py line 495: Scheduler loop sleeps 60 seconds between checks",
+    "zerotier_alerts.py line 523: Startup log confirms '60s interval'"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_zerotier_offline_timer.py"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 tests passed)",
+    "frontend": "N/A (backend-only testing requested)"
+  },
+  "test_credentials": {
+    "email": "admkoodh@koodh.com",
+    "password": "KYLovie13monx"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "ZeroTier offline timer bug fix verified. Key changes in zerotier_alerts.py: (1) New fields on zerotier_alerts documents: offline_since (ISO timestamp), offline_alert_sent (boolean), (2) OFFLINE_ALERT_DELAY_SECONDS = 300 (5 minutes), (3) Scheduler runs every 60 seconds. The fix ensures notifications are only sent after 5+ minutes confirmed offline, preventing false alerts for brief network blips. Recovery notifications are sent when clients come back online. Test site: db23c31a-7776-4805-a4a5-bd019dd7c2be has 9 alert configs but ZeroTier API token may not be configured (members endpoint returns 400).",
+  "features_tested": {
+    "backend_health": {
+      "status": "PASSED",
+      "details": "GET /api/health returns 200"
+    },
+    "login_works": {
+      "status": "PASSED",
+      "details": "POST /api/auth/login works correctly"
+    },
+    "zerotier_config_endpoint": {
+      "status": "PASSED",
+      "details": "GET /api/zerotier/{site_id}/config returns config with masked token"
+    },
+    "zerotier_members_endpoint": {
+      "status": "PASSED",
+      "details": "GET /api/zerotier/{site_id}/members returns 400 (ZT not configured) - expected behavior"
+    },
+    "zerotier_alert_settings_endpoint": {
+      "status": "PASSED",
+      "details": "GET /api/zerotier/{site_id}/alert-settings returns 9 alert configs"
+    },
+    "zerotier_alert_history_endpoint": {
+      "status": "PASSED",
+      "details": "GET /api/zerotier/{site_id}/alert-history returns events and stats"
+    },
+    "zerotier_alert_crud_create": {
+      "status": "PASSED",
+      "details": "PUT /api/zerotier/{site_id}/member/{member_id}/alert creates alert with recipients"
+    },
+    "zerotier_alert_crud_update": {
+      "status": "PASSED",
+      "details": "PUT can update alert recipients"
+    },
+    "zerotier_network_endpoint": {
+      "status": "PASSED",
+      "details": "GET /api/zerotier/{site_id}/network returns 400 (ZT not configured) - expected behavior"
+    },
+    "scheduler_running": {
+      "status": "PASSED",
+      "details": "Backend logs show 'ZeroTier alert scheduler started (60s interval)'"
+    },
+    "offline_timer_logic_code_review": {
+      "status": "PASSED",
+      "details": "Code review verified: offline_since timer, 5-minute delay, recovery notification logic all correctly implemented"
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "notes": "All APIs are real. ZeroTier external API calls depend on real API tokens in the database."
+  },
+  "zerotier_offline_timer_verification": {
+    "offline_since_field": "VERIFIED - Set when client first detected offline",
+    "offline_alert_sent_field": "VERIFIED - Set to True after alert sent, reset to False when online",
+    "5_minute_delay": "VERIFIED - OFFLINE_ALERT_DELAY_SECONDS = 300",
+    "recovery_notification": "VERIFIED - Sent when client comes back online",
+    "scheduler_interval": "VERIFIED - 60 seconds between checks"
+  }
+}
