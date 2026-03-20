@@ -375,6 +375,9 @@ export default function NetworkDashboard() {
   const { startLoading, stopLoading } = useTopLoader();
 
   // Navigation groups matching MainSiteDashboardLayout pattern
+  // System admins see all, environment admins see limited sections
+  const isSystemAdmin = user?.is_system_admin === true;
+  
   const NAV_GROUPS = [
     {
       id: 'overview',
@@ -389,15 +392,15 @@ export default function NetworkDashboard() {
       label: 'Management',
       icon: Settings,
       items: [
-        { id: 'admins', icon: Crown, label: 'Network Admins' },
+        ...(isSystemAdmin ? [{ id: 'admins', icon: Crown, label: 'Network Admins' }] : []),
         { id: 'environments', icon: Server, label: 'Environments' },
-        { id: 'domains', icon: Globe, label: 'Domain Manager' },
-        { id: 'licenses', icon: Shield, label: 'License Manager' },
+        ...(isSystemAdmin ? [{ id: 'domains', icon: Globe, label: 'Domain Manager' }] : []),
+        ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'License Manager' }] : []),
         { id: 'notifications', icon: Bell, label: 'Notifications' },
-        { id: 'branding', icon: Paintbrush, label: 'Branding' },
+        ...(isSystemAdmin ? [{ id: 'branding', icon: Paintbrush, label: 'Branding' }] : []),
       ]
     },
-    {
+    ...(isSystemAdmin ? [{
       id: 'debug',
       label: 'Debug & Audit',
       icon: Bug,
@@ -405,7 +408,7 @@ export default function NetworkDashboard() {
         { id: 'audit', icon: ShieldAlert, label: 'Permission Audit' },
         { id: 'user-access', icon: UserCog, label: 'User Access' },
       ]
-    },
+    }] : []),
     {
       id: 'security',
       label: 'Security',
@@ -414,7 +417,7 @@ export default function NetworkDashboard() {
         { id: 'security', icon: Shield, label: 'Account Security' },
       ]
     },
-    {
+    ...(isSystemAdmin ? [{
       id: 'external',
       label: 'External',
       icon: ExternalLink,
@@ -422,7 +425,7 @@ export default function NetworkDashboard() {
         { id: 'backups', icon: HardDrive, label: 'Backups', link: '/backups' },
         { id: 'explorer', icon: Code, label: 'API Explorer', link: '/explorer' },
       ]
-    },
+    }] : []),
   ];
 
   const toggleGroup = (groupId) => {

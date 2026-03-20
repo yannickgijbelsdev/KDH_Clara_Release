@@ -127,9 +127,27 @@ async def seed_default_environment():
 
 @environments_router.get("")
 async def list_environments(current_user: dict = Depends(get_current_user)):
-    """List environments accessible to the user."""
-    if current_user.get("is_system_admin") or current_user.get("is_network_admin"):
+    """List environments accessible to the user.
+    
+    - System admins see ALL environments
+    - Network admins see environments they're assigned to as admin
+    - Regular users see environments where they have site access
+    """
+    if current_user.get("is_system_admin"):
         envs = await db.environments.find({}, {"_id": 0}).sort("created_at", 1).to_list(50)
+    elif current_user.get("is_network_admin"):
+        # Network admins: only environments they're explicitly assigned to
+        env_admin_entries = await db.environment_admins.find(
+            {"user_id": current_user["id"]}, {"_id": 0, "environment_id": 1}
+        ).to_list(50)
+        assigned_env_ids = [ea["environment_id"] for ea in env_admin_entries]
+        
+        if assigned_env_ids:
+            envs = await db.environments.find(
+                {"id": {"$in": assigned_env_ids}}, {"_id": 0}
+            ).sort("created_at", 1).to_list(50)
+        else:
+            envs = []
     else:
         # Regular users: only environments where they have site access
         env_admin_ids = []

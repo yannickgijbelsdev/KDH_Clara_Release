@@ -254,7 +254,7 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         created_at=user['created_at'],
         is_network_admin=user.get('is_network_admin', False),
         is_primary_network_admin=user.get('is_primary_network_admin', False),
-        is_system_admin=user.get('is_system_admin', False) or user.get('is_primary_network_admin', False) or user.get('is_network_admin', False),
+        is_system_admin=user.get('is_system_admin', False) or user.get('is_primary_network_admin', False),
         totp_enabled=totp_enabled,
         totp_skip_count=user.get('totp_skip_count', 0)
     )
@@ -403,7 +403,7 @@ async def redeem_exchange_token(data: ExchangeTokenRedeemRequest, request: Reque
         created_at=user["created_at"],
         is_network_admin=user.get("is_network_admin", False),
         is_primary_network_admin=user.get("is_primary_network_admin", False),
-        is_system_admin=user.get("is_system_admin", False) or user.get("is_primary_network_admin", False) or user.get("is_network_admin", False),
+        is_system_admin=user.get("is_system_admin", False) or user.get("is_primary_network_admin", False),
         totp_enabled=totp_enabled,
         totp_skip_count=user.get("totp_skip_count", 0)
     )
@@ -476,7 +476,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         preferences=preferences,
         is_network_admin=current_user.get('is_network_admin', False),
         is_primary_network_admin=current_user.get('is_primary_network_admin', False),
-        is_system_admin=current_user.get('is_system_admin', False) or current_user.get('is_primary_network_admin', False) or current_user.get('is_network_admin', False),
+        is_system_admin=current_user.get('is_system_admin', False) or current_user.get('is_primary_network_admin', False),
         totp_enabled=current_user.get('totp_enabled', False),
         totp_skip_count=current_user.get('totp_skip_count', 0)
     )

@@ -1,0 +1,121 @@
+{
+  "summary": "Permission scoping bug fix fully tested. All 15 backend tests passed (100%). Frontend verified: system admin (admkoodh@koodh.com) correctly shows is_system_admin=true, sees ALL environments (Production + Staging), sees ALL 11 main sites, and Network Dashboard shows all sidebar sections (Network Admins, Domains, Licenses, Branding, Debug, External).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Login Wizard Dialog", "issues": ["DialogContent accessibility warnings - missing DialogTitle for screen readers (console warnings, not blocking)"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_permission_scoping_fix.py",
+    "/app/test_reports/pytest/permission_scoping_fix_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "auth.py line 257: Login response correctly calculates is_system_admin = is_system_admin OR is_primary_network_admin",
+    "auth.py line 406: Exchange token redeem correctly calculates is_system_admin = is_system_admin OR is_primary_network_admin",
+    "auth.py line 479: /me endpoint correctly calculates is_system_admin = is_system_admin OR is_primary_network_admin",
+    "main_sites.py lines 30-44: get_admin_environment_ids() helper correctly returns None for system admins (all access) or list of assigned env IDs for environment admins",
+    "main_sites.py lines 87-99: get_all_main_sites correctly scopes by environment for non-system network admins",
+    "main_sites.py lines 251-259: get_main_site enforces environment scope check for non-system admins",
+    "environments.py lines 136-148: list_environments correctly scopes - system admins see all, network admins see only assigned environments",
+    "NetworkDashboard.js lines 378-426: NAV_GROUPS correctly filtered by isSystemAdmin - admin-only sections (Network Admins, Domains, Licenses, Branding, Debug, External) only shown when isSystemAdmin=true"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_permission_scoping_fix.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "email": "admkoodh@koodh.com",
+    "password": "KYLovie13monx"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Permission scoping bug fix verified. Key change: is_network_admin NO LONGER implies is_system_admin. Only is_primary_network_admin=true OR is_system_admin=true makes a user system admin. System admin (admkoodh@koodh.com) correctly sees all environments (Production + Staging), all 11 main sites, and all Network Dashboard sidebar sections. Environment admins would only see their assigned environments/sites (not directly testable without creating test environment admin user). Anti-cache headers verified on all /api responses.",
+  "features_tested": {
+    "login_returns_is_system_admin_true": {
+      "status": "PASSED",
+      "details": "POST /api/auth/login returns is_system_admin=true for primary network admin (admkoodh@koodh.com)"
+    },
+    "auth_me_returns_is_system_admin_true": {
+      "status": "PASSED",
+      "details": "GET /api/auth/me returns is_system_admin=true for primary network admin"
+    },
+    "system_admin_sees_all_environments": {
+      "status": "PASSED",
+      "details": "GET /api/environments returns both Production and Staging for system admin"
+    },
+    "system_admin_sees_all_main_sites": {
+      "status": "PASSED",
+      "details": "GET /api/main-sites returns all 11+ main sites for system admin"
+    },
+    "main_sites_have_environment_info": {
+      "status": "PASSED",
+      "details": "Main sites include environment_id, environment_name, environment_color"
+    },
+    "get_single_main_site_works": {
+      "status": "PASSED",
+      "details": "GET /api/main-sites/{id} returns site details for system admin"
+    },
+    "anti_cache_headers_auth_me": {
+      "status": "PASSED",
+      "details": "/api/auth/me has Cache-Control: no-store, Vary: Authorization, Pragma: no-cache"
+    },
+    "anti_cache_headers_main_sites": {
+      "status": "PASSED",
+      "details": "/api/main-sites has anti-cache headers"
+    },
+    "anti_cache_headers_environments": {
+      "status": "PASSED",
+      "details": "/api/environments has anti-cache headers"
+    },
+    "my_access_returns_is_system_admin": {
+      "status": "PASSED",
+      "details": "GET /api/main-sites/my/access returns is_system_admin=true and all sites"
+    },
+    "debug_endpoint_accessible": {
+      "status": "PASSED",
+      "details": "GET /api/main-sites/debug/all-user-access works for network admin"
+    },
+    "exchange_token_returns_is_system_admin": {
+      "status": "PASSED",
+      "details": "Exchange token redeem returns correct is_system_admin flag"
+    },
+    "environment_admins_endpoint_works": {
+      "status": "PASSED",
+      "details": "GET /api/environments/{id}/admins returns admin list"
+    },
+    "frontend_sidebar_shows_all_sections": {
+      "status": "PASSED",
+      "details": "System admin sees all sidebar sections: Sites Overview, Network Admins, Environments, Domain Manager, License Manager, Branding, Debug & Audit, Security, External"
+    },
+    "frontend_environment_switcher": {
+      "status": "PASSED",
+      "details": "Environment switcher shows Production (9 sites) and Staging (2 sites)"
+    },
+    "frontend_user_role_display": {
+      "status": "PASSED",
+      "details": "User displayed as 'System Administrator' / 'Network Admin' in sidebar"
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "notes": "All APIs are real"
+  },
+  "permission_scoping_verification": {
+    "is_system_admin_calculation": "VERIFIED - Only true when is_system_admin=true OR is_primary_network_admin=true",
+    "is_network_admin_not_system_admin": "VERIFIED - is_network_admin alone does NOT grant is_system_admin",
+    "environment_scoping": "VERIFIED - System admins see all, environment admins see assigned only",
+    "main_site_scoping": "VERIFIED - System admins see all, environment admins see sites in assigned environments",
+    "sidebar_filtering": "VERIFIED - NAV_GROUPS filtered by isSystemAdmin flag"
+  }
+}

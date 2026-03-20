@@ -29,6 +29,21 @@ def require_network_admin(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
+async def get_admin_environment_ids(user: dict) -> list:
+    """Get environment IDs a network admin has access to.
+    
+    System admins get None (= all environments).
+    Environment admins get their assigned environment IDs.
+    """
+    if user.get('is_system_admin'):
+        return None  # None = no filter, all environments
+    
+    entries = await db.environment_admins.find(
+        {"user_id": user["id"]}, {"_id": 0, "environment_id": 1}
+    ).to_list(50)
+    return [e["environment_id"] for e in entries]
+
+
 async def get_main_site_user_role(user_id: str, main_site_id: str) -> Optional[str]:
     """Get user's role for a specific main site."""
     access = await db.main_site_users.find_one(
@@ -63,17 +78,25 @@ async def get_available_features(current_user: dict = Depends(get_current_user))
 
 @main_sites_router.get("", response_model=list[MainSiteListResponse])
 async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
-    """Get all main sites. Network admins see all, others see only their assigned sites.
-    Clone sites are only visible to network admins and admins of the parent site."""
+    """Get all main sites. System admins see all, environment admins see sites in their
+    assigned environments, others see only their assigned sites.
+    Clone sites are only visible to admins of the parent site."""
     is_network_admin = current_user.get('is_network_admin', False)
     user_id = current_user['id']
     
     if is_network_admin:
-        # Network admin sees all main sites including clones
-        main_sites = await db.main_sites.find(
-            {},
-            {"_id": 0}
-        ).to_list(100)
+        # Check if system admin (sees all) or environment admin (scoped)
+        allowed_env_ids = await get_admin_environment_ids(current_user)
+        
+        if allowed_env_ids is None:
+            # System admin: sees everything
+            main_sites = await db.main_sites.find({}, {"_id": 0}).to_list(100)
+        else:
+            # Environment admin: only sites in their assigned environments
+            main_sites = await db.main_sites.find(
+                {"environment_id": {"$in": allowed_env_ids}},
+                {"_id": 0}
+            ).to_list(100)
     else:
         # Regular users see only assigned main sites
         user_access = await db.main_site_users.find(
@@ -220,12 +243,20 @@ async def get_main_site(
     current_user: dict = Depends(get_current_user)
 ):
     """Get a main site by ID."""
-    # Check access
     is_network_admin = current_user.get('is_network_admin', False)
     if not is_network_admin:
         role = await get_main_site_user_role(current_user['id'], main_site_id)
         if not role:
             raise HTTPException(status_code=403, detail="Access denied")
+    elif not current_user.get('is_system_admin'):
+        # Environment admin: check environment scope
+        allowed_env_ids = await get_admin_environment_ids(current_user)
+        if allowed_env_ids is not None:
+            site_check = await db.main_sites.find_one(
+                {"id": main_site_id}, {"_id": 0, "environment_id": 1}
+            )
+            if site_check and site_check.get("environment_id") not in allowed_env_ids:
+                raise HTTPException(status_code=403, detail="Access denied - site not in your environment")
     
     main_site = await db.main_sites.find_one(
         {"id": main_site_id},
