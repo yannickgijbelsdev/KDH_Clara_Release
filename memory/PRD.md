@@ -3613,6 +3613,20 @@ now = now_brussels()  # Automatically handles CET/CEST
   - File: `frontend/src/components/MainSiteDashboardLayout.js`
   - Tested: Verified via screenshots — standard site = no Radioplayer, server site = Radioplayer visible
 
+- [x] **Main Site Creation Wizard + New Package System (P1)**:
+  - Step-based creation wizard: Name (auto-slug) → Package → Confirm
+  - 5 packages: Clara Radio, Clara Tasks, Clara Virtual Datacenter, Clara Data Connection, Clara External Host
+  - Each package has pre-configured features that are locked during creation
+  - Auto-slug generation based on site name with uniqueness check
+  - New site type labels: Radio (was Standard), Tasks, Virtual Datacenter (was Server), Data Connection (was Technical), External Host (NEW)
+  - Updated badges/colors in site list (card + list view), header, and My Sites dropdown
+  - CLI `/disconnect configuration` command opens feature toggle dialog
+  - PUT `/api/cli/features-config/{main_site_id}` to save feature configuration
+  - ALL_AVAILABLE_FEATURES defined per site type in backend
+  - Files: NetworkDashboard.js, MainSiteDashboardLayout.js, ClaraCLI.js, cli.py
+  - Tested: 100% pass rate (iteration_116) — 3 bugs found and fixed by testing agent
+
+
 
     - "Verbinding testen" knop voor token verificatie
   - Files: `backend/routers/domains.py`, `frontend/src/pages/Network/DomainManager.js`
