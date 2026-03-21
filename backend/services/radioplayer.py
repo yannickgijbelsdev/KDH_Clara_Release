@@ -18,13 +18,23 @@ async def get_radioplayer_config():
 
 
 async def _get_auth():
-    """Get BasicAuth tuple from config."""
+    """Get auth for Radioplayer API requests.
+    Supports both Basic Auth (username/password) and API Key (Bearer token).
+    API Key takes precedence if set.
+    """
     config = await get_radioplayer_config()
+    
+    # Prefer API key (Bearer token) if available
+    api_key = config.get("api_key", "")
+    if api_key:
+        return {"type": "bearer", "token": api_key}
+    
+    # Fall back to Basic Auth
     username = config.get("username", "")
     password = config.get("password", "")
     if not username or not password:
         return None
-    return (username, password)
+    return {"type": "basic", "username": username, "password": password}
 
 
 def _get_ingest_url(config: dict, endpoint: str, rpid: str) -> str:
@@ -44,6 +54,22 @@ async def _log_push(push_type: str, status: str, detail: str, response_code: int
         "response_body": response_body[:500],
         "timestamp": datetime.now(timezone.utc).isoformat(),
     })
+
+
+def _build_request_kwargs(auth_info: dict, content: str, extra_headers: dict = None) -> dict:
+    """Build httpx request kwargs based on auth type."""
+    headers = {"Content-Type": "text/xml;charset=UTF-8"}
+    if extra_headers:
+        headers.update(extra_headers)
+    
+    kwargs = {"content": content, "headers": headers}
+    
+    if auth_info["type"] == "bearer":
+        headers["Authorization"] = f"Bearer {auth_info['token']}"
+    elif auth_info["type"] == "basic":
+        kwargs["auth"] = (auth_info["username"], auth_info["password"])
+    
+    return kwargs
 
 
 # ============== Now Playing Push ==============
@@ -108,12 +134,8 @@ async def push_now_playing(artist: str, title: str, start_time: str = None, dura
 
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            response = await client.post(
-                url,
-                content=xml_data,
-                auth=auth,
-                headers={"Content-Type": "text/xml;charset=UTF-8"},
-            )
+            request_kwargs = _build_request_kwargs(auth, xml_data)
+            response = await client.post(url, **request_kwargs)
 
         status = "success" if response.status_code in (200, 201, 202, 204) else "error"
         await _log_push("now_playing", status, detail, response.status_code, response.text)
@@ -234,12 +256,8 @@ async def push_schedule(shows: list, config: dict = None):
 
     try:
         async with httpx.AsyncClient(timeout=30) as client:
-            response = await client.post(
-                url,
-                content=xml_data,
-                auth=auth,
-                headers={"Content-Type": "text/xml;charset=UTF-8"},
-            )
+            request_kwargs = _build_request_kwargs(auth, xml_data)
+            response = await client.post(url, **request_kwargs)
 
         status = "success" if response.status_code in (200, 201, 202, 204) else "error"
         await _log_push("schedule", status, f"{len(shows)} shows pushed", response.status_code, response.text)

@@ -18,7 +18,9 @@ class RadioplayerConfigUpdate(BaseModel):
     enabled: bool = False
     username: Optional[str] = None
     password: Optional[str] = None
+    api_key: Optional[str] = None
     rpid: Optional[str] = None
+    station_name: Optional[str] = None
     country_code: Optional[str] = "056"
     ingest_base_url: Optional[str] = "https://core-ingest.radioplayer.cloud"
     auto_np: bool = True
@@ -29,12 +31,17 @@ class RadioplayerConfigUpdate(BaseModel):
 async def get_config(current_user: dict = Depends(require_admin)):
     """Get Radioplayer configuration."""
     config = await get_radioplayer_config()
-    # Mask the password
+    # Mask sensitive fields
     if config.get("password"):
         config["password_set"] = True
         config["password"] = "***"
     else:
         config["password_set"] = False
+    if config.get("api_key"):
+        config["api_key_set"] = True
+        config["api_key"] = f"...{config['api_key'][-8:]}"
+    else:
+        config["api_key_set"] = False
     return config
 
 
@@ -45,10 +52,15 @@ async def update_config(data: RadioplayerConfigUpdate, current_user: dict = Depe
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     update_data["updated_by"] = current_user.get("email", "")
 
+    existing = await get_radioplayer_config()
+
     # Don't overwrite password if masked
     if data.password == "***":
-        existing = await get_radioplayer_config()
         update_data["password"] = existing.get("password", "")
+
+    # Don't overwrite api_key if masked
+    if data.api_key and data.api_key.startswith("..."):
+        update_data["api_key"] = existing.get("api_key", "")
 
     await db.radioplayer_config.update_one(
         {},

@@ -3484,6 +3484,15 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files: `components/icons/RadioplayerIcon.js` (NEW), `components/MainSiteDashboardLayout.js`, `pages/RadioplayerPage.js`
   - Status: VERIFIED (iteration_109 - 100% pass rate, auto-refresh timestamp change bevestigd)
 
+### March 2026 - Radioplayer API Key + Config Update
+- [x] **Feature: Radioplayer API Key (Bearer Token) ondersteuning**:
+  - API Key veld toegevoegd aan config (heeft voorrang boven Basic Auth als beide ingesteld)
+  - Credentials bijgewerkt: API Key `515907f3-...`, RPUID `0566028`, Station `Radio GRK`
+  - Backend: `_build_request_kwargs()` helper voor Bearer/Basic Auth selectie
+  - Frontend: API Key veld bovenaan config form + Station Naam veld
+  - Gemaskeerd in API responses (`...dc9a0ba0`)
+  - Files: `services/radioplayer.py`, `routers/radioplayer.py`, `pages/RadioplayerPage.js`
+
 ## Pending/Backlog
 - [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)

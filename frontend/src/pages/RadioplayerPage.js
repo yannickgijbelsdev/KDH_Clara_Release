@@ -178,8 +178,48 @@ const RadioplayerPage = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <label className="text-xs text-zinc-500 block mb-1">API Key (Bearer Token)</label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    value={config?.api_key || ''}
+                    onChange={e => setConfig({...config, api_key: e.target.value})}
+                    className="bg-zinc-800 border-zinc-700 text-white font-mono pr-10"
+                    placeholder="515907f3-a3a9-4500-bbde-..."
+                    data-testid="rp-api-key-input"
+                  />
+                  <button
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="text-[10px] text-zinc-600 mt-1">Als ingesteld, wordt API Key gebruikt in plaats van username/password</p>
+              </div>
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">Username</label>
+                <label className="text-xs text-zinc-500 block mb-1">RPUID (Station ID)</label>
+                <Input
+                  value={config?.rpid || ''}
+                  onChange={e => setConfig({...config, rpid: e.target.value})}
+                  className="bg-zinc-800 border-zinc-700 text-white font-mono"
+                  placeholder="0566028"
+                  data-testid="rp-rpid-input"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">Station Naam</label>
+                <Input
+                  value={config?.station_name || ''}
+                  onChange={e => setConfig({...config, station_name: e.target.value})}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Radio GRK"
+                  data-testid="rp-station-name-input"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500 block mb-1">Username (Basic Auth)</label>
                 <Input
                   value={config?.username || ''}
                   onChange={e => setConfig({...config, username: e.target.value})}
@@ -189,7 +229,7 @@ const RadioplayerPage = () => {
                 />
               </div>
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">Password</label>
+                <label className="text-xs text-zinc-500 block mb-1">Password (Basic Auth)</label>
                 <div className="relative">
                   <Input
                     type={showPassword ? 'text' : 'password'}
@@ -199,23 +239,7 @@ const RadioplayerPage = () => {
                     placeholder="••••••••"
                     data-testid="rp-password-input"
                   />
-                  <button
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
                 </div>
-              </div>
-              <div>
-                <label className="text-xs text-zinc-500 block mb-1">RPID (Station ID)</label>
-                <Input
-                  value={config?.rpid || ''}
-                  onChange={e => setConfig({...config, rpid: e.target.value})}
-                  className="bg-zinc-800 border-zinc-700 text-white font-mono"
-                  placeholder="056028"
-                  data-testid="rp-rpid-input"
-                />
               </div>
               <div>
                 <label className="text-xs text-zinc-500 block mb-1">Country Code</label>
