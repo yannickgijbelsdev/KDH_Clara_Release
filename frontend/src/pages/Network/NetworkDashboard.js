@@ -25,7 +25,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server, Palette
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server, Palette, Check
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -82,8 +82,8 @@ const FEATURE_GROUPS = {
   streaming: { name: 'Streaming & RDS', Icon: Radio },
   sites: { name: 'Sites', Icon: Globe },
   admin: { name: 'Administration', Icon: Cog },
-  technical: { name: 'Technical', Icon: Monitor },
-  server: { name: 'Server', Icon: Monitor },
+  technical: { name: 'Data Connection', Icon: Monitor },
+  server: { name: 'Virtual Datacenter', Icon: Monitor },
   tasks: { name: 'Tasks', Icon: LayoutGrid }
 };
 
@@ -348,6 +348,7 @@ export default function NetworkDashboard() {
   const [availableFeatures, setAvailableFeatures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createStep, setCreateStep] = useState(0);
   const [editingSite, setEditingSite] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -434,6 +435,32 @@ export default function NetworkDashboard() {
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     );
+  };
+
+  // Package definitions for the creation wizard
+  const PACKAGES = [
+    { type: 'radio', name: 'Radio', icon: Radio, color: 'orange', desc: 'Shows, Content, Streaming & RDS',
+      features: ['shows', 'calendar', 'show_management', 'content_library', 'media_library', 'content_approval', 'trash', 'team_chat', 'rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor', 'call_studio', 'rundown', 'support_tickets', 'team_settings', 'firewall', 'activity_logs', 'wordpress'] },
+    { type: 'task_scheduler', name: 'Tasks', icon: LayoutGrid, color: 'violet', desc: 'Kanban boards & task management',
+      features: ['task_boards', 'team_settings', 'firewall', 'activity_logs'] },
+    { type: 'server', name: 'Virtual Datacenter', icon: HardDrive, color: 'blue', desc: 'XML imports, vMix, Canva & Radioplayer',
+      features: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'team_settings', 'firewall', 'activity_logs'] },
+    { type: 'technical', name: 'Data Connection', icon: Network, color: 'emerald', desc: 'ZeroTier network integration',
+      features: ['zerotier', 'team_settings', 'firewall', 'activity_logs'] },
+    { type: 'external_host', name: 'External Host', icon: ExternalLink, color: 'cyan', desc: 'WordPress & content management',
+      features: ['content_library', 'media_library', 'content_approval', 'trash', 'team_settings', 'firewall', 'wordpress', 'activity_logs'] },
+  ];
+  const PACKAGE_COLORS = { orange: 'bg-orange-500/20 border-orange-500/50 text-orange-400', violet: 'bg-violet-500/20 border-violet-500/50 text-violet-400', blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400', emerald: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400', cyan: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' };
+  const PACKAGE_ICON_COLORS = { orange: 'text-orange-400', violet: 'text-violet-400', blue: 'text-blue-400', emerald: 'text-emerald-400', cyan: 'text-cyan-400' };
+  const SITE_TYPE_LABELS = { radio: 'Radio', task_scheduler: 'Tasks', server: 'Virtual Datacenter', technical: 'Data Connection', external_host: 'External Host' };
+  const SITE_TYPE_BADGE = { radio: 'bg-orange-500/10 text-orange-400 border-orange-500/20', task_scheduler: 'bg-violet-500/10 text-violet-400 border-violet-500/20', server: 'bg-blue-500/10 text-blue-400 border-blue-500/20', technical: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', external_host: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' };
+
+  const autoSlug = (name) => name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 50);
+  const slugExists = (slug) => mainSites.some(s => s.slug === slug);
+  const openCreateWizard = () => {
+    setCreateStep(0);
+    setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio', linked_main_site_id: '' });
+    setShowCreateDialog(true);
   };
 
   const RoleIcon = roleIcons[user?.role] || Network;
@@ -526,15 +553,13 @@ export default function NetworkDashboard() {
     }
 
     try {
-      // Clean up form data: don't send empty linked_main_site_id
-      const submitData = { ...formData };
-      if (!submitData.linked_main_site_id) {
-        delete submitData.linked_main_site_id;
-      }
-      // Assign to selected environment
-      if (selectedEnvId) {
-        submitData.environment_id = selectedEnvId;
-      }
+      const pkg = PACKAGES.find(p => p.type === formData.site_type);
+      const submitData = {
+        ...formData,
+        enabled_features: pkg ? pkg.features : formData.enabled_features,
+      };
+      if (!submitData.linked_main_site_id) delete submitData.linked_main_site_id;
+      if (selectedEnvId) submitData.environment_id = selectedEnvId;
 
       const res = await fetch(`${API}/api/main-sites`, {
         method: 'POST',
@@ -1018,7 +1043,7 @@ export default function NetworkDashboard() {
                       <List className="w-4 h-4" />
                     </Button>
                   </div>
-                  <Button onClick={() => setShowCreateDialog(true)} className="gap-2" data-testid="create-site-btn">
+                  <Button onClick={openCreateWizard} className="gap-2" data-testid="create-site-btn">
                     <Plus className="w-4 h-4" />
                     New Main Site
                   </Button>
@@ -1034,7 +1059,7 @@ export default function NetworkDashboard() {
                 <Globe className="w-16 h-16 text-zinc-600 mb-4" />
                 <h3 className="text-xl font-semibold text-zinc-300 mb-2">No Main Sites Yet</h3>
                 <p className="text-zinc-500 mb-6">Use the Migration Tool below to migrate your existing data, or create a new main site</p>
-                <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
+                <Button onClick={openCreateWizard} className="gap-2">
                   <Plus className="w-4 h-4" />
                   Create Main Site
                 </Button>
@@ -1067,16 +1092,16 @@ export default function NetworkDashboard() {
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 flex-shrink-0">Clone</span>
                         )}
                         {site.site_type === 'technical' && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">Technical</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">Data Connection</span>
                         )}
                         {site.site_type === 'server' && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 flex-shrink-0">Server</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex-shrink-0">Virtual Datacenter</span>
                         )}
                         {site.site_type === 'task_scheduler' && !site.cloned_from && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 flex-shrink-0">Tasks</span>
                         )}
                         {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 flex-shrink-0">Standard</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 flex-shrink-0">Radio</span>
                         )}
                       </div>
                       <span className="text-xs text-zinc-500">/{site.slug}</span>
@@ -1096,15 +1121,15 @@ export default function NetworkDashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : site.site_type === 'external_host' ? 'bg-cyan-950/30 border-cyan-500/30 hover:border-cyan-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       {site.logo_url ? (
                         <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                       ) : (
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-red-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : 'bg-zinc-800'}`}>
-                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-red-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : site.site_type === 'external_host' ? 'bg-cyan-500/10' : 'bg-zinc-800'}`}>
+                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <HardDrive className="w-5 h-5 text-blue-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : site.site_type === 'external_host' ? <ExternalLink className="w-5 h-5 text-cyan-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                         </div>
                       )}
                       <div>
@@ -1115,12 +1140,12 @@ export default function NetworkDashboard() {
                           )}
                           {site.site_type === 'technical' && !site.cloned_from && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-normal">
-                              Technical
+                              Data Connection
                             </span>
                           )}
                           {site.site_type === 'server' && !site.cloned_from && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-normal">
-                              Server
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-normal">
+                              Virtual Datacenter
                             </span>
                           )}
                           {site.site_type === 'task_scheduler' && !site.cloned_from && (
@@ -1128,9 +1153,14 @@ export default function NetworkDashboard() {
                               Tasks
                             </span>
                           )}
+                          {site.site_type === 'external_host' && !site.cloned_from && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-normal">
+                              External Host
+                            </span>
+                          )}
                           {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 font-normal">
-                              Standard
+                              Radio
                             </span>
                           )}
                         </CardTitle>
@@ -1383,309 +1413,162 @@ export default function NetworkDashboard() {
         if (!open) {
           setShowCreateDialog(false);
           setEditingSite(null);
+          setCreateStep(0);
           setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
         }
       }}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingSite ? 'Edit Main Site' : 'Create Main Site'}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+          {editingSite ? (
+            /* Edit mode: simple name/slug form */
+            <div className="space-y-4 py-2">
               <div className="space-y-2">
                 <Label>Name</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="My Awesome Project"
-                  className="bg-zinc-800 border-zinc-700"
-                />
+                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Site name" className="bg-zinc-800 border-zinc-700" />
               </div>
               <div className="space-y-2">
                 <Label>URL Slug</Label>
-                <div className="flex items-center">
-                  <span className="text-zinc-500 text-sm mr-1">/</span>
-                  <Input
-                    value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
-                    placeholder="my-awesome-project"
-                    className="bg-zinc-800 border-zinc-700"
-                  />
+                <div className="flex items-center gap-1">
+                  <span className="text-zinc-500 text-sm">/</span>
+                  <Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })} className="bg-zinc-800 border-zinc-700 font-mono" />
                 </div>
               </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setEditingSite(null); setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' }); }}>Cancel</Button>
+                <Button onClick={handleUpdateSite}>Save Changes</Button>
+              </DialogFooter>
             </div>
+          ) : (
+            /* Create wizard */
+            <div className="space-y-4 py-2">
+              {/* Step indicator */}
+              <div className="flex items-center gap-1">
+                {['Name', 'Package', 'Confirm'].map((s, i) => (
+                  <div key={i} className="flex items-center gap-1">
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                      i < createStep ? 'bg-emerald-500/20 text-emerald-400' :
+                      i === createStep ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
+                      'bg-zinc-800 text-zinc-500'
+                    }`}>
+                      {i < createStep ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
+                      <span>{s}</span>
+                    </div>
+                    {i < 2 && <ChevronRight className="w-3 h-3 text-zinc-700" />}
+                  </div>
+                ))}
+              </div>
 
-            {/* Site Type Selector */}
-            {!editingSite && (
-              <div className="space-y-2">
-                <Label>Site Type</Label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      formData.site_type === 'radio'
-                        ? 'bg-orange-500/20 border border-orange-500/50'
-                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                    }`}
-                    onClick={() => setFormData({ ...formData, site_type: 'radio' })}
-                    data-testid="site-type-radio"
-                  >
-                    <Radio className="w-5 h-5 text-orange-400" />
-                    <div>
-                      <span className="text-sm font-medium text-white">Clara Standard</span>
-                      <p className="text-xs text-zinc-400">Full feature set</p>
-                    </div>
+              {/* Step 0: Name */}
+              {createStep === 0 && (
+                <div className="space-y-4">
+                  <p className="text-xs text-zinc-400">Choose a name for your new main site. The URL slug is generated automatically.</p>
+                  <div className="space-y-2">
+                    <Label>Site Name</Label>
+                    <Input value={formData.name} onChange={(e) => { const name = e.target.value; setFormData(p => ({ ...p, name, slug: autoSlug(name) })); }}
+                      placeholder="e.g. Radiogroup MFY/GRK" className="bg-zinc-800 border-zinc-700" autoFocus data-testid="create-site-name-input" />
                   </div>
-                  <div
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      formData.site_type === 'technical'
-                        ? 'bg-emerald-500/20 border border-emerald-500/50'
-                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                    }`}
-                    onClick={() => setFormData({ ...formData, site_type: 'technical', enabled_features: ['zerotier', 'team_settings', 'firewall', 'activity_logs'] })}
-                    data-testid="site-type-technical"
-                  >
-                    <Monitor className="w-5 h-5 text-emerald-400" />
-                    <div>
-                      <span className="text-sm font-medium text-white">Clara Technical</span>
-                      <p className="text-xs text-zinc-400">Monitoring only</p>
+                  <div className="space-y-2">
+                    <Label>URL Slug</Label>
+                    <div className="flex items-center gap-1">
+                      <span className="text-zinc-500 text-sm">/</span>
+                      <Input value={formData.slug} onChange={(e) => setFormData(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
+                        className="bg-zinc-800 border-zinc-700 font-mono" data-testid="create-site-slug-input" />
                     </div>
+                    {formData.slug && slugExists(formData.slug) && (
+                      <p className="text-xs text-red-400">This slug is already in use</p>
+                    )}
                   </div>
-                  <div
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      formData.site_type === 'server'
-                        ? 'bg-blue-500/20 border border-blue-500/50'
-                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                    }`}
-                    onClick={() => setFormData({ ...formData, site_type: 'server', enabled_features: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'team_settings', 'firewall', 'activity_logs'] })}
-                    data-testid="site-type-server"
-                  >
-                    <FileText className="w-5 h-5 text-blue-400" />
-                    <div>
-                      <span className="text-sm font-medium text-white">Clara Server</span>
-                      <p className="text-xs text-zinc-400">XML imports, sync & vMix</p>
-                    </div>
-                  </div>
-                  <div
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      formData.site_type === 'task_scheduler'
-                        ? 'bg-violet-500/20 border border-violet-500/50'
-                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                    }`}
-                    onClick={() => setFormData({ ...formData, site_type: 'task_scheduler', enabled_features: ['task_boards', 'team_settings', 'firewall', 'activity_logs'] })}
-                    data-testid="site-type-task-scheduler"
-                  >
-                    <LayoutGrid className="w-5 h-5 text-violet-400" />
-                    <div>
-                      <span className="text-sm font-medium text-white">Tasks</span>
-                      <p className="text-xs text-zinc-400">Kanban boards & tasks</p>
-                    </div>
-                  </div>
+                  <Button onClick={() => setCreateStep(1)} disabled={!formData.name || !formData.slug || slugExists(formData.slug)} className="w-full" data-testid="create-step-next">
+                    Next — Choose Package
+                  </Button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Linked Main Site selector for Server sites */}
-            {formData.site_type === 'server' && !editingSite && (
-              <div className="space-y-2">
-                <Label>Linked Main Site</Label>
-                <p className="text-xs text-zinc-500">Select the main site this server edition belongs to</p>
-                <select
-                  value={formData.linked_main_site_id || ''}
-                  onChange={e => setFormData({ ...formData, linked_main_site_id: e.target.value })}
-                  className="w-full h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-white px-3 text-sm"
-                  data-testid="linked-main-site-select"
-                >
-                  <option value="">-- Select main site --</option>
-                  {mainSites.filter(s => s.site_type !== 'server' && s.site_type !== 'technical').map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Enabled Features for Technical, Server & Clara Tasks - core features grayed out, common features toggleable */}
-            {(formData.site_type === 'technical' || formData.site_type === 'server' || formData.site_type === 'task_scheduler') && (
-            <div className="space-y-3">
-              <Label>Enabled Features</Label>
-              {/* Technical: core features always enabled */}
-              {formData.site_type === 'technical' && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Technical Features (always enabled)</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 opacity-50 cursor-not-allowed">
-                    <Checkbox checked={true} disabled className="pointer-events-none" />
-                    <span className="text-sm text-zinc-400">ZeroTier</span>
-                  </div>
-                </div>
-              </div>
-              )}
-              {/* Server: choose XML Imports OR vMix Director */}
-              {formData.site_type === 'server' && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Server Mode (choose one)</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <div
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      formData.enabled_features.includes('xml_imports')
-                        ? 'bg-red-500/20 border-2 border-red-500/60'
-                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                    }`}
-                    onClick={() => {
-                      const base = formData.enabled_features.filter(f => !['xml_imports', 'vmix_director'].includes(f));
-                      setFormData({ ...formData, enabled_features: [...base, 'xml_imports', 'server_api_keys'] });
-                    }}
-                  >
-                    <FileText className={`w-5 h-5 flex-shrink-0 ${formData.enabled_features.includes('xml_imports') ? 'text-red-400' : 'text-zinc-500'}`} />
-                    <div>
-                      <span className="text-sm font-medium text-white">XML Imports</span>
-                      <p className="text-[10px] text-zinc-400">Import & sync XML data</p>
-                    </div>
-                  </div>
-                  <div
-                    className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                      formData.enabled_features.includes('vmix_director')
-                        ? 'bg-red-500/20 border-2 border-red-500/60'
-                        : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                    }`}
-                    onClick={() => {
-                      const base = formData.enabled_features.filter(f => !['xml_imports', 'vmix_director'].includes(f));
-                      setFormData({ ...formData, enabled_features: [...base, 'vmix_director', 'server_api_keys'] });
-                    }}
-                  >
-                    <Monitor className={`w-5 h-5 flex-shrink-0 ${formData.enabled_features.includes('vmix_director') ? 'text-red-400' : 'text-zinc-500'}`} />
-                    <div>
-                      <span className="text-sm font-medium text-white">vMix Director</span>
-                      <p className="text-[10px] text-zinc-400">Video overlay management</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              )}
-              {/* Server-specific optional features */}
-              {formData.site_type === 'server' && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Server Integrations</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { id: 'canva_director', name: 'Canva Director', icon: Palette, desc: 'Design integration' },
-                    { id: 'radioplayer', name: 'Radioplayer', icon: Radio, desc: 'Radioplayer sync' },
-                  ].map(feat => (
-                    <div
-                      key={feat.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
-                        formData.enabled_features.includes(feat.id)
-                          ? 'bg-orange-500/20 border border-orange-500/50'
-                          : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                      }`}
-                      onClick={() => toggleFeature(feat.id)}
-                    >
-                      <feat.icon className={`w-5 h-5 flex-shrink-0 ${formData.enabled_features.includes(feat.id) ? 'text-orange-400' : 'text-zinc-500'}`} />
-                      <div>
-                        <span className="text-sm font-medium text-white">{feat.name}</span>
-                        <p className="text-[10px] text-zinc-400">{feat.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              )}
-              {/* Clara Tasks: task boards always enabled */}
-              {formData.site_type === 'task_scheduler' && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Task Features (always enabled)</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-zinc-800/50 border border-zinc-700/50 opacity-50 cursor-not-allowed">
-                    <Checkbox checked={true} disabled className="pointer-events-none" />
-                    <span className="text-sm text-zinc-400">Task Boards</span>
-                  </div>
-                </div>
-              </div>
-              )}
-              {/* Toggleable common features */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Optional Features</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {[
-                    { id: 'team_settings', name: 'Team Settings' },
-                    { id: 'firewall', name: 'Firewall' },
-                    { id: 'activity_logs', name: 'Activity Logs' },
-                  ].map(feature => (
-                    <div
-                      key={feature.id}
-                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.enabled_features.includes(feature.id)
-                          ? 'bg-orange-500/20 border border-orange-500/50'
-                          : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                      }`}
-                      onClick={() => toggleFeature(feature.id)}
-                    >
-                      <Checkbox
-                        checked={formData.enabled_features.includes(feature.id)}
-                        className="pointer-events-none"
-                      />
-                      <span className="text-sm">{feature.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            )}
-
-            {formData.site_type !== 'technical' && formData.site_type !== 'server' && formData.site_type !== 'task_scheduler' && (
-            <div className="space-y-3">
-              <Label>Enabled Features</Label>
-              <div className="grid gap-4">
-                {Object.entries(groupedFeatures).filter(([groupId]) => groupId !== 'technical' && groupId !== 'server' && groupId !== 'tasks').map(([groupId, features]) => {
-                  const GroupIcon = FEATURE_GROUPS[groupId]?.Icon || Layers;
-                  return (
-                  <div key={groupId} className="space-y-2">
-                    <h4 className="text-sm font-medium text-zinc-400 flex items-center gap-2">
-                      <GroupIcon className="w-4 h-4" />
-                      {FEATURE_GROUPS[groupId]?.name || groupId}
-                    </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {features.map(feature => (
-                        <div
-                          key={feature.id}
-                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                            formData.enabled_features.includes(feature.id)
-                              ? 'bg-orange-500/20 border border-orange-500/50'
-                              : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
-                          }`}
-                          onClick={() => toggleFeature(feature.id)}
-                        >
-                          <Checkbox
-                            checked={formData.enabled_features.includes(feature.id)}
-                            className="pointer-events-none"
-                          />
-                          <span className="text-sm">{feature.name}</span>
+              {/* Step 1: Package selection */}
+              {createStep === 1 && (
+                <div className="space-y-4">
+                  <p className="text-xs text-zinc-400">Select the Clara package for this site. Each package includes a pre-configured set of features.</p>
+                  <div className="space-y-2">
+                    {PACKAGES.map(pkg => (
+                      <button key={pkg.type} data-testid={`package-${pkg.type}`}
+                        onClick={() => setFormData(p => ({ ...p, site_type: pkg.type, enabled_features: pkg.features }))}
+                        className={`w-full flex items-center gap-4 p-3 rounded-lg border text-left transition-all ${
+                          formData.site_type === pkg.type ? `${PACKAGE_COLORS[pkg.color]} border-2` : 'bg-zinc-800/50 border-zinc-700 hover:border-zinc-600'
+                        }`}>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.site_type === pkg.type ? 'bg-white/10' : 'bg-zinc-700/50'}`}>
+                          <pkg.icon className={`w-5 h-5 ${formData.site_type === pkg.type ? PACKAGE_ICON_COLORS[pkg.color] : 'text-zinc-500'}`} />
                         </div>
-                      ))}
-                    </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-zinc-100">Clara {pkg.name}</div>
+                          <div className="text-[10px] text-zinc-500">{pkg.desc}</div>
+                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                          formData.site_type === pkg.type ? 'border-current' : 'border-zinc-600'
+                        }`}>
+                          {formData.site_type === pkg.type && <div className="w-2 h-2 rounded-full bg-current" />}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                  );
-                })}
-              </div>
-            </div>
-            )}
-          </div>
 
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowCreateDialog(false);
-                setEditingSite(null);
-                setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
-              }}
-            >
-              Cancel
-            </Button>
-            <Button onClick={editingSite ? handleUpdateSite : handleCreateSite}>
-              {editingSite ? 'Save Changes' : 'Create Main Site'}
-            </Button>
-          </DialogFooter>
+                  {/* Linked Main Site for Virtual Datacenter */}
+                  {formData.site_type === 'server' && (
+                    <div className="space-y-2">
+                      <Label>Linked Main Site</Label>
+                      <p className="text-[10px] text-zinc-500">Select the main site this Virtual Datacenter belongs to</p>
+                      <select value={formData.linked_main_site_id || ''} onChange={e => setFormData(p => ({ ...p, linked_main_site_id: e.target.value }))}
+                        className="w-full h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-white px-3 text-sm" data-testid="linked-main-site-select">
+                        <option value="">-- Select main site --</option>
+                        {mainSites.filter(s => s.site_type === 'radio').map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setCreateStep(0)} className="flex-1">Back</Button>
+                    <Button onClick={() => setCreateStep(2)} className="flex-1" data-testid="create-step-confirm">Next — Confirm</Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Confirm */}
+              {createStep === 2 && (
+                <div className="space-y-4">
+                  {(() => { const pkg = PACKAGES.find(p => p.type === formData.site_type); return (
+                    <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700 space-y-3">
+                      <div className="flex items-center gap-3">
+                        {pkg && <pkg.icon className={`w-6 h-6 ${PACKAGE_ICON_COLORS[pkg.color]}`} />}
+                        <div>
+                          <p className="text-sm font-medium text-zinc-100">{formData.name}</p>
+                          <p className="text-xs font-mono text-zinc-500">/{formData.slug}</p>
+                        </div>
+                        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full border ${SITE_TYPE_BADGE[formData.site_type] || 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
+                          {SITE_TYPE_LABELS[formData.site_type] || formData.site_type}
+                        </span>
+                      </div>
+                      <div className="border-t border-zinc-700 pt-3">
+                        <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5">Included Features</p>
+                        <div className="flex flex-wrap gap-1">
+                          {(pkg?.features || []).map(f => (
+                            <span key={f} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700/50 text-zinc-400">{f.replace(/_/g, ' ')}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-zinc-600">Features can be customized later via CLI: /disconnect configuration</p>
+                    </div>
+                  ); })()}
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" onClick={() => setCreateStep(1)} className="flex-1">Back</Button>
+                    <Button onClick={handleCreateSite} className="flex-1" data-testid="create-site-confirm-btn">Create Main Site</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

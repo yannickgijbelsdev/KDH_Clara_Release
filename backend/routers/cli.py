@@ -39,6 +39,7 @@ COMMANDS = [
     {"command": "/commands", "description": "Show all available commands", "category": "General"},
     {"command": "/help", "description": "Show help and usage information", "category": "General"},
     {"command": "/clear", "description": "Clear terminal output", "category": "General"},
+    {"command": "/disconnect configuration", "description": "Open feature configuration wizard", "category": "General"},
     # Roles
     {"command": "/roles list", "description": "List all roles with permission counts", "category": "Roles"},
     {"command": "/roles repair", "description": "Repair/create missing default roles", "category": "Roles"},
@@ -205,6 +206,8 @@ async def execute_command(cmd: CLICommand, current_user: dict = Depends(get_curr
         # General
         if command in ("/commands", "/help"):
             return _cmd_help()
+        elif command == "/disconnect configuration":
+            return await _cmd_disconnect_configuration(sid)
         # Roles
         elif command == "/roles list":
             return await _cmd_roles_list(sid)
@@ -371,6 +374,65 @@ def _cmd_help():
     lines.append("")
     lines.append("Tip: Use arrow keys to cycle through command history.")
     return {"output": "\n".join(lines), "type": "info"}
+
+
+
+# ==================== DISCONNECT CONFIGURATION ====================
+
+ALL_AVAILABLE_FEATURES = {
+    'radio': ['shows', 'calendar', 'show_management', 'content_library', 'media_library', 'content_approval', 'trash', 'team_chat', 'rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor', 'call_studio', 'rundown', 'support_tickets', 'team_settings', 'firewall', 'activity_logs', 'wordpress'],
+    'task_scheduler': ['task_boards', 'team_settings', 'firewall', 'activity_logs'],
+    'server': ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'team_settings', 'firewall', 'activity_logs'],
+    'technical': ['zerotier', 'team_settings', 'firewall', 'activity_logs'],
+    'external_host': ['content_library', 'media_library', 'content_approval', 'trash', 'team_settings', 'firewall', 'wordpress', 'activity_logs'],
+}
+
+
+async def _cmd_disconnect_configuration(sid):
+    """Return current features with toggle state for the configuration wizard."""
+    site = await db.main_sites.find_one({"id": sid}, {"_id": 0, "site_type": 1, "enabled_features": 1, "name": 1})
+    if not site:
+        return {"output": "Error: Site not found.", "type": "error"}
+
+    site_type = site.get("site_type", "radio")
+    enabled = set(site.get("enabled_features", []))
+    available = ALL_AVAILABLE_FEATURES.get(site_type, ALL_AVAILABLE_FEATURES['radio'])
+
+    features = []
+    for f in available:
+        features.append({"id": f, "name": f.replace("_", " ").title(), "enabled": f in enabled})
+
+    return {
+        "output": f"Feature configuration for {site.get('name', 'Unknown')} ({site_type})",
+        "type": "feature_config",
+        "data": {
+            "main_site_id": sid,
+            "site_type": site_type,
+            "site_name": site.get("name", "Unknown"),
+            "features": features,
+        }
+    }
+
+
+@cli_router.put("/features-config/{main_site_id}")
+async def update_features_config(main_site_id: str, data: dict, current_user: dict = Depends(get_current_user)):
+    """Update enabled features for a main site from the configuration wizard."""
+    site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "id": 1, "site_type": 1})
+    if not site:
+        raise HTTPException(status_code=404, detail="Site not found")
+
+    features = data.get("features", [])
+    site_type = site.get("site_type", "radio")
+    available = set(ALL_AVAILABLE_FEATURES.get(site_type, ALL_AVAILABLE_FEATURES['radio']))
+    # Only allow features that are valid for this site type
+    valid_features = [f for f in features if f in available]
+
+    await db.main_sites.update_one(
+        {"id": main_site_id},
+        {"$set": {"enabled_features": valid_features, "updated_at": _now()}}
+    )
+
+    return {"output": f"Features updated: {len(valid_features)} features enabled.", "type": "success"}
 
 
 # ==================== ROLES ====================

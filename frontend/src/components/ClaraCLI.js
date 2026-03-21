@@ -2,7 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
 import { Button } from './ui/button';
-import { Terminal, X, Send, Lock, ShieldCheck, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import { Terminal, X, Send, Lock, ShieldCheck, Loader2, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import CLISaveWizard from './CLISaveWizard';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -33,6 +35,8 @@ export default function ClaraCLI() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [requesting, setRequesting] = useState(false);
   const [showSaveWizard, setShowSaveWizard] = useState(false);
+  const [featureConfig, setFeatureConfig] = useState(null);
+  const [savingFeatures, setSavingFeatures] = useState(false);
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -133,11 +137,47 @@ export default function ClaraCLI() {
       });
       const data = await res.json();
       setHistory(prev => [...prev, { type: data.type || 'info', text: data.output || 'No output' }]);
+      // Handle feature configuration wizard
+      if (data.type === 'feature_config' && data.data) {
+        setFeatureConfig(data.data);
+      }
     } catch {
       setHistory(prev => [...prev, { type: 'error', text: 'Connection error. Please try again.' }]);
       if (isWrite) setShowSaveWizard(false);
     }
   }, [token, mainSiteId, mainSite, isWriteCommand]);
+
+  const toggleFeatureConfig = (featureId) => {
+    if (!featureConfig) return;
+    setFeatureConfig(prev => ({
+      ...prev,
+      features: prev.features.map(f => f.id === featureId ? { ...f, enabled: !f.enabled } : f)
+    }));
+  };
+
+  const saveFeatureConfig = async () => {
+    if (!featureConfig) return;
+    setSavingFeatures(true);
+    try {
+      const enabled = featureConfig.features.filter(f => f.enabled).map(f => f.id);
+      const res = await fetch(`${API}/cli/features-config/${featureConfig.main_site_id}`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ features: enabled })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.output || 'Features updated');
+        setHistory(prev => [...prev, { type: 'success', text: data.output || 'Features updated' }]);
+        setFeatureConfig(null);
+      } else {
+        toast.error(data.detail || 'Save failed');
+      }
+    } catch {
+      toast.error('Connection error');
+    }
+    setSavingFeatures(false);
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -304,6 +344,38 @@ export default function ClaraCLI() {
         open={showSaveWizard}
         onClose={() => setShowSaveWizard(false)}
       />
+
+      {/* Feature Configuration Dialog */}
+      <Dialog open={!!featureConfig} onOpenChange={(open) => { if (!open) setFeatureConfig(null); }}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base">
+              Feature Configuration — {featureConfig?.site_name}
+            </DialogTitle>
+            <p className="text-xs text-zinc-500">Toggle features on/off for this {featureConfig?.site_type?.replace('_', ' ')} site</p>
+          </DialogHeader>
+          <div className="space-y-1.5 py-2">
+            {featureConfig?.features?.map(f => (
+              <button key={f.id} onClick={() => toggleFeatureConfig(f.id)}
+                className={`w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all ${
+                  f.enabled ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-zinc-800/50 border-zinc-700 hover:border-zinc-600'
+                }`} data-testid={`feature-toggle-${f.id}`}>
+                <div className={`w-5 h-5 rounded flex items-center justify-center ${f.enabled ? 'bg-emerald-500 text-white' : 'bg-zinc-700'}`}>
+                  {f.enabled && <Check className="w-3 h-3" />}
+                </div>
+                <span className={`text-sm ${f.enabled ? 'text-zinc-200' : 'text-zinc-500'}`}>{f.name}</span>
+              </button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setFeatureConfig(null)}>Cancel</Button>
+            <Button onClick={saveFeatureConfig} disabled={savingFeatures} data-testid="save-feature-config-btn">
+              {savingFeatures ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Save Configuration
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

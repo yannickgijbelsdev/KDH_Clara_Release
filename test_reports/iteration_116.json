@@ -1,0 +1,91 @@
+{
+  "summary": "Tested creation wizard (3-step: Name→Package→Confirm), 5 packages, site type badges, CLI /disconnect configuration command, and features-config PUT endpoint. Fixed 3 bugs during testing.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_creation_wizard_cli.py",
+    "/app/test_reports/pytest/creation_wizard_cli_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/routers/cli.py - Fixed features-config endpoint projection to include 'id' field",
+    "/app/frontend/src/pages/Network/NetworkDashboard.js - Fixed generateUniqueSlug → autoSlug, added slugExists function"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx",
+  "seed_data_creation": "None - used existing main_site_id db23c31a-7776-4805-a4a5-bd019dd7c2be",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Creation wizard and CLI feature config fully tested. All 5 packages (Clara Radio, Tasks, Virtual Datacenter, Data Connection, External Host) display correctly. Site badges show correct labels (Radio, Tasks, Virtual Datacenter, Data Connection). CLI /disconnect configuration returns feature_config type with checkboxes for all available features.",
+  "bugs_fixed_during_testing": [
+    {
+      "file": "/app/backend/routers/cli.py",
+      "issue": "PUT /api/cli/features-config/{main_site_id} returned 404 for valid sites",
+      "root_cause": "MongoDB projection {_id: 0, site_type: 1} returned empty dict {} when site_type field was null/missing, causing falsy check to fail",
+      "fix": "Added 'id' field to projection: {_id: 0, id: 1, site_type: 1}"
+    },
+    {
+      "file": "/app/frontend/src/pages/Network/NetworkDashboard.js",
+      "issue": "Create wizard Step 1 threw 'generateUniqueSlug is not defined' error",
+      "root_cause": "Code referenced generateUniqueSlug but function was defined as autoSlug",
+      "fix": "Changed generateUniqueSlug to autoSlug in onChange handler"
+    },
+    {
+      "file": "/app/frontend/src/pages/Network/NetworkDashboard.js",
+      "issue": "Create wizard Step 1 threw 'slugExists is not defined' error",
+      "root_cause": "Function was used but never defined",
+      "fix": "Added slugExists function: const slugExists = (slug) => mainSites.some(s => s.slug === slug)"
+    }
+  ],
+  "features_verified": {
+    "create_wizard_step1": {
+      "name_input": "PASS - auto-generates slug",
+      "next_button_disabled_without_name": "PASS",
+      "slug_auto_generation": "PASS - 'Test Radio Station' → 'test-radio-station'"
+    },
+    "create_wizard_step2": {
+      "clara_radio": "PASS - Shows, Content, Streaming & RDS",
+      "clara_tasks": "PASS - Kanban boards & task management",
+      "clara_virtual_datacenter": "PASS - XML imports, vMix, Canva & Radioplayer",
+      "clara_data_connection": "PASS - ZeroTier network integration",
+      "clara_external_host": "PASS - WordPress & content management"
+    },
+    "create_wizard_step3": {
+      "site_name_shown": "PASS",
+      "slug_shown": "PASS",
+      "package_badge": "PASS",
+      "features_list": "PASS - 19 features displayed"
+    },
+    "site_badges_in_list": {
+      "radio_orange": "PASS",
+      "data_connection_emerald": "PASS",
+      "virtual_datacenter_blue": "PASS",
+      "tasks_violet": "PASS"
+    },
+    "header_badges": {
+      "radio_instead_of_standard": "PASS",
+      "virtual_datacenter_instead_of_server": "PASS",
+      "data_connection_instead_of_technical": "PASS"
+    },
+    "cli_disconnect_configuration": {
+      "returns_feature_list": "PASS",
+      "enabled_disabled_states": "PASS",
+      "feature_config_dialog": "PASS - 19 feature toggles"
+    },
+    "put_features_config": {
+      "updates_enabled_features": "PASS",
+      "returns_success_message": "PASS"
+    }
+  }
+}
