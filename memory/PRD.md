@@ -3585,3 +3585,19 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Error message: "Cloud Resources are disabled. Please contact Clara Support."
   - Tested: 100% pass rate (iteration_113)
 
+- [x] **Cloudflare DNS Sync Integration (P1)**:
+  - Backend: Real Cloudflare API integration via httpx (verify token, list DNS records, sync, create/delete records)
+  - `POST /api/domains/cloudflare/sync` — automatisch synchroniseert alle Clara subdomain routes + site domeinen naar Cloudflare DNS
+  - `POST /api/domains/cloudflare/verify-token` — test API token + zone access
+  - `GET /api/domains/cloudflare/dns-records` — lijst alle DNS records uit Cloudflare zone
+  - `POST/DELETE /api/domains/cloudflare/dns-records` — individuele records beheren
+  - Frontend: Volledig herontworpen Cloudflare tab met:
+    - Verbinding status card (API Token, Zone ID, Base Domain)
+    - "Sync with Cloudflare" knop met sync results dialog (aangemaakt/bijgewerkt/ongewijzigd/fouten)
+    - DNS Records overzicht met record types, proxied status, en delete optie
+    - "Verbinding testen" knop voor token verificatie
+  - Files: `backend/routers/domains.py`, `frontend/src/pages/Network/DomainManager.js`
+  - Tested: 100% pass rate (iteration_114)
+  - Note: Needs real Cloudflare API Token + Zone ID from user to actually push DNS updates
+
+
