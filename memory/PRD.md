@@ -3507,6 +3507,7 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [ ] (P2) Cloudflare API actief verbinden (na invoeren API Token + Zone ID door gebruiker)
 
 ### March 21, 2026 - Login Page Locked Down
+- [x] **My Sites menu gegroepeerd per environment** — Production/Staging/etc. headers met kleur-indicator
 - [x] **CLI Save Wizard popup** bij write-commands (license assign/remove, site update, etc.)
   - Toont 3-staps animatie: "CLI is saving the changes." → "Uploading to the Clara Datacenter." → "Changes saved successfully."
   - Detecteert automatisch write-commands via prefix matching (30+ prefixes)

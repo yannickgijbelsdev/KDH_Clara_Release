@@ -941,30 +941,63 @@ const MainSiteDashboardContent = () => {
                   <RoleIcon className="w-4 h-4 mr-2" />
                   {displayRoleName}
                 </DropdownMenuItem>
-                {/* Main Sites Switcher - always show if there are sites */}
+                {/* Main Sites Switcher - grouped by environment */}
                 {myMainSites.length > 0 && (
                   <>
                     <DropdownMenuSeparator className="bg-zinc-800" />
-                    <div className="px-2 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wide">
-                      My Sites
-                    </div>
-                    {myMainSites.map(site => {
-                      const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Tasks' : 'Standard';
-                      const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
-                      return (
-                      <DropdownMenuItem
-                        key={site.id}
-                        onClick={() => navigate(`/${site.slug}`)}
-                        className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800/50 text-orange-500' : ''}`}
-                      >
-                        <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="truncate">{site.name}</span>
-                        <span className={`ml-auto text-[10px] flex-shrink-0 ${site.slug === mainSiteSlug ? 'text-orange-500' : labelColor}`}>
-                          {site.slug === mainSiteSlug ? 'active' : siteLabel}
-                        </span>
-                      </DropdownMenuItem>
-                      );
-                    })}
+                    {(() => {
+                      // Group sites by environment
+                      const envGroups = {};
+                      myMainSites.forEach(site => {
+                        const envId = site.environment_id || 'default';
+                        if (!envGroups[envId]) {
+                          envGroups[envId] = {
+                            name: site.environment_name || 'Production',
+                            color: site.environment_color,
+                            sites: [],
+                          };
+                        }
+                        envGroups[envId].sites.push(site);
+                      });
+
+                      // Sort: current environment first, then alphabetically
+                      const currentEnvId = mainSite?.environment_id;
+                      const sortedEnvIds = Object.keys(envGroups).sort((a, b) => {
+                        if (a === currentEnvId) return -1;
+                        if (b === currentEnvId) return 1;
+                        return (envGroups[a].name || '').localeCompare(envGroups[b].name || '');
+                      });
+
+                      return sortedEnvIds.map(envId => (
+                        <div key={envId}>
+                          <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5"
+                            style={{ color: envGroups[envId].color || '#71717a' }}
+                          >
+                            {envId === currentEnvId && (
+                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#f97316' }} />
+                            )}
+                            {envGroups[envId].name}
+                          </div>
+                          {envGroups[envId].sites.map(site => {
+                            const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Technical' : site.site_type === 'server' ? 'Server' : site.site_type === 'task_scheduler' ? 'Tasks' : 'Standard';
+                            const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
+                            return (
+                              <DropdownMenuItem
+                                key={site.id}
+                                onClick={() => navigate(`/${site.slug}`)}
+                                className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800/50 text-orange-500' : ''}`}
+                              >
+                                <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                                <span className="truncate">{site.name}</span>
+                                <span className={`ml-auto text-[10px] flex-shrink-0 ${site.slug === mainSiteSlug ? 'text-orange-500' : labelColor}`}>
+                                  {site.slug === mainSiteSlug ? 'active' : siteLabel}
+                                </span>
+                              </DropdownMenuItem>
+                            );
+                          })}
+                        </div>
+                      ));
+                    })()}
                   </>
                 )}
                 {user?.is_network_admin && (
