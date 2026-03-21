@@ -723,9 +723,8 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
     
     if is_network_admin and current_user.get('is_system_admin'):
         # System admin has access to all sites across all environments
-        main_sites = await db.main_sites.find({}, {"_id": 0}).to_list(100)
+        main_sites = await db.main_sites.find({}, {"_id": 0}).to_list(200)
 
-        # Get environment info for each site
         env_ids = list(set(ms.get("environment_id") for ms in main_sites if ms.get("environment_id")))
         envs = {}
         if env_ids:
@@ -752,80 +751,40 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
             ]
         }
     
-    if is_network_admin:
-        # Network admin (non-system) — only sees sites they have DIRECT access to
-        user_access = await db.main_site_users.find(
-            {"user_id": user_id},
-            {"_id": 0}
-        ).to_list(200)
-        
-        user_site_ids = [a["main_site_id"] for a in user_access]
-        main_sites = await db.main_sites.find(
-            {"id": {"$in": user_site_ids}},
-            {"_id": 0}
-        ).to_list(200)
-
-        env_ids = list(set(ms.get("environment_id") for ms in main_sites if ms.get("environment_id")))
-        envs = {}
-        if env_ids:
-            env_docs = await db.environments.find({"id": {"$in": env_ids}}, {"_id": 0, "id": 1, "name": 1, "slug": 1, "color": 1}).to_list(50)
-            envs = {e["id"]: e for e in env_docs}
-
-        access_by_id = {a["main_site_id"]: a.get("role", "viewer") for a in user_access}
-
-        return {
-            "is_network_admin": True,
-            "is_system_admin": False,
-            "main_sites": [
-                {
-                    "id": ms["id"],
-                    "name": ms["name"],
-                    "slug": ms["slug"],
-                    "logo_url": ms.get("logo_url"),
-                    "site_type": ms.get("site_type", "radio"),
-                    "cloned_from": ms.get("cloned_from"),
-                    "environment_id": ms.get("environment_id"),
-                    "environment_name": envs.get(ms.get("environment_id"), {}).get("name"),
-                    "environment_color": envs.get(ms.get("environment_id"), {}).get("color"),
-                    "role": access_by_id.get(ms["id"], "viewer")
-                }
-                for ms in main_sites
-            ]
-        }
-    
-    # Regular user - get assigned main sites
+    # Non-system user (network admin or regular) — show ONLY sites with direct main_site_users access
     user_access = await db.main_site_users.find(
         {"user_id": user_id},
         {"_id": 0}
-    ).to_list(100)
+    ).to_list(200)
     
-    main_site_ids = [a["main_site_id"] for a in user_access]
-    access_by_id = {a["main_site_id"]: a["role"] for a in user_access}
+    user_site_ids = [a["main_site_id"] for a in user_access]
+    access_by_id = {a["main_site_id"]: a.get("role", "viewer") for a in user_access}
     
     main_sites = await db.main_sites.find(
-        {"id": {"$in": main_site_ids}},
+        {"id": {"$in": user_site_ids}},
         {"_id": 0}
-    ).to_list(100)
-    
-    # Filter out clones unless user is admin of the parent site
-    admin_site_ids = {sid for sid, role in access_by_id.items() if role == "admin"}
-    filtered = []
-    for ms in main_sites:
-        cloned_from = ms.get("cloned_from")
-        if not cloned_from:
-            filtered.append(ms)
-        elif cloned_from in admin_site_ids or ms["id"] in admin_site_ids:
-            filtered.append(ms)
-    
-    # Get environment info
-    env_ids = list(set(ms.get("environment_id") for ms in filtered if ms.get("environment_id")))
+    ).to_list(200)
+
+    # Non-network-admins: filter clones (only show if user is admin of parent)
+    if not is_network_admin:
+        admin_site_ids = {sid for sid, role in access_by_id.items() if role == "admin"}
+        filtered = []
+        for ms in main_sites:
+            cloned_from = ms.get("cloned_from")
+            if not cloned_from:
+                filtered.append(ms)
+            elif cloned_from in admin_site_ids or ms["id"] in admin_site_ids:
+                filtered.append(ms)
+        main_sites = filtered
+
+    env_ids = list(set(ms.get("environment_id") for ms in main_sites if ms.get("environment_id")))
     envs = {}
     if env_ids:
         env_docs = await db.environments.find({"id": {"$in": env_ids}}, {"_id": 0, "id": 1, "name": 1, "slug": 1, "color": 1}).to_list(50)
         envs = {e["id"]: e for e in env_docs}
 
     return {
-        "is_network_admin": False,
+        "is_network_admin": is_network_admin,
         "is_system_admin": False,
         "main_sites": [
             {
@@ -840,7 +799,7 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
                 "environment_color": envs.get(ms.get("environment_id"), {}).get("color"),
                 "role": access_by_id.get(ms["id"], "viewer")
             }
-            for ms in filtered
+            for ms in main_sites
         ]
     }
 
