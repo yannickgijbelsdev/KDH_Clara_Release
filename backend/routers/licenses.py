@@ -201,13 +201,20 @@ async def list_assignments(current_user: dict = Depends(require_network_admin)):
 
     # Enrich with package and site info
     for a in assignments:
-        pkg = await db.license_packages.find_one({"id": a["package_id"]}, {"_id": 0, "name": 1, "slug": 1})
+        pkg = await db.license_packages.find_one({"id": a.get("package_id")}, {"_id": 0, "name": 1, "slug": 1})
         a["package_name"] = pkg["name"] if pkg else "Unknown"
         a["package_slug"] = pkg["slug"] if pkg else ""
-        site = await db.main_sites.find_one({"id": a["main_site_id"]}, {"_id": 0, "name": 1, "slug": 1, "site_type": 1})
+        site_id = a.get("main_site_id") or a.get("site_id")
+        a["main_site_id"] = site_id  # Normalize field name
+        site = await db.main_sites.find_one({"id": site_id}, {"_id": 0, "name": 1, "slug": 1, "site_type": 1}) if site_id else None
         a["site_name"] = site["name"] if site else "Unknown"
         a["site_slug"] = site["slug"] if site else ""
         a["site_type"] = site.get("site_type", "radio") if site else "radio"
+        # Ensure status field exists
+        if "status" not in a:
+            a["status"] = "active"
+        if "billing_cycle" not in a:
+            a["billing_cycle"] = a.get("type", "lifetime")
 
     return assignments
 
@@ -372,8 +379,10 @@ async def license_overview(current_user: dict = Depends(require_network_admin)):
     pkg_map = {p["id"]: p for p in packages}
     assign_map = {}
     for a in assignments:
-        if a["status"] in ("active", "pending"):
-            assign_map[a["main_site_id"]] = a
+        status = a.get("status", "active")
+        site_key = a.get("main_site_id") or a.get("site_id")
+        if status in ("active", "pending") and site_key:
+            assign_map[site_key] = a
 
     result = []
     for site in sites:
@@ -389,9 +398,9 @@ async def license_overview(current_user: dict = Depends(require_network_admin)):
             "has_license": assignment is not None,
             "license_package": pkg["name"] if pkg else None,
             "license_slug": pkg["slug"] if pkg else None,
-            "billing_cycle": assignment["billing_cycle"] if assignment else None,
+            "billing_cycle": assignment.get("billing_cycle", assignment.get("type")) if assignment else None,
             "is_lifetime": assignment.get("is_lifetime", False) if assignment else False,
-            "license_status": assignment["status"] if assignment else None,
+            "license_status": assignment.get("status", "active") if assignment else None,
             "assignment_id": assignment["id"] if assignment else None,
         })
 

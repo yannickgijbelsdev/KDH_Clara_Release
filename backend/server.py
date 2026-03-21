@@ -1167,6 +1167,22 @@ async def startup_db_client():
     except Exception as e:
         logger.warning(f"License package seeding failed: {e}")
 
+    # Migrate legacy license_assignments: fix site_id -> main_site_id
+    try:
+        legacy_assignments = await db.license_assignments.find(
+            {"site_id": {"$exists": True}, "main_site_id": {"$exists": False}}
+        ).to_list(500)
+        for la in legacy_assignments:
+            await db.license_assignments.update_one(
+                {"_id": la["_id"]},
+                {"$set": {"main_site_id": la["site_id"], "billing_cycle": la.get("type", "lifetime"), "status": "active"},
+                 "$unset": {"site_id": 1}}
+            )
+        if legacy_assignments:
+            logger.info(f"Migrated {len(legacy_assignments)} legacy license_assignments (site_id -> main_site_id)")
+    except Exception as e:
+        logger.warning(f"License assignment migration failed: {e}")
+
     # Seed default environment and migrate existing data
     try:
         from routers.environments import seed_default_environment

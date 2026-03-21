@@ -861,7 +861,7 @@ async def _cmd_site_info(sid):
     env = None
     if site.get("environment_id"):
         env = await db.environments.find_one({"id": site["environment_id"]}, {"_id": 0, "name": 1})
-    lic = await db.license_assignments.find_one({"site_id": sid}, {"_id": 0})
+    lic = await db.license_assignments.find_one({"main_site_id": sid}, {"_id": 0})
     user_count = await db.main_site_users.count_documents({"main_site_id": sid})
     sub_count = await db.sites.count_documents({"main_site_id": sid})
     role_count = await db.roles.count_documents({"main_site_id": sid})
@@ -880,7 +880,7 @@ async def _cmd_site_info(sid):
         f"  License:       {'Active' if lic else 'None'}",
     ]
     if lic:
-        lines.append(f"  License Type:  {lic.get('type', 'N/A')}")
+        lines.append(f"  License Type:  {lic.get('billing_cycle', lic.get('type', 'N/A'))}")
         lines.append(f"  Expires:       {lic.get('expires_at', 'Lifetime')}")
     features = site.get("enabled_features", [])
     lines.append(f"  Features:      {len(features)} enabled")
@@ -1045,18 +1045,20 @@ async def _cmd_env_sites(sid):
 # ==================== LICENSE ====================
 
 async def _cmd_license_info(sid):
-    lic = await db.license_assignments.find_one({"site_id": sid}, {"_id": 0})
+    lic = await db.license_assignments.find_one({"main_site_id": sid}, {"_id": 0})
     if not lic:
         return {"output": "No license assigned to this site.\nUse /license packages to see available options.", "type": "warning"}
     pkg = await db.license_packages.find_one({"id": lic.get("package_id")}, {"_id": 0})
+    billing = lic.get('billing_cycle', lic.get('type', 'N/A'))
     lines = [
         "License Information", "=" * 50,
         f"  Package:    {pkg['name'] if pkg else 'Unknown'}",
-        f"  Type:       {lic.get('type', 'N/A')}",
+        f"  Billing:    {billing}",
+        f"  Status:     {lic.get('status', 'N/A')}",
         f"  Expires:    {lic.get('expires_at', 'Lifetime')}",
     ]
     if pkg:
-        lines.append(f"  Price:      {pkg.get('price_monthly', 0)}/mo or {pkg.get('price_yearly', 0)}/yr")
+        lines.append(f"  Price:      {pkg.get('monthly_price', pkg.get('price_monthly', 0))}/mo or {pkg.get('yearly_price', pkg.get('price_yearly', 0))}/yr")
         lines.append(f"  Features:   {', '.join(pkg.get('features', []))}")
     return {"output": "\n".join(lines), "type": "success"}
 
@@ -1068,7 +1070,7 @@ async def _cmd_license_packages():
     lines = ["Available License Packages", "=" * 55]
     for p in pkgs:
         lines.append(f"\n  {p['name']}")
-        lines.append(f"    Price: {p.get('price_monthly', 0)}/mo | {p.get('price_yearly', 0)}/yr")
+        lines.append(f"    Price: {p.get('monthly_price', p.get('price_monthly', 0))}/mo | {p.get('yearly_price', p.get('price_yearly', 0))}/yr")
         lines.append(f"    Features: {', '.join(p.get('features', []))}")
     lines.append(f"\nUse /license assign <package_name> <monthly|yearly|lifetime>")
     return {"output": "\n".join(lines), "type": "success"}
@@ -1080,25 +1082,38 @@ async def _cmd_license_assign(sid, pkg_name, lic_type):
     pkg = await db.license_packages.find_one({"name": {"$regex": f"^{pkg_name}$", "$options": "i"}}, {"_id": 0})
     if not pkg:
         return {"output": f"Package '{pkg_name}' not found. Run /license packages to see options.", "type": "error"}
-    # Remove existing
-    await db.license_assignments.delete_many({"site_id": sid})
+    # Remove existing assignments for this site
+    await db.license_assignments.delete_many({"main_site_id": sid})
     expires = None
     if lic_type == "monthly":
         expires = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
     elif lic_type == "yearly":
         expires = (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
+    now = _now()
     doc = {
-        "id": str(uuid.uuid4()), "site_id": sid, "package_id": pkg["id"],
-        "type": lic_type, "expires_at": expires, "assigned_at": _now(),
+        "id": str(uuid.uuid4()),
+        "main_site_id": sid,
+        "package_id": pkg["id"],
+        "billing_cycle": lic_type,
+        "is_lifetime": lic_type == "lifetime",
+        "status": "active",
+        "notes": f"Assigned via CLI",
+        "payment_provider": None,
+        "payment_reference": None,
+        "starts_at": now,
+        "expires_at": expires,
+        "last_reminder_sent_at": None,
+        "created_at": now,
+        "updated_at": now,
     }
     await db.license_assignments.insert_one({**doc})
     # Sync features
-    await db.main_sites.update_one({"id": sid}, {"$set": {"enabled_features": pkg.get("features", [])}})
+    await db.main_sites.update_one({"id": sid}, {"$set": {"enabled_features": pkg.get("features", []), "updated_at": now}})
     return {"output": f"License '{pkg['name']}' ({lic_type}) assigned to this site.\nFeatures synced: {', '.join(pkg.get('features', []))}", "type": "success"}
 
 
 async def _cmd_license_remove(sid):
-    result = await db.license_assignments.delete_many({"site_id": sid})
+    result = await db.license_assignments.delete_many({"main_site_id": sid})
     if result.deleted_count > 0:
         return {"output": "License removed from this site.", "type": "success"}
     return {"output": "No license to remove.", "type": "info"}
