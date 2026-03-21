@@ -2,10 +2,11 @@
 
 Manages domain configurations for main sites (custom domains, koodh.com subdomains)
 and subdomain routing rules (login.koodh.com, global.koodh.com, etc.).
-Prepares Cloudflare API integration for DNS automation.
+Cloudflare API integration for DNS automation.
 """
 import uuid
 import dns.resolver
+import httpx
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -169,6 +170,258 @@ async def update_cloudflare_config(
         upsert=True
     )
     return {"status": "ok", "message": "Cloudflare configuration updated"}
+
+
+# ---------- Cloudflare API Helpers ----------
+
+CF_API_BASE = "https://api.cloudflare.com/client/v4"
+
+
+async def _get_cf_credentials():
+    """Get Cloudflare API token and zone ID from DB."""
+    config = await db.cloudflare_config.find_one({"type": "global"}, {"_id": 0})
+    if not config or not config.get("api_token") or not config.get("zone_id"):
+        raise HTTPException(status_code=400, detail="Cloudflare API niet geconfigureerd. Stel eerst API Token en Zone ID in.")
+    return config["api_token"], config["zone_id"], config.get("base_domain", "koodh.com")
+
+
+async def _cf_request(method: str, path: str, token: str, json_data=None):
+    """Make an authenticated request to the Cloudflare API."""
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.request(
+            method,
+            f"{CF_API_BASE}{path}",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json=json_data,
+        )
+        data = resp.json()
+        if not data.get("success", False):
+            errors = data.get("errors", [])
+            msg = errors[0].get("message") if errors else f"Cloudflare API fout ({resp.status_code})"
+            raise HTTPException(status_code=resp.status_code if resp.status_code >= 400 else 502, detail=msg)
+        return data
+
+
+# ---------- Cloudflare DNS Sync ----------
+
+@domains_router.get("/cloudflare/dns-records")
+async def list_cloudflare_dns_records(current_user: dict = Depends(require_system_admin)):
+    """Fetch all DNS records from Cloudflare for the configured zone."""
+    token, zone_id, base_domain = await _get_cf_credentials()
+    
+    all_records = []
+    page = 1
+    while True:
+        data = await _cf_request("GET", f"/zones/{zone_id}/dns_records?page={page}&per_page=100", token)
+        all_records.extend(data.get("result", []))
+        total_pages = data.get("result_info", {}).get("total_pages", 1)
+        if page >= total_pages:
+            break
+        page += 1
+    
+    # Filter to only records for our base domain
+    records = []
+    for r in all_records:
+        records.append({
+            "id": r["id"],
+            "type": r["type"],
+            "name": r["name"],
+            "content": r["content"],
+            "proxied": r.get("proxied", False),
+            "ttl": r.get("ttl", 1),
+        })
+    
+    return {"records": records, "total": len(records), "zone_id": zone_id, "base_domain": base_domain}
+
+
+@domains_router.post("/cloudflare/verify-token")
+async def verify_cloudflare_token(current_user: dict = Depends(require_system_admin)):
+    """Verify that the stored Cloudflare API token is valid."""
+    token, zone_id, base_domain = await _get_cf_credentials()
+    
+    try:
+        data = await _cf_request("GET", "/user/tokens/verify", token)
+        status = data.get("result", {}).get("status", "unknown")
+        
+        # Also verify zone access
+        zone_data = await _cf_request("GET", f"/zones/{zone_id}", token)
+        zone_name = zone_data.get("result", {}).get("name", "unknown")
+        zone_status = zone_data.get("result", {}).get("status", "unknown")
+        
+        return {
+            "valid": status == "active",
+            "token_status": status,
+            "zone_name": zone_name,
+            "zone_status": zone_status,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Cloudflare verificatie mislukt: {str(e)}")
+
+
+@domains_router.post("/cloudflare/sync")
+async def sync_cloudflare_dns(current_user: dict = Depends(require_system_admin)):
+    """Sync all Clara DNS records with Cloudflare.
+    
+    Creates or updates DNS records for:
+    - Subdomain routes (clara.koodh.com, login.koodh.com, etc.)
+    - Site domain configs (radiogroep.koodh.com, etc.)
+    """
+    token, zone_id, base_domain = await _get_cf_credentials()
+    
+    # 1. Fetch existing DNS records from Cloudflare
+    all_cf_records = []
+    page = 1
+    while True:
+        data = await _cf_request("GET", f"/zones/{zone_id}/dns_records?page={page}&per_page=100", token)
+        all_cf_records.extend(data.get("result", []))
+        total_pages = data.get("result_info", {}).get("total_pages", 1)
+        if page >= total_pages:
+            break
+        page += 1
+    
+    cf_record_map = {r["name"]: r for r in all_cf_records}
+    
+    # 2. Determine what Clara needs
+    needed_records = []
+    
+    # a) Subdomain routes
+    routes = await db.subdomain_routes.find({"is_active": True}, {"_id": 0}).to_list(100)
+    for route in routes:
+        fqdn = f"{route['subdomain']}.{base_domain}"
+        needed_records.append({
+            "fqdn": fqdn,
+            "type": "CNAME",
+            "content": base_domain,
+            "proxied": True,
+            "source": "route",
+            "label": route.get("label", route["subdomain"]),
+        })
+    
+    # b) Site domain configs (koodh.com subdomains)
+    site_configs = await db.domain_configs.find({"domain_type": "koodh"}, {"_id": 0}).to_list(500)
+    for cfg in site_configs:
+        subdomain = cfg.get("subdomain")
+        if subdomain:
+            fqdn = f"{subdomain}.{base_domain}"
+            # Skip if already covered by a route
+            if not any(r["fqdn"] == fqdn for r in needed_records):
+                needed_records.append({
+                    "fqdn": fqdn,
+                    "type": "CNAME",
+                    "content": base_domain,
+                    "proxied": True,
+                    "source": "site",
+                    "label": cfg.get("site_name", subdomain),
+                })
+    
+    # 3. Sync: create or update
+    results = {"created": [], "updated": [], "unchanged": [], "errors": []}
+    
+    for rec in needed_records:
+        fqdn = rec["fqdn"]
+        existing = cf_record_map.get(fqdn)
+        
+        record_payload = {
+            "type": rec["type"],
+            "name": fqdn,
+            "content": rec["content"],
+            "proxied": rec["proxied"],
+            "ttl": 1,  # Auto TTL
+        }
+        
+        try:
+            if existing:
+                # Check if update needed
+                if (existing.get("content") == rec["content"]
+                    and existing.get("type") == rec["type"]
+                    and existing.get("proxied") == rec["proxied"]):
+                    results["unchanged"].append({
+                        "fqdn": fqdn,
+                        "source": rec["source"],
+                        "label": rec["label"],
+                        "cf_id": existing["id"],
+                    })
+                else:
+                    await _cf_request(
+                        "PUT",
+                        f"/zones/{zone_id}/dns_records/{existing['id']}",
+                        token,
+                        json_data=record_payload,
+                    )
+                    results["updated"].append({
+                        "fqdn": fqdn,
+                        "source": rec["source"],
+                        "label": rec["label"],
+                        "cf_id": existing["id"],
+                    })
+            else:
+                resp_data = await _cf_request(
+                    "POST",
+                    f"/zones/{zone_id}/dns_records",
+                    token,
+                    json_data=record_payload,
+                )
+                results["created"].append({
+                    "fqdn": fqdn,
+                    "source": rec["source"],
+                    "label": rec["label"],
+                    "cf_id": resp_data.get("result", {}).get("id"),
+                })
+        except HTTPException as e:
+            results["errors"].append({
+                "fqdn": fqdn,
+                "source": rec["source"],
+                "label": rec["label"],
+                "error": e.detail,
+            })
+    
+    # Store last sync timestamp
+    await db.cloudflare_config.update_one(
+        {"type": "global"},
+        {"$set": {"last_sync": _now(), "last_sync_by": current_user.get("name", "Unknown")}},
+    )
+    
+    return {
+        "status": "ok",
+        "total_needed": len(needed_records),
+        "created": results["created"],
+        "updated": results["updated"],
+        "unchanged": results["unchanged"],
+        "errors": results["errors"],
+    }
+
+
+@domains_router.post("/cloudflare/dns-records")
+async def create_cloudflare_dns_record(
+    record: dict,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Create a single DNS record in Cloudflare."""
+    token, zone_id, base_domain = await _get_cf_credentials()
+    
+    payload = {
+        "type": record.get("type", "CNAME"),
+        "name": record["name"],
+        "content": record["content"],
+        "proxied": record.get("proxied", True),
+        "ttl": record.get("ttl", 1),
+    }
+    
+    data = await _cf_request("POST", f"/zones/{zone_id}/dns_records", token, json_data=payload)
+    return {"status": "ok", "record": data.get("result")}
+
+
+@domains_router.delete("/cloudflare/dns-records/{record_id}")
+async def delete_cloudflare_dns_record(
+    record_id: str,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Delete a single DNS record from Cloudflare."""
+    token, zone_id, base_domain = await _get_cf_credentials()
+    data = await _cf_request("DELETE", f"/zones/{zone_id}/dns_records/{record_id}", token)
+    return {"status": "ok"}
 
 
 # ---------- Domain Configs (per main site) ----------

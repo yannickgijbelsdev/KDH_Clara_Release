@@ -68,6 +68,15 @@ export default function DomainManager() {
   const [cfConfig, setCfConfig] = useState(null);
   const [mainSites, setMainSites] = useState([]);
 
+  // Cloudflare state
+  const [cfDnsRecords, setCfDnsRecords] = useState([]);
+  const [cfSyncing, setCfSyncing] = useState(false);
+  const [cfSyncResult, setCfSyncResult] = useState(null);
+  const [cfVerifying, setCfVerifying] = useState(false);
+  const [cfVerifyResult, setCfVerifyResult] = useState(null);
+  const [cfLoadingRecords, setCfLoadingRecords] = useState(false);
+  const [cfSyncDialog, setCfSyncDialog] = useState(false);
+
   // Dialogs
   const [domainDialog, setDomainDialog] = useState(false);
   const [editingSite, setEditingSite] = useState(null);
@@ -275,12 +284,88 @@ export default function DomainManager() {
       if (res.ok) {
         toast.success('Cloudflare configuratie opgeslagen');
         setCfDialog(false);
+        setCfVerifyResult(null);
         fetchData();
       } else {
         toast.error('Opslaan mislukt');
       }
     } catch {
       toast.error('Opslaan mislukt');
+    }
+  };
+
+  // ---- Cloudflare Sync ----
+  const verifyCfToken = async () => {
+    setCfVerifying(true);
+    setCfVerifyResult(null);
+    try {
+      const res = await fetch(`${API}/api/domains/cloudflare/verify-token`, { method: 'POST', headers });
+      const data = await res.json();
+      if (res.ok) {
+        setCfVerifyResult(data);
+        if (data.valid) toast.success(`Cloudflare verbonden met zone: ${data.zone_name}`);
+        else toast.error('Token ongeldig of inactief');
+      } else {
+        toast.error(data.detail || 'Verificatie mislukt');
+      }
+    } catch {
+      toast.error('Verificatie mislukt');
+    }
+    setCfVerifying(false);
+  };
+
+  const fetchCfDnsRecords = async () => {
+    setCfLoadingRecords(true);
+    try {
+      const res = await fetch(`${API}/api/domains/cloudflare/dns-records`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setCfDnsRecords(data.records || []);
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'DNS records ophalen mislukt');
+      }
+    } catch {
+      toast.error('DNS records ophalen mislukt');
+    }
+    setCfLoadingRecords(false);
+  };
+
+  const syncWithCloudflare = async () => {
+    setCfSyncing(true);
+    setCfSyncResult(null);
+    try {
+      const res = await fetch(`${API}/api/domains/cloudflare/sync`, { method: 'POST', headers });
+      const data = await res.json();
+      if (res.ok) {
+        setCfSyncResult(data);
+        const total = (data.created?.length || 0) + (data.updated?.length || 0);
+        if (total > 0) toast.success(`${total} DNS record(s) gesynchroniseerd`);
+        else if (data.errors?.length > 0) toast.error(`${data.errors.length} fout(en) bij synchronisatie`);
+        else toast.success('Alles is al up-to-date');
+        fetchCfDnsRecords();
+        fetchData();
+      } else {
+        toast.error(data.detail || 'Synchronisatie mislukt');
+      }
+    } catch {
+      toast.error('Synchronisatie mislukt');
+    }
+    setCfSyncing(false);
+  };
+
+  const deleteCfRecord = async (recordId, name) => {
+    try {
+      const res = await fetch(`${API}/api/domains/cloudflare/dns-records/${recordId}`, { method: 'DELETE', headers });
+      if (res.ok) {
+        toast.success(`DNS record ${name} verwijderd`);
+        fetchCfDnsRecords();
+      } else {
+        const err = await res.json();
+        toast.error(err.detail || 'Verwijderen mislukt');
+      }
+    } catch {
+      toast.error('Verwijderen mislukt');
     }
   };
 
@@ -613,87 +698,286 @@ export default function DomainManager() {
       {/* ═══════ CLOUDFLARE TAB ═══════ */}
       {activeTab === 'cloudflare' && (
         <div className="space-y-4">
+          {/* Connection Status Card */}
           <Card className="bg-zinc-900 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Shield className="w-5 h-5 text-orange-400" />
-                Cloudflare Configuratie
-              </CardTitle>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-orange-400" />
+                  Cloudflare Verbinding
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  {cfConfig?.configured && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={verifyCfToken}
+                      disabled={cfVerifying}
+                      data-testid="verify-cf-token-btn"
+                      className="text-xs"
+                    >
+                      {cfVerifying ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <CheckCircle className="w-3 h-3 mr-1" />}
+                      Verbinding testen
+                    </Button>
+                  )}
+                  <Button size="sm" onClick={openCfConfig} data-testid="configure-cloudflare-btn">
+                    <Settings className="w-3.5 h-3.5 mr-1" />
+                    {cfConfig?.configured ? 'Wijzigen' : 'Configureren'}
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-zinc-400">
-                Verbind je Cloudflare account om automatisch DNS records en SSL certificaten te beheren voor alle Clara domeinen.
-              </p>
-
-              <div className="bg-zinc-800/50 rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2.5 h-2.5 rounded-full ${cfConfig?.configured ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
-                    <span className="text-sm text-zinc-200">API Status</span>
-                  </div>
-                  <span className={`text-xs ${cfConfig?.configured ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                    {cfConfig?.configured ? 'Verbonden' : 'Niet geconfigureerd'}
-                  </span>
-                </div>
-
-                {cfConfig?.api_token_set && (
-                  <div className="flex items-center justify-between">
+            <CardContent>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-zinc-800/50 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`w-2 h-2 rounded-full ${cfConfig?.configured ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
                     <span className="text-xs text-zinc-500">API Token</span>
-                    <span className="text-xs text-zinc-400 font-mono">{cfConfig.api_token_preview}</span>
                   </div>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-zinc-500">Zone ID</span>
-                  <span className="text-xs text-zinc-400 font-mono">{cfConfig?.zone_id || '—'}</span>
+                  <p className="text-sm text-zinc-200 font-mono">
+                    {cfConfig?.api_token_set ? cfConfig.api_token_preview : 'Niet ingesteld'}
+                  </p>
                 </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-zinc-500">Base Domain</span>
-                  <span className="text-xs text-zinc-400 font-mono">{cfConfig?.base_domain || 'koodh.com'}</span>
+                <div className="bg-zinc-800/50 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`w-2 h-2 rounded-full ${cfConfig?.zone_id ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
+                    <span className="text-xs text-zinc-500">Zone ID</span>
+                  </div>
+                  <p className="text-sm text-zinc-200 font-mono truncate">
+                    {cfConfig?.zone_id || 'Niet ingesteld'}
+                  </p>
                 </div>
-
-                {cfConfig?.updated_at && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-500">Laatst bijgewerkt</span>
-                    <span className="text-xs text-zinc-400">
-                      {new Date(cfConfig.updated_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      {cfConfig.updated_by && ` door ${cfConfig.updated_by}`}
-                    </span>
+                <div className="bg-zinc-800/50 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Globe className="w-3 h-3 text-zinc-500" />
+                    <span className="text-xs text-zinc-500">Base Domain</span>
                   </div>
-                )}
-              </div>
-
-              <Button onClick={openCfConfig} className="w-full" data-testid="configure-cloudflare-btn">
-                <Settings className="w-4 h-4 mr-2" />
-                {cfConfig?.configured ? 'Configuratie wijzigen' : 'Cloudflare configureren'}
-              </Button>
-
-              <div className="border-t border-zinc-800 pt-4">
-                <p className="text-xs text-zinc-500 mb-2">Je hebt het volgende nodig van Cloudflare:</p>
-                <div className="space-y-1.5">
-                  <div className="flex items-start gap-2 text-xs">
-                    <span className="text-zinc-600">1.</span>
-                    <span className="text-zinc-400">
-                      <strong className="text-zinc-300">API Token</strong> — Maak een token aan via{' '}
-                      <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
-                        Cloudflare Dashboard &rarr; API Tokens
-                      </a>{' '}
-                      met "Zone:DNS:Edit" rechten
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2 text-xs">
-                    <span className="text-zinc-600">2.</span>
-                    <span className="text-zinc-400">
-                      <strong className="text-zinc-300">Zone ID</strong> — Te vinden op de overzichtspagina van je domein in Cloudflare (rechterkolom)
-                    </span>
-                  </div>
+                  <p className="text-sm text-zinc-200 font-mono">{cfConfig?.base_domain || 'koodh.com'}</p>
                 </div>
               </div>
+
+              {cfVerifyResult && (
+                <div className={`mt-3 p-3 rounded-lg border ${cfVerifyResult.valid ? 'bg-emerald-950/30 border-emerald-800' : 'bg-red-950/30 border-red-800'}`}>
+                  <div className="flex items-center gap-2">
+                    {cfVerifyResult.valid ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <XCircle className="w-4 h-4 text-red-400" />
+                    )}
+                    <span className={`text-sm font-medium ${cfVerifyResult.valid ? 'text-emerald-300' : 'text-red-300'}`}>
+                      {cfVerifyResult.valid
+                        ? `Verbonden — Zone: ${cfVerifyResult.zone_name} (${cfVerifyResult.zone_status})`
+                        : `Token status: ${cfVerifyResult.token_status}`
+                      }
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {!cfConfig?.configured && (
+                <div className="mt-3 p-3 bg-zinc-800/30 rounded-lg border border-zinc-800">
+                  <p className="text-xs text-zinc-500 mb-2">Je hebt het volgende nodig van Cloudflare:</p>
+                  <div className="space-y-1.5">
+                    <div className="flex items-start gap-2 text-xs">
+                      <span className="text-zinc-600">1.</span>
+                      <span className="text-zinc-400">
+                        <strong className="text-zinc-300">API Token</strong> — Maak een token aan via{' '}
+                        <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">
+                          Cloudflare Dashboard &rarr; API Tokens
+                        </a>{' '}
+                        met "Zone:DNS:Edit" rechten
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2 text-xs">
+                      <span className="text-zinc-600">2.</span>
+                      <span className="text-zinc-400">
+                        <strong className="text-zinc-300">Zone ID</strong> — Te vinden op de overzichtspagina van je domein in Cloudflare (rechterkolom)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Sync Button Card */}
+          {cfConfig?.configured && (
+            <Card className="bg-gradient-to-r from-orange-950/30 to-zinc-900 border-orange-900/40">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-orange-500/15 flex items-center justify-center">
+                      <RefreshCw className={`w-5 h-5 text-orange-400 ${cfSyncing ? 'animate-spin' : ''}`} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-zinc-100">Sync with Cloudflare</p>
+                      <p className="text-xs text-zinc-400">
+                        Synchroniseer alle Clara subdomeinen en site-domeinen automatisch naar Cloudflare DNS
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={() => { setCfSyncDialog(true); syncWithCloudflare(); }}
+                    disabled={cfSyncing}
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                    data-testid="sync-cloudflare-btn"
+                  >
+                    {cfSyncing ? (
+                      <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Synchroniseren...</>
+                    ) : (
+                      <><RefreshCw className="w-4 h-4 mr-2" /> Sync with Cloudflare</>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* DNS Records */}
+          {cfConfig?.configured && (
+            <Card className="bg-zinc-900 border-zinc-800">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
+                    <Layers className="w-4 h-4" />
+                    Cloudflare DNS Records
+                  </CardTitle>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={fetchCfDnsRecords}
+                    disabled={cfLoadingRecords}
+                    className="text-xs"
+                    data-testid="refresh-cf-dns-btn"
+                  >
+                    {cfLoadingRecords ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}
+                    Ophalen
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {cfDnsRecords.length > 0 ? (
+                  <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+                    {cfDnsRecords.map(record => (
+                      <div key={record.id} className="flex items-center justify-between bg-zinc-800/50 rounded-lg px-3 py-2 group" data-testid={`cf-dns-record-${record.name}`}>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                            record.type === 'A' ? 'bg-blue-500/20 text-blue-400' :
+                            record.type === 'CNAME' ? 'bg-emerald-500/20 text-emerald-400' :
+                            record.type === 'MX' ? 'bg-purple-500/20 text-purple-400' :
+                            record.type === 'TXT' ? 'bg-amber-500/20 text-amber-400' :
+                            'bg-zinc-700 text-zinc-400'
+                          }`}>{record.type}</span>
+                          <span className="text-sm font-mono text-zinc-200">{record.name}</span>
+                          <ArrowRight className="w-3 h-3 text-zinc-600" />
+                          <span className="text-xs text-zinc-400 font-mono truncate max-w-[200px]">{record.content}</span>
+                          {record.proxied && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] bg-orange-500/15 text-orange-400">
+                              Proxied
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => deleteCfRecord(record.id, record.name)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 p-1"
+                          data-testid={`delete-cf-record-${record.id}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Layers className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+                    <p className="text-sm text-zinc-500">
+                      Klik op "Ophalen" om DNS records uit Cloudflare te laden
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
+
+      {/* ═══════ SYNC RESULTS DIALOG ═══════ */}
+      <Dialog open={cfSyncDialog} onOpenChange={setCfSyncDialog}>
+        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RefreshCw className={`w-5 h-5 text-orange-400 ${cfSyncing ? 'animate-spin' : ''}`} />
+              Cloudflare DNS Synchronisatie
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {cfSyncing && (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 animate-spin text-orange-400 mb-3" />
+                <p className="text-sm text-zinc-400">DNS records synchroniseren met Cloudflare...</p>
+              </div>
+            )}
+            {cfSyncResult && !cfSyncing && (
+              <>
+                {/* Summary */}
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="bg-emerald-950/30 border border-emerald-900/40 rounded-lg p-2 text-center">
+                    <p className="text-lg font-bold text-emerald-400">{cfSyncResult.created?.length || 0}</p>
+                    <p className="text-[10px] text-emerald-400/70">Aangemaakt</p>
+                  </div>
+                  <div className="bg-blue-950/30 border border-blue-900/40 rounded-lg p-2 text-center">
+                    <p className="text-lg font-bold text-blue-400">{cfSyncResult.updated?.length || 0}</p>
+                    <p className="text-[10px] text-blue-400/70">Bijgewerkt</p>
+                  </div>
+                  <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-center">
+                    <p className="text-lg font-bold text-zinc-300">{cfSyncResult.unchanged?.length || 0}</p>
+                    <p className="text-[10px] text-zinc-500">Ongewijzigd</p>
+                  </div>
+                  <div className="bg-red-950/30 border border-red-900/40 rounded-lg p-2 text-center">
+                    <p className="text-lg font-bold text-red-400">{cfSyncResult.errors?.length || 0}</p>
+                    <p className="text-[10px] text-red-400/70">Fouten</p>
+                  </div>
+                </div>
+
+                {/* Details */}
+                <div className="max-h-[300px] overflow-y-auto space-y-1.5">
+                  {cfSyncResult.created?.map((r, i) => (
+                    <div key={`c-${i}`} className="flex items-center gap-2 bg-emerald-950/20 rounded px-3 py-1.5">
+                      <Plus className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                      <span className="text-xs font-mono text-emerald-300">{r.fqdn}</span>
+                      <span className="text-[10px] text-zinc-500 ml-auto">{r.label}</span>
+                    </div>
+                  ))}
+                  {cfSyncResult.updated?.map((r, i) => (
+                    <div key={`u-${i}`} className="flex items-center gap-2 bg-blue-950/20 rounded px-3 py-1.5">
+                      <Edit className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                      <span className="text-xs font-mono text-blue-300">{r.fqdn}</span>
+                      <span className="text-[10px] text-zinc-500 ml-auto">{r.label}</span>
+                    </div>
+                  ))}
+                  {cfSyncResult.unchanged?.map((r, i) => (
+                    <div key={`nc-${i}`} className="flex items-center gap-2 bg-zinc-800/30 rounded px-3 py-1.5">
+                      <Check className="w-3 h-3 text-zinc-500 flex-shrink-0" />
+                      <span className="text-xs font-mono text-zinc-400">{r.fqdn}</span>
+                      <span className="text-[10px] text-zinc-600 ml-auto">{r.label}</span>
+                    </div>
+                  ))}
+                  {cfSyncResult.errors?.map((r, i) => (
+                    <div key={`e-${i}`} className="flex items-center gap-2 bg-red-950/20 rounded px-3 py-1.5">
+                      <XCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
+                      <span className="text-xs font-mono text-red-300">{r.fqdn}</span>
+                      <span className="text-[10px] text-red-400/70 ml-auto">{r.error}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCfSyncDialog(false)}>Sluiten</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ═══════ DOMAIN CONFIG DIALOG ═══════ */}
       <Dialog open={domainDialog} onOpenChange={setDomainDialog}>
