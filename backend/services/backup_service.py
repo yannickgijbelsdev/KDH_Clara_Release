@@ -25,6 +25,12 @@ MAIN_SITE_COLLECTIONS = [
     "wordpress_sites", "shows", "categories", "studios",
     "show_titles", "show_series", "show_occurrences",
     "media_assets", "media_folders", "roles",
+    # Configuration collections
+    "zerotier_config", "zerotier_member_meta", "zerotier_alerts",
+    "canva_config", "audio_triggers",
+    "endpoint_settings", "firewall_rules", "firewall_settings",
+    "domain_configs", "folder_shares",
+    "occurrence_assignments", "series_assignments",
 ]
 
 TEAM_COLLECTIONS = [
@@ -37,7 +43,7 @@ CONTENT_LINKED = ["content_item_publishes"]
 
 # Server-type site collections (filtered by main_site_id)
 SERVER_COLLECTIONS = [
-    "xml_imports", "api_keys", "vmix_configs", "vmix_ticker_messages",
+    "xml_imports", "xml_api_keys", "api_keys", "vmix_configs", "vmix_ticker_messages",
     "task_boards", "task_columns", "tasks",
 ]
 

@@ -342,20 +342,13 @@ async def copy_site_to_environment(
     for site in data.get("sites", []):
         id_map[site["id"]] = str(uuid.uuid4())
 
-    # Map all other document IDs
-    for coll_name in ["content_items", "wordpress_sites", "shows",
-                       "show_titles", "show_series", "show_occurrences",
-                       "studios", "categories", "rundowns",
-                       "media_assets", "media_folders", "roles",
-                       "xml_imports", "api_keys", "vmix_configs", "vmix_ticker_messages",
-                       "task_boards", "task_columns", "tasks"]:
-        for doc in data.get(coll_name, []):
-            if doc.get("id"):
+    # Map all document IDs dynamically from all collected data
+    for coll_name, docs in data.items():
+        if coll_name == "main_sites" or not isinstance(docs, list):
+            continue
+        for doc in docs:
+            if isinstance(doc, dict) and doc.get("id") and doc["id"] not in id_map:
                 id_map[doc["id"]] = str(uuid.uuid4())
-
-    for doc in data.get("content_item_publishes", []):
-        if doc.get("id"):
-            id_map[doc["id"]] = str(uuid.uuid4())
 
     def remap_ids(doc: dict) -> dict:
         remapped = {}

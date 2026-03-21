@@ -3530,14 +3530,12 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Tested: iteration_110 - 14/14 backend tests passed (100%), frontend verified
 
 ### March 21, 2026 - Copy Site & Notification Access Fixes
-- [x] **Bug Fix: Copy Site to Environment kopieert nu ALLE data**
-  - Voorheen kopieerde `copy_site_to_environment` alleen metadata (naam, slug, features) en rollen
-  - Nu gebruikt het `_collect_backup_data` + `remap_ids` patroon uit `clone_main_site`
-  - Kopieert: sub-sites, rollen, gebruikers, shows, content, instellingen, media, etc.
-  - `roles` collectie toegevoegd aan `MAIN_SITE_COLLECTIONS` in backup_service.py
-  - Getest met Radiogroep MFY/GRK: 1368 documenten gekopieerd (was: 1)
-  - Files: `backend/routers/environments.py`, `backend/services/backup_service.py`
-  - Tested: iteration_111 - 14/15 tests passed
+- [x] **Copy Site kopieert nu ALLE configuratie-data** inclusief ZeroTier, Canva, Firewall, RDS, vMix, etc.
+  - Toegevoegd aan MAIN_SITE_COLLECTIONS: zerotier_config, zerotier_member_meta, zerotier_alerts, canva_config, audio_triggers, endpoint_settings, firewall_rules, firewall_settings, domain_configs, folder_shares, occurrence_assignments, series_assignments
+  - Toegevoegd aan SERVER_COLLECTIONS: xml_api_keys
+  - ID mapping is nu dynamisch (alle data uit _collect_backup_data wordt automatisch geremapped)
+  - Getest: ZeroTier Monitor copy → 14 docs inclusief 1 zt_config + 3 member_meta + 8 alerts
+  - Files: `backend/services/backup_service.py`, `backend/routers/environments.py`
 
 - [x] **Notification Access beperkt tot System Administrator**
   - Backend: Alle notification endpoints gebruiken nu `require_system_admin` i.p.v. `require_network_admin`
