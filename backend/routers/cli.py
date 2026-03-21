@@ -3,7 +3,7 @@
 import uuid
 import logging
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 from database import db
@@ -64,6 +64,12 @@ COMMANDS = [
     {"command": "/firewall block <ip>", "description": "Block an IP address", "category": "Firewall"},
     {"command": "/firewall unblock <ip>", "description": "Unblock an IP address", "category": "Firewall"},
     {"command": "/firewall blocked", "description": "List all blocked IPs", "category": "Firewall"},
+    # ZeroTier Guard
+    {"command": "/zt-guard status", "description": "Show ZeroTier network guard status", "category": "Security"},
+    {"command": "/zt-guard enable", "description": "Enable ZeroTier login guard for network admins", "category": "Security"},
+    {"command": "/zt-guard disable", "description": "Disable ZeroTier login guard", "category": "Security"},
+    {"command": "/zt-guard set <network_id> <api_token>", "description": "Configure ZeroTier guard network and API token", "category": "Security"},
+    {"command": "/zt-guard test", "description": "Test ZeroTier guard with your current IP", "category": "Security"},
     # Global Protect
     {"command": "/protect status", "description": "Show Global Protect scan statistics", "category": "Global Protect"},
     {"command": "/protect logs [count]", "description": "Recent file scan logs (default: 20)", "category": "Global Protect"},
@@ -183,7 +189,7 @@ async def approve_cli_access(request_id: str, body: CLIAccessApproval, current_u
 # ==================== COMMAND EXECUTION ====================
 
 @cli_router.post("/execute")
-async def execute_command(cmd: CLICommand, current_user: dict = Depends(get_current_user)):
+async def execute_command(cmd: CLICommand, request: Request, current_user: dict = Depends(get_current_user)):
     is_admin = current_user.get("is_system_admin") or current_user.get("is_network_admin")
     if not is_admin:
         access = await db.cli_access.find_one(
@@ -272,6 +278,20 @@ async def execute_command(cmd: CLICommand, current_user: dict = Depends(get_curr
             return await _cmd_firewall_unblock(sid, command[18:].strip())
         elif command == "/firewall blocked":
             return await _cmd_firewall_blocked(sid)
+        # ZeroTier Guard
+        elif command == "/zt-guard status":
+            return await _cmd_zt_guard_status()
+        elif command == "/zt-guard enable":
+            return await _cmd_zt_guard_toggle(True)
+        elif command == "/zt-guard disable":
+            return await _cmd_zt_guard_toggle(False)
+        elif command.startswith("/zt-guard set "):
+            parts = command[14:].strip().split(None, 1)
+            if len(parts) < 2:
+                return {"output": "Usage: /zt-guard set <network_id> <api_token>", "type": "error"}
+            return await _cmd_zt_guard_set(parts[0], parts[1])
+        elif command == "/zt-guard test":
+            return await _cmd_zt_guard_test(request)
         # Global Protect
         elif command == "/protect status":
             return await _cmd_protect_status(sid)
@@ -531,7 +551,138 @@ async def _cmd_site_convert(sid, target_input):
     return {"output": "\n".join(lines), "type": "success"}
 
 
-# ==================== ROLES ====================
+# ==================== ZEROTIER GUARD ====================
+
+async def _cmd_zt_guard_status():
+    """Show ZeroTier guard configuration status."""
+    from services.zt_guard import get_zt_guard_config
+    config = await get_zt_guard_config()
+
+    enabled = config.get("enabled", False)
+    network_id = config.get("network_id", "")
+    network_name = config.get("network_name", "")
+    has_token = bool(config.get("api_token"))
+
+    status = "ENABLED" if enabled else "DISABLED"
+    lines = [
+        f"ZeroTier Network Guard: {status}",
+        "=" * 45,
+        "",
+        f"  Network ID:    {network_id or '(not set)'}",
+        f"  Network Name:  {network_name or '(unknown)'}",
+        f"  API Token:     {'configured' if has_token else '(not set)'}",
+        "",
+        "When enabled, network admins must be connected to the",
+        "configured ZeroTier network to log in. System admins",
+        "are exempt from this check.",
+        "",
+        "Commands:",
+        "  /zt-guard enable              Enable the guard",
+        "  /zt-guard disable             Disable the guard",
+        "  /zt-guard set <nid> <token>   Set network and token",
+        "  /zt-guard test                Test with your IP",
+    ]
+    return {"output": "\n".join(lines), "type": "info"}
+
+
+async def _cmd_zt_guard_toggle(enable: bool):
+    """Enable or disable the ZeroTier guard."""
+    from services.zt_guard import get_zt_guard_config, save_zt_guard_config
+    config = await get_zt_guard_config()
+
+    if enable and (not config.get("api_token") or not config.get("network_id")):
+        return {
+            "output": "Cannot enable: Network ID and API Token must be configured first.\nUse: /zt-guard set <network_id> <api_token>",
+            "type": "error"
+        }
+
+    await save_zt_guard_config(
+        config.get("api_token", ""),
+        config.get("network_id", ""),
+        enable
+    )
+
+    if enable:
+        return {"output": "ZeroTier Network Guard ENABLED.\nNetwork admins must now be connected to the ZeroTier network to log in.", "type": "success"}
+    else:
+        return {"output": "ZeroTier Network Guard DISABLED.\nNetwork admins can log in without ZeroTier.", "type": "warning"}
+
+
+async def _cmd_zt_guard_set(network_id: str, api_token: str):
+    """Configure the ZeroTier guard network and API token."""
+    from services.zt_guard import save_zt_guard_config
+    import httpx
+
+    # Verify the token and network are valid
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                f"https://api.zerotier.com/api/v1/network/{network_id}",
+                headers={"Authorization": f"token {api_token}"}
+            )
+            if resp.status_code == 401:
+                return {"output": "Invalid API token. Check your ZeroTier Central API key.", "type": "error"}
+            if resp.status_code == 404:
+                return {"output": f"Network '{network_id}' not found. Check the Network ID.", "type": "error"}
+            if resp.status_code != 200:
+                return {"output": f"ZeroTier API error (HTTP {resp.status_code}): {resp.text[:100]}", "type": "error"}
+
+            data = resp.json()
+            network_name = data.get("config", {}).get("name", "Unknown")
+            member_count = data.get("totalMemberCount", 0)
+            online_count = data.get("onlineMemberCount", 0)
+
+    except Exception as e:
+        return {"output": f"Failed to reach ZeroTier API: {str(e)}", "type": "error"}
+
+    result = await save_zt_guard_config(api_token, network_id, False)
+
+    lines = [
+        "ZeroTier Guard configured successfully.",
+        "",
+        f"  Network:  {network_name} ({network_id})",
+        f"  Members:  {member_count} total, {online_count} online",
+        "",
+        "Guard is currently DISABLED. Enable with: /zt-guard enable",
+    ]
+    return {"output": "\n".join(lines), "type": "success"}
+
+
+async def _cmd_zt_guard_test(request):
+    """Test ZeroTier guard with the current request IP."""
+    from services.zt_guard import verify_zt_access, get_zt_guard_config
+    from services.audit import get_client_ip
+
+    config = await get_zt_guard_config()
+    if not config.get("enabled"):
+        return {"output": "ZeroTier Guard is disabled. Enable it first with: /zt-guard enable", "type": "warning"}
+
+    client_ip = get_client_ip(request)
+    result = await verify_zt_access(client_ip)
+
+    if result.get("allowed"):
+        member = result.get("member_name", "Unknown")
+        lines = [
+            f"ACCESS GRANTED",
+            f"",
+            f"  Your IP:       {client_ip}",
+            f"  ZT Member:     {member}",
+            f"  Reason:        {result.get('reason', '')}",
+        ]
+        return {"output": "\n".join(lines), "type": "success"}
+    else:
+        lines = [
+            f"ACCESS DENIED",
+            f"",
+            f"  Your IP:       {client_ip}",
+            f"  Reason:        {result.get('reason', '')}",
+            f"",
+            f"Make sure your device is connected to the ZeroTier network.",
+        ]
+        return {"output": "\n".join(lines), "type": "error"}
+
+
+
 
 async def _cmd_roles_list(sid):
     roles = await db.roles.find({"main_site_id": sid}, {"_id": 0}).sort("sort_order", 1).to_list(50)

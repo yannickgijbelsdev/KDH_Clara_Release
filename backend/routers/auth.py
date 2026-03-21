@@ -14,6 +14,7 @@ from services.auth import (
 )
 from services.audit import log_action, get_client_ip
 from services.firewall_service import handle_failed_login, handle_successful_login, check_ip_blocked
+from services.zt_guard import verify_zt_access
 from services.two_factor import (
     generate_totp_secret, generate_qr_code_base64, verify_totp,
     generate_backup_codes, hash_backup_code, verify_backup_code
@@ -211,6 +212,20 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
                 ip_address=get_client_ip(request)
             )
     
+    # ZeroTier Network Guard: Network admins must be connected to the required ZT network
+    if user.get('is_network_admin') and not user.get('is_system_admin'):
+        zt_result = await verify_zt_access(client_ip)
+        if not zt_result.get("allowed"):
+            await log_action(
+                action="Login Blocked - ZeroTier",
+                category="auth",
+                user_id=user['id'],
+                user_email=user['email'],
+                ip_address=client_ip,
+                details={"reason": zt_result.get("reason", "ZeroTier verification failed")}
+            )
+            raise HTTPException(status_code=403, detail=zt_result.get("reason", "ZeroTier network access required."))
+
     # Log successful login
     await handle_successful_login(client_ip, user['id'], user['email'])
     await log_action(
@@ -288,6 +303,65 @@ async def logout(request: Request, current_user: dict = Depends(get_current_user
         ip_address=get_client_ip(request)
     )
     return {"message": "Logged out successfully"}
+
+
+# ---------- ZeroTier Guard Configuration ----------
+
+class ZTGuardConfigUpdate(BaseModel):
+    api_token: Optional[str] = None
+    network_id: Optional[str] = None
+    enabled: Optional[bool] = None
+
+
+@auth_router.get("/zt-guard/config")
+async def get_zt_guard(current_user: dict = Depends(get_current_user)):
+    """Get ZeroTier guard configuration. Only system admins can access this."""
+    if not current_user.get('is_system_admin') and not current_user.get('is_primary_network_admin'):
+        raise HTTPException(403, "System admin access required")
+    from services.zt_guard import get_zt_guard_config
+    config = await get_zt_guard_config()
+    safe = {**config}
+    token = safe.get("api_token", "")
+    safe["api_token_masked"] = f"{token[:4]}...{token[-4:]}" if len(token) > 8 else ("****" if token else "")
+    safe.pop("api_token", None)
+    return safe
+
+
+@auth_router.put("/zt-guard/config")
+async def update_zt_guard(data: ZTGuardConfigUpdate, current_user: dict = Depends(get_current_user)):
+    """Update ZeroTier guard configuration. Only system admins can access this."""
+    if not current_user.get('is_system_admin') and not current_user.get('is_primary_network_admin'):
+        raise HTTPException(403, "System admin access required")
+    from services.zt_guard import get_zt_guard_config, save_zt_guard_config
+    current = await get_zt_guard_config()
+    api_token = data.api_token if data.api_token is not None else current.get("api_token", "")
+    network_id = data.network_id if data.network_id is not None else current.get("network_id", "")
+    enabled = data.enabled if data.enabled is not None else current.get("enabled", False)
+    result = await save_zt_guard_config(api_token, network_id, enabled)
+    await log_action(
+        action="ZeroTier Guard Updated",
+        category="security",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        details={"enabled": enabled, "network_id": network_id}
+    )
+    safe = {**result}
+    token = safe.get("api_token", "")
+    safe["api_token_masked"] = f"{token[:4]}...{token[-4:]}" if len(token) > 8 else ("****" if token else "")
+    safe.pop("api_token", None)
+    return safe
+
+
+@auth_router.post("/zt-guard/test")
+async def test_zt_guard(request: Request, current_user: dict = Depends(get_current_user)):
+    """Test the ZeroTier guard with the current request's IP."""
+    if not current_user.get('is_system_admin') and not current_user.get('is_primary_network_admin'):
+        raise HTTPException(403, "System admin access required")
+    from services.zt_guard import verify_zt_access
+    client_ip = get_client_ip(request)
+    result = await verify_zt_access(client_ip)
+    return {"client_ip": client_ip, **result}
 
 
 # ---------- Cross-Subdomain Exchange Token System ----------

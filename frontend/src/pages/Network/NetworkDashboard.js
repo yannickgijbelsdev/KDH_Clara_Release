@@ -373,6 +373,8 @@ export default function NetworkDashboard() {
   const [environments, setEnvironments] = useState([]);
   const [selectedEnvId, setSelectedEnvId] = useState(null);
   const [setupWizard, setSetupWizard] = useState({ open: false, siteType: 'radio', siteName: '' });
+  const [ztGuard, setZtGuard] = useState({ enabled: false, network_id: '', network_name: '', api_token_masked: '', loading: false });
+  const [ztGuardForm, setZtGuardForm] = useState({ network_id: '', api_token: '' });
   const { startLoading, stopLoading } = useTopLoader();
 
   // Navigation groups matching MainSiteDashboardLayout pattern
@@ -483,6 +485,7 @@ export default function NetworkDashboard() {
     fetchMainSites();
     fetchFeatures();
     fetchEnvironments();
+    fetchZtGuard();
     // Load view mode from preferences
     fetch(`${API}/api/users/me/preferences`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -538,6 +541,44 @@ export default function NetworkDashboard() {
         }
       }
     } catch {}
+  };
+
+  const fetchZtGuard = async () => {
+    if (!isSystemAdmin) return;
+    try {
+      const res = await fetch(`${API}/api/auth/zt-guard/config`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setZtGuard(prev => ({ ...prev, ...data }));
+        setZtGuardForm({ network_id: data.network_id || '', api_token: '' });
+      }
+    } catch {}
+  };
+
+  const saveZtGuard = async (updates) => {
+    setZtGuard(prev => ({ ...prev, loading: true }));
+    try {
+      const res = await fetch(`${API}/api/auth/zt-guard/config`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setZtGuard(prev => ({ ...prev, ...data, loading: false }));
+        setZtGuardForm(prev => ({ ...prev, network_id: data.network_id || '', api_token: '' }));
+        toast.success(updates.enabled !== undefined ? (updates.enabled ? 'ZeroTier Guard enabled' : 'ZeroTier Guard disabled') : 'ZeroTier Guard updated');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || 'Failed to update ZeroTier Guard');
+        setZtGuard(prev => ({ ...prev, loading: false }));
+      }
+    } catch {
+      toast.error('Connection error');
+      setZtGuard(prev => ({ ...prev, loading: false }));
+    }
   };
 
   // Filter sites by selected environment
@@ -1406,6 +1447,90 @@ export default function NetworkDashboard() {
                   <TwoFactorSetup user={user} onUpdate={refreshUser} />
                 </CardContent>
               </Card>
+
+              {/* ZeroTier Network Guard - System Admins Only */}
+              {isSystemAdmin && (
+                <div className="mt-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-lg font-semibold flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-blue-400" />
+                        ZeroTier Network Guard
+                      </h2>
+                      <p className="text-sm text-zinc-400 mt-0.5">Require network admins to be connected to a ZeroTier network before login</p>
+                    </div>
+                    <button
+                      data-testid="zt-guard-toggle"
+                      onClick={() => saveZtGuard({ enabled: !ztGuard.enabled })}
+                      disabled={ztGuard.loading || (!ztGuard.network_id && !ztGuard.enabled)}
+                      className={`relative w-12 h-6 rounded-full transition-colors ${ztGuard.enabled ? 'bg-blue-600' : 'bg-zinc-700'} ${(!ztGuard.network_id && !ztGuard.enabled) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${ztGuard.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  <Card className="bg-zinc-900 border-zinc-800 max-w-lg" data-testid="zt-guard-config">
+                    <CardContent className="p-5 space-y-4">
+                      {ztGuard.enabled && (
+                        <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-500/10 px-3 py-2 rounded-lg border border-blue-500/20">
+                          <Shield className="w-3.5 h-3.5" />
+                          Guard is active. Network admins must be on the ZeroTier network to log in.
+                        </div>
+                      )}
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-zinc-400 font-medium">Network ID</label>
+                        <div className="flex gap-2">
+                          <Input
+                            data-testid="zt-guard-network-id"
+                            placeholder="e.g. a8b4c2d6e1f09876"
+                            value={ztGuardForm.network_id}
+                            onChange={(e) => setZtGuardForm(prev => ({ ...prev, network_id: e.target.value }))}
+                            className="bg-zinc-800 border-zinc-700 font-mono text-sm"
+                          />
+                        </div>
+                        {ztGuard.network_name && (
+                          <p className="text-xs text-zinc-500">Network: {ztGuard.network_name}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-zinc-400 font-medium">API Token</label>
+                        <Input
+                          data-testid="zt-guard-api-token"
+                          type="password"
+                          placeholder={ztGuard.api_token_masked || "ZeroTier Central API token"}
+                          value={ztGuardForm.api_token}
+                          onChange={(e) => setZtGuardForm(prev => ({ ...prev, api_token: e.target.value }))}
+                          className="bg-zinc-800 border-zinc-700 font-mono text-sm"
+                        />
+                        {ztGuard.api_token_masked && !ztGuardForm.api_token && (
+                          <p className="text-xs text-zinc-500">Current: {ztGuard.api_token_masked}</p>
+                        )}
+                      </div>
+
+                      <Button
+                        data-testid="zt-guard-save"
+                        onClick={() => {
+                          const updates = {};
+                          if (ztGuardForm.network_id) updates.network_id = ztGuardForm.network_id;
+                          if (ztGuardForm.api_token) updates.api_token = ztGuardForm.api_token;
+                          if (Object.keys(updates).length === 0) {
+                            toast.info('No changes to save');
+                            return;
+                          }
+                          saveZtGuard(updates);
+                        }}
+                        disabled={ztGuard.loading}
+                        variant="outline"
+                        className="w-full bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                      >
+                        Save Configuration
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
           )}
         </div>
