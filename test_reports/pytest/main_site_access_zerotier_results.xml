@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="12" time="2.467" timestamp="2026-03-21T03:54:47.224200+00:00" hostname="agent-env-5cc4587b-bbab-49a3-ac4b-a9723b81d42a"><testcase classname="backend.tests.test_main_site_access_zerotier.TestMainSiteAccess" name="test_system_admin_login" time="0.550" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestMainSiteAccess" name="test_system_admin_sees_all_sites" time="0.152" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestMainSiteAccess" name="test_system_admin_sites_have_required_fields" time="0.167" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestMainSiteAccess" name="test_get_all_main_sites_endpoint" time="0.118" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestNetworkAdminAccessScoping" name="test_verify_code_logic_for_network_admin" time="0.490" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestNetworkAdminAccessScoping" name="test_my_access_response_structure" time="0.099" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestZeroTierSendSummary" name="test_zerotier_send_summary_endpoint_exists" time="0.461" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestZeroTierSendSummary" name="test_zerotier_config_endpoint" time="0.144" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestZeroTierSendSummary" name="test_zerotier_alert_history_endpoint" time="0.051"><failure message="requests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))">/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:488: in _make_request
+    raise new_e
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:464: in _make_request
+    self._validate_conn(conn)
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:1093: in _validate_conn
+    conn.connect()
+/root/.venv/lib/python3.11/site-packages/urllib3/connection.py:796: in connect
+    sock_and_verified = _ssl_wrap_socket_and_match_hostname(
+/root/.venv/lib/python3.11/site-packages/urllib3/connection.py:975: in _ssl_wrap_socket_and_match_hostname
+    ssl_sock = ssl_wrap_socket(
+/root/.venv/lib/python3.11/site-packages/urllib3/util/ssl_.py:483: in ssl_wrap_socket
+    ssl_sock = _ssl_wrap_socket_impl(sock, context, tls_in_tls, server_hostname)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/util/ssl_.py:527: in _ssl_wrap_socket_impl
+    return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/ssl.py:517: in wrap_socket
+    return self.sslsocket_class._create(
+/usr/local/lib/python3.11/ssl.py:1104: in _create
+    self.do_handshake()
+/usr/local/lib/python3.11/ssl.py:1382: in do_handshake
+    self._sslobj.do_handshake()
+E   ConnectionResetError: [Errno 104] Connection reset by peer
+
+During handling of the above exception, another exception occurred:
+/root/.venv/lib/python3.11/site-packages/requests/adapters.py:644: in send
+    resp = conn.urlopen(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:841: in urlopen
+    retries = retries.increment(
+/root/.venv/lib/python3.11/site-packages/urllib3/util/retry.py:474: in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/util/util.py:38: in reraise
+    raise value.with_traceback(tb)
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:787: in urlopen
+    response = self._make_request(
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:488: in _make_request
+    raise new_e
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:464: in _make_request
+    self._validate_conn(conn)
+/root/.venv/lib/python3.11/site-packages/urllib3/connectionpool.py:1093: in _validate_conn
+    conn.connect()
+/root/.venv/lib/python3.11/site-packages/urllib3/connection.py:796: in connect
+    sock_and_verified = _ssl_wrap_socket_and_match_hostname(
+/root/.venv/lib/python3.11/site-packages/urllib3/connection.py:975: in _ssl_wrap_socket_and_match_hostname
+    ssl_sock = ssl_wrap_socket(
+/root/.venv/lib/python3.11/site-packages/urllib3/util/ssl_.py:483: in ssl_wrap_socket
+    ssl_sock = _ssl_wrap_socket_impl(sock, context, tls_in_tls, server_hostname)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/urllib3/util/ssl_.py:527: in _ssl_wrap_socket_impl
+    return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/ssl.py:517: in wrap_socket
+    return self.sslsocket_class._create(
+/usr/local/lib/python3.11/ssl.py:1104: in _create
+    self.do_handshake()
+/usr/local/lib/python3.11/ssl.py:1382: in do_handshake
+    self._sslobj.do_handshake()
+E   urllib3.exceptions.ProtocolError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))
+
+During handling of the above exception, another exception occurred:
+backend/tests/test_main_site_access_zerotier.py:218: in test_zerotier_alert_history_endpoint
+    response = requests.get(
+/root/.venv/lib/python3.11/site-packages/requests/api.py:73: in get
+    return request("get", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/api.py:59: in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:589: in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/sessions.py:703: in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/requests/adapters.py:659: in send
+    raise ConnectionError(err, request=request)
+E   requests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(104, 'Connection reset by peer'))</failure></testcase><testcase classname="backend.tests.test_main_site_access_zerotier.TestCodeReviewVerification" name="test_main_sites_my_access_code_review" time="0.000" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestCodeReviewVerification" name="test_zerotier_send_summary_code_review" time="0.000" /><testcase classname="backend.tests.test_main_site_access_zerotier.TestCodeReviewVerification" name="test_zerotier_alerts_service_code_review" time="0.000" /></testsuite></testsuites>
