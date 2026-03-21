@@ -3494,11 +3494,26 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Files: `services/radioplayer.py`, `routers/radioplayer.py`, `pages/RadioplayerPage.js`
 
 ## Pending/Backlog
-- [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
+- [ ] (P0) "Oops! Page not found" op `/radiogroep/dashboard` — redirect toevoegen
+- [ ] (P1) "Something went wrong" bij login intermittent — subdomain auth race condition
+- [ ] (P1) Cloudflare API Token + Zone ID functionaliteit in Domain Manager
 - [ ] (P1) Calendar Integration for Clara Tasks (Google Calendar / Outlook)
 - [ ] (P1) WordPress Plugin Integration finalization
 - [ ] (P1) Cleanup old ProRadio sync code
+- [ ] (P1) Network admin assignment to multiple environments (USER VERIFICATION PENDING)
 - [ ] (P2) Canva Director feature verification on new server sites (USER VERIFICATION PENDING)
 - [ ] (P2) Payment Gateway integration (Stripe/Mollie)
 - [ ] (P2) Stream Monitor VU Meters
 - [ ] (P2) Cloudflare API actief verbinden (na invoeren API Token + Zone ID door gebruiker)
+
+### March 21, 2026 - License Manager & CLI Fix (P0 Bug Fix)
+- [x] **P0 Bug Fix: CLI License Assignment**
+  - Root cause: CLI functions used `site_id` while License Manager API used `main_site_id`
+  - CLI used `type` instead of `billing_cycle`
+  - CLI didn't set `status: "active"` field
+  - Fixed `_cmd_license_assign`, `_cmd_license_info`, `_cmd_license_remove`, `_cmd_site_info`
+  - Added DB migration on startup to convert legacy `site_id` records to `main_site_id`
+  - Made `licenses.py` overview/assignments endpoints defensive for legacy data
+  - Fixed price field name mismatch (`price_monthly` vs `monthly_price`)
+  - Files: `backend/routers/cli.py`, `backend/routers/licenses.py`, `backend/server.py`
+  - Tested: iteration_110 - 14/14 backend tests passed (100%), frontend verified
