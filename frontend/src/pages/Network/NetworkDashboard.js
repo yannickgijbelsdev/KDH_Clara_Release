@@ -1315,7 +1315,7 @@ export default function NetworkDashboard() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-2xl font-bold">Domain Manager</h1>
-                  <p className="text-sm text-zinc-400">Beheer domeinen, subdomain routing en Cloudflare integratie</p>
+                  <p className="text-sm text-zinc-400">Manage domains, subdomain routing, and Cloudflare integration</p>
                 </div>
               </div>
               <DomainManager />
