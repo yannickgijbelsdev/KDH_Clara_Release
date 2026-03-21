@@ -3658,4 +3658,13 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Fixed `/api/main-sites/my/access` endpoint: non-system network admins now see ALL sites (not just explicitly assigned ones)
 - Tested: iteration_117 - 100% pass rate (backend + frontend)
 
+
+### 2026-03-21: CLI Site Convert Command
+- Added `/site convert <package>` CLI command to switch a main site between package types
+- Supported packages: radio, tasks, virtual-datacenter, data-connection, external-host (with aliases)
+- Converts site_type and updates enabled_features to new package defaults
+- Handles: usage help, same-type warning, invalid package error
+- File: `backend/routers/cli.py` (COMMANDS registry + execute_command handler + _cmd_site_convert function)
+- Tested: API curl tests (all 5 scenarios pass) + visual CLI verification via screenshot
+
 - (P2) Refactoring: Split `MainSiteDashboardLayout.js` and `NetworkDashboard.js` into smaller components

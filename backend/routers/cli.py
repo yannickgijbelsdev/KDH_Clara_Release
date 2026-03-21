@@ -77,6 +77,7 @@ COMMANDS = [
     {"command": "/site features disable <feature>", "description": "Disable a feature module", "category": "Site"},
     {"command": "/site demo on|off", "description": "Toggle demo mode", "category": "Site"},
     {"command": "/site stats", "description": "Show site statistics and usage", "category": "Site"},
+    {"command": "/site convert <package>", "description": "Convert site to different package (radio/tasks/virtual-datacenter/data-connection/external-host)", "category": "Site"},
     # Environment
     {"command": "/env list", "description": "List all environments", "category": "Environment"},
     {"command": "/env info", "description": "Show current site's environment details", "category": "Environment"},
@@ -303,6 +304,9 @@ async def execute_command(cmd: CLICommand, current_user: dict = Depends(get_curr
             return await _cmd_site_demo(sid, command[11:].strip())
         elif command == "/site stats":
             return await _cmd_site_stats(sid)
+        elif command.startswith("/site convert"):
+            arg = command[14:].strip() if len(command) > 13 else ""
+            return await _cmd_site_convert(sid, arg)
         # Environment
         elif command == "/env list":
             return await _cmd_env_list()
@@ -433,6 +437,98 @@ async def update_features_config(main_site_id: str, data: dict, current_user: di
     )
 
     return {"output": f"Features updated: {len(valid_features)} features enabled.", "type": "success"}
+
+
+# ==================== SITE CONVERT ====================
+
+PACKAGE_ALIASES = {
+    'radio': 'radio',
+    'tasks': 'task_scheduler',
+    'task_scheduler': 'task_scheduler',
+    'virtual-datacenter': 'server',
+    'virtual_datacenter': 'server',
+    'datacenter': 'server',
+    'server': 'server',
+    'data-connection': 'technical',
+    'data_connection': 'technical',
+    'technical': 'technical',
+    'external-host': 'external_host',
+    'external_host': 'external_host',
+    'external': 'external_host',
+}
+
+PACKAGE_DISPLAY = {
+    'radio': 'Clara Radio',
+    'task_scheduler': 'Clara Tasks',
+    'server': 'Clara Virtual Datacenter',
+    'technical': 'Clara Data Connection',
+    'external_host': 'Clara External Host',
+}
+
+
+async def _cmd_site_convert(sid, target_input):
+    """Convert a main site to a different package type."""
+    target_input = target_input.lower().strip()
+
+    if not target_input:
+        lines = [
+            "Usage: /site convert <package>",
+            "",
+            "Available packages:",
+            "  radio              Clara Radio",
+            "  tasks              Clara Tasks",
+            "  virtual-datacenter Clara Virtual Datacenter",
+            "  data-connection    Clara Data Connection",
+            "  external-host      Clara External Host",
+        ]
+        return {"output": "\n".join(lines), "type": "info"}
+
+    target_type = PACKAGE_ALIASES.get(target_input)
+    if not target_type:
+        return {
+            "output": f"Unknown package: '{target_input}'\n\nValid packages: radio, tasks, virtual-datacenter, data-connection, external-host",
+            "type": "error"
+        }
+
+    site = await db.main_sites.find_one({"id": sid}, {"_id": 0, "id": 1, "name": 1, "site_type": 1, "enabled_features": 1})
+    if not site:
+        return {"output": "Error: Site not found.", "type": "error"}
+
+    current_type = site.get("site_type", "radio")
+
+    if current_type == target_type:
+        return {
+            "output": f"Site '{site['name']}' is already set to {PACKAGE_DISPLAY.get(target_type, target_type)}. No changes needed.",
+            "type": "warning"
+        }
+
+    old_display = PACKAGE_DISPLAY.get(current_type, current_type)
+    new_display = PACKAGE_DISPLAY.get(target_type, target_type)
+    new_features = ALL_AVAILABLE_FEATURES.get(target_type, ALL_AVAILABLE_FEATURES['radio'])
+
+    await db.main_sites.update_one(
+        {"id": sid},
+        {"$set": {
+            "site_type": target_type,
+            "enabled_features": new_features,
+            "updated_at": _now(),
+        }}
+    )
+
+    lines = [
+        f"Site '{site['name']}' converted successfully.",
+        f"",
+        f"  {old_display}  ->  {new_display}",
+        f"",
+        f"  Features ({len(new_features)}):",
+    ]
+    for f in new_features:
+        lines.append(f"    + {f.replace('_', ' ').title()}")
+
+    lines.append("")
+    lines.append("Note: Reload the page to see the updated navigation and features.")
+
+    return {"output": "\n".join(lines), "type": "success"}
 
 
 # ==================== ROLES ====================
