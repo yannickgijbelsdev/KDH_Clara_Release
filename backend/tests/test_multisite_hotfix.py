@@ -13,7 +13,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://license-assign-fix.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://license-radio-dash.preview.emergentagent.com')
 
 # Test credentials
 NETWORK_ADMIN_EMAIL = "admkoodh@koodh.com"

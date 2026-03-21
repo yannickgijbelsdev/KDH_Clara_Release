@@ -3552,3 +3552,25 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Frontend: Notifications sidebar item alleen zichtbaar voor `isSystemAdmin`
   - Files: `backend/routers/notifications.py`, `frontend/src/pages/Network/NetworkDashboard.js`
   - Tested: iteration_111 - verified both backend restriction and frontend sidebar
+
+### March 21, 2026 - Bug Fixes (Dashboard 404 & Login Error Handling)
+- [x] **Bug Fix: "Oops! Page not found" on /:slug/dashboard (P2)**:
+  - Added `dashboard` child route inside `/:mainSiteSlug` that renders `<MainSiteIndex />`
+  - Now `/radiogroep/dashboard` correctly redirects to the first enabled feature (e.g. `/radiogroep/shows`)
+  - File: `frontend/src/App.js`
+  - Tested: Verified via screenshot - redirect works correctly
+
+- [x] **Bug Fix: Intermittent "Something went wrong" at login (P2)**:
+  - Improved error handling in LoginPage.js to distinguish between:
+    - Network errors → "Connection error. Please try again."
+    - String error details → Shows exact server message
+    - Array error details (FastAPI validation) → Joins messages
+    - HTTP errors without detail → "Login failed (status). Please try again."
+  - Prevents generic "Something went wrong" from confusing users
+  - File: `frontend/src/pages/LoginPage.js`
+
+- [x] **Canva Director & Radioplayer in Site Creation Modal (carried from previous session)**:
+  - Added `canva_director` and `radioplayer` as optional features when creating Clara Server type sites
+  - File: `frontend/src/pages/Network/NetworkDashboard.js`
+  - Verified via screenshot in previous session
+

@@ -233,6 +233,7 @@ const AppRoutes = () => {
         }
       >
         <Route index element={<MainSiteIndex />} />
+        <Route path="dashboard" element={<MainSiteIndex />} />
         <Route path="shows" element={<ShowsPage />} />
         <Route path="shows/:showId" element={<ShowDetailPage />} />
         <Route path="show-management" element={<ShowManagementPage />} />

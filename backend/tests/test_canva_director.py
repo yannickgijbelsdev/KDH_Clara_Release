@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://license-assign-fix.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://license-radio-dash.preview.emergentagent.com').rstrip('/')
 MAIN_SITE_ID = "9d51a9a0-90ea-41c5-8324-d240fedbd99c"  # clara-xml-server
 
 # Test credentials

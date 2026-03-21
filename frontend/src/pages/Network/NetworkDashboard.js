@@ -25,7 +25,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server, Palette
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -1559,6 +1559,34 @@ export default function NetworkDashboard() {
                       <p className="text-[10px] text-zinc-400">Video overlay management</p>
                     </div>
                   </div>
+                </div>
+              </div>
+              )}
+              {/* Server-specific optional features */}
+              {formData.site_type === 'server' && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Server Integrations</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'canva_director', name: 'Canva Director', icon: Palette, desc: 'Design integration' },
+                    { id: 'radioplayer', name: 'Radioplayer', icon: Radio, desc: 'Radioplayer sync' },
+                  ].map(feat => (
+                    <div
+                      key={feat.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${
+                        formData.enabled_features.includes(feat.id)
+                          ? 'bg-orange-500/20 border border-orange-500/50'
+                          : 'bg-zinc-800 border border-zinc-700 hover:border-zinc-600'
+                      }`}
+                      onClick={() => toggleFeature(feat.id)}
+                    >
+                      <feat.icon className={`w-5 h-5 flex-shrink-0 ${formData.enabled_features.includes(feat.id) ? 'text-orange-400' : 'text-zinc-500'}`} />
+                      <div>
+                        <span className="text-sm font-medium text-white">{feat.name}</span>
+                        <p className="text-[10px] text-zinc-400">{feat.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
               )}

@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://license-assign-fix.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://license-radio-dash.preview.emergentagent.com').rstrip('/')
 CANVA_SERVER_SITE_ID = "9d51a9a0-90ea-41c5-8324-d240fedbd99c"  # clara-xml-server (has Canva Director)
 RADIOGROEP_SITE_ID = "db23c31a-7776-4805-a4a5-bd019dd7c2be"  # Radiogroep MFY/GRK (target site to link)
 

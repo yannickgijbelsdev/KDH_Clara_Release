@@ -58,9 +58,17 @@ const LoginPage = () => {
         window.dispatchEvent(new Event('show-login-wizard'));
       }
     } catch (error) {
-      const message = error.response?.data?.detail || 'Something went wrong';
+      let message = 'Connection error. Please try again.';
+      const detail = error.response?.data?.detail;
+      if (typeof detail === 'string') {
+        message = detail;
+      } else if (Array.isArray(detail)) {
+        message = detail.map(d => d.msg || d).join(', ');
+      } else if (error.response?.status) {
+        message = `Login failed (${error.response.status}). Please try again.`;
+      }
       toast.error(message);
-      if (!error.response?.data?.detail?.includes('2FA')) {
+      if (typeof detail !== 'string' || !detail.includes('2FA')) {
         setRequires2FA(false);
         setTotpCode('');
         setBackupCode('');
