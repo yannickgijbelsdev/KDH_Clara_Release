@@ -701,8 +701,9 @@ const MainSiteDashboardContent = () => {
   // Build flat nav items array for icon sidebar
   const flatNavItems = navGroups.flatMap(group => group.items || []);
 
-  // Check if site access is blocked (no license and not demo)
-  const isLicenseBlocked = !licenseLoading && licenseInfo && !licenseInfo.has_license && !licenseInfo.is_demo;
+  // Check if site access is blocked (no license and not demo) - System admins always bypass
+  const isSystemAdmin = user?.is_system_admin === true;
+  const isLicenseBlocked = !isSystemAdmin && !licenseLoading && licenseInfo && !licenseInfo.has_license && !licenseInfo.is_demo;
 
   // Render icon-only sidebar navigation
   const renderIconNavigation = () => {
@@ -1139,8 +1140,8 @@ const MainSiteDashboardContent = () => {
           </div>
           
           <div className="p-4 sm:p-6 lg:p-8">
-            {/* No License - Block Access (unless demo) */}
-            {!licenseLoading && licenseInfo && !licenseInfo.has_license && !licenseInfo.is_demo ? (
+            {/* No License - Block Access (unless demo or system admin) */}
+            {isLicenseBlocked ? (
               <div className="flex items-center justify-center min-h-[60vh]" data-testid="no-license-block">
                 <div className="max-w-md text-center space-y-4">
                   <div className="w-16 h-16 mx-auto rounded-full bg-red-950/50 border border-red-800/50 flex items-center justify-center">

@@ -3508,6 +3508,10 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 ### March 21, 2026 - Login Page Locked Down
 - [x] **Login pagina niet meer aanpasbaar** (behalve logo & favicon)
+- [x] **System Administrator bypass voor license check** — Canva Director en andere features nu zichtbaar op Clara Server
+  - Root cause: `isLicenseBlocked` was alleen gebruikt voor sidebar items, maar de content area had een aparte license check
+  - Beide checks nu gecentraliseerd via `isLicenseBlocked` variabele met `isSystemAdmin` bypass
+  - Files: `frontend/src/components/MainSiteDashboardLayout.js`
   - Vaste subtiele oranje gradient achtergrond met CSS animatie (gradientDrift + glowPulse)
   - Glasmorfisme login kaart gecentreerd
   - Verwijderd: Image panel, carousel, layout opties (left/right/fullscreen), login_images upload
