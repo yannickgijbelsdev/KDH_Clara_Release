@@ -145,8 +145,10 @@ async def upload_media_asset(
     s3_url = None
     if is_s3_configured():
         try:
-            result = await upload_file_to_s3(file_content, storage_key, content_type)
+            result = await upload_file_to_s3(file_content, storage_key, content_type, main_site_id=main_site_id)
             s3_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload to storage: {str(e)}")
     else:

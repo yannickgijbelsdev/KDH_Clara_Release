@@ -17,7 +17,7 @@ from models.content import (
 from services.auth import get_current_user, require_editor_or_admin, require_admin, require_can_approve_content
 from services.helpers import get_content_with_publish_statuses
 from services.audit import log_action, get_client_ip
-from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
+from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured, check_cloud_resources_enabled
 from services.main_site_context import get_main_site_id_from_header, get_effective_role
 
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
@@ -999,8 +999,10 @@ async def upload_content_featured_image(
     
     if is_s3_configured():
         try:
-            result = await upload_file_to_s3(file_content, storage_key, content_type)
+            result = await upload_file_to_s3(file_content, storage_key, content_type, main_site_id=main_site_id)
             s3_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:
@@ -1172,8 +1174,10 @@ async def upload_featured_image(
     
     if is_s3_configured():
         try:
-            result = await upload_file_to_s3(file_content, storage_key, content_type)
+            result = await upload_file_to_s3(file_content, storage_key, content_type, main_site_id=main_site_id)
             s3_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:

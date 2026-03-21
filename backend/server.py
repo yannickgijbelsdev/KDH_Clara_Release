@@ -565,11 +565,15 @@ from services.s3_storage import upload_file_to_s3, is_s3_configured, get_s3_url
 
 @api_router.post("/uploads/editor-files")
 async def upload_editor_file(
+    request: Request,
     file: UploadFile = File(...),
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Upload a file from the TinyMCE editor to S3 storage."""
     from fastapi import HTTPException
+    from services.main_site_context import get_main_site_id_from_header
+    
+    main_site_id = await get_main_site_id_from_header(request)
     
     # Validate file type - support images, video, audio, and documents
     allowed_types = [
@@ -624,9 +628,11 @@ async def upload_editor_file(
     # Upload to S3 if configured
     if is_s3_configured():
         try:
-            result = await upload_file_to_s3(contents, file_key, file.content_type)
+            result = await upload_file_to_s3(contents, file_key, file.content_type, main_site_id=main_site_id)
             # Return direct S3 URL (files are uploaded with ACL='public-read')
             return {"url": result['url'], "filename": file.filename, "size": len(contents)}
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload to storage: {str(e)}")
     

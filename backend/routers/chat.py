@@ -14,7 +14,7 @@ from models.chat import (
 )
 from services.auth import get_current_user
 from services.audit import log_action, get_client_ip
-from services.s3_storage import upload_file_to_s3, is_s3_configured
+from services.s3_storage import upload_file_to_s3, is_s3_configured, check_cloud_resources_enabled
 from services.main_site_context import get_main_site_id_from_header
 
 chat_router = APIRouter(prefix="/chat", tags=["Chat"])
@@ -726,7 +726,7 @@ async def upload_chat_attachment(
     if is_s3_configured():
         storage_key = f"chat/{storage_prefix}/{unique_filename}"
         try:
-            result = await upload_file_to_s3(content, storage_key, content_type)
+            result = await upload_file_to_s3(content, storage_key, content_type, main_site_id=main_site_id)
             return {
                 "url": result['url'],
                 "type": attachment_type,
@@ -734,6 +734,8 @@ async def upload_chat_attachment(
                 "size": len(content),
                 "storage_key": storage_key
             }
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     

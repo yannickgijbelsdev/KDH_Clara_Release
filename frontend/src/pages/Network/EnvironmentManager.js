@@ -12,7 +12,7 @@ import {
 import { toast } from 'sonner';
 import {
   Server, Plus, Edit, Trash2, Users, Globe, Shield, Crown,
-  Copy, Loader2, ChevronRight
+  Copy, Loader2, ChevronRight, Cloud, CloudOff
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -128,6 +128,18 @@ export default function EnvironmentManager() {
     } catch { toast.error('Failed to remove admin'); }
   };
 
+  // ---- Toggle S3 ----
+  const toggleS3 = async (envId, currentValue) => {
+    try {
+      const res = await fetch(`${API}/api/environments/${envId}`, {
+        method: 'PUT', headers, body: JSON.stringify({ s3_enabled: !currentValue }),
+      });
+      if (!res.ok) { const err = await res.json(); toast.error(err.detail); return; }
+      toast.success(`Cloud Resources ${!currentValue ? 'enabled' : 'disabled'}`);
+      fetchData();
+    } catch { toast.error('Failed to update environment'); }
+  };
+
   // ---- Copy site ----
   const openCopyDialog = async (envId, envName) => {
     setCopyDialog({ open: true, envId, envName });
@@ -210,7 +222,29 @@ export default function EnvironmentManager() {
                 <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                   <Users className="w-3.5 h-3.5" /> {env.admin_count || 0} admins
                 </div>
+                <div className={`flex items-center gap-1.5 text-xs ${env.s3_enabled !== false ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {env.s3_enabled !== false ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}
+                  {env.s3_enabled !== false ? 'Cloud on' : 'Cloud off'}
+                </div>
               </div>
+              {isSystemAdmin && (
+                <div className="flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg bg-zinc-800/50">
+                  <div className="flex items-center gap-2">
+                    {env.s3_enabled !== false
+                      ? <Cloud className="w-4 h-4 text-emerald-400" />
+                      : <CloudOff className="w-4 h-4 text-red-400" />
+                    }
+                    <span className="text-xs text-zinc-300">Cloud Resources</span>
+                  </div>
+                  <button
+                    onClick={() => toggleS3(env.id, env.s3_enabled !== false)}
+                    data-testid={`env-s3-toggle-${env.slug}`}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${env.s3_enabled !== false ? 'bg-emerald-500' : 'bg-zinc-600'}`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${env.s3_enabled !== false ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => openAdminDialog(env.id, env.name)} data-testid={`env-admins-${env.slug}`}>
                   <Shield className="w-3 h-3 mr-1" /> Admins

@@ -235,7 +235,7 @@ async def _process_xml_background(import_id: str, content: bytes, s3_key: str, d
     try:
         # Upload to S3
         if is_s3_configured():
-            await upload_file_to_s3(content, s3_key, content_type="application/xml")
+            await upload_file_to_s3(content, s3_key, content_type="application/xml", main_site_id=doc.get("main_site_id"))
         else:
             # Fallback: store locally
             import os

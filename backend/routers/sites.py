@@ -14,7 +14,7 @@ from models.sites import (
     SiteUserRole, SitePasswordCheck, FormField
 )
 from services.auth import get_current_user, require_admin
-from services.s3_storage import upload_file_to_s3, is_s3_configured
+from services.s3_storage import upload_file_to_s3, is_s3_configured, check_cloud_resources_enabled
 from services.main_site_context import get_main_site_id_from_header
 
 import logging
@@ -338,8 +338,10 @@ async def upload_site_logo(
         # Upload to S3
         file_key = f"sites/{site_id}/logo.{ext}"
         try:
-            result = await upload_file_to_s3(content, file_key, file.content_type)
+            result = await upload_file_to_s3(content, file_key, file.content_type, main_site_id=site.get("main_site_id"))
             logo_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload mislukt")
@@ -393,8 +395,10 @@ async def upload_site_header(
         # Upload to S3
         file_key = f"sites/{site_id}/header.{ext}"
         try:
-            result = await upload_file_to_s3(content, file_key, file.content_type)
+            result = await upload_file_to_s3(content, file_key, file.content_type, main_site_id=site.get("main_site_id"))
             header_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload mislukt")
@@ -449,8 +453,10 @@ async def upload_site_audio(
         # Upload to S3
         file_key = f"sites/{site_id}/audio.{ext}"
         try:
-            result = await upload_file_to_s3(content, file_key, file.content_type)
+            result = await upload_file_to_s3(content, file_key, file.content_type, main_site_id=site.get("main_site_id"))
             audio_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload mislukt")
@@ -768,8 +774,10 @@ async def upload_form_file(
         # Upload to S3
         file_key = f"sites/{site['id']}/submissions/{file_id}.{ext}"
         try:
-            result = await upload_file_to_s3(content, file_key, file.content_type)
+            result = await upload_file_to_s3(content, file_key, file.content_type, main_site_id=site.get("main_site_id"))
             file_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload mislukt")
@@ -923,8 +931,10 @@ async def upload_form_file_multisite(
     if is_s3_configured():
         file_key = f"sites/{site['id']}/submissions/{file_id}.{ext}"
         try:
-            result = await upload_file_to_s3(content, file_key, file.content_type)
+            result = await upload_file_to_s3(content, file_key, file.content_type, main_site_id=site.get("main_site_id"))
             file_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             logger.error(f"S3 upload failed: {e}")
             raise HTTPException(status_code=500, detail="Upload failed")

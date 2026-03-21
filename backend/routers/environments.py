@@ -50,6 +50,7 @@ class EnvironmentUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
+    s3_enabled: Optional[bool] = None
 
 
 class EnvironmentAdminAdd(BaseModel):
@@ -222,8 +223,17 @@ async def update_environment(env_id: str, data: EnvironmentUpdate, current_user:
         raise HTTPException(status_code=404, detail="Environment not found")
 
     update = {k: v for k, v in data.model_dump().items() if v is not None}
+    # Allow setting s3_enabled to False explicitly
+    if data.s3_enabled is not None:
+        update["s3_enabled"] = data.s3_enabled
     update["updated_at"] = _now()
     await db.environments.update_one({"id": env_id}, {"$set": update})
+    
+    # Invalidate S3 cache if s3_enabled changed
+    if data.s3_enabled is not None:
+        from services.s3_storage import invalidate_s3_cache
+        invalidate_s3_cache(env_id)
+    
     updated = await db.environments.find_one({"id": env_id}, {"_id": 0})
     return updated
 

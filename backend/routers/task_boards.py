@@ -532,7 +532,7 @@ async def add_attachment(
 
     if is_s3_configured():
         s3_key = f"task_attachments/{filename}"
-        await upload_file_to_s3(content, s3_key, file.content_type or "application/octet-stream")
+        await upload_file_to_s3(content, s3_key, file.content_type or "application/octet-stream", main_site_id=main_site_id)
         file_url = f"/api/task-boards/attachments/download/{s3_key}"
     else:
         uploads_dir = os.path.join(os.environ.get("UPLOADS_DIR", "/app/backend/uploads"), "task_attachments")

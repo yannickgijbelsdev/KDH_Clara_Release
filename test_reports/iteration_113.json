@@ -1,0 +1,89 @@
+{
+  "summary": "S3 Storage Toggle Feature - All tests passed. Backend: 10/10 tests passed (100%). Frontend: UI verified working with toggle, toast notifications, and System Admin visibility control.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_s3_toggle.py",
+    "/app/test_reports/pytest/s3_toggle_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "s3_storage.py check_cloud_resources_enabled(): Correctly checks cache first, then looks up main_site -> environment -> s3_enabled. Returns 403 with correct message when disabled.",
+    "s3_storage.py invalidate_s3_cache(): Properly clears the entire cache when s3_enabled is toggled.",
+    "environments.py PUT /{env_id}: Correctly handles s3_enabled field update and calls invalidate_s3_cache() when changed. Requires system admin.",
+    "EnvironmentManager.js: Cloud Resources toggle is wrapped in {isSystemAdmin && ...} - correctly hidden from non-system admins.",
+    "EnvironmentManager.js toggleS3(): Correctly calls PUT /api/environments/{env_id} with s3_enabled toggle and shows toast notification."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_s3_toggle.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (UI toggle, toast, visibility all working)"
+  },
+  "test_credentials": {
+    "email": "admkoodh@koodh.com",
+    "password": "KYLovie13monx"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "S3 toggle feature fully tested. Backend tests verify: (1) PUT /api/environments/{env_id} with s3_enabled=false disables S3, (2) Media upload to disabled env returns 403 with 'Cloud Resources are disabled. Please contact Clara Support.', (3) Re-enabling S3 allows uploads again, (4) Cache invalidation works correctly. Frontend UI shows Cloud Resources toggle only for System Admins, with toast notifications on toggle.",
+  "features_tested": {
+    "system_admin_login": {
+      "status": "PASSED",
+      "details": "System admin admkoodh@koodh.com login successful with is_system_admin=true"
+    },
+    "environments_list_s3_enabled_field": {
+      "status": "PASSED",
+      "details": "GET /api/environments returns s3_enabled field for each environment"
+    },
+    "disable_s3_for_environment": {
+      "status": "PASSED",
+      "details": "PUT /api/environments/{env_id} with s3_enabled=false successfully disables S3"
+    },
+    "verify_s3_disabled_in_list": {
+      "status": "PASSED",
+      "details": "Environment list reflects s3_enabled=false after update"
+    },
+    "media_upload_disabled_env_403": {
+      "status": "PASSED",
+      "details": "POST /api/media with X-Main-Site-ID of disabled environment returns 403 with correct error message"
+    },
+    "enable_s3_for_environment": {
+      "status": "PASSED",
+      "details": "PUT /api/environments/{env_id} with s3_enabled=true successfully re-enables S3"
+    },
+    "media_upload_enabled_env_succeeds": {
+      "status": "PASSED",
+      "details": "POST /api/media with X-Main-Site-ID of enabled environment does not return cloud resources disabled error"
+    },
+    "cache_invalidation": {
+      "status": "PASSED",
+      "details": "After toggling s3_enabled, the next upload uses the new state (cache properly invalidated)"
+    },
+    "ui_toggle_visible_system_admin": {
+      "status": "PASSED",
+      "details": "Cloud Resources toggle visible in EnvironmentManager UI for System Admin"
+    },
+    "ui_toggle_functionality": {
+      "status": "PASSED",
+      "details": "Clicking toggle switches s3_enabled state and shows toast notification"
+    },
+    "ui_toggle_hidden_non_system_admin": {
+      "status": "PASSED",
+      "details": "Code review confirms toggle wrapped in {isSystemAdmin && ...} - hidden from non-system admins"
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "notes": "All APIs are real. No mocking."
+  }
+}

@@ -23,7 +23,7 @@ from models.media import AttachMediaRequest, RundownItemMediaResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
-from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
+from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured, check_cloud_resources_enabled
 from services.main_site_context import get_main_site_id_from_header
 from services.proradio_service import sync_show_to_proradio, delete_show_from_proradio
 from services.timezone_utils import now_brussels, today_brussels, format_datetime_brussels
@@ -337,8 +337,10 @@ async def upload_show_title_image(
     
     if is_s3_configured():
         try:
-            result = await upload_file_to_s3(content, storage_key, content_type)
+            result = await upload_file_to_s3(content, storage_key, content_type, main_site_id=title.get("main_site_id"))
             s3_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:
@@ -668,8 +670,10 @@ async def upload_show_image(
     
     if is_s3_configured():
         try:
-            result = await upload_file_to_s3(file_content, storage_key, content_type)
+            result = await upload_file_to_s3(file_content, storage_key, content_type, main_site_id=show.get("main_site_id"))
             s3_url = result['url']
+        except HTTPException:
+            raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
     else:

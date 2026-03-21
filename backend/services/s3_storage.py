@@ -6,10 +6,61 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 from botocore.config import Config
+from fastapi import HTTPException
 import logging
 import mimetypes
 
 logger = logging.getLogger(__name__)
+
+# Cache for environment s3_enabled lookups (main_site_id -> s3_enabled)
+_env_s3_cache = {}
+
+
+async def check_cloud_resources_enabled(main_site_id: str):
+    """Check if cloud resources (S3) are enabled for the environment of this main_site.
+    
+    Raises HTTPException 403 if disabled.
+    """
+    if not main_site_id:
+        return  # Skip check for system-level operations
+    
+    from database import db
+    
+    # Check cache first
+    if main_site_id in _env_s3_cache:
+        if not _env_s3_cache[main_site_id]:
+            raise HTTPException(
+                status_code=403,
+                detail="Cloud Resources are disabled. Please contact Clara Support."
+            )
+        return
+    
+    # Look up main_site -> environment -> s3_enabled
+    site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "environment_id": 1})
+    if not site or not site.get("environment_id"):
+        _env_s3_cache[main_site_id] = True
+        return
+    
+    env = await db.environments.find_one(
+        {"id": site["environment_id"]},
+        {"_id": 0, "s3_enabled": 1}
+    )
+    
+    # Default to True if field doesn't exist
+    s3_enabled = env.get("s3_enabled", True) if env else True
+    _env_s3_cache[main_site_id] = s3_enabled
+    
+    if not s3_enabled:
+        raise HTTPException(
+            status_code=403,
+            detail="Cloud Resources are disabled. Please contact Clara Support."
+        )
+
+
+def invalidate_s3_cache(environment_id: str = None):
+    """Invalidate the S3 enabled cache. Call when toggling s3_enabled."""
+    global _env_s3_cache
+    _env_s3_cache = {}
 
 # S3 Configuration from environment
 S3_ENDPOINT = os.environ.get('S3_ENDPOINT', 'https://nbg1.your-objectstorage.com')
@@ -48,7 +99,7 @@ async def upload_file_to_s3(
         file_content: The file bytes to upload
         file_key: The key/path where the file will be stored (e.g., 'media/uuid.jpg')
         content_type: Optional MIME type of the file
-        main_site_id: Optional site ID for scan logging
+        main_site_id: Optional site ID for scan logging and cloud resource check
         user_id: Optional user ID for scan logging
         user_name: Optional user name for scan logging
         
@@ -57,6 +108,10 @@ async def upload_file_to_s3(
     """
     if not is_s3_configured():
         raise Exception("S3 storage is not configured")
+    
+    # Check if cloud resources are enabled for this environment
+    if main_site_id:
+        await check_cloud_resources_enabled(main_site_id)
     
     # Clara Global Protect: scan file before upload
     from services.global_protect import check_and_raise
