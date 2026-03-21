@@ -396,7 +396,7 @@ export default function NetworkDashboard() {
         { id: 'environments', icon: Server, label: 'Environments' },
         ...(isSystemAdmin ? [{ id: 'domains', icon: Globe, label: 'Domain Manager' }] : []),
         ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'License Manager' }] : []),
-        { id: 'notifications', icon: Bell, label: 'Notifications' },
+        ...(isSystemAdmin ? [{ id: 'notifications', icon: Bell, label: 'Notifications' }] : []),
         ...(isSystemAdmin ? [{ id: 'branding', icon: Paintbrush, label: 'Branding' }] : []),
       ]
     },

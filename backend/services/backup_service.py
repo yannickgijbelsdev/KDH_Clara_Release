@@ -24,7 +24,7 @@ MAIN_SITE_COLLECTIONS = [
     "sites", "main_site_users", "content_items",
     "wordpress_sites", "shows", "categories", "studios",
     "show_titles", "show_series", "show_occurrences",
-    "media_assets", "media_folders",
+    "media_assets", "media_folders", "roles",
 ]
 
 TEAM_COLLECTIONS = [

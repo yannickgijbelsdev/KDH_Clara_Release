@@ -316,7 +316,9 @@ async def copy_site_to_environment(
     env_id: str, source_site_id: str,
     current_user: dict = Depends(require_system_admin),
 ):
-    """Copy a site's structure (no data) into an environment."""
+    """Copy a site with ALL its data into an environment."""
+    from services.backup_service import _collect_backup_data
+
     env = await db.environments.find_one({"id": env_id})
     if not env:
         raise HTTPException(status_code=404, detail="Environment not found")
@@ -325,32 +327,90 @@ async def copy_site_to_environment(
     if not source:
         raise HTTPException(status_code=404, detail="Source site not found")
 
+    # Collect all data from the source site
+    data = await _collect_backup_data(source_site_id)
+
+    # Generate new IDs for everything
+    new_main_site_id = str(uuid.uuid4())
+    id_map = {source_site_id: new_main_site_id}
+
+    # Map old team_ids to new team_ids
+    for team in data.get("teams", []):
+        id_map[team["id"]] = str(uuid.uuid4())
+
+    # Map old site IDs
+    for site in data.get("sites", []):
+        id_map[site["id"]] = str(uuid.uuid4())
+
+    # Map all other document IDs
+    for coll_name in ["content_items", "wordpress_sites", "shows",
+                       "show_titles", "show_series", "show_occurrences",
+                       "studios", "categories", "rundowns",
+                       "media_assets", "media_folders", "roles",
+                       "xml_imports", "api_keys", "vmix_configs", "vmix_ticker_messages",
+                       "task_boards", "task_columns", "tasks"]:
+        for doc in data.get(coll_name, []):
+            if doc.get("id"):
+                id_map[doc["id"]] = str(uuid.uuid4())
+
+    for doc in data.get("content_item_publishes", []):
+        if doc.get("id"):
+            id_map[doc["id"]] = str(uuid.uuid4())
+
+    def remap_ids(doc: dict) -> dict:
+        remapped = {}
+        for key, val in doc.items():
+            if isinstance(val, str) and val in id_map:
+                remapped[key] = id_map[val]
+            elif isinstance(val, dict):
+                remapped[key] = remap_ids(val)
+            elif isinstance(val, list):
+                remapped[key] = [
+                    remap_ids(item) if isinstance(item, dict)
+                    else (id_map.get(item, item) if isinstance(item, str) else item)
+                    for item in val
+                ]
+            else:
+                remapped[key] = val
+        return remapped
+
     # Generate new slug
     base_slug = f"{env['slug']}-{source['slug']}"
     existing = await db.main_sites.find_one({"slug": base_slug})
     new_slug = base_slug if not existing else f"{base_slug}-{str(uuid.uuid4())[:6]}"
 
-    new_site = {
-        "id": str(uuid.uuid4()),
-        "name": f"{source['name']} ({env['name']})",
+    # Create the new main site with environment_id
+    cloned_ms = remap_ids(source)
+    cloned_ms["id"] = new_main_site_id
+    cloned_ms["name"] = f"{source['name']} ({env['name']})"
+    cloned_ms["slug"] = new_slug
+    cloned_ms["environment_id"] = env_id
+    cloned_ms["copied_from"] = source_site_id
+    cloned_ms["is_demo"] = False
+    cloned_ms["created_at"] = _now()
+    cloned_ms["updated_at"] = _now()
+    await db.main_sites.insert_one({**cloned_ms})
+
+    total_docs = 1
+    # Clone all other collections
+    for coll_name, docs in data.items():
+        if coll_name == "main_sites" or not docs:
+            continue
+        cloned_docs = []
+        for doc in docs:
+            cloned = remap_ids(doc)
+            cloned_docs.append(cloned)
+        if cloned_docs:
+            await db[coll_name].insert_many(cloned_docs)
+            total_docs += len(cloned_docs)
+
+    logger.info(f"Copied site {source_site_id} -> {new_main_site_id} in env {env['name']}: {total_docs} docs")
+
+    return {
+        "id": new_main_site_id,
+        "name": cloned_ms["name"],
         "slug": new_slug,
-        "description": source.get("description"),
-        "logo_url": source.get("logo_url"),
-        "enabled_features": source.get("enabled_features", []),
-        "site_type": source.get("site_type", "radio"),
-        "linked_main_site_id": source.get("linked_main_site_id"),
-        "is_demo": False,
         "environment_id": env_id,
         "copied_from": source_site_id,
-        "created_at": _now(),
-        "updated_at": _now(),
+        "document_count": total_docs,
     }
-    await db.main_sites.insert_one({**new_site})
-
-    # Copy roles from source site
-    roles = await db.roles.find({"main_site_id": source_site_id}, {"_id": 0}).to_list(50)
-    for role in roles:
-        new_role = {**role, "id": str(uuid.uuid4()), "main_site_id": new_site["id"]}
-        await db.roles.insert_one({**new_role})
-
-    return {k: v for k, v in new_site.items() if k != "_id"}

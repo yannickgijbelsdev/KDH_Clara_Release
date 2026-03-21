@@ -12,9 +12,9 @@ from database import db
 notifications_router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
-def require_network_admin(current_user: dict = Depends(get_current_user)):
-    if not current_user.get("is_network_admin"):
-        raise HTTPException(403, "Network admin access required")
+def require_system_admin(current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_system_admin"):
+        raise HTTPException(403, "System admin access required")
     return current_user
 
 
@@ -34,7 +34,7 @@ async def get_notification_categories():
 
 # ── SMTP CONFIG (stored per-network, one config) ───────────────
 @notifications_router.get("/smtp-config")
-async def get_smtp_config(current_user: dict = Depends(require_network_admin)):
+async def get_smtp_config(current_user: dict = Depends(require_system_admin)):
     """Get the current SMTP configuration (password masked)."""
     config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
     if not config:
@@ -46,7 +46,7 @@ async def get_smtp_config(current_user: dict = Depends(require_network_admin)):
 
 
 @notifications_router.put("/smtp-config")
-async def save_smtp_config(data: dict, current_user: dict = Depends(require_network_admin)):
+async def save_smtp_config(data: dict, current_user: dict = Depends(require_system_admin)):
     """Save SMTP configuration."""
     provider_id = data.get("provider", "custom")
     provider = SMTP_PROVIDERS.get(provider_id, SMTP_PROVIDERS["custom"])
@@ -88,7 +88,7 @@ async def save_smtp_config(data: dict, current_user: dict = Depends(require_netw
 
 
 @notifications_router.post("/smtp-test")
-async def test_smtp(data: dict, current_user: dict = Depends(require_network_admin)):
+async def test_smtp(data: dict, current_user: dict = Depends(require_system_admin)):
     """Test SMTP connection with provided or stored credentials."""
     config = dict(data)
 
@@ -111,7 +111,7 @@ async def test_smtp(data: dict, current_user: dict = Depends(require_network_adm
 async def send_test_email(
     data: dict,
     background_tasks: BackgroundTasks,
-    current_user: dict = Depends(require_network_admin),
+    current_user: dict = Depends(require_system_admin),
 ):
     """Send a test email to the specified address."""
     to_email = data.get("to_email", current_user.get("email"))
@@ -142,7 +142,7 @@ async def send_test_email(
 @notifications_router.get("/role-settings")
 async def get_role_notification_settings(
     main_site_id: str = "",
-    current_user: dict = Depends(require_network_admin),
+    current_user: dict = Depends(require_system_admin),
 ):
     """Get notification settings per role for a specific main site (or global)."""
     query = {"type": "role_notifications", "main_site_id": main_site_id or "global"}
@@ -151,7 +151,7 @@ async def get_role_notification_settings(
 
 
 @notifications_router.put("/role-settings")
-async def save_role_notification_settings(data: dict, current_user: dict = Depends(require_network_admin)):
+async def save_role_notification_settings(data: dict, current_user: dict = Depends(require_system_admin)):
     """Save notification settings per role for a specific main site.
     
     Format: { "main_site_id": "...", "roles": { "admin": { "categories": [...], "mode": "realtime"|"daily"|"both" }, ... } }
@@ -173,7 +173,7 @@ async def save_role_notification_settings(data: dict, current_user: dict = Depen
 
 
 @notifications_router.get("/site-roles/{main_site_id}")
-async def get_site_roles(main_site_id: str, current_user: dict = Depends(require_network_admin)):
+async def get_site_roles(main_site_id: str, current_user: dict = Depends(require_system_admin)):
     """Get all roles defined for a specific main site."""
     roles = await db.roles.find(
         {"main_site_id": main_site_id},
@@ -195,14 +195,14 @@ async def get_site_roles(main_site_id: str, current_user: dict = Depends(require
 
 # ── SYSTEM ALERT EMAIL ──────────────────────────────────────────
 @notifications_router.get("/system-alert")
-async def get_system_alert_settings(current_user: dict = Depends(require_network_admin)):
+async def get_system_alert_settings(current_user: dict = Depends(require_system_admin)):
     """Get the system alert email configuration."""
     doc = await db.notification_config.find_one({"type": "system_alert"}, {"_id": 0})
     return doc or {"email": "", "enabled": False, "mode": "both"}
 
 
 @notifications_router.put("/system-alert")
-async def save_system_alert_settings(data: dict, current_user: dict = Depends(require_network_admin)):
+async def save_system_alert_settings(data: dict, current_user: dict = Depends(require_system_admin)):
     """Save the system alert email — receives ALL notifications from ALL sites."""
     await db.notification_config.update_one(
         {"type": "system_alert"},
@@ -224,7 +224,7 @@ async def save_system_alert_settings(data: dict, current_user: dict = Depends(re
 @notifications_router.get("/log")
 async def get_notification_log(
     limit: int = 50,
-    current_user: dict = Depends(require_network_admin),
+    current_user: dict = Depends(require_system_admin),
 ):
     """Get recent notification log entries."""
     logs = await db.notification_log.find(
@@ -235,7 +235,7 @@ async def get_notification_log(
 
 @notifications_router.post("/send-daily-digest")
 async def manual_send_daily_digest(
-    current_user: dict = Depends(require_network_admin),
+    current_user: dict = Depends(require_system_admin),
 ):
     """Manually trigger the daily digest email."""
     from services.notification_scheduler import send_daily_digest
