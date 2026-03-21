@@ -3606,6 +3606,14 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Subtitle in NetworkDashboard.js also updated to English
   - Tested: 100% pass rate (iteration_115) — all 14 UI checks passed, no Dutch text remaining
 
+- [x] **Radioplayer verplaatst van streaming naar server groep**:
+  - Radioplayer verschijnt niet meer op standaard sites, alleen op server site types
+  - Extra check: server NAV_GROUP wordt gefilterd op `mainSite.site_type === 'server'`
+  - Server iconen bijgewerkt: XML Imports → FileCode, API Keys → KeyRound, vMix → Video
+  - File: `frontend/src/components/MainSiteDashboardLayout.js`
+  - Tested: Verified via screenshots — standard site = no Radioplayer, server site = Radioplayer visible
+
+
     - "Verbinding testen" knop voor token verificatie
   - Files: `backend/routers/domains.py`, `frontend/src/pages/Network/DomainManager.js`
   - Tested: 100% pass rate (iteration_114)

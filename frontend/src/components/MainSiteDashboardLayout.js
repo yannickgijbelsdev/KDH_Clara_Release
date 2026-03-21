@@ -15,7 +15,8 @@ import {
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
-  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor
+  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor,
+  KeyRound, FileCode, Video
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -84,9 +85,9 @@ const FEATURE_NAV_ITEMS = {
   support_tickets: { to: 'tickets', icon: LifeBuoy, label: 'Support Tickets' },
   zerotier: { to: 'zerotier', icon: Monitor, label: 'ZeroTier', adminOnly: true },
   radioplayer: { to: 'radioplayer', icon: RadioplayerIcon, label: 'Radioplayer', adminOnly: true },
-  xml_imports: { to: 'xml-imports', icon: FileText, label: 'XML Imports' },
-  server_api_keys: { to: 'api-keys', icon: Shield, label: 'API Keys', adminOnly: true },
-  vmix_director: { to: 'vmix-director', icon: Monitor, label: 'vMix Director' },
+  xml_imports: { to: 'xml-imports', icon: FileCode, label: 'XML Imports' },
+  server_api_keys: { to: 'api-keys', icon: KeyRound, label: 'API Keys', adminOnly: true },
+  vmix_director: { to: 'vmix-director', icon: Video, label: 'vMix Director' },
   canva_director: { to: 'canva', icon: Palette, label: 'Canva Director' },
   task_boards: { to: 'task-boards', icon: LayoutList, label: 'Task Boards' },
 };
@@ -115,7 +116,7 @@ const NAV_GROUPS = [
     id: 'streaming',
     label: 'Streaming & RDS',
     icon: Radio,
-    features: ['rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor', 'call_studio', 'radioplayer']
+    features: ['rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor', 'call_studio']
   },
   {
     id: 'sites',
@@ -133,7 +134,7 @@ const NAV_GROUPS = [
     id: 'server',
     label: 'Server',
     icon: Monitor,
-    features: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director']
+    features: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer']
   },
   {
     id: 'tasks',
@@ -463,6 +464,9 @@ const MainSiteDashboardContent = () => {
     const alwaysAvailable = ['support_tickets'];
     
     return NAV_GROUPS.map(group => {
+      // Server group is only for server site types
+      if (group.id === 'server' && mainSite.site_type !== 'server') return null;
+      
       const items = group.features
         .filter(featureId => {
           // Always show support tickets for everyone
