@@ -3,8 +3,23 @@ import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
 import { Button } from './ui/button';
 import { Terminal, X, Send, Lock, ShieldCheck, Loader2 } from 'lucide-react';
+import CLISaveWizard from './CLISaveWizard';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+// Commands that modify data and should show the save wizard
+const WRITE_PREFIXES = [
+  '/license assign', '/license remove',
+  '/site update', '/site rename', '/site delete',
+  '/user add', '/user remove', '/user update', '/user role',
+  '/feature enable', '/feature disable',
+  '/role create', '/role delete', '/role update',
+  '/team create', '/team delete', '/team update',
+  '/env create', '/env delete', '/env update',
+  '/config set', '/config update', '/config delete',
+  '/import', '/sync', '/migrate', '/reset',
+  '/backup create', '/backup restore',
+];
 
 export default function ClaraCLI() {
   const { token, user } = useAuth();
@@ -17,6 +32,7 @@ export default function ClaraCLI() {
   const [cmdHistory, setCmdHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [requesting, setRequesting] = useState(false);
+  const [showSaveWizard, setShowSaveWizard] = useState(false);
   const inputRef = useRef(null);
   const scrollRef = useRef(null);
 
@@ -84,6 +100,11 @@ export default function ClaraCLI() {
     }
   };
 
+  const isWriteCommand = useCallback((cmd) => {
+    const lower = cmd.trim().toLowerCase();
+    return WRITE_PREFIXES.some(prefix => lower.startsWith(prefix));
+  }, []);
+
   const executeCommand = useCallback(async (command) => {
     if (!command.trim()) return;
 
@@ -99,6 +120,11 @@ export default function ClaraCLI() {
       return;
     }
 
+    const isWrite = isWriteCommand(command);
+    if (isWrite) {
+      setShowSaveWizard(true);
+    }
+
     try {
       const res = await fetch(`${API}/cli/execute`, {
         method: 'POST',
@@ -109,8 +135,9 @@ export default function ClaraCLI() {
       setHistory(prev => [...prev, { type: data.type || 'info', text: data.output || 'No output' }]);
     } catch {
       setHistory(prev => [...prev, { type: 'error', text: 'Connection error. Please try again.' }]);
+      if (isWrite) setShowSaveWizard(false);
     }
-  }, [token, mainSiteId, mainSite]);
+  }, [token, mainSiteId, mainSite, isWriteCommand]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -272,6 +299,11 @@ export default function ClaraCLI() {
           </div>
         </div>
       )}
+
+      <CLISaveWizard
+        open={showSaveWizard}
+        onClose={() => setShowSaveWizard(false)}
+      />
     </>
   );
 }

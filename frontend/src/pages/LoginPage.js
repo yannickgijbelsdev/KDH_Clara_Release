@@ -121,16 +121,16 @@ const LoginPage = () => {
           height: 200%;
           background: linear-gradient(
             135deg,
-            #1a0a00 0%,
-            #2d1200 15%,
-            #3d1a00 25%,
-            #4a1e00 35%,
-            #5c2600 45%,
-            #3d1a00 55%,
-            #2d1200 65%,
-            #1a0a00 75%,
-            #2d1200 85%,
-            #3d1a00 100%
+            #1a0800 0%,
+            #4a1d00 15%,
+            #7a3000 25%,
+            #a54200 35%,
+            #c75200 45%,
+            #a54200 55%,
+            #7a3000 65%,
+            #4a1d00 75%,
+            #7a3000 85%,
+            #a54200 100%
           );
           animation: gradientDrift 20s ease-in-out infinite alternate;
           z-index: 0;
@@ -141,7 +141,7 @@ const LoginPage = () => {
           inset: 0;
           background: radial-gradient(
             ellipse at 30% 50%,
-            rgba(234, 120, 20, 0.08) 0%,
+            rgba(249, 115, 22, 0.12) 0%,
             transparent 60%
           );
           animation: glowPulse 8s ease-in-out infinite alternate;

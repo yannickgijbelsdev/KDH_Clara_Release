@@ -3507,7 +3507,13 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [ ] (P2) Cloudflare API actief verbinden (na invoeren API Token + Zone ID door gebruiker)
 
 ### March 21, 2026 - Login Page Locked Down
-- [x] **Login pagina niet meer aanpasbaar** (behalve logo & favicon)
+- [x] **CLI Save Wizard popup** bij write-commands (license assign/remove, site update, etc.)
+  - Toont 3-staps animatie: "CLI is saving the changes." → "Uploading to the Clara Datacenter." → "Changes saved successfully."
+  - Detecteert automatisch write-commands via prefix matching (30+ prefixes)
+  - Auto-close na voltooiing, niet afsluitbaar tijdens executie
+  - Files: `frontend/src/components/CLISaveWizard.js` (nieuw), `frontend/src/components/ClaraCLI.js`
+
+- [x] **Login pagina oranje feller** — gradient nu #7a3000/#a54200/#c75200 i.p.v. #2d1200/#3d1a00, matching met button orange-500
 - [x] **System Administrator bypass voor license check** — Canva Director en andere features nu zichtbaar op Clara Server
   - Root cause: `isLicenseBlocked` was alleen gebruikt voor sidebar items, maar de content area had een aparte license check
   - Beide checks nu gecentraliseerd via `isLicenseBlocked` variabele met `isSystemAdmin` bypass
