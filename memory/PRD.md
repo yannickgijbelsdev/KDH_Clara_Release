@@ -3506,7 +3506,14 @@ now = now_brussels()  # Automatically handles CET/CEST
 - [ ] (P2) Stream Monitor VU Meters
 - [ ] (P2) Cloudflare API actief verbinden (na invoeren API Token + Zone ID door gebruiker)
 
-### March 21, 2026 - License Manager & CLI Fix (P0 Bug Fix)
+### March 21, 2026 - Login Page Locked Down
+- [x] **Login pagina niet meer aanpasbaar** (behalve logo & favicon)
+  - Vaste subtiele oranje gradient achtergrond met CSS animatie (gradientDrift + glowPulse)
+  - Glasmorfisme login kaart gecentreerd
+  - Verwijderd: Image panel, carousel, layout opties (left/right/fullscreen), login_images upload
+  - Branding instellingen Login Page sectie volledig verwijderd uit BrandingSettings.js
+  - Platform naam en logo nog steeds aanpasbaar via branding
+  - Files: `frontend/src/pages/LoginPage.js` (herschreven), `frontend/src/pages/Network/BrandingSettings.js` (Login sectie verwijderd)
 - [x] **P0 Bug Fix: CLI License Assignment**
   - Root cause: CLI functions used `site_id` while License Manager API used `main_site_id`
   - CLI used `type` instead of `billing_cycle`

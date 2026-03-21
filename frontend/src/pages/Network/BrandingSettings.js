@@ -7,8 +7,7 @@ import { toast } from 'sonner';
 import { useBranding } from '../../context/BrandingContext';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Type, Image, Upload, Trash2, Monitor, PanelLeft, PanelRight, Maximize,
-  RotateCcw, Loader2, Star, X
+  Type, Image, Upload, Loader2, Star
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -18,12 +17,9 @@ export default function BrandingSettings() {
   const { token } = useAuth();
   const [saving, setSaving] = useState(false);
   const [platformName, setPlatformName] = useState(branding.platform_name || 'Clara');
-  const [loginLayout, setLoginLayout] = useState(branding.login_layout || 'left');
-  const [loginImageType, setLoginImageType] = useState(branding.login_image_type || 'static');
   const [uploading, setUploading] = useState(null);
   const logoInputRef = useRef(null);
   const faviconInputRef = useRef(null);
-  const loginImageInputRef = useRef(null);
 
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -61,29 +57,10 @@ export default function BrandingSettings() {
     setUploading(null);
   };
 
-  const deleteLoginImage = async (imageUrl) => {
-    try {
-      await fetch(`${API}/api/branding/login-image?image_url=${encodeURIComponent(imageUrl)}`, {
-        method: 'DELETE',
-        headers,
-      });
-      await refreshBranding();
-      toast.success('Image removed');
-    } catch {
-      toast.error('Failed to remove');
-    }
-  };
-
   const resolveUrl = (url) => {
     if (!url) return null;
     return url.startsWith('/') ? `${API}${url}` : url;
   };
-
-  const layoutOptions = [
-    { value: 'left', label: 'Image Left', icon: PanelLeft },
-    { value: 'right', label: 'Image Right', icon: PanelRight },
-    { value: 'fullscreen', label: 'Fullscreen', icon: Maximize },
-  ];
 
   return (
     <div className="space-y-6" data-testid="branding-settings">
@@ -241,148 +218,6 @@ export default function BrandingSettings() {
         </CardContent>
       </Card>
 
-      {/* Login Page */}
-      <Card className="bg-zinc-900 border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-lg text-white flex items-center gap-2">
-            <Monitor className="w-5 h-5 text-violet-400" />
-            Login Page
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Layout */}
-          <div className="space-y-3">
-            <Label className="text-zinc-300">Image Layout</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {layoutOptions.map(opt => {
-                const Icon = opt.icon;
-                return (
-                  <button
-                    key={opt.value}
-                    data-testid={`login-layout-${opt.value}`}
-                    onClick={() => {
-                      setLoginLayout(opt.value);
-                      saveBranding({ login_layout: opt.value });
-                    }}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-colors ${
-                      loginLayout === opt.value
-                        ? 'bg-violet-500/15 border-violet-500/40 text-violet-400'
-                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
-                    }`}
-                  >
-                    <Icon className="w-6 h-6" />
-                    <span className="text-xs font-medium">{opt.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Image Type */}
-          <div className="space-y-3">
-            <Label className="text-zinc-300">Image Type</Label>
-            <div className="flex gap-3">
-              {['static', 'carousel'].map(type => (
-                <button
-                  key={type}
-                  data-testid={`login-image-type-${type}`}
-                  onClick={() => {
-                    setLoginImageType(type);
-                    saveBranding({ login_image_type: type });
-                  }}
-                  className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                    loginImageType === type
-                      ? 'bg-violet-500/15 border-violet-500/40 text-violet-400'
-                      : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
-                  }`}
-                >
-                  {type === 'static' ? 'Static Image' : 'Carousel'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Login Images */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-zinc-300">Background Images</Label>
-              <Button
-                data-testid="upload-login-image-btn"
-                size="sm"
-                onClick={() => loginImageInputRef.current?.click()}
-                className="bg-violet-500 hover:bg-violet-600 text-white h-8"
-                disabled={uploading === 'upload-login-image'}
-              >
-                {uploading === 'upload-login-image' ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
-                Add Image
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              {(branding.login_images || []).map((img, i) => (
-                <div key={i} className="relative group rounded-lg overflow-hidden border border-zinc-700 aspect-video">
-                  <img
-                    src={resolveUrl(img)}
-                    alt={`Login bg ${i + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    onClick={() => deleteLoginImage(img)}
-                    className="absolute top-1 right-1 p-1 bg-red-500/80 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                    data-testid={`delete-login-image-${i}`}
-                  >
-                    <X className="w-3 h-3 text-white" />
-                  </button>
-                </div>
-              ))}
-              {(!branding.login_images || branding.login_images.length === 0) && (
-                <p className="text-zinc-500 text-sm col-span-3">No images uploaded. Default will be used.</p>
-              )}
-            </div>
-
-            <input
-              ref={loginImageInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="hidden"
-              onChange={(e) => {
-                if (e.target.files[0]) uploadFile('upload-login-image', e.target.files[0]);
-                e.target.value = '';
-              }}
-            />
-          </div>
-
-          {/* Preview */}
-          <div className="p-3 bg-zinc-800 rounded-lg">
-            <p className="text-xs text-zinc-500 mb-2">Preview</p>
-            <div className="relative h-32 bg-[#09090b] rounded-lg overflow-hidden flex" data-testid="login-preview">
-              {loginLayout === 'fullscreen' ? (
-                <>
-                  <div className="absolute inset-0">
-                    {branding.login_images?.[0] && (
-                      <img src={resolveUrl(branding.login_images[0])} alt="" className="w-full h-full object-cover opacity-40" />
-                    )}
-                  </div>
-                  <div className="relative z-10 flex items-center justify-center w-full">
-                    <div className="w-16 h-16 bg-zinc-800/80 border border-zinc-700 rounded-lg" />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className={`w-1/2 ${loginLayout === 'right' ? 'order-2' : ''}`}>
-                    {branding.login_images?.[0] && (
-                      <img src={resolveUrl(branding.login_images[0])} alt="" className="w-full h-full object-cover opacity-60" />
-                    )}
-                  </div>
-                  <div className={`w-1/2 flex items-center justify-center ${loginLayout === 'right' ? 'order-1' : ''}`}>
-                    <div className="w-16 h-16 bg-zinc-800 border border-zinc-700 rounded-lg" />
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
