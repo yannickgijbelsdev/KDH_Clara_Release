@@ -403,7 +403,7 @@ const MainSiteDashboardContent = () => {
       
       return [{
         id: 'technical',
-        label: 'Technical',
+        label: 'Data Connection',
         icon: Monitor,
         items
       }];
@@ -1011,7 +1011,7 @@ const MainSiteDashboardContent = () => {
                           </div>
                           {envGroups[envId].sites.map(site => {
                             const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Data Connection' : site.site_type === 'server' ? 'Virtual Datacenter' : site.site_type === 'task_scheduler' ? 'Tasks' : site.site_type === 'external_host' ? 'External Host' : 'Radio';
-                            const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-red-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : 'text-zinc-600';
+                            const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-blue-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : site.site_type === 'external_host' ? 'text-cyan-400' : 'text-zinc-600';
                             return (
                               <DropdownMenuItem
                                 key={site.id}

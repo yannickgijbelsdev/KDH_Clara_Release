@@ -392,7 +392,7 @@ const CanvaDirectorPage = () => {
                       className="accent-[#7d2ae8] w-4 h-4"
                     />
                     <span className="text-sm text-white">{site.name}</span>
-                    <span className="text-[10px] text-zinc-500 ml-auto">{site.site_type === 'technical' ? 'Technical' : 'Standard'}</span>
+                    <span className="text-[10px] text-zinc-500 ml-auto">{site.site_type === 'technical' ? 'Data Connection' : site.site_type === 'server' ? 'Virtual Datacenter' : site.site_type === 'task_scheduler' ? 'Tasks' : site.site_type === 'external_host' ? 'External Host' : 'Radio'}</span>
                   </label>
                 );
               })}

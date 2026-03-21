@@ -26,8 +26,8 @@ const ROUTE_TYPE_COLORS = {
   firewall: 'bg-red-500/20 text-red-400 border-red-500/30',
   app: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
 };
-const SITE_TYPE_COLORS = { radio: 'bg-blue-500/20 text-blue-400', technical: 'bg-purple-500/20 text-purple-400', server: 'bg-emerald-500/20 text-emerald-400', task_scheduler: 'bg-amber-500/20 text-amber-400' };
-const SITE_TYPE_LABELS = { radio: 'Main Site', technical: 'Technical', server: 'Server', task_scheduler: 'Task' };
+const SITE_TYPE_COLORS = { radio: 'bg-orange-500/20 text-orange-400', technical: 'bg-emerald-500/20 text-emerald-400', server: 'bg-blue-500/20 text-blue-400', task_scheduler: 'bg-violet-500/20 text-violet-400', external_host: 'bg-cyan-500/20 text-cyan-400' };
+const SITE_TYPE_LABELS = { radio: 'Radio', technical: 'Data Connection', server: 'Virtual Datacenter', task_scheduler: 'Tasks', external_host: 'External Host' };
 const STATUS_CONFIGS = {
   verified: { icon: CheckCircle, color: 'text-emerald-400', label: 'Verified' },
   pending: { icon: Clock, color: 'text-amber-400', label: 'Pending' },

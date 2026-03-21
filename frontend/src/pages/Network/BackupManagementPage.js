@@ -254,9 +254,10 @@ export default function BackupManagementPage() {
               data-testid={`site-tab-${site.slug || site.id}`}
             >
               {site.name}
-              {site.site_type === 'server' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-medium">Server</span>}
-              {site.site_type === 'technical' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium">Technical</span>}
+              {site.site_type === 'server' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">Virtual Datacenter</span>}
+              {site.site_type === 'technical' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium">Data Connection</span>}
               {site.site_type === 'task_scheduler' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-500/20 text-violet-400 border border-violet-500/30 font-medium">Tasks</span>}
+              {site.site_type === 'external_host' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-medium">External Host</span>}
             </button>
           ))}
         </div>

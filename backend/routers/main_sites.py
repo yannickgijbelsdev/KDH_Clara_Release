@@ -751,22 +751,25 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
             ]
         }
     
-    # Non-system user (network admin or regular) — show ONLY sites with direct main_site_users access
+    # Get user's direct access records
     user_access = await db.main_site_users.find(
         {"user_id": user_id},
         {"_id": 0}
     ).to_list(200)
     
-    user_site_ids = [a["main_site_id"] for a in user_access]
     access_by_id = {a["main_site_id"]: a.get("role", "viewer") for a in user_access}
-    
-    main_sites = await db.main_sites.find(
-        {"id": {"$in": user_site_ids}},
-        {"_id": 0}
-    ).to_list(200)
 
-    # Non-network-admins: filter clones (only show if user is admin of parent)
-    if not is_network_admin:
+    if is_network_admin:
+        # Network admins see ALL sites (they manage the network)
+        main_sites = await db.main_sites.find({}, {"_id": 0}).to_list(200)
+    else:
+        # Regular users see only sites they have explicit access to
+        user_site_ids = [a["main_site_id"] for a in user_access]
+        main_sites = await db.main_sites.find(
+            {"id": {"$in": user_site_ids}},
+            {"_id": 0}
+        ).to_list(200)
+        # Filter clones: only show if user is admin of parent
         admin_site_ids = {sid for sid, role in access_by_id.items() if role == "admin"}
         filtered = []
         for ms in main_sites:
@@ -797,7 +800,7 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
                 "environment_id": ms.get("environment_id"),
                 "environment_name": envs.get(ms.get("environment_id"), {}).get("name"),
                 "environment_color": envs.get(ms.get("environment_id"), {}).get("color"),
-                "role": access_by_id.get(ms["id"], "viewer")
+                "role": access_by_id.get(ms["id"], "network_admin")
             }
             for ms in main_sites
         ]
