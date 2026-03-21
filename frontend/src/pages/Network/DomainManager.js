@@ -318,15 +318,15 @@ export default function DomainManager() {
     setCfLoadingRecords(true);
     try {
       const res = await fetch(`${API}/api/domains/cloudflare/dns-records`, { headers });
+      const data = await res.json();
       if (res.ok) {
-        const data = await res.json();
         setCfDnsRecords(data.records || []);
+        toast.success(`${data.total || 0} DNS records geladen`);
       } else {
-        const err = await res.json();
-        toast.error(err.detail || 'DNS records ophalen mislukt');
+        toast.error(data.detail || 'DNS records ophalen mislukt');
       }
     } catch {
-      toast.error('DNS records ophalen mislukt');
+      toast.error('Kan geen verbinding maken met de server');
     }
     setCfLoadingRecords(false);
   };
@@ -833,9 +833,23 @@ export default function DomainManager() {
             </Card>
           )}
 
-          {/* DNS Records */}
-          {cfConfig?.configured && (
+          {/* Not configured warning with Sync disabled */}
+          {!cfConfig?.configured && (
             <Card className="bg-zinc-900 border-zinc-800">
+              <CardContent className="p-4 flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                <div>
+                  <p className="text-sm text-amber-300 font-medium">Cloudflare niet geconfigureerd</p>
+                  <p className="text-xs text-amber-400/70">
+                    Stel eerst je API Token en Zone ID in via "Configureren" om DNS synchronisatie te gebruiken
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* DNS Records - always shown */}
+          <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm text-zinc-400 flex items-center gap-2">
@@ -846,7 +860,7 @@ export default function DomainManager() {
                     size="sm"
                     variant="outline"
                     onClick={fetchCfDnsRecords}
-                    disabled={cfLoadingRecords}
+                    disabled={cfLoadingRecords || !cfConfig?.configured}
                     className="text-xs"
                     data-testid="refresh-cf-dns-btn"
                   >
@@ -891,13 +905,15 @@ export default function DomainManager() {
                   <div className="text-center py-8">
                     <Layers className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
                     <p className="text-sm text-zinc-500">
-                      Klik op "Ophalen" om DNS records uit Cloudflare te laden
+                      {cfConfig?.configured
+                        ? 'Klik op "Ophalen" om DNS records uit Cloudflare te laden'
+                        : 'Configureer eerst je Cloudflare API Token en Zone ID'
+                      }
                     </p>
                   </div>
                 )}
               </CardContent>
             </Card>
-          )}
         </div>
       )}
 

@@ -187,19 +187,32 @@ async def _get_cf_credentials():
 
 async def _cf_request(method: str, path: str, token: str, json_data=None):
     """Make an authenticated request to the Cloudflare API."""
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.request(
-            method,
-            f"{CF_API_BASE}{path}",
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json=json_data,
-        )
-        data = resp.json()
-        if not data.get("success", False):
-            errors = data.get("errors", [])
-            msg = errors[0].get("message") if errors else f"Cloudflare API fout ({resp.status_code})"
-            raise HTTPException(status_code=resp.status_code if resp.status_code >= 400 else 502, detail=msg)
-        return data
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.request(
+                method,
+                f"{CF_API_BASE}{path}",
+                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+                json=json_data,
+            )
+            try:
+                data = resp.json()
+            except Exception:
+                raise HTTPException(status_code=502, detail=f"Cloudflare gaf een ongeldig antwoord (HTTP {resp.status_code})")
+            
+            if not data.get("success", False):
+                errors = data.get("errors", [])
+                msg = errors[0].get("message") if errors else f"Cloudflare API fout ({resp.status_code})"
+                raise HTTPException(status_code=resp.status_code if resp.status_code >= 400 else 502, detail=msg)
+            return data
+    except HTTPException:
+        raise
+    except httpx.ConnectError:
+        raise HTTPException(status_code=502, detail="Kan geen verbinding maken met Cloudflare API")
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Cloudflare API timeout - probeer het opnieuw")
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Cloudflare verbindingsfout: {str(e)}")
 
 
 # ---------- Cloudflare DNS Sync ----------
