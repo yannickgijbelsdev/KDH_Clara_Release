@@ -3649,4 +3649,13 @@ now = now_brussels()  # Automatically handles CET/CEST
 - (P2) Payment Gateway (Stripe/Mollie) for License Manager
 - (P2) Stream Monitor VU Meters
 - (P2) Cleanup Obsolete ProRadio Sync Code
+
+### 2026-03-21: Badge Labels & Network Admin Dropdown Fix
+- Updated ALL badge labels across the entire app from old names to new package names:
+  - "Server" → "Virtual Datacenter" (blue), "Technical" → "Data Connection" (emerald)
+  - Added missing "External Host" (cyan) badges everywhere
+- Fixed files: BackupManagementPage.js, DomainManager.js, MainSiteDashboardLayout.js, CanvaDirectorPage.js
+- Fixed `/api/main-sites/my/access` endpoint: non-system network admins now see ALL sites (not just explicitly assigned ones)
+- Tested: iteration_117 - 100% pass rate (backend + frontend)
+
 - (P2) Refactoring: Split `MainSiteDashboardLayout.js` and `NetworkDashboard.js` into smaller components
