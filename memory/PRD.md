@@ -3517,3 +3517,19 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Fixed price field name mismatch (`price_monthly` vs `monthly_price`)
   - Files: `backend/routers/cli.py`, `backend/routers/licenses.py`, `backend/server.py`
   - Tested: iteration_110 - 14/14 backend tests passed (100%), frontend verified
+
+### March 21, 2026 - Copy Site & Notification Access Fixes
+- [x] **Bug Fix: Copy Site to Environment kopieert nu ALLE data**
+  - Voorheen kopieerde `copy_site_to_environment` alleen metadata (naam, slug, features) en rollen
+  - Nu gebruikt het `_collect_backup_data` + `remap_ids` patroon uit `clone_main_site`
+  - Kopieert: sub-sites, rollen, gebruikers, shows, content, instellingen, media, etc.
+  - `roles` collectie toegevoegd aan `MAIN_SITE_COLLECTIONS` in backup_service.py
+  - Getest met Radiogroep MFY/GRK: 1368 documenten gekopieerd (was: 1)
+  - Files: `backend/routers/environments.py`, `backend/services/backup_service.py`
+  - Tested: iteration_111 - 14/15 tests passed
+
+- [x] **Notification Access beperkt tot System Administrator**
+  - Backend: Alle notification endpoints gebruiken nu `require_system_admin` i.p.v. `require_network_admin`
+  - Frontend: Notifications sidebar item alleen zichtbaar voor `isSystemAdmin`
+  - Files: `backend/routers/notifications.py`, `frontend/src/pages/Network/NetworkDashboard.js`
+  - Tested: iteration_111 - verified both backend restriction and frontend sidebar
