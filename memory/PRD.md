@@ -3574,3 +3574,14 @@ now = now_brussels()  # Automatically handles CET/CEST
   - File: `frontend/src/pages/Network/NetworkDashboard.js`
   - Verified via screenshot in previous session
 
+
+- [x] **S3 Cloud Resources Toggle per Environment (P1)**:
+  - Added `s3_enabled` field to environments (default: True)
+  - PUT /api/environments/{env_id} with `s3_enabled: false/true` to toggle
+  - `check_cloud_resources_enabled(main_site_id)` in s3_storage.py checks site → environment → s3_enabled
+  - All S3 upload routers (media, content, shows, chat, sites, task_boards, xml_imports, editor) now pass main_site_id and propagate 403
+  - Cache system for fast lookups with invalidation on toggle
+  - Frontend: Cloud Resources toggle in EnvironmentManager (System Admin only)
+  - Error message: "Cloud Resources are disabled. Please contact Clara Support."
+  - Tested: 100% pass rate (iteration_113)
+
