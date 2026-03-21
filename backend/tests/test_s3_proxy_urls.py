@@ -13,7 +13,7 @@ import requests
 import os
 import io
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://license-radio-dash.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://network-card-styling.preview.emergentagent.com')
 TEST_ASSET_ID = "cf02853e-776e-427d-9544-b7c19f31bd4b"
 
 

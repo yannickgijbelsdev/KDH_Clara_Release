@@ -3634,3 +3634,19 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Note: Needs real Cloudflare API Token + Zone ID from user to actually push DNS updates
 
 
+
+
+### 2026-03-21: Grid/List View Color Consistency Fix
+- Fixed List View card backgrounds, icons, and badges for all 5 site packages to match Grid View styling
+- Changes: `server` type changed from red to blue (matching "Virtual Datacenter"), added missing `external_host` (cyan) and `task_scheduler` (violet) styling to List View card backgrounds and icon containers
+- Added missing `external_host` badge to List View
+- File: `NetworkDashboard.js` (lines 1078-1106)
+- Verified via screenshot: Both List and Grid views now show consistent package colors
+
+### Pending Tasks
+- (P1) Calendar Integration (Google Calendar / Outlook) for Clara Tasks
+- (P1) WordPress Plugin Integration (`clara-radio-schedule`)
+- (P2) Payment Gateway (Stripe/Mollie) for License Manager
+- (P2) Stream Monitor VU Meters
+- (P2) Cleanup Obsolete ProRadio Sync Code
+- (P2) Refactoring: Split `MainSiteDashboardLayout.js` and `NetworkDashboard.js` into smaller components

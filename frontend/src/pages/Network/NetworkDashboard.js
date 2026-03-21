@@ -1075,14 +1075,14 @@ export default function NetworkDashboard() {
           <>
           <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-3'}>
             {filteredSites.map(site => viewMode === 'list' ? (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : site.site_type === 'external_host' ? 'bg-cyan-950/30 border-cyan-500/30 hover:border-cyan-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardContent className="flex items-center gap-4 p-4">
                   <Link to={`/${site.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
                     {site.logo_url ? (
                       <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                     ) : (
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-red-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : 'bg-zinc-800'}`}>
-                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <FileText className="w-5 h-5 text-red-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : site.site_type === 'external_host' ? 'bg-cyan-500/10' : 'bg-zinc-800'}`}>
+                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <HardDrive className="w-5 h-5 text-blue-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : site.site_type === 'external_host' ? <ExternalLink className="w-5 h-5 text-cyan-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                       </div>
                     )}
                     <div className="min-w-0">
@@ -1099,6 +1099,9 @@ export default function NetworkDashboard() {
                         )}
                         {site.site_type === 'task_scheduler' && !site.cloned_from && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 flex-shrink-0">Tasks</span>
+                        )}
+                        {site.site_type === 'external_host' && !site.cloned_from && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex-shrink-0">External Host</span>
                         )}
                         {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 flex-shrink-0">Radio</span>
