@@ -3667,4 +3667,15 @@ now = now_brussels()  # Automatically handles CET/CEST
 - File: `backend/routers/cli.py` (COMMANDS registry + execute_command handler + _cmd_site_convert function)
 - Tested: API curl tests (all 5 scenarios pass) + visual CLI verification via screenshot
 
+### 2026-03-21: ZeroTier Network Guard for Network Admins
+- Implemented ZeroTier-based login protection: network admins must be connected to a configured ZeroTier network to log in
+- Backend: `services/zt_guard.py` verifies client IP against online ZeroTier members (physical address + IP assignments)
+- Login integration: `auth.py` checks ZT Guard for network admins (system admins exempt)
+- Strict mode: login blocked if ZeroTier API is unreachable
+- API endpoints: GET/PUT `/api/auth/zt-guard/config`, POST `/api/auth/zt-guard/test`
+- CLI commands: `/zt-guard status|enable|disable|set|test`
+- Frontend: ZT Guard config panel in Network Dashboard → Account Security (system admin only)
+- Tested: iteration_118 - 100% pass rate (12/12 tests)
+
+
 - (P2) Refactoring: Split `MainSiteDashboardLayout.js` and `NetworkDashboard.js` into smaller components
