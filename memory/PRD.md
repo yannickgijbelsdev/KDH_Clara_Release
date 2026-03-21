@@ -3595,6 +3595,17 @@ now = now_brussels()  # Automatically handles CET/CEST
     - Verbinding status card (API Token, Zone ID, Base Domain)
     - "Sync with Cloudflare" knop met sync results dialog (aangemaakt/bijgewerkt/ongewijzigd/fouten)
     - DNS Records overzicht met record types, proxied status, en delete optie
+
+- [x] **Domain Manager Complete Rewrite — English UI + Step Wizards (P1)**:
+  - All text translated from Dutch to English across all tabs
+  - Cloudflare setup: 4-step wizard (API Token → Zone ID → Verify Connection → Sync DNS)
+  - Each step has direct "Open Cloudflare" links to relevant Cloudflare dashboard pages
+  - Domain setup: Step wizard for koodh.com subdomains (3 steps) and custom domains (4 steps with DNS instructions + Cloudflare link)
+  - StepIndicator component: orange ring for current step, green checkmark for completed
+  - Removed unprofessional descriptions from routing tab
+  - Subtitle in NetworkDashboard.js also updated to English
+  - Tested: 100% pass rate (iteration_115) — all 14 UI checks passed, no Dutch text remaining
+
     - "Verbinding testen" knop voor token verificatie
   - Files: `backend/routers/domains.py`, `frontend/src/pages/Network/DomainManager.js`
   - Tested: 100% pass rate (iteration_114)
