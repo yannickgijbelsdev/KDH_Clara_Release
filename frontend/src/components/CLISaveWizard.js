@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Save, Upload, Check } from 'lucide-react';
 
@@ -11,23 +11,30 @@ const CLI_SAVE_STEPS = [
 export default function CLISaveWizard({ open, onClose }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
-    if (!open) { setCurrentStep(0); setCompleted(false); return; }
+    if (!open) {
+      setCurrentStep(0);
+      setCompleted(false);
+      return;
+    }
     setCurrentStep(0);
     setCompleted(false);
-  }, [open]);
 
-  useEffect(() => {
-    if (!open || completed) return;
-    if (currentStep >= CLI_SAVE_STEPS.length - 1) {
+    // Step timers
+    const t1 = setTimeout(() => setCurrentStep(1), CLI_SAVE_STEPS[0].duration);
+    const t2 = setTimeout(() => {
+      setCurrentStep(2);
       setCompleted(true);
-      const timer = setTimeout(() => onClose?.(), 1200);
-      return () => clearTimeout(timer);
-    }
-    const timer = setTimeout(() => setCurrentStep(prev => prev + 1), CLI_SAVE_STEPS[currentStep].duration);
-    return () => clearTimeout(timer);
-  }, [currentStep, open, completed, onClose]);
+    }, CLI_SAVE_STEPS[0].duration + CLI_SAVE_STEPS[1].duration);
+    const t3 = setTimeout(() => {
+      onCloseRef.current?.();
+    }, CLI_SAVE_STEPS[0].duration + CLI_SAVE_STEPS[1].duration + 1200);
+
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [open]);
 
   if (!open) return null;
 

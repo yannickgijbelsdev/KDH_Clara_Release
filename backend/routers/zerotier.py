@@ -444,8 +444,8 @@ async def get_alert_history(
 
 @zerotier_router.post("/{main_site_id}/send-daily-summary")
 async def trigger_daily_summary(main_site_id: str, current_user: dict = Depends(get_current_user)):
-    """Manually trigger the ZeroTier daily summary email."""
+    """Manually trigger the ZeroTier daily summary email for a specific site."""
     await require_site_access(main_site_id, current_user)
     import asyncio
-    asyncio.create_task(_send_daily_summary(db))
+    asyncio.create_task(_send_daily_summary(db, main_site_id=main_site_id))
     return {"status": "ok", "message": "Daily summary is being sent"}

@@ -3508,6 +3508,9 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 ### March 21, 2026 - Login Page Locked Down
 - [x] **My Sites menu gegroepeerd per environment** — Production/Staging/etc. headers met kleur-indicator
+- [x] **CLI Save Wizard sluit nu automatisch** na voltooiing (was: bleef open staan). Gebruikt useRef voor stabiele onClose callback
+- [x] **Network admin privacy fix** — network admins zien nu alleen sites in hun eigen environments, niet alle environments. Alleen system_admin ziet alles
+- [x] **ZeroTier send summary** — stuurt nu alleen de summary voor de specifieke ZeroTier config (main_site_id filter), niet alle configs
 - [x] **CLI Save Wizard popup** bij write-commands (license assign/remove, site update, etc.)
   - Toont 3-staps animatie: "CLI is saving the changes." → "Uploading to the Clara Datacenter." → "Changes saved successfully."
   - Detecteert automatisch write-commands via prefix matching (30+ prefixes)

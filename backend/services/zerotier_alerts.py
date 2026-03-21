@@ -256,8 +256,9 @@ async def _check_alerts(db):
 
 # ============== Daily Summary ==============
 
-async def _send_daily_summary(db):
-    """Send a daily ZeroTier network summary email to team members and system admin."""
+async def _send_daily_summary(db, main_site_id=None):
+    """Send a daily ZeroTier network summary email.
+    If main_site_id is provided, only send for that specific site."""
     from services.email_service import send_email_with_config, _get_branding_info, _build_dynamic_header
 
     smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
@@ -269,10 +270,11 @@ async def _send_daily_summary(db):
     brand_name = branding["brand_name"]
     brand_logo_url = branding["brand_logo_url"]
 
-    configs = await db.zerotier_config.find(
-        {"api_token": {"$exists": True, "$ne": ""}},
-        {"_id": 0}
-    ).to_list(100)
+    query = {"api_token": {"$exists": True, "$ne": ""}}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+
+    configs = await db.zerotier_config.find(query, {"_id": 0}).to_list(100)
 
     if not configs:
         return
