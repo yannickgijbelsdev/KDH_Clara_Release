@@ -7,6 +7,7 @@ import {
   ChevronRight, Check, Loader2
 } from 'lucide-react';
 import RadioplayerIcon from '../components/icons/RadioplayerIcon';
+import { ConnectionStatus } from '../components/ConnectionStatus';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 
@@ -167,6 +168,16 @@ const RadioplayerPage = () => {
 
         {/* Step Indicator */}
         <StepIndicator steps={['API Credentials', 'Station Info', 'Enable & Configure', 'Verify & Push']} current={setupStep} />
+
+        {/* Connection Status - Auto-check */}
+        {hasCredentials && hasStation && (
+          <ConnectionStatus
+            testUrl={`${API}/radioplayer/test-connection`}
+            headers={{ Authorization: `Bearer ${localStorage.getItem('token')}` }}
+            label="Radioplayer API"
+            autoCheck={true}
+          />
+        )}
 
         {/* Step 1: API Credentials */}
         <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 0 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : hasCredentials ? 'border-emerald-500/20' : 'border-zinc-800'}`}>

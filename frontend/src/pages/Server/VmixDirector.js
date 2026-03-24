@@ -10,6 +10,7 @@ import {
   Trash2, Plus, GripVertical, Copy, Settings, Play, ChevronDown, ChevronUp,
   Link2, RefreshCw, Loader2, ExternalLink, Grid, Check, ChevronRight, CheckCircle
 } from 'lucide-react';
+import { ConnectionStatus } from '../../components/ConnectionStatus';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BASE = process.env.REACT_APP_BACKEND_URL;
@@ -366,6 +367,14 @@ export default function VmixDirector() {
 
       {/* Step Indicator */}
       <StepIndicator steps={['XML Servers', 'Overlay Elements', 'Ticker Messages', 'Overlay URLs']} current={setupStep} />
+
+      {/* Connection Status - Auto-check */}
+      <ConnectionStatus
+        testUrl={`${API}/vmix/test-connection`}
+        headers={{ Authorization: `Bearer ${localStorage.getItem('token')}`, 'X-Main-Site-ID': mainSite?.id }}
+        label="VMix Overlay"
+        autoCheck={true}
+      />
 
       {/* Step 1: XML Servers Status */}
       <div className={`bg-zinc-900/50 border rounded-xl transition-all ${setupStep === 0 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : xmlServers.length > 0 ? 'border-emerald-500/20' : 'border-zinc-800'}`}>

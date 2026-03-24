@@ -10,6 +10,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '../../components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { ConnectionStatus } from '../../components/ConnectionStatus';
 import {
   Globe, Plus, Edit, Trash2, Check, Loader2, Shield,
   ExternalLink, AlertTriangle, CheckCircle, Clock, XCircle, Copy,
@@ -470,6 +471,16 @@ export default function DomainManager() {
       {activeTab === 'cloudflare' && (
         <div className="space-y-4">
           <StepIndicator steps={['API Token', 'Zone ID', 'Verify Connection', 'Sync DNS']} current={setupStep} />
+
+          {/* Connection Status - Auto-check when configured */}
+          {cfConfig?.api_token_set && cfConfig?.zone_id && (
+            <ConnectionStatus
+              testUrl={`${API}/api/domains/cloudflare/test-connection`}
+              headers={{ Authorization: `Bearer ${token}` }}
+              label="Cloudflare API"
+              autoCheck={true}
+            />
+          )}
 
           {/* Step 1: API Token */}
           <Card className={`border-zinc-800 ${setupStep === 0 ? 'bg-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>

@@ -224,6 +224,48 @@ async def check_canva_linked(
     }
 
 
+# ─── CONNECTION TEST ──────────────────────────────────────────────
+
+@canva_router.get("/test-connection")
+async def test_canva_connection(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Test the Canva API connection by verifying OAuth token validity."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if not main_site_id:
+        return {"status": "error", "message": "No main site context", "suggestion": "Navigate to a site first."}
+
+    config = await _get_canva_config(main_site_id)
+    if not config.get("client_id"):
+        return {"status": "error", "message": "Canva API not configured", "suggestion": "Enter your Client ID and Client Secret from canva.com/developers in Step 1."}
+
+    token = await _get_canva_token(main_site_id, current_user["id"])
+    if not token:
+        return {"status": "error", "message": "No Canva account connected", "suggestion": "Click 'Connect Canva Account' in Step 3 to authorize access."}
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                f"{CANVA_API_BASE}/users/me/profile",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                display_name = data.get("profile", {}).get("display_name", "Unknown")
+                return {"status": "ok", "message": f"Connected as: {display_name}", "user": display_name}
+            elif resp.status_code == 401:
+                return {"status": "error", "message": "OAuth token expired or invalid", "suggestion": "Your Canva authorization has expired. Disconnect and reconnect your account in Step 3."}
+            else:
+                return {"status": "warning", "message": f"Unexpected response (HTTP {resp.status_code})", "suggestion": "The Canva API returned an unexpected status. Try disconnecting and reconnecting your account."}
+    except httpx.ConnectError:
+        return {"status": "error", "message": "Cannot reach Canva API servers", "suggestion": "Check your internet connection. Canva API may be temporarily unavailable."}
+    except httpx.TimeoutException:
+        return {"status": "error", "message": "Connection to Canva timed out", "suggestion": "Canva servers are slow to respond. Try again later."}
+    except Exception as e:
+        return {"status": "error", "message": f"Connection test failed: {str(e)}", "suggestion": "An unexpected error occurred. Try disconnecting and reconnecting your Canva account."}
+
+
 # ─── OAUTH FLOW ───────────────────────────────────────────────────
 
 @canva_router.get("/auth/url")

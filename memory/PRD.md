@@ -3681,6 +3681,16 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Canva Director: 4 steps (API Credentials → Redirect URI → Connect Account → Start Designing) with purple (#7d2ae8) theme. Full design browser, create, and export functionality.
 - VMix Director: 4 steps (XML Servers → Overlay Elements → Ticker Messages → Overlay URLs) with orange theme. XML Server status card added. Canvas editor preserved.
 - All three use same visual pattern as Cloudflare wizard: StepIndicator with numbered pills, chevron separators, green=done, orange/purple=active
+
+### 2026-03-24: Auto-Check Connection Status for All Wizard Pages
+- Created shared `ConnectionStatus` component (`components/ConnectionStatus.js`) with auto-check on load + manual retest button
+- 4 visual states: loading (gray spinner), ok (green), warning (amber), error (red) + suggestion text
+- Backend endpoints added: GET `/api/radioplayer/test-connection`, `/api/canva/test-connection`, `/api/vmix/test-connection`, `/api/domains/cloudflare/test-connection`
+- Each endpoint returns `{status, message, suggestion}` format with actionable fix suggestions
+- Integrated into: RadioplayerPage, CanvaDirectorPage, VmixDirector, DomainManager (Cloudflare tab)
+- Bug fixes: VmixDirector token access, DomainManager API prefix, vmix collection name consistency
+- Tested: Code review pass + API curl verification
+
 - Tested: iteration_119 - 100% frontend pass rate
 
 - Tested: iteration_118 - 100% pass rate (12/12 tests)

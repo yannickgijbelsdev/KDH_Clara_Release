@@ -572,6 +572,71 @@ async def list_xml_servers(
     return servers
 
 
+@vmix_router.get("/test-connection")
+async def test_vmix_connection(
+    main_site_id: str = Depends(get_main_site_id_from_header),
+    current_user: dict = Depends(get_current_user),
+):
+    """Test VMix connection by checking if XML servers are linked and responsive."""
+    import httpx
+
+    config = await db.vmix_configs.find_one({"main_site_id": main_site_id}, {"_id": 0})
+    if not config:
+        return {"status": "error", "message": "No VMix configuration found", "suggestion": "Open the VMix Director to auto-create a default configuration."}
+
+    # Check linked XML servers
+    servers = await db.main_sites.find(
+        {"site_type": "server"}, {"_id": 0, "id": 1, "name": 1, "slug": 1}
+    ).to_list(100)
+
+    if not servers:
+        return {"status": "error", "message": "No XML servers found in the network", "suggestion": "Create a Virtual Datacenter (server) site first in the Network Management dashboard."}
+
+    has_enabled = any(el.get("enabled") for el in config.get("elements", []))
+    if not has_enabled:
+        return {"status": "warning", "message": f"{len(servers)} XML server(s) found, but no overlay elements are enabled", "suggestion": "Enable at least one overlay element (Logo, Clock, Ticker, etc.) in Step 2."}
+
+    overlay_base = config.get("overlay_base_url", "https://clara.koodh.com")
+    overlay_slug = None
+    current_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "slug": 1})
+    if current_site:
+        overlay_slug = current_site.get("slug")
+
+    # Test if overlay URL is reachable
+    if overlay_slug:
+        test_url = f"{overlay_base}/api/vmix/overlay/{overlay_slug}/ticker"
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                resp = await client.get(test_url)
+                if resp.status_code == 200:
+                    return {
+                        "status": "ok",
+                        "message": f"{len(servers)} XML server(s) connected. Overlay URLs are reachable.",
+                        "servers": [s["name"] for s in servers],
+                        "overlay_url_ok": True,
+                    }
+                else:
+                    return {
+                        "status": "warning",
+                        "message": f"{len(servers)} XML server(s) found. Overlay URL returned HTTP {resp.status_code}.",
+                        "suggestion": f"The overlay URL ({test_url}) returned an error. Check the Overlay Base URL in settings.",
+                        "servers": [s["name"] for s in servers],
+                    }
+        except Exception:
+            return {
+                "status": "warning",
+                "message": f"{len(servers)} XML server(s) found. Overlay URL unreachable from server.",
+                "suggestion": f"Cannot reach {overlay_base}. The overlays may still work from vMix directly.",
+                "servers": [s["name"] for s in servers],
+            }
+
+    return {
+        "status": "ok",
+        "message": f"{len(servers)} XML server(s) connected. Configuration ready.",
+        "servers": [s["name"] for s in servers],
+    }
+
+
 # ── Helper ──
 
 def _default_config(main_site_id: str) -> dict:

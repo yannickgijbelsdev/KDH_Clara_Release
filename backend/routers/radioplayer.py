@@ -104,3 +104,56 @@ async def manual_push_schedule(current_user: dict = Depends(require_admin)):
     """Manually push upcoming schedule to Radioplayer."""
     await auto_push_schedule_for_grk()
     return {"status": "ok", "message": "Schedule push triggered"}
+
+
+@radioplayer_router.get("/test-connection")
+async def test_connection(current_user: dict = Depends(require_admin)):
+    """Test the Radioplayer API connection by attempting a small authenticated request."""
+    import httpx
+
+    config = await get_radioplayer_config()
+    if not config:
+        return {"status": "error", "message": "No configuration found", "suggestion": "Enter your API credentials in Step 1."}
+
+    api_key = config.get("api_key", "")
+    username = config.get("username", "")
+    password = config.get("password", "")
+
+    if not api_key and (not username or not password):
+        return {"status": "error", "message": "No API credentials configured", "suggestion": "Enter your API Key or username/password in the API Credentials step."}
+
+    rpid = config.get("rpid", "")
+    if not rpid:
+        return {"status": "error", "message": "No RPUID configured", "suggestion": "Enter your station RPUID in the Station Info step."}
+
+    base = config.get("ingest_base_url", "https://core-ingest.radioplayer.cloud").rstrip("/")
+    country_code = config.get("country_code", "056")
+    test_url = f"{base}/latest/{country_code}/v1/nowplaying/{rpid}"
+
+    try:
+        headers = {"Content-Type": "text/xml;charset=UTF-8"}
+        auth = None
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        else:
+            auth = (username, password)
+
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(test_url, headers=headers, auth=auth)
+            if resp.status_code in (200, 201, 204, 405):
+                return {"status": "ok", "message": f"Connection successful (HTTP {resp.status_code})", "endpoint": test_url}
+            elif resp.status_code == 401:
+                return {"status": "error", "message": "Authentication failed (401 Unauthorized)", "suggestion": "Check your API Key or username/password. Ensure they match your radioplayer.org account."}
+            elif resp.status_code == 403:
+                return {"status": "error", "message": "Access denied (403 Forbidden)", "suggestion": "Your credentials are valid but lack permission. Contact Radioplayer support to verify your account access."}
+            elif resp.status_code == 404:
+                return {"status": "error", "message": f"Endpoint not found (404). RPUID '{rpid}' may be incorrect.", "suggestion": "Verify your RPUID on the Radioplayer portal. Make sure the station ID is correct."}
+            else:
+                return {"status": "warning", "message": f"Unexpected response (HTTP {resp.status_code})", "suggestion": f"The server responded with status {resp.status_code}. This may be temporary. Try again later."}
+    except httpx.ConnectError:
+        return {"status": "error", "message": "Cannot reach Radioplayer servers", "suggestion": f"Failed to connect to {base}. Check your internet connection or verify the Ingest Base URL."}
+    except httpx.TimeoutException:
+        return {"status": "error", "message": "Connection timed out", "suggestion": "Radioplayer servers are slow to respond. Try again later."}
+    except Exception as e:
+        return {"status": "error", "message": f"Connection test failed: {str(e)}", "suggestion": "An unexpected error occurred. Check your configuration and try again."}
+

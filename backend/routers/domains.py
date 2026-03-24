@@ -172,6 +172,60 @@ async def update_cloudflare_config(
     return {"status": "ok", "message": "Cloudflare configuration updated"}
 
 
+@domains_router.get("/cloudflare/test-connection")
+async def test_cloudflare_connection(current_user: dict = Depends(require_system_admin)):
+    """Test the Cloudflare API connection by verifying the token and zone."""
+    config = await db.cloudflare_config.find_one({"type": "global"}, {"_id": 0})
+    if not config or not config.get("api_token"):
+        return {"status": "error", "message": "No API token configured", "suggestion": "Enter your Cloudflare API Token in the API Credentials step."}
+    if not config.get("zone_id"):
+        return {"status": "error", "message": "No Zone ID configured", "suggestion": "Enter your Cloudflare Zone ID in the API Credentials step. Find it in the Cloudflare dashboard under your domain's Overview page."}
+
+    token = config["api_token"]
+    zone_id = config["zone_id"]
+
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            # Verify token
+            resp = await client.get(
+                f"{CF_API_BASE}/user/tokens/verify",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            if resp.status_code == 401:
+                return {"status": "error", "message": "API token is invalid or expired", "suggestion": "Generate a new API Token in your Cloudflare dashboard under My Profile > API Tokens."}
+
+            token_data = resp.json()
+            if not token_data.get("success"):
+                return {"status": "error", "message": "Token verification failed", "suggestion": "Your API token could not be verified. Regenerate it from the Cloudflare dashboard."}
+
+            # Verify zone access
+            resp2 = await client.get(
+                f"{CF_API_BASE}/zones/{zone_id}",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            zone_data = resp2.json()
+            if not zone_data.get("success"):
+                errors = zone_data.get("errors", [])
+                msg = errors[0].get("message") if errors else "Zone verification failed"
+                return {"status": "error", "message": f"Zone access error: {msg}", "suggestion": "Check your Zone ID or ensure your API token has DNS edit permissions for this zone."}
+
+            zone_name = zone_data.get("result", {}).get("name", "Unknown")
+            zone_status = zone_data.get("result", {}).get("status", "unknown")
+
+            return {
+                "status": "ok",
+                "message": f"Connected to {zone_name} (status: {zone_status})",
+                "zone_name": zone_name,
+                "zone_status": zone_status,
+            }
+    except httpx.ConnectError:
+        return {"status": "error", "message": "Cannot reach Cloudflare API", "suggestion": "Check your internet connection. Cloudflare API may be temporarily unavailable."}
+    except httpx.TimeoutException:
+        return {"status": "error", "message": "Connection to Cloudflare timed out", "suggestion": "Cloudflare servers are slow to respond. Try again later."}
+    except Exception as e:
+        return {"status": "error", "message": f"Connection test failed: {str(e)}", "suggestion": "An unexpected error occurred. Verify your API Token and Zone ID."}
+
+
 # ---------- Cloudflare API Helpers ----------
 
 CF_API_BASE = "https://api.cloudflare.com/client/v4"

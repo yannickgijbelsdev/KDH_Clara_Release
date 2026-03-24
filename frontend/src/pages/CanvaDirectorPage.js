@@ -9,6 +9,7 @@ import {
   ExternalLink, Image, Clock, Search, Save, Eye, EyeOff,
   Loader2, CheckCircle, AlertCircle, ChevronRight, Check
 } from 'lucide-react';
+import { ConnectionStatus } from '../components/ConnectionStatus';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -305,6 +306,16 @@ const CanvaDirectorPage = () => {
 
       {/* Step Indicator */}
       <StepIndicator steps={['API Credentials', 'Redirect URI', 'Connect Account', 'Start Designing']} current={setupStep} />
+
+      {/* Connection Status - Auto-check when configured */}
+      {config.configured && (
+        <ConnectionStatus
+          testUrl={`${API}/canva/test-connection`}
+          headers={headers}
+          label="Canva API"
+          autoCheck={true}
+        />
+      )}
 
       {/* Step 1: API Credentials */}
       <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 0 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : config.configured ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
