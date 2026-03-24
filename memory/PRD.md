@@ -3675,6 +3675,14 @@ now = now_brussels()  # Automatically handles CET/CEST
 - API endpoints: GET/PUT `/api/auth/zt-guard/config`, POST `/api/auth/zt-guard/test`
 - CLI commands: `/zt-guard status|enable|disable|set|test`
 - Frontend: ZT Guard config panel in Network Dashboard → Account Security (system admin only)
+
+### 2026-03-24: Step-by-Step Wizards for Radioplayer, Canva Director & VMix Director
+- Radioplayer: 4 steps (API Credentials → Station Info → Enable & Configure → Verify & Push) with orange theme. Auto-detects current step based on config. Push log with 50+ events visible.
+- Canva Director: 4 steps (API Credentials → Redirect URI → Connect Account → Start Designing) with purple (#7d2ae8) theme. Full design browser, create, and export functionality.
+- VMix Director: 4 steps (XML Servers → Overlay Elements → Ticker Messages → Overlay URLs) with orange theme. XML Server status card added. Canvas editor preserved.
+- All three use same visual pattern as Cloudflare wizard: StepIndicator with numbered pills, chevron separators, green=done, orange/purple=active
+- Tested: iteration_119 - 100% frontend pass rate
+
 - Tested: iteration_118 - 100% pass rate (12/12 tests)
 
 
