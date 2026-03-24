@@ -3698,6 +3698,14 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Cloudflare: Already had inline tips — verified working
 - ConnectionStatus component: Upgraded with color-coded status text, AlertTriangle icon for suggestions, larger readable suggestion text
 - All backend test-connection endpoints return English `suggestion` field with actionable fix instructions
+
+### 2026-03-24: Editable Completed Steps in All Wizard Pages
+- Fixed: Completed wizard steps (API Token, Zone ID, credentials, etc.) can now be clicked to re-open and edit
+- Added `editStep` state to all 4 wizard pages (DomainManager, RadioplayerPage, CanvaDirectorPage, VmixDirector)
+- Step headers show "click to edit" hint when completed and collapsed
+- Step content shows when either `setupStep === X` (auto-detected active) OR `editStep === X` (manually opened)
+- Clicking a completed step toggles its edit panel; clicking again collapses it
+
 - Tested: iteration_120 - 100% backend (8/8) + 100% frontend
 
 - Tested: Code review pass + API curl verification

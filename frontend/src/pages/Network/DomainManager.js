@@ -82,6 +82,7 @@ export default function DomainManager() {
 
   // Setup wizard
   const [setupStep, setSetupStep] = useState(0);
+  const [editStep, setEditStep] = useState(null);
   const [cfForm, setCfForm] = useState({ api_token: '', zone_id: '', base_domain: 'koodh.com' });
   const [showToken, setShowToken] = useState(false);
   const [savingConfig, setSavingConfig] = useState(false);
@@ -483,22 +484,24 @@ export default function DomainManager() {
           )}
 
           {/* Step 1: API Token */}
-          <Card className={`border-zinc-800 ${setupStep === 0 ? 'bg-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
+          <Card className={`border-zinc-800 ${(setupStep === 0 || editStep === 0) ? 'bg-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
                 <div className="flex items-center gap-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfConfig?.api_token_set ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
                     {cfConfig?.api_token_set ? <Check className="w-3.5 h-3.5" /> : '1'}
                   </div>
                   <span className="text-sm font-medium text-zinc-200">API Token</span>
                   {cfConfig?.api_token_set && <span className="text-xs font-mono text-zinc-500">{cfConfig.api_token_preview}</span>}
+                  {cfConfig?.api_token_set && setupStep !== 0 && <span className="text-[10px] text-zinc-600 ml-1">(click to edit)</span>}
                 </div>
                 <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1" data-testid="cf-token-link">
+                  className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1" data-testid="cf-token-link"
+                  onClick={e => e.stopPropagation()}>
                   Open Cloudflare <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
-              {setupStep === 0 && (
+              {(setupStep === 0 || editStep === 0) && (
                 <div className="space-y-3">
                   <p className="text-xs text-zinc-400">
                     Create an API Token in Cloudflare with <strong className="text-zinc-300">Zone:DNS:Edit</strong> permissions.
@@ -522,22 +525,24 @@ export default function DomainManager() {
           </Card>
 
           {/* Step 2: Zone ID */}
-          <Card className={`border-zinc-800 ${setupStep === 1 ? 'bg-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
+          <Card className={`border-zinc-800 ${(setupStep === 1 || editStep === 1) ? 'bg-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
                 <div className="flex items-center gap-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfConfig?.zone_id ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
                     {cfConfig?.zone_id ? <Check className="w-3.5 h-3.5" /> : '2'}
                   </div>
                   <span className="text-sm font-medium text-zinc-200">Zone ID & Base Domain</span>
                   {cfConfig?.zone_id && <span className="text-xs font-mono text-zinc-500 truncate max-w-[200px]">{cfConfig.zone_id}</span>}
+                  {cfConfig?.zone_id && setupStep !== 1 && <span className="text-[10px] text-zinc-600 ml-1">(click to edit)</span>}
                 </div>
                 <a href={cfZoneUrl} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1" data-testid="cf-zone-link">
+                  className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1" data-testid="cf-zone-link"
+                  onClick={e => e.stopPropagation()}>
                   Open Zone <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
-              {setupStep === 1 && (
+              {(setupStep === 1 || editStep === 1) && (
                 <div className="space-y-3">
                   <p className="text-xs text-zinc-400">
                     Find your Zone ID on the <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Cloudflare Dashboard</a> &rarr; select your domain &rarr; look in the right sidebar under "API".

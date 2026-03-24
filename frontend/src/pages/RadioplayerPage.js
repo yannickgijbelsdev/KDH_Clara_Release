@@ -43,6 +43,7 @@ const RadioplayerPage = () => {
   const [pushingSchedule, setPushingSchedule] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
   const [setupStep, setSetupStep] = useState(0);
+  const [editStep, setEditStep] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -180,19 +181,19 @@ const RadioplayerPage = () => {
         )}
 
         {/* Step 1: API Credentials */}
-        <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 0 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : hasCredentials ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
-          <div className="flex items-center justify-between p-5">
+        <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-orange-500/30 ring-1 ring-orange-500/20' : hasCredentials ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+          <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasCredentials ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasCredentials ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
                 {hasCredentials ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-orange-400" />}
               </div>
               <div>
                 <h3 className="text-white font-medium text-sm">API Credentials</h3>
-                <p className="text-xs text-zinc-500">{hasCredentials ? 'Credentials configured' : 'Enter your Radioplayer API key or username/password'}</p>
+                <p className="text-xs text-zinc-500">{hasCredentials ? 'Credentials configured' : 'Enter your Radioplayer API key or username/password'}{hasCredentials && setupStep !== 0 && editStep !== 0 ? ' — click to edit' : ''}</p>
               </div>
             </div>
           </div>
-          {setupStep === 0 && (
+          {(setupStep === 0 || editStep === 0) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
               <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
                 <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
@@ -241,19 +242,19 @@ const RadioplayerPage = () => {
         </div>
 
         {/* Step 2: Station Info */}
-        <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 1 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : hasStation ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
-          <div className="flex items-center justify-between p-5">
+        <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-orange-500/30 ring-1 ring-orange-500/20' : hasStation ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+          <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasStation ? 'bg-emerald-500/20' : setupStep === 1 ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasStation ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
                 {hasStation ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Radio className="w-4 h-4 text-orange-400" />}
               </div>
               <div>
                 <h3 className="text-white font-medium text-sm">Station Information</h3>
-                <p className="text-xs text-zinc-500">{hasStation ? `${config?.station_name} (RPUID: ${config?.rpid})` : 'Enter your station details from radioplayer.org'}</p>
+                <p className="text-xs text-zinc-500">{hasStation ? `${config?.station_name} (RPUID: ${config?.rpid})` : 'Enter your station details from radioplayer.org'}{hasStation && setupStep !== 1 && editStep !== 1 ? ' — click to edit' : ''}</p>
               </div>
             </div>
           </div>
-          {setupStep === 1 && (
+          {(setupStep === 1 || editStep === 1) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
               <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
                 <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
@@ -292,19 +293,19 @@ const RadioplayerPage = () => {
         </div>
 
         {/* Step 3: Enable & Configure */}
-        <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 2 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : config?.enabled ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
-          <div className="flex items-center justify-between p-5">
+        <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 2 || editStep === 2) ? 'border-orange-500/30 ring-1 ring-orange-500/20' : config?.enabled ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+          <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 2 ? null : 2)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config?.enabled ? 'bg-emerald-500/20' : setupStep === 2 ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config?.enabled ? 'bg-emerald-500/20' : (setupStep === 2 || editStep === 2) ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
                 {config?.enabled ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-orange-400" />}
               </div>
               <div>
                 <h3 className="text-white font-medium text-sm">Enable & Configure</h3>
-                <p className="text-xs text-zinc-500">{config?.enabled ? 'Integration active — auto-push enabled' : 'Enable the integration and configure auto-push settings'}</p>
+                <p className="text-xs text-zinc-500">{config?.enabled ? 'Integration active — auto-push enabled' : 'Enable the integration and configure auto-push settings'}{config?.enabled && setupStep !== 2 && editStep !== 2 ? ' — click to edit' : ''}</p>
               </div>
             </div>
           </div>
-          {setupStep === 2 && (
+          {(setupStep === 2 || editStep === 2) && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
               <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
                 <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />

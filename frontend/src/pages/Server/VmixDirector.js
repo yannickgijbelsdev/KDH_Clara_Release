@@ -162,6 +162,7 @@ export default function VmixDirector() {
   const [dragging, setDragging] = useState(null);
   const [showGrid, setShowGrid] = useState(true);
   const [setupStep, setSetupStep] = useState(0);
+  const [editStep, setEditStep] = useState(null);
   const canvasRef = useRef(null);
 
   const fetchAll = useCallback(async () => {

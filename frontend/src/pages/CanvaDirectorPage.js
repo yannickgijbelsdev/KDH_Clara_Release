@@ -44,6 +44,7 @@ const CanvaDirectorPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [setupStep, setSetupStep] = useState(0);
+  const [editStep, setEditStep] = useState(null);
 
   const [configForm, setConfigForm] = useState({ client_id: '', client_secret: '', redirect_uri: '', linked_main_site_ids: [] });
   const [savingConfig, setSavingConfig] = useState(false);
@@ -318,19 +319,19 @@ const CanvaDirectorPage = () => {
       )}
 
       {/* Step 1: API Credentials */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 0 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : config.configured ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
-        <div className="flex items-center justify-between p-5">
+      <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : config.configured ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+        <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config.configured ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config.configured ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
               {config.configured ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-[#7d2ae8]" />}
             </div>
             <div>
               <h3 className="text-white font-medium text-sm">API Credentials</h3>
-              <p className="text-xs text-zinc-500">{config.configured ? 'Canva API configured' : 'Enter your Client ID and Secret from canva.com/developers'}</p>
+              <p className="text-xs text-zinc-500">{config.configured ? 'Canva API configured' : 'Enter your Client ID and Secret from canva.com/developers'}{config.configured && setupStep !== 0 && editStep !== 0 ? ' — click to edit' : ''}</p>
             </div>
           </div>
         </div>
-        {setupStep === 0 && isAdmin && (
+        {(setupStep === 0 || editStep === 0) && isAdmin && (
           <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
             <div className="flex items-start gap-2 p-3 bg-[#7d2ae8]/5 rounded-lg border border-[#7d2ae8]/10">
               <AlertCircle className="w-4 h-4 text-[#a855f7] mt-0.5 flex-shrink-0" />
@@ -363,19 +364,19 @@ const CanvaDirectorPage = () => {
       </div>
 
       {/* Step 2: Redirect URI & Linked Sites */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 1 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : (config.configured && config.redirect_uri) ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
-        <div className="flex items-center justify-between p-5">
+      <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : (config.configured && config.redirect_uri) ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+        <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${(config.configured && config.redirect_uri) ? 'bg-emerald-500/20' : setupStep === 1 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${(config.configured && config.redirect_uri) ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
               {(config.configured && config.redirect_uri) ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Link2 className="w-4 h-4 text-[#7d2ae8]" />}
             </div>
             <div>
               <h3 className="text-white font-medium text-sm">Redirect URI & Linked Sites</h3>
-              <p className="text-xs text-zinc-500">{config.redirect_uri ? `Callback: ${config.redirect_uri}` : 'Set the OAuth callback URL and link main sites'}</p>
+              <p className="text-xs text-zinc-500">{config.redirect_uri ? `Callback: ${config.redirect_uri}` : 'Set the OAuth callback URL and link main sites'}{config.redirect_uri && setupStep !== 1 && editStep !== 1 ? ' — click to edit' : ''}</p>
             </div>
           </div>
         </div>
-        {setupStep === 1 && isAdmin && (
+        {(setupStep === 1 || editStep === 1) && isAdmin && (
           <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
             <div className="flex items-start gap-2 p-3 bg-[#7d2ae8]/5 rounded-lg border border-[#7d2ae8]/10">
               <AlertCircle className="w-4 h-4 text-[#a855f7] mt-0.5 flex-shrink-0" />
