@@ -3689,6 +3689,17 @@ now = now_brussels()  # Automatically handles CET/CEST
 - Each endpoint returns `{status, message, suggestion}` format with actionable fix suggestions
 - Integrated into: RadioplayerPage, CanvaDirectorPage, VmixDirector, DomainManager (Cloudflare tab)
 - Bug fixes: VmixDirector token access, DomainManager API prefix, vmix collection name consistency
+
+### 2026-03-24: English Fix Tips for Unconfigured/Failed Steps
+- Added contextual tip boxes (AlertCircle + colored background) to each active wizard step explaining how to fix the issue
+- Radioplayer: 3 tips (credentials source, station details, enable behavior)
+- Canva Director: 3 tips (API credentials setup, redirect URI, account connection)
+- VMix Director: 1 tip (creating Virtual Datacenter for XML servers)
+- Cloudflare: Already had inline tips — verified working
+- ConnectionStatus component: Upgraded with color-coded status text, AlertTriangle icon for suggestions, larger readable suggestion text
+- All backend test-connection endpoints return English `suggestion` field with actionable fix instructions
+- Tested: iteration_120 - 100% backend (8/8) + 100% frontend
+
 - Tested: Code review pass + API curl verification
 
 - Tested: iteration_119 - 100% frontend pass rate
