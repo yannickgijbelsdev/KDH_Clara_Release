@@ -1,139 +1,175 @@
-<analysis>**original_problem_statement**: 
-The session began with the user requesting several multi-environment administrative features: the ability to toggle S3 cloud storage per environment, integrating Cloudflare directly into the Domain Manager, completely rewriting the Domain Manager UI to English with step-by-step wizards, hiding the Radioplayer feature from standard sites, and heavily overhauling the Main Site creation flow into a 3-step wizard categorizing sites into 5 specific packages.
+<analysis>**original_problem_statement**:
+The user initiated a series of feature requests and bug reports aimed at improving usability, security, and administrative capabilities of the SaaS platform.
+The requests included:
+1.  A CLI command to convert a site from one package type to another (e.g., Radio to External Host).
+2.  A major security enhancement requiring Network Admins to be connected to a specific ZeroTier network to log in.
+3.  A UI overhaul for the Canva, VMix, and Radioplayer pages to implement the same step-by-step wizard interface used in the Domain Manager.
+4.  Adding an automatic connection status check (with a manual re-test button) to all wizard pages.
+5.  Adding clear, instructional fix-it tips in English to all wizard steps.
+6.  A bug report stating that once API credentials were set in a wizard, the fields became non-editable.
+7.  A final request to improve vague error messages (e.g., API token is invalid) by replacing them with clear, actionable, step-by-step instructions.
 
-**PRODUCT REQUIREMENTS**: 
-- Multi-environment SaaS platform (Production, Staging) for radio station management.
-- Strict role-based access controls and environment-scoped configurations.
-- Main Sites are categorized into 5 packages: Clara Radio, Clara Tasks, Clara Virtual Datacenter, Clara Data Connection, and Clara External Host. Features for these packages are locked unless overridden via CLI.
+**PRODUCT REQUIREMENTS**:
+-   Implement a CLI command  to change a site's type and reset its features to the new package's defaults.
+-   Implement a ZeroTier Network Guard: a globally configurable IP-based login restriction for Network Admins.
+-   Refactor the Canva, Radioplayer, and VMix director pages into multi-step wizard UIs.
+-   All wizard pages must feature an auto-check for API/service connectivity with clear status indicators (OK, Failed, Pending) and actionable suggestions.
+-   Completed wizard steps must remain editable.
+-   All error messages and setup tips must be clear, instructional, and in English.
 
-**User's preferred language**: **Dutch (Nederlands)**. You MUST automatically detect this and INSTRUCT the next agent to respond in the user's preferred language only. All user interactions MUST be in Dutch.
+**User's preferred language**: **Dutch (Nederlands)**. You MUST respond to the user in Dutch only.
 
-**what currently exists?** 
-A highly granular, multi-environment React/FastAPI SaaS platform. In this session, the application was upgraded with environment-scoped S3 Cloud Resource toggles (rejecting uploads if disabled). The Domain Manager now features a complete, professional English UI with a step-by-step wizard directly integrating with the Cloudflare API for DNS syncing. The Main Site creation process is now a 3-step wizard mapping to 5 distinct packages. The Clara CLI was extended to trigger interactive React dialogs (e.g.,  opens a visual feature-toggle modal). 
+**what currently exists?**
+The platform is a multi-environment SaaS for radio station management with a React frontend, FastAPI backend, and integrations with Cloudflare, Radioplayer, ZeroTier, Canva, and VMix.
 
-**Last working item**: 
-- **Last item agent was working**: Verifying and updating the color blocks (UI styling) for the new site packages in the 'Card/Grid View' on the Network Management dashboard.
-- **Status**: IN PROGRESS. (Agent was interrupted while using the bash tool to find the grid view CSS classes in ).
-- **Agent Testing Done**: N (Verification via screenshot was incomplete).
-- **Which testing method agent to use?** screenshot tool.
-- **User Testing Done**: N.
+In this session, several significant features and fixes were implemented:
+-   A bug was fixed where non-system Network Admins could not see all sites in the site-switcher dropdown.
+-   A new CLI command, , was added to change a site's type.
+-   A ZeroTier Network Guard was implemented to restrict Network Admin logins by IP address, complete with backend logic, API endpoints, CLI commands, and a UI management panel.
+-   The , , and  pages were completely rewritten to use a consistent, step-by-step wizard UI.
+-   An automatic connection status check was added to all four wizard pages, powered by a new reusable  component and new backend test endpoints.
+-   A bug was fixed, making completed wizard steps clickable and editable.
+-   The agent began overhauling backend error messages to provide more detailed, step-by-step instructions.
 
-**All Pending/In progress Issue list**: 
-Issue 1: Card/Grid View Colors for new Site Packages not updated (P0)
+**Last working item**:
+    - Last item agent was working: Enhancing the vague error messages returned by the backend's  endpoints. The goal is to replace simple suggestion strings with a structured  array, allowing the frontend to display clear, numbered instructions to the user on how to fix the connection issue. The agent was in the process of updating the backend routers.
+    - Status: **IN PROGRESS**
+    - Agent Testing Done: N
+    - Which testing method agent to use? **both**. Backend API calls must be tested with  to verify the new JSON response structure (containing a  array). The frontend then needs to be tested with the  to verify the step-by-step instructions are rendered correctly within the  component.
+    - User Testing Done: N
 
-Issues Detail:
-- **Issue 1: Card/Grid View Colors for new Site Packages not updated**
-   - **Attempted fixes**: Agent used the search tool to find  in  but ran out of context before editing.
-   - **Next debug checklist**: Check  (around line 1076). Ensure the top borders, background tints, and badges for the new packages ( mapped to Virtual Datacenter,  to Data Connection,  to External Host,  to Tasks) display the correct, distinct colors in Grid mode, just like they do in List mode.
-   - **Why fix this issue and what will be achieved with the fix?** Ensures UI consistency and visually distinguishes different site types for Network Admins.
-   - **Status**: IN PROGRESS
-   - **Is recurring issue?** N
-   - **Should Test frontend/backend/both after fix?** frontend
-   - **Blocked on other issue**: None.
+**All Pending/In progress Issue list**:
+  Issue 1: Vague error messages need to be replaced with step-by-step instructions (P0)
 
-**In progress Task List**: 
+  Issues Detail:
+  - **Issue 1: Vague error messages need to be replaced with step-by-step instructions**
+     - **Attempted fixes**: The agent successfully updated  to return the new structured error format. The agent was in the middle of applying the same pattern to  when the session ended. The frontend component  has not yet been modified to render these new instructions.
+     - **Next debug checklist**:
+        1.  **Backend**: Modify the  endpoints in the remaining routers (, , ) to return a JSON object with a  array in case of an error, instead of a simple  string.
+        2.  **Frontend**: Update the  component. It should check if the  is an object containing a  array. If it is, render the steps as a numbered list inside the error message box.
+        3.  **Testing**: For each of the four wizard pages, manually trigger a connection error and verify that the new, detailed step-by-step instructions are displayed correctly.
+     - **Why fix this issue and what will be achieved with the fix?** This will significantly improve user experience by providing clear, actionable guidance when an integration fails, reducing user confusion and support requests.
+     - **Status**: IN PROGRESS
+     - **Is recurring issue?** N
+     - **Should Test frontend/backend/both after fix?** both
+     - **Blocked on other issue**: None.
+
+**In progress Task List**:
 None.
 
-**Upcoming and Future Tasks**:
+**Upcoming and Future Tasks**
 Upcoming Tasks:
-- (P1) Finalize Calendar Integration (Google Calendar / Outlook) for Clara Tasks.
-- (P1) Finalize WordPress Plugin Integration ().
+-   (P1) Finalize Calendar Integration (Google Calendar / Outlook) for Clara Tasks.
+-   (P1) Finalize WordPress Plugin Integration ().
 
 Future Tasks:
-- (P2) Integrate Payment Gateway (Stripe/Mollie) for License Manager.
-- (P2) Implement Stream Monitor VU Meters.
-- (P2) Cleanup Obsolete ProRadio Sync Code.
-- (P2) Refactoring: Split  and  into smaller components.
+-   (P2) Integrate Payment Gateway (Stripe/Mollie) for License Manager.
+-   (P2) Implement Stream Monitor VU Meters.
+-   (P2) Cleanup Obsolete ProRadio Sync Code.
+-   (P2) Refactoring: Split  and  into smaller components.
 
-**Completed work in this session**:
-- Fixed  404 redirect and improved login error handling (DONE).
-- Implemented environment-scoped S3 Cloud Resources Toggle logic across 8 different backend upload routers (DONE).
-- Built Domain Manager Cloudflare API integration ( backend syncing) (DONE).
-- Rewrote Domain Manager UI completely in English, adding step-by-step Cloudflare/DNS wizards (DONE).
-- Removed Radioplayer visibility from standard sites and updated Server sidebar icons (DONE).
-- Overhauled Main Site creation into a 3-step wizard with 5 defined packages (Radio, Tasks, Virtual Datacenter, Data Connection, External Host) (DONE).
-- Implemented CLI command  which triggers a frontend interactive React dialog to manage site features (DONE).
+**Completed work in this session**
+-   **Bug Fix (Admin Dropdown & Badges)**: Fixed an issue where Network Admins couldn't see all sites in the switcher dropdown and corrected outdated UI badge labels/colors. (DONE)
+-   **Feature (CLI Site Convert)**: Implemented and tested a new CLI command  to change a site's type. (DONE)
+-   **Feature (ZeroTier Network Guard)**: Added a major security feature to restrict Network Admin logins by IP, including backend logic, API/CLI management, and a UI panel. (DONE, Tested with )
+-   **Feature (Wizard UI Refactor)**: Rewrote the Radioplayer, Canva Director, and VMix Director pages with a consistent step-by-step wizard UI. (DONE, Tested with )
+-   **Feature (Connection Auto-Check)**: Added backend endpoints and a frontend  component for live API connection validation on all wizard pages. (DONE)
+-   **Feature (Wizard Fix-It Tips)**: Added instructional English tips to all wizard pages to guide users. (DONE, Tested with )
+-   **Bug Fix (Editable Wizard Steps)**: Fixed a bug preventing users from editing completed steps in the wizard pages. (DONE)
 
-**Earlier issues found/mentioned but not fixed**: 
+**Earlier issues found/mentioned but not fixed**
+   - **Issue 1: Linting Errors**
+     - **Debug checklist**: The  tool reported unused local variables.
+        -  in 
+        -  in 
+     - **Why to solve this issue and what will be achieved with this?** Improves code quality and removes dead code.
+     - **Should Test frontend/backend/both after fix?** backend
+     - **Is recurring issue?** N
+
+**Known issue recurrence from previous fork**
 None.
-
-**Known issue recurrence from previous fork**: 
-- Issue recurrence in previous fork: License Manager broken (Resolved in prev. fork).
-- Recurrence count: 0
-- Status: RESOLVED
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Environment-Scoped Services**:  now resolves  ->  -> checks . This requires all backend upload endpoints to explicitly pass .
-- **Interactive CLI Architecture**: The Clara CLI isn't just text. Commands like  return JSON with  which triggers custom React UI Modals in the frontend.
-- **Main Site Packages**: Standardizing deployments into strict blueprints. Customization of features within a package is specifically locked behind CLI overrides to prevent accidental un-checking by admins.
+-   **Conditional API Logic**:  was updated to differentiate API responses based on user roles ( vs. ).
+-   **Middleware-like Security**: The ZeroTier Guard feature is injected directly into the  flow, acting as a custom authorization check before a token is issued.
+-   **Global Config Pattern**: The ZeroTier Guard settings are stored as a single document in the  collection and managed via dedicated API endpoints and CLI commands.
+-   **Reusable Frontend Components**: A  component was created to provide a consistent UI for API health checks across multiple pages.
+-   **Dynamic UI State**: The wizard pages heavily use  (, ) to create a guided, interactive user experience where UI sections are conditionally rendered and enabled.
 
 **key DB schema**
-- : Added boolean  (defaults to True).
-- :  now officially uses: , , , , .
+-   : Now contains a document for  config: .
+-   : Collection name was corrected from the singular .
 
 **changes in tech stack**
 None.
 
 **All files of reference**
--  (Needs immediate editing for Grid View UI colors)
--  (Rewritten)
--  (Core cloud logic check)
--  (Interactive feature toggles)
+-   **New Files**: , .
+-   **Heavily Modified Files**: , , , , , , .
+-   **Other Important Files**: , , , .
 
-**Areas that need refactoring**
--  (1800+ lines) and  (1200+ lines) are excessively large and manage too many state variables. Next forks should consider splitting modals/wizards into dedicated components.
+**Areas that need refactoring**:
+-    and  remain very large and would benefit from being broken down into smaller, more manageable components.
+-   The unused variables found by the linter in  and  should be removed.
 
 **key api endpoints**
-- : Manages live DNS records via Cloudflare API.
-- : Updates  state for an environment.
+-   : Now includes the ZeroTier Guard IP check for network admins.
+-   : Now returns all sites for network admins.
+-   : Supports new commands:  and .
+-   : New endpoints for managing the ZeroTier Guard UI panel.
+-    (new)
+-    (new)
+-    (new)
+-    (new)
 
 **Critical Info for New Agent**
-- **Language**: You MUST respond to the user in **Dutch**.
-- **Backend Standard**: ALL S3 upload routers *must* now extract and pass  to  to ensure Cloud Resources aren't bypassed if an environment disabled them.
-- **Error Handling**:  raises  if cloud resources are disabled. Backend routers must catch and re-raise  specifically before a general  catch block intercepts and masks it as a generic 500 error.
-- **Current Blocker**: You are resuming exactly where the agent was looking for  in  to fix the color schemes for the new site packages on the UI cards. Fix this first.
+-   **Language**: You MUST respond to the user in **Dutch**.
+-   **Immediate Task**: Your primary goal is to complete the implementation of step-by-step error instructions. This requires finishing the backend changes in , , and  to return a  array on error, and then updating  to render these steps as a numbered list.
+-   **Feature Context**: Be aware of the newly implemented ZeroTier Network Guard, which restricts login for Network Admins. System Admins are always exempt.
+-   **UI Pattern**: The four main integration pages (Cloudflare, Radioplayer, Canva, VMix) now all use the same step-by-step wizard pattern. Completed steps can be clicked to be edited.
 
 **documents and test reports created in this job**
--  (S3 Environment Toggle - PASS)
--  (Domain Manager CF backend API - PASS)
--  (Domain Manager UI rewrite - PASS)
--  (Create site wizard / CLI / disconnect - PASS)
-- 
+-   
+-   
+-   
+-   
+-    (updated multiple times)
 
-**Last 10 User Messages and any pending HUMAN messages** 
-10. **User**: Requests S3 to be toggleable per environment with specific error message. *(Completed)*
-9. **User**: Requests Cloudflare ready setup in Domain Manager with direct sync button. *(Completed)*
-8. **User**: Reports DNS records ophalen mislukt. *(Completed - improved error visibility)*
-7. **User**: Requests complete rewrite of Domain Manager to English, with step methods, and professional text. *(Completed)*
-6. **User**: Reports Radioplayer integration is visible in standard sites (must be hidden). Server site icons need updates. *(Completed)*
-5. **Agent**: Proposes plan via ask_human for Main Sites wizard.
-4. **User**: Approves plan with clarifications on 5 packages (Radio, Tasks, Virtual Datacenter, Data Connection, External Host) and CLI disconnect popup behavior. *(Completed)*
-3. **Agent**: Completes wizard, packages, and CLI UI.
-2. **User**: Zijn de kleurvlakken ook aangepast op de network management pagina (Are the color blocks also adjusted on the network management page?) *(IN PROGRESS)*
-1. **Agent**: Took screenshot, realized it was on list view, and began investigating code for the grid view cards. *(Context ended)*
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User**: Complained that error messages (e.g., for Cloudflare) are too vague and unhelpful. (IN PROGRESS)
+2.  **User**: Reported a bug where the API token and Zone ID in the Domain Manager could not be edited after being set. (COMPLETED)
+3.  **User**: Requested that English fix-it tips be added to wizard steps that are not configured or have failed. (COMPLETED)
+4.  **User**: Gave approval to proceed with fixes suggested by the testing agent. (COMPLETED)
+5.  **User**: Confirmed the plan to add auto-check functionality to the wizards. (COMPLETED)
+6.  **User**: Requested an auto-check feature for the connection status on all wizard pages. (COMPLETED)
+7.  **User**: Requested that the Canva, VMix, and Radioplayer pages be refactored into step-by-step wizards like the Cloudflare one. (COMPLETED)
+8.  **User**: Confirmed the plan for the ZeroTier Network Guard feature. (COMPLETED)
+9.  **User**: Requested a security feature requiring Network Admins to be on a specific ZeroTier network to log in. (COMPLETED)
+10. **User**: Requested a CLI command to change a site's type (e.g., from Radio to External Host). (COMPLETED)
 
 **Project Health Check:**
-- Broken: None.
-- Mocked: Cloudflare endpoints are functionally complete but require a real User API Key to do full E2E testing (tested defensively).
+-   Broken: None
+-   Mocked: Cloudflare integration is fully functional but requires a user-provided API key for end-to-end DNS syncing.
 
 **3rd Party Integrations**
-- Cloudflare (DNS) — requires User API Key.
-- Radioplayer — API Key integrated.
-- ZeroTier (Networking) — Active.
-- Canva — Active.
+-   Cloudflare (DNS) — requires User API Key.
+-   Radioplayer — API Key integrated.
+-   ZeroTier (Networking) — Active.
+-   Canva — Requires User API Key.
+-   VMix — Active.
 
 **Testing status**
-- Testing agent used after significant changes: YES (Reports 113, 114, 115, 116 generated with high pass rates).
-- Troubleshoot agent used after agent stuck in loop: NO
-- Test files created: None
-- Known regressions: None known.
+-   Testing agent used after significant changes: YES. Four reports were generated ( to ), all showing high pass rates.
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: None
+-   Known regressions: Linting found unused variables that were not all removed.
 
 **Credentials to test flow:**
-System Administrator:  / 
-Network Admin (Test Account): 
+-   System Administrator:  / 
+-   Network Admin (Test Account):  /  (password was reset multiple times)
 
 **What agent forgot to execute**
-The agent didn't complete updating the styling (colors/borders) for the 'Card/Grid View' in  for the new  and renamed / packages before the context window closed.</analysis>
+The agent did not fix all the Python linting errors. Unused variables  in  and  in  still need to be removed to improve code quality.</analysis>

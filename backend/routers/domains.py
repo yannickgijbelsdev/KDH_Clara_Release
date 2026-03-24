@@ -177,28 +177,75 @@ async def test_cloudflare_connection(current_user: dict = Depends(require_system
     """Test the Cloudflare API connection by verifying the token and zone."""
     config = await db.cloudflare_config.find_one({"type": "global"}, {"_id": 0})
     if not config or not config.get("api_token"):
-        return {"status": "error", "message": "No API token configured", "suggestion": "Enter your Cloudflare API Token in the API Credentials step."}
+        return {
+            "status": "error",
+            "message": "No API token configured",
+            "steps": [
+                "Go to dash.cloudflare.com and log in",
+                "Click your profile icon (top right) → My Profile",
+                "Click 'API Tokens' in the left sidebar",
+                "Click 'Create Token' → use the 'Edit zone DNS' template",
+                "Under 'Zone Resources', select your domain",
+                "Click 'Continue to summary' → 'Create Token'",
+                "Copy the token and paste it in Step 1 above",
+            ],
+            "link": "https://dash.cloudflare.com/profile/api-tokens",
+            "link_label": "Open Cloudflare API Tokens",
+        }
     if not config.get("zone_id"):
-        return {"status": "error", "message": "No Zone ID configured", "suggestion": "Enter your Cloudflare Zone ID in the API Credentials step. Find it in the Cloudflare dashboard under your domain's Overview page."}
+        return {
+            "status": "error",
+            "message": "No Zone ID configured",
+            "steps": [
+                "Go to dash.cloudflare.com and log in",
+                "Click on your domain name in the dashboard",
+                "On the Overview page, scroll down on the right sidebar",
+                "Find 'Zone ID' — it's a long string of letters and numbers",
+                "Copy this Zone ID and paste it in Step 2 above",
+            ],
+            "link": "https://dash.cloudflare.com",
+            "link_label": "Open Cloudflare Dashboard",
+        }
 
     token = config["api_token"]
     zone_id = config["zone_id"]
 
     try:
         async with httpx.AsyncClient(timeout=10) as client:
-            # Verify token
             resp = await client.get(
                 f"{CF_API_BASE}/user/tokens/verify",
                 headers={"Authorization": f"Bearer {token}"}
             )
             if resp.status_code == 401:
-                return {"status": "error", "message": "API token is invalid or expired", "suggestion": "Generate a new API Token in your Cloudflare dashboard under My Profile > API Tokens."}
+                return {
+                    "status": "error",
+                    "message": "API token is invalid or expired",
+                    "steps": [
+                        "Your current token no longer works — it may have been deleted or expired",
+                        "Go to dash.cloudflare.com → My Profile → API Tokens",
+                        "If you see your old token, click the '...' menu and 'Roll' to regenerate it",
+                        "Or create a new token using the 'Edit zone DNS' template",
+                        "Copy the new token and paste it in Step 1 above (click the step to open it)",
+                    ],
+                    "link": "https://dash.cloudflare.com/profile/api-tokens",
+                    "link_label": "Open Cloudflare API Tokens",
+                }
 
             token_data = resp.json()
             if not token_data.get("success"):
-                return {"status": "error", "message": "Token verification failed", "suggestion": "Your API token could not be verified. Regenerate it from the Cloudflare dashboard."}
+                return {
+                    "status": "error",
+                    "message": "Token verification failed",
+                    "steps": [
+                        "The token exists but Cloudflare rejected it",
+                        "Go to dash.cloudflare.com → My Profile → API Tokens",
+                        "Check that the token has 'Zone:DNS:Edit' permission",
+                        "If unsure, create a new token with the 'Edit zone DNS' template",
+                    ],
+                    "link": "https://dash.cloudflare.com/profile/api-tokens",
+                    "link_label": "Open Cloudflare API Tokens",
+                }
 
-            # Verify zone access
             resp2 = await client.get(
                 f"{CF_API_BASE}/zones/{zone_id}",
                 headers={"Authorization": f"Bearer {token}"}
@@ -206,8 +253,20 @@ async def test_cloudflare_connection(current_user: dict = Depends(require_system
             zone_data = resp2.json()
             if not zone_data.get("success"):
                 errors = zone_data.get("errors", [])
-                msg = errors[0].get("message") if errors else "Zone verification failed"
-                return {"status": "error", "message": f"Zone access error: {msg}", "suggestion": "Check your Zone ID or ensure your API token has DNS edit permissions for this zone."}
+                msg = errors[0].get("message") if errors else "Zone not found"
+                return {
+                    "status": "error",
+                    "message": f"Zone access error: {msg}",
+                    "steps": [
+                        f"Your token works, but the Zone ID '{zone_id[:8]}...' was not found or your token doesn't have access to it",
+                        "Go to dash.cloudflare.com → click your domain → Overview",
+                        "On the right sidebar, scroll down to find 'Zone ID'",
+                        "Make sure this Zone ID matches what you entered in Step 2",
+                        "Also check that your API token includes this zone in its permissions",
+                    ],
+                    "link": "https://dash.cloudflare.com",
+                    "link_label": "Open Cloudflare Dashboard",
+                }
 
             zone_name = zone_data.get("result", {}).get("name", "Unknown")
             zone_status = zone_data.get("result", {}).get("status", "unknown")
@@ -219,11 +278,36 @@ async def test_cloudflare_connection(current_user: dict = Depends(require_system
                 "zone_status": zone_status,
             }
     except httpx.ConnectError:
-        return {"status": "error", "message": "Cannot reach Cloudflare API", "suggestion": "Check your internet connection. Cloudflare API may be temporarily unavailable."}
+        return {
+            "status": "error",
+            "message": "Cannot reach Cloudflare API",
+            "steps": [
+                "The server could not connect to api.cloudflare.com",
+                "This is usually a temporary network issue",
+                "Wait a few minutes and click the refresh button to try again",
+            ],
+        }
     except httpx.TimeoutException:
-        return {"status": "error", "message": "Connection to Cloudflare timed out", "suggestion": "Cloudflare servers are slow to respond. Try again later."}
+        return {
+            "status": "error",
+            "message": "Connection to Cloudflare timed out",
+            "steps": [
+                "Cloudflare's API is responding too slowly",
+                "This is usually temporary — wait a moment and retry",
+            ],
+        }
     except Exception as e:
-        return {"status": "error", "message": f"Connection test failed: {str(e)}", "suggestion": "An unexpected error occurred. Verify your API Token and Zone ID."}
+        return {
+            "status": "error",
+            "message": f"Connection test failed: {str(e)}",
+            "steps": [
+                "An unexpected error occurred during the test",
+                "Verify your API Token and Zone ID are correct",
+                "If the problem persists, try creating a new API token",
+            ],
+            "link": "https://dash.cloudflare.com/profile/api-tokens",
+            "link_label": "Open Cloudflare API Tokens",
+        }
 
 
 # ---------- Cloudflare API Helpers ----------
