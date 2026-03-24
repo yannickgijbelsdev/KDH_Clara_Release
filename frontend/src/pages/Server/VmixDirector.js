@@ -396,6 +396,17 @@ export default function VmixDirector() {
             </div>
           )}
         </div>
+        {setupStep === 0 && xmlServers.length === 0 && (
+          <div className="px-4 pb-4 border-t border-zinc-800 pt-3">
+            <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
+              <Settings className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-zinc-400">
+                <p className="text-orange-300 font-medium mb-1">How to connect XML servers</p>
+                <p>XML servers provide now-playing metadata for your overlay elements. Go to the <strong>Network Management</strong> dashboard and create a <strong>Virtual Datacenter</strong> (server) site. Once created, the XML server will appear here automatically and feed data to your vMix overlays.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

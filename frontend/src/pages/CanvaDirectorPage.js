@@ -332,6 +332,13 @@ const CanvaDirectorPage = () => {
         </div>
         {setupStep === 0 && isAdmin && (
           <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
+            <div className="flex items-start gap-2 p-3 bg-[#7d2ae8]/5 rounded-lg border border-[#7d2ae8]/10">
+              <AlertCircle className="w-4 h-4 text-[#a855f7] mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-zinc-400">
+                <p className="text-[#a855f7] font-medium mb-1">How to get your Canva API credentials</p>
+                <p>Go to <a href="https://www.canva.com/developers/" target="_blank" rel="noreferrer" className="text-[#a855f7] underline hover:text-[#c084fc]">canva.com/developers</a> and create a new integration. Choose <strong>"Connect API"</strong> as the integration type. After creating it, you'll receive a Client ID and Client Secret. Keep the Secret safe — you won't be able to see it again.</p>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-zinc-400 mb-1 block">Client ID</label>
@@ -370,6 +377,13 @@ const CanvaDirectorPage = () => {
         </div>
         {setupStep === 1 && isAdmin && (
           <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
+            <div className="flex items-start gap-2 p-3 bg-[#7d2ae8]/5 rounded-lg border border-[#7d2ae8]/10">
+              <AlertCircle className="w-4 h-4 text-[#a855f7] mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-zinc-400">
+                <p className="text-[#a855f7] font-medium mb-1">Setting up the Redirect URI</p>
+                <p>Copy the redirect URI shown below and paste it into your Canva app settings under <strong>"Add redirect URL"</strong>. This is the callback URL where Canva sends the authorization response after a user connects their account. You can also link specific main sites to share this Canva integration across your network.</p>
+              </div>
+            </div>
             <div>
               <label className="text-xs text-zinc-400 mb-1 block">Redirect URI</label>
               <Input value={configForm.redirect_uri} onChange={e => setConfigForm(p => ({ ...p, redirect_uri: e.target.value }))} placeholder="Auto-detected if empty" className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm max-w-md" data-testid="canva-redirect-uri" />
@@ -412,6 +426,13 @@ const CanvaDirectorPage = () => {
         </div>
         {setupStep === 2 && (
           <div className="px-5 pb-5 border-t border-zinc-800 pt-4 text-center">
+            <div className="flex items-start gap-2 p-3 bg-[#7d2ae8]/5 rounded-lg border border-[#7d2ae8]/10 text-left mb-4">
+              <AlertCircle className="w-4 h-4 text-[#a855f7] mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-zinc-400">
+                <p className="text-[#a855f7] font-medium mb-1">Connecting your Canva account</p>
+                <p>A popup window will open where you can authorize Clara to access your Canva designs. Make sure popups are allowed in your browser. After authorization, you'll be able to browse, create, and export designs directly from this page.</p>
+              </div>
+            </div>
             <Palette className="w-10 h-10 text-[#7d2ae8] mx-auto mb-3" />
             <p className="text-sm text-zinc-400 mb-4">Click the button below to open a Canva authorization window.</p>
             <Button className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white" onClick={connectCanva} data-testid="canva-connect-btn">

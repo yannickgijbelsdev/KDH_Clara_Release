@@ -50,26 +50,33 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
     status?.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
     'bg-zinc-800/50 border-zinc-700';
 
+  const statusColor = status?.status === 'ok' ? 'text-emerald-400' :
+    status?.status === 'warning' ? 'text-amber-400' :
+    status?.status === 'error' ? 'text-red-400' : 'text-zinc-400';
+
   return (
     <div className={`rounded-lg border p-3 ${bgColor} ${className}`} data-testid="connection-status">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {icon}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               {label && <span className="text-xs font-medium text-zinc-300">{label}</span>}
-              {status?.message && <span className="text-xs text-zinc-400 truncate">{loading ? 'Testing connection...' : status.message}</span>}
+              {status?.message && <span className={`text-xs ${loading ? 'text-zinc-400' : statusColor}`}>{loading ? 'Testing connection...' : status.message}</span>}
               {!status && !loading && <span className="text-xs text-zinc-500">Click to test connection</span>}
             </div>
             {status?.suggestion && status.status !== 'ok' && !loading && (
-              <p className="text-[10px] text-zinc-500 mt-0.5">{status.suggestion}</p>
+              <div className="mt-1.5 flex items-start gap-1.5">
+                <AlertTriangle className="w-3 h-3 text-amber-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-zinc-400">{status.suggestion}</p>
+              </div>
             )}
           </div>
         </div>
         <button
           onClick={runTest}
           disabled={loading}
-          className="flex-shrink-0 p-1 rounded hover:bg-zinc-700/50 text-zinc-500 hover:text-zinc-300 transition-colors"
+          className="flex-shrink-0 p-1.5 rounded-md hover:bg-zinc-700/50 text-zinc-500 hover:text-zinc-300 transition-colors ml-2"
           data-testid="connection-retest-btn"
           title="Test connection"
         >

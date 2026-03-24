@@ -194,6 +194,13 @@ const RadioplayerPage = () => {
           </div>
           {setupStep === 0 && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
+              <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
+                <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-zinc-400">
+                  <p className="text-orange-300 font-medium mb-1">How to get your credentials</p>
+                  <p>Log in to your <a href="https://radioplayer.org" target="_blank" rel="noreferrer" className="text-orange-400 underline hover:text-orange-300">radioplayer.org</a> account and navigate to your station settings. You'll find your API Key (Bearer Token) or username/password there. If you're unsure, contact your Radioplayer account manager.</p>
+                </div>
+              </div>
               <div>
                 <label className="text-xs text-zinc-400 block mb-1">API Key (Bearer Token)</label>
                 <p className="text-[10px] text-zinc-600 mb-2">If set, the API Key will be used instead of username/password</p>
@@ -248,6 +255,13 @@ const RadioplayerPage = () => {
           </div>
           {setupStep === 1 && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
+              <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
+                <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-zinc-400">
+                  <p className="text-orange-300 font-medium mb-1">Where to find your station details</p>
+                  <p>Your RPUID (Radioplayer Unique ID) is assigned by Radioplayer and can be found in your station dashboard. The country code uses ISO 3166-1 numeric format — e.g. <code className="bg-zinc-800 px-1 rounded">056</code> for Belgium, <code className="bg-zinc-800 px-1 rounded">528</code> for Netherlands. The ingest URL is usually pre-filled correctly.</p>
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-zinc-400 block mb-1">RPUID (Station ID)</label>
@@ -292,6 +306,13 @@ const RadioplayerPage = () => {
           </div>
           {setupStep === 2 && (
             <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
+              <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
+                <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-zinc-400">
+                  <p className="text-orange-300 font-medium mb-1">What happens when you enable</p>
+                  <p>Enabling the integration allows Clara to push data to Radioplayer automatically. <strong>Auto Now Playing</strong> sends track info when the current song changes. <strong>Auto Schedule</strong> pushes your show schedule whenever you create or update shows in the planning module.</p>
+                </div>
+              </div>
               <div className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg">
                 <div>
                   <p className="text-white text-sm font-medium">Enable Radioplayer Integration</p>
