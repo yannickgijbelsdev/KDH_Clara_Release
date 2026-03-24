@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import {
   Monitor, Image, Clock, Type, Music, Radio, Upload, Save, Eye, EyeOff,
   Trash2, Plus, GripVertical, Copy, Settings, Play, ChevronDown, ChevronUp,
-  Link2, RefreshCw, Loader2, ExternalLink, Grid
+  Link2, RefreshCw, Loader2, ExternalLink, Grid, Check, ChevronRight, CheckCircle
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -23,6 +23,26 @@ const ELEMENT_TYPES = {
 };
 
 const PRODUCTION_URL = 'https://clara.koodh.com';
+
+function StepIndicator({ steps, current }) {
+  return (
+    <div className="flex items-center gap-1 mb-6">
+      {steps.map((s, i) => (
+        <div key={i} className="flex items-center gap-1">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+            i < current ? 'bg-emerald-500/20 text-emerald-400' :
+            i === current ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
+            'bg-zinc-800 text-zinc-500'
+          }`}>
+            {i < current ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
+            <span className="hidden sm:inline">{s}</span>
+          </div>
+          {i < steps.length - 1 && <ChevronRight className="w-3 h-3 text-zinc-700" />}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const BG_TYPES = [
   { id: 'transparent', label: 'Transparent' },
@@ -140,6 +160,7 @@ export default function VmixDirector() {
   const [newMessage, setNewMessage] = useState('');
   const [dragging, setDragging] = useState(null);
   const [showGrid, setShowGrid] = useState(true);
+  const [setupStep, setSetupStep] = useState(0);
   const canvasRef = useRef(null);
 
   const fetchAll = useCallback(async () => {
@@ -163,6 +184,19 @@ export default function VmixDirector() {
   }, [mainSite]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Determine setup step
+  useEffect(() => {
+    if (!config) return;
+    const hasXmlServers = xmlServers.length > 0;
+    const hasEnabledElements = config.elements?.some(el => el.enabled);
+    const hasMessages = messages.length > 0;
+
+    if (!hasXmlServers) setSetupStep(0);
+    else if (!hasEnabledElements) setSetupStep(1);
+    else if (!hasMessages && config.elements?.find(el => el.type === 'ticker')?.enabled) setSetupStep(2);
+    else setSetupStep(3);
+  }, [config, xmlServers, messages]);
 
   const saveConfig = async () => {
     if (!config || !mainSite) return;
@@ -330,6 +364,31 @@ export default function VmixDirector() {
         </Button>
       </div>
 
+      {/* Step Indicator */}
+      <StepIndicator steps={['XML Servers', 'Overlay Elements', 'Ticker Messages', 'Overlay URLs']} current={setupStep} />
+
+      {/* Step 1: XML Servers Status */}
+      <div className={`bg-zinc-900/50 border rounded-xl transition-all ${setupStep === 0 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : xmlServers.length > 0 ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${xmlServers.length > 0 ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+              {xmlServers.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Monitor className="w-4 h-4 text-orange-400" />}
+            </div>
+            <div>
+              <h3 className="text-white font-medium text-sm">XML Server Connection</h3>
+              <p className="text-xs text-zinc-500">{xmlServers.length > 0 ? `${xmlServers.length} XML server(s) available for Now Playing data` : 'No XML servers found. Configure one in the XML Dashboard first.'}</p>
+            </div>
+          </div>
+          {xmlServers.length > 0 && (
+            <div className="flex items-center gap-2 text-xs text-zinc-400">
+              {xmlServers.map(s => (
+                <span key={s.id} className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-full border border-emerald-500/20">{s.name}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Canvas Preview */}
         <div className="xl:col-span-2 space-y-4">
@@ -426,7 +485,7 @@ export default function VmixDirector() {
           </div>
 
           {/* Overlay URLs for vMix */}
-          <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
+          <div className={`bg-zinc-900/50 border rounded-xl p-4 transition-all ${setupStep === 3 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : 'border-white/5'}`}>
             <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
               <Link2 className="w-4 h-4" /> vMix Overlay URLs
             </h2>
