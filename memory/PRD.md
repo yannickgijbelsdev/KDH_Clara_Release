@@ -3731,5 +3731,23 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Step 2 (Zone ID): Added 5-step guide "How to find your Zone ID"
   - Step 3 (Verify): Now uses `test-connection` endpoint and renders structured error steps in verify result
   - Added "Important: This is an API Token, not your Cloudflare password or Global API Key" warning
+
+### 2026-03-25: Subdomain Routing ↔ Cloudflare DNS Integration
+- **Problem**: Subdomain routes were not connected to Cloudflare DNS — routes existed in DB but didn't actually work
+- **Root cause**: No server-side subdomain detection, no proxy between subdomains and origin
+- **Solution**: Three-layer approach:
+  1. **Backend**: New public endpoint `GET /api/domains/routes/public` (no auth required) returns active routes for Worker + React
+  2. **React app**: New `useSubdomainRouter` hook in `App.js` — detects subdomain from hostname, fetches routes, auto-navigates to target_path
+  3. **Cloudflare Worker**: Proxy script at `/app/cloudflare-worker/subdomain-router.js` that intercepts `*.koodh.com` and forwards to Clara origin
+- **Frontend DomainManager enhancements**:
+  - DNS records auto-load on page mount (silent fetch)
+  - DNS status badge per route (green "DNS" / orange "No DNS")
+  - Red warning banner when Cloudflare not configured
+  - Orange warning banner listing routes missing DNS records + "Fix now" button
+  - "Sync DNS" button added to Routing tab header
+- **Deployment guide**: `/app/cloudflare-worker/DEPLOYMENT-GUIDE.md` with step-by-step instructions
+- **How it works in production**: `login.koodh.com` → Cloudflare Worker → `clara.koodh.com` → React detects subdomain → shows `/login`
+- Tested: iteration_122 — 100% backend (8/8) + 100% frontend
+
 - **Linting fixes**: Removed unused `speed` variable in `vmix.py`, unused `data` variable in `domains.py`
 - Tested: iteration_121 — 100% backend (7/7) + 100% frontend
