@@ -15,10 +15,76 @@ import {
   Globe, Plus, Edit, Trash2, Check, Loader2, Shield,
   ExternalLink, AlertTriangle, CheckCircle, Clock, XCircle, Copy,
   Link2, RefreshCw, Settings, ArrowRight, Lock, Eye, EyeOff, Layers,
-  ChevronRight
+  ChevronRight, Code, Zap, Terminal
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+
+// Cloudflare Worker script — embedded for copy-paste
+const WORKER_SCRIPT = `/**
+ * Clara Subdomain Router — Cloudflare Worker
+ */
+const CONFIG = {
+  BASE_DOMAIN: 'koodh.com',
+  APP_SUBDOMAIN: 'clara',
+  ORIGIN: 'https://clara.koodh.com',
+  ROUTES_API: 'https://clara.koodh.com/api/domains/routes/public',
+  CACHE_TTL: 300,
+};
+
+let routeCache = null;
+let routeCacheTime = 0;
+
+async function getRoutes() {
+  const now = Date.now();
+  if (routeCache && (now - routeCacheTime) < CONFIG.CACHE_TTL * 1000) return routeCache;
+  try {
+    const res = await fetch(CONFIG.ROUTES_API, { headers: { 'User-Agent': 'Clara-Worker/1.0' } });
+    if (res.ok) { routeCache = await res.json(); routeCacheTime = now; return routeCache; }
+  } catch (e) { console.error('[Clara Worker] Route fetch failed:', e); }
+  return routeCache || { routes: [], base_domain: CONFIG.BASE_DOMAIN };
+}
+
+async function handleRequest(request) {
+  const url = new URL(request.url);
+  const hostname = url.hostname;
+  if (!hostname.endsWith('.' + CONFIG.BASE_DOMAIN)) return fetch(request);
+  const subdomain = hostname.replace('.' + CONFIG.BASE_DOMAIN, '');
+  if (subdomain === CONFIG.APP_SUBDOMAIN) return fetch(request);
+
+  const data = await getRoutes();
+  const route = data.routes?.find(r => r.subdomain === subdomain);
+
+  if (!route) {
+    return new Response('<html><body style="font-family:system-ui;background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0"><div style="text-align:center"><h1 style="color:#f4f4f5">Subdomain niet geconfigureerd</h1><p>' + hostname + ' is niet ingesteld.</p><a href="https://' + CONFIG.APP_SUBDOMAIN + '.' + CONFIG.BASE_DOMAIN + '" style="color:#f97316">Naar Clara</a></div></body></html>',
+      { status: 404, headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
+  }
+
+  const originHostname = new URL(CONFIG.ORIGIN).hostname;
+  const originUrl = new URL(request.url);
+  originUrl.hostname = originHostname;
+  originUrl.protocol = 'https:';
+  const headers = new Headers(request.headers);
+  headers.set('Host', originHostname);
+  headers.set('X-Forwarded-Host', hostname);
+  headers.set('X-Original-Subdomain', subdomain);
+
+  const response = await fetch(originUrl.toString(), {
+    method: request.method, headers,
+    body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
+    redirect: 'manual',
+  });
+
+  const respHeaders = new Headers(response.headers);
+  const location = respHeaders.get('Location');
+  if (location) {
+    try { const l = new URL(location, originUrl); if (l.hostname === originHostname) { l.hostname = hostname; respHeaders.set('Location', l.toString()); } } catch {}
+  }
+  respHeaders.delete('X-Frame-Options');
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers: respHeaders });
+}
+
+addEventListener('fetch', event => { event.respondWith(handleRequest(event.request)); });`;
 
 const ROUTE_TYPE_LABELS = { auth: 'Authentication', network: 'Management', firewall: 'Firewall', app: 'Application' };
 const ROUTE_TYPE_COLORS = {
@@ -79,6 +145,11 @@ export default function DomainManager() {
   const [cfVerifyResult, setCfVerifyResult] = useState(null);
   const [cfLoadingRecords, setCfLoadingRecords] = useState(false);
   const [cfSyncDialog, setCfSyncDialog] = useState(false);
+
+  // Worker test
+  const [workerTesting, setWorkerTesting] = useState(false);
+  const [workerResult, setWorkerResult] = useState(null);
+  const [workerScriptCopied, setWorkerScriptCopied] = useState(false);
 
   // Setup wizard
   const [setupStep, setSetupStep] = useState(0);
@@ -290,6 +361,29 @@ export default function DomainManager() {
       if (res.ok) { toast.success(`DNS record ${name} deleted`); fetchCfDnsRecords(); }
       else { const e = await res.json(); toast.error(e.detail || 'Delete failed'); }
     } catch { toast.error('Delete failed'); }
+  };
+
+  const testWorker = async () => {
+    setWorkerTesting(true); setWorkerResult(null);
+    try {
+      const res = await fetch(`${API}/api/domains/cloudflare/test-worker`, { method: 'POST', headers });
+      const data = await res.json();
+      setWorkerResult(data);
+      if (data.status === 'ok') toast.success(data.message || 'Worker is active!');
+      else if (data.status === 'warning') toast.warning?.(data.message) || toast.info(data.message);
+      else toast.error(data.message || 'Worker test failed');
+    } catch { 
+      setWorkerResult({ status: 'error', message: 'Connection error', steps: ['Could not reach the test endpoint', 'Check your connection and try again'] });
+      toast.error('Worker test failed'); 
+    }
+    setWorkerTesting(false);
+  };
+
+  const copyWorkerScript = () => {
+    navigator.clipboard.writeText(WORKER_SCRIPT);
+    setWorkerScriptCopied(true);
+    toast.success('Worker script copied to clipboard!');
+    setTimeout(() => setWorkerScriptCopied(false), 3000);
   };
 
   const copyToClipboard = (text) => { navigator.clipboard.writeText(text); toast.success('Copied to clipboard'); };
@@ -580,7 +674,7 @@ export default function DomainManager() {
       {/* ═══════ CLOUDFLARE (Step-based Setup) ═══════ */}
       {activeTab === 'cloudflare' && (
         <div className="space-y-4">
-          <StepIndicator steps={['API Token', 'Zone ID', 'Verify Connection', 'Sync DNS']} current={setupStep} />
+          <StepIndicator steps={['API Token', 'Zone ID', 'Verify', 'Sync DNS', 'Worker']} current={setupStep} />
 
           {/* Connection Status - Auto-check when configured */}
           {cfConfig?.api_token_set && cfConfig?.zone_id && (
@@ -839,6 +933,119 @@ export default function DomainManager() {
               </CardContent>
             </Card>
           )}
+
+          {/* Step 5: Cloudflare Worker */}
+          <Card className={`border-zinc-800 ${setupStep === 4 ? 'bg-gradient-to-r from-orange-950/30 to-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 4 ? null : 4)}>
+                <div className="flex items-center gap-2">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${workerResult?.status === 'ok' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                    {workerResult?.status === 'ok' ? <Check className="w-3 h-3" /> : '5'}
+                  </div>
+                  <span className="text-sm font-medium text-zinc-200">Cloudflare Worker</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">Required for subdomains</span>
+                </div>
+                {workerResult?.status === 'ok' && <span className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Worker active</span>}
+              </div>
+              {(setupStep >= 2 || editStep === 4) && (
+                <div className="space-y-4">
+                  <div className="rounded-md bg-zinc-800/60 border border-zinc-700/50 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold mb-2">What is this?</p>
+                    <p className="text-xs text-zinc-400">The Cloudflare Worker makes subdomains like <code className="text-[10px] bg-zinc-700 px-1 py-0.5 rounded">login.{baseDomain}</code> work by proxying them to Clara. Without it, subdomains just show an error page.</p>
+                  </div>
+                  <div className="rounded-md bg-zinc-800/60 border border-zinc-700/50 p-3 space-y-2">
+                    <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to deploy:</p>
+                    <ol className="space-y-1.5 list-none">
+                      {[
+                        <>Go to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">dash.cloudflare.com</a> → <strong className="text-zinc-100">Workers & Pages</strong></>,
+                        <>Click <strong className="text-zinc-100">"Create"</strong> → <strong className="text-zinc-100">"Create Worker"</strong> → name: <code className="text-[10px] bg-zinc-700 px-1 py-0.5 rounded">clara-subdomain-router</code></>,
+                        <>Click <strong className="text-zinc-100">"Deploy"</strong> → then <strong className="text-zinc-100">"Edit code"</strong></>,
+                        <>Delete all placeholder code → <strong className="text-zinc-100">paste the script below</strong></>,
+                        <>Click <strong className="text-zinc-100">"Save and Deploy"</strong></>,
+                        <>Go to <strong className="text-zinc-100">Settings → Domains & Routes</strong> → <strong className="text-zinc-100">"Add"</strong> → Route</>,
+                        <>Route: <code className="text-[10px] bg-zinc-700 px-1 py-0.5 rounded">*.{baseDomain}/*</code> — Zone: <code className="text-[10px] bg-zinc-700 px-1 py-0.5 rounded">{baseDomain}</code></>,
+                      ].map((content, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                          <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+                          <span>{content}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Code className="w-3.5 h-3.5 text-zinc-500" />
+                        <span className="text-xs font-medium text-zinc-300">Worker Script</span>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={copyWorkerScript} className="h-7 text-xs" data-testid="copy-worker-script-btn">
+                        {workerScriptCopied ? <><Check className="w-3 h-3 mr-1 text-emerald-400" />Copied!</> : <><Copy className="w-3 h-3 mr-1" />Copy script</>}
+                      </Button>
+                    </div>
+                    <div className="relative rounded-lg border border-zinc-700 bg-zinc-950 overflow-hidden">
+                      <pre className="p-3 text-[10px] leading-relaxed text-zinc-400 font-mono overflow-x-auto max-h-[200px] overflow-y-auto" data-testid="worker-script-preview">
+                        <code>{WORKER_SCRIPT.substring(0, 600)}...</code>
+                      </pre>
+                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-zinc-950 to-transparent pointer-events-none" />
+                    </div>
+                    <p className="text-[10px] text-zinc-600">Full script will be copied when you click "Copy script"</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Button onClick={testWorker} disabled={workerTesting} className="w-full bg-orange-600 hover:bg-orange-700 text-white" data-testid="test-worker-btn">
+                      {workerTesting ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Testing Worker...</> : <><Zap className="w-4 h-4 mr-2" />Test Worker Connection</>}
+                    </Button>
+                    {workerResult && (
+                      <div className={`p-3 rounded-lg border ${
+                        workerResult.status === 'ok' ? 'bg-emerald-950/30 border-emerald-800' :
+                        workerResult.status === 'warning' ? 'bg-amber-950/30 border-amber-800' :
+                        'bg-red-950/30 border-red-800'
+                      }`} data-testid="worker-test-result">
+                        <div className="flex items-center gap-2">
+                          {workerResult.status === 'ok' ? <CheckCircle className="w-4 h-4 text-emerald-400" /> :
+                           workerResult.status === 'warning' ? <AlertTriangle className="w-4 h-4 text-amber-400" /> :
+                           <XCircle className="w-4 h-4 text-red-400" />}
+                          <span className={`text-sm font-medium ${
+                            workerResult.status === 'ok' ? 'text-emerald-300' :
+                            workerResult.status === 'warning' ? 'text-amber-300' : 'text-red-300'
+                          }`}>{workerResult.message}</span>
+                        </div>
+                        {workerResult.test_subdomain && (
+                          <p className="text-xs text-zinc-500 mt-1 ml-6">Tested: {workerResult.test_subdomain}</p>
+                        )}
+                        {workerResult.results?.length > 0 && (
+                          <div className="mt-2 ml-6 space-y-1">
+                            {workerResult.results.map((r, i) => (
+                              <div key={i} className="flex items-center gap-2 text-xs">
+                                {r.status === 'ok' ? <CheckCircle className="w-3 h-3 text-emerald-400" /> :
+                                 r.status === 'warning' ? <AlertTriangle className="w-3 h-3 text-amber-400" /> :
+                                 <XCircle className="w-3 h-3 text-red-400" />}
+                                <span className="text-zinc-400">{r.test}:</span>
+                                <span className="text-zinc-300">{r.detail}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {Array.isArray(workerResult.steps) && workerResult.steps.length > 0 && workerResult.status !== 'ok' && (
+                          <div className="mt-2.5 rounded-md bg-zinc-900/60 border border-zinc-700/50 p-2.5 ml-6">
+                            <p className="text-[10px] uppercase tracking-wider text-amber-500 font-semibold mb-1.5">How to fix this:</p>
+                            <ol className="space-y-1 list-none">
+                              {workerResult.steps.map((step, i) => (
+                                <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+                                  <span>{step}</span>
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {setupStep < 2 && <p className="text-xs text-zinc-500">Complete the previous steps first.</p>}
+            </CardContent>
+          </Card>
         </div>
       )}
 

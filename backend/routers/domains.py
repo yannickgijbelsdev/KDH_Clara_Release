@@ -575,6 +575,168 @@ async def delete_cloudflare_dns_record(
     return {"status": "ok"}
 
 
+@domains_router.post("/cloudflare/test-worker")
+async def test_cloudflare_worker(current_user: dict = Depends(require_system_admin)):
+    """Test if the Cloudflare Worker is active by probing a configured subdomain.
+    
+    Makes an HTTP request to a test subdomain and checks if the response
+    indicates the Worker is proxying correctly.
+    """
+    cf_config = await db.cloudflare_config.find_one({"type": "global"}, {"_id": 0})
+    base_domain = cf_config.get("base_domain", "koodh.com") if cf_config else "koodh.com"
+
+    # Find a test subdomain (prefer 'test', then any non-app route)
+    routes = await db.subdomain_routes.find(
+        {"is_active": True}, {"_id": 0}
+    ).to_list(100)
+
+    test_route = None
+    for r in routes:
+        if r["subdomain"] == "test":
+            test_route = r
+            break
+    if not test_route:
+        for r in routes:
+            if r["subdomain"] not in ("clara",):
+                test_route = r
+                break
+
+    if not test_route:
+        return {
+            "status": "error",
+            "message": "No test subdomain available",
+            "steps": [
+                "Create a route called 'test' in the Subdomain Routing tab",
+                "Make sure it is set to Active",
+                "Then come back here and test again",
+            ],
+        }
+
+    test_fqdn = f"{test_route['subdomain']}.{base_domain}"
+    test_url = f"https://{test_fqdn}/api/domains/routes/public"
+
+    results = []
+
+    # Test 1: DNS resolution
+    try:
+        import dns.resolver
+        answers = dns.resolver.resolve(test_fqdn, 'A')
+        ip = str(list(answers)[0]) if answers else "unknown"
+        results.append({"test": "DNS Resolution", "status": "ok", "detail": f"{test_fqdn} → {ip}"})
+    except dns.resolver.NXDOMAIN:
+        return {
+            "status": "error",
+            "message": f"DNS record for {test_fqdn} does not exist",
+            "steps": [
+                f"Create a CNAME record for '{test_route['subdomain']}' pointing to '{base_domain}' in Cloudflare",
+                "Make sure the orange proxy cloud is enabled",
+                "Or click 'Sync DNS' in Step 4 to create it automatically",
+                "Wait 1-2 minutes for DNS propagation, then test again",
+            ],
+            "results": results,
+        }
+    except Exception as e:
+        results.append({"test": "DNS Resolution", "status": "warning", "detail": f"DNS check failed: {str(e)}"})
+
+    # Test 2: HTTP connectivity — does the Worker respond?
+    try:
+        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+            resp = await client.get(test_url)
+            if resp.status_code == 200:
+                try:
+                    data = resp.json()
+                    if "routes" in data and "base_domain" in data:
+                        results.append({"test": "Worker Proxy", "status": "ok", "detail": f"{test_fqdn} proxied successfully (API responded)"})
+                        return {
+                            "status": "ok",
+                            "message": f"Worker is active! {test_fqdn} is proxying correctly to Clara.",
+                            "test_subdomain": test_fqdn,
+                            "results": results,
+                        }
+                except Exception:
+                    pass
+                # Got 200 but not the expected JSON — might be the app HTML
+                results.append({"test": "Worker Proxy", "status": "ok", "detail": f"{test_fqdn} returned HTTP 200 (Worker is proxying)"})
+                return {
+                    "status": "ok",
+                    "message": f"Worker is active! {test_fqdn} is reachable and returns content.",
+                    "test_subdomain": test_fqdn,
+                    "results": results,
+                }
+            elif resp.status_code == 404:
+                body = resp.text
+                if "Subdomain niet geconfigureerd" in body or "not configured" in body.lower():
+                    results.append({"test": "Worker Proxy", "status": "warning", "detail": "Worker is active but returned 404 for this subdomain"})
+                    return {
+                        "status": "warning",
+                        "message": "Worker is active but the subdomain is not in the route table",
+                        "steps": [
+                            f"The Worker responded but doesn't recognize '{test_route['subdomain']}' as a route",
+                            "The Worker's route cache may be stale (refreshes every 5 min)",
+                            "Wait a few minutes and test again",
+                        ],
+                        "test_subdomain": test_fqdn,
+                        "results": results,
+                    }
+                results.append({"test": "Worker Proxy", "status": "error", "detail": "Got 404 — Worker may not be deployed"})
+            elif resp.status_code == 530 or resp.status_code == 522:
+                results.append({"test": "Worker Proxy", "status": "error", "detail": f"Cloudflare error {resp.status_code} — origin unreachable"})
+                return {
+                    "status": "error",
+                    "message": f"Cloudflare error {resp.status_code} — the Worker can't reach Clara",
+                    "steps": [
+                        "The Cloudflare Worker is trying to reach the origin server but it's not responding",
+                        "Check that the ORIGIN URL in the Worker script is correct",
+                        "Make sure clara.koodh.com is accessible",
+                        "If using Emergent, verify the deployment is running",
+                    ],
+                    "test_subdomain": test_fqdn,
+                    "results": results,
+                }
+            else:
+                results.append({"test": "Worker Proxy", "status": "warning", "detail": f"HTTP {resp.status_code}"})
+    except httpx.ConnectError:
+        return {
+            "status": "error",
+            "message": f"Cannot connect to {test_fqdn}",
+            "steps": [
+                f"Could not establish a connection to {test_fqdn}",
+                "Check that the DNS record exists and is proxied (orange cloud)",
+                "The Cloudflare Worker may not be deployed yet",
+                "Follow the Worker deployment steps below",
+            ],
+            "test_subdomain": test_fqdn,
+            "results": results,
+        }
+    except httpx.TimeoutException:
+        return {
+            "status": "error",
+            "message": f"Connection to {test_fqdn} timed out",
+            "steps": [
+                "The server didn't respond within 10 seconds",
+                "Check that the Worker is deployed and the route trigger is set",
+                "Make sure the ORIGIN URL in the Worker config is correct",
+            ],
+            "test_subdomain": test_fqdn,
+            "results": results,
+        }
+    except Exception as e:
+        results.append({"test": "Worker Proxy", "status": "error", "detail": str(e)})
+
+    return {
+        "status": "error",
+        "message": f"Worker does not appear to be active on {test_fqdn}",
+        "steps": [
+            "The Cloudflare Worker is not responding on this subdomain",
+            "Deploy the Worker script in Cloudflare Dashboard → Workers & Pages",
+            "Add a route trigger: *.koodh.com/* (zone: koodh.com)",
+            "Wait 1-2 minutes, then test again",
+        ],
+        "test_subdomain": test_fqdn,
+        "results": results,
+    }
+
+
 # ---------- Domain Configs (per main site) ----------
 
 @domains_router.get("/configs")
