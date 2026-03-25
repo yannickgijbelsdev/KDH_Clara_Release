@@ -16,7 +16,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video
+  KeyRound, FileCode, Video, Ban, Lock
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -90,6 +90,10 @@ const FEATURE_NAV_ITEMS = {
   vmix_director: { to: 'vmix-director', icon: Video, label: 'vMix Director' },
   canva_director: { to: 'canva', icon: Palette, label: 'Canva Director' },
   task_boards: { to: 'task-boards', icon: LayoutList, label: 'Task Boards' },
+  wp_security_dashboard: { to: 'wp-security', icon: Shield, label: 'Security Dashboard', adminOnly: true },
+  wp_waf_rules: { to: 'wp-waf', icon: Shield, label: 'WAF Rules', adminOnly: true },
+  wp_ip_blocklist: { to: 'wp-blocklist', icon: Ban, label: 'IP Blocklist', adminOnly: true },
+  wp_login_protection: { to: 'wp-login-protect', icon: Lock, label: 'Login Protection', adminOnly: true },
 };
 
 // Navigation groups with feature mapping

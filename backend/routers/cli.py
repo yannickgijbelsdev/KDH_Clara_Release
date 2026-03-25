@@ -409,6 +409,7 @@ ALL_AVAILABLE_FEATURES = {
     'server': ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'team_settings', 'firewall', 'activity_logs'],
     'technical': ['zerotier', 'team_settings', 'firewall', 'activity_logs'],
     'external_host': ['content_library', 'media_library', 'content_approval', 'trash', 'team_settings', 'firewall', 'wordpress', 'activity_logs'],
+    'wp_security': ['wp_security_dashboard', 'wp_waf_rules', 'wp_ip_blocklist', 'wp_login_protection', 'team_settings', 'firewall', 'activity_logs'],
 }
 
 
@@ -475,6 +476,9 @@ PACKAGE_ALIASES = {
     'external-host': 'external_host',
     'external_host': 'external_host',
     'external': 'external_host',
+    'wp-security': 'wp_security',
+    'wp_security': 'wp_security',
+    'security': 'wp_security',
 }
 
 PACKAGE_DISPLAY = {
@@ -483,6 +487,7 @@ PACKAGE_DISPLAY = {
     'server': 'Clara Virtual Datacenter',
     'technical': 'Clara Data Connection',
     'external_host': 'Clara External Host',
+    'wp_security': 'Clara WP Security',
 }
 
 
@@ -500,13 +505,14 @@ async def _cmd_site_convert(sid, target_input):
             "  virtual-datacenter Clara Virtual Datacenter",
             "  data-connection    Clara Data Connection",
             "  external-host      Clara External Host",
+            "  wp-security        Clara WP Security",
         ]
         return {"output": "\n".join(lines), "type": "info"}
 
     target_type = PACKAGE_ALIASES.get(target_input)
     if not target_type:
         return {
-            "output": f"Unknown package: '{target_input}'\n\nValid packages: radio, tasks, virtual-datacenter, data-connection, external-host",
+            "output": f"Unknown package: '{target_input}'\n\nValid packages: radio, tasks, virtual-datacenter, data-connection, external-host, wp-security",
             "type": "error"
         }
 

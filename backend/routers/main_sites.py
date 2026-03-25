@@ -208,7 +208,7 @@ async def create_main_site(
     logger.info(f"Main site created: {data.name} ({slug}) by {current_user['email']}")
 
     # Log and notify system admin
-    type_label = {"server": "Server Site", "technical": "Technical Site", "task_scheduler": "Clara Tasks"}.get(data.site_type, "Main Site")
+    type_label = {"server": "Server Site", "technical": "Technical Site", "task_scheduler": "Clara Tasks", "wp_security": "WP Security Site"}.get(data.site_type, "Main Site")
     asyncio.create_task(log_action(
         action=f"{type_label} Created",
         category="system",

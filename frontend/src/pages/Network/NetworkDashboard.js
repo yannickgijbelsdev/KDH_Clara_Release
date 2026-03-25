@@ -451,11 +451,13 @@ export default function NetworkDashboard() {
       features: ['zerotier', 'team_settings', 'firewall', 'activity_logs'] },
     { type: 'external_host', name: 'External Host', icon: ExternalLink, color: 'cyan', desc: 'WordPress & content management',
       features: ['content_library', 'media_library', 'content_approval', 'trash', 'team_settings', 'firewall', 'wordpress', 'activity_logs'] },
+    { type: 'wp_security', name: 'WP Security', icon: Shield, color: 'red', desc: 'WordPress firewall, WAF & brute force protection',
+      features: ['wp_security_dashboard', 'wp_waf_rules', 'wp_ip_blocklist', 'wp_login_protection', 'team_settings', 'firewall', 'activity_logs'] },
   ];
-  const PACKAGE_COLORS = { orange: 'bg-orange-500/20 border-orange-500/50 text-orange-400', violet: 'bg-violet-500/20 border-violet-500/50 text-violet-400', blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400', emerald: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400', cyan: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' };
-  const PACKAGE_ICON_COLORS = { orange: 'text-orange-400', violet: 'text-violet-400', blue: 'text-blue-400', emerald: 'text-emerald-400', cyan: 'text-cyan-400' };
-  const SITE_TYPE_LABELS = { radio: 'Radio', task_scheduler: 'Tasks', server: 'Virtual Datacenter', technical: 'Data Connection', external_host: 'External Host' };
-  const SITE_TYPE_BADGE = { radio: 'bg-orange-500/10 text-orange-400 border-orange-500/20', task_scheduler: 'bg-violet-500/10 text-violet-400 border-violet-500/20', server: 'bg-blue-500/10 text-blue-400 border-blue-500/20', technical: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', external_host: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' };
+  const PACKAGE_COLORS = { orange: 'bg-orange-500/20 border-orange-500/50 text-orange-400', violet: 'bg-violet-500/20 border-violet-500/50 text-violet-400', blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400', emerald: 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400', cyan: 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400', red: 'bg-red-500/20 border-red-500/50 text-red-400' };
+  const PACKAGE_ICON_COLORS = { orange: 'text-orange-400', violet: 'text-violet-400', blue: 'text-blue-400', emerald: 'text-emerald-400', cyan: 'text-cyan-400', red: 'text-red-400' };
+  const SITE_TYPE_LABELS = { radio: 'Radio', task_scheduler: 'Tasks', server: 'Virtual Datacenter', technical: 'Data Connection', external_host: 'External Host', wp_security: 'WP Security' };
+  const SITE_TYPE_BADGE = { radio: 'bg-orange-500/10 text-orange-400 border-orange-500/20', task_scheduler: 'bg-violet-500/10 text-violet-400 border-violet-500/20', server: 'bg-blue-500/10 text-blue-400 border-blue-500/20', technical: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', external_host: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20', wp_security: 'bg-red-500/10 text-red-400 border-red-500/20' };
 
   const autoSlug = (name) => name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 50);
   const slugExists = (slug) => mainSites.some(s => s.slug === slug);
@@ -1116,14 +1118,14 @@ export default function NetworkDashboard() {
           <>
           <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-3'}>
             {filteredSites.map(site => viewMode === 'list' ? (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : site.site_type === 'external_host' ? 'bg-cyan-950/30 border-cyan-500/30 hover:border-cyan-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : site.site_type === 'external_host' ? 'bg-cyan-950/30 border-cyan-500/30 hover:border-cyan-500/50' : site.site_type === 'wp_security' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardContent className="flex items-center gap-4 p-4">
                   <Link to={`/${site.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
                     {site.logo_url ? (
                       <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                     ) : (
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : site.site_type === 'external_host' ? 'bg-cyan-500/10' : 'bg-zinc-800'}`}>
-                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <HardDrive className="w-5 h-5 text-blue-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : site.site_type === 'external_host' ? <ExternalLink className="w-5 h-5 text-cyan-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : site.site_type === 'external_host' ? 'bg-cyan-500/10' : site.site_type === 'wp_security' ? 'bg-red-500/10' : 'bg-zinc-800'}`}>
+                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <HardDrive className="w-5 h-5 text-blue-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : site.site_type === 'external_host' ? <ExternalLink className="w-5 h-5 text-cyan-400" /> : site.site_type === 'wp_security' ? <Shield className="w-5 h-5 text-red-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                       </div>
                     )}
                     <div className="min-w-0">
@@ -1165,15 +1167,15 @@ export default function NetworkDashboard() {
                 </CardContent>
               </Card>
             ) : (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : site.site_type === 'external_host' ? 'bg-cyan-950/30 border-cyan-500/30 hover:border-cyan-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
+              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : site.site_type === 'external_host' ? 'bg-cyan-950/30 border-cyan-500/30 hover:border-cyan-500/50' : site.site_type === 'wp_security' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       {site.logo_url ? (
                         <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                       ) : (
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : site.site_type === 'external_host' ? 'bg-cyan-500/10' : 'bg-zinc-800'}`}>
-                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <HardDrive className="w-5 h-5 text-blue-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : site.site_type === 'external_host' ? <ExternalLink className="w-5 h-5 text-cyan-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : site.site_type === 'external_host' ? 'bg-cyan-500/10' : site.site_type === 'wp_security' ? 'bg-red-500/10' : 'bg-zinc-800'}`}>
+                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <HardDrive className="w-5 h-5 text-blue-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : site.site_type === 'external_host' ? <ExternalLink className="w-5 h-5 text-cyan-400" /> : site.site_type === 'wp_security' ? <Shield className="w-5 h-5 text-red-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
                         </div>
                       )}
                       <div>

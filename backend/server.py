@@ -69,6 +69,7 @@ from routers.radioplayer import radioplayer_router
 from routers.cli import cli_router
 from routers.canva import canva_router
 from routers.domains import domains_router
+from routers.wp_security import wp_security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -141,6 +142,7 @@ api_router.include_router(environments_router)
 api_router.include_router(cli_router)
 api_router.include_router(canva_router)
 api_router.include_router(domains_router)
+api_router.include_router(wp_security_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
@@ -710,7 +712,7 @@ async def send_test_email(current_user: dict = Depends(require_admin)):
             <p style="color: #666; font-size: 12px;">Clara Radio Dashboard</p>
         </div>
         """,
-        plain_body=f"Test e-mail succesvol! SMTP configuratie werkt correct."
+        plain_body="Test e-mail succesvol! SMTP configuratie werkt correct."
     )
     
     if success:
