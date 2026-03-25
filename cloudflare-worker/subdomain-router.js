@@ -1,57 +1,59 @@
 /**
- * Clara Subdomain Router — Cloudflare Worker
+ * ╔═══════════════════════════════════════════════════════════╗
+ * ║  Clara Subdomain Router — Cloudflare Worker              ║
+ * ║  Koodh.com Network                                       ║
+ * ╚═══════════════════════════════════════════════════════════╝
  * 
- * This Worker sits between *.koodh.com and the Clara origin server.
- * It intercepts requests on configured subdomains and proxies them
- * to the main Clara application.
+ * WHAT IT DOES:
+ *   login.koodh.com  → proxies to → clara.koodh.com  (React shows /login)
+ *   global.koodh.com → proxies to → clara.koodh.com  (React shows /network)
+ *   test.koodh.com   → proxies to → clara.koodh.com  (React shows /)
+ *   clara.koodh.com  → passes through (no modification)
  * 
- * How it works:
- * 1. User visits login.koodh.com
- * 2. Worker detects subdomain "login"
- * 3. Worker proxies the request to ORIGIN (clara.koodh.com)
- * 4. The React app detects the subdomain and shows the correct page
- * 5. User sees login.koodh.com in their browser
+ * SETUP:
+ *   1. Workers & Pages → Create Worker → paste this code
+ *   2. Triggers → Add route: *.koodh.com/*  (zone: koodh.com)
+ *   3. Done!
  * 
- * ═══════════════════════════════════════════
- *  CONFIGURATION — Change these values:
- * ═══════════════════════════════════════════
+ * ═══════════════════════════════════════════════════════════
+ *  CONFIGURATION — Only change these if needed:
+ * ═══════════════════════════════════════════════════════════
  */
 
 const CONFIG = {
-  // Your base domain (without any subdomain)
+  // Your base domain
   BASE_DOMAIN: 'koodh.com',
-  
-  // The main Clara app subdomain (requests here pass through without modification)
+
+  // The main Clara subdomain — requests here pass through untouched
   APP_SUBDOMAIN: 'clara',
-  
-  // Full origin URL of your Clara app (the Emergent deployment URL or clara.koodh.com)
+
+  // Origin URL of your Clara app
+  // Option 1: Use clara.koodh.com (works, adds 1 extra Cloudflare hop)
+  // Option 2: Use your direct Emergent URL for better performance
+  //           e.g. 'https://clara-radio.emergentagent.com'
   ORIGIN: 'https://clara.koodh.com',
-  
-  // API endpoint to fetch route table (public, no auth needed)
+
+  // Public API that returns the route table (no auth needed)
   ROUTES_API: 'https://clara.koodh.com/api/domains/routes/public',
-  
-  // Cache TTL for the route table (in seconds)
-  CACHE_TTL: 300, // 5 minutes
+
+  // How long to cache the route table (seconds)
+  // Lower = faster route changes, Higher = fewer API calls
+  CACHE_TTL: 300,
 };
 
-/**
- * Route table cache
- */
+// ─── Route table cache ───────────────────────────────────
 let routeCache = null;
 let routeCacheTime = 0;
 
-/**
- * Fetch and cache the route table from Clara API
- */
 async function getRoutes() {
   const now = Date.now();
   if (routeCache && (now - routeCacheTime) < CONFIG.CACHE_TTL * 1000) {
     return routeCache;
   }
-  
+
   try {
     const res = await fetch(CONFIG.ROUTES_API, {
-      headers: { 'User-Agent': 'Clara-Subdomain-Worker/1.0' },
+      headers: { 'User-Agent': 'Clara-Worker/1.0' },
     });
     if (res.ok) {
       routeCache = await res.json();
@@ -59,108 +61,114 @@ async function getRoutes() {
       return routeCache;
     }
   } catch (e) {
-    console.error('Failed to fetch routes:', e);
+    console.error('[Clara Worker] Route fetch failed:', e);
   }
-  
-  // Return cached data even if stale, or empty
+
   return routeCache || { routes: [], base_domain: CONFIG.BASE_DOMAIN };
 }
 
-/**
- * Main request handler
- */
+// ─── Main handler ────────────────────────────────────────
 async function handleRequest(request) {
   const url = new URL(request.url);
   const hostname = url.hostname;
-  
-  // Skip if not on a subdomain of BASE_DOMAIN
+
+  // Not a subdomain of our domain? Pass through.
   if (!hostname.endsWith(`.${CONFIG.BASE_DOMAIN}`)) {
     return fetch(request);
   }
-  
-  // Extract subdomain
+
   const subdomain = hostname.replace(`.${CONFIG.BASE_DOMAIN}`, '');
-  
-  // If it's the main app subdomain, pass through without modification
+
+  // Main app subdomain → pass through, no modification
   if (subdomain === CONFIG.APP_SUBDOMAIN) {
     return fetch(request);
   }
-  
-  // Check if this subdomain is configured
+
+  // Fetch route table
   const data = await getRoutes();
   const route = data.routes?.find(r => r.subdomain === subdomain);
-  
+
+  // ─── Unknown subdomain → 404 ──────────────────────────
   if (!route) {
-    // Unknown subdomain — return a friendly 404
     return new Response(
-      `<html>
-        <head><title>Not Found</title></head>
-        <body style="font-family:system-ui;background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">
-          <div style="text-align:center">
-            <h1 style="color:#f4f4f5;font-size:1.5rem">Subdomain not configured</h1>
-            <p>${hostname} is not a recognized subdomain.</p>
-            <p style="margin-top:1rem"><a href="https://${CONFIG.APP_SUBDOMAIN}.${CONFIG.BASE_DOMAIN}" style="color:#f97316">Go to Clara Dashboard</a></p>
-          </div>
-        </body>
-      </html>`,
-      {
-        status: 404,
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
-      }
+      `<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Niet gevonden — ${hostname}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #09090b; color: #a1a1aa; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .box { text-align: center; max-width: 400px; padding: 2rem; }
+    h1 { color: #f4f4f5; font-size: 1.25rem; margin-bottom: 0.5rem; }
+    p { font-size: 0.875rem; line-height: 1.5; }
+    a { color: #f97316; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .sub { color: #f97316; font-family: monospace; }
+    .back { margin-top: 1.5rem; display: inline-block; padding: 0.5rem 1.25rem; border: 1px solid #27272a; border-radius: 0.5rem; color: #d4d4d8; font-size: 0.875rem; }
+    .back:hover { background: #18181b; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Subdomain niet geconfigureerd</h1>
+    <p><span class="sub">${hostname}</span> is niet ingesteld als actieve route.</p>
+    <p style="margin-top:0.75rem">Ga naar <strong>Clara Dashboard → Domain Manager → Subdomain Routing</strong> om deze route aan te maken.</p>
+    <a href="https://${CONFIG.APP_SUBDOMAIN}.${CONFIG.BASE_DOMAIN}" class="back">Naar Clara Dashboard</a>
+  </div>
+</body>
+</html>`,
+      { status: 404, headers: { 'Content-Type': 'text/html;charset=UTF-8' } }
     );
   }
-  
-  // Proxy to origin — keep original path, just change hostname
+
+  // ─── Proxy to origin ──────────────────────────────────
+  const originHostname = new URL(CONFIG.ORIGIN).hostname;
   const originUrl = new URL(request.url);
-  originUrl.hostname = new URL(CONFIG.ORIGIN).hostname;
+  originUrl.hostname = originHostname;
   originUrl.protocol = 'https:';
-  
-  // Forward the request to the origin
-  const originRequest = new Request(originUrl.toString(), {
-    method: request.method,
-    headers: request.headers,
-    body: request.body,
-    redirect: 'manual', // Don't follow redirects automatically
-  });
-  
-  // Set the correct Host header for the origin
-  const newHeaders = new Headers(originRequest.headers);
-  newHeaders.set('Host', new URL(CONFIG.ORIGIN).hostname);
-  newHeaders.set('X-Forwarded-Host', hostname);
-  newHeaders.set('X-Original-Subdomain', subdomain);
-  
+
+  // Build new headers
+  const headers = new Headers(request.headers);
+  headers.set('Host', originHostname);
+  headers.set('X-Forwarded-Host', hostname);
+  headers.set('X-Forwarded-Proto', 'https');
+  headers.set('X-Original-Subdomain', subdomain);
+  headers.set('X-Original-URL', request.url);
+
+  // Forward request to origin
   const response = await fetch(originUrl.toString(), {
     method: request.method,
-    headers: newHeaders,
-    body: request.body,
+    headers: headers,
+    body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : undefined,
     redirect: 'manual',
   });
-  
-  // Clone response and modify headers to allow the subdomain origin
-  const responseHeaders = new Headers(response.headers);
-  
-  // Handle redirects — rewrite location header to keep subdomain
-  const location = responseHeaders.get('Location');
+
+  // Rewrite redirect Location headers to stay on subdomain
+  const respHeaders = new Headers(response.headers);
+  const location = respHeaders.get('Location');
   if (location) {
     try {
       const locUrl = new URL(location, originUrl);
-      if (locUrl.hostname === new URL(CONFIG.ORIGIN).hostname) {
+      if (locUrl.hostname === originHostname) {
         locUrl.hostname = hostname;
-        responseHeaders.set('Location', locUrl.toString());
+        respHeaders.set('Location', locUrl.toString());
       }
-    } catch {
-      // Keep original location
-    }
+    } catch { /* keep original */ }
   }
-  
+
+  // Remove security headers that might block subdomain
+  respHeaders.delete('X-Frame-Options');
+
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
-    headers: responseHeaders,
+    headers: respHeaders,
   });
 }
 
-// Cloudflare Worker event listener
+// ─── Cloudflare Worker entry point ──────────────────────
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request));
 });
