@@ -117,6 +117,13 @@ export default function DomainManager() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Auto-load Cloudflare DNS records when config is available
+  useEffect(() => {
+    if (cfConfig?.configured && cfConfig?.zone_id) {
+      fetchCfDnsRecords(true);
+    }
+  }, [cfConfig?.configured, cfConfig?.zone_id]);
+
   // Determine setup step based on config state
   useEffect(() => {
     if (!cfConfig) return;
@@ -249,14 +256,14 @@ export default function DomainManager() {
     setCfVerifying(false);
   };
 
-  const fetchCfDnsRecords = async () => {
+  const fetchCfDnsRecords = async (silent = false) => {
     setCfLoadingRecords(true);
     try {
       const res = await fetch(`${API}/api/domains/cloudflare/dns-records`, { headers });
       const data = await res.json();
-      if (res.ok) { setCfDnsRecords(data.records || []); toast.success(`${data.total || 0} DNS records loaded`); }
-      else toast.error(data.detail || 'Failed to load DNS records');
-    } catch { toast.error('Connection error'); }
+      if (res.ok) { setCfDnsRecords(data.records || []); if (!silent) toast.success(`${data.total || 0} DNS records loaded`); }
+      else if (!silent) toast.error(data.detail || 'Failed to load DNS records');
+    } catch { if (!silent) toast.error('Connection error'); }
     setCfLoadingRecords(false);
   };
 
@@ -290,6 +297,22 @@ export default function DomainManager() {
   const unconfiguredSites = mainSites.filter(s => !configs.find(c => c.main_site_id === s.id));
   const cfZoneUrl = cfConfig?.zone_id ? `https://dash.cloudflare.com/${cfConfig.zone_id}` : 'https://dash.cloudflare.com';
   const cfDnsUrl = cfConfig?.zone_id ? `https://dash.cloudflare.com/${cfConfig.zone_id}/dns/records` : 'https://dash.cloudflare.com';
+
+  // Build DNS lookup map: "subdomain.basedomain" → record
+  const dnsLookup = {};
+  cfDnsRecords.forEach(r => { dnsLookup[r.name] = r; });
+
+  // Check DNS status for a route
+  const getRouteDnsStatus = (route) => {
+    const fqdn = `${route.subdomain}.${baseDomain}`;
+    const record = dnsLookup[fqdn];
+    if (record) return { exists: true, record, type: record.type, proxied: record.proxied };
+    return { exists: false };
+  };
+
+  // Count routes missing DNS
+  const activeRoutes = routes.filter(r => r.is_active);
+  const routesMissingDns = activeRoutes.filter(r => !getRouteDnsStatus(r).exists);
 
   if (loading) return <div className="flex items-center justify-center py-12" data-testid="domain-manager-loading"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>;
 
@@ -446,10 +469,64 @@ export default function DomainManager() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <p className="text-sm text-zinc-400">Configure which subdomains route to which part of the platform.</p>
-            <Button onClick={openCreateRoute} size="sm" data-testid="create-route-btn"><Plus className="w-4 h-4 mr-1" /> New Route</Button>
+            <div className="flex items-center gap-2">
+              {cfConfig?.configured && (
+                <Button variant="outline" size="sm" onClick={() => { setCfSyncDialog(true); syncWithCloudflare(); }} disabled={cfSyncing} data-testid="routing-sync-dns-btn">
+                  {cfSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                  Sync DNS
+                </Button>
+              )}
+              <Button onClick={openCreateRoute} size="sm" data-testid="create-route-btn"><Plus className="w-4 h-4 mr-1" /> New Route</Button>
+            </div>
           </div>
+
+          {/* Warning: routes without DNS records */}
+          {cfConfig?.configured && cfDnsRecords.length > 0 && routesMissingDns.length > 0 && (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3" data-testid="dns-missing-warning">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-amber-300">{routesMissingDns.length} active route(s) without DNS record</p>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    These subdomains won't work until their DNS records are created in Cloudflare.
+                    Click <strong className="text-zinc-300">"Sync DNS"</strong> to automatically create the missing records.
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {routesMissingDns.map(r => (
+                      <span key={r.id} className="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 border border-amber-500/20 text-amber-300 font-mono">
+                        {r.subdomain}.{baseDomain}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => { setCfSyncDialog(true); syncWithCloudflare(); }} disabled={cfSyncing} className="flex-shrink-0 border-amber-500/30 text-amber-400 hover:bg-amber-500/10">
+                  {cfSyncing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                  Fix now
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Warning: Cloudflare not configured */}
+          {!cfConfig?.configured && routes.length > 0 && (
+            <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-3" data-testid="cf-not-configured-warning">
+              <div className="flex items-start gap-2">
+                <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-red-300">Cloudflare not configured</p>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Subdomain routes require DNS records in Cloudflare to work.
+                    Go to the <button onClick={() => setActiveTab('cloudflare')} className="text-orange-400 hover:underline font-medium">Cloudflare tab</button> to set up your API credentials first.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3">
-            {routes.map(route => (
+            {routes.map(route => {
+              const dns = getRouteDnsStatus(route);
+              return (
               <Card key={route.id} className={`border-zinc-800 ${route.is_active ? 'bg-zinc-900' : 'bg-zinc-950/50 opacity-60'}`} data-testid={`route-card-${route.subdomain}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -460,6 +537,18 @@ export default function DomainManager() {
                           <span className="text-sm font-mono text-white font-medium">{route.subdomain}.{baseDomain}</span>
                           <span className={`px-2 py-0.5 rounded text-[10px] border ${ROUTE_TYPE_COLORS[route.route_type] || 'bg-zinc-700 text-zinc-300 border-zinc-600'}`}>{ROUTE_TYPE_LABELS[route.route_type] || route.route_type}</span>
                           {route.is_system && <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-500">System</span>}
+                          {/* DNS status badge */}
+                          {cfConfig?.configured && route.is_active && (
+                            dns.exists ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1" data-testid={`dns-ok-${route.subdomain}`}>
+                                <CheckCircle className="w-2.5 h-2.5" /> DNS
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1" data-testid={`dns-missing-${route.subdomain}`}>
+                                <AlertTriangle className="w-2.5 h-2.5" /> No DNS
+                              </span>
+                            )
+                          )}
                         </div>
                         <p className="text-xs text-zinc-500 mt-0.5">{route.label}{route.description ? ` — ${route.description}` : ''}</p>
                       </div>
@@ -479,7 +568,8 @@ export default function DomainManager() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
           {routes.length === 0 && (
             <Card className="bg-zinc-900 border-zinc-800"><CardContent className="flex flex-col items-center justify-center py-12"><ArrowRight className="w-12 h-12 text-zinc-600 mb-3" /><p className="text-zinc-400 text-sm">No subdomain routes configured yet</p></CardContent></Card>
