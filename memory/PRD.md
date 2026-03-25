@@ -3807,3 +3807,28 @@ now = now_brussels()  # Automatically handles CET/CEST
 - **Issue**: Creating a new WP Security site from Network Dashboard failed with "Failed to create main site"
 - **Root cause**: The `wp_security_*` feature IDs (`wp_security_dashboard`, `wp_waf_rules`, `wp_ip_blocklist`, `wp_login_protection`) were not included in the `AVAILABLE_FEATURES` list in `backend/models/main_sites.py`, causing feature validation to fail
 - **Fix**: Added 4 WP Security features to the `AVAILABLE_FEATURES` list under a new `wp_security` group
+
+
+### 2026-03-25: WordPress Security — Cloudflare WAF & Wordfence Integration (Complete)
+- **Major Feature**: WordPress Security wizard expanded from 4 to 6 steps with real Cloudflare and Wordfence integration
+- **New backend services**:
+  - `/app/backend/services/cloudflare_waf.py` — Cloudflare Rulesets API integration (WAF rules, IP Access Rules)
+  - `/app/backend/services/wordfence.py` — Wordfence plugin detection + Intelligence vulnerability scanning
+- **New API endpoints**:
+  - `PUT /api/wp-security/cloudflare-config` — Save CF API Token + Zone ID per WP site
+  - `GET /api/wp-security/cloudflare-test` — Test CF credentials with structured error steps
+  - `GET /api/wp-security/wordfence-status` — Check Wordfence install + scan vulnerabilities
+- **Enhanced endpoints** (now sync to Cloudflare when configured):
+  - `PUT /api/wp-security/waf-rules` — Pushes rules to Cloudflare WAF custom rulesets
+  - `POST /api/wp-security/blocklist` — Blocks IPs via Cloudflare IP Access Rules
+  - `PUT /api/wp-security/login-protection` — Creates CF WAF rules for login protection
+- **Frontend wizard** (6 steps):
+  1. WordPress URL (with multi-check WordPress detection)
+  2. Cloudflare API credentials (with test connection button)
+  3. WAF Rules (with "Local only" / "Synced to Cloudflare" badge)
+  4. IP Blocklist (synced to Cloudflare)
+  5. Login Protection (synced to Cloudflare)
+  6. Wordfence Monitor (plugin detection + vulnerability scan)
+- **API token security**: CF API token is masked in config responses (cf_api_token_set + cf_api_token_preview)
+- **WordPress detection**: Enhanced to check HTML content, headers, /wp-json/, /wp-login.php
+- Tested: iteration_125 — 100% backend (31/31) + 100% frontend
