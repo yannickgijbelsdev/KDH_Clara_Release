@@ -178,26 +178,84 @@ async def test_wp_connection(
             ],
         }
 
+    wp_url = wp_url.rstrip("/")
+
     try:
         async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
+            # Check 1: Main page HTML + headers
             resp = await client.get(wp_url)
-            if resp.status_code == 200:
-                # Check if it's actually WordPress
-                body = resp.text[:5000].lower()
-                is_wp = 'wp-content' in body or 'wordpress' in body or 'wp-json' in body
-                if is_wp:
-                    return {"status": "ok", "message": f"WordPress site reachable ({wp_url})", "is_wordpress": True}
-                return {"status": "warning", "message": "Site reachable but may not be WordPress", "steps": ["The site responded but no WordPress indicators were found", "Verify the URL is correct"]}
+            if resp.status_code >= 400:
+                return {
+                    "status": "error",
+                    "message": f"Site returned HTTP {resp.status_code}",
+                    "steps": [f"The site returned HTTP {resp.status_code}", "Verify the URL is correct and the site is online"],
+                }
+
+            body = resp.text[:10000].lower()
+            headers_str = str(resp.headers).lower()
+            wp_indicators = []
+
+            if "wp-content" in body:
+                wp_indicators.append("wp-content found in HTML")
+            if "wp-includes" in body:
+                wp_indicators.append("wp-includes found in HTML")
+            if "wp-json" in body or "wp-json" in headers_str:
+                wp_indicators.append("wp-json API reference found")
+            if "wordpress" in body:
+                wp_indicators.append("WordPress reference in HTML")
+            if 'name="generator" content="wordpress' in body:
+                wp_indicators.append("WordPress generator meta tag found")
+            if "x-powered-by" in headers_str and "wordpress" in headers_str:
+                wp_indicators.append("X-Powered-By: WordPress header")
+
+            # Check 2: Try /wp-json/ REST API
+            if not wp_indicators:
+                try:
+                    api_resp = await client.get(f"{wp_url}/wp-json/", timeout=5)
+                    if api_resp.status_code == 200:
+                        api_body = api_resp.text[:2000].lower()
+                        if "wp/v2" in api_body or "wordpress" in api_body:
+                            wp_indicators.append("WordPress REST API (/wp-json/) detected")
+                except Exception:
+                    pass
+
+            # Check 3: Try /wp-login.php
+            if not wp_indicators:
+                try:
+                    login_resp = await client.get(f"{wp_url}/wp-login.php", timeout=5)
+                    if login_resp.status_code == 200 and ("wp-login" in login_resp.text[:3000].lower() or "wordpress" in login_resp.text[:3000].lower()):
+                        wp_indicators.append("WordPress login page (/wp-login.php) found")
+                except Exception:
+                    pass
+
+            if wp_indicators:
+                return {
+                    "status": "ok",
+                    "message": f"WordPress site reachable ({wp_url})",
+                    "is_wordpress": True,
+                    "indicators": wp_indicators,
+                }
+
             return {
-                "status": "error",
-                "message": f"Site returned HTTP {resp.status_code}",
-                "steps": [f"The site returned HTTP {resp.status_code}", "Verify the URL is correct and the site is online"],
+                "status": "warning",
+                "message": "Site reachable but may not be WordPress",
+                "steps": [
+                    "The site responded but no WordPress indicators were found",
+                    "Checked: HTML content, response headers, /wp-json/ API, /wp-login.php",
+                    "If this is a WordPress site, a security plugin may be hiding these indicators",
+                    "You can still proceed — WAF rules and login protection will work on any site behind Cloudflare",
+                ],
             }
+
     except httpx.ConnectError:
         return {
             "status": "error",
             "message": f"Cannot reach {wp_url}",
-            "steps": ["The site is not reachable", "Check the URL and make sure the site is online"],
+            "steps": [
+                "The site is not reachable",
+                "Check the URL and make sure the site is online",
+                "Make sure the domain is correct (include https://)",
+            ],
         }
     except httpx.TimeoutException:
         return {

@@ -90,6 +90,14 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
                 )}
               </div>
             )}
+            {/* Show indicators on success (e.g. WordPress detection details) */}
+            {status?.indicators?.length > 0 && status.status === 'ok' && !loading && (
+              <div className="mt-1.5 flex flex-wrap gap-1" data-testid="connection-indicators">
+                {status.indicators.map((ind, i) => (
+                  <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">{ind}</span>
+                ))}
+              </div>
+            )}
             {/* Fallback: render legacy suggestion string */}
             {hasSuggestion && status.status !== 'ok' && !loading && (
               <div className="mt-1.5 flex items-start gap-1.5">
