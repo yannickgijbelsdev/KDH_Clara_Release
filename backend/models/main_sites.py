@@ -47,6 +47,12 @@ AVAILABLE_FEATURES = [
 
     # Task management group
     {"id": "task_boards", "name": "Task Boards", "group": "tasks"},
+
+    # WP Security group
+    {"id": "wp_security_dashboard", "name": "WP Security Dashboard", "group": "wp_security"},
+    {"id": "wp_waf_rules", "name": "WAF Rules", "group": "wp_security"},
+    {"id": "wp_ip_blocklist", "name": "IP Blocklist", "group": "wp_security"},
+    {"id": "wp_login_protection", "name": "Login Protection", "group": "wp_security"},
 ]
 
 

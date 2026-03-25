@@ -3802,3 +3802,8 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Added dedicated sidebar navigation for wp_security sites
 - **ConnectionStatus**: Updated component to support configurable HTTP method
 - Tested: iteration_124 — 100% backend (20/20) + 100% frontend
+
+### 2026-03-25: Bug Fix — WP Security Site Creation
+- **Issue**: Creating a new WP Security site from Network Dashboard failed with "Failed to create main site"
+- **Root cause**: The `wp_security_*` feature IDs (`wp_security_dashboard`, `wp_waf_rules`, `wp_ip_blocklist`, `wp_login_protection`) were not included in the `AVAILABLE_FEATURES` list in `backend/models/main_sites.py`, causing feature validation to fail
+- **Fix**: Added 4 WP Security features to the `AVAILABLE_FEATURES` list under a new `wp_security` group
