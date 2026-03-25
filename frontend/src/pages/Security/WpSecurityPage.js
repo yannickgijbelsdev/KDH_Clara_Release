@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useMainSite } from '../../context/MainSiteContext';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
@@ -32,9 +32,8 @@ function StepIndicator({ steps, current }) {
 }
 
 export default function WpSecurityPage() {
-  const { currentSite } = useMainSite();
+  const { mainSite } = useMainSite();
   const { token } = useAuth();
-  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'x-main-site-id': currentSite?.id };
 
   // Wizard state
   const [setupStep, setSetupStep] = useState(0);
@@ -60,37 +59,49 @@ export default function WpSecurityPage() {
   const [loginProtection, setLoginProtection] = useState({ enabled: false, block_xmlrpc: true, limit_login_attempts: true, max_attempts: 5 });
   const [loginSaving, setLoginSaving] = useState(false);
 
-  const mainSiteId = currentSite?.id;
+  const mainSiteId = mainSite?.id;
 
-  const fetchConfig = useCallback(async () => {
-    if (!mainSiteId) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`${API}/api/wp-security/config`, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        setConfig(data);
-        setWpUrl(data.wordpress_url || '');
-        setWafRules(data.waf_rules || getDefaultWafRules());
-        setBlocklist(data.ip_blocklist || []);
-        setLoginProtection(data.login_protection || { enabled: false, block_xmlrpc: true, limit_login_attempts: true, max_attempts: 5 });
+  const getHeaders = () => ({
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    'x-main-site-id': mainSiteId || '',
+  });
 
-        // Determine wizard step
-        if (data.wordpress_url) {
-          if (data.waf_rules?.length > 0) {
-            if (data.login_protection?.enabled) setSetupStep(4);
-            else setSetupStep(3);
-          } else setSetupStep(2);
-        } else setSetupStep(0);
-      } else {
-        setSetupStep(0);
-        setWafRules(getDefaultWafRules());
-      }
-    } catch { toast.error('Failed to load security config'); }
-    setLoading(false);
-  }, [mainSiteId]);
+  const [refetchCount, setRefetchCount] = useState(0);
+  const refetch = () => setRefetchCount(c => c + 1);
 
-  useEffect(() => { fetchConfig(); }, [fetchConfig]);
+  useEffect(() => {
+    if (!mainSiteId) { setLoading(false); return; }
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API}/api/wp-security/config`, {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'x-main-site-id': mainSiteId }
+        });
+        if (cancelled) return;
+        if (res.ok) {
+          const data = await res.json();
+          setConfig(data);
+          setWpUrl(data.wordpress_url || '');
+          setWafRules(data.waf_rules || getDefaultWafRules());
+          setBlocklist(data.ip_blocklist || []);
+          setLoginProtection(data.login_protection || { enabled: false, block_xmlrpc: true, limit_login_attempts: true, max_attempts: 5 });
+          if (data.wordpress_url) {
+            if (data.waf_rules?.length > 0) {
+              if (data.login_protection?.enabled) setSetupStep(4);
+              else setSetupStep(3);
+            } else setSetupStep(2);
+          } else setSetupStep(0);
+        } else {
+          setSetupStep(0);
+          setWafRules(getDefaultWafRules());
+        }
+      } catch { if (!cancelled) toast.error('Failed to load security config'); }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [mainSiteId, token, refetchCount]);
 
   function getDefaultWafRules() {
     return [
@@ -107,9 +118,9 @@ export default function WpSecurityPage() {
     setWpSaving(true);
     try {
       const res = await fetch(`${API}/api/wp-security/config`, {
-        method: 'PUT', headers, body: JSON.stringify({ wordpress_url: wpUrl })
+        method: 'PUT', headers: getHeaders(), body: JSON.stringify({ wordpress_url: wpUrl })
       });
-      if (res.ok) { toast.success('WordPress URL saved'); setSetupStep(Math.max(setupStep, 1)); setEditStep(null); await fetchConfig(); }
+      if (res.ok) { toast.success('WordPress URL saved'); setSetupStep(Math.max(setupStep, 1)); setEditStep(null); refetch(); }
       else { const e = await res.json(); toast.error(e.detail || 'Save failed'); }
     } catch { toast.error('Save failed'); }
     setWpSaving(false);
@@ -119,9 +130,9 @@ export default function WpSecurityPage() {
     setWafSaving(true);
     try {
       const res = await fetch(`${API}/api/wp-security/waf-rules`, {
-        method: 'PUT', headers, body: JSON.stringify({ rules: wafRules })
+        method: 'PUT', headers: getHeaders(), body: JSON.stringify({ rules: wafRules })
       });
-      if (res.ok) { toast.success('WAF rules saved'); setSetupStep(Math.max(setupStep, 2)); setEditStep(null); await fetchConfig(); }
+      if (res.ok) { toast.success('WAF rules saved'); setSetupStep(Math.max(setupStep, 2)); setEditStep(null); refetch(); }
       else { const e = await res.json(); toast.error(e.detail || 'Save failed'); }
     } catch { toast.error('Save failed'); }
     setWafSaving(false);
@@ -132,9 +143,9 @@ export default function WpSecurityPage() {
     setBlockSaving(true);
     try {
       const res = await fetch(`${API}/api/wp-security/blocklist`, {
-        method: 'POST', headers, body: JSON.stringify({ ip: newBlockIp.trim(), note: newBlockNote.trim() })
+        method: 'POST', headers: getHeaders(), body: JSON.stringify({ ip: newBlockIp.trim(), note: newBlockNote.trim() })
       });
-      if (res.ok) { toast.success(`${newBlockIp} blocked`); setNewBlockIp(''); setNewBlockNote(''); await fetchConfig(); }
+      if (res.ok) { toast.success(`${newBlockIp} blocked`); setNewBlockIp(''); setNewBlockNote(''); refetch(); }
       else { const e = await res.json(); toast.error(e.detail || 'Failed to add IP'); }
     } catch { toast.error('Failed to add IP'); }
     setBlockSaving(false);
@@ -142,8 +153,8 @@ export default function WpSecurityPage() {
 
   const removeFromBlocklist = async (ip) => {
     try {
-      const res = await fetch(`${API}/api/wp-security/blocklist/${encodeURIComponent(ip)}`, { method: 'DELETE', headers });
-      if (res.ok) { toast.success(`${ip} removed from blocklist`); await fetchConfig(); }
+      const res = await fetch(`${API}/api/wp-security/blocklist/${encodeURIComponent(ip)}`, { method: 'DELETE', headers: getHeaders() });
+      if (res.ok) { toast.success(`${ip} removed from blocklist`); refetch(); }
       else toast.error('Failed to remove IP');
     } catch { toast.error('Failed to remove IP'); }
   };
@@ -152,9 +163,9 @@ export default function WpSecurityPage() {
     setLoginSaving(true);
     try {
       const res = await fetch(`${API}/api/wp-security/login-protection`, {
-        method: 'PUT', headers, body: JSON.stringify(loginProtection)
+        method: 'PUT', headers: getHeaders(), body: JSON.stringify(loginProtection)
       });
-      if (res.ok) { toast.success('Login protection saved'); setSetupStep(Math.max(setupStep, 4)); setEditStep(null); await fetchConfig(); }
+      if (res.ok) { toast.success('Login protection saved'); setSetupStep(Math.max(setupStep, 4)); setEditStep(null); refetch(); }
       else { const e = await res.json(); toast.error(e.detail || 'Save failed'); }
     } catch { toast.error('Save failed'); }
     setLoginSaving(false);
@@ -184,7 +195,7 @@ export default function WpSecurityPage() {
 
       <ConnectionStatus
         testUrl={config?.wordpress_url ? `${API}/api/wp-security/test-connection` : null}
-        headers={headers}
+        headers={getHeaders()}
         label="WordPress Site"
         autoCheck={!!config?.wordpress_url}
       />

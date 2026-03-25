@@ -153,7 +153,7 @@ async def update_login_protection(
     return {"status": "ok"}
 
 
-@wp_security_router.post("/test-connection")
+@wp_security_router.get("/test-connection")
 async def test_wp_connection(
     request: Request,
     current_user: dict = Depends(require_system_admin),

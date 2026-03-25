@@ -10,7 +10,7 @@ import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Loader2, Wifi, External
  *  - label: string - Optional label like "Radioplayer API"
  *  - className: string - Extra classes
  */
-export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, className = '' }) {
+export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, className = '', method = 'GET' }) {
   const [status, setStatus] = useState(null); // null | {status, message, suggestion, steps, link, link_label}
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +18,7 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
     if (!testUrl) return;
     setLoading(true);
     try {
-      const res = await fetch(testUrl, { headers });
+      const res = await fetch(testUrl, { method, headers });
       if (res.ok) {
         const data = await res.json();
         setStatus(data);
@@ -116,7 +116,7 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
 /**
  * useConnectionTest - Hook for programmatic connection testing
  */
-export function useConnectionTest(testUrl, headers) {
+export function useConnectionTest(testUrl, headers, method = 'GET') {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -124,7 +124,7 @@ export function useConnectionTest(testUrl, headers) {
     if (!testUrl) return;
     setLoading(true);
     try {
-      const res = await fetch(testUrl, { headers });
+      const res = await fetch(testUrl, { method, headers });
       if (res.ok) {
         const data = await res.json();
         setStatus(data);
