@@ -1,4 +1,9 @@
-"""WordPress Security router — WAF rules, IP blocklist, login protection."""
+"""WordPress Security router — WAF rules, IP blocklist, login protection.
+
+All WAF rules, IP blocks, and rate limiting are synced to Cloudflare
+when credentials are configured. Wordfence monitoring provides
+vulnerability scanning and plugin detection.
+"""
 from fastapi import APIRouter, Depends, HTTPException, Request
 from datetime import datetime, timezone
 import httpx
@@ -6,6 +11,13 @@ import httpx
 from routers.domains import require_system_admin
 from services.main_site_context import get_main_site_id_from_header
 from routers.main_sites import db
+from services.cloudflare_waf import (
+    test_credentials as cf_test_credentials,
+    sync_waf_rules as cf_sync_waf_rules,
+    sync_ip_block as cf_sync_ip_block,
+    remove_ip_block as cf_remove_ip_block,
+)
+from services.wordfence import check_wordfence_installed, scan_vulnerabilities
 
 wp_security_router = APIRouter(prefix="/wp-security", tags=["wp-security"])
 
@@ -18,6 +30,21 @@ async def _get_wp_config(main_site_id: str) -> dict:
     return config or {}
 
 
+def _safe_config(config: dict) -> dict:
+    """Return config with sensitive fields masked."""
+    safe = {k: v for k, v in config.items()}
+    if safe.get("cf_api_token"):
+        safe["cf_api_token_set"] = True
+        safe["cf_api_token_preview"] = f"...{safe['cf_api_token'][-8:]}"
+        del safe["cf_api_token"]
+    else:
+        safe["cf_api_token_set"] = False
+        safe["cf_api_token_preview"] = None
+    return safe
+
+
+# ─── Config ─────────────────────────────────────────────────────────
+
 @wp_security_router.get("/config")
 async def get_wp_security_config(
     request: Request,
@@ -27,7 +54,7 @@ async def get_wp_security_config(
     if not main_site_id:
         raise HTTPException(status_code=400, detail="No main site context")
     config = await _get_wp_config(main_site_id)
-    return config
+    return _safe_config(config)
 
 
 @wp_security_router.put("/config")
@@ -58,6 +85,67 @@ async def update_wp_security_config(
     return {"status": "ok"}
 
 
+# ─── Cloudflare Credentials ────────────────────────────────────────
+
+@wp_security_router.put("/cloudflare-config")
+async def update_cloudflare_config(
+    request: Request,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Save Cloudflare API Token and Zone ID for this WP site."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if not main_site_id:
+        raise HTTPException(status_code=400, detail="No main site context")
+
+    body = await request.json()
+    update = {}
+    if "cf_api_token" in body:
+        update["cf_api_token"] = body["cf_api_token"].strip()
+    if "cf_zone_id" in body:
+        update["cf_zone_id"] = body["cf_zone_id"].strip()
+
+    if not update:
+        raise HTTPException(status_code=400, detail="No credentials provided")
+
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.wp_security_configs.update_one(
+        {"main_site_id": main_site_id},
+        {"$set": update, "$setOnInsert": {"created_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"status": "ok"}
+
+
+@wp_security_router.get("/cloudflare-test")
+async def test_cloudflare_config(
+    request: Request,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Test the stored Cloudflare credentials."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if not main_site_id:
+        return {"status": "error", "message": "No main site context"}
+
+    config = await _get_wp_config(main_site_id)
+    api_token = config.get("cf_api_token")
+    zone_id = config.get("cf_zone_id")
+
+    if not api_token or not zone_id:
+        return {
+            "status": "error",
+            "message": "Cloudflare credentials not configured",
+            "steps": [
+                "Enter your Cloudflare API Token and Zone ID in Step 2",
+                "Go to dash.cloudflare.com → Profile → API Tokens",
+                "Create a token with 'Zone WAF Edit' and 'Zone Read' permissions",
+            ],
+        }
+
+    return await cf_test_credentials(api_token, zone_id)
+
+
+# ─── WAF Rules ──────────────────────────────────────────────────────
+
 @wp_security_router.put("/waf-rules")
 async def update_waf_rules(
     request: Request,
@@ -76,8 +164,22 @@ async def update_waf_rules(
         {"$set": {"waf_rules": rules, "updated_at": now}},
         upsert=True,
     )
-    return {"status": "ok", "count": len(rules), "active": sum(1 for r in rules if r.get("enabled"))}
 
+    # Sync to Cloudflare if configured
+    config = await _get_wp_config(main_site_id)
+    cf_result = None
+    if config.get("cf_api_token") and config.get("cf_zone_id"):
+        cf_result = await cf_sync_waf_rules(config["cf_api_token"], config["cf_zone_id"], rules)
+
+    return {
+        "status": "ok",
+        "count": len(rules),
+        "active": sum(1 for r in rules if r.get("enabled")),
+        "cloudflare_sync": cf_result,
+    }
+
+
+# ─── IP Blocklist ───────────────────────────────────────────────────
 
 @wp_security_router.post("/blocklist")
 async def add_to_blocklist(
@@ -102,13 +204,20 @@ async def add_to_blocklist(
         "added_by": current_user.get("name", current_user.get("email", "")),
     }
 
-    # Add to blocklist array, avoid duplicates
+    # Sync to Cloudflare if configured
+    config = await _get_wp_config(main_site_id)
+    cf_result = None
+    if config.get("cf_api_token") and config.get("cf_zone_id"):
+        cf_result = await cf_sync_ip_block(config["cf_api_token"], config["cf_zone_id"], ip, note)
+        if cf_result.get("cf_rule_id"):
+            entry["cf_rule_id"] = cf_result["cf_rule_id"]
+
     await db.wp_security_configs.update_one(
         {"main_site_id": main_site_id},
         {"$push": {"ip_blocklist": entry}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}},
         upsert=True,
     )
-    return {"status": "ok", "ip": ip}
+    return {"status": "ok", "ip": ip, "cloudflare_sync": cf_result}
 
 
 @wp_security_router.delete("/blocklist/{ip}")
@@ -121,12 +230,20 @@ async def remove_from_blocklist(
     if not main_site_id:
         raise HTTPException(status_code=400, detail="No main site context")
 
+    # Remove from Cloudflare if configured
+    config = await _get_wp_config(main_site_id)
+    cf_result = None
+    if config.get("cf_api_token") and config.get("cf_zone_id"):
+        cf_result = await cf_remove_ip_block(config["cf_api_token"], config["cf_zone_id"], ip)
+
     await db.wp_security_configs.update_one(
         {"main_site_id": main_site_id},
         {"$pull": {"ip_blocklist": {"ip": ip}}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}},
     )
-    return {"status": "ok", "ip": ip}
+    return {"status": "ok", "ip": ip, "cloudflare_sync": cf_result}
 
+
+# ─── Login Protection ──────────────────────────────────────────────
 
 @wp_security_router.put("/login-protection")
 async def update_login_protection(
@@ -150,8 +267,31 @@ async def update_login_protection(
         {"$set": {"login_protection": login_protection, "updated_at": datetime.now(timezone.utc).isoformat()}},
         upsert=True,
     )
-    return {"status": "ok"}
 
+    # Sync login protection rules to Cloudflare WAF
+    config = await _get_wp_config(main_site_id)
+    cf_result = None
+    if config.get("cf_api_token") and config.get("cf_zone_id") and login_protection["enabled"]:
+        login_rules = []
+        if login_protection["block_xmlrpc"]:
+            login_rules.append({
+                "id": "login_block_xmlrpc", "name": "Block XML-RPC Auth",
+                "target": "/xmlrpc.php", "action": "block", "enabled": True,
+            })
+        if login_protection["limit_login_attempts"]:
+            login_rules.append({
+                "id": "login_rate_limit_wplogin", "name": "Rate Limit wp-login",
+                "target": "/wp-login.php", "action": "rate_limit", "enabled": True,
+            })
+        cf_result = await cf_sync_waf_rules(
+            config["cf_api_token"], config["cf_zone_id"],
+            login_rules, clara_prefix="clara-wp-login-",
+        )
+
+    return {"status": "ok", "cloudflare_sync": cf_result}
+
+
+# ─── WordPress / Connection Test ────────────────────────────────────
 
 @wp_security_router.get("/test-connection")
 async def test_wp_connection(
@@ -160,36 +300,20 @@ async def test_wp_connection(
 ):
     main_site_id = await get_main_site_id_from_header(request)
     if not main_site_id:
-        return {
-            "status": "error",
-            "message": "No main site context",
-            "steps": ["Navigate to a WP Security site first"],
-        }
+        return {"status": "error", "message": "No main site context", "steps": ["Navigate to a WP Security site first"]}
 
     config = await _get_wp_config(main_site_id)
     wp_url = config.get("wordpress_url")
     if not wp_url:
-        return {
-            "status": "error",
-            "message": "WordPress URL not configured",
-            "steps": [
-                "Enter the WordPress URL in Step 1",
-                "Example: https://yoursite.com",
-            ],
-        }
+        return {"status": "error", "message": "WordPress URL not configured", "steps": ["Enter the WordPress URL in Step 1", "Example: https://yoursite.com"]}
 
     wp_url = wp_url.rstrip("/")
 
     try:
         async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
-            # Check 1: Main page HTML + headers
             resp = await client.get(wp_url)
             if resp.status_code >= 400:
-                return {
-                    "status": "error",
-                    "message": f"Site returned HTTP {resp.status_code}",
-                    "steps": [f"The site returned HTTP {resp.status_code}", "Verify the URL is correct and the site is online"],
-                }
+                return {"status": "error", "message": f"Site returned HTTP {resp.status_code}", "steps": [f"The site returned HTTP {resp.status_code}", "Verify the URL is correct and the site is online"]}
 
             body = resp.text[:10000].lower()
             headers_str = str(resp.headers).lower()
@@ -208,7 +332,6 @@ async def test_wp_connection(
             if "x-powered-by" in headers_str and "wordpress" in headers_str:
                 wp_indicators.append("X-Powered-By: WordPress header")
 
-            # Check 2: Try /wp-json/ REST API
             if not wp_indicators:
                 try:
                     api_resp = await client.get(f"{wp_url}/wp-json/", timeout=5)
@@ -219,7 +342,6 @@ async def test_wp_connection(
                 except Exception:
                     pass
 
-            # Check 3: Try /wp-login.php
             if not wp_indicators:
                 try:
                     login_resp = await client.get(f"{wp_url}/wp-login.php", timeout=5)
@@ -229,39 +351,48 @@ async def test_wp_connection(
                     pass
 
             if wp_indicators:
-                return {
-                    "status": "ok",
-                    "message": f"WordPress site reachable ({wp_url})",
-                    "is_wordpress": True,
-                    "indicators": wp_indicators,
-                }
+                return {"status": "ok", "message": f"WordPress site reachable ({wp_url})", "is_wordpress": True, "indicators": wp_indicators}
 
-            return {
-                "status": "warning",
-                "message": "Site reachable but may not be WordPress",
-                "steps": [
-                    "The site responded but no WordPress indicators were found",
-                    "Checked: HTML content, response headers, /wp-json/ API, /wp-login.php",
-                    "If this is a WordPress site, a security plugin may be hiding these indicators",
-                    "You can still proceed — WAF rules and login protection will work on any site behind Cloudflare",
-                ],
-            }
+            return {"status": "warning", "message": "Site reachable but may not be WordPress", "steps": [
+                "The site responded but no WordPress indicators were found",
+                "Checked: HTML content, response headers, /wp-json/ API, /wp-login.php",
+                "If this is a WordPress site, a security plugin may be hiding these indicators",
+                "You can still proceed — WAF rules and login protection will work on any site behind Cloudflare",
+            ]}
 
     except httpx.ConnectError:
-        return {
-            "status": "error",
-            "message": f"Cannot reach {wp_url}",
-            "steps": [
-                "The site is not reachable",
-                "Check the URL and make sure the site is online",
-                "Make sure the domain is correct (include https://)",
-            ],
-        }
+        return {"status": "error", "message": f"Cannot reach {wp_url}", "steps": ["The site is not reachable", "Check the URL and make sure the site is online", "Make sure the domain is correct (include https://)"]}
     except httpx.TimeoutException:
-        return {
-            "status": "error",
-            "message": "Connection timed out",
-            "steps": ["The site is too slow to respond", "Try again in a few minutes"],
-        }
+        return {"status": "error", "message": "Connection timed out", "steps": ["The site is too slow to respond", "Try again in a few minutes"]}
     except Exception as e:
         return {"status": "error", "message": str(e), "steps": ["An unexpected error occurred"]}
+
+
+# ─── Wordfence ──────────────────────────────────────────────────────
+
+@wp_security_router.get("/wordfence-status")
+async def get_wordfence_status(
+    request: Request,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Check Wordfence installation and scan for vulnerabilities."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if not main_site_id:
+        return {"status": "error", "message": "No main site context"}
+
+    config = await _get_wp_config(main_site_id)
+    wp_url = config.get("wordpress_url")
+    if not wp_url:
+        return {"status": "error", "message": "WordPress URL not configured"}
+
+    # Check Wordfence installation
+    wf_status = await check_wordfence_installed(wp_url)
+
+    # Scan for vulnerabilities
+    vuln_scan = await scan_vulnerabilities(wp_url)
+
+    return {
+        "status": "ok",
+        "wordfence": wf_status,
+        "vulnerability_scan": vuln_scan,
+    }
