@@ -571,7 +571,7 @@ async def delete_cloudflare_dns_record(
 ):
     """Delete a single DNS record from Cloudflare."""
     token, zone_id, base_domain = await _get_cf_credentials()
-    data = await _cf_request("DELETE", f"/zones/{zone_id}/dns_records/{record_id}", token)
+    await _cf_request("DELETE", f"/zones/{zone_id}/dns_records/{record_id}", token)
     return {"status": "ok"}
 
 

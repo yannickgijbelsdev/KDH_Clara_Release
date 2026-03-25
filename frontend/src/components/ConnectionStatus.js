@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Loader2, Wifi } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Loader2, Wifi, ExternalLink } from 'lucide-react';
 
 /**
  * ConnectionStatus - Auto-checks and displays API connection health.
@@ -11,7 +11,7 @@ import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Loader2, Wifi } from 'l
  *  - className: string - Extra classes
  */
 export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, className = '' }) {
-  const [status, setStatus] = useState(null); // null | {status, message, suggestion}
+  const [status, setStatus] = useState(null); // null | {status, message, suggestion, steps, link, link_label}
   const [loading, setLoading] = useState(false);
 
   const runTest = useCallback(async () => {
@@ -23,10 +23,10 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
         const data = await res.json();
         setStatus(data);
       } else {
-        setStatus({ status: 'error', message: `HTTP ${res.status}`, suggestion: 'Server returned an error. Check your configuration.' });
+        setStatus({ status: 'error', message: `HTTP ${res.status}`, steps: ['Server returned an error. Check your configuration and try again.'] });
       }
     } catch {
-      setStatus({ status: 'error', message: 'Network error', suggestion: 'Could not reach the server. Check your connection.' });
+      setStatus({ status: 'error', message: 'Network error', steps: ['Could not reach the server.', 'Check your internet connection and try again.'] });
     } finally {
       setLoading(false);
     }
@@ -54,6 +54,10 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
     status?.status === 'warning' ? 'text-amber-400' :
     status?.status === 'error' ? 'text-red-400' : 'text-zinc-400';
 
+  // Determine if we have structured steps or a legacy suggestion string
+  const hasSteps = Array.isArray(status?.steps) && status.steps.length > 0;
+  const hasSuggestion = status?.suggestion && !hasSteps;
+
   return (
     <div className={`rounded-lg border p-3 ${bgColor} ${className}`} data-testid="connection-status">
       <div className="flex items-center justify-between">
@@ -65,7 +69,29 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
               {status?.message && <span className={`text-xs ${loading ? 'text-zinc-400' : statusColor}`}>{loading ? 'Testing connection...' : status.message}</span>}
               {!status && !loading && <span className="text-xs text-zinc-500">Click to test connection</span>}
             </div>
-            {status?.suggestion && status.status !== 'ok' && !loading && (
+            {/* Render structured steps as a numbered list */}
+            {hasSteps && status.status !== 'ok' && !loading && (
+              <div className="mt-2 rounded-md bg-zinc-900/60 border border-zinc-700/50 p-2.5" data-testid="connection-steps">
+                <p className="text-[10px] uppercase tracking-wider text-amber-500 font-semibold mb-1.5">How to fix this:</p>
+                <ol className="space-y-1 list-none">
+                  {status.steps.map((step, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                      <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+                {status.link && (
+                  <a href={status.link} target="_blank" rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-orange-400 hover:text-orange-300 transition-colors">
+                    <ExternalLink className="w-3 h-3" />
+                    {status.link_label || 'Open link'}
+                  </a>
+                )}
+              </div>
+            )}
+            {/* Fallback: render legacy suggestion string */}
+            {hasSuggestion && status.status !== 'ok' && !loading && (
               <div className="mt-1.5 flex items-start gap-1.5">
                 <AlertTriangle className="w-3 h-3 text-amber-500 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-zinc-400">{status.suggestion}</p>

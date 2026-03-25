@@ -113,18 +113,50 @@ async def test_connection(current_user: dict = Depends(require_admin)):
 
     config = await get_radioplayer_config()
     if not config:
-        return {"status": "error", "message": "No configuration found", "suggestion": "Enter your API credentials in Step 1."}
+        return {
+            "status": "error",
+            "message": "No configuration found",
+            "steps": [
+                "Open the Radioplayer wizard and enter your API credentials in Step 1",
+                "You need either an API Key or a username/password from your Radioplayer account",
+                "Log in at radioplayer.org to find your credentials",
+            ],
+            "link": "https://www.radioplayer.org",
+            "link_label": "Open Radioplayer Portal",
+        }
 
     api_key = config.get("api_key", "")
     username = config.get("username", "")
     password = config.get("password", "")
 
     if not api_key and (not username or not password):
-        return {"status": "error", "message": "No API credentials configured", "suggestion": "Enter your API Key or username/password in the API Credentials step."}
+        return {
+            "status": "error",
+            "message": "No API credentials configured",
+            "steps": [
+                "Go to radioplayer.org and log in with your station account",
+                "Navigate to your station settings to find your API Key",
+                "Alternatively, use your Radioplayer username and password",
+                "Enter the credentials in Step 1 of this wizard",
+            ],
+            "link": "https://www.radioplayer.org",
+            "link_label": "Open Radioplayer Portal",
+        }
 
     rpid = config.get("rpid", "")
     if not rpid:
-        return {"status": "error", "message": "No RPUID configured", "suggestion": "Enter your station RPUID in the Station Info step."}
+        return {
+            "status": "error",
+            "message": "No RPUID configured",
+            "steps": [
+                "Your station needs a Radioplayer Unique ID (RPUID)",
+                "Log in at radioplayer.org and go to your station settings",
+                "Find the RPUID — it's a numeric ID like '0566028'",
+                "Enter it in the Station Info step of this wizard",
+            ],
+            "link": "https://www.radioplayer.org",
+            "link_label": "Open Radioplayer Portal",
+        }
 
     base = config.get("ingest_base_url", "https://core-ingest.radioplayer.cloud").rstrip("/")
     country_code = config.get("country_code", "056")
@@ -143,17 +175,81 @@ async def test_connection(current_user: dict = Depends(require_admin)):
             if resp.status_code in (200, 201, 204, 405):
                 return {"status": "ok", "message": f"Connection successful (HTTP {resp.status_code})", "endpoint": test_url}
             elif resp.status_code == 401:
-                return {"status": "error", "message": "Authentication failed (401 Unauthorized)", "suggestion": "Check your API Key or username/password. Ensure they match your radioplayer.org account."}
+                return {
+                    "status": "error",
+                    "message": "Authentication failed (401 Unauthorized)",
+                    "steps": [
+                        "The API Key or username/password you entered was rejected",
+                        "Go to radioplayer.org and verify your credentials",
+                        "If using an API Key, make sure it hasn't expired",
+                        "If using username/password, double-check for typos",
+                        "Update the credentials in Step 1 of this wizard (click the step to re-open it)",
+                    ],
+                    "link": "https://www.radioplayer.org",
+                    "link_label": "Open Radioplayer Portal",
+                }
             elif resp.status_code == 403:
-                return {"status": "error", "message": "Access denied (403 Forbidden)", "suggestion": "Your credentials are valid but lack permission. Contact Radioplayer support to verify your account access."}
+                return {
+                    "status": "error",
+                    "message": "Access denied (403 Forbidden)",
+                    "steps": [
+                        "Your credentials are valid but your account lacks the required permissions",
+                        "Contact Radioplayer support to verify your account has 'Now Playing' push access",
+                        "Make sure your station is active and approved on the Radioplayer platform",
+                    ],
+                }
             elif resp.status_code == 404:
-                return {"status": "error", "message": f"Endpoint not found (404). RPUID '{rpid}' may be incorrect.", "suggestion": "Verify your RPUID on the Radioplayer portal. Make sure the station ID is correct."}
+                return {
+                    "status": "error",
+                    "message": f"Endpoint not found (404) — RPUID '{rpid}' may be incorrect",
+                    "steps": [
+                        f"The RPUID '{rpid}' was not found on Radioplayer's servers",
+                        "Go to radioplayer.org and check your station's RPUID",
+                        "Make sure the country code is correct (currently: {})".format(country_code),
+                        "Update the RPUID in the Station Info step (click the step to edit)",
+                    ],
+                    "link": "https://www.radioplayer.org",
+                    "link_label": "Open Radioplayer Portal",
+                }
             else:
-                return {"status": "warning", "message": f"Unexpected response (HTTP {resp.status_code})", "suggestion": f"The server responded with status {resp.status_code}. This may be temporary. Try again later."}
+                return {
+                    "status": "warning",
+                    "message": f"Unexpected response (HTTP {resp.status_code})",
+                    "steps": [
+                        f"The Radioplayer server responded with HTTP {resp.status_code}",
+                        "This is usually a temporary issue",
+                        "Wait a few minutes and click the refresh button to try again",
+                    ],
+                }
     except httpx.ConnectError:
-        return {"status": "error", "message": "Cannot reach Radioplayer servers", "suggestion": f"Failed to connect to {base}. Check your internet connection or verify the Ingest Base URL."}
+        return {
+            "status": "error",
+            "message": "Cannot reach Radioplayer servers",
+            "steps": [
+                f"Could not connect to {base}",
+                "Check your internet connection",
+                "Verify the Ingest Base URL is correct (default: https://core-ingest.radioplayer.cloud)",
+                "Wait a moment and try again — the server may be temporarily unavailable",
+            ],
+        }
     except httpx.TimeoutException:
-        return {"status": "error", "message": "Connection timed out", "suggestion": "Radioplayer servers are slow to respond. Try again later."}
+        return {
+            "status": "error",
+            "message": "Connection timed out",
+            "steps": [
+                "Radioplayer's servers are slow to respond",
+                "This is usually a temporary issue",
+                "Wait a few minutes and click the refresh button to try again",
+            ],
+        }
     except Exception as e:
-        return {"status": "error", "message": f"Connection test failed: {str(e)}", "suggestion": "An unexpected error occurred. Check your configuration and try again."}
+        return {
+            "status": "error",
+            "message": f"Connection test failed: {str(e)}",
+            "steps": [
+                "An unexpected error occurred during the test",
+                "Verify all your settings are correct",
+                "If the problem persists, contact Radioplayer support",
+            ],
+        }
 

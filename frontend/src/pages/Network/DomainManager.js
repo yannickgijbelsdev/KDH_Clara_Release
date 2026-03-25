@@ -222,11 +222,30 @@ export default function DomainManager() {
   const verifyCfToken = async () => {
     setCfVerifying(true); setCfVerifyResult(null);
     try {
-      const res = await fetch(`${API}/api/domains/cloudflare/verify-token`, { method: 'POST', headers });
-      const data = await res.json();
-      if (res.ok) { setCfVerifyResult(data); data.valid ? toast.success(`Connected to zone: ${data.zone_name}`) : toast.error('Token invalid or inactive'); }
-      else toast.error(data.detail || 'Verification failed');
-    } catch { toast.error('Verification failed'); }
+      // Use test-connection endpoint which returns detailed steps on error
+      const testRes = await fetch(`${API}/api/domains/cloudflare/test-connection`, { headers });
+      const testData = await testRes.json();
+      
+      if (testRes.ok && testData.status === 'ok') {
+        // Also get zone details via verify-token
+        const res = await fetch(`${API}/api/domains/cloudflare/verify-token`, { method: 'POST', headers });
+        const data = await res.json();
+        if (res.ok) { 
+          setCfVerifyResult({ ...data, valid: true }); 
+          toast.success(`Connected to zone: ${data.zone_name}`); 
+        } else {
+          setCfVerifyResult({ valid: false, token_status: 'error', steps: testData.steps || [], message: data.detail || 'Verification failed' });
+          toast.error(data.detail || 'Verification failed');
+        }
+      } else {
+        // Show the structured error with steps
+        setCfVerifyResult({ valid: false, token_status: 'error', steps: testData.steps || [], message: testData.message || 'Connection test failed', link: testData.link, link_label: testData.link_label });
+        toast.error(testData.message || 'Connection test failed');
+      }
+    } catch { 
+      setCfVerifyResult({ valid: false, token_status: 'error', steps: ['An unexpected error occurred', 'Check your network connection and try again'], message: 'Connection error' });
+      toast.error('Connection error'); 
+    }
     setCfVerifying(false);
   };
 
@@ -503,10 +522,36 @@ export default function DomainManager() {
               </div>
               {(setupStep === 0 || editStep === 0) && (
                 <div className="space-y-3">
-                  <p className="text-xs text-zinc-400">
-                    Create an API Token in Cloudflare with <strong className="text-zinc-300">Zone:DNS:Edit</strong> permissions.
-                    Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Cloudflare Dashboard &rarr; Profile &rarr; API Tokens</a> and click "Create Token".
-                  </p>
+                  <div className="rounded-md bg-zinc-800/60 border border-zinc-700/50 p-3 space-y-2">
+                    <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to create your Cloudflare API Token:</p>
+                    <ol className="space-y-1.5 list-none">
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">1</span>
+                        <span>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">dash.cloudflare.com/profile/api-tokens</a></span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">2</span>
+                        <span>Click <strong className="text-zinc-100">"Create Token"</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">3</span>
+                        <span>Find the template <strong className="text-zinc-100">"Edit zone DNS"</strong> and click <strong className="text-zinc-100">"Use template"</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">4</span>
+                        <span>Under <strong className="text-zinc-100">"Zone Resources"</strong>, select your domain (e.g. koodh.com)</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">5</span>
+                        <span>Click <strong className="text-zinc-100">"Continue to summary"</strong> → <strong className="text-zinc-100">"Create Token"</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">6</span>
+                        <span>Copy the token and paste it below</span>
+                      </li>
+                    </ol>
+                    <p className="text-[10px] text-amber-500/80 mt-1">Important: This is an <strong>API Token</strong>, not your Cloudflare password or Global API Key.</p>
+                  </div>
                   <div className="relative">
                     <Input type={showToken ? 'text' : 'password'} value={cfForm.api_token} onChange={e => setCfForm(p => ({ ...p, api_token: e.target.value }))}
                       placeholder="Paste your Cloudflare API Token here" className="pr-10 font-mono" data-testid="cf-api-token-input" />
@@ -544,9 +589,31 @@ export default function DomainManager() {
               </div>
               {(setupStep === 1 || editStep === 1) && (
                 <div className="space-y-3">
-                  <p className="text-xs text-zinc-400">
-                    Find your Zone ID on the <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">Cloudflare Dashboard</a> &rarr; select your domain &rarr; look in the right sidebar under "API".
-                  </p>
+                  <div className="rounded-md bg-zinc-800/60 border border-zinc-700/50 p-3 space-y-2">
+                    <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to find your Zone ID:</p>
+                    <ol className="space-y-1.5 list-none">
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">1</span>
+                        <span>Go to <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:underline">dash.cloudflare.com</a></span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">2</span>
+                        <span>Click on your <strong className="text-zinc-100">domain name</strong> (e.g. koodh.com)</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">3</span>
+                        <span>On the <strong className="text-zinc-100">Overview</strong> page, scroll down on the <strong className="text-zinc-100">right sidebar</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">4</span>
+                        <span>Find <strong className="text-zinc-100">"Zone ID"</strong> under the "API" section — it looks like <code className="text-[10px] bg-zinc-700 px-1 py-0.5 rounded">a1b2c3d4e5f6...</code></span>
+                      </li>
+                      <li className="flex items-start gap-2 text-xs text-zinc-300">
+                        <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 flex items-center justify-center text-[10px] font-bold mt-0.5">5</span>
+                        <span>Copy it and paste it below</span>
+                      </li>
+                    </ol>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label className="text-xs text-zinc-500">Zone ID</Label>
@@ -589,9 +656,30 @@ export default function DomainManager() {
                       <div className="flex items-center gap-2">
                         {cfVerifyResult.valid ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <XCircle className="w-4 h-4 text-red-400" />}
                         <span className={`text-sm font-medium ${cfVerifyResult.valid ? 'text-emerald-300' : 'text-red-300'}`}>
-                          {cfVerifyResult.valid ? `Connected — Zone: ${cfVerifyResult.zone_name} (${cfVerifyResult.zone_status})` : `Token status: ${cfVerifyResult.token_status}`}
+                          {cfVerifyResult.valid ? `Connected — Zone: ${cfVerifyResult.zone_name} (${cfVerifyResult.zone_status})` : (cfVerifyResult.message || `Token status: ${cfVerifyResult.token_status}`)}
                         </span>
                       </div>
+                      {/* Show structured steps on error */}
+                      {!cfVerifyResult.valid && Array.isArray(cfVerifyResult.steps) && cfVerifyResult.steps.length > 0 && (
+                        <div className="mt-2.5 rounded-md bg-zinc-900/60 border border-zinc-700/50 p-2.5">
+                          <p className="text-[10px] uppercase tracking-wider text-amber-500 font-semibold mb-1.5">How to fix this:</p>
+                          <ol className="space-y-1 list-none">
+                            {cfVerifyResult.steps.map((step, i) => (
+                              <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                                <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+                                <span>{step}</span>
+                              </li>
+                            ))}
+                          </ol>
+                          {cfVerifyResult.link && (
+                            <a href={cfVerifyResult.link} target="_blank" rel="noopener noreferrer"
+                              className="mt-2 inline-flex items-center gap-1 text-xs text-orange-400 hover:text-orange-300 transition-colors">
+                              <ExternalLink className="w-3 h-3" />
+                              {cfVerifyResult.link_label || 'Open link'}
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

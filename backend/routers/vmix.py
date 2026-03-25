@@ -415,7 +415,6 @@ async def overlay_ticker(main_site_id: str):
     ).sort("order", 1).to_list(500)
 
     scroll = config.get("ticker_scroll", True) if config else True
-    speed = config.get("ticker_speed", 50) if config else 50
     bg = _build_bg_css(config, "ticker") if config else "#000000cc"
     text_color = config.get("ticker_text_color", "#ffffff") if config else "#ffffff"
     font_size = config.get("ticker_font_size", 24) if config else 24
@@ -582,7 +581,14 @@ async def test_vmix_connection(
 
     config = await db.vmix_configs.find_one({"main_site_id": main_site_id}, {"_id": 0})
     if not config:
-        return {"status": "error", "message": "No VMix configuration found", "suggestion": "Open the VMix Director to auto-create a default configuration."}
+        return {
+            "status": "error",
+            "message": "No VMix configuration found",
+            "steps": [
+                "Open the VMix Director page to auto-create a default configuration",
+                "Then come back here and test the connection again",
+            ],
+        }
 
     # Check linked XML servers
     servers = await db.main_sites.find(
@@ -590,11 +596,28 @@ async def test_vmix_connection(
     ).to_list(100)
 
     if not servers:
-        return {"status": "error", "message": "No XML servers found in the network", "suggestion": "Create a Virtual Datacenter (server) site first in the Network Management dashboard."}
+        return {
+            "status": "error",
+            "message": "No XML servers found in the network",
+            "steps": [
+                "VMix overlays need a Virtual Datacenter (server) site to pull data from",
+                "Go to the Network Management dashboard",
+                "Create a new site with type 'Server (Virtual Datacenter)'",
+                "Then return here and test the connection again",
+            ],
+        }
 
     has_enabled = any(el.get("enabled") for el in config.get("elements", []))
     if not has_enabled:
-        return {"status": "warning", "message": f"{len(servers)} XML server(s) found, but no overlay elements are enabled", "suggestion": "Enable at least one overlay element (Logo, Clock, Ticker, etc.) in Step 2."}
+        return {
+            "status": "warning",
+            "message": f"{len(servers)} XML server(s) found, but no overlay elements are enabled",
+            "steps": [
+                "Your server connection works, but no overlays are active",
+                "Go to Step 2 and enable at least one overlay element (Logo, Clock, Ticker, etc.)",
+                "Then save your configuration",
+            ],
+        }
 
     overlay_base = config.get("overlay_base_url", "https://clara.koodh.com")
     overlay_slug = None
@@ -619,14 +642,22 @@ async def test_vmix_connection(
                     return {
                         "status": "warning",
                         "message": f"{len(servers)} XML server(s) found. Overlay URL returned HTTP {resp.status_code}.",
-                        "suggestion": f"The overlay URL ({test_url}) returned an error. Check the Overlay Base URL in settings.",
+                        "steps": [
+                            f"The overlay URL ({test_url}) returned an error",
+                            "Check the Overlay Base URL setting — it should be your production URL",
+                            "If you're testing locally, overlay URLs may not be reachable from the server",
+                        ],
                         "servers": [s["name"] for s in servers],
                     }
         except Exception:
             return {
                 "status": "warning",
                 "message": f"{len(servers)} XML server(s) found. Overlay URL unreachable from server.",
-                "suggestion": f"Cannot reach {overlay_base}. The overlays may still work from vMix directly.",
+                "steps": [
+                    f"Cannot reach {overlay_base} from the server",
+                    "The overlays may still work when loaded directly in vMix",
+                    "Verify the Overlay Base URL in your configuration matches your production domain",
+                ],
                 "servers": [s["name"] for s in servers],
             }
 

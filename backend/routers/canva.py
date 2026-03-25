@@ -234,15 +234,42 @@ async def test_canva_connection(
     """Test the Canva API connection by verifying OAuth token validity."""
     main_site_id = await get_main_site_id_from_header(request)
     if not main_site_id:
-        return {"status": "error", "message": "No main site context", "suggestion": "Navigate to a site first."}
+        return {
+            "status": "error",
+            "message": "No main site context",
+            "steps": [
+                "Navigate to a site first using the site switcher in the sidebar",
+                "The Canva Director needs to know which site you're configuring",
+            ],
+        }
 
     config = await _get_canva_config(main_site_id)
     if not config.get("client_id"):
-        return {"status": "error", "message": "Canva API not configured", "suggestion": "Enter your Client ID and Client Secret from canva.com/developers in Step 1."}
+        return {
+            "status": "error",
+            "message": "Canva API not configured",
+            "steps": [
+                "Go to canva.com/developers and log in with your Canva account",
+                "Create a new app (or open your existing app)",
+                "Copy the Client ID and Client Secret",
+                "Paste them in Step 1 of this wizard",
+            ],
+            "link": "https://www.canva.com/developers",
+            "link_label": "Open Canva Developers",
+        }
 
     token = await _get_canva_token(main_site_id, current_user["id"])
     if not token:
-        return {"status": "error", "message": "No Canva account connected", "suggestion": "Click 'Connect Canva Account' in Step 3 to authorize access."}
+        return {
+            "status": "error",
+            "message": "No Canva account connected",
+            "steps": [
+                "Your Canva API credentials are set, but your account is not yet linked",
+                "Click 'Connect Canva Account' in Step 3 of this wizard",
+                "A Canva popup will ask you to authorize access",
+                "After authorizing, the connection will be established automatically",
+            ],
+        }
 
     try:
         async with httpx.AsyncClient(timeout=10) as client:
@@ -255,15 +282,57 @@ async def test_canva_connection(
                 display_name = data.get("profile", {}).get("display_name", "Unknown")
                 return {"status": "ok", "message": f"Connected as: {display_name}", "user": display_name}
             elif resp.status_code == 401:
-                return {"status": "error", "message": "OAuth token expired or invalid", "suggestion": "Your Canva authorization has expired. Disconnect and reconnect your account in Step 3."}
+                return {
+                    "status": "error",
+                    "message": "OAuth token expired or invalid",
+                    "steps": [
+                        "Your Canva authorization has expired",
+                        "Click 'Disconnect' in Step 3 to remove the old connection",
+                        "Then click 'Connect Canva Account' to re-authorize",
+                    ],
+                }
             else:
-                return {"status": "warning", "message": f"Unexpected response (HTTP {resp.status_code})", "suggestion": "The Canva API returned an unexpected status. Try disconnecting and reconnecting your account."}
+                return {
+                    "status": "warning",
+                    "message": f"Unexpected response (HTTP {resp.status_code})",
+                    "steps": [
+                        "The Canva API returned an unexpected response",
+                        "Try disconnecting and reconnecting your account in Step 3",
+                        "If the issue persists, check canva.com/developers for API status",
+                    ],
+                    "link": "https://www.canva.com/developers",
+                    "link_label": "Open Canva Developers",
+                }
     except httpx.ConnectError:
-        return {"status": "error", "message": "Cannot reach Canva API servers", "suggestion": "Check your internet connection. Canva API may be temporarily unavailable."}
+        return {
+            "status": "error",
+            "message": "Cannot reach Canva API servers",
+            "steps": [
+                "Could not connect to the Canva API",
+                "Check your internet connection",
+                "Canva API may be temporarily unavailable — try again in a few minutes",
+            ],
+        }
     except httpx.TimeoutException:
-        return {"status": "error", "message": "Connection to Canva timed out", "suggestion": "Canva servers are slow to respond. Try again later."}
+        return {
+            "status": "error",
+            "message": "Connection to Canva timed out",
+            "steps": [
+                "Canva's servers are responding too slowly",
+                "This is usually temporary",
+                "Wait a few minutes and click the refresh button to try again",
+            ],
+        }
     except Exception as e:
-        return {"status": "error", "message": f"Connection test failed: {str(e)}", "suggestion": "An unexpected error occurred. Try disconnecting and reconnecting your Canva account."}
+        return {
+            "status": "error",
+            "message": f"Connection test failed: {str(e)}",
+            "steps": [
+                "An unexpected error occurred during the connection test",
+                "Try disconnecting and reconnecting your Canva account",
+                "If the issue persists, check your Client ID and Client Secret in Step 1",
+            ],
+        }
 
 
 # ─── OAUTH FLOW ───────────────────────────────────────────────────

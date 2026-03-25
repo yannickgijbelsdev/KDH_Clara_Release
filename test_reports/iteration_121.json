@@ -1,0 +1,146 @@
+{
+  "summary": "Tested the fix for vague error messages in wizard pages. Backend test-connection endpoints now return structured 'steps' arrays instead of 'suggestion' strings. Frontend DomainManager.js wizard shows detailed step-by-step instructions for Cloudflare API Token and Zone ID setup. ConnectionStatus.js component renders steps as numbered lists with 'How to fix this:' header.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "All pages with dialogs",
+        "issues": ["DialogContent missing DialogTitle for accessibility (console warning from Radix UI) - pre-existing issue"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_steps_array_format.py",
+    "/app/test_reports/pytest/steps_array_format_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_steps_array_format.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "system_admin": "admkoodh@koodh.com / KYLovie13monx"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All test-connection endpoints now return {status, message, steps[], link?, link_label?} format instead of {status, message, suggestion}. The ConnectionStatus.js component renders steps as numbered lists with 'How to fix this:' header and orange accent. DomainManager.js Cloudflare wizard shows 6-step instructions for API Token and 5-step instructions for Zone ID.",
+  "verified_features": {
+    "backend_test_connection_endpoints": {
+      "cloudflare": {
+        "endpoint": "/api/domains/cloudflare/test-connection",
+        "status": "PASS",
+        "returns_steps_array": true,
+        "returns_link": true,
+        "returns_link_label": true,
+        "example_response": {
+          "status": "error",
+          "message": "No API token configured",
+          "steps": [
+            "Go to dash.cloudflare.com and log in",
+            "Click your profile icon (top right) → My Profile",
+            "Click 'API Tokens' in the left sidebar",
+            "Click 'Create Token' → use the 'Edit zone DNS' template",
+            "Under 'Zone Resources', select your domain",
+            "Click 'Continue to summary' → 'Create Token'",
+            "Copy the token and paste it in Step 1 above"
+          ],
+          "link": "https://dash.cloudflare.com/profile/api-tokens",
+          "link_label": "Open Cloudflare API Tokens"
+        }
+      },
+      "radioplayer": {
+        "endpoint": "/api/radioplayer/test-connection",
+        "status": "PASS",
+        "returns_steps_array": true,
+        "example_response": {
+          "status": "error",
+          "message": "Access denied (403 Forbidden)",
+          "steps": [
+            "Your credentials are valid but your account lacks the required permissions",
+            "Contact Radioplayer support to verify your account has 'Now Playing' push access",
+            "Make sure your station is active and approved on the Radioplayer platform"
+          ]
+        }
+      },
+      "canva": {
+        "endpoint": "/api/canva/test-connection",
+        "status": "PASS",
+        "returns_steps_array": true,
+        "example_response": {
+          "status": "error",
+          "message": "Canva API not configured",
+          "steps": [
+            "Go to canva.com/developers and log in with your Canva account",
+            "Create a new app (or open your existing app)",
+            "Copy the Client ID and Client Secret",
+            "Paste them in Step 1 of this wizard"
+          ],
+          "link": "https://www.canva.com/developers",
+          "link_label": "Open Canva Developers"
+        }
+      },
+      "vmix": {
+        "endpoint": "/api/vmix/test-connection",
+        "status": "PASS",
+        "returns_steps_array": true,
+        "example_response": {
+          "status": "error",
+          "message": "No VMix configuration found",
+          "steps": [
+            "Open the VMix Director page to auto-create a default configuration",
+            "Then come back here and test the connection again"
+          ]
+        }
+      }
+    },
+    "frontend_wizard_instructions": {
+      "cloudflare_step1_api_token": {
+        "status": "PASS",
+        "header": "HOW TO CREATE YOUR CLOUDFLARE API TOKEN:",
+        "steps_count": 6,
+        "steps_verified": [
+          "Go to dash.cloudflare.com/profile/api-tokens",
+          "Click 'Create Token'",
+          "Find the template 'Edit zone DNS' and click 'Use template'",
+          "Under 'Zone Resources', select your domain (e.g. koodh.com)",
+          "Click 'Continue to summary' → 'Create Token'",
+          "Copy the token and paste it below"
+        ],
+        "has_important_note": true,
+        "important_note": "This is an API Token, not your Cloudflare password or Global API Key"
+      },
+      "cloudflare_step2_zone_id": {
+        "status": "PASS",
+        "header": "HOW TO FIND YOUR ZONE ID:",
+        "steps_count": 5,
+        "steps_verified": [
+          "Go to dash.cloudflare.com",
+          "Click on your domain name (e.g. koodh.com)",
+          "On the Overview page, scroll down on the right sidebar",
+          "Find 'Zone ID' under the 'API' section — it looks like a1b2c3d4e5f6...",
+          "Copy it and paste it below"
+        ]
+      }
+    },
+    "connection_status_component": {
+      "status": "PASS",
+      "features_verified": [
+        "Renders 'steps' array as numbered list",
+        "Shows 'How to fix this:' header with amber/orange accent",
+        "Renders 'link' and 'link_label' when present",
+        "Falls back to 'suggestion' string for legacy responses",
+        "Has data-testid='connection-status' and data-testid='connection-steps'"
+      ]
+    }
+  }
+}
