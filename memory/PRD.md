@@ -3747,6 +3747,21 @@ now = now_brussels()  # Automatically handles CET/CEST
   - "Sync DNS" button added to Routing tab header
 - **Deployment guide**: `/app/cloudflare-worker/DEPLOYMENT-GUIDE.md` with step-by-step instructions
 - **How it works in production**: `login.koodh.com` → Cloudflare Worker → `clara.koodh.com` → React detects subdomain → shows `/login`
+
+### 2026-03-25: Cloudflare Worker Wizard (Step 5)
+- **Added**: Step 5 "Cloudflare Worker" to the Cloudflare wizard with:
+  - "Required for subdomains" orange badge
+  - 7-step deployment instructions
+  - Copyable Worker script (embedded in frontend)
+  - "Test Worker Connection" button with live DNS + proxy check
+  - Structured error results with "How to fix this" steps
+- **Backend**: New `POST /api/domains/cloudflare/test-worker` endpoint:
+  - Tests DNS resolution via dnspython (`dns.resolver`)
+  - Tests Worker proxy by HTTP request to `test.koodh.com/api/domains/routes/public`
+  - Returns individual test results (DNS Resolution, Worker Proxy) with status icons
+- **Test result**: test.koodh.com DNS is live (CNAME → Cloudflare IP), Worker proxy working
+- Tested: iteration_123 — 100% backend (8/8) + 100% frontend
+
 - Tested: iteration_122 — 100% backend (8/8) + 100% frontend
 
 - **Linting fixes**: Removed unused `speed` variable in `vmix.py`, unused `data` variable in `domains.py`
