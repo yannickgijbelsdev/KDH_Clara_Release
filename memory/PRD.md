@@ -3777,3 +3777,28 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 - **Linting fixes**: Removed unused `speed` variable in `vmix.py`, unused `data` variable in `domains.py`
 - Tested: iteration_121 — 100% backend (7/7) + 100% frontend
+
+
+### 2026-03-25: WordPress Security Feature (Complete)
+- **New site type**: `wp_security` added to the platform
+- **Backend**: New router `/app/backend/routers/wp_security.py` with endpoints:
+  - `GET /api/wp-security/config` - Retrieve security configuration
+  - `PUT /api/wp-security/config` - Save WordPress URL
+  - `PUT /api/wp-security/waf-rules` - Save WAF rules
+  - `POST /api/wp-security/blocklist` - Add IP to blocklist
+  - `DELETE /api/wp-security/blocklist/{ip}` - Remove IP from blocklist
+  - `PUT /api/wp-security/login-protection` - Save login protection settings
+  - `GET /api/wp-security/test-connection` - Test WordPress URL reachability with structured error steps
+- **Frontend**: Multi-step wizard at `/:slug/wp-security` with 4 steps:
+  1. WordPress URL configuration
+  2. WAF Rules management (enable/disable individual rules)
+  3. IP Blocklist (add/remove IPs with notes)
+  4. Login Protection (brute force protection, XML-RPC blocking, login attempt limits)
+- **Fixes applied**:
+  - Fixed `currentSite` → `mainSite` context property bug (root cause of blank page)
+  - Fixed stale headers closure by using direct useEffect with mainSiteId dependency
+  - Changed test-connection from POST to GET for consistency with other wizard pages
+  - Added `wp_security` type labels and colors to header badge and site switcher
+  - Added dedicated sidebar navigation for wp_security sites
+- **ConnectionStatus**: Updated component to support configurable HTTP method
+- Tested: iteration_124 — 100% backend (20/20) + 100% frontend
