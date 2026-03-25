@@ -369,11 +369,11 @@ export default function DomainManager() {
       const res = await fetch(`${API}/api/domains/cloudflare/test-worker`, { method: 'POST', headers });
       const data = await res.json();
       setWorkerResult(data);
-      if (data.status === 'ok') toast.success(data.message || 'Worker is active!');
-      else if (data.status === 'warning') toast.warning?.(data.message) || toast.info(data.message);
+      if (data.status === 'ok') toast.success(data.message);
+      else if (data.status === 'warning') toast.info(data.message);
       else toast.error(data.message || 'Worker test failed');
     } catch { 
-      setWorkerResult({ status: 'error', message: 'Connection error', steps: ['Could not reach the test endpoint', 'Check your connection and try again'] });
+      setWorkerResult({ status: 'error', message: 'Connection error', steps: ['Could not reach the test endpoint', 'Check your connection and try again'], domains: [] });
       toast.error('Worker test failed'); 
     }
     setWorkerTesting(false);
@@ -995,12 +995,12 @@ export default function DomainManager() {
                       {workerTesting ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Testing Worker...</> : <><Zap className="w-4 h-4 mr-2" />Test Worker Connection</>}
                     </Button>
                     {workerResult && (
-                      <div className={`p-3 rounded-lg border ${
+                      <div className={`rounded-lg border ${
                         workerResult.status === 'ok' ? 'bg-emerald-950/30 border-emerald-800' :
                         workerResult.status === 'warning' ? 'bg-amber-950/30 border-amber-800' :
                         'bg-red-950/30 border-red-800'
                       }`} data-testid="worker-test-result">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 p-3 pb-2">
                           {workerResult.status === 'ok' ? <CheckCircle className="w-4 h-4 text-emerald-400" /> :
                            workerResult.status === 'warning' ? <AlertTriangle className="w-4 h-4 text-amber-400" /> :
                            <XCircle className="w-4 h-4 text-red-400" />}
@@ -1009,24 +1009,76 @@ export default function DomainManager() {
                             workerResult.status === 'warning' ? 'text-amber-300' : 'text-red-300'
                           }`}>{workerResult.message}</span>
                         </div>
-                        {workerResult.test_subdomain && (
-                          <p className="text-xs text-zinc-500 mt-1 ml-6">Tested: {workerResult.test_subdomain}</p>
-                        )}
-                        {workerResult.results?.length > 0 && (
-                          <div className="mt-2 ml-6 space-y-1">
-                            {workerResult.results.map((r, i) => (
-                              <div key={i} className="flex items-center gap-2 text-xs">
-                                {r.status === 'ok' ? <CheckCircle className="w-3 h-3 text-emerald-400" /> :
-                                 r.status === 'warning' ? <AlertTriangle className="w-3 h-3 text-amber-400" /> :
-                                 <XCircle className="w-3 h-3 text-red-400" />}
-                                <span className="text-zinc-400">{r.test}:</span>
-                                <span className="text-zinc-300">{r.detail}</span>
+
+                        {/* Domain status table */}
+                        {workerResult.domains?.length > 0 && (
+                          <div className="px-3 pb-3">
+                            <div className="rounded-md border border-zinc-700/50 overflow-hidden">
+                              <table className="w-full text-xs" data-testid="worker-domain-table">
+                                <thead>
+                                  <tr className="bg-zinc-800/80">
+                                    <th className="text-left px-3 py-1.5 text-zinc-400 font-medium">Subdomain</th>
+                                    <th className="text-center px-2 py-1.5 text-zinc-400 font-medium">DNS</th>
+                                    <th className="text-center px-2 py-1.5 text-zinc-400 font-medium">Worker</th>
+                                    <th className="text-center px-2 py-1.5 text-zinc-400 font-medium">HTTP</th>
+                                    <th className="text-left px-3 py-1.5 text-zinc-400 font-medium">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {workerResult.domains.map((d) => {
+                                    const statusConfig = {
+                                      ok: { icon: <CheckCircle className="w-3 h-3 text-emerald-400" />, label: 'OK', color: 'text-emerald-400' },
+                                      no_dns: { icon: <XCircle className="w-3 h-3 text-red-400" />, label: 'No DNS record', color: 'text-red-400' },
+                                      not_in_worker: { icon: <AlertTriangle className="w-3 h-3 text-amber-400" />, label: 'Not in Worker', color: 'text-amber-400' },
+                                      dns_only: { icon: <AlertTriangle className="w-3 h-3 text-amber-400" />, label: 'DNS only', color: 'text-amber-400' },
+                                      error: { icon: <XCircle className="w-3 h-3 text-red-400" />, label: 'Error', color: 'text-red-400' },
+                                      unknown: { icon: <Clock className="w-3 h-3 text-zinc-500" />, label: 'Unknown', color: 'text-zinc-500' },
+                                    };
+                                    const st = statusConfig[d.status] || statusConfig.unknown;
+                                    const checkIcon = (val) => val === 'ok' || val === 'passthrough' 
+                                      ? <CheckCircle className="w-3 h-3 text-emerald-400" />
+                                      : val === 'missing' || val === 'not_in_worker' 
+                                        ? <XCircle className="w-3 h-3 text-red-400" />
+                                        : val === 'unreachable'
+                                          ? <XCircle className="w-3 h-3 text-red-400" />
+                                          : <Clock className="w-3 h-3 text-zinc-500" />;
+                                    return (
+                                      <tr key={d.subdomain} className="border-t border-zinc-800" data-testid={`worker-domain-${d.subdomain}`}>
+                                        <td className="px-3 py-2">
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-mono text-zinc-200">{d.fqdn}</span>
+                                            {d.is_app && <span className="text-[9px] px-1 py-0.5 rounded bg-zinc-700 text-zinc-400">Main</span>}
+                                          </div>
+                                          <span className="text-[10px] text-zinc-600">→ {d.target_path}</span>
+                                        </td>
+                                        <td className="text-center px-2 py-2">{checkIcon(d.dns)}</td>
+                                        <td className="text-center px-2 py-2">{checkIcon(d.worker)}</td>
+                                        <td className="text-center px-2 py-2">{checkIcon(d.http)}</td>
+                                        <td className="px-3 py-2">
+                                          <div className="flex items-center gap-1.5">
+                                            {st.icon}
+                                            <span className={`${st.color}`}>{st.label}</span>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Worker route table comparison */}
+                            {workerResult.worker_route_table && (
+                              <div className="mt-2 text-[10px] text-zinc-600">
+                                Worker herkent: {workerResult.worker_route_table.join(', ')}
                               </div>
-                            ))}
+                            )}
                           </div>
                         )}
+
+                        {/* Steps on error */}
                         {Array.isArray(workerResult.steps) && workerResult.steps.length > 0 && workerResult.status !== 'ok' && (
-                          <div className="mt-2.5 rounded-md bg-zinc-900/60 border border-zinc-700/50 p-2.5 ml-6">
+                          <div className="mx-3 mb-3 rounded-md bg-zinc-900/60 border border-zinc-700/50 p-2.5">
                             <p className="text-[10px] uppercase tracking-wider text-amber-500 font-semibold mb-1.5">How to fix this:</p>
                             <ol className="space-y-1 list-none">
                               {workerResult.steps.map((step, i) => (

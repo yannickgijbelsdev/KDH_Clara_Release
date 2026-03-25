@@ -3762,6 +3762,17 @@ now = now_brussels()  # Automatically handles CET/CEST
 - **Test result**: test.koodh.com DNS is live (CNAME → Cloudflare IP), Worker proxy working
 - Tested: iteration_123 — 100% backend (8/8) + 100% frontend
 
+
+### 2026-03-25: Worker Domain Status Overview
+- **Upgraded**: `POST /api/domains/cloudflare/test-worker` now tests ALL active subdomains
+- **Per-domain checks**: DNS resolution, Worker route table recognition, HTTP connectivity
+- **Frontend table**: Shows status per subdomain with colored icons (OK, Not in Worker, No DNS, Error)
+- **Worker route comparison**: Shows which subdomains the Worker actually recognizes
+- **Bidirectional routing hook**: `useSubdomainRouter` rewritten with relative URLs (no CORS) and two-way routing:
+  - Subdomain → Path: `login.koodh.com` → navigates to `/login`
+  - Path → Subdomain: `clara.koodh.com/login` → redirects to `login.koodh.com`
+- Tested: Backend returns correct per-domain status, Frontend renders table correctly
+
 - Tested: iteration_122 — 100% backend (8/8) + 100% frontend
 
 - **Linting fixes**: Removed unused `speed` variable in `vmix.py`, unused `data` variable in `domains.py`

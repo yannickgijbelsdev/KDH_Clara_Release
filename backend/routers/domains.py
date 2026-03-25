@@ -577,163 +577,158 @@ async def delete_cloudflare_dns_record(
 
 @domains_router.post("/cloudflare/test-worker")
 async def test_cloudflare_worker(current_user: dict = Depends(require_system_admin)):
-    """Test if the Cloudflare Worker is active by probing a configured subdomain.
+    """Test all configured subdomains: DNS resolution, Worker recognition, and connectivity.
     
-    Makes an HTTP request to a test subdomain and checks if the response
-    indicates the Worker is proxying correctly.
+    For each active route, checks:
+    1. DNS — does the CNAME record exist?
+    2. Worker — is the route in the Worker's route table?
+    3. HTTP — can we reach the subdomain?
     """
+    import dns.resolver
+
     cf_config = await db.cloudflare_config.find_one({"type": "global"}, {"_id": 0})
     base_domain = cf_config.get("base_domain", "koodh.com") if cf_config else "koodh.com"
 
-    # Find a test subdomain (prefer 'test', then any non-app route)
+    # Get all active routes
     routes = await db.subdomain_routes.find(
         {"is_active": True}, {"_id": 0}
     ).to_list(100)
 
-    test_route = None
-    for r in routes:
-        if r["subdomain"] == "test":
-            test_route = r
-            break
-    if not test_route:
-        for r in routes:
-            if r["subdomain"] not in ("clara",):
-                test_route = r
-                break
-
-    if not test_route:
+    if not routes:
         return {
             "status": "error",
-            "message": "No test subdomain available",
+            "message": "No active routes configured",
             "steps": [
-                "Create a route called 'test' in the Subdomain Routing tab",
-                "Make sure it is set to Active",
-                "Then come back here and test again",
+                "Create subdomain routes in the Subdomain Routing tab",
+                "Make sure they are set to Active",
+                "Then test again",
             ],
+            "domains": [],
         }
 
-    test_fqdn = f"{test_route['subdomain']}.{base_domain}"
-    test_url = f"https://{test_fqdn}/api/domains/routes/public"
+    # Find the main app subdomain
+    app_route = next((r for r in routes if r["target_path"] == "/"), None)
+    app_subdomain = app_route["subdomain"] if app_route else "clara"
 
-    results = []
-
-    # Test 1: DNS resolution
-    try:
-        import dns.resolver
-        answers = dns.resolver.resolve(test_fqdn, 'A')
-        ip = str(list(answers)[0]) if answers else "unknown"
-        results.append({"test": "DNS Resolution", "status": "ok", "detail": f"{test_fqdn} → {ip}"})
-    except dns.resolver.NXDOMAIN:
-        return {
-            "status": "error",
-            "message": f"DNS record for {test_fqdn} does not exist",
-            "steps": [
-                f"Create a CNAME record for '{test_route['subdomain']}' pointing to '{base_domain}' in Cloudflare",
-                "Make sure the orange proxy cloud is enabled",
-                "Or click 'Sync DNS' in Step 4 to create it automatically",
-                "Wait 1-2 minutes for DNS propagation, then test again",
-            ],
-            "results": results,
-        }
-    except Exception as e:
-        results.append({"test": "DNS Resolution", "status": "warning", "detail": f"DNS check failed: {str(e)}"})
-
-    # Test 2: HTTP connectivity — does the Worker respond?
-    try:
-        async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
-            resp = await client.get(test_url)
-            if resp.status_code == 200:
-                try:
+    # Find a working test subdomain to fetch the Worker's route table
+    worker_routes = []
+    worker_fetch_status = "unknown"
+    for probe in routes:
+        if probe["subdomain"] == app_subdomain:
+            continue
+        probe_fqdn = f"{probe['subdomain']}.{base_domain}"
+        try:
+            async with httpx.AsyncClient(timeout=8, follow_redirects=True) as client:
+                resp = await client.get(f"https://{probe_fqdn}/api/domains/routes/public")
+                if resp.status_code == 200:
                     data = resp.json()
-                    if "routes" in data and "base_domain" in data:
-                        results.append({"test": "Worker Proxy", "status": "ok", "detail": f"{test_fqdn} proxied successfully (API responded)"})
-                        return {
-                            "status": "ok",
-                            "message": f"Worker is active! {test_fqdn} is proxying correctly to Clara.",
-                            "test_subdomain": test_fqdn,
-                            "results": results,
-                        }
-                except Exception:
-                    pass
-                # Got 200 but not the expected JSON — might be the app HTML
-                results.append({"test": "Worker Proxy", "status": "ok", "detail": f"{test_fqdn} returned HTTP 200 (Worker is proxying)"})
-                return {
-                    "status": "ok",
-                    "message": f"Worker is active! {test_fqdn} is reachable and returns content.",
-                    "test_subdomain": test_fqdn,
-                    "results": results,
-                }
-            elif resp.status_code == 404:
-                body = resp.text
-                if "Subdomain niet geconfigureerd" in body or "not configured" in body.lower():
-                    results.append({"test": "Worker Proxy", "status": "warning", "detail": "Worker is active but returned 404 for this subdomain"})
-                    return {
-                        "status": "warning",
-                        "message": "Worker is active but the subdomain is not in the route table",
-                        "steps": [
-                            f"The Worker responded but doesn't recognize '{test_route['subdomain']}' as a route",
-                            "The Worker's route cache may be stale (refreshes every 5 min)",
-                            "Wait a few minutes and test again",
-                        ],
-                        "test_subdomain": test_fqdn,
-                        "results": results,
-                    }
-                results.append({"test": "Worker Proxy", "status": "error", "detail": "Got 404 — Worker may not be deployed"})
-            elif resp.status_code == 530 or resp.status_code == 522:
-                results.append({"test": "Worker Proxy", "status": "error", "detail": f"Cloudflare error {resp.status_code} — origin unreachable"})
-                return {
-                    "status": "error",
-                    "message": f"Cloudflare error {resp.status_code} — the Worker can't reach Clara",
-                    "steps": [
-                        "The Cloudflare Worker is trying to reach the origin server but it's not responding",
-                        "Check that the ORIGIN URL in the Worker script is correct",
-                        "Make sure clara.koodh.com is accessible",
-                        "If using Emergent, verify the deployment is running",
-                    ],
-                    "test_subdomain": test_fqdn,
-                    "results": results,
-                }
-            else:
-                results.append({"test": "Worker Proxy", "status": "warning", "detail": f"HTTP {resp.status_code}"})
-    except httpx.ConnectError:
-        return {
-            "status": "error",
-            "message": f"Cannot connect to {test_fqdn}",
-            "steps": [
-                f"Could not establish a connection to {test_fqdn}",
-                "Check that the DNS record exists and is proxied (orange cloud)",
-                "The Cloudflare Worker may not be deployed yet",
-                "Follow the Worker deployment steps below",
-            ],
-            "test_subdomain": test_fqdn,
-            "results": results,
+                    if "routes" in data:
+                        worker_routes = [r["subdomain"] for r in data.get("routes", [])]
+                        worker_fetch_status = "ok"
+                        break
+        except Exception:
+            continue
+
+    # Test each subdomain
+    domains = []
+    ok_count = 0
+    total_testable = 0
+
+    for route in routes:
+        fqdn = f"{route['subdomain']}.{base_domain}"
+        is_app = route["subdomain"] == app_subdomain
+        domain_result = {
+            "subdomain": route["subdomain"],
+            "fqdn": fqdn,
+            "target_path": route["target_path"],
+            "route_type": route.get("route_type", ""),
+            "is_app": is_app,
+            "dns": "unknown",
+            "dns_ip": None,
+            "worker": "unknown",
+            "http": "unknown",
+            "status": "unknown",
         }
-    except httpx.TimeoutException:
-        return {
-            "status": "error",
-            "message": f"Connection to {test_fqdn} timed out",
-            "steps": [
-                "The server didn't respond within 10 seconds",
-                "Check that the Worker is deployed and the route trigger is set",
-                "Make sure the ORIGIN URL in the Worker config is correct",
-            ],
-            "test_subdomain": test_fqdn,
-            "results": results,
-        }
-    except Exception as e:
-        results.append({"test": "Worker Proxy", "status": "error", "detail": str(e)})
+
+        # DNS check
+        try:
+            answers = dns.resolver.resolve(fqdn, 'A')
+            ip = str(list(answers)[0]) if answers else None
+            domain_result["dns"] = "ok"
+            domain_result["dns_ip"] = ip
+        except dns.resolver.NXDOMAIN:
+            domain_result["dns"] = "missing"
+        except Exception:
+            domain_result["dns"] = "error"
+
+        # Worker recognition check
+        if is_app:
+            domain_result["worker"] = "passthrough"
+        elif worker_fetch_status == "ok":
+            domain_result["worker"] = "ok" if route["subdomain"] in worker_routes else "missing"
+        else:
+            domain_result["worker"] = "unknown"
+
+        # HTTP check (skip for app subdomain — it always works)
+        if not is_app and domain_result["dns"] == "ok":
+            total_testable += 1
+            try:
+                async with httpx.AsyncClient(timeout=6, follow_redirects=True) as client:
+                    resp = await client.get(f"https://{fqdn}/", follow_redirects=False)
+                    if resp.status_code in (200, 301, 302, 304):
+                        domain_result["http"] = "ok"
+                    elif resp.status_code == 404:
+                        # Check if it's the Worker's "niet geconfigureerd" page
+                        body = resp.text[:500]
+                        if "niet geconfigureerd" in body or "not configured" in body.lower():
+                            domain_result["http"] = "not_in_worker"
+                        else:
+                            domain_result["http"] = "ok"  # 404 from the app is fine
+                    else:
+                        domain_result["http"] = f"http_{resp.status_code}"
+            except Exception:
+                domain_result["http"] = "unreachable"
+        elif is_app:
+            domain_result["http"] = "passthrough"
+
+        # Overall status
+        if is_app:
+            domain_result["status"] = "ok"
+            ok_count += 1
+        elif domain_result["dns"] == "missing":
+            domain_result["status"] = "no_dns"
+        elif domain_result["worker"] == "missing":
+            domain_result["status"] = "not_in_worker"
+        elif domain_result["http"] == "ok":
+            domain_result["status"] = "ok"
+            ok_count += 1
+        elif domain_result["http"] == "not_in_worker":
+            domain_result["status"] = "not_in_worker"
+        elif domain_result["dns"] == "ok" and domain_result["http"] == "unreachable":
+            domain_result["status"] = "dns_only"
+        else:
+            domain_result["status"] = "error"
+
+        domains.append(domain_result)
+
+    # Overall summary
+    total = len(domains)
+    if ok_count == total:
+        overall = "ok"
+        message = f"All {total} subdomain(s) are working correctly"
+    elif ok_count > 0:
+        overall = "warning"
+        message = f"{ok_count}/{total} subdomain(s) working — {total - ok_count} need attention"
+    else:
+        overall = "error"
+        message = "No subdomains are fully working yet"
 
     return {
-        "status": "error",
-        "message": f"Worker does not appear to be active on {test_fqdn}",
-        "steps": [
-            "The Cloudflare Worker is not responding on this subdomain",
-            "Deploy the Worker script in Cloudflare Dashboard → Workers & Pages",
-            "Add a route trigger: *.koodh.com/* (zone: koodh.com)",
-            "Wait 1-2 minutes, then test again",
-        ],
-        "test_subdomain": test_fqdn,
-        "results": results,
+        "status": overall,
+        "message": message,
+        "domains": domains,
+        "worker_route_table": worker_routes if worker_fetch_status == "ok" else None,
+        "base_domain": base_domain,
     }
 
 
