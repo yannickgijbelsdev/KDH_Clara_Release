@@ -57,6 +57,7 @@ import TaskBoardsPage from './pages/Tasks/TaskBoardsPage';
 import CanvaDirectorPage from './pages/CanvaDirectorPage';
 import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
+import { useSubdomainRouter } from './hooks/useSubdomainRouter';
 import './App.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -104,8 +105,9 @@ const ProtectedRoute = ({ children }) => {
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
+  const { resolved } = useSubdomainRouter();
   
-  if (loading) {
+  if (loading || !resolved) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="animate-pulse text-zinc-400">Loading...</div>

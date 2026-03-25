@@ -863,6 +863,36 @@ async def delete_subdomain_route(
     return {"status": "ok", "message": "Route deleted"}
 
 
+@domains_router.get("/routes/public")
+async def get_public_routes():
+    """Public endpoint for Cloudflare Worker and frontend subdomain detection.
+    
+    Returns active routes with subdomain → target_path mapping.
+    No authentication required - this data is not sensitive.
+    Includes cache headers for Worker performance.
+    """
+    cf_config = await db.cloudflare_config.find_one({"type": "global"}, {"_id": 0})
+    base_domain = cf_config.get("base_domain", "koodh.com") if cf_config else "koodh.com"
+    
+    routes = await db.subdomain_routes.find(
+        {"is_active": True},
+        {"_id": 0, "subdomain": 1, "target_path": 1, "route_type": 1, "label": 1}
+    ).to_list(100)
+    
+    # Also include site domain configs (koodh subdomains)
+    site_configs = await db.domain_configs.find(
+        {"domain_type": "koodh"},
+        {"_id": 0, "subdomain": 1, "main_site_id": 1}
+    ).to_list(500)
+    
+    return {
+        "base_domain": base_domain,
+        "routes": routes,
+        "site_domains": site_configs,
+        "cache_ttl": 300,
+    }
+
+
 # ---------- Overview / Stats ----------
 
 @domains_router.get("/overview")
