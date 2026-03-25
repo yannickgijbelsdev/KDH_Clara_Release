@@ -3716,3 +3716,20 @@ now = now_brussels()  # Automatically handles CET/CEST
 
 
 - (P2) Refactoring: Split `MainSiteDashboardLayout.js` and `NetworkDashboard.js` into smaller components
+
+
+### 2026-03-25: Step-by-Step Error Instructions (Vague Error Messages Fix)
+- **Problem**: Error messages like "API token is invalid" were too vague — users didn't know what API to use or how to get it
+- **Backend**: All four `test-connection` endpoints now return structured `{status, message, steps[], link?, link_label?}` format:
+  - `/api/domains/cloudflare/test-connection` — already had `steps` (verified working)
+  - `/api/radioplayer/test-connection` — converted from `suggestion` to `steps`
+  - `/api/canva/test-connection` — converted from `suggestion` to `steps`
+  - `/api/vmix/test-connection` — converted from `suggestion` to `steps`
+- **Frontend `ConnectionStatus.js`**: Updated to render `steps` as numbered list with "How to fix this:" header, plus clickable `link`
+- **Frontend `DomainManager.js`**: 
+  - Step 1 (API Token): Added 6-step guide "How to create your Cloudflare API Token" with clear instructions
+  - Step 2 (Zone ID): Added 5-step guide "How to find your Zone ID"
+  - Step 3 (Verify): Now uses `test-connection` endpoint and renders structured error steps in verify result
+  - Added "Important: This is an API Token, not your Cloudflare password or Global API Key" warning
+- **Linting fixes**: Removed unused `speed` variable in `vmix.py`, unused `data` variable in `domains.py`
+- Tested: iteration_121 — 100% backend (7/7) + 100% frontend
