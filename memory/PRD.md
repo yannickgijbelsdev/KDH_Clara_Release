@@ -3832,3 +3832,13 @@ now = now_brussels()  # Automatically handles CET/CEST
 - **API token security**: CF API token is masked in config responses (cf_api_token_set + cf_api_token_preview)
 - **WordPress detection**: Enhanced to check HTML content, headers, /wp-json/, /wp-login.php
 - Tested: iteration_125 — 100% backend (31/31) + 100% frontend
+
+### 2026-03-28: RDS Monitor Polling Fix
+- **Issue**: RDS Monitor "Recent Changes" stopped updating (data became stale after browser tab inactivity or polling lock stuck)
+- **Root cause**: Browser throttles `setInterval` in background tabs; also `fetchingRef.current` lock could get permanently stuck after a hanging request
+- **Fixes applied**:
+  - Polling interval reduced from 10s to 5s for faster data updates
+  - Added 15-second watchdog to auto-reset stuck `fetchingRef.current` lock
+  - Added `visibilitychange` event listener to immediately restart polling when tab becomes visible
+  - Added `fetchErrors` counter and visual warning for consecutive fetch failures
+  - Added stale data warning (amber banner) when data is older than 30 seconds with manual "Refresh Now" button

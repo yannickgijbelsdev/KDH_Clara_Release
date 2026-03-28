@@ -9,6 +9,7 @@ import {
   Mic,
   Clock,
   AlertCircle,
+  AlertTriangle,
   CheckCircle,
   Calendar,
   History,
@@ -258,6 +259,8 @@ const RDSMonitorPage = () => {
   const countdownRef = useRef(null);
   const fetchingRef = useRef(false); // Prevent overlapping fetches
   const abortRef = useRef(null); // AbortController for cancellation
+  const lastFetchStartRef = useRef(null); // Track when fetch started (for stuck detection)
+  const [fetchErrors, setFetchErrors] = useState(0); // Track consecutive fetch errors
 
   // Store countdown target timestamps (not relative seconds) to survive tab throttling
   const countdownTargetsRef = useRef({ mfy: null, grk: null });
@@ -311,9 +314,15 @@ const RDSMonitorPage = () => {
   };
 
   const fetchMonitorData = useCallback(async () => {
+    // Safety: force-reset the lock if it's been stuck for more than 15 seconds
+    if (fetchingRef.current && lastFetchStartRef.current && Date.now() - lastFetchStartRef.current > 15000) {
+      console.warn('RDS Monitor: fetch lock stuck, force-resetting');
+      fetchingRef.current = false;
+    }
     // Prevent overlapping fetches
     if (fetchingRef.current) return;
     fetchingRef.current = true;
+    lastFetchStartRef.current = Date.now();
 
     // Cancel any previous in-flight request
     if (abortRef.current) abortRef.current.abort();
@@ -327,13 +336,16 @@ const RDSMonitorPage = () => {
       });
       setMonitorData(response.data);
       setLastUpdate(new Date());
+      setFetchErrors(0);
     } catch (error) {
       if (!axios.isCancel(error) && error.code !== 'ERR_CANCELED') {
         console.error('Failed to fetch monitor data:', error);
+        setFetchErrors(prev => prev + 1);
       }
     } finally {
       setLoading(false);
       fetchingRef.current = false;
+      lastFetchStartRef.current = null;
     }
   }, []);
 
@@ -373,17 +385,29 @@ const RDSMonitorPage = () => {
     }
   }, [monitorData, forceRefreshing, forceRefresh, autoSync]);
 
-  // Data refresh every 10 seconds
+  // Data refresh every 5 seconds (was 10s)
   useEffect(() => {
     fetchMonitorData();
     if (autoRefresh) {
-      intervalRef.current = setInterval(fetchMonitorData, 10000);
+      intervalRef.current = setInterval(fetchMonitorData, 5000);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       // Cancel any pending request on unmount
       if (abortRef.current) abortRef.current.abort();
     };
+  }, [fetchMonitorData, autoRefresh]);
+
+  // Restart polling when tab becomes visible again (browsers throttle background tabs)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && autoRefresh) {
+        fetchingRef.current = false; // Reset lock
+        fetchMonitorData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
   }, [fetchMonitorData, autoRefresh]);
 
   // Listen for force refresh events from StationCard
@@ -467,6 +491,23 @@ const RDSMonitorPage = () => {
             </Button>
           </div>
         </div>
+
+        {/* Stale data warning */}
+        {lastUpdate && ((Date.now() - lastUpdate.getTime()) > 30000) && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm" data-testid="stale-warning">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span>Data is niet recent vernieuwd ({Math.round((Date.now() - lastUpdate.getTime()) / 1000)}s geleden). Polling wordt herstart...</span>
+            <Button variant="outline" size="sm" onClick={() => { fetchingRef.current = false; fetchMonitorData(); }} className="ml-auto border-amber-500/30 text-amber-400 hover:text-amber-300 text-xs h-6 px-2">
+              <RefreshCw className="w-3 h-3 mr-1" /> Refresh Now
+            </Button>
+          </div>
+        )}
+        {fetchErrors > 3 && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span>Verbindingsproblemen — {fetchErrors} mislukte pogingen</span>
+          </div>
+        )}
 
         {/* Station Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
