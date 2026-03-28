@@ -3842,3 +3842,13 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Added `visibilitychange` event listener to immediately restart polling when tab becomes visible
   - Added `fetchErrors` counter and visual warning for consecutive fetch failures
   - Added stale data warning (amber banner) when data is older than 30 seconds with manual "Refresh Now" button
+
+
+### 2026-03-28: P0 Bug Fix — RDS Builder Stale Show Data ("Sassy Beats" stuck)
+- **Issue**: RDS Builder output for MFY/GRK was stuck displaying a radio show from yesterday ("Sassy Beats"). The monitor/builder did not clear old show data after the show ended.
+- **Root cause**: When an RDS sequence is DISABLED, `process_rds_sequence` in `rds_builder_scheduler.py` only cleared stale data for `scheduled_text` and `audio_trigger` types. For `show_name`, `now_playing`, and `presenter_name` items, the old text was blindly preserved — even after the referenced show had ended.
+- **Fixes applied**:
+  1. **`rds_builder_scheduler.py` — `process_rds_sequence` (sequence disabled path)**: Now re-evaluates ALL item types (`show_name`, `now_playing`, `presenter_name`) by calling `get_item_text()`. If the show ended, the output automatically updates to the station default ("altijd dichtbij" / "the feelgood station").
+  2. **`rds_builder.py` — `force_refresh_rds`**: After clearing `rds_cached_rundowns`, now ALSO resets `rds_builder_output` and all `rds_output_states` (named outputs) with freshly evaluated text. This ensures Force Refresh completely clears all stale data.
+  3. **`rds_builder_scheduler.py` — `process_named_output` (no enabled items path)**: Same fix — re-evaluates stale item text instead of only clearing scheduled_text types.
+- **Verified**: Force-refresh correctly clears all outputs. When audio trigger ends and MFY sequence is disabled, output updates to "altijd dichtbij". GRK sequence rotates correctly showing defaults.

@@ -317,11 +317,19 @@ async def force_refresh_rds():
     """Force refresh all RDS caches and outputs immediately.
     
     This bypasses the scheduler and forces an immediate update.
+    Clears ALL stale data from both rds_cached_rundowns AND rds_builder_output.
     Useful when shows are not updating properly.
     """
     from services.rds_scheduler import refresh_live_show_cache, run_scheduled_cache_refresh
+    from services.rds_builder_scheduler import get_item_text
     
-    now_brussels = datetime.now(BRUSSELS_TZ)
+    now_brussels_dt = datetime.now(BRUSSELS_TZ)
+    timestamp = now_brussels_dt.isoformat()
+    
+    default_names = {
+        "grk": "the feelgood station",
+        "mfy": "altijd dichtbij"
+    }
     
     # 1. Force refresh all RDS caches
     await run_scheduled_cache_refresh()
@@ -329,15 +337,36 @@ async def force_refresh_rds():
     # 2. Get fresh live show data directly from calendar
     live_shows = await check_live_shows_from_calendar()
     
-    # 3. For each station, update the cached rundowns if needed
+    # 3. For each station: update cached rundowns AND builder output
     for station in ["mfy", "grk"]:
         live_show = live_shows.get(station)
         
         if not live_show:
-            # No live show - mark cached rundowns as inactive for this station
+            # No live show - deactivate ALL cached rundowns for this station
             await db.rds_cached_rundowns.update_many(
                 {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-                {"$set": {"is_active": False, "updated_at": now_brussels.isoformat()}}
+                {"$set": {"is_active": False, "updated_at": timestamp}}
+            )
+            
+            # CRITICAL: Also reset the rds_builder_output so stale show data is cleared
+            # Re-evaluate what the output should be right now
+            fresh_text = await get_item_text(db, station, {"type": "show_name"})
+            if not fresh_text:
+                fresh_text = default_names.get(station, "")
+            
+            await db.rds_builder_output.update_one(
+                {"station": station},
+                {"$set": {
+                    "current_text": fresh_text,
+                    "current_item_type": "show_name",
+                    "current_index": 0,
+                    "scheduled_text_active": False,
+                    "audio_trigger_active": False,
+                    "scheduled_text_ends_at": None,
+                    "next_change_at": (now_brussels_dt + timedelta(seconds=5)).isoformat(),
+                    "updated_at": timestamp
+                }},
+                upsert=True
             )
         else:
             # There's a live show - make sure it's marked active
@@ -347,15 +376,41 @@ async def force_refresh_rds():
                     "is_active": True, 
                     "show_title": live_show["title"],
                     "rds_station": live_show["rds_station"],
-                    "updated_at": now_brussels.isoformat()
+                    "updated_at": timestamp
                 }},
                 upsert=True
             )
+        
+        # Also reset all named outputs for this station
+        named_outputs = await db.rds_outputs.find(
+            {"station": station},
+            {"_id": 0, "id": 1}
+        ).to_list(50)
+        
+        for named_output in named_outputs:
+            output_id = named_output.get("id")
+            if not live_show:
+                fresh_text = await get_item_text(db, station, {"type": "show_name"})
+                if not fresh_text:
+                    fresh_text = default_names.get(station, "")
+                await db.rds_output_states.update_one(
+                    {"output_id": output_id},
+                    {"$set": {
+                        "current_text": fresh_text,
+                        "current_item_type": "show_name",
+                        "current_index": 0,
+                        "scheduled_text_active": False,
+                        "scheduled_text_id": None,
+                        "next_change_at": (now_brussels_dt + timedelta(seconds=5)).isoformat(),
+                        "updated_at": timestamp
+                    }},
+                    upsert=True
+                )
     
     # 4. Log the force refresh
     await db.rds_cache_logs.insert_one({
         "id": str(uuid.uuid4()),
-        "timestamp": now_brussels.isoformat(),
+        "timestamp": timestamp,
         "status": "force_refresh",
         "message": f"Force refresh uitgevoerd - MFY: {live_shows['mfy']['title'] if live_shows['mfy'] else 'geen'}, GRK: {live_shows['grk']['title'] if live_shows['grk'] else 'geen'}",
         "live_shows": live_shows
@@ -367,9 +422,9 @@ async def force_refresh_rds():
     
     return {
         "status": "success",
-        "timestamp": now_brussels.isoformat(),
+        "timestamp": timestamp,
         "live_shows": live_shows,
-        "message": "RDS cache geforceerd vernieuwd"
+        "message": "RDS cache geforceerd vernieuwd - alle outputs gereset"
     }
 
 

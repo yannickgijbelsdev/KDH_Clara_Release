@@ -428,48 +428,53 @@ async def process_rds_sequence(db, station: str):
     )
     
     if not sequence or not sequence.get("enabled"):
-        # Get current output to check if we need to clear stale data
+        # Sequence disabled: re-evaluate current item to keep output fresh
+        # This prevents stale show names from staying in the output after a show ends
         current_output = await db.rds_builder_output.find_one(
             {"station": station},
             {"_id": 0}
         )
         
-        # Determine if output has stale scheduled text or audio trigger
-        needs_clear = False
-        if current_output:
-            item_type = current_output.get("current_item_type", "")
-            stored_index = current_output.get("current_index", 0)
-            # Stale if we're showing scheduled text (index -1) or audio trigger (index -2)
-            if (item_type == "scheduled_text" and stored_index == -1) or \
-               (item_type == "audio_trigger" and stored_index == -2):
-                needs_clear = True
-        
-        # Clear flags and reset to default if sequence is disabled
-        # Also clear stale scheduled text/audio trigger content
         default_names = {
             "grk": "the feelgood station",
             "mfy": "altijd dichtbij"
         }
-        default_text = default_names.get(station, "") if needs_clear else (current_output.get("current_text", "") if current_output else "")
+        
+        # Always re-evaluate: get fresh text for the current item type
+        old_text = current_output.get("current_text", "") if current_output else ""
+        old_item_type = current_output.get("current_item_type", "") if current_output else ""
+        
+        # Re-evaluate text based on current item type
+        if old_item_type in ("show_name", "now_playing", "presenter_name"):
+            fresh_text = await get_item_text(db, station, {"type": old_item_type})
+            if not fresh_text:
+                fresh_text = default_names.get(station, "")
+            new_item_type = old_item_type
+        elif old_item_type in ("scheduled_text", "audio_trigger") or not old_item_type:
+            # Scheduled text or audio trigger ended, or no item type set - use default
+            fresh_text = default_names.get(station, "")
+            new_item_type = "show_name"
+        else:
+            fresh_text = old_text
+            new_item_type = old_item_type
         
         await db.rds_builder_output.update_one(
             {"station": station},
             {"$set": {
                 "scheduled_text_active": False, 
                 "audio_trigger_active": False,
-                "current_text": default_text if needs_clear else (current_output.get("current_text", "") if current_output else ""),
-                "current_index": 0 if needs_clear else (current_output.get("current_index", 0) if current_output else 0),
-                "current_item_type": "show_name" if needs_clear else (current_output.get("current_item_type", "") if current_output else ""),
+                "current_text": fresh_text,
+                "current_index": 0,
+                "current_item_type": new_item_type,
                 "scheduled_text_ends_at": None,
                 "updated_at": timestamp
             }},
             upsert=True
         )
         
-        if needs_clear:
-            # Log to history
-            await log_text_change(db, station, default_text, "show_name", "Stale content cleared (sequence disabled)")
-            logger.info(f"RDS Builder [{station}]: Cleared stale scheduled text/audio trigger (sequence disabled)")
+        if fresh_text != old_text:
+            await log_text_change(db, station, fresh_text, new_item_type, "Stale content refreshed (sequence disabled)")
+            logger.info(f"RDS Builder [{station}]: Updated stale output '{old_text[:40]}' -> '{fresh_text[:40]}' (sequence disabled)")
         
         return
     
@@ -659,21 +664,29 @@ async def process_named_output(db, output_config: dict):
     enabled_items = [item for item in items if item.get("enabled", True)]
     
     if not enabled_items:
-        # Check if we need to clear stale scheduled text data
+        # No enabled items: re-evaluate current output to keep it fresh
         state = await db.rds_output_states.find_one(
             {"output_id": output_id},
             {"_id": 0}
         )
         if state:
-            item_type = state.get("current_item_type", "")
-            stored_index = state.get("current_index", 0)
-            if item_type == "scheduled_text" and stored_index == -1:
-                # Clear stale scheduled text
-                default_names = {"grk": "the feelgood station", "mfy": "altijd dichtbij"}
+            default_names = {"grk": "the feelgood station", "mfy": "altijd dichtbij"}
+            old_text = state.get("current_text", "")
+            old_item_type = state.get("current_item_type", "")
+            
+            # Re-evaluate text based on current item type
+            if old_item_type in ("show_name", "now_playing", "presenter_name"):
+                fresh_text = await get_item_text(db, station, {"type": old_item_type})
+                if not fresh_text:
+                    fresh_text = default_names.get(station, "")
+            else:
+                fresh_text = default_names.get(station, "")
+            
+            if fresh_text != old_text:
                 await db.rds_output_states.update_one(
                     {"output_id": output_id},
                     {"$set": {
-                        "current_text": default_names.get(station, ""),
+                        "current_text": fresh_text,
                         "current_index": 0,
                         "current_item_type": "show_name",
                         "scheduled_text_active": False,
@@ -682,7 +695,7 @@ async def process_named_output(db, output_config: dict):
                     }},
                     upsert=True
                 )
-                logger.info(f"RDS Output [{output_config.get('slug')}]: Cleared stale scheduled text (no enabled items)")
+                logger.info(f"RDS Output [{output_config.get('slug')}]: Refreshed stale output '{old_text[:40]}' -> '{fresh_text[:40]}'")
         return
     
     # Get current output state
