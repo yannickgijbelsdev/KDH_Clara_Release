@@ -34,7 +34,14 @@ function StepIndicator({ steps, current }) {
 function SyncBadge({ result }) {
   if (!result) return <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500 border border-zinc-700">Local only</span>;
   if (result.status === 'ok') return <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Synced to Cloudflare</span>;
-  return <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20" title={result.message}>Sync failed</span>;
+
+  const steps = result.steps || [];
+  const tooltip = steps.length > 0 ? steps.join('\n') : result.message;
+  return (
+    <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 cursor-help" title={tooltip}>
+      Sync failed: {result.message?.substring(0, 50)}
+    </span>
+  );
 }
 
 export default function WpSecurityPage() {

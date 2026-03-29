@@ -16,31 +16,60 @@ def _headers(api_token: str) -> dict:
 
 
 async def test_credentials(api_token: str, zone_id: str) -> dict:
-    """Test Cloudflare API credentials by fetching zone details."""
+    """Test Cloudflare API credentials by fetching zone details AND checking WAF access."""
     try:
         async with httpx.AsyncClient(timeout=10) as client:
+            # Step 1: Test basic zone access
             resp = await client.get(f"{CF_API}/zones/{zone_id}", headers=_headers(api_token))
             data = resp.json()
-            if data.get("success"):
-                zone = data["result"]
+            if not data.get("success"):
+                errors = data.get("errors", [])
+                error_msg = errors[0].get("message", "Unknown error") if errors else "Authentication failed"
                 return {
-                    "status": "ok",
-                    "message": f"Connected to Cloudflare zone: {zone.get('name', zone_id)}",
-                    "zone_name": zone.get("name"),
-                    "zone_status": zone.get("status"),
-                    "plan": zone.get("plan", {}).get("name", "Unknown"),
+                    "status": "error",
+                    "message": error_msg,
+                    "steps": [
+                        "Your Cloudflare API Token or Zone ID is invalid",
+                        "Go to dash.cloudflare.com > Profile > API Tokens",
+                        "Create a token with 'Zone.Firewall Services.Edit' and 'Zone.Zone.Read' permissions",
+                        "Make sure the token has access to the correct zone",
+                    ],
                 }
-            errors = data.get("errors", [])
-            error_msg = errors[0].get("message", "Unknown error") if errors else "Authentication failed"
+
+            zone = data["result"]
+
+            # Step 2: Test WAF/Firewall access (the actual permission needed for sync)
+            waf_resp = await client.get(
+                f"{CF_API}/zones/{zone_id}/rulesets/phases/http_request_firewall_custom/entrypoint",
+                headers=_headers(api_token),
+            )
+            waf_data = waf_resp.json()
+            waf_ok = waf_data.get("success", False)
+            # A 404 with success=false is OK — it means no rules exist yet but we have access
+            if not waf_ok and waf_resp.status_code == 404:
+                waf_ok = True
+
+            if not waf_ok and waf_resp.status_code in (401, 403):
+                return {
+                    "status": "error",
+                    "message": f"Zone access OK ({zone.get('name')}), but WAF permission denied",
+                    "steps": [
+                        "Your API Token can read the zone, but cannot manage WAF rules",
+                        "Go to dash.cloudflare.com > Profile > API Tokens",
+                        "Edit your token (or create a new one) with these permissions:",
+                        "  - Zone > Firewall Services > Edit",
+                        "  - Zone > Zone > Read",
+                        "Make sure the token scope includes the zone: " + zone.get("name", zone_id),
+                    ],
+                }
+
             return {
-                "status": "error",
-                "message": error_msg,
-                "steps": [
-                    "Your Cloudflare API Token or Zone ID is invalid",
-                    "Go to dash.cloudflare.com → Profile → API Tokens",
-                    "Create a token with 'Zone.Firewall Services.Edit' and 'Zone.Zone.Read' permissions",
-                    "Make sure the token has access to the correct zone",
-                ],
+                "status": "ok",
+                "message": f"Connected to Cloudflare zone: {zone.get('name', zone_id)} (WAF access verified)",
+                "zone_name": zone.get("name"),
+                "zone_status": zone.get("status"),
+                "plan": zone.get("plan", {}).get("name", "Unknown"),
+                "waf_access": waf_ok,
             }
     except httpx.ConnectError:
         return {"status": "error", "message": "Cannot connect to Cloudflare API", "steps": ["Check your internet connection"]}
@@ -109,7 +138,18 @@ async def sync_waf_rules(api_token: str, zone_id: str, rules: list, clara_prefix
                 data = resp.json()
                 if data.get("success"):
                     return {"status": "ok", "synced": len(cf_rules), "message": f"{len(cf_rules)} rules synced to Cloudflare"}
-                return {"status": "error", "message": data.get("errors", [{}])[0].get("message", "Failed to create ruleset")}
+                error_msg = data.get("errors", [{}])[0].get("message", "Failed to create ruleset")
+                if resp.status_code in (401, 403) or "auth" in error_msg.lower():
+                    return {
+                        "status": "error",
+                        "message": "Cloudflare WAF permission denied",
+                        "steps": [
+                            "Your API Token cannot manage WAF rules",
+                            "Go to dash.cloudflare.com > Profile > API Tokens",
+                            "Edit your token with: Zone > Firewall Services > Edit",
+                        ],
+                    }
+                return {"status": "error", "message": error_msg}
 
             # Ruleset exists — get current rules
             resp = await client.get(
@@ -134,7 +174,18 @@ async def sync_waf_rules(api_token: str, zone_id: str, rules: list, clara_prefix
             data = resp.json()
             if data.get("success"):
                 return {"status": "ok", "synced": len(cf_rules), "message": f"{len(cf_rules)} rules synced to Cloudflare"}
-            return {"status": "error", "message": data.get("errors", [{}])[0].get("message", "Failed to update rules")}
+            error_msg = data.get("errors", [{}])[0].get("message", "Failed to update rules")
+            if resp.status_code in (401, 403) or "auth" in error_msg.lower():
+                return {
+                    "status": "error",
+                    "message": "Cloudflare WAF permission denied",
+                    "steps": [
+                        "Your API Token cannot manage WAF rules",
+                        "Go to dash.cloudflare.com > Profile > API Tokens",
+                        "Edit your token with: Zone > Firewall Services > Edit",
+                    ],
+                }
+            return {"status": "error", "message": error_msg}
 
     except Exception as e:
         logger.error(f"Cloudflare WAF sync error: {e}")
