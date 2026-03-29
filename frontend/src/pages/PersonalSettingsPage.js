@@ -8,6 +8,7 @@ import {
   Loader2,
   Check,
   Shield,
+  Smartphone,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
@@ -23,6 +24,7 @@ const PersonalSettingsPage = () => {
   const [saving, setSaving] = useState(false);
   const [preferences, setPreferences] = useState({
     grouped_menu: true,
+    show_pwa_prompt: true,
   });
 
   useEffect(() => {
@@ -30,6 +32,7 @@ const PersonalSettingsPage = () => {
     if (user?.preferences) {
       setPreferences({
         grouped_menu: user.preferences.grouped_menu ?? true,
+        show_pwa_prompt: user.preferences.show_pwa_prompt ?? true,
       });
     }
   }, [user]);
@@ -156,6 +159,28 @@ const PersonalSettingsPage = () => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* App Install Prompt */}
+      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <Smartphone className="w-5 h-5 text-orange-400" />
+          Install App Prompt
+        </h2>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <Label className="text-white font-medium">Show install notification</Label>
+            <p className="text-sm text-zinc-400 mt-1">
+              Show a popup after login suggesting to install Clara as a Web App on your device
+            </p>
+          </div>
+          <Switch
+            checked={preferences.show_pwa_prompt}
+            onCheckedChange={(checked) => setPreferences(prev => ({ ...prev, show_pwa_prompt: checked }))}
+            className="data-[state=checked]:bg-orange-500"
+            data-testid="pwa-prompt-toggle"
+          />
         </div>
       </div>
 

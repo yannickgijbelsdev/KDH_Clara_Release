@@ -581,7 +581,7 @@ async def update_user_preferences(
     current_user: dict = Depends(get_current_user)
 ):
     """Update current user's preferences."""
-    allowed_prefs = ['grouped_menu', 'network_view_mode']  # Whitelist of allowed preference keys
+    allowed_prefs = ['grouped_menu', 'network_view_mode', 'show_pwa_prompt']  # Whitelist of allowed preference keys
     
     # Filter to only allowed preferences
     filtered_prefs = {k: v for k, v in preferences.items() if k in allowed_prefs}
