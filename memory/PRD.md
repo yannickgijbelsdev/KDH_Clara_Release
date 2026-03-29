@@ -3844,7 +3844,13 @@ now = now_brussels()  # Automatically handles CET/CEST
   - Added stale data warning (amber banner) when data is older than 30 seconds with manual "Refresh Now" button
 
 
-### 2026-03-28: P0 Bug Fix — RDS Builder Stale Show Data ("Sassy Beats" stuck)
+### 2026-03-28: PWA Install Prompt
+- Added `manifest.json` (name: "Clara | Radio Network Manager", standalone display mode)
+- Added minimal service worker (`sw.js`) to enable PWA install prompt
+- Created `PwaInstallPrompt.js` component: shows English popup after page load asking to install Clara as a Web App
+- Popup uses `beforeinstallprompt` browser event, with Install + "Not now" buttons
+- Dismissal saved to localStorage so it only shows once per device
+- Component added to `App.js` root
 - **Issue**: RDS Builder output for MFY/GRK was stuck displaying a radio show from yesterday ("Sassy Beats"). The monitor/builder did not clear old show data after the show ended.
 - **Root cause**: When an RDS sequence is DISABLED, `process_rds_sequence` in `rds_builder_scheduler.py` only cleared stale data for `scheduled_text` and `audio_trigger` types. For `show_name`, `now_playing`, and `presenter_name` items, the old text was blindly preserved — even after the referenced show had ended.
 - **Fixes applied**:

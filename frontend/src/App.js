@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainSiteProvider, useMainSite } from './context/MainSiteContext';
 import { Toaster } from './components/ui/sonner';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 import { TopLoaderProvider } from './components/TopLoader';
 import SessionWarningModal from './components/SessionWarningModal';
 import TwoFactorEnforcement from './components/TwoFactorEnforcement';
@@ -367,6 +368,7 @@ function App() {
               <AppRoutes />
               <CallWidget />
               <SessionWarningModal />
+              <PwaInstallPrompt />
               <Toaster position="bottom-right" richColors />
             </CallProvider>
           </JourneyProvider>
