@@ -77,16 +77,24 @@ async def test_credentials(api_token: str, zone_id: str) -> dict:
         return {"status": "error", "message": str(e), "steps": ["An unexpected error occurred"]}
 
 
-async def _get_custom_ruleset_id(client: httpx.AsyncClient, api_token: str, zone_id: str) -> str | None:
-    """Get the ID of the http_request_firewall_custom phase entry point ruleset."""
+async def _get_custom_ruleset_id(client: httpx.AsyncClient, api_token: str, zone_id: str) -> tuple[str | None, str | None]:
+    """Get the ID of the http_request_firewall_custom phase entry point ruleset.
+    
+    Returns (ruleset_id, error_message). If ruleset doesn't exist yet, returns (None, None).
+    If access denied, returns (None, "error message").
+    """
     resp = await client.get(
         f"{CF_API}/zones/{zone_id}/rulesets/phases/http_request_firewall_custom/entrypoint",
         headers=_headers(api_token),
     )
     data = resp.json()
     if data.get("success"):
-        return data["result"]["id"]
-    return None
+        return data["result"]["id"], None
+    if resp.status_code == 404:
+        return None, None  # Doesn't exist yet — that's fine
+    if resp.status_code in (401, 403):
+        return None, "WAF permission denied — your API token needs 'Zone > Firewall Services > Edit'"
+    return None, data.get("errors", [{}])[0].get("message", "Unknown error")
 
 
 def _build_cf_expression(rule: dict) -> str:
@@ -105,8 +113,19 @@ async def sync_waf_rules(api_token: str, zone_id: str, rules: list, clara_prefix
     """
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            # Get existing ruleset
-            ruleset_id = await _get_custom_ruleset_id(client, api_token, zone_id)
+            # Get existing ruleset (or None if it doesn't exist yet)
+            ruleset_id, auth_error = await _get_custom_ruleset_id(client, api_token, zone_id)
+
+            if auth_error:
+                return {
+                    "status": "error",
+                    "message": auth_error,
+                    "steps": [
+                        "Your API Token cannot manage WAF rules",
+                        "Go to dash.cloudflare.com > Profile > API Tokens",
+                        "Edit your token with: Zone > Firewall Services > Edit",
+                    ],
+                }
 
             # Build the rules we want in Cloudflare
             cf_rules = []
@@ -122,11 +141,11 @@ async def sync_waf_rules(api_token: str, zone_id: str, rules: list, clara_prefix
                 })
 
             if not ruleset_id:
-                # Create new ruleset with our rules
+                # No ruleset exists yet — create via PUT to phase entrypoint
                 if not cf_rules:
                     return {"status": "ok", "synced": 0, "message": "No active rules to sync"}
-                resp = await client.post(
-                    f"{CF_API}/zones/{zone_id}/rulesets",
+                resp = await client.put(
+                    f"{CF_API}/zones/{zone_id}/rulesets/phases/http_request_firewall_custom/entrypoint",
                     headers=_headers(api_token),
                     json={
                         "name": "Clara WP Security Rules",
@@ -139,17 +158,16 @@ async def sync_waf_rules(api_token: str, zone_id: str, rules: list, clara_prefix
                 if data.get("success"):
                     return {"status": "ok", "synced": len(cf_rules), "message": f"{len(cf_rules)} rules synced to Cloudflare"}
                 error_msg = data.get("errors", [{}])[0].get("message", "Failed to create ruleset")
-                if resp.status_code in (401, 403) or "auth" in error_msg.lower():
-                    return {
-                        "status": "error",
-                        "message": "Cloudflare WAF permission denied",
-                        "steps": [
-                            "Your API Token cannot manage WAF rules",
-                            "Go to dash.cloudflare.com > Profile > API Tokens",
-                            "Edit your token with: Zone > Firewall Services > Edit",
-                        ],
-                    }
-                return {"status": "error", "message": error_msg}
+                logger.error(f"Cloudflare create ruleset failed: {error_msg} (HTTP {resp.status_code})")
+                return {
+                    "status": "error",
+                    "message": error_msg,
+                    "steps": [
+                        f"Cloudflare API returned: {error_msg}",
+                        "Check your API Token has 'Zone > Firewall Services > Edit' permission",
+                        "Check your Cloudflare plan supports custom WAF rules",
+                    ],
+                }
 
             # Ruleset exists — get current rules
             resp = await client.get(
@@ -175,17 +193,16 @@ async def sync_waf_rules(api_token: str, zone_id: str, rules: list, clara_prefix
             if data.get("success"):
                 return {"status": "ok", "synced": len(cf_rules), "message": f"{len(cf_rules)} rules synced to Cloudflare"}
             error_msg = data.get("errors", [{}])[0].get("message", "Failed to update rules")
-            if resp.status_code in (401, 403) or "auth" in error_msg.lower():
-                return {
-                    "status": "error",
-                    "message": "Cloudflare WAF permission denied",
-                    "steps": [
-                        "Your API Token cannot manage WAF rules",
-                        "Go to dash.cloudflare.com > Profile > API Tokens",
-                        "Edit your token with: Zone > Firewall Services > Edit",
-                    ],
-                }
-            return {"status": "error", "message": error_msg}
+            logger.error(f"Cloudflare update ruleset failed: {error_msg} (HTTP {resp.status_code})")
+            return {
+                "status": "error",
+                "message": error_msg,
+                "steps": [
+                    f"Cloudflare API returned: {error_msg}",
+                    "Check your API Token permissions",
+                    "Check the zone plan supports custom WAF rules",
+                ],
+            }
 
     except Exception as e:
         logger.error(f"Cloudflare WAF sync error: {e}")

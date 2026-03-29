@@ -115,6 +115,11 @@ export default function WpSecurityPage() {
           setBlocklist(data.ip_blocklist || []);
           setLoginProtection(data.login_protection || { enabled: false, block_xmlrpc: true, limit_login_attempts: true, max_attempts: 5 });
 
+          // Restore cached Wordfence scan from DB
+          if (data.last_wordfence_scan) {
+            setWfStatus(data.last_wordfence_scan);
+          }
+
           // Determine wizard step
           if (!data.wordpress_url) { setSetupStep(0); }
           else if (!data.cf_api_token_set) { setSetupStep(1); }

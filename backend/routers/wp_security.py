@@ -375,7 +375,7 @@ async def get_wordfence_status(
     request: Request,
     current_user: dict = Depends(require_system_admin),
 ):
-    """Check Wordfence installation and scan for vulnerabilities."""
+    """Check Wordfence installation and scan for vulnerabilities. Results are cached in DB."""
     main_site_id = await get_main_site_id_from_header(request)
     if not main_site_id:
         return {"status": "error", "message": "No main site context"}
@@ -391,8 +391,21 @@ async def get_wordfence_status(
     # Scan for vulnerabilities
     vuln_scan = await scan_vulnerabilities(wp_url)
 
-    return {
+    result = {
         "status": "ok",
         "wordfence": wf_status,
         "vulnerability_scan": vuln_scan,
     }
+
+    # Persist the scan results so they survive page reloads
+    await db.wp_security_configs.update_one(
+        {"main_site_id": main_site_id},
+        {"$set": {
+            "last_wordfence_scan": result,
+            "last_wordfence_scan_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+
+    return result
