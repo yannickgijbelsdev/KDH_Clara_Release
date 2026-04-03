@@ -171,11 +171,12 @@ async def get_config():
 async def publish_to_wordpress(
     content_id: str,
     publish_data: PublishToWordPressRequest,
+    request: Request,
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Publish content item to one or more WordPress sites."""
     try:
-        return await publish_content_to_wordpress(content_id, publish_data, current_user)
+        return await publish_content_to_wordpress(content_id, publish_data, current_user, request)
     except HTTPException:
         raise
     except Exception as e:

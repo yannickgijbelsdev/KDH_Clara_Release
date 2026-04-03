@@ -764,14 +764,32 @@ async def get_legacy_connection(
 async def publish_content_to_wordpress(
     content_id: str,
     publish_data: PublishToWordPressRequest,
-    current_user: dict
+    current_user: dict,
+    request = None
 ) -> PublishResponse:
     """Publish content item to one or more WordPress sites."""
+    from services.main_site_context import get_main_site_id_from_header
+    
+    # Get main_site_id from header for correct site/content lookup
+    main_site_id = None
+    team_id = current_user.get('team_id')
+    if request:
+        main_site_id = await get_main_site_id_from_header(request)
+    
+    # If we have main_site_id, resolve the team_id from the main site
+    if main_site_id:
+        main_site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "team_id": 1})
+        if main_site and main_site.get('team_id'):
+            team_id = main_site['team_id']
+    
+    # Find content - try with resolved team_id, then fallback without team filter for admins
     content = await db.content_items.find_one(
-        {"id": content_id, "team_id": current_user.get('team_id')}
+        {"id": content_id, "team_id": team_id}
     )
+    if not content and current_user.get('is_system_admin'):
+        content = await db.content_items.find_one({"id": content_id})
     if not content:
-        raise HTTPException(status_code=404, detail="Content item not found")
+        raise HTTPException(status_code=404, detail=f"Content item not found (team: {team_id})")
     
     # Check approval status - content with status "ready" must be approved
     if content.get('status') == 'ready' and content.get('approval_status') != 'approved':
@@ -783,9 +801,14 @@ async def publish_content_to_wordpress(
     results = []
     
     for target in publish_data.targets:
-        site = await db.wordpress_sites.find_one(
-            {"id": target.site_id, "team_id": current_user.get('team_id')}
-        )
+        # Robust site lookup: try multiple strategies (same as test-connection)
+        site = None
+        if main_site_id:
+            site = await db.wordpress_sites.find_one({"id": target.site_id, "main_site_id": main_site_id})
+        if not site and team_id:
+            site = await db.wordpress_sites.find_one({"id": target.site_id, "team_id": team_id})
+        if not site and current_user.get('is_system_admin'):
+            site = await db.wordpress_sites.find_one({"id": target.site_id})
         if not site:
             results.append(PublishResult(
                 site_id=target.site_id,
