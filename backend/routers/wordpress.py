@@ -986,8 +986,12 @@ async def publish_content_to_wordpress(
                     "title": content['title'],
                     "content": body,
                     "status": target.wp_status,
-                    "format": "audio"  # Always publish as audio format for radio content
                 }
+                
+                # Only set post format if the WP site has a preferred format configured
+                site_post_format = site.get('post_format')
+                if site_post_format and site_post_format != 'standard':
+                    wp_data["format"] = site_post_format
                 
                 # Add category if found
                 if wp_category_id:
@@ -1068,7 +1072,17 @@ async def publish_content_to_wordpress(
                         scheduled_date=scheduled_date
                     ))
                 else:
-                    error_msg = response.text[:200]
+                    # Parse the actual WordPress error for a clearer message
+                    try:
+                        wp_error = response.json()
+                        wp_error_msg = wp_error.get('message', response.text[:200])
+                        wp_error_code = wp_error.get('code', '')
+                        error_msg = f"{wp_error_msg} (code: {wp_error_code})" if wp_error_code else wp_error_msg
+                    except Exception:
+                        error_msg = response.text[:200]
+                    
+                    full_error = f"HTTP {response.status_code}: {error_msg}"
+                    logging.error(f"WordPress publish failed for {site['name']}: {full_error} | URL: {endpoint}")
                     
                     publish_doc = {
                         "content_item_id": content_id,
@@ -1076,7 +1090,7 @@ async def publish_content_to_wordpress(
                         "wp_post_type": target.post_type,
                         "wp_status": target.wp_status,
                         "sync_status": "failed",
-                        "sync_error_message": f"HTTP {response.status_code}: {error_msg}",
+                        "sync_error_message": full_error,
                         "last_synced_at": now,
                         "updated_at": now
                     }
@@ -1097,7 +1111,7 @@ async def publish_content_to_wordpress(
                         site_id=target.site_id,
                         site_name=site['name'],
                         success=False,
-                        message=f"HTTP {response.status_code}: {error_msg}"
+                        message=full_error
                     ))
                     
         except Exception as e:
