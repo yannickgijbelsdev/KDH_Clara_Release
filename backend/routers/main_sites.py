@@ -722,8 +722,40 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
     is_network_admin = current_user.get('is_network_admin', False)
     
     if is_network_admin and current_user.get('is_system_admin'):
-        # System admin has access to all sites across all environments
-        main_sites = await db.main_sites.find({}, {"_id": 0}).to_list(200)
+        # System admin: show sites they have explicit access to PLUS all production radio sites
+        # Full site management is available in Network Management
+        user_access = await db.main_site_users.find(
+            {"user_id": user_id},
+            {"_id": 0}
+        ).to_list(200)
+        
+        access_by_id = {a["main_site_id"]: a.get("role", "admin") for a in user_access}
+        explicit_site_ids = list(access_by_id.keys())
+        
+        # Get sites: explicit access + all non-staging, non-clone, non-technical production sites
+        main_sites = await db.main_sites.find({
+            "$or": [
+                {"id": {"$in": explicit_site_ids}},
+                {"cloned_from": {"$exists": False}},
+                {"cloned_from": None}
+            ]
+        }, {"_id": 0}).to_list(200)
+        
+        # Filter: exclude staging duplicates and test clones from dropdown
+        filtered = []
+        seen_names = set()
+        for ms in main_sites:
+            # Skip clones unless explicitly assigned
+            if ms.get("cloned_from") and ms["id"] not in access_by_id:
+                continue
+            # Deduplicate staging variants: prefer production over staging
+            base_name = ms.get("name", "").replace(" (Staging)", "").replace("[TEST] ", "")
+            if base_name in seen_names and ms["id"] not in access_by_id:
+                continue
+            seen_names.add(base_name)
+            filtered.append(ms)
+        
+        main_sites = filtered
 
         env_ids = list(set(ms.get("environment_id") for ms in main_sites if ms.get("environment_id")))
         envs = {}
@@ -745,7 +777,7 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
                     "environment_id": ms.get("environment_id"),
                     "environment_name": envs.get(ms.get("environment_id"), {}).get("name"),
                     "environment_color": envs.get(ms.get("environment_id"), {}).get("color"),
-                    "role": "network_admin"
+                    "role": access_by_id.get(ms["id"], "network_admin")
                 }
                 for ms in main_sites
             ]
@@ -760,8 +792,23 @@ async def get_my_main_site_access(current_user: dict = Depends(get_current_user)
     access_by_id = {a["main_site_id"]: a.get("role", "viewer") for a in user_access}
 
     if is_network_admin:
-        # Network admins see ALL sites (they manage the network)
-        main_sites = await db.main_sites.find({}, {"_id": 0}).to_list(200)
+        # Network admins: show only sites they have explicit access to
+        # Full site management is available in Network Management
+        user_site_ids = [a["main_site_id"] for a in user_access]
+        main_sites = await db.main_sites.find(
+            {"id": {"$in": user_site_ids}},
+            {"_id": 0}
+        ).to_list(200)
+        # Filter clones: only show if user is admin of parent
+        admin_site_ids = {sid for sid, role in access_by_id.items() if role in ("admin", "network_admin")}
+        filtered = []
+        for ms in main_sites:
+            cloned_from = ms.get("cloned_from")
+            if not cloned_from:
+                filtered.append(ms)
+            elif cloned_from in admin_site_ids or ms["id"] in admin_site_ids:
+                filtered.append(ms)
+        main_sites = filtered
     else:
         # Regular users see only sites they have explicit access to
         user_site_ids = [a["main_site_id"] for a in user_access]
