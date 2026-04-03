@@ -13,7 +13,7 @@ Architecture:
 - Real-time: WebSocket for rundown collaboration
 """
 
-from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, Depends, Request
+from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, Depends, Request, HTTPException
 from fastapi.responses import PlainTextResponse, FileResponse
 from starlette.middleware.cors import CORSMiddleware
 import os
@@ -174,7 +174,14 @@ async def publish_to_wordpress(
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Publish content item to one or more WordPress sites."""
-    return await publish_content_to_wordpress(content_id, publish_data, current_user)
+    try:
+        return await publish_content_to_wordpress(content_id, publish_data, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.error(f"Unhandled error in publish_to_wordpress: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Server error while publishing: {str(e)}")
 
 
 # ============== MENU BADGE COUNTS ==============

@@ -418,9 +418,12 @@ const ContentDetailPage = () => {
           toast.success(`Published to ${successCount} site(s) successfully!`);
         }
       } else if (successCount > 0 && failCount > 0) {
-        toast.warning(`Published to ${successCount} site(s), ${failCount} failed`);
+        const failedSites = response.data.results.filter(r => !r.success);
+        toast.warning(`Published to ${successCount} site(s), ${failCount} failed: ${failedSites.map(f => `${f.site_name}: ${f.message}`).join('; ')}`);
       } else {
-        toast.error('Failed to publish to all selected sites');
+        const failedSites = response.data.results.filter(r => !r.success);
+        const errorDetails = failedSites.map(f => `${f.site_name}: ${f.message}`).join('\n');
+        toast.error(`Failed to publish: ${errorDetails}`);
       }
       
       // Refresh content to get updated publish statuses
@@ -445,7 +448,8 @@ const ContentDetailPage = () => {
         } catch { /* Canva not available, no popup */ }
       }
     } catch (error) {
-      toast.error('Failed to publish to WordPress');
+      const detail = error?.response?.data?.detail || error?.response?.data?.message || error?.message || 'Unknown error';
+      toast.error(`WordPress publish failed: ${detail}`);
     } finally {
       setPublishing(false);
     }
@@ -1103,7 +1107,7 @@ const ContentDetailPage = () => {
                             </span>
                           )}
                           {publishStatus?.sync_status === 'failed' && (
-                            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-orange-500/20 text-rose-400">
+                            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-orange-500/20 text-rose-400 cursor-help" title={publishStatus?.sync_error_message || 'Unknown error'}>
                               <AlertCircle className="w-3 h-3" />
                               Failed
                             </span>
