@@ -801,7 +801,9 @@ class RDSBuilderScheduler:
         self.db = db
         self.running = False
         self.check_interval = 1  # Check every 1 second for smooth transitions
+        self.full_refresh_interval = 180  # Full refresh every 3 minutes
         self.task = None
+        self._last_full_refresh = 0
     
     async def start(self):
         """Start the RDS Builder scheduler."""
@@ -829,15 +831,86 @@ class RDSBuilderScheduler:
     
     async def _run_loop(self):
         """Main loop that processes RDS sequences."""
+        import time
         while self.running:
             try:
                 await run_rds_builder_cycle(self.db)
+                
+                # Periodic full refresh: deactivate stale shows and rebuild outputs
+                now = time.time()
+                if now - self._last_full_refresh >= self.full_refresh_interval:
+                    self._last_full_refresh = now
+                    await self._background_full_refresh()
+                
                 await asyncio.sleep(self.check_interval)
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"RDS Builder scheduler error: {e}")
                 await asyncio.sleep(5)
+
+    async def _background_full_refresh(self):
+        """Periodic background refresh: check live shows and clear stale data.
+        
+        This is the automatic equivalent of the manual Force Refresh button.
+        Runs every 3 minutes to keep outputs in sync with the calendar.
+        """
+        try:
+            from services.rds_scheduler import run_scheduled_cache_refresh
+            from services.timezone_utils import BRUSSELS_TZ
+            
+            now_brussels = datetime.now(BRUSSELS_TZ)
+            timestamp = now_brussels.isoformat()
+            
+            default_names = {"grk": "the feelgood station", "mfy": "altijd dichtbij"}
+            
+            # 1. Refresh the live show cache (deactivates ended shows)
+            await run_scheduled_cache_refresh()
+            
+            # 2. For each station, check if builder output is stale
+            for station in ["mfy", "grk"]:
+                # Check if there's actually a live show right now
+                has_active = await self.db.rds_cached_rundowns.find_one(
+                    {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+                    {"_id": 0, "show_title": 1}
+                )
+                
+                # Check current builder output
+                output = await self.db.rds_builder_output.find_one(
+                    {"station": station}, {"_id": 0}
+                )
+                
+                if not output:
+                    continue
+                
+                current_type = output.get("current_item_type", "")
+                current_text = output.get("current_text", "")
+                
+                # If output says show_name but no show is live, it's stale — fix it
+                if current_type == "show_name" and not has_active:
+                    fresh_text = await get_item_text(self.db, station, {"type": "show_name"})
+                    if not fresh_text:
+                        fresh_text = default_names.get(station, "")
+                    
+                    if fresh_text != current_text:
+                        await self.db.rds_builder_output.update_one(
+                            {"station": station},
+                            {"$set": {
+                                "current_text": fresh_text,
+                                "current_item_type": "show_name",
+                                "current_index": 0,
+                                "next_change_at": (now_brussels + timedelta(seconds=3)).isoformat(),
+                                "updated_at": timestamp
+                            }}
+                        )
+                        await log_text_change(self.db, station, fresh_text, "show_name", "Background refresh: stale show cleared")
+                        logger.info(f"RDS Builder [{station}]: Background refresh cleared stale show '{current_text[:30]}' -> '{fresh_text[:30]}'")
+            
+            logger.info("RDS Builder: Background full refresh completed")
+            
+        except Exception as e:
+            logger.error(f"RDS Builder background refresh error: {e}")
+
 
 
 # Global scheduler instance (initialized in server.py)
