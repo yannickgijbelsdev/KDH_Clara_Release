@@ -3858,3 +3858,39 @@ now = now_brussels()  # Automatically handles CET/CEST
   2. **`rds_builder.py` — `force_refresh_rds`**: After clearing `rds_cached_rundowns`, now ALSO resets `rds_builder_output` and all `rds_output_states` (named outputs) with freshly evaluated text. This ensures Force Refresh completely clears all stale data.
   3. **`rds_builder_scheduler.py` — `process_named_output` (no enabled items path)**: Same fix — re-evaluates stale item text instead of only clearing scheduled_text types.
 - **Verified**: Force-refresh correctly clears all outputs. When audio trigger ends and MFY sequence is disabled, output updates to "altijd dichtbij". GRK sequence rotates correctly showing defaults.
+
+## Canvas-Based Workspace Layout System (2026-04-04)
+
+### Architecture
+```
+AppShell
+├── Sidebar (80px, icon-only, dark, fixed left)
+├── TopBar (64px, glass effect, flex-shrink-0)
+└── WorkspaceCanvas (fills remaining space)
+    └── CanvasPanel (floating glass panels)
+        └── Page Content (<Outlet />)
+```
+
+### Components
+- `CanvasPanel` — Reusable panel with positions: topLeft, topRight, bottomLeft, bottomRight, centerRight, main
+- `WorkspaceCanvas` — Background layers (image + overlay + grid) with panel container
+- `WorkspaceTopBar` — Glass topbar with dynamic title, search, time
+- `WorkspaceSidebar` — Reference component for icon-only sidebar
+
+### Applied To
+- `MainSiteDashboardLayout.js` — All `/:mainSiteSlug/*` routes
+- `NetworkDashboard.js` — `/network` route
+- `DashboardLayout.js` — Legacy `/legacy/*` routes (not updated)
+
+### Panel Position System
+```js
+topLeft:     { top: 16, left: 16, width: 320 }
+topRight:    { top: 16, right: 16, width: 320 }
+bottomLeft:  { bottom: 16, left: 16, width: 360 }
+bottomRight: { bottom: 16, right: 16, width: 360 }
+centerRight: { top: 50%, right: 16, translateY: -50% }
+main:        { inset: 16 } // fills canvas
+```
+
+### Status: DONE (Tested, 95% pass rate)
+

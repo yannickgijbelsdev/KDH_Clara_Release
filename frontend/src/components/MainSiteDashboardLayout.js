@@ -838,6 +838,7 @@ const MainSiteDashboardContent = () => {
                 <NavLink
                   to={item.to}
                   onClick={closeSidebar}
+                  data-testid={`nav-${pathSegment}`}
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
