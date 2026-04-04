@@ -143,10 +143,10 @@
     }
   },
   "overlay_urls_for_reference": {
-    "logo": "https://step-wizard-plus.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/logo",
-    "clock": "https://step-wizard-plus.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/clock",
-    "ticker": "https://step-wizard-plus.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/ticker",
-    "now_playing_show": "https://step-wizard-plus.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/now-playing-show",
-    "now_playing_track": "https://step-wizard-plus.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/now-playing-track"
+    "logo": "https://pwa-install-rollout.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/logo",
+    "clock": "https://pwa-install-rollout.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/clock",
+    "ticker": "https://pwa-install-rollout.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/ticker",
+    "now_playing_show": "https://pwa-install-rollout.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/now-playing-show",
+    "now_playing_track": "https://pwa-install-rollout.preview.emergentagent.com/api/vmix/overlay/9d51a9a0-90ea-41c5-8324-d240fedbd99c/now-playing-track"
   }
 }

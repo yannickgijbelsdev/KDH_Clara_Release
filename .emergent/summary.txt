@@ -1,175 +1,142 @@
-<analysis>**original_problem_statement**:
-The user initiated a series of feature requests and bug reports aimed at improving usability, security, and administrative capabilities of the SaaS platform.
-The requests included:
-1.  A CLI command to convert a site from one package type to another (e.g., Radio to External Host).
-2.  A major security enhancement requiring Network Admins to be connected to a specific ZeroTier network to log in.
-3.  A UI overhaul for the Canva, VMix, and Radioplayer pages to implement the same step-by-step wizard interface used in the Domain Manager.
-4.  Adding an automatic connection status check (with a manual re-test button) to all wizard pages.
-5.  Adding clear, instructional fix-it tips in English to all wizard steps.
-6.  A bug report stating that once API credentials were set in a wizard, the fields became non-editable.
-7.  A final request to improve vague error messages (e.g., API token is invalid) by replacing them with clear, actionable, step-by-step instructions.
+<analysis>**original_problem_statement**: 
+The user requested a mix of critical bug fixes and new UI enhancements. The requirements included:
+1. Fixing an active production bug where the RDS monitor and output were stuck displaying a show from yesterday (Sassy Beats), despite a force refresh.
+2. Adding a Progressive Web App (PWA) Install Prompt overlay after login, in English, with an option to dismiss and manage it via Personal Settings.
+3. Fixing a Cloudflare WAF Rules Sync failed and Wordfence persistence bug for the new WordPress Security features.
+4. Fixing a Failed to publish to wordpress error for the MFY site.
+5. Correcting the avatar site-switcher dropdown so that Network Admins only see relevant production sites, filtering out staging environments, clones, and technical sites.
+6. Automating the RDS force refresh to run in the background periodically so users don't have to manually visit the page to clear stale data.
 
 **PRODUCT REQUIREMENTS**:
--   Implement a CLI command  to change a site's type and reset its features to the new package's defaults.
--   Implement a ZeroTier Network Guard: a globally configurable IP-based login restriction for Network Admins.
--   Refactor the Canva, Radioplayer, and VMix director pages into multi-step wizard UIs.
--   All wizard pages must feature an auto-check for API/service connectivity with clear status indicators (OK, Failed, Pending) and actionable suggestions.
--   Completed wizard steps must remain editable.
--   All error messages and setup tips must be clear, instructional, and in English.
+- Aggressively clear RDS cache and outputs on force refresh.
+- Implement a centered PWA installation overlay with native browser install triggers and a settings toggle.
+- Validate Cloudflare WAF API token permissions () before syncing and persist Wordfence scan results.
+- Fix WP publishing logic to correctly resolve site context ( vs ) and remove hardcoded post formats.
+- Restrict the avatar site dropdown to display only sites where the user explicitly has access via .
+- Implement a 3-minute background interval to automatically refresh the RDS builder cache.
 
-**User's preferred language**: **Dutch (Nederlands)**. You MUST respond to the user in Dutch only.
+**User's preferred language**: Dutch (Nederlands). You MUST respond to the user in Dutch ONLY. 
 
-**what currently exists?**
-The platform is a multi-environment SaaS for radio station management with a React frontend, FastAPI backend, and integrations with Cloudflare, Radioplayer, ZeroTier, Canva, and VMix.
-
-In this session, several significant features and fixes were implemented:
--   A bug was fixed where non-system Network Admins could not see all sites in the site-switcher dropdown.
--   A new CLI command, , was added to change a site's type.
--   A ZeroTier Network Guard was implemented to restrict Network Admin logins by IP address, complete with backend logic, API endpoints, CLI commands, and a UI management panel.
--   The , , and  pages were completely rewritten to use a consistent, step-by-step wizard UI.
--   An automatic connection status check was added to all four wizard pages, powered by a new reusable  component and new backend test endpoints.
--   A bug was fixed, making completed wizard steps clickable and editable.
--   The agent began overhauling backend error messages to provide more detailed, step-by-step instructions.
+**what currently exists?** 
+A multi-environment SaaS platform for radio station management with a React frontend and FastAPI backend. Integrates with Cloudflare, WordPress, Radioplayer, and ZeroTier. The application now supports PWA installation, possesses robust WordPress content publishing capabilities, and runs automated, periodic background checks to prevent RDS metadata from going stale.
 
 **Last working item**:
-    - Last item agent was working: Enhancing the vague error messages returned by the backend's  endpoints. The goal is to replace simple suggestion strings with a structured  array, allowing the frontend to display clear, numbered instructions to the user on how to fix the connection issue. The agent was in the process of updating the backend routers.
-    - Status: **IN PROGRESS**
-    - Agent Testing Done: N
-    - Which testing method agent to use? **both**. Backend API calls must be tested with  to verify the new JSON response structure (containing a  array). The frontend then needs to be tested with the  to verify the step-by-step instructions are rendered correctly within the  component.
+    - Last item agent was working: Implementing an automated background refresh for the RDS Builder cache. The agent added a  loop running every 3 minutes inside  to prevent the RDS data from getting stuck, eliminating the need for the user to manually click Force Refresh.
+    - Status: USER VERIFICATION PENDING
+    - Agent Testing Done: Y
+    - Which testing method agent to use? backend testing agent / manual testing by tailing logs to verify the refresh cycle executes every 3 minutes.
     - User Testing Done: N
 
-**All Pending/In progress Issue list**:
-  Issue 1: Vague error messages need to be replaced with step-by-step instructions (P0)
-
-  Issues Detail:
-  - **Issue 1: Vague error messages need to be replaced with step-by-step instructions**
-     - **Attempted fixes**: The agent successfully updated  to return the new structured error format. The agent was in the middle of applying the same pattern to  when the session ended. The frontend component  has not yet been modified to render these new instructions.
-     - **Next debug checklist**:
-        1.  **Backend**: Modify the  endpoints in the remaining routers (, , ) to return a JSON object with a  array in case of an error, instead of a simple  string.
-        2.  **Frontend**: Update the  component. It should check if the  is an object containing a  array. If it is, render the steps as a numbered list inside the error message box.
-        3.  **Testing**: For each of the four wizard pages, manually trigger a connection error and verify that the new, detailed step-by-step instructions are displayed correctly.
-     - **Why fix this issue and what will be achieved with the fix?** This will significantly improve user experience by providing clear, actionable guidance when an integration fails, reducing user confusion and support requests.
-     - **Status**: IN PROGRESS
-     - **Is recurring issue?** N
-     - **Should Test frontend/backend/both after fix?** both
-     - **Blocked on other issue**: None.
+**All Pending/In progress Issue list**:  
+None. All reported bugs in the session were addressed and tested locally, awaiting production deployment and user verification.
 
 **In progress Task List**:
 None.
 
 **Upcoming and Future Tasks**
 Upcoming Tasks:
--   (P1) Finalize Calendar Integration (Google Calendar / Outlook) for Clara Tasks.
--   (P1) Finalize WordPress Plugin Integration ().
+- (P1) Finalize Calendar Integration (Google Calendar / Outlook) for Clara Tasks.
+- (P1) Finalize WordPress Plugin Integration ().
 
 Future Tasks:
--   (P2) Integrate Payment Gateway (Stripe/Mollie) for License Manager.
--   (P2) Implement Stream Monitor VU Meters.
--   (P2) Cleanup Obsolete ProRadio Sync Code.
--   (P2) Refactoring: Split  and  into smaller components.
+- (P2) Integrate Payment Gateway (Stripe/Mollie) for License Manager.
+- (P2) Implement Stream Monitor VU Meters.
+- (P2) Cleanup Obsolete ProRadio Sync Code.
+- (P2) Refactoring: Split  and  into smaller components.
 
 **Completed work in this session**
--   **Bug Fix (Admin Dropdown & Badges)**: Fixed an issue where Network Admins couldn't see all sites in the switcher dropdown and corrected outdated UI badge labels/colors. (DONE)
--   **Feature (CLI Site Convert)**: Implemented and tested a new CLI command  to change a site's type. (DONE)
--   **Feature (ZeroTier Network Guard)**: Added a major security feature to restrict Network Admin logins by IP, including backend logic, API/CLI management, and a UI panel. (DONE, Tested with )
--   **Feature (Wizard UI Refactor)**: Rewrote the Radioplayer, Canva Director, and VMix Director pages with a consistent step-by-step wizard UI. (DONE, Tested with )
--   **Feature (Connection Auto-Check)**: Added backend endpoints and a frontend  component for live API connection validation on all wizard pages. (DONE)
--   **Feature (Wizard Fix-It Tips)**: Added instructional English tips to all wizard pages to guide users. (DONE, Tested with )
--   **Bug Fix (Editable Wizard Steps)**: Fixed a bug preventing users from editing completed steps in the wizard pages. (DONE)
+- Fixed P0 RDS stuck data issue by making the force refresh clear all cached rundowns, outputs, and named outputs (). (DONE)
+- Created PWA Install Prompt overlay with a settings toggle in . Added  and . (DONE)
+- Fixed WP Security WAF sync by using the correct CF API endpoint () and enforcing WAF edit permissions in the test-connection endpoint. (DONE)
+- Fixed Wordfence status persistence by saving scan results to the DB. (DONE)
+- Fixed WP content publishing by removing hardcoded , properly surfacing WP API errors to the frontend, and resolving a  lookup mismatch in . (DONE)
+- Filtered avatar site dropdown to only show appropriate production sites to Network Admins (). (DONE)
+- Automated RDS full cache refresh to run in the background every 3 minutes (). (DONE)
 
 **Earlier issues found/mentioned but not fixed**
-   - **Issue 1: Linting Errors**
-     - **Debug checklist**: The  tool reported unused local variables.
-        -  in 
-        -  in 
-     - **Why to solve this issue and what will be achieved with this?** Improves code quality and removes dead code.
-     - **Should Test frontend/backend/both after fix?** backend
-     - **Is recurring issue?** N
+- Linting Errors: Python linter found pre-existing unused local variables (e.g., , ,  in  and ,  in ). 
 
 **Known issue recurrence from previous fork**
-None.
+- None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Conditional API Logic**:  was updated to differentiate API responses based on user roles ( vs. ).
--   **Middleware-like Security**: The ZeroTier Guard feature is injected directly into the  flow, acting as a custom authorization check before a token is issued.
--   **Global Config Pattern**: The ZeroTier Guard settings are stored as a single document in the  collection and managed via dedicated API endpoints and CLI commands.
--   **Reusable Frontend Components**: A  component was created to provide a consistent UI for API health checks across multiple pages.
--   **Dynamic UI State**: The wizard pages heavily use  (, ) to create a guided, interactive user experience where UI sections are conditionally rendered and enabled.
+- **RDS Background Polling**:  uses  to continuously poll and resolve RDS output. It now incorporates a 3-minute background full cache wipe to self-heal stale data.
+- **WP Site Lookup Context**: Admin users have a different  than the site's . Backend endpoints must rely on the  header (or  parameter) instead of the user's  to reliably locate target WordPress or Radio sites.
+- **PWA Implementation**: Standard React application wrapped with a  and a minimal . The UI leverages the native  event to capture and trigger the browser's installation flow.
 
 **key DB schema**
--   : Now contains a document for  config: .
--   : Collection name was corrected from the singular .
+- : The  object now allows saving .
+- : Saves  result dict.
+-  & : Dynamically cleared and rebuilt by background workers.
 
 **changes in tech stack**
-None.
+- Added PWA capabilities (, Service Worker).
 
 **All files of reference**
--   **New Files**: , .
--   **Heavily Modified Files**: , , , , , , .
--   **Other Important Files**: , , , .
+-  (Modified background loop)
+-  (Modified force refresh)
+-  (NEW)
+-  (NEW)
+-  (NEW)
+-  (Modified WAF logic)
+-  (Modified publish context and error handling)
+-  (Modified frontend error surfacing)
+-  (Modified site list access control)
+-  (Modified to add PWA toggle)
 
 **Areas that need refactoring**:
--    and  remain very large and would benefit from being broken down into smaller, more manageable components.
--   The unused variables found by the linter in  and  should be removed.
+- Python codebase contains multiple unused variables causing linting warnings (specifically in  and ). 
+-  remains large and should be decomposed (existing P2 task).
 
 **key api endpoints**
--   : Now includes the ZeroTier Guard IP check for network admins.
--   : Now returns all sites for network admins.
--   : Supports new commands:  and .
--   : New endpoints for managing the ZeroTier Guard UI panel.
--    (new)
--    (new)
--    (new)
--    (new)
+- 
+- 
+- 
+- 
 
 **Critical Info for New Agent**
--   **Language**: You MUST respond to the user in **Dutch**.
--   **Immediate Task**: Your primary goal is to complete the implementation of step-by-step error instructions. This requires finishing the backend changes in , , and  to return a  array on error, and then updating  to render these steps as a numbered list.
--   **Feature Context**: Be aware of the newly implemented ZeroTier Network Guard, which restricts login for Network Admins. System Admins are always exempt.
--   **UI Pattern**: The four main integration pages (Cloudflare, Radioplayer, Canva, VMix) now all use the same step-by-step wizard pattern. Completed steps can be clicked to be edited.
+- **Language**: You MUST respond to the user in **Dutch**.
+- All changes in the previous session have been tested in the local/preview environment using  and the screenshot tool. The user is waiting to deploy these changes to production to verify if the issues (RDS caching, WP publishing, and dropdown clutter) are fully resolved.
+- When creating WP posts, DO NOT enforce , as some themes do not support this taxonomy and it will trigger an immediate rejection from the WordPress API.
 
 **documents and test reports created in this job**
--   
--   
--   
--   
--    (updated multiple times)
+- None in this specific iteration (subagent wasn't invoked as rapid fixes were manually tested via bash/curl and screenshot tool).
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Complained that error messages (e.g., for Cloudflare) are too vague and unhelpful. (IN PROGRESS)
-2.  **User**: Reported a bug where the API token and Zone ID in the Domain Manager could not be edited after being set. (COMPLETED)
-3.  **User**: Requested that English fix-it tips be added to wizard steps that are not configured or have failed. (COMPLETED)
-4.  **User**: Gave approval to proceed with fixes suggested by the testing agent. (COMPLETED)
-5.  **User**: Confirmed the plan to add auto-check functionality to the wizards. (COMPLETED)
-6.  **User**: Requested an auto-check feature for the connection status on all wizard pages. (COMPLETED)
-7.  **User**: Requested that the Canva, VMix, and Radioplayer pages be refactored into step-by-step wizards like the Cloudflare one. (COMPLETED)
-8.  **User**: Confirmed the plan for the ZeroTier Network Guard feature. (COMPLETED)
-9.  **User**: Requested a security feature requiring Network Admins to be on a specific ZeroTier network to log in. (COMPLETED)
-10. **User**: Requested a CLI command to change a site's type (e.g., from Radio to External Host). (COMPLETED)
+1. User: Complained RDS is still stuck on Sassy Beats. (COMPLETED)
+2. User: Asked for a PWA install popup after site load with English instructions. (COMPLETED)
+3. User: Provided a screenshot showing Cloudflare WAF Rules Sync failed and Wordfence not syncing. (COMPLETED)
+4. User: Requested the PWA popup to be a centered overlay with a functional install button. (COMPLETED)
+5. User: Reported failed to publish to wordpress for the MFY site. (COMPLETED)
+6. User: Mentioned WP check is OK but publishing still fails. (COMPLETED)
+7. User: Stated failed to publish to wordpress komt er te staan - wanting deeper context. (COMPLETED)
+8. User: Requested a reconnect/reset capability for WP publish connection. (COMPLETED - Agent fixed root lookup cause).
+9. User: Pointed out Network Admins see too many non-production sites in their avatar dropdown. (COMPLETED)
+10. User: Requested the RDS monitor to auto force-refresh in the background without needing to visit the page. (COMPLETED)
 
 **Project Health Check:**
--   Broken: None
--   Mocked: Cloudflare integration is fully functional but requires a user-provided API key for end-to-end DNS syncing.
+- Broken: None currently identified (pending production deploy confirmation).
+- Mocked: Cloudflare API & WP integration requires user tokens.
 
 **3rd Party Integrations**
--   Cloudflare (DNS) — requires User API Key.
--   Radioplayer — API Key integrated.
--   ZeroTier (Networking) — Active.
--   Canva — Requires User API Key.
--   VMix — Active.
+- Cloudflare (WAF/DNS) — requires User API Key.
+- Wordfence (Security scanning) — Uses public/unauthenticated checks.
+- WordPress — Requires Application Password.
+- Radioplayer — API Key integrated.
+- ZeroTier (Networking) — Active.
 
 **Testing status**
--   Testing agent used after significant changes: YES. Four reports were generated ( to ), all showing high pass rates.
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None
--   Known regressions: Linting found unused variables that were not all removed.
+- Testing agent used after significant changes: NO (changes were targeted fixes, manually validated via bash/curl scripts).
+- Troubleshoot agent used after agent stuck in loop: NO
+- Test files created: None
+- Known regressions: None
 
 **Credentials to test flow:**
--   System Administrator:  / 
--   Network Admin (Test Account):  /  (password was reset multiple times)
+- System Administrator:  / 
+- Network Admin (Test Account):  / 
 
 **What agent forgot to execute**
-The agent did not fix all the Python linting errors. Unused variables  in  and  in  still need to be removed to improve code quality.</analysis>
+The agent left several minor Python linting errors (unused variables) in the codebase due to prioritizing the critical bug fixes.</analysis>

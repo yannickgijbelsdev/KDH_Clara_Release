@@ -1,109 +1,122 @@
 {
-  "design_system": {
-    "typography": {
-      "font_family": {
-        "heading": "Chivo, sans-serif",
-        "body": "Manrope, sans-serif",
-        "mono": "JetBrains Mono, monospace"
-      },
-      "scale": {
-        "h1": "text-4xl font-black tracking-tight lg:text-5xl",
-        "h2": "text-3xl font-bold tracking-tight",
-        "h3": "text-2xl font-bold tracking-tight",
-        "p": "text-base leading-7 text-muted-foreground",
-        "small": "text-sm font-medium leading-none"
-      }
+  "project_name": "Clara",
+  "domain": "Radio Station Management SaaS",
+  "theme": "dark",
+  "archetype": "Archetype 5: Jewel & Luxury (Adapted for SaaS with High-Contrast Performance Pro traits)",
+  "design_philosophy": "A modern, soft-UI dark mode workspace mimicking a physical control canvas. Heavily relies on deep obsidian backgrounds, pure glassmorphism (crystal variant), and glowing electric orange accents. The UI eschews rigid grids in favor of free-floating panels anchored around the edges over a dark architectural floorplan map, maximizing the negative space and creating an immersive command-center feel.",
+  "colors": {
+    "background": {
+      "app_shell": "#0A0A0A",
+      "sidebar": "rgba(10, 10, 10, 0.85)",
+      "topbar": "rgba(10, 10, 10, 0.5)",
+      "canvas_overlay": "rgba(0, 0, 0, 0.7)"
     },
-    "colors": {
-      "theme": "dark",
-      "palette": {
-        "background": "hsl(240 10% 3.9%)",
-        "foreground": "hsl(0 0% 98%)",
-        "card": "hsl(240 10% 3.9%)",
-        "card_foreground": "hsl(0 0% 98%)",
-        "popover": "hsl(240 10% 3.9%)",
-        "popover_foreground": "hsl(0 0% 98%)",
-        "primary": "hsl(24.6 95% 53.1%)",
-        "primary_foreground": "hsl(60 9.1% 97.8%)",
-        "secondary": "hsl(240 3.7% 15.9%)",
-        "secondary_foreground": "hsl(0 0% 98%)",
-        "muted": "hsl(240 3.7% 15.9%)",
-        "muted_foreground": "hsl(240 5% 64.9%)",
-        "accent": "hsl(24.6 95% 53.1%)",
-        "accent_foreground": "hsl(60 9.1% 97.8%)",
-        "destructive": "hsl(0 62.8% 30.6%)",
-        "destructive_foreground": "hsl(0 0% 98%)",
-        "border": "hsl(240 3.7% 15.9%)",
-        "input": "hsl(240 3.7% 15.9%)",
-        "ring": "hsl(24.6 95% 53.1%)"
-      },
-      "usage": {
-        "primary": "Main CTA buttons, active states, key highlights",
-        "background": "App background (Zinc 950)",
-        "card": "Component backgrounds (Zinc 950/900)",
-        "text_primary": "Headings, primary content (Zinc 50)",
-        "text_secondary": "Subtitles, metadata (Zinc 400)"
-      }
+    "surface": {
+      "panel": "rgba(20, 20, 20, 0.65)",
+      "panel_hover": "rgba(30, 30, 30, 0.8)",
+      "input_bg": "rgba(255, 255, 255, 0.04)"
     },
-    "layout": {
-      "structure": "Sidebar (Left, Fixed, Icon-only/Narrow) + Main Content (Right, Scrollable)",
-      "grid_system": "Responsive grid (1 col mobile, 2 col tablet, 3/4 col desktop)",
-      "spacing": {
-        "container_padding": "p-6 md:p-8 lg:p-10",
-        "component_gap": "gap-6"
-      },
-      "radius": "0.75rem"
+    "primary": {
+      "main": "#F97316",
+      "hover": "#EA580C",
+      "glow": "rgba(249, 115, 22, 0.4)"
     },
-    "components": {
-      "buttons": {
-        "default": "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-orange-500/20",
-        "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        "ghost": "hover:bg-accent/10 hover:text-accent"
-      },
-      "cards": {
-        "style": "bg-card border border-border/50 shadow-sm hover:border-primary/50 transition-colors duration-300",
-        "glass": "bg-black/40 backdrop-blur-xl border-white/10"
-      },
-      "inputs": {
-        "style": "bg-secondary/50 border-border focus:border-primary focus:ring-primary/30"
-      }
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#A3A3A3",
+      "muted": "#737373",
+      "inverse": "#000000"
     },
-    "visual_enhancers": {
-      "glassmorphism": "Use for Sidebar and Sticky Headers: backdrop-blur-xl bg-background/80 border-r border-border/50",
-      "gradients": "Subtle orange glow gradients behind key elements or in empty states",
-      "shadows": "Colored shadows for primary actions: shadow-orange-500/20"
+    "border": {
+      "subtle": "rgba(255, 255, 255, 0.08)",
+      "focus": "rgba(249, 115, 22, 0.5)"
     }
   },
-  "assets": {
-    "images": {
-      "user_avatar": "https://images.unsplash.com/photo-1648522168784-067e98df88c0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwxfHxyYWRpbyUyMGRqJTIwcG9ydHJhaXQlMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzY5NjM5MzQxfDA&ixlib=rb-4.1.0&q=85",
-      "header_bg": "https://images.unsplash.com/photo-1635630887369-63aa5d1f0568?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTJ8MHwxfHNlYXJjaHwzfHxyYWRpbyUyMGRqJTIwcG9ydHJhaXQlMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzY5NjM5MzQxfDA&ixlib=rb-4.1.0&q=85",
-      "show_covers": [
-        "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?auto=format&fit=crop&w=800&q=80"
-      ]
+  "typography": {
+    "headings": {
+      "family": "Outfit, sans-serif",
+      "weight": "600",
+      "tracking": "tracking-tight"
     },
-    "icons": "Lucide React (default)"
+    "body": {
+      "family": "Manrope, sans-serif",
+      "weight": "400",
+      "tracking": "tracking-normal"
+    },
+    "mono": {
+      "family": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl",
+      "h2": "text-2xl sm:text-3xl",
+      "h3": "text-xl",
+      "h4": "text-lg",
+      "body": "text-sm",
+      "caption": "text-xs uppercase tracking-[0.15em]"
+    }
   },
-  "instructions_to_main_agent": [
-    "UPDATE /app/frontend/src/index.css with the new color palette variables defined in 'colors.palette'. REPLACE the existing purple/rose colors with the Orange (#f97316) theme.",
-    "ENSURE the Sidebar is implemented as a fixed, narrow component on the left with glassmorphism effect.",
-    "CREATE a 'Welcome Header' component that uses the 'header_bg' image with a dark gradient overlay so text is readable.",
-    "USE 'Manrope' for all body text and 'Chivo' for headings.",
-    "IMPLEMENT the 'Quick Start' section as a grid of cards with icons.",
-    "IMPLEMENT the 'Updates' section as a list of recent activities.",
-    "ENSURE all interactive elements have hover states using the orange accent.",
-    "USE the provided image URLs for avatars and backgrounds.",
-    "DO NOT use gradients for the main background; keep it solid dark (#09090b) or very subtle noise.",
-    "ADD 'data-testid' to all interactive elements."
-  ],
-  "universal_guidelines": [
-    "Avoid generic centered layouts.",
-    "Use 2-3x more spacing than typical designs.",
-    "Every interaction needs micro-animations.",
-    "Use glass-morphism effects with backdrop filters.",
-    "Never use 'transition: all'.",
-    "Don't use AI assistant emojis."
+  "spacing_and_layout": {
+    "global": {
+      "app_shell": "flex h-screen w-screen overflow-hidden bg-[#0A0A0A] text-white selection:bg-orange-500/30",
+      "sidebar": "w-[80px] h-full flex-shrink-0 flex flex-col items-center py-6 border-r border-white/10 z-50 bg-[#0A0A0A]/85 backdrop-blur-xl",
+      "main_content": "flex flex-col flex-grow relative overflow-hidden",
+      "topbar": "h-[64px] w-full flex items-center justify-between px-8 border-b border-white/10 z-40 bg-black/40 backdrop-blur-2xl absolute top-0 left-0",
+      "workspace_canvas": "w-full h-full pt-[64px] relative overflow-hidden"
+    },
+    "panel_system": {
+      "base_classes": "absolute bg-[#141414]/65 backdrop-blur-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)] rounded-[20px] p-6 overflow-hidden flex flex-col gap-4",
+      "positions": {
+        "TopLeft": "top-8 left-8",
+        "TopRight": "top-8 right-8",
+        "BottomLeft": "bottom-8 left-8",
+        "BottomRight": "bottom-8 right-8",
+        "CenterRight": "top-1/2 right-8 -translate-y-1/2"
+      }
+    }
+  },
+  "surfaces_and_effects": {
+    "glassmorphism": "backdrop-blur-2xl bg-black/40 border-white/10",
+    "corners": "rounded-[20px]",
+    "borders": "1px solid rgba(255,255,255,0.08)"
+  },
+  "components_instructions": {
+    "app_shell": "Ensure the layout is fixed. Use a flex row where Sidebar is the first child (w-[80px]), and a flex column container takes the remaining width. The Topbar sits fixed at the top of the main container, and the Canvas fills the rest.",
+    "sidebar": "Navigation links are icon-only (e.g., using lucide-react). Structure: Logo at top, primary nav icons in the middle grouped with gap-6, user settings icon at bottom. Active item gets a rounded-xl bg-white/10 highlight or an orange glow.",
+    "topbar": "Glass effect is critical. Left section: Page title using Outfit font. Center: A sleek search bar with a subtle border and bg-white/5. Right: Date/time display and User profile image.",
+    "workspace_canvas": "This container is relative. Include an absolute background image taking up inset-0 with object-cover, mix-blend-luminosity, and opacity-30. On top of that, add a full div overlay with bg-black/70 to ensure contrast. Panel components go inside the canvas layer.",
+    "floating_panels": "Build a `WorkspacePanel` wrapper component that accepts a `position` prop mapped to the absolute positioning classes. Avoid standard rows/columns inside panels—use dense UI with crisp tiny labels (caption styling) and glowing values.",
+    "buttons": "Primary CTA uses bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-4 py-2 transition-colors. Secondary/ghost buttons use hover:bg-white/10.",
+    "data_testid": "Apply meaningful `data-testid` attributes on all buttons, panel wrappers, inputs, and nav icons (e.g., `data-testid='panel-top-left'`)."
+  },
+  "motion_and_interactions": {
+    "hover_states": "Interactive elements scale slightly or change background opacity. Buttons: `transition-all duration-200 ease-out`.",
+    "panel_entry": "Panels should use framer-motion to enter. `initial={{ opacity: 0, scale: 0.95, y: 15 }} animate={{ opacity: 1, scale: 1, y: 0 }}`. Stagger the entry of the 5 positions for a staggered loading effect.",
+    "focus": "Inputs and buttons must have `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black`."
+  },
+  "media": {
+    "backgrounds": {
+      "workspace_map": {
+        "url": "https://images.pexels.com/photos/4458210/pexels-photo-4458210.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Architectural floorplan used as the main deep background layer of the canvas."
+      }
+    },
+    "logos": {
+      "brand_icon": {
+        "url": "https://images.unsplash.com/photo-1738168504657-7e9f3119a0f8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDF8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMG9yYW5nZSUyMHNvdW5kd2F2ZSUyMGRhcmt8ZW58MHx8fHwxNzc1Mjk4MzQ5fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract orange soundwave texture used as the Clara brand icon in the sidebar top."
+      }
+    },
+    "user_avatars": {
+      "profile": {
+        "url": "https://images.unsplash.com/photo-1755545622375-82b0254b5912?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwzfHxkaiUyMHJhZGlvJTIwYnJvYWRjYXN0ZXIlMjBkYXJrJTIwc3R1ZGlvJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzc1Mjk4MzM3fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Radio broadcaster portrait for the user profile in the topbar."
+      }
+    }
+  },
+  "dependencies": [
+    "framer-motion",
+    "lucide-react",
+    "clsx",
+    "tailwind-merge"
   ]
 }
