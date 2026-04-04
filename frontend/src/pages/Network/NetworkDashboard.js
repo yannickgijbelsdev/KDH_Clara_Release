@@ -48,6 +48,15 @@ import TwoFactorSetup from '../../components/TwoFactorSetup';
 import BrandingSettings from './BrandingSettings';
 import LicenseManager from './LicenseManager';
 import DomainManager from './DomainManager';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../../components/ui/tooltip';
+import { WorkspaceCanvas } from '../../components/workspace/WorkspaceCanvas';
+import { WorkspaceTopBar } from '../../components/workspace/WorkspaceTopBar';
+import { CanvasPanel } from '../../components/workspace/CanvasPanel';
 import EnvironmentManager from './EnvironmentManager';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
@@ -763,279 +772,227 @@ export default function NetworkDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b]">
-      {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-orange-500 rounded-lg">
-              <span className="text-white font-black text-sm">C</span>
-            </div>
-            <BrandLogo className="text-lg font-bold text-white" imgClass="h-6 object-contain" />
+    <TooltipProvider delayDuration={0}>
+    <div className="h-screen flex flex-col overflow-hidden bg-[#0A0A0A] text-white" style={{ height: '100dvh' }}>
+      {/* Workspace Shell */}
+      <div className="flex flex-grow overflow-hidden">
+
+        {/* Desktop Sidebar — 80px Icon Only */}
+        <aside
+          data-testid="workspace-sidebar"
+          className="hidden lg:flex w-[80px] h-full flex-shrink-0 flex-col items-center py-5 bg-[#0A0A0A]/85 backdrop-blur-xl border-r border-white/[0.08] z-50"
+        >
+          {/* Logo */}
+          <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
+            <span className="text-white font-black text-base tracking-tight">C</span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-zinc-400 hover:text-white"
-          >
-            {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </Button>
-        </div>
-      </header>
 
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/60 z-40"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+          {/* Navigation Icons */}
+          <nav className="flex-1 flex flex-col items-center gap-1.5 py-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
+            {NAV_GROUPS.flatMap(g => g.items).map((item) => {
+              const Icon = item.icon;
+              const isActive = activeSection === item.id;
+              if (item.link) {
+                return (
+                  <Tooltip key={item.id}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        to={item.link}
+                        data-testid={`nav-${item.id}`}
+                        className="w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 text-zinc-500 hover:text-white hover:bg-white/[0.06]"
+                      >
+                        <Icon className="w-5 h-5" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
+                      {item.label}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              }
+              return (
+                <Tooltip key={item.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}
+                      data-testid={`nav-${item.id}`}
+                      className={`
+                        w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
+                        ${isActive
+                          ? 'bg-orange-500/15 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.15)]'
+                          : 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
+                        }
+                      `}
+                    >
+                      <Icon className="w-5 h-5" />
+                      {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-400" />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </nav>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex fixed top-0 left-0 h-full z-50 w-56 flex-col py-6 glass border-r border-white/10 transition-all duration-300">
-        {/* Logo */}
-        <div className="mb-6 px-4">
-          <BrandLogo className="text-white font-black text-base" />
-        </div>
+          {/* Bottom: User */}
+          <div className="mt-auto flex flex-col items-center gap-2 pt-3 flex-shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  data-testid="user-menu-trigger"
+                  className="w-11 h-11 rounded-2xl overflow-hidden hover:ring-2 hover:ring-orange-500/30 transition-all duration-200 flex-shrink-0"
+                >
+                  {getAvatarUrl(user) ? (
+                    <img src={getAvatarUrl(user)} alt={user?.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" side="right" className="w-56 bg-[#141414]/90 backdrop-blur-2xl border-white/10 ml-2">
+                <div className="px-3 py-2 flex items-center gap-3">
+                  {getAvatarUrl(user) ? (
+                    <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-white">{user?.name}</p>
+                    <p className="text-xs text-zinc-500">{user?.email}</p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator className="bg-white/[0.06]" />
+                <DropdownMenuItem className="text-zinc-400 cursor-default">
+                  <RoleIcon className="w-4 h-4 mr-2" />
+                  {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-white/[0.06]" />
+                <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </aside>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto">
-          {NAV_GROUPS.map((group) => (
-            <Collapsible
-              key={group.id}
-              open={expandedGroups.includes(group.id)}
-              onOpenChange={() => toggleGroup(group.id)}
-              className="mb-3"
-            >
-              <CollapsibleTrigger className="flex items-center gap-2 px-3 py-2.5 w-full text-left text-zinc-500 hover:text-zinc-300 transition-colors">
-                <group.icon className="h-4 w-4" />
-                <span className="flex-1 text-xs font-semibold uppercase tracking-wider">{group.label}</span>
-                {expandedGroups.includes(group.id) ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </CollapsibleTrigger>
-              <CollapsibleContent className="ml-2 space-y-1 mt-1">
-                {group.items.map(item => {
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div className="lg:hidden fixed inset-0 bg-black/60 z-40" onClick={() => setSidebarOpen(false)} />
+        )}
+
+        {/* Mobile Sidebar */}
+        <aside
+          className={`
+            lg:hidden fixed top-0 left-0 h-full z-50
+            w-64 bg-[#0A0A0A]/95 backdrop-blur-2xl border-r border-white/[0.08]
+            transform transition-transform duration-300 ease-in-out
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+        >
+          <div className="p-6 pt-4 h-full flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+                  <span className="text-white font-black text-sm">C</span>
+                </div>
+                <BrandLogo className="text-lg font-bold text-white" />
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <nav className="space-y-1">
+                {NAV_GROUPS.flatMap(g => g.items).filter(i => !i.link).map((item) => {
                   const Icon = item.icon;
                   const isActive = activeSection === item.id;
-
-                  // External links
-                  if (item.link) {
-                    return (
-                      <Link
-                        key={item.id}
-                        to={item.link}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors text-zinc-400 hover:bg-zinc-800 hover:text-white"
-                        data-testid={`sidebar-${item.id}`}
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span className="flex-1">{item.label}</span>
-                      </Link>
-                    );
-                  }
-
                   return (
                     <button
                       key={item.id}
                       onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                        isActive
-                          ? 'bg-orange-500/10 text-orange-500'
-                          : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                        isActive ? 'bg-orange-500/15 text-orange-400' : 'text-zinc-400 hover:text-white hover:bg-white/5'
                       }`}
-                      data-testid={`sidebar-${item.id}`}
                     >
-                      <Icon className="h-4 w-4" />
-                      <span className="flex-1 text-left">{item.label}</span>
+                      <Icon className="w-5 h-5" />
+                      <span className="font-medium">{item.label}</span>
                     </button>
                   );
                 })}
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </nav>
-
-        {/* User Avatar at Bottom */}
-        <div className="mt-auto pt-4 px-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                data-testid="user-menu-trigger"
-                className="w-full justify-start gap-3 px-3 h-12 rounded-xl hover:bg-orange-500/10"
-              >
+                <Link to="/backups" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5">
+                  <HardDrive className="w-5 h-5" />
+                  <span className="font-medium">Backups</span>
+                </Link>
+                <Link to="/explorer" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5">
+                  <Code className="w-5 h-5" />
+                  <span className="font-medium">API Explorer</span>
+                </Link>
+              </nav>
+            </div>
+            <div className="pt-4 border-t border-white/[0.08] mt-4">
+              <div className="flex items-center gap-3 p-3">
                 {getAvatarUrl(user) ? (
-                  <img 
-                    src={getAvatarUrl(user)}
-                    alt={user?.name}
-                    className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-                  />
+                  <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
                 )}
-                <div className="flex-1 text-left min-w-0">
+                <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                  <p className="text-xs text-zinc-500 truncate">{user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}</p>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="w-56 bg-[#18181b] border-zinc-800 ml-2">
-              <div className="px-3 py-2 flex items-center gap-3">
-                {getAvatarUrl(user) ? (
-                  <img 
-                    src={getAvatarUrl(user)}
-                    alt={user?.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-zinc-500">{user?.email}</p>
+                  <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
                 </div>
               </div>
-              <DropdownMenuSeparator className="bg-zinc-800" />
-              <DropdownMenuItem className="text-zinc-400 cursor-default">
-                <RoleIcon className="w-4 h-4 mr-2" />
-                {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-zinc-800" />
-              <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10">
-                <LogOut className="w-4 h-4 mr-2" />
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2">
+                <LogOut className="w-4 h-4" />
                 Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </aside>
-
-      {/* Mobile Sidebar */}
-      <aside
-        className={`
-          lg:hidden fixed top-0 left-0 h-full z-50 glass
-          w-64 transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
-      >
-        <div className="p-6 pt-4 h-full flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-orange-500 rounded-lg">
-                <span className="text-white font-black text-sm">C</span>
-              </div>
-              <BrandLogo className="text-lg font-bold text-white" />
-            </div>
-            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-white">
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            <nav className="space-y-1">
-              {NAV_GROUPS.flatMap(g => g.items).filter(i => !i.link).map((item) => {
-                const Icon = item.icon;
-                const isActive = activeSection === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}
-                    className={`
-                      w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                      ${isActive
-                        ? 'bg-orange-500/20 text-orange-500'
-                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                      }
-                    `}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </button>
-                );
-              })}
-              {/* External links in mobile */}
-              <Link to="/backups" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5">
-                <HardDrive className="w-5 h-5" />
-                <span className="font-medium">Backups</span>
-              </Link>
-              <Link to="/explorer" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5">
-                <Code className="w-5 h-5" />
-                <span className="font-medium">API Explorer</span>
-              </Link>
-            </nav>
-          </div>
-
-          <div className="pt-4 border-t border-white/10 mt-4">
-            <div className="flex items-center gap-3 p-3">
-              {getAvatarUrl(user) ? (
-                <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-full object-cover" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                  {user?.name?.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
-              </div>
-            </div>
-            <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2">
-              <LogOut className="w-4 h-4" />
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="lg:ml-56 min-h-screen pt-16 lg:pt-0 transition-all duration-300">
-        {/* Page Header - matches MainSiteDashboardLayout exactly */}
-        <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
-          <div className="px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <p className="text-sm font-medium text-white">Network Management</p>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium bg-yellow-500/15 text-yellow-400 border-yellow-500/25">Global</span>
-                {environments.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5 border-zinc-700 bg-zinc-800/50" data-testid="env-switcher">
-                        <Server className="w-3 h-3" />
-                        {environments.find(e => e.id === selectedEnvId)?.name || 'Select Environment'}
-                        <ChevronDown className="w-3 h-3 opacity-50" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="bg-zinc-900 border-zinc-700">
-                      {environments.map(env => (
-                        <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={selectedEnvId === env.id ? 'bg-zinc-800' : ''}>
-                          <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
-                          {env.name}
-                          <span className="ml-auto text-xs text-zinc-500">{env.site_count || 0}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-white">{user?.name}</p>
-                <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
-                  <RoleIcon className="w-3 h-3" />
-                  {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
-                </p>
-              </div>
+              </Button>
             </div>
           </div>
-        </div>
+        </aside>
 
-        <div className="p-4 sm:p-6 lg:p-8">
+        {/* Main Content Area */}
+        <div className="flex flex-col flex-grow relative overflow-hidden">
+          {/* TopBar */}
+          <WorkspaceTopBar
+            title="Network Management"
+            titleBadge={<span className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium bg-yellow-500/15 text-yellow-400 border-yellow-500/25">Global</span>}
+            onMobileMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+            centerContent={
+              environments.length > 0 ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-white/[0.08] bg-white/[0.04] rounded-xl hover:bg-white/[0.06]" data-testid="env-switcher">
+                      <Server className="w-3 h-3" />
+                      {environments.find(e => e.id === selectedEnvId)?.name || 'Select Environment'}
+                      <ChevronDown className="w-3 h-3 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="bg-[#141414]/90 backdrop-blur-2xl border-white/10">
+                    {environments.map(env => (
+                      <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={selectedEnvId === env.id ? 'bg-zinc-800' : ''}>
+                        <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
+                        {env.name}
+                        <span className="ml-auto text-xs text-zinc-500">{env.site_count || 0}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null
+            }
+          />
+
+          {/* Workspace Canvas */}
+          <WorkspaceCanvas>
+            <CanvasPanel position="main" scrollable testId="main-content-panel">
+              <div className="p-2 sm:p-4">
 
           {/* Security Warning Banner */}
           {!user?.totp_enabled && activeSection === 'sites' && (
@@ -1536,7 +1493,6 @@ export default function NetworkDashboard() {
             </div>
           )}
         </div>
-      </main>
 
       {/* Create/Edit Dialog */}
       <Dialog open={showCreateDialog || !!editingSite} onOpenChange={(open) => {
@@ -1865,6 +1821,12 @@ export default function NetworkDashboard() {
         siteType={setupWizard.siteType}
         siteName={setupWizard.siteName}
       />
+            </CanvasPanel>
+          </WorkspaceCanvas>
+        </div>
+
+      </div>
     </div>
+    </TooltipProvider>
   );
 }

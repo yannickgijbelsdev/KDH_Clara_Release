@@ -41,6 +41,9 @@ import {
 import { getAvatarUrl } from '../utils/avatar';
 import { BrandLogo } from './BrandLogo';
 import { useBranding } from '../context/BrandingContext';
+import { WorkspaceCanvas } from './workspace/WorkspaceCanvas';
+import { WorkspaceTopBar } from './workspace/WorkspaceTopBar';
+import { CanvasPanel } from './workspace/CanvasPanel';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -759,19 +762,19 @@ const MainSiteDashboardContent = () => {
   // Render icon-only sidebar navigation
   const renderIconNavigation = () => {
     return (
-      <nav className="flex-1 flex flex-col items-center gap-2 py-4 overflow-y-auto">
+      <nav className="flex-1 flex flex-col items-center gap-1.5 py-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
         {/* Back button when in site context */}
         {isInSiteContext && (
           <Tooltip>
             <TooltipTrigger asChild>
               <button
                 onClick={() => navigate(`/${mainSiteSlug}/sites`)}
-                className="w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10 mb-2"
+                className="w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 text-zinc-500 hover:text-white hover:bg-white/[0.06] mb-1"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+            <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
               Back to Sites
             </TooltipContent>
           </Tooltip>
@@ -792,22 +795,23 @@ const MainSiteDashboardContent = () => {
                   }}
                   data-testid={`site-nav-${item.tab}`}
                   className={`
-                    w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
+                    w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
-                      : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                      ? 'bg-orange-500/15 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.15)]' 
+                      : 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
                     }
                   `}
                 >
                   <Icon className="w-5 h-5" />
+                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-400" />}
                   {badgeCount > 0 && (
-                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white ring-2 ring-[#0A0A0A]">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+              <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
                 {item.label} {badgeCount > 0 && `(${badgeCount})`}
               </TooltipContent>
             </Tooltip>
@@ -825,7 +829,7 @@ const MainSiteDashboardContent = () => {
               <TooltipTrigger asChild>
                 {isLicenseBlocked ? (
                   <div
-                    className="w-11 h-11 flex items-center justify-center rounded-xl opacity-20 cursor-not-allowed"
+                    className="w-11 h-11 flex items-center justify-center rounded-2xl opacity-20 cursor-not-allowed"
                     data-testid={`nav-disabled-${pathSegment}`}
                   >
                     <Icon className="w-5 h-5 text-zinc-600" />
@@ -835,23 +839,24 @@ const MainSiteDashboardContent = () => {
                   to={item.to}
                   onClick={closeSidebar}
                   className={`
-                    w-11 h-11 flex items-center justify-center rounded-xl transition-all duration-200 relative
+                    w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' 
-                      : 'text-zinc-500 hover:text-orange-500 hover:bg-orange-500/10'
+                      ? 'bg-orange-500/15 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.15)]' 
+                      : 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
                     }
                   `}
                 >
                   <Icon className="w-5 h-5" />
+                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-400" />}
                   {badgeCount > 0 && (
-                    <span className="absolute -top-1 -right-2.5 min-w-[24px] h-[18px] px-1.5 flex items-center justify-center text-[10px] font-semibold rounded-full bg-zinc-600 text-white shadow-sm">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white ring-2 ring-[#0A0A0A]">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
                 </NavLink>
                 )}
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+              <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
                 {isLicenseBlocked ? `${item.label} (No license)` : item.label} {!isLicenseBlocked && badgeCount > 0 && `(${badgeCount})`}
               </TooltipContent>
             </Tooltip>
@@ -863,13 +868,41 @@ const MainSiteDashboardContent = () => {
 
   const isClone = !!mainSite?.cloned_from;
 
+  // Build topbar title
+  const topBarTitle = isInSiteContext && currentSite
+    ? currentSite.name
+    : displayName || mainSite?.name || '';
+
+  const topBarTitleBadge = !isInSiteContext ? (
+    <div className="flex items-center gap-1.5">
+      <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>
+      {mainSite?.environment_name && mainSite.environment_name !== 'Production' && (
+        <span
+          className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium"
+          style={{
+            color: mainSite.environment_color || '#3b82f6',
+            borderColor: `${mainSite.environment_color || '#3b82f6'}33`,
+            backgroundColor: `${mainSite.environment_color || '#3b82f6'}15`,
+          }}
+          data-testid="environment-badge"
+        >
+          {mainSite.environment_name}
+        </span>
+      )}
+      {!licenseLoading && licenseInfo?.is_demo && (
+        <span className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium bg-amber-500/15 text-amber-400 border-amber-500/25" data-testid="demo-badge">Demo</span>
+      )}
+    </div>
+  ) : null;
+
   return (
     <DevToolsProvider enabled={isClone}>
     <TooltipProvider delayDuration={0}>
-      <div className="min-h-screen bg-[#09090b]">
-        {/* Clone Mode Banner */}
+      {/* Outer shell: banners + workspace */}
+      <div className="h-screen flex flex-col overflow-hidden bg-[#0A0A0A] text-white" style={{ height: '100dvh' }}>
+        {/* Banners */}
         {isClone && (
-          <div className="fixed top-0 left-0 right-0 z-[60] bg-cyan-600 text-white px-4 py-1.5" data-testid="clone-banner">
+          <div className="flex-shrink-0 bg-cyan-600 text-white px-4 py-1.5 z-[60]" data-testid="clone-banner">
             <div className="flex items-center justify-between max-w-screen-xl mx-auto">
               <div className="flex items-center gap-2 text-xs font-medium">
                 <Activity className="w-3.5 h-3.5" />
@@ -879,22 +912,14 @@ const MainSiteDashboardContent = () => {
             </div>
           </div>
         )}
-        {/* Impersonation Banner */}
         {impersonating && (
-          <div className="fixed top-0 left-0 right-0 z-[60] bg-orange-500 text-white px-4 py-2">
+          <div className="flex-shrink-0 bg-orange-500 text-white px-4 py-2 z-[60]">
             <div className="flex items-center justify-between max-w-screen-xl mx-auto">
               <div className="flex items-center gap-2 text-sm">
                 <ArrowLeftRight className="w-4 h-4" />
-                <span>
-                  Viewing as <strong>{user?.name}</strong> ({user?.email})
-                </span>
+                <span>Viewing as <strong>{user?.name}</strong> ({user?.email})</span>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleExitImpersonation}
-                className="text-white hover:bg-orange-600 gap-2"
-              >
+              <Button size="sm" variant="ghost" onClick={handleExitImpersonation} className="text-white hover:bg-orange-600 gap-2">
                 <LogOut className="w-4 h-4" />
                 Return to {impersonating.name}
               </Button>
@@ -902,366 +927,268 @@ const MainSiteDashboardContent = () => {
           </div>
         )}
 
-        {/* Mobile Header */}
-        <header className={`lg:hidden fixed ${impersonating ? 'top-10' : 'top-0'} left-0 right-0 z-50 glass border-b border-white/10`}>
-          <div className="flex items-center justify-between px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-orange-500 rounded-lg">
-                <span className="text-white font-black text-sm">C</span>
-              </div>
-              <BrandLogo className="text-lg font-bold text-white" />
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-zinc-400 hover:text-white"
-            >
-              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </Button>
-          </div>
-        </header>
+        {/* Workspace Shell (flex row) */}
+        <div className="flex flex-grow overflow-hidden">
 
-        {/* Mobile Sidebar Overlay */}
-        {sidebarOpen && (
-          <div
-            className="lg:hidden fixed inset-0 bg-black/60 z-40"
-            onClick={closeSidebar}
-          />
-        )}
-
-        {/* Desktop Sidebar */}
-        <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
-          {/* Logo */}
-          <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'px-2 text-center'}`}>
-            <BrandLogo className="text-white font-black text-base" />
-          </div>
-
-          {/* Navigation */}
-          {useGroupedMenu ? renderGroupedNavigation() : renderIconNavigation()}
-
-          {/* User Avatar at Bottom */}
-          <div className={`mt-auto pt-4 ${useGroupedMenu ? 'px-3' : 'flex justify-center'}`}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  data-testid="user-menu-trigger"
-                  className={`${useGroupedMenu ? 'w-full justify-start gap-3 px-3 h-12' : 'w-11 h-11'} rounded-xl hover:bg-orange-500/10`}
-                >
-                  {getAvatarUrl(user) ? (
-                    <img 
-                      src={getAvatarUrl(user)}
-                      alt={user?.name}
-                      className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  {useGroupedMenu && (
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                      <p className="text-xs text-zinc-500 truncate">{displayRoleName}</p>
-                    </div>
-                  )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align={useGroupedMenu ? "end" : "start"} side={useGroupedMenu ? "top" : "right"} className="w-56 bg-[#18181b] border-zinc-800 ml-2">
-                <div className="px-3 py-2 flex items-center gap-3">
-                  {getAvatarUrl(user) ? (
-                    <img 
-                      src={getAvatarUrl(user)}
-                      alt={user?.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium text-white">{user?.name}</p>
-                    <p className="text-xs text-zinc-500">{user?.email}</p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator className="bg-zinc-800" />
-                <DropdownMenuItem className="text-zinc-400 cursor-default">
-                  <RoleIcon className="w-4 h-4 mr-2" />
-                  {displayRoleName}
-                </DropdownMenuItem>
-                {/* Main Sites Switcher - grouped by environment */}
-                {myMainSites.length > 0 && (
-                  <>
-                    <DropdownMenuSeparator className="bg-zinc-800" />
-                    {(() => {
-                      // Group sites by environment
-                      const envGroups = {};
-                      myMainSites.forEach(site => {
-                        const envId = site.environment_id || 'default';
-                        if (!envGroups[envId]) {
-                          envGroups[envId] = {
-                            name: site.environment_name || 'Production',
-                            color: site.environment_color,
-                            sites: [],
-                          };
-                        }
-                        envGroups[envId].sites.push(site);
-                      });
-
-                      // Sort: current environment first, then alphabetically
-                      const currentEnvId = mainSite?.environment_id;
-                      const sortedEnvIds = Object.keys(envGroups).sort((a, b) => {
-                        if (a === currentEnvId) return -1;
-                        if (b === currentEnvId) return 1;
-                        return (envGroups[a].name || '').localeCompare(envGroups[b].name || '');
-                      });
-
-                      return sortedEnvIds.map(envId => (
-                        <div key={envId}>
-                          <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5"
-                            style={{ color: envGroups[envId].color || '#71717a' }}
-                          >
-                            {envId === currentEnvId && (
-                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#f97316' }} />
-                            )}
-                            {envGroups[envId].name}
-                          </div>
-                          {envGroups[envId].sites.map(site => {
-                            const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Data Connection' : site.site_type === 'server' ? 'Virtual Datacenter' : site.site_type === 'task_scheduler' ? 'Tasks' : site.site_type === 'external_host' ? 'External Host' : site.site_type === 'wp_security' ? 'WP Security' : 'Radio';
-                            const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-blue-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : site.site_type === 'external_host' ? 'text-cyan-400' : site.site_type === 'wp_security' ? 'text-red-400' : 'text-zinc-600';
-                            return (
-                              <DropdownMenuItem
-                                key={site.id}
-                                onClick={() => navigate(`/${site.slug}`)}
-                                className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800/50 text-orange-500' : ''}`}
-                              >
-                                <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
-                                <span className="truncate">{site.name}</span>
-                                <span className={`ml-auto text-[10px] flex-shrink-0 ${site.slug === mainSiteSlug ? 'text-orange-500' : labelColor}`}>
-                                  {site.slug === mainSiteSlug ? 'active' : siteLabel}
-                                </span>
-                              </DropdownMenuItem>
-                            );
-                          })}
-                        </div>
-                      ));
-                    })()}
-                  </>
-                )}
-                {user?.is_network_admin && (
-                  <>
-                    <DropdownMenuSeparator className="bg-zinc-800" />
-                    <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer">
-                      <Network className="w-4 h-4 mr-2" />
-                      Network Management
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator className="bg-zinc-800" />
-                <DropdownMenuItem
-                  onClick={() => navigate(`/${mainSiteSlug}/settings`)}
-                  className="text-zinc-400 focus:text-white focus:bg-zinc-800"
-                >
-                  <UserCog className="w-4 h-4 mr-2" />
-                  Personal Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-zinc-800" />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </aside>
-
-        {/* Mobile Sidebar */}
-        <aside
-          className={`
-            lg:hidden fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 glass
-            w-64 transform transition-transform duration-300 ease-in-out
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          `}
-        >
-          <div className="p-6 pt-4 h-full flex flex-col">
-            {/* Mobile: Close button area */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-orange-500 rounded-lg">
-                  <span className="text-white font-black text-sm">C</span>
-                </div>
-                <BrandLogo className="text-lg font-bold text-white" />
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={closeSidebar}
-                className="text-zinc-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </Button>
+          {/* Desktop Sidebar — 80px icon-only */}
+          <aside
+            data-testid="workspace-sidebar"
+            className="hidden lg:flex w-[80px] h-full flex-shrink-0 flex-col items-center py-5 bg-[#0A0A0A]/85 backdrop-blur-xl border-r border-white/[0.08] z-50"
+          >
+            {/* Logo */}
+            <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
+              <span className="text-white font-black text-base tracking-tight">C</span>
             </div>
 
-            {/* Mobile Navigation */}
-            <div className="flex-1 overflow-y-auto">
-              <nav className="space-y-1">
-                {flatNavItems.map((item) => {
-                  const Icon = item.icon;
-                  // item.to already contains the full path from buildNavGroups
-                  const fullPath = item.to;
-                  const isActive = location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
-                  const badgeCount = getBadgeCount(item.featureId || item.to);
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={fullPath}
-                      onClick={closeSidebar}
-                      className={`
-                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                        ${isActive
-                          ? 'bg-orange-500/20 text-orange-500'
-                          : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                        }
-                      `}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                      {badgeCount > 0 && (
-                        <span className="ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center bg-orange-500 text-white">
-                          {badgeCount > 99 ? '99+' : badgeCount}
-                        </span>
-                      )}
-                    </NavLink>
-                  );
-                })}
-              </nav>
-            </div>
+            {/* Navigation Icons */}
+            {renderIconNavigation()}
 
-            {/* User section at bottom */}
-            <div className="pt-4 border-t border-white/10 mt-4">
-              <div className="flex items-center gap-3 p-3">
-                {getAvatarUrl(user) ? (
-                  <img 
-                    src={getAvatarUrl(user)}
-                    alt={user?.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                  <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                onClick={handleLogout}
-                className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign out
-              </Button>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main content */}
-        <main className={`${useGroupedMenu ? 'lg:ml-56' : 'lg:ml-[72px]'} min-h-screen ${impersonating ? 'pt-26 lg:pt-10' : 'pt-16 lg:pt-0'} transition-all duration-300`}>
-          {/* Page Header */}
-          <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
-            <div className="px-8 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {isInSiteContext && currentSite ? (
-                    <p className="text-sm font-medium text-white">{currentSite.name}</p>
-                  ) : displayName && (
-                    <p className="text-sm font-medium text-white">{displayName}</p>
-                  )}
-                  {!isInSiteContext && <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${siteTypeLabelColor}`}>{siteTypeLabel}</span>}
-                  {mainSite?.environment_name && mainSite.environment_name !== 'Production' && (
-                    <span 
-                      className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium"
-                      style={{ 
-                        color: mainSite.environment_color || '#3b82f6',
-                        borderColor: `${mainSite.environment_color || '#3b82f6'}33`,
-                        backgroundColor: `${mainSite.environment_color || '#3b82f6'}15`,
-                      }}
-                      data-testid="environment-badge"
-                    >
-                      {mainSite.environment_name}
-                    </span>
-                  )}
-                  {!licenseLoading && licenseInfo?.is_demo && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium bg-amber-500/15 text-amber-400 border-amber-500/25" data-testid="demo-badge">Demo</span>
-                  )}
-                  {!licenseLoading && licenseInfo?.has_license && licenseInfo?.days_remaining !== null && licenseInfo.days_remaining <= 30 && (
-                    <span 
-                      className="text-sm text-red-600 font-semibold"
-                      data-testid="license-expiry-warning"
-                    >
-                      License expires in {licenseInfo.days_remaining} day{licenseInfo.days_remaining !== 1 ? 's' : ''}
-                    </span>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
-                  <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
-                    <RoleIcon className="w-3 h-3" />
-                    {displayRoleName}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-4 sm:p-6 lg:p-8">
-            {/* No License - Block Access (unless demo or system admin) */}
-            {isLicenseBlocked ? (
-              <div className="flex items-center justify-center min-h-[60vh]" data-testid="no-license-block">
-                <div className="max-w-md text-center space-y-4">
-                  <div className="w-16 h-16 mx-auto rounded-full bg-red-950/50 border border-red-800/50 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-xl font-bold text-zinc-100">No Active License</h2>
-                  <p className="text-sm text-zinc-400">
-                    This site does not have an active license. Access to all features has been restricted.
-                  </p>
-                  <p className="text-sm text-zinc-400">
-                    Please contact us to activate your license:
-                  </p>
-                  <a 
-                    href="mailto:info@koodh.com" 
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors"
+            {/* Bottom: Settings + User */}
+            <div className="mt-auto flex flex-col items-center gap-2 pt-3 flex-shrink-0">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => navigate(`/${mainSiteSlug}/settings`)}
+                    data-testid="nav-settings"
+                    className="w-11 h-11 flex items-center justify-center rounded-2xl text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all duration-200"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    info@koodh.com
-                  </a>
+                    <UserCog className="w-5 h-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
+                  Personal Settings
+                </TooltipContent>
+              </Tooltip>
+
+              {/* User Avatar + Full Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    data-testid="user-menu-trigger"
+                    className="w-11 h-11 rounded-2xl overflow-hidden hover:ring-2 hover:ring-orange-500/30 transition-all duration-200 flex-shrink-0"
+                  >
+                    {getAvatarUrl(user) ? (
+                      <img src={getAvatarUrl(user)} alt={user?.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" side="right" className="w-56 bg-[#141414]/90 backdrop-blur-2xl border-white/10 ml-2">
+                  <div className="px-3 py-2 flex items-center gap-3">
+                    {getAvatarUrl(user) ? (
+                      <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-white">{user?.name}</p>
+                      <p className="text-xs text-zinc-500">{user?.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator className="bg-white/[0.06]" />
+                  <DropdownMenuItem className="text-zinc-400 cursor-default">
+                    <RoleIcon className="w-4 h-4 mr-2" />
+                    {displayRoleName}
+                  </DropdownMenuItem>
+                  {/* Main Sites Switcher - grouped by environment */}
+                  {myMainSites.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator className="bg-white/[0.06]" />
+                      {(() => {
+                        const envGroups = {};
+                        myMainSites.forEach(site => {
+                          const envId = site.environment_id || 'default';
+                          if (!envGroups[envId]) {
+                            envGroups[envId] = { name: site.environment_name || 'Production', color: site.environment_color, sites: [] };
+                          }
+                          envGroups[envId].sites.push(site);
+                        });
+                        const currentEnvId = mainSite?.environment_id;
+                        const sortedEnvIds = Object.keys(envGroups).sort((a, b) => {
+                          if (a === currentEnvId) return -1;
+                          if (b === currentEnvId) return 1;
+                          return (envGroups[a].name || '').localeCompare(envGroups[b].name || '');
+                        });
+                        return sortedEnvIds.map(envId => (
+                          <div key={envId}>
+                            <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: envGroups[envId].color || '#71717a' }}>
+                              {envId === currentEnvId && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#f97316' }} />}
+                              {envGroups[envId].name}
+                            </div>
+                            {envGroups[envId].sites.map(site => {
+                              const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Data Connection' : site.site_type === 'server' ? 'Virtual Datacenter' : site.site_type === 'task_scheduler' ? 'Tasks' : site.site_type === 'external_host' ? 'External Host' : site.site_type === 'wp_security' ? 'WP Security' : 'Radio';
+                              const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-blue-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : site.site_type === 'external_host' ? 'text-cyan-400' : site.site_type === 'wp_security' ? 'text-red-400' : 'text-zinc-600';
+                              return (
+                                <DropdownMenuItem key={site.id} onClick={() => navigate(`/${site.slug}`)} className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800/50 text-orange-500' : ''}`}>
+                                  <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                                  <span className="truncate">{site.name}</span>
+                                  <span className={`ml-auto text-[10px] flex-shrink-0 ${site.slug === mainSiteSlug ? 'text-orange-500' : labelColor}`}>
+                                    {site.slug === mainSiteSlug ? 'active' : siteLabel}
+                                  </span>
+                                </DropdownMenuItem>
+                              );
+                            })}
+                          </div>
+                        ));
+                      })()}
+                    </>
+                  )}
+                  {user?.is_network_admin && (
+                    <>
+                      <DropdownMenuSeparator className="bg-white/[0.06]" />
+                      <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer">
+                        <Network className="w-4 h-4 mr-2" />
+                        Network Management
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator className="bg-white/[0.06]" />
+                  <DropdownMenuItem onClick={() => navigate(`/${mainSiteSlug}/settings`)} className="text-zinc-400 focus:text-white focus:bg-zinc-800">
+                    <UserCog className="w-4 h-4 mr-2" />
+                    Personal Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/[0.06]" />
+                  <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </aside>
+
+          {/* Mobile Sidebar Overlay */}
+          {sidebarOpen && (
+            <div className="lg:hidden fixed inset-0 bg-black/60 z-40" onClick={closeSidebar} />
+          )}
+
+          {/* Mobile Sidebar */}
+          <aside
+            className={`
+              lg:hidden fixed top-0 left-0 h-full z-50
+              w-64 bg-[#0A0A0A]/95 backdrop-blur-2xl border-r border-white/[0.08]
+              transform transition-transform duration-300 ease-in-out
+              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            `}
+          >
+            <div className="p-6 pt-4 h-full flex flex-col">
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+                    <span className="text-white font-black text-sm">C</span>
+                  </div>
+                  <BrandLogo className="text-lg font-bold text-white" />
                 </div>
+                <Button variant="ghost" size="icon" onClick={closeSidebar} className="text-zinc-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </Button>
               </div>
-            ) : (
-              <>
-                {isInSiteContext && currentSite ? (
-                  <Outlet context={{ siteTab, setSiteTab, currentSite, fetchCurrentSite }} />
-                ) : (
-                  <Outlet />
-                )}
-              </>
-            )}
+              <div className="flex-1 overflow-y-auto">
+                <nav className="space-y-1">
+                  {flatNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const fullPath = item.to;
+                    const isActive = location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
+                    const badgeCount = getBadgeCount(item.featureId || item.to);
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={fullPath}
+                        onClick={closeSidebar}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                          isActive ? 'bg-orange-500/15 text-orange-400' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="font-medium">{item.label}</span>
+                        {badgeCount > 0 && (
+                          <span className="ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center bg-orange-500 text-white">
+                            {badgeCount > 99 ? '99+' : badgeCount}
+                          </span>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </nav>
+              </div>
+              <div className="pt-4 border-t border-white/[0.08] mt-4">
+                <div className="flex items-center gap-3 p-3">
+                  {getAvatarUrl(user) ? (
+                    <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                    <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2">
+                  <LogOut className="w-4 h-4" />
+                  Sign out
+                </Button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <div className="flex flex-col flex-grow relative overflow-hidden">
+            {/* TopBar */}
+            <WorkspaceTopBar
+              title={topBarTitle}
+              subtitle={displayRoleName}
+              titleBadge={topBarTitleBadge}
+              onMobileMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+              rightContent={
+                <>
+                  {!licenseLoading && licenseInfo?.has_license && licenseInfo?.days_remaining !== null && licenseInfo.days_remaining <= 30 && (
+                    <span className="text-xs text-red-500 font-semibold" data-testid="license-expiry-warning">
+                      License: {licenseInfo.days_remaining}d
+                    </span>
+                  )}
+                </>
+              }
+            />
+
+            {/* Workspace Canvas */}
+            <WorkspaceCanvas>
+              {isLicenseBlocked ? (
+                <CanvasPanel position="main" testId="no-license-block">
+                  <div className="flex items-center justify-center min-h-[60vh]">
+                    <div className="max-w-md text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto rounded-full bg-red-950/50 border border-red-800/50 flex items-center justify-center">
+                        <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
+                      <h2 className="text-xl font-bold text-zinc-100">No Active License</h2>
+                      <p className="text-sm text-zinc-400">This site does not have an active license.</p>
+                      <a href="mailto:info@koodh.com" className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-medium transition-colors">
+                        info@koodh.com
+                      </a>
+                    </div>
+                  </div>
+                </CanvasPanel>
+              ) : (
+                <CanvasPanel position="main" scrollable testId="main-content-panel">
+                  {isInSiteContext && currentSite ? (
+                    <Outlet context={{ siteTab, setSiteTab, currentSite, fetchCurrentSite }} />
+                  ) : (
+                    <Outlet />
+                  )}
+                </CanvasPanel>
+              )}
+            </WorkspaceCanvas>
           </div>
-        </main>
+
+        </div>
       </div>
     </TooltipProvider>
     {isClone && <DevToolsPanel />}

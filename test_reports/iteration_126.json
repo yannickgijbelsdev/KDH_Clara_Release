@@ -1,0 +1,95 @@
+{
+  "summary": "Tested workspace layout system for canvas-based UI. All core features working: 80px sidebar, 64px topbar, floating panels, navigation preservation, mobile menu, user dropdown, environment switcher.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Network Dashboard TopBar",
+        "issues": ["Search input not found with data-testid='topbar-search' - uses custom centerContent prop instead"]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Nav items in MainSiteDashboardLayout don't have data-testid attributes - only 'nav-settings' has one. Consider adding data-testid to all nav items for better testability."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only test)",
+    "frontend": "95%"
+  },
+  "test_credentials": {
+    "system_admin": "admkoodh@koodh.com / KYLovie13monx"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Workspace layout system fully implemented and working. All features tested: sidebar 80px width, topbar 64px height, floating CanvasPanel, navigation preservation between Network and Site dashboards, mobile hamburger menu, user dropdown with sign out, environment switcher, active state indicator with orange glow and line.",
+  "verified_features": {
+    "sidebar_80px_width": {
+      "status": "PASS",
+      "details": "Sidebar renders at exactly 80px width on desktop with icon-based navigation"
+    },
+    "topbar_64px_height": {
+      "status": "PASS",
+      "details": "TopBar renders at 64px height with glass effect (backdrop-blur-2xl)"
+    },
+    "topbar_title": {
+      "status": "PASS",
+      "details": "TopBar shows page title - 'Network Management' on network dashboard, site name on site dashboard"
+    },
+    "topbar_search": {
+      "status": "PASS",
+      "details": "Search input visible in TopBar (uses centerContent prop on Network Dashboard, standard search on Site Dashboard)"
+    },
+    "topbar_time_date": {
+      "status": "PASS",
+      "details": "Time and date displayed in TopBar (e.g., '10:56 AM', 'Sat, Apr 4')"
+    },
+    "floating_canvas_panel": {
+      "status": "PASS",
+      "details": "Main content renders inside CanvasPanel with glass effect, rounded corners, and scrollable content"
+    },
+    "navigation_preservation": {
+      "status": "PASS",
+      "details": "Workspace layout preserved when navigating between Network Dashboard and Site Dashboard"
+    },
+    "user_dropdown_menu": {
+      "status": "PASS",
+      "details": "User avatar in sidebar opens dropdown with user info and 'Sign out' button"
+    },
+    "mobile_hamburger_menu": {
+      "status": "PASS",
+      "details": "Mobile menu button (data-testid='mobile-menu-btn') toggles sidebar overlay on mobile viewport"
+    },
+    "sidebar_active_state": {
+      "status": "PASS",
+      "details": "Active nav item has orange glow (shadow-[0_0_20px_rgba(249,115,22,0.15)]), orange background (bg-orange-500/15), orange text (text-orange-400), and orange line indicator (span.bg-orange-400)"
+    },
+    "environment_switcher": {
+      "status": "PASS",
+      "details": "Environment switcher (data-testid='env-switcher') in Network Dashboard TopBar allows switching between environments"
+    },
+    "content_scrollable": {
+      "status": "PASS",
+      "details": "Panel content is scrollable with overflow-y-auto on inner container"
+    }
+  },
+  "test_data_testids_verified": [
+    "workspace-sidebar",
+    "workspace-topbar",
+    "topbar-title",
+    "workspace-canvas",
+    "main-content-panel",
+    "user-menu-trigger",
+    "mobile-menu-btn",
+    "env-switcher",
+    "nav-settings"
+  ]
+}
