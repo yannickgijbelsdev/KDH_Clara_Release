@@ -38,6 +38,8 @@ export default function LoginWizard({ open, onClose, siteName }) {
 
   const steps = [
     { id: 'login', label: 'Logging in to Clara...' },
+    { id: 'datacenter', label: 'Making a secure connection to the Clara Datacenter...' },
+    { id: 'globalprotect', label: 'Connecting to the Clara Global Protect services...' },
     { id: 'prepare', label: `Preparing ${displayName} to show all the data...` },
   ];
 
