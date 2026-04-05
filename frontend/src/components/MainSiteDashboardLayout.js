@@ -557,11 +557,11 @@ const MainSiteDashboardContent = () => {
   // Error state
   if (error || !mainSite) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center text-zinc-900">
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold mb-2">{error || 'Site not found'}</h1>
-          <p className="text-zinc-400 mb-2">The requested main site could not be loaded.</p>
-          {mainSiteSlug && <p className="text-zinc-600 text-sm mb-4 font-mono">Slug: {mainSiteSlug}</p>}
+          <p className="text-zinc-500 mb-2">The requested main site could not be loaded.</p>
+          {mainSiteSlug && <p className="text-zinc-400 text-sm mb-4 font-mono">Slug: {mainSiteSlug}</p>}
           <div className="flex gap-3 justify-center">
             <Button onClick={() => navigate('/')}>Go Back</Button>
             <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>

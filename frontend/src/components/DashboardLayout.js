@@ -398,7 +398,7 @@ const DashboardLayout = () => {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="min-h-screen bg-[#09090b]">
+      <div className="min-h-screen bg-[#F0F0F2]">
         {/* Impersonation Banner */}
         {impersonating && (
           <div className="fixed top-0 left-0 right-0 z-[60] bg-orange-500 text-white px-4 py-2">

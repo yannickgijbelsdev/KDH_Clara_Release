@@ -77,7 +77,7 @@ const ProtectedRoute = ({ children }) => {
   
   if (loading || !configLoaded) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
         <div className="animate-pulse text-zinc-400">Loading...</div>
       </div>
     );
@@ -94,7 +94,7 @@ const ProtectedRoute = ({ children }) => {
         const loginRedirectUrl = buildLoginRedirectUrl(subdomainConfig);
         window.location.href = loginRedirectUrl;
         return (
-          <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+          <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
             <div className="animate-pulse text-zinc-400">Redirecting to login...</div>
           </div>
         );
@@ -112,7 +112,7 @@ const AppRoutes = () => {
   
   if (loading || !resolved) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
         <div className="animate-pulse text-zinc-400">Loading...</div>
       </div>
     );
