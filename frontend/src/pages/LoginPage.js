@@ -141,9 +141,6 @@ const LoginPage = () => {
           <img src={logoUrl} alt={platformName} className="h-10 object-contain mx-auto" data-testid="login-logo" />
         ) : (
           <div className="flex items-center justify-center gap-3" data-testid="login-logo-text">
-            <div className="w-10 h-10 rounded-2xl bg-zinc-900 flex items-center justify-center shadow-lg">
-              <span className="text-white font-black text-base">C</span>
-            </div>
             <span className="text-2xl font-bold text-zinc-800 tracking-tight">{platformName}</span>
           </div>
         )}
