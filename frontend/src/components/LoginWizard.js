@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Check, Zap } from 'lucide-react';
 
@@ -30,9 +30,10 @@ const LoginStep = ({ label, status, delay }) => (
   </motion.div>
 );
 
-export default function LoginWizard({ open, onClose, siteName }) {
+export default function LoginWizard({ open, onClose, siteName, userName }) {
   const [currentStep, setCurrentStep] = useState(-1);
   const [completed, setCompleted] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   const displayName = siteName || 'your workspace';
 
@@ -47,10 +48,12 @@ export default function LoginWizard({ open, onClose, siteName }) {
     if (!open) {
       setCurrentStep(-1);
       setCompleted(false);
+      setShowWelcome(false);
       return;
     }
     setCurrentStep(0);
     setCompleted(false);
+    setShowWelcome(false);
   }, [open]);
 
   useEffect(() => {
@@ -66,6 +69,13 @@ export default function LoginWizard({ open, onClose, siteName }) {
     return () => clearTimeout(timer);
   }, [currentStep, open, completed, steps.length]);
 
+  // Separate effect for the welcome transition after completion
+  useEffect(() => {
+    if (!completed || showWelcome) return;
+    const timer = setTimeout(() => setShowWelcome(true), 600);
+    return () => clearTimeout(timer);
+  }, [completed, showWelcome]);
+
   if (!open) return null;
 
   const getStatus = (i) => {
@@ -75,45 +85,70 @@ export default function LoginWizard({ open, onClose, siteName }) {
     return 'pending';
   };
 
+  const welcomeTitle = userName && siteName
+    ? `Welcome, ${userName} to ${siteName}!`
+    : userName
+    ? `Welcome, ${userName}!`
+    : 'Welcome to Clara!';
+
   return (
-    <Dialog open={open} onOpenChange={() => completed && onClose?.()}>
+    <Dialog open={open} onOpenChange={() => showWelcome && onClose?.()}>
       <DialogContent className="sm:max-w-lg bg-white border-zinc-200 p-0 overflow-hidden rounded-2xl shadow-2xl [&>button]:hidden" data-testid="login-wizard">
-        <div className="p-8 flex flex-col items-center text-center">
-          <h2 className="text-xl font-bold text-zinc-900 mb-1">Welcome to Clara</h2>
-          <p className="text-sm text-zinc-500 mb-6">Setting things up for you...</p>
-
-          <div className="text-left w-full px-2">
-            {steps.map((step, i) => (
-              <LoginStep
-                key={step.id}
-                label={step.label}
-                status={getStatus(i)}
-                delay={i * 0.15}
-              />
-            ))}
-          </div>
-
-          {completed && (
+        <AnimatePresence mode="wait">
+          {!showWelcome ? (
             <motion.div
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-6 w-full"
+              key="loading"
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="p-8 flex flex-col items-center text-center"
             >
-              <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 mb-4">
-                <div className="flex items-center justify-center gap-2 text-emerald-700 font-semibold">
-                  <Zap className="w-5 h-5" />
-                  Ready to go!
-                </div>
+              <h2 className="text-xl font-bold text-zinc-900 mb-1">Welcome to Clara</h2>
+              <p className="text-sm text-zinc-500 mb-6">Setting things up for you...</p>
+
+              <div className="text-left w-full px-2">
+                {steps.map((step, i) => (
+                  <LoginStep
+                    key={step.id}
+                    label={step.label}
+                    status={getStatus(i)}
+                    delay={i * 0.15}
+                  />
+                ))}
               </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="welcome"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="p-10 flex flex-col items-center text-center"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mb-6"
+              >
+                <Zap className="w-8 h-8 text-white" />
+              </motion.div>
+
+              <h2 className="text-2xl font-bold text-zinc-900 mb-2" data-testid="welcome-title">
+                {welcomeTitle}
+              </h2>
+              <p className="text-sm text-zinc-500 mb-8">Everything is ready for you.</p>
+
               <button
                 onClick={() => onClose?.()}
-                className="w-full px-6 py-2.5 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium transition-colors"
+                className="w-full px-6 py-3 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-colors"
                 data-testid="login-done-btn"
               >
                 {siteName ? `Enter ${siteName}` : 'Enter Clara'}
               </button>
             </motion.div>
           )}
-        </div>
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );

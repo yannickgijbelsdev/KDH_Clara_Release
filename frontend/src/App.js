@@ -432,6 +432,7 @@ const LoginWizardWrapper = () => {
       open={showWizard}
       onClose={() => setShowWizard(false)}
       siteName={siteName}
+      userName={user?.name || ''}
     />
   );
 };
