@@ -126,20 +126,44 @@ export default function LoginWizard({ open, onClose, siteName, userName, user })
               transition={{ duration: 0.4 }}
               className="p-10 flex flex-col items-center text-center"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                className="w-20 h-20 rounded-full overflow-hidden mb-6 ring-4 ring-emerald-100"
-              >
-                {getAvatarUrl(user) ? (
-                  <img src={getAvatarUrl(user)} alt={userName} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-2xl">
-                    {userName?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                )}
-              </motion.div>
+              <div className="relative mb-6">
+                {/* Animated orange glow pulse */}
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-orange-400"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{
+                    scale: [0, 1.6, 1.25],
+                    opacity: [0, 0.4, 0],
+                  }}
+                  transition={{ delay: 0.3, duration: 1.4, ease: 'easeOut' }}
+                  style={{ width: 80, height: 80, filter: 'blur(12px)' }}
+                />
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-orange-300"
+                  initial={{ scale: 1, opacity: 0 }}
+                  animate={{
+                    scale: [1, 1.35, 1.1],
+                    opacity: [0, 0.3, 0],
+                  }}
+                  transition={{ delay: 0.8, duration: 1.2, ease: 'easeOut' }}
+                  style={{ width: 80, height: 80, filter: 'blur(8px)' }}
+                />
+                {/* Avatar */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                  className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-orange-200"
+                >
+                  {getAvatarUrl(user) ? (
+                    <img src={getAvatarUrl(user)} alt={userName} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-2xl">
+                      {userName?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                </motion.div>
+              </div>
 
               <h2 className="text-2xl font-bold text-zinc-900 mb-2" data-testid="welcome-title">
                 {welcomeTitle}
