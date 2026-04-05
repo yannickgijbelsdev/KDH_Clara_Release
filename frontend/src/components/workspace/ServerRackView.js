@@ -48,7 +48,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
       {/* The 3D rack cabinet */}
       <div
         className={`relative transition-transform duration-300 ${isSelected ? 'scale-105' : 'group-hover:scale-[1.03]'}`}
-        style={{ transformStyle: 'preserve-3d', width: 140 }}
+        style={{ transformStyle: 'preserve-3d', width: 200 }}
       >
         {/* ── Rack top ── */}
         <div
@@ -93,8 +93,8 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
               if (!site) {
                 // Empty slot
                 return (
-                  <div key={i} className="relative h-[36px] rounded-[3px] border border-dashed border-white/[0.04] bg-white/[0.01] flex items-center justify-center">
-                    <span className="text-[8px] text-zinc-700 tracking-wide">EMPTY SLOT</span>
+                  <div key={i} className="relative h-[48px] rounded-[3px] border border-dashed border-white/[0.04] bg-white/[0.01] flex items-center justify-center">
+                    <span className="text-[9px] text-zinc-700 tracking-wide">EMPTY SLOT</span>
                   </div>
                 );
               }
@@ -102,7 +102,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
               return (
                 <div
                   key={i}
-                  className="relative h-[36px] rounded-[3px] flex items-center gap-2 px-2 transition-all duration-200 group/blade"
+                  className="relative h-[48px] rounded-[4px] flex items-center gap-2.5 px-3 transition-all duration-200 group/blade"
                   style={{
                     background: `linear-gradient(90deg, ${cfg.color}18 0%, ${cfg.color}06 60%, transparent 100%)`,
                     border: `1px solid ${cfg.color}25`,
@@ -123,16 +123,16 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
 
                   {/* Icon */}
                   <div
-                    className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0"
+                    className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: `${cfg.color}20` }}
                   >
-                    <Icon className="w-3 h-3" style={{ color: cfg.color }} />
+                    <Icon className="w-4 h-4" style={{ color: cfg.color }} />
                   </div>
 
                   {/* Name */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[9px] font-semibold text-zinc-300 truncate leading-tight">{site.name}</div>
-                    <div className="text-[7px] text-zinc-600 truncate">/{site.slug}</div>
+                    <div className="text-[11px] font-semibold text-zinc-300 truncate leading-tight">{site.name}</div>
+                    <div className="text-[8px] text-zinc-600 truncate">/{site.slug}</div>
                   </div>
 
                   {/* Activity indicator */}
