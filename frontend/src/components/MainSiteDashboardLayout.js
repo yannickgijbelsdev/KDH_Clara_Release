@@ -16,7 +16,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock
+  KeyRound, FileCode, Video, Ban, Lock, Check
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -944,6 +944,62 @@ const MainSiteDashboardContent = () => {
             <Radio className="w-4 h-4" />
             <span className="hidden sm:inline">Clara</span>
           </button>
+          {/* Main Site Switcher Dropdown */}
+          {myMainSites.length > 1 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-9 flex items-center gap-2 px-3 rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-sm font-medium text-zinc-700 transition-colors flex-shrink-0" data-testid="main-site-switcher">
+                  {mainSite?.logo_url ? (
+                    <img src={mainSite.logo_url} alt="" className="w-4 h-4 rounded object-cover" />
+                  ) : (
+                    <Globe className="w-3.5 h-3.5 text-zinc-400" />
+                  )}
+                  <span className="max-w-[140px] truncate hidden sm:inline">{displayName || mainSite?.name}</span>
+                  <ChevronDown className="w-3 h-3 text-zinc-400" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-64 bg-white/95 backdrop-blur-2xl border-black/10 shadow-xl">
+                {(() => {
+                  const envGroups = {};
+                  myMainSites.forEach(site => {
+                    const envId = site.environment_id || 'default';
+                    if (!envGroups[envId]) envGroups[envId] = { name: site.environment_name || 'Production', color: site.environment_color, sites: [] };
+                    envGroups[envId].sites.push(site);
+                  });
+                  const currentEnvId = mainSite?.environment_id;
+                  const sortedEnvIds = Object.keys(envGroups).sort((a, b) => {
+                    if (a === currentEnvId) return -1;
+                    if (b === currentEnvId) return 1;
+                    return (envGroups[a].name || '').localeCompare(envGroups[b].name || '');
+                  });
+                  return sortedEnvIds.map(envId => (
+                    <div key={envId}>
+                      <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: envGroups[envId].color || '#71717a' }}>
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#f97316' }} />
+                        {envGroups[envId].name}
+                      </div>
+                      {envGroups[envId].sites.map(site => (
+                        <DropdownMenuItem
+                          key={site.id}
+                          onClick={() => navigate(`/${site.slug}`)}
+                          className={`cursor-pointer ${site.slug === mainSiteSlug ? 'bg-orange-50 text-orange-600 font-medium' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
+                          data-testid={`switch-site-${site.slug}`}
+                        >
+                          {site.logo_url ? (
+                            <img src={site.logo_url} alt="" className="w-4 h-4 rounded object-cover mr-2 flex-shrink-0" />
+                          ) : (
+                            <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                          )}
+                          <span className="truncate">{site.name}</span>
+                          {site.slug === mainSiteSlug && <Check className="w-3.5 h-3.5 ml-auto text-orange-500 flex-shrink-0" />}
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  ));
+                })()}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <div className="hidden lg:flex items-center gap-0.5 mx-auto bg-zinc-100/80 rounded-full p-1" data-testid="pill-nav">
             {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, 4).map(i => ({ label: i.label, to: i.to }))].map(tab => {
               const isTabActive = tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/'));
