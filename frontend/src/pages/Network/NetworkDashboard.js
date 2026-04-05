@@ -55,12 +55,10 @@ import {
   TooltipTrigger,
 } from '../../components/ui/tooltip';
 import { WorkspaceCanvas } from '../../components/workspace/WorkspaceCanvas';
-import { WorkspaceTopBar } from '../../components/workspace/WorkspaceTopBar';
 import { CanvasPanel } from '../../components/workspace/CanvasPanel';
 import EnvironmentManager from './EnvironmentManager';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
-import { BrandLogo } from '../../components/BrandLogo';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -771,89 +769,100 @@ export default function NetworkDashboard() {
     return null;
   }
 
+  const flatNavItems = NAV_GROUPS.flatMap(g => g.items);
+
   return (
     <TooltipProvider delayDuration={0}>
     <div className="h-screen flex flex-col overflow-hidden bg-[#F0F0F2]" style={{ height: '100dvh' }}>
-      {/* Workspace Shell */}
-      <div className="flex flex-grow overflow-hidden">
 
-        {/* Desktop Sidebar — 80px Icon Only */}
-        <aside
-          data-testid="workspace-sidebar"
-          className="hidden lg:flex w-[80px] h-full flex-shrink-0 flex-col items-center py-5 bg-white/70 backdrop-blur-xl border-r border-black/[0.06] z-50"
-        >
-          {/* Logo */}
-          <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
-            <span className="text-white font-black text-base tracking-tight">C</span>
-          </div>
+        {/* ─── Horizontal Top Navigation ─── */}
+        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-white/60 backdrop-blur-2xl border-b border-black/[0.06] z-50" data-testid="workspace-topbar">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors">
+            <Menu className="w-5 h-5" />
+          </button>
 
-          {/* Navigation Icons */}
-          <nav className="flex-1 flex flex-col items-center gap-1.5 py-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
-            {NAV_GROUPS.flatMap(g => g.items).map((item) => {
-              const Icon = item.icon;
-              const isActive = activeSection === item.id;
-              if (item.link) {
-                return (
-                  <Tooltip key={item.id}>
-                    <TooltipTrigger asChild>
-                      <Link
-                        to={item.link}
-                        data-testid={`nav-${item.id}`}
-                        className="w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]"
-                      >
-                        <Icon className="w-5 h-5" />
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-white border-black/10 text-zinc-800 text-xs shadow-lg backdrop-blur-lg">
-                      {item.label}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              }
+          {/* Logo pill */}
+          <Link to="/network" className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0" data-testid="logo-pill">
+            <Network className="w-4 h-4" />
+            <span className="hidden sm:inline">Clara</span>
+          </Link>
+
+          {/* Pill Tabs */}
+          <div className="hidden lg:flex items-center gap-0.5 mx-auto bg-zinc-100/80 rounded-full p-1" data-testid="pill-nav">
+            {flatNavItems.filter(i => !i.link).slice(0, 5).map(tab => {
+              const isTabActive = activeSection === tab.id;
               return (
-                <Tooltip key={item.id}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}
-                      data-testid={`nav-${item.id}`}
-                      className={`
-                        w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
-                        ${isActive
-                          ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(249,115,22,0.15)]'
-                          : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
-                        }
-                      `}
-                    >
-                      <Icon className="w-5 h-5" />
-                      {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-500" />}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="bg-white border-black/10 text-zinc-800 text-xs shadow-lg backdrop-blur-lg">
-                    {item.label}
-                  </TooltipContent>
-                </Tooltip>
+                <button key={tab.id} onClick={() => setActiveSection(tab.id)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isTabActive ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-800 hover:bg-white/60'}`} data-testid={`pill-${tab.id}`}>
+                  {tab.label}
+                </button>
               );
             })}
-          </nav>
+            {flatNavItems.filter(i => !i.link).length > 5 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
+                  {flatNavItems.filter(i => !i.link).slice(5).map(item => {
+                    const Icon = item.icon;
+                    return (
+                      <DropdownMenuItem key={item.id} onClick={() => setActiveSection(item.id)} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer">
+                        <Icon className="w-4 h-4 mr-2" />{item.label}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                  <DropdownMenuSeparator className="bg-black/[0.06]" />
+                  <DropdownMenuItem onClick={() => navigate('/backups')} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer">
+                    <HardDrive className="w-4 h-4 mr-2" />Backups
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/explorer')} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer">
+                    <Code className="w-4 h-4 mr-2" />API Explorer
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
 
-          {/* Bottom: User */}
-          <div className="mt-auto flex flex-col items-center gap-2 pt-3 flex-shrink-0">
+          {/* Environment switcher + User menu */}
+          <div className="flex items-center gap-3 flex-shrink-0 ml-auto lg:ml-0">
+            {environments.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-black/[0.08] bg-white/60 rounded-full hover:bg-white/80" data-testid="env-switcher">
+                    <Server className="w-3 h-3" />
+                    <span className="hidden md:inline">{environments.find(e => e.id === selectedEnvId)?.name || 'Environment'}</span>
+                    <ChevronDown className="w-3 h-3 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
+                  {environments.map(env => (
+                    <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={`cursor-pointer ${selectedEnvId === env.id ? 'bg-orange-50 text-orange-600' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}>
+                      <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
+                      {env.name}
+                      <span className="ml-auto text-xs text-zinc-500">{env.site_count || 0}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button
-                  data-testid="user-menu-trigger"
-                  className="w-11 h-11 rounded-2xl overflow-hidden hover:ring-2 hover:ring-orange-500/30 transition-all duration-200 flex-shrink-0"
-                >
+                <button className="flex items-center gap-2.5 hover:bg-black/[0.03] rounded-xl px-2 py-1.5 transition-colors" data-testid="user-menu-trigger">
                   {getAvatarUrl(user) ? (
-                    <img src={getAvatarUrl(user)} alt={user?.name} className="w-full h-full object-cover" />
+                    <img src={getAvatarUrl(user)} alt={user?.name} className="w-9 h-9 rounded-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
                       {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
+                  <div className="hidden md:block text-left">
+                    <p className="text-sm font-medium text-zinc-800 leading-tight">{user?.name}</p>
+                    <p className="text-[11px] text-zinc-400">{user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}</p>
+                  </div>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" side="right" className="w-56 bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl ml-2">
+              <DropdownMenuContent align="end" className="w-56 bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
                 <div className="px-3 py-2 flex items-center gap-3">
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
@@ -868,11 +877,6 @@ export default function NetworkDashboard() {
                   </div>
                 </div>
                 <DropdownMenuSeparator className="bg-black/[0.06]" />
-                <DropdownMenuItem className="text-zinc-500 cursor-default">
-                  <RoleIcon className="w-4 h-4 mr-2" />
-                  {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-black/[0.06]" />
                 <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-50">
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign out
@@ -880,119 +884,52 @@ export default function NetworkDashboard() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </aside>
+        </nav>
 
         {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
-          <div className="lg:hidden fixed inset-0 bg-black/60 z-40" onClick={() => setSidebarOpen(false)} />
+          <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setSidebarOpen(false)} />
         )}
 
         {/* Mobile Sidebar */}
-        <aside
-          className={`
-            lg:hidden fixed top-0 left-0 h-full z-50
-            w-64 bg-white/95 backdrop-blur-2xl border-r border-black/[0.06]
-            transform transition-transform duration-300 ease-in-out
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          `}
-        >
-          <div className="p-6 pt-4 h-full flex flex-col">
+        <aside className={`lg:hidden fixed top-0 left-0 h-full z-50 w-72 bg-white/95 backdrop-blur-2xl border-r border-black/[0.06] transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="p-5 h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-                  <span className="text-white font-black text-sm">C</span>
-                </div>
-                <BrandLogo className="text-lg font-bold text-zinc-800" />
+              <div className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold">
+                <Network className="w-4 h-4" />Clara
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-zinc-700">
-                <X className="w-5 h-5" />
-              </Button>
+              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-zinc-700"><X className="w-5 h-5" /></Button>
             </div>
             <div className="flex-1 overflow-y-auto">
               <nav className="space-y-1">
-                {NAV_GROUPS.flatMap(g => g.items).filter(i => !i.link).map((item) => {
+                {flatNavItems.filter(i => !i.link).map((item) => {
                   const Icon = item.icon;
-                  const isActive = activeSection === item.id;
                   return (
-                    <button
-                      key={item.id}
-                      onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                        isActive ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
+                    <button key={item.id} onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${activeSection === item.id ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
+                      <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                     </button>
                   );
                 })}
                 <Link to="/backups" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-black/5">
-                  <HardDrive className="w-5 h-5" />
-                  <span className="font-medium">Backups</span>
+                  <HardDrive className="w-5 h-5" /><span className="font-medium">Backups</span>
                 </Link>
                 <Link to="/explorer" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-black/5">
-                  <Code className="w-5 h-5" />
-                  <span className="font-medium">API Explorer</span>
+                  <Code className="w-5 h-5" /><span className="font-medium">API Explorer</span>
                 </Link>
               </nav>
             </div>
             <div className="pt-4 border-t border-black/[0.06] mt-4">
-              <div className="flex items-center gap-3 p-3">
-                {getAvatarUrl(user) ? (
-                  <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-zinc-800 truncate">{user?.name}</p>
-                  <p className="text-xs text-zinc-400 truncate">{user?.email}</p>
-                </div>
-              </div>
-              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 mt-2">
-                <LogOut className="w-4 h-4" />
-                Sign out
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50">
+                <LogOut className="w-4 h-4" />Sign out
               </Button>
             </div>
           </div>
         </aside>
 
-        {/* Main Content Area */}
-        <div className="flex flex-col flex-grow relative overflow-hidden">
-          {/* TopBar */}
-          <WorkspaceTopBar
-            title="Network Management"
-            titleBadge={<span className="text-[10px] px-1.5 py-0.5 rounded-full border font-medium bg-yellow-500/15 text-yellow-400 border-yellow-500/25">Global</span>}
-            onMobileMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-            centerContent={
-              environments.length > 0 ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-black/[0.08] bg-white/60 rounded-full hover:bg-white/80" data-testid="env-switcher">
-                      <Server className="w-3 h-3" />
-                      {environments.find(e => e.id === selectedEnvId)?.name || 'Select Environment'}
-                      <ChevronDown className="w-3 h-3 opacity-50" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
-                    {environments.map(env => (
-                      <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={selectedEnvId === env.id ? 'bg-zinc-800' : ''}>
-                        <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
-                        {env.name}
-                        <span className="ml-auto text-xs text-zinc-500">{env.site_count || 0}</span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null
-            }
-          />
-
-          {/* Workspace Canvas */}
-          <WorkspaceCanvas>
-            <CanvasPanel position="main" scrollable testId="main-content-panel">
-              <div className="p-2 sm:p-4">
+        {/* ─── Workspace Canvas ─── */}
+        <WorkspaceCanvas>
+          <CanvasPanel position="main" scrollable testId="main-content-panel">
+            <div className="p-2 sm:p-4">
 
           {/* Security Warning Banner */}
           {!user?.totp_enabled && activeSection === 'sites' && (
@@ -1823,10 +1760,8 @@ export default function NetworkDashboard() {
       />
             </CanvasPanel>
           </WorkspaceCanvas>
-        </div>
-
       </div>
-    </div>
+
     </TooltipProvider>
   );
 }

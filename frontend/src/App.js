@@ -11,6 +11,7 @@ import LoginWizard from './components/LoginWizard';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/DashboardLayout';
 import MainSiteDashboardLayout from './components/MainSiteDashboardLayout';
+import DashboardHome from './pages/DashboardHome';
 import NetworkDashboard from './pages/Network/NetworkDashboard';
 import MainSiteSelector from './pages/Network/MainSiteSelector';
 import ApiExplorerPage from './pages/Network/ApiExplorerPage';
@@ -292,64 +293,40 @@ const AppRoutes = () => {
   );
 };
 
-// Component to redirect to first available feature
+// Component that shows DashboardHome for radio sites, or redirects for special site types
 const MainSiteIndex = () => {
-  return <MainSiteIndexInner />;
-};
-
-// Separate inner component to use hooks properly
-const MainSiteIndexInner = () => {
   const { mainSite, mainSiteSlug, loading } = useMainSite();
   const navigate = useNavigate();
   
   useEffect(() => {
     if (!loading && mainSite) {
-      // Technical sites always go to zerotier
+      // Special site types redirect to their primary page
       if (mainSite.site_type === 'technical') {
         navigate(`/${mainSiteSlug}/zerotier`, { replace: true });
         return;
       }
-
-      // Task scheduler sites always go to task-boards
       if (mainSite.site_type === 'task_scheduler') {
         navigate(`/${mainSiteSlug}/task-boards`, { replace: true });
         return;
       }
-
-      // Server sites always go to xml-imports
       if (mainSite.site_type === 'server') {
         navigate(`/${mainSiteSlug}/xml-imports`, { replace: true });
         return;
       }
-      
-      const features = mainSite.enabled_features || [];
-      // Redirect to first enabled feature
-      const featureRoutes = {
-        shows: 'shows',
-        calendar: 'calendar',
-        content_library: 'content',
-        media_library: 'media',
-        team_chat: 'chat',
-        sites: 'sites',
-        rds_settings: 'rds'
-      };
-      
-      for (const [feature, route] of Object.entries(featureRoutes)) {
-        if (features.includes(feature)) {
-          navigate(`/${mainSiteSlug}/${route}`, { replace: true });
-          return;
-        }
-      }
-      // Fallback to sites if nothing else
-      navigate(`/${mainSiteSlug}/sites`, { replace: true });
+      // Radio/standard sites show DashboardHome (handled by render below)
     }
   }, [loading, mainSite, mainSiteSlug, navigate]);
   
-  return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
-      <div className="animate-pulse text-zinc-400">Loading...</div>
-    </div>
-  );
+  if (loading || !mainSite) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-pulse text-zinc-400">Loading...</div>
+      </div>
+    );
+  }
+  
+  // Standard sites: show the canvas dashboard home
+  return <DashboardHome />;
 };
 
 import { BrandingProvider } from './context/BrandingContext';

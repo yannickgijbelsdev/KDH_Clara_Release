@@ -42,9 +42,8 @@ import { getAvatarUrl } from '../utils/avatar';
 import { BrandLogo } from './BrandLogo';
 import { useBranding } from '../context/BrandingContext';
 import { WorkspaceCanvas } from './workspace/WorkspaceCanvas';
-import { WorkspaceTopBar } from './workspace/WorkspaceTopBar';
 import { CanvasPanel } from './workspace/CanvasPanel';
-import { Radio, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
