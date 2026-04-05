@@ -42,25 +42,25 @@ const Panel = ({ children, className = '', delay = 0, testId }) => (
 const RadioPanels = ({ mainSite, mainSiteSlug, navigate, shows, teamMembers, contentCount, loading, activeShows, greeting, firstName }) => (
   <>
     {/* TOP-LEFT: Shows counter */}
-    <Panel testId="panel-shows-counter" className="absolute top-0 left-0 px-6 py-5 pointer-events-auto" delay={0}>
-      <div className="flex items-center gap-5">
+    <Panel testId="panel-shows-counter" className="px-6 py-5 pointer-events-auto col-span-1 xl:absolute xl:top-0 xl:left-0" delay={0}>
+      <div className="flex items-center gap-5 flex-wrap">
         <div>
           <span className="text-4xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : activeShows.length}</span>
           <p className="text-xs text-zinc-400 mt-0.5 font-medium">Active Shows</p>
         </div>
-        <div className="w-px h-10 bg-zinc-200" />
+        <div className="w-px h-10 bg-zinc-200 hidden sm:block" />
         <div>
           <span className="text-4xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : teamMembers.length}</span>
           <p className="text-xs text-zinc-400 mt-0.5 font-medium">Team Members</p>
         </div>
-        <button onClick={() => navigate(`/${mainSiteSlug}/shows`)} className="ml-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/25">
+        <button onClick={() => navigate(`/${mainSiteSlug}/shows`)} className="ml-auto sm:ml-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/25">
           Open Shows <ArrowRight className="w-4 h-4" />
         </button>
       </div>
     </Panel>
 
     {/* LEFT: On-Air */}
-    <Panel testId="panel-live-show" className="absolute top-[38%] left-0 -translate-y-1/2 w-[260px] overflow-hidden pointer-events-auto" delay={0.12}>
+    <Panel testId="panel-live-show" className="w-full xl:w-[260px] overflow-hidden pointer-events-auto col-span-1 xl:absolute xl:top-[38%] xl:left-0 xl:-translate-y-1/2" delay={0.12}>
       <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-5 py-4 text-white">
         <div className="flex items-center gap-2 mb-2"><Mic className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wide">On Air</span></div>
         <p className="text-lg font-bold leading-tight">{activeShows.length > 0 ? activeShows[0].name : 'No live show'}</p>
@@ -94,8 +94,8 @@ const GenericPanels = ({ mainSite, mainSiteSlug, navigate, teamMembers, loading,
   return (
     <>
       {/* TOP-LEFT: Status */}
-      <Panel testId="panel-site-status" className="absolute top-0 left-0 px-6 py-5 pointer-events-auto" delay={0}>
-        <div className="flex items-center gap-4">
+      <Panel testId="panel-site-status" className="px-6 py-5 pointer-events-auto col-span-1 xl:absolute xl:top-0 xl:left-0" delay={0}>
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${theme.accent}15` }}>
             <Icon className="w-6 h-6" style={{ color: theme.accent }} />
           </div>
@@ -115,7 +115,7 @@ const GenericPanels = ({ mainSite, mainSiteSlug, navigate, teamMembers, loading,
 
       {/* CENTER-LEFT: Quick Actions */}
       {navItems.length > 0 && (
-        <Panel testId="panel-quick-actions" className="absolute top-[35%] left-0 -translate-y-1/2 w-[240px] pointer-events-auto" delay={0.12}>
+        <Panel testId="panel-quick-actions" className="w-full xl:w-[240px] pointer-events-auto col-span-1 xl:absolute xl:top-[35%] xl:left-0 xl:-translate-y-1/2" delay={0.12}>
           <div className="px-4 py-3">
             <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Actions</span>
             <div className="mt-3 space-y-1">
@@ -132,7 +132,7 @@ const GenericPanels = ({ mainSite, mainSiteSlug, navigate, teamMembers, loading,
       )}
 
       {/* RIGHT: Features */}
-      <Panel testId="panel-features" className="absolute top-[10%] right-0 w-[250px] pointer-events-auto" delay={0.15}>
+      <Panel testId="panel-features" className="w-full xl:w-[250px] pointer-events-auto col-span-1 xl:absolute xl:top-[10%] xl:right-0" delay={0.15}>
         <div className="px-5 py-4">
           <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Enabled Features</span>
           <div className="mt-3 space-y-2.5">
@@ -229,8 +229,8 @@ export default function DashboardHome() {
       }} />
 
       {/* ── Panels ── */}
-      <div className="absolute inset-0 z-10 p-5 pointer-events-none">
-        <div className="relative w-full h-full">
+      <div className="absolute inset-0 z-10 p-5 pointer-events-none overflow-y-auto xl:overflow-visible">
+        <div className="relative w-full xl:h-full grid grid-cols-1 md:grid-cols-2 xl:block gap-4">
 
           {/* Type-specific panels */}
           {isRadio ? (
@@ -247,7 +247,7 @@ export default function DashboardHome() {
           )}
 
           {/* TOP-RIGHT: Welcome (all types) */}
-          <Panel testId="panel-welcome" className="absolute top-0 right-0 px-6 py-5 max-w-[380px] pointer-events-auto" delay={0.06}>
+          <Panel testId="panel-welcome" className="px-6 py-5 max-w-full xl:max-w-[380px] pointer-events-auto col-span-1 md:col-span-2 xl:col-span-1 xl:absolute xl:top-0 xl:right-0 order-first xl:order-none" delay={0.06}>
             <h2 className="text-xl font-bold text-zinc-900">{greeting}, {firstName}!</h2>
             <p className="text-sm text-zinc-400 mt-1 leading-relaxed">
               Let's manage <strong className="text-zinc-600">{mainSite?.name || 'your site'}</strong> today.
@@ -256,7 +256,7 @@ export default function DashboardHome() {
 
           {/* RIGHT NAV (radio only) */}
           {isRadio && (
-            <Panel testId="panel-schedule" className="absolute top-[10%] right-0 w-[240px] pointer-events-auto" delay={0.18}>
+            <Panel testId="panel-schedule" className="w-full xl:w-[240px] pointer-events-auto col-span-1 xl:absolute xl:top-[10%] xl:right-0" delay={0.18}>
               <div className="px-5 pt-4 pb-3">
                 <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Navigation</span>
                 <div className="mt-3 space-y-1.5">
@@ -290,7 +290,7 @@ export default function DashboardHome() {
           )}
 
           {/* BOTTOM-LEFT: Team members (all types) */}
-          <Panel testId="panel-team" className="absolute bottom-0 left-0 w-[280px] pointer-events-auto" delay={0.24}>
+          <Panel testId="panel-team" className="w-full xl:w-[280px] pointer-events-auto col-span-1 xl:absolute xl:bottom-0 xl:left-0" delay={0.24}>
             <div className="px-5 py-4">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-semibold text-zinc-800">Team Members</span>
@@ -318,7 +318,7 @@ export default function DashboardHome() {
           </Panel>
 
           {/* BOTTOM-RIGHT: Metrics (radio) or Status (other) */}
-          <Panel testId="panel-metrics" className="absolute bottom-0 right-0 w-[260px] pointer-events-auto" delay={0.3}>
+          <Panel testId="panel-metrics" className="w-full xl:w-[260px] pointer-events-auto col-span-1 xl:absolute xl:bottom-0 xl:right-0" delay={0.3}>
             <div className="px-5 py-4">
               {isRadio ? (
                 <>
@@ -368,8 +368,8 @@ export default function DashboardHome() {
           </Panel>
 
           {/* BOTTOM-CENTER: Time (all types) */}
-          <Panel testId="panel-time" className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-auto" delay={0.2}>
-            <div className="px-6 py-3 flex items-center gap-4">
+          <Panel testId="panel-time" className="pointer-events-auto col-span-1 md:col-span-2 xl:absolute xl:bottom-0 xl:left-1/2 xl:-translate-x-1/2" delay={0.2}>
+            <div className="px-6 py-3 flex items-center gap-4 justify-center">
               <Clock className="w-4 h-4 text-zinc-400" />
               <span className="text-sm font-medium text-zinc-600">{now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
               <span className="text-sm font-bold text-zinc-900 tabular-nums">{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
