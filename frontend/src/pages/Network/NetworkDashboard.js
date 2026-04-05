@@ -929,7 +929,7 @@ export default function NetworkDashboard() {
         </aside>
 
         {/* ─── Workspace Canvas ─── */}
-        <WorkspaceCanvas backgroundImage={activeSection === 'sites' ? DATACENTER_BG : undefined}>
+        <WorkspaceCanvas>
           {activeSection === 'sites' ? (
             <>
               {/* Security Warning Banner */}
@@ -954,6 +954,7 @@ export default function NetworkDashboard() {
                 onCreateSite={openCreateWizard}
                 environments={environments}
                 selectedEnvId={selectedEnvId}
+                user={user}
               />
             </>
           ) : (
