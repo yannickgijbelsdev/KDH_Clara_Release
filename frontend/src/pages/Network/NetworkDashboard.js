@@ -56,11 +56,13 @@ import {
 } from '../../components/ui/tooltip';
 import { WorkspaceCanvas } from '../../components/workspace/WorkspaceCanvas';
 import { CanvasPanel } from '../../components/workspace/CanvasPanel';
+import ServerRackView from '../../components/workspace/ServerRackView';
 import EnvironmentManager from './EnvironmentManager';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+const DATACENTER_BG = 'https://images.pexels.com/photos/4508751/pexels-photo-4508751.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940';
 
 // Role icons and labels for user dropdown
 const roleIcons = {
@@ -927,305 +929,37 @@ export default function NetworkDashboard() {
         </aside>
 
         {/* ─── Workspace Canvas ─── */}
-        <WorkspaceCanvas>
+        <WorkspaceCanvas backgroundImage={activeSection === 'sites' ? DATACENTER_BG : undefined}>
+          {activeSection === 'sites' ? (
+            <>
+              {/* Security Warning Banner */}
+              {!user?.totp_enabled && (
+                <div className="absolute top-3 left-3 right-3 z-20">
+                  <div className="bg-amber-500/15 backdrop-blur-xl border border-amber-500/30 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 bg-amber-500/20 rounded-lg"><Shield className="w-4 h-4 text-amber-400" /></div>
+                      <div>
+                        <p className="text-amber-200 font-medium text-sm">Secure your account with 2FA</p>
+                        <p className="text-amber-200/60 text-xs">Two-factor authentication is not yet set up.</p>
+                      </div>
+                    </div>
+                    <Button size="sm" onClick={() => setActiveSection('security')} className="bg-amber-500 hover:bg-amber-600 text-black gap-1.5 text-xs">
+                      <Shield className="w-3.5 h-3.5" />Setup 2FA
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <ServerRackView
+                sites={filteredSites}
+                onCreateSite={openCreateWizard}
+                environments={environments}
+                selectedEnvId={selectedEnvId}
+              />
+            </>
+          ) : (
           <CanvasPanel position="main" scrollable testId="main-content-panel">
             <div className="p-2 sm:p-4">
 
-          {/* Security Warning Banner */}
-          {!user?.totp_enabled && activeSection === 'sites' && (
-            <div className="mb-6 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-500/20 rounded-lg">
-                  <Shield className="w-5 h-5 text-amber-500" />
-                </div>
-                <div>
-                  <p className="text-amber-200 font-medium">Secure your account with 2FA</p>
-                  <p className="text-amber-200/70 text-sm">Two-factor authentication is not yet set up.</p>
-                </div>
-              </div>
-              <Button 
-                onClick={() => setActiveSection('security')}
-                className="bg-amber-500 hover:bg-amber-600 text-black gap-2"
-              >
-                <Shield className="w-4 h-4" />
-                Setup 2FA
-              </Button>
-            </div>
-          )}
-
-          {/* ═══════════ SITES OVERVIEW ═══════════ */}
-          {activeSection === 'sites' && (
-            <>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-2xl font-bold text-white">Sites Overview</h1>
-                  <p className="text-sm text-zinc-400">{filteredSites.length} main sites in {environments.find(e => e.id === selectedEnvId)?.name || 'environment'}</p>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <div className="flex bg-zinc-800 rounded-lg p-0.5 border border-zinc-700">
-                    <Button
-                      variant="ghost" size="icon"
-                      className={`w-8 h-8 rounded-md ${viewMode === 'grid' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-                      onClick={() => toggleViewMode('grid')}
-                      data-testid="view-mode-grid"
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost" size="icon"
-                      className={`w-8 h-8 rounded-md ${viewMode === 'list' ? 'bg-zinc-700 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-                      onClick={() => toggleViewMode('list')}
-                      data-testid="view-mode-list"
-                    >
-                      <List className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <Button onClick={openCreateWizard} className="gap-2" data-testid="create-site-btn">
-                    <Plus className="w-4 h-4" />
-                    New Main Site
-                  </Button>
-                </div>
-              </div>
-
-              {/* Sites Content */}
-              {filteredSites.length === 0 ? (
-          <div className="space-y-6">
-            {/* Empty State */}
-            <Card className="bg-zinc-900 border-zinc-800">
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <Globe className="w-16 h-16 text-zinc-600 mb-4" />
-                <h3 className="text-xl font-semibold text-zinc-300 mb-2">No Main Sites Yet</h3>
-                <p className="text-zinc-500 mb-6">Use the Migration Tool below to migrate your existing data, or create a new main site</p>
-                <Button onClick={openCreateWizard} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Create Main Site
-                </Button>
-              </CardContent>
-            </Card>
-            
-            {/* Migration Tool - always visible */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <MigrationTool />
-            </div>
-          </div>
-        ) : (
-          <>
-          <div className={viewMode === 'grid' ? 'grid gap-6 md:grid-cols-2 lg:grid-cols-3' : 'space-y-3'}>
-            {filteredSites.map(site => viewMode === 'list' ? (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : site.site_type === 'external_host' ? 'bg-cyan-950/30 border-cyan-500/30 hover:border-cyan-500/50' : site.site_type === 'wp_security' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
-                <CardContent className="flex items-center gap-4 p-4">
-                  <Link to={`/${site.slug}`} className="flex items-center gap-3 flex-1 min-w-0">
-                    {site.logo_url ? (
-                      <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-                    ) : (
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : site.site_type === 'external_host' ? 'bg-cyan-500/10' : site.site_type === 'wp_security' ? 'bg-red-500/10' : 'bg-zinc-800'}`}>
-                        {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <HardDrive className="w-5 h-5 text-blue-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : site.site_type === 'external_host' ? <ExternalLink className="w-5 h-5 text-cyan-400" /> : site.site_type === 'wp_security' ? <Shield className="w-5 h-5 text-red-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-white truncate">{site.name}</span>
-                        {site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 flex-shrink-0">Clone</span>
-                        )}
-                        {site.site_type === 'technical' && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">Data Connection</span>
-                        )}
-                        {site.site_type === 'server' && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex-shrink-0">Virtual Datacenter</span>
-                        )}
-                        {site.site_type === 'task_scheduler' && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 flex-shrink-0">Tasks</span>
-                        )}
-                        {site.site_type === 'external_host' && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex-shrink-0">External Host</span>
-                        )}
-                        {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 flex-shrink-0">Radio</span>
-                        )}
-                      </div>
-                      <span className="text-xs text-zinc-500">/{site.slug}</span>
-                    </div>
-                  </Link>
-                  <div className="flex items-center gap-4 text-xs text-zinc-500 flex-shrink-0">
-                    <span className="flex items-center gap-1"><Layers className="w-3.5 h-3.5" />{site.site_count}</span>
-                    <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{site.user_count}</span>
-                  </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => openEditDialog(site)}><Edit className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="icon" className={`w-8 h-8 ${site.site_type === 'technical' ? 'opacity-10 pointer-events-none' : ''}`} disabled={site.site_type === 'technical'} onClick={() => runHealthCheck(site.id, site.name)}><Activity className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="icon" className={`w-8 h-8 ${site.site_type === 'technical' ? 'opacity-10 pointer-events-none' : ''}`} disabled={site.site_type === 'technical'} onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}><UserCog className="w-3.5 h-3.5" /></Button>
-                    <Link to={`/${site.slug}`}><Button variant="ghost" size="icon" className="w-8 h-8"><ExternalLink className="w-3.5 h-3.5" /></Button></Link>
-                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleDeleteClick(site.id, site.name)}><Trash2 className="w-3.5 h-3.5 text-red-500" /></Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card key={site.id} className={`transition-colors ${site.cloned_from ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'technical' ? 'bg-emerald-950/30 border-emerald-500/30 hover:border-emerald-500/50' : site.site_type === 'server' ? 'bg-blue-950/30 border-blue-500/30 hover:border-blue-500/50' : site.site_type === 'task_scheduler' ? 'bg-violet-950/30 border-violet-500/30 hover:border-violet-500/50' : site.site_type === 'external_host' ? 'bg-cyan-950/30 border-cyan-500/30 hover:border-cyan-500/50' : site.site_type === 'wp_security' ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'}`}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      {site.logo_url ? (
-                        <img src={site.logo_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                      ) : (
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : site.site_type === 'server' ? 'bg-blue-500/10' : site.site_type === 'task_scheduler' ? 'bg-violet-500/10' : site.site_type === 'external_host' ? 'bg-cyan-500/10' : site.site_type === 'wp_security' ? 'bg-red-500/10' : 'bg-zinc-800'}`}>
-                          {site.cloned_from ? <Layers className="w-5 h-5 text-blue-400" /> : site.site_type === 'technical' ? <Wrench className="w-5 h-5 text-emerald-400" /> : site.site_type === 'server' ? <HardDrive className="w-5 h-5 text-blue-400" /> : site.site_type === 'task_scheduler' ? <LayoutGrid className="w-5 h-5 text-violet-400" /> : site.site_type === 'external_host' ? <ExternalLink className="w-5 h-5 text-cyan-400" /> : site.site_type === 'wp_security' ? <Shield className="w-5 h-5 text-red-400" /> : <Globe className="w-5 h-5 text-zinc-500" />}
-                        </div>
-                      )}
-                      <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          {site.name}
-                          {site.cloned_from && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 font-normal">Clone</span>
-                          )}
-                          {site.site_type === 'technical' && !site.cloned_from && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-normal">
-                              Data Connection
-                            </span>
-                          )}
-                          {site.site_type === 'server' && !site.cloned_from && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-normal">
-                              Virtual Datacenter
-                            </span>
-                          )}
-                          {site.site_type === 'task_scheduler' && !site.cloned_from && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 font-normal">
-                              Tasks
-                            </span>
-                          )}
-                          {site.site_type === 'external_host' && !site.cloned_from && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-normal">
-                              External Host
-                            </span>
-                          )}
-                          {(!site.site_type || site.site_type === 'radio') && !site.cloned_from && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 font-normal">
-                              Radio
-                            </span>
-                          )}
-                        </CardTitle>
-                        <CardDescription className="text-zinc-500">/{site.slug}</CardDescription>
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(site)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(site.id, site.name)}>
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {site.description && (
-                    <p className="text-sm text-zinc-400 mb-4">{site.description}</p>
-                  )}
-                  <div className="flex items-center gap-4 text-sm text-zinc-500 mb-4">
-                    <span className="flex items-center gap-1">
-                      <Layers className="w-4 h-4" />
-                      {site.site_count} sites
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {site.user_count} users
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {(site.site_type === 'technical'
-                      ? (site.enabled_features || []).filter(f => f === 'team_settings' || f === 'zerotier')
-                      : (site.enabled_features || []).filter(f => f !== 'zerotier').slice(0, 5)
-                    ).map(f => (
-                      <span key={f} className="px-2 py-0.5 text-xs bg-zinc-800 rounded-full text-zinc-400">
-                        {f}
-                      </span>
-                    ))}
-                    {site.site_type !== 'technical' && site.enabled_features?.filter(f => f !== 'zerotier').length > 5 && (
-                      <span className="px-2 py-0.5 text-xs bg-zinc-800 rounded-full text-zinc-400">
-                        +{site.enabled_features.filter(f => f !== 'zerotier').length - 5} more
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    {site.site_type === 'technical' ? (
-                      <>
-                        <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs opacity-30 cursor-not-allowed" disabled>
-                          <Activity className="w-3.5 h-3.5" /> Test
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs opacity-30 cursor-not-allowed" disabled>
-                          <Bug className="w-3.5 h-3.5" /> Debug
-                        </Button>
-                        <Button variant="outline" size="sm" className="gap-1.5 text-xs opacity-30 cursor-not-allowed" disabled>
-                          <BarChart3 className="w-3.5 h-3.5" /> Stats
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1 gap-1.5 text-xs opacity-30 cursor-not-allowed" disabled>
-                          <UserCog className="w-3.5 h-3.5" /> Roles
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 gap-1.5 text-xs"
-                          data-testid={`health-check-${site.slug}`}
-                          onClick={() => runHealthCheck(site.id, site.name)}
-                        >
-                          <Activity className="w-3.5 h-3.5" />
-                          Test
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 gap-1.5 text-xs"
-                          data-testid={`debug-${site.slug}`}
-                          onClick={() => openDebugPanel(site.id, site.name)}
-                        >
-                          <Bug className="w-3.5 h-3.5" />
-                          Debug
-                        </Button>
-                        <Link to={`/statistics/${site.id}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-1.5 text-xs"
-                            data-testid={`statistics-${site.slug}`}
-                          >
-                            <BarChart3 className="w-3.5 h-3.5" />
-                            Stats
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 gap-1.5 text-xs"
-                          data-testid={`roles-${site.slug}`}
-                          onClick={() => setRolesPanel({ open: true, siteId: site.id, siteName: site.name })}
-                        >
-                          <UserCog className="w-3.5 h-3.5" />
-                          Roles
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                  <Link to={`/${site.slug}`}>
-                    <Button variant="outline" className="w-full gap-2 mt-2">
-                      <ExternalLink className="w-4 h-4" />
-                      Open Dashboard
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {/* Migration Tool Card */}
-            <MigrationTool />
-          </div>
-
-          </>
-        )}
-            </>
-          )}
 
           {/* ═══════════ NETWORK ADMINS ═══════════ */}
           {activeSection === 'admins' && (
@@ -1430,6 +1164,9 @@ export default function NetworkDashboard() {
             </div>
           )}
         </div>
+          </CanvasPanel>
+          )}
+          </WorkspaceCanvas>
 
       {/* Create/Edit Dialog */}
       <Dialog open={showCreateDialog || !!editingSite} onOpenChange={(open) => {
@@ -1758,10 +1495,8 @@ export default function NetworkDashboard() {
         siteType={setupWizard.siteType}
         siteName={setupWizard.siteName}
       />
-            </CanvasPanel>
-          </WorkspaceCanvas>
-      </div>
 
+      </div>
     </TooltipProvider>
   );
 }

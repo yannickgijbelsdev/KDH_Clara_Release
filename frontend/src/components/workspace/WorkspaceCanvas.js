@@ -3,7 +3,10 @@ import { cn } from '../../lib/utils';
 const CANVAS_BG_URL =
   'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/9c133714c33f42124837a555a90289699f0f5190e464c69e21122133740a9121.png';
 
-export const WorkspaceCanvas = ({ children, className }) => {
+export const WorkspaceCanvas = ({ children, className, backgroundImage }) => {
+  const bgUrl = backgroundImage || CANVAS_BG_URL;
+  const isCustomBg = !!backgroundImage;
+
   return (
     <div
       data-testid="workspace-canvas"
@@ -19,13 +22,18 @@ export const WorkspaceCanvas = ({ children, className }) => {
         }}
       />
 
-      {/* Layer 2: Central studio image */}
+      {/* Layer 2: Background image */}
       <div
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
       >
         <div
-          className="w-[65%] max-w-[900px] h-[80%] bg-contain bg-center bg-no-repeat opacity-[0.35]"
-          style={{ backgroundImage: `url(${CANVAS_BG_URL})` }}
+          className={cn(
+            'bg-contain bg-center bg-no-repeat',
+            isCustomBg
+              ? 'w-full h-full opacity-[0.12] bg-cover'
+              : 'w-[65%] max-w-[900px] h-[80%] opacity-[0.35]'
+          )}
+          style={{ backgroundImage: `url(${bgUrl})` }}
         />
       </div>
 
@@ -33,7 +41,9 @@ export const WorkspaceCanvas = ({ children, className }) => {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 30%, #F0F0F2 75%)',
+          background: isCustomBg
+            ? 'radial-gradient(ellipse at center, transparent 10%, #F0F0F2 80%)'
+            : 'radial-gradient(ellipse at center, transparent 30%, #F0F0F2 75%)',
         }}
       />
 
