@@ -25,7 +25,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server, Palette, Check
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server, Palette, Check, Upload
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -105,13 +105,13 @@ function DebugContent({ data }) {
   };
 
   const Section = ({ id, title, icon: Icon, color, count, children }) => (
-    <div className="bg-zinc-800/50 rounded-lg overflow-hidden">
+    <div className="bg-zinc-100/50 rounded-lg overflow-hidden">
       <button
         onClick={() => toggle(id)}
-        className="w-full flex items-center gap-3 p-3 hover:bg-zinc-800/80 transition"
+        className="w-full flex items-center gap-3 p-3 hover:bg-zinc-100/80 transition"
       >
         <Icon className={`w-4 h-4 ${color}`} />
-        <span className="text-sm font-medium text-white flex-1 text-left">{title}</span>
+        <span className="text-sm font-medium text-zinc-800 flex-1 text-left">{title}</span>
         {count !== undefined && <span className="text-xs text-zinc-500 font-mono">{count}</span>}
         {expandedSections[id] ? <ChevronUp className="w-4 h-4 text-zinc-500" /> : <ChevronDown className="w-4 h-4 text-zinc-500" />}
       </button>
@@ -122,7 +122,7 @@ function DebugContent({ data }) {
   return (
     <div className="space-y-3">
       {/* Header info */}
-      <div className="flex items-center gap-4 p-3 bg-zinc-800/30 rounded-lg text-xs text-zinc-400">
+      <div className="flex items-center gap-4 p-3 bg-zinc-100/30 rounded-lg text-xs text-zinc-400">
         <span><Clock className="w-3 h-3 inline mr-1" />{data.brussels_time}</span>
         <span>Team IDs: {data.team_ids_resolved?.length || 0}</span>
         <span>Sites: {data.child_sites?.length || 0}</span>
@@ -133,9 +133,9 @@ function DebugContent({ data }) {
         {data.todays_shows?.length > 0 ? (
           <div className="space-y-1">
             {data.todays_shows.map((show, i) => (
-              <div key={i} className={`flex items-center gap-2 text-xs p-2 rounded ${show.is_live ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-zinc-800/50'}`}>
+              <div key={i} className={`flex items-center gap-2 text-xs p-2 rounded ${show.is_live ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-zinc-100/50'}`}>
                 {show.is_live && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
-                <span className="text-white font-medium">{show.title}</span>
+                <span className="text-zinc-800 font-medium">{show.title}</span>
                 <span className="text-zinc-500">{show.start_time}–{show.end_time}</span>
                 <span className="text-zinc-600">{show.rds_station || 'no rds'}</span>
                 <span className={`ml-auto text-xs ${show.status === 'scheduled' ? 'text-emerald-400' : 'text-zinc-500'}`}>{show.status}</span>
@@ -153,7 +153,7 @@ function DebugContent({ data }) {
           <div className="space-y-1">
             {data.traffic_last_hour.map((t, i) => (
               <div key={i} className="flex items-center justify-between text-xs p-1.5">
-                <span className="text-zinc-300">{t.action}</span>
+                <span className="text-zinc-600">{t.action}</span>
                 <span className="text-zinc-500 font-mono">{t.count}x</span>
               </div>
             ))}
@@ -168,7 +168,7 @@ function DebugContent({ data }) {
         {data.rds_cache_logs?.length > 0 ? (
           <div className="space-y-1 max-h-48 overflow-y-auto">
             {data.rds_cache_logs.map((log, i) => (
-              <div key={i} className={`text-xs p-2 rounded ${log.status === 'success' ? 'bg-emerald-500/10' : log.status === 'no_show' ? 'bg-zinc-800/50' : 'bg-red-500/10'}`}>
+              <div key={i} className={`text-xs p-2 rounded ${log.status === 'success' ? 'bg-emerald-500/10' : log.status === 'no_show' ? 'bg-zinc-100/50' : 'bg-red-500/10'}`}>
                 <div className="flex justify-between">
                   <span className={`font-medium ${log.status === 'success' ? 'text-emerald-400' : log.status === 'no_show' ? 'text-amber-400' : 'text-red-400'}`}>
                     {log.status}
@@ -176,7 +176,7 @@ function DebugContent({ data }) {
                   <span className="text-zinc-500">{log.timestamp?.slice(11, 19)}</span>
                 </div>
                 <p className="text-zinc-400 mt-0.5">{log.message}</p>
-                {log.show_title && <p className="text-zinc-300 mt-0.5">{log.show_title}</p>}
+                {log.show_title && <p className="text-zinc-600 mt-0.5">{log.show_title}</p>}
               </div>
             ))}
           </div>
@@ -190,8 +190,8 @@ function DebugContent({ data }) {
         {data.active_rundowns?.length > 0 ? (
           <div className="space-y-1">
             {data.active_rundowns.map((r, i) => (
-              <div key={i} className="text-xs p-2 bg-zinc-800/50 rounded">
-                <span className="text-white">{r.show_title}</span>
+              <div key={i} className="text-xs p-2 bg-zinc-100/50 rounded">
+                <span className="text-zinc-800">{r.show_title}</span>
                 <span className="text-zinc-500 ml-2">{r.show_start_time}–{r.show_end_time}</span>
                 <span className="text-zinc-600 ml-2">{r.rds_station}</span>
               </div>
@@ -212,7 +212,7 @@ function DebugContent({ data }) {
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${log.station === 'grk' ? 'bg-violet-500/20 text-violet-300' : 'bg-orange-500/20 text-orange-300'}`}>
                   {log.station?.toUpperCase()}
                 </span>
-                <span className="text-zinc-300 truncate">{log.title || log.current_song}</span>
+                <span className="text-zinc-600 truncate">{log.title || log.current_song}</span>
                 <span className="text-zinc-600 ml-auto">{log.listeners} listeners</span>
               </div>
             ))}
@@ -229,8 +229,8 @@ function DebugContent({ data }) {
             {data.recent_logs.slice(0, 20).map((log, i) => (
               <div key={i} className="text-xs p-1.5 flex items-center gap-2 border-b border-zinc-800/50 last:border-0">
                 <span className="text-zinc-500 w-14 flex-shrink-0">{log.timestamp?.slice(11, 19)}</span>
-                <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px]">{log.category}</span>
-                <span className="text-zinc-300">{log.action}</span>
+                <span className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-400 text-[10px]">{log.category}</span>
+                <span className="text-zinc-600">{log.action}</span>
                 <span className="text-zinc-500 truncate ml-auto">{log.user_name}</span>
               </div>
             ))}
@@ -245,7 +245,7 @@ function DebugContent({ data }) {
         <div className="space-y-1">
           {data.child_sites?.map((s, i) => (
             <div key={i} className="text-xs p-1.5 flex justify-between">
-              <span className="text-zinc-300">{s.name}</span>
+              <span className="text-zinc-600">{s.name}</span>
               <span className="text-zinc-600 font-mono text-[10px]">{s.team_id}</span>
             </div>
           ))}
@@ -287,9 +287,9 @@ function UserAccessSection({ token, API }) {
       </div>
       <div className="space-y-6">
         <div className="grid grid-cols-3 gap-4">
-          <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-4"><div className="text-2xl font-bold text-white">{data.total_users}</div><div className="text-xs text-zinc-400">Total Users</div></CardContent></Card>
-          <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-4"><div className="text-2xl font-bold text-white">{data.total_main_sites}</div><div className="text-xs text-zinc-400">Main Sites</div></CardContent></Card>
-          <Card className="bg-zinc-900 border-zinc-800"><CardContent className="p-4"><div className="text-2xl font-bold text-white">{data.total_access_records}</div><div className="text-xs text-zinc-400">Access Records</div></CardContent></Card>
+          <Card className="bg-white border-zinc-200"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_users}</div><div className="text-xs text-zinc-400">Total Users</div></CardContent></Card>
+          <Card className="bg-white border-zinc-200"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_main_sites}</div><div className="text-xs text-zinc-400">Main Sites</div></CardContent></Card>
+          <Card className="bg-white border-zinc-200"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_access_records}</div><div className="text-xs text-zinc-400">Access Records</div></CardContent></Card>
         </div>
         {data.users_without_site_access?.length > 0 && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
@@ -299,8 +299,8 @@ function UserAccessSection({ token, API }) {
             </h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {data.users_without_site_access.map((u, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-800/50 rounded p-2">
-                  <span className="text-white font-medium">{u.user_name}</span>
+                <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-100/50 rounded p-2">
+                  <span className="text-zinc-800 font-medium">{u.user_name}</span>
                   <span className="text-zinc-500">{u.user_email}</span>
                   <span className="text-xs bg-zinc-700 px-2 py-0.5 rounded">{u.user_global_role}</span>
                 </div>
@@ -309,12 +309,12 @@ function UserAccessSection({ token, API }) {
           </div>
         )}
         <div>
-          <h3 className="text-white font-semibold mb-3">Access per Main Site</h3>
+          <h3 className="text-zinc-800 font-semibold mb-3">Access per Main Site</h3>
           <div className="space-y-4">
             {Object.entries(data.access_by_site || {}).map(([siteName, users]) => (
-              <Card key={siteName} className="bg-zinc-900 border-zinc-800">
+              <Card key={siteName} className="bg-white border-zinc-200">
                 <CardContent className="p-4">
-                  <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                  <h4 className="text-zinc-800 font-medium mb-3 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-blue-400" />
                     {siteName}
                     <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">{users.length} users</span>
@@ -323,7 +323,7 @@ function UserAccessSection({ token, API }) {
                     {users.map((access, idx) => {
                       const RIcon = roleIcons[access.site_role] || Eye;
                       return (
-                        <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-800/30 rounded p-2">
+                        <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-100/30 rounded p-2">
                           <RIcon className="w-4 h-4 text-zinc-400" />
                           <span className="text-white font-medium min-w-[150px]">{access.user_name}</span>
                           <span className="text-zinc-500 min-w-[200px]">{access.user_email}</span>
@@ -693,7 +693,8 @@ export default function NetworkDashboard() {
       name: site.name,
       slug: site.slug,
       description: site.description || '',
-      enabled_features: site.enabled_features || []
+      enabled_features: site.enabled_features || [],
+      logo_url: site.logo_url || '',
     });
   };
 
@@ -784,7 +785,7 @@ export default function NetworkDashboard() {
           </button>
 
           {/* Logo pill */}
-          <Link to="/network" className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0" data-testid="logo-pill">
+          <Link to="/network" className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-100 transition-colors flex-shrink-0" data-testid="logo-pill">
             <Network className="w-4 h-4" />
             <span className="hidden sm:inline">Clara</span>
           </Link>
@@ -1073,7 +1074,7 @@ export default function NetworkDashboard() {
                   </span>
                 )}
               </div>
-              <Card className="bg-zinc-900 border-zinc-800 max-w-lg">
+              <Card className="bg-white border-zinc-200 max-w-lg">
                 <CardContent className="p-6">
                   <TwoFactorSetup user={user} onUpdate={refreshUser} />
                 </CardContent>
@@ -1100,7 +1101,7 @@ export default function NetworkDashboard() {
                     </button>
                   </div>
 
-                  <Card className="bg-zinc-900 border-zinc-800 max-w-lg" data-testid="zt-guard-config">
+                  <Card className="bg-white border-zinc-200 max-w-lg" data-testid="zt-guard-config">
                     <CardContent className="p-5 space-y-4">
                       {ztGuard.enabled && (
                         <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-500/10 px-3 py-2 rounded-lg border border-blue-500/20">
@@ -1117,7 +1118,7 @@ export default function NetworkDashboard() {
                             placeholder="e.g. a8b4c2d6e1f09876"
                             value={ztGuardForm.network_id}
                             onChange={(e) => setZtGuardForm(prev => ({ ...prev, network_id: e.target.value }))}
-                            className="bg-zinc-800 border-zinc-700 font-mono text-sm"
+                            className="bg-zinc-50 border-zinc-200 font-mono text-sm"
                           />
                         </div>
                         {ztGuard.network_name && (
@@ -1133,7 +1134,7 @@ export default function NetworkDashboard() {
                           placeholder={ztGuard.api_token_masked || "ZeroTier Central API token"}
                           value={ztGuardForm.api_token}
                           onChange={(e) => setZtGuardForm(prev => ({ ...prev, api_token: e.target.value }))}
-                          className="bg-zinc-800 border-zinc-700 font-mono text-sm"
+                          className="bg-zinc-50 border-zinc-200 font-mono text-sm"
                         />
                         {ztGuard.api_token_masked && !ztGuardForm.api_token && (
                           <p className="text-xs text-zinc-500">Current: {ztGuard.api_token_masked}</p>
@@ -1154,7 +1155,7 @@ export default function NetworkDashboard() {
                         }}
                         disabled={ztGuard.loading}
                         variant="outline"
-                        className="w-full bg-zinc-800 border-zinc-700 hover:bg-zinc-700"
+                        className="w-full bg-zinc-50 border-zinc-200 hover:bg-zinc-700"
                       >
                         Save Configuration
                       </Button>
@@ -1178,23 +1179,65 @@ export default function NetworkDashboard() {
           setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
         }
       }}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-zinc-200 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingSite ? 'Edit Main Site' : 'Create Main Site'}</DialogTitle>
           </DialogHeader>
 
           {editingSite ? (
-            /* Edit mode: simple name/slug form */
+            /* Edit mode: name/slug/logo form */
             <div className="space-y-4 py-2">
+              {/* Logo upload */}
+              <div className="space-y-2">
+                <Label>Custom Logo</Label>
+                <div className="flex items-center gap-4">
+                  {formData.logo_url ? (
+                    <img src={formData.logo_url.startsWith('/') ? `${API}${formData.logo_url}` : formData.logo_url} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-zinc-200 bg-zinc-50" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-400 text-xs">No logo</div>
+                  )}
+                  <div>
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl text-sm text-zinc-700 font-medium transition-colors">
+                      <Upload className="w-4 h-4" />
+                      Upload logo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const fd = new FormData();
+                          fd.append('file', file);
+                          try {
+                            const res = await fetch(`${API}/api/main-sites/${editingSite.id}/logo`, {
+                              method: 'POST',
+                              headers: { Authorization: `Bearer ${token}` },
+                              body: fd,
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              setFormData(prev => ({ ...prev, logo_url: data.logo_url }));
+                            }
+                          } catch (err) { console.error('Logo upload failed:', err); }
+                        }}
+                      />
+                    </label>
+                    {formData.logo_url && (
+                      <button onClick={() => setFormData(prev => ({ ...prev, logo_url: '' }))} className="ml-2 text-xs text-red-500 hover:underline">Remove</button>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label>Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Site name" className="bg-zinc-800 border-zinc-700" />
+                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Site name" className="bg-zinc-50 border-zinc-200" />
               </div>
               <div className="space-y-2">
                 <Label>URL Slug</Label>
                 <div className="flex items-center gap-1">
                   <span className="text-zinc-500 text-sm">/</span>
-                  <Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })} className="bg-zinc-800 border-zinc-700 font-mono" />
+                  <Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })} className="bg-zinc-50 border-zinc-200 font-mono" />
                 </div>
               </div>
               <DialogFooter>
@@ -1212,7 +1255,7 @@ export default function NetworkDashboard() {
                     <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                       i < createStep ? 'bg-emerald-500/20 text-emerald-400' :
                       i === createStep ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
-                      'bg-zinc-800 text-zinc-500'
+                      'bg-zinc-100 text-zinc-500'
                     }`}>
                       {i < createStep ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
                       <span>{s}</span>
@@ -1229,14 +1272,14 @@ export default function NetworkDashboard() {
                   <div className="space-y-2">
                     <Label>Site Name</Label>
                     <Input value={formData.name} onChange={(e) => { const name = e.target.value; setFormData(p => ({ ...p, name, slug: autoSlug(name) })); }}
-                      placeholder="e.g. Radiogroup MFY/GRK" className="bg-zinc-800 border-zinc-700" autoFocus data-testid="create-site-name-input" />
+                      placeholder="e.g. Radiogroup MFY/GRK" className="bg-zinc-50 border-zinc-200" autoFocus data-testid="create-site-name-input" />
                   </div>
                   <div className="space-y-2">
                     <Label>URL Slug</Label>
                     <div className="flex items-center gap-1">
                       <span className="text-zinc-500 text-sm">/</span>
                       <Input value={formData.slug} onChange={(e) => setFormData(p => ({ ...p, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
-                        className="bg-zinc-800 border-zinc-700 font-mono" data-testid="create-site-slug-input" />
+                        className="bg-zinc-50 border-zinc-200 font-mono" data-testid="create-site-slug-input" />
                     </div>
                     {formData.slug && slugExists(formData.slug) && (
                       <p className="text-xs text-red-400">This slug is already in use</p>
@@ -1257,7 +1300,7 @@ export default function NetworkDashboard() {
                       <button key={pkg.type} data-testid={`package-${pkg.type}`}
                         onClick={() => setFormData(p => ({ ...p, site_type: pkg.type, enabled_features: pkg.features }))}
                         className={`w-full flex items-center gap-4 p-3 rounded-lg border text-left transition-all ${
-                          formData.site_type === pkg.type ? `${PACKAGE_COLORS[pkg.color]} border-2` : 'bg-zinc-800/50 border-zinc-700 hover:border-zinc-600'
+                          formData.site_type === pkg.type ? `${PACKAGE_COLORS[pkg.color]} border-2` : 'bg-zinc-100/50 border-zinc-700 hover:border-zinc-600'
                         }`}>
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.site_type === pkg.type ? 'bg-white/10' : 'bg-zinc-700/50'}`}>
                           <pkg.icon className={`w-5 h-5 ${formData.site_type === pkg.type ? PACKAGE_ICON_COLORS[pkg.color] : 'text-zinc-500'}`} />
@@ -1281,7 +1324,7 @@ export default function NetworkDashboard() {
                       <Label>Linked Main Site</Label>
                       <p className="text-[10px] text-zinc-500">Select the main site this Virtual Datacenter belongs to</p>
                       <select value={formData.linked_main_site_id || ''} onChange={e => setFormData(p => ({ ...p, linked_main_site_id: e.target.value }))}
-                        className="w-full h-10 rounded-lg bg-zinc-800 border border-zinc-700 text-white px-3 text-sm" data-testid="linked-main-site-select">
+                        className="w-full h-10 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-900 px-3 text-sm" data-testid="linked-main-site-select">
                         <option value="">-- Select main site --</option>
                         {mainSites.filter(s => s.site_type === 'radio').map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
@@ -1299,14 +1342,14 @@ export default function NetworkDashboard() {
               {createStep === 2 && (
                 <div className="space-y-4">
                   {(() => { const pkg = PACKAGES.find(p => p.type === formData.site_type); return (
-                    <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700 space-y-3">
+                    <div className="bg-zinc-100/50 rounded-lg p-4 border border-zinc-700 space-y-3">
                       <div className="flex items-center gap-3">
                         {pkg && <pkg.icon className={`w-6 h-6 ${PACKAGE_ICON_COLORS[pkg.color]}`} />}
                         <div>
                           <p className="text-sm font-medium text-zinc-100">{formData.name}</p>
                           <p className="text-xs font-mono text-zinc-500">/{formData.slug}</p>
                         </div>
-                        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full border ${SITE_TYPE_BADGE[formData.site_type] || 'bg-zinc-800 text-zinc-400 border-zinc-700'}`}>
+                        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full border ${SITE_TYPE_BADGE[formData.site_type] || 'bg-zinc-100 text-zinc-400 border-zinc-700'}`}>
                           {SITE_TYPE_LABELS[formData.site_type] || formData.site_type}
                         </span>
                       </div>
@@ -1335,15 +1378,15 @@ export default function NetworkDashboard() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, siteId: null, siteName: '' })}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Main Site</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete Main Site</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               Are you sure you want to delete "{deleteDialog.siteName}"? This will also delete all associated mini-sites and data. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+            <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-white hover:bg-zinc-700">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
@@ -1358,7 +1401,7 @@ export default function NetworkDashboard() {
 
       {/* Health Check Panel */}
       <Dialog open={healthCheck.open} onOpenChange={(open) => !open && setHealthCheck({ open: false, siteId: null, siteName: '', loading: false, result: null, history: [] })}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Activity className="w-5 h-5 text-orange-500" />
@@ -1386,7 +1429,7 @@ export default function NetworkDashboard() {
                   <AlertTriangle className="w-6 h-6 text-amber-500" />
                 )}
                 <div>
-                  <p className="font-semibold text-white">
+                  <p className="font-semibold text-zinc-900">
                     {healthCheck.result.overall_status === 'ok' ? 'All OK' :
                      healthCheck.result.overall_status === 'error' ? 'Errors Found' : 'Warnings'}
                   </p>
@@ -1397,7 +1440,7 @@ export default function NetworkDashboard() {
               {/* Individual Checks */}
               <div className="space-y-2">
                 {healthCheck.result.checks?.map((check, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg">
+                  <div key={i} className="flex items-center gap-3 p-3 bg-zinc-100/50 rounded-lg">
                     {check.status === 'ok' ? (
                       <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                     ) : check.status === 'error' ? (
@@ -1408,18 +1451,18 @@ export default function NetworkDashboard() {
                       <Info className="w-4 h-4 text-blue-400 flex-shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white">{check.name}</p>
+                      <p className="text-sm font-medium text-zinc-900">{check.name}</p>
                       <p className="text-xs text-zinc-400">{check.message}</p>
                     </div>
                     {check.count !== undefined && (
-                      <span className="text-sm font-mono text-zinc-300">{check.count}</span>
+                      <span className="text-sm font-mono text-zinc-600">{check.count}</span>
                     )}
                   </div>
                 ))}
               </div>
 
               {/* Team IDs resolved */}
-              <div className="text-xs text-zinc-500 p-2 bg-zinc-800/30 rounded">
+              <div className="text-xs text-zinc-500 p-2 bg-zinc-100/30 rounded">
                 Team IDs searched: {healthCheck.result.team_ids_resolved?.length || 0}
               </div>
 
@@ -1452,7 +1495,7 @@ export default function NetworkDashboard() {
 
       {/* Debug Panel */}
       <Dialog open={debugPanel.open} onOpenChange={(open) => !open && setDebugPanel({ open: false, siteId: null, siteName: '', loading: false, data: null })}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-zinc-200 max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle className="flex items-center gap-2">

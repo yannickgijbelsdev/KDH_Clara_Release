@@ -1,9 +1,11 @@
 """Main Sites (Organization) management routes."""
 import uuid
 import asyncio
+import pathlib
+import shutil
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
 from database import db
 from models.main_sites import (
@@ -18,6 +20,9 @@ from routers.shows import resolve_avatar_url
 
 import logging
 logger = logging.getLogger(__name__)
+
+SITE_LOGOS_DIR = pathlib.Path("/app/backend/uploads/site_logos")
+SITE_LOGOS_DIR.mkdir(parents=True, exist_ok=True)
 
 main_sites_router = APIRouter(prefix="/main-sites", tags=["main-sites"])
 
@@ -444,6 +449,34 @@ async def delete_main_site(
     ))
 
     return {"status": "success", "message": "Main site deleted"}
+
+
+
+@main_sites_router.post("/{main_site_id}/logo")
+async def upload_site_logo(
+    main_site_id: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+):
+    """Upload a logo for a main site."""
+    main_site = await db.main_sites.find_one({"id": main_site_id})
+    if not main_site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Only image files are allowed")
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else "png"
+    file_key = f"{main_site_id}_{uuid.uuid4().hex[:8]}.{ext}"
+    dest = SITE_LOGOS_DIR / file_key
+
+    with open(dest, "wb") as out:
+        shutil.copyfileobj(file.file, out)
+
+    logo_url = f"/api/uploads/site_logos/{file_key}"
+    await db.main_sites.update_one({"id": main_site_id}, {"$set": {"logo_url": logo_url}})
+
+    return {"logo_url": logo_url}
 
 
 # ============== MAIN SITE USER MANAGEMENT ==============

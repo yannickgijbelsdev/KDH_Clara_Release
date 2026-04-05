@@ -513,6 +513,19 @@ async def get_branding_file(file_key: str):
     return FileResponse(file_path, media_type=media_type, headers={"Cache-Control": "public, max-age=3600"})
 
 
+@api_router.get("/uploads/site_logos/{file_key}")
+async def get_site_logo(file_key: str):
+    """Serve a site logo file."""
+    import pathlib
+    file_path = pathlib.Path("/app/backend/uploads/site_logos") / file_key
+    if not file_path.exists():
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="File not found")
+    media_type = mimetypes.guess_type(file_key)[0] or 'application/octet-stream'
+    return FileResponse(file_path, media_type=media_type, headers={"Cache-Control": "public, max-age=3600"})
+
+
+
 @api_router.get("/share/{share_token}")
 async def get_shared_file(share_token: str):
     """Serve a publicly shared media file (no authentication required)."""

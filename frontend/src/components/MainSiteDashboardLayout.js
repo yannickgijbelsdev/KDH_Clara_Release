@@ -1075,7 +1075,7 @@ const MainSiteDashboardContent = () => {
         </aside>
 
         {/* ─── Workspace Canvas ─── */}
-        <WorkspaceCanvas>
+        <WorkspaceCanvas backgroundImage={isDashboardHome && mainSite?.site_type !== 'radio' ? 'none' : undefined}>
           {isLicenseBlocked ? (
             <CanvasPanel position="main" testId="no-license-block">
               <div className="flex items-center justify-center min-h-[60vh]">
