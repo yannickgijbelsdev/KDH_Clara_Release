@@ -3859,27 +3859,37 @@ now = now_brussels()  # Automatically handles CET/CEST
   3. **`rds_builder_scheduler.py` — `process_named_output` (no enabled items path)**: Same fix — re-evaluates stale item text instead of only clearing scheduled_text types.
 - **Verified**: Force-refresh correctly clears all outputs. When audio trigger ends and MFY sequence is disabled, output updates to "altijd dichtbij". GRK sequence rotates correctly showing defaults.
 
-## Canvas-Based Workspace Layout System (2026-04-04)
+## Canvas-Based Workspace Layout System (2026-04-04, Updated 2026-04-05)
 
 ### Architecture
 ```
 AppShell
-├── Sidebar (80px, icon-only, dark, fixed left)
-├── TopBar (64px, glass effect, flex-shrink-0)
+├── Horizontal Top Nav (64px, glass effect, pill-tabs)
+│   ├── Logo pill (Clara + icon)
+│   ├── Pill tabs (dynamic from nav items)
+│   ├── "More" dropdown (overflow items)
+│   └── User menu (avatar, role, sign out)
+├── Mobile Sidebar (slide-in, hidden on desktop)
 └── WorkspaceCanvas (fills remaining space)
     └── CanvasPanel (floating glass panels)
         └── Page Content (<Outlet />)
 ```
 
+### Key Design Decisions
+- **No sidebar on desktop** — all navigation via horizontal pill-tabs
+- **Light theme** — white/frosted glass panels, dark text, bg-[#F0F0F2]
+- **Isometric studio background** — central image in WorkspaceCanvas
+- **DashboardHome** — floating panels with real app data (shows, team, metrics)
+
 ### Components
 - `CanvasPanel` — Reusable panel with positions: topLeft, topRight, bottomLeft, bottomRight, centerRight, main
 - `WorkspaceCanvas` — Background layers (image + overlay + grid) with panel container
-- `WorkspaceTopBar` — Glass topbar with dynamic title, search, time
-- `WorkspaceSidebar` — Reference component for icon-only sidebar
+- `WorkspaceTopBar` — Reference glass topbar component (no longer used in main layouts)
 
 ### Applied To
-- `MainSiteDashboardLayout.js` — All `/:mainSiteSlug/*` routes
-- `NetworkDashboard.js` — `/network` route
+- `MainSiteDashboardLayout.js` — All `/:mainSiteSlug/*` routes (horizontal nav + pill tabs)
+- `NetworkDashboard.js` — `/network` route (horizontal nav + pill tabs)
+- `DashboardHome.js` — Index route for radio/standard sites (floating panels)
 - `DashboardLayout.js` — Legacy `/legacy/*` routes (not updated)
 
 ### Panel Position System
@@ -3892,5 +3902,5 @@ centerRight: { top: 50%, right: 16, translateY: -50% }
 main:        { inset: 16 } // fills canvas
 ```
 
-### Status: DONE (Tested, 95% pass rate)
+### Status: DONE (Tested, 100% pass rate - iteration_127)
 
