@@ -773,14 +773,14 @@ export default function NetworkDashboard() {
 
   return (
     <TooltipProvider delayDuration={0}>
-    <div className="h-screen flex flex-col overflow-hidden bg-[#0A0A0A] text-white" style={{ height: '100dvh' }}>
+    <div className="h-screen flex flex-col overflow-hidden bg-[#F0F0F2]" style={{ height: '100dvh' }}>
       {/* Workspace Shell */}
       <div className="flex flex-grow overflow-hidden">
 
         {/* Desktop Sidebar — 80px Icon Only */}
         <aside
           data-testid="workspace-sidebar"
-          className="hidden lg:flex w-[80px] h-full flex-shrink-0 flex-col items-center py-5 bg-[#0A0A0A]/85 backdrop-blur-xl border-r border-white/[0.08] z-50"
+          className="hidden lg:flex w-[80px] h-full flex-shrink-0 flex-col items-center py-5 bg-white/70 backdrop-blur-xl border-r border-black/[0.06] z-50"
         >
           {/* Logo */}
           <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
@@ -799,12 +799,12 @@ export default function NetworkDashboard() {
                       <Link
                         to={item.link}
                         data-testid={`nav-${item.id}`}
-                        className="w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 text-zinc-500 hover:text-white hover:bg-white/[0.06]"
+                        className="w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]"
                       >
                         <Icon className="w-5 h-5" />
                       </Link>
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
+                    <TooltipContent side="right" className="bg-white border-black/10 text-zinc-800 text-xs shadow-lg backdrop-blur-lg">
                       {item.label}
                     </TooltipContent>
                   </Tooltip>
@@ -819,16 +819,16 @@ export default function NetworkDashboard() {
                       className={`
                         w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                         ${isActive
-                          ? 'bg-orange-500/15 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.15)]'
-                          : 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
+                          ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(249,115,22,0.15)]'
+                          : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                         }
                       `}
                     >
                       <Icon className="w-5 h-5" />
-                      {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-400" />}
+                      {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-500" />}
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
+                  <TooltipContent side="right" className="bg-white border-black/10 text-zinc-800 text-xs shadow-lg backdrop-blur-lg">
                     {item.label}
                   </TooltipContent>
                 </Tooltip>
@@ -853,7 +853,7 @@ export default function NetworkDashboard() {
                   )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" side="right" className="w-56 bg-[#141414]/90 backdrop-blur-2xl border-white/10 ml-2">
+              <DropdownMenuContent align="start" side="right" className="w-56 bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl ml-2">
                 <div className="px-3 py-2 flex items-center gap-3">
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
@@ -863,17 +863,17 @@ export default function NetworkDashboard() {
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-medium text-white">{user?.name}</p>
-                    <p className="text-xs text-zinc-500">{user?.email}</p>
+                    <p className="text-sm font-medium text-zinc-800">{user?.name}</p>
+                    <p className="text-xs text-zinc-400">{user?.email}</p>
                   </div>
                 </div>
-                <DropdownMenuSeparator className="bg-white/[0.06]" />
-                <DropdownMenuItem className="text-zinc-400 cursor-default">
+                <DropdownMenuSeparator className="bg-black/[0.06]" />
+                <DropdownMenuItem className="text-zinc-500 cursor-default">
                   <RoleIcon className="w-4 h-4 mr-2" />
                   {user?.is_network_admin ? 'Network Admin' : roleLabels[user?.role]}
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-white/[0.06]" />
-                <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10">
+                <DropdownMenuSeparator className="bg-black/[0.06]" />
+                <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-50">
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign out
                 </DropdownMenuItem>
@@ -891,7 +891,7 @@ export default function NetworkDashboard() {
         <aside
           className={`
             lg:hidden fixed top-0 left-0 h-full z-50
-            w-64 bg-[#0A0A0A]/95 backdrop-blur-2xl border-r border-white/[0.08]
+            w-64 bg-white/95 backdrop-blur-2xl border-r border-black/[0.06]
             transform transition-transform duration-300 ease-in-out
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           `}
@@ -902,9 +902,9 @@ export default function NetworkDashboard() {
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
                   <span className="text-white font-black text-sm">C</span>
                 </div>
-                <BrandLogo className="text-lg font-bold text-white" />
+                <BrandLogo className="text-lg font-bold text-zinc-800" />
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-white">
+              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-zinc-700">
                 <X className="w-5 h-5" />
               </Button>
             </div>
@@ -918,7 +918,7 @@ export default function NetworkDashboard() {
                       key={item.id}
                       onClick={() => { setActiveSection(item.id); setSidebarOpen(false); }}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                        isActive ? 'bg-orange-500/15 text-orange-400' : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                        isActive ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -926,17 +926,17 @@ export default function NetworkDashboard() {
                     </button>
                   );
                 })}
-                <Link to="/backups" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5">
+                <Link to="/backups" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-black/5">
                   <HardDrive className="w-5 h-5" />
                   <span className="font-medium">Backups</span>
                 </Link>
-                <Link to="/explorer" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5">
+                <Link to="/explorer" onClick={() => setSidebarOpen(false)} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-500 hover:text-zinc-800 hover:bg-black/5">
                   <Code className="w-5 h-5" />
                   <span className="font-medium">API Explorer</span>
                 </Link>
               </nav>
             </div>
-            <div className="pt-4 border-t border-white/[0.08] mt-4">
+            <div className="pt-4 border-t border-black/[0.06] mt-4">
               <div className="flex items-center gap-3 p-3">
                 {getAvatarUrl(user) ? (
                   <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
@@ -946,11 +946,11 @@ export default function NetworkDashboard() {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                  <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+                  <p className="text-sm font-medium text-zinc-800 truncate">{user?.name}</p>
+                  <p className="text-xs text-zinc-400 truncate">{user?.email}</p>
                 </div>
               </div>
-              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2">
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50 mt-2">
                 <LogOut className="w-4 h-4" />
                 Sign out
               </Button>
@@ -969,13 +969,13 @@ export default function NetworkDashboard() {
               environments.length > 0 ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-white/[0.08] bg-white/[0.04] rounded-xl hover:bg-white/[0.06]" data-testid="env-switcher">
+                    <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-black/[0.08] bg-white/60 rounded-full hover:bg-white/80" data-testid="env-switcher">
                       <Server className="w-3 h-3" />
                       {environments.find(e => e.id === selectedEnvId)?.name || 'Select Environment'}
                       <ChevronDown className="w-3 h-3 opacity-50" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="center" className="bg-[#141414]/90 backdrop-blur-2xl border-white/10">
+                  <DropdownMenuContent align="center" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
                     {environments.map(env => (
                       <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={selectedEnvId === env.id ? 'bg-zinc-800' : ''}>
                         <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />

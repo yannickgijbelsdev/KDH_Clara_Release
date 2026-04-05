@@ -7,7 +7,7 @@ const POSITION_CLASSES = {
   bottomLeft: 'bottom-4 left-4',
   bottomRight: 'bottom-4 right-4',
   centerRight: 'top-1/2 right-4 -translate-y-1/2',
-  main: 'inset-4',
+  main: 'inset-3',
 };
 
 const POSITION_WIDTHS = {
@@ -47,13 +47,14 @@ export const CanvasPanel = ({
   return (
     <motion.div
       data-testid={testId || `panel-${position}`}
-      initial={{ opacity: 0, scale: 0.96, y: 10 }}
+      initial={{ opacity: 0, scale: 0.97, y: 8 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ duration: 0.35, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         'absolute z-10',
-        'bg-[#141414]/65 backdrop-blur-2xl',
-        'border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
+        'bg-white/75 backdrop-blur-2xl',
+        'border border-black/[0.06]',
+        'shadow-[0_8px_40px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)]',
         'rounded-[20px] flex flex-col',
         posClass,
         widthClass,
@@ -67,7 +68,7 @@ export const CanvasPanel = ({
     >
       {title && (
         <div className="flex items-center justify-between px-5 pt-4 pb-2 flex-shrink-0">
-          <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-white/60">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500">
             {title}
           </h3>
           {actions && <div className="flex items-center gap-2">{actions}</div>}
@@ -77,7 +78,7 @@ export const CanvasPanel = ({
         className={cn(
           'flex-1 min-h-0',
           title ? 'px-5 pb-4' : 'p-5',
-          scrollable && 'overflow-y-auto overflow-x-hidden'
+          scrollable && 'overflow-y-auto overflow-x-hidden panel-scroll'
         )}
       >
         {children}

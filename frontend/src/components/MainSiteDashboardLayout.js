@@ -44,6 +44,7 @@ import { useBranding } from '../context/BrandingContext';
 import { WorkspaceCanvas } from './workspace/WorkspaceCanvas';
 import { WorkspaceTopBar } from './workspace/WorkspaceTopBar';
 import { CanvasPanel } from './workspace/CanvasPanel';
+import { Radio, LayoutDashboard, ChevronDown } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -769,7 +770,7 @@ const MainSiteDashboardContent = () => {
             <TooltipTrigger asChild>
               <button
                 onClick={() => navigate(`/${mainSiteSlug}/sites`)}
-                className="w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 text-zinc-500 hover:text-white hover:bg-white/[0.06] mb-1"
+                className="w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06] mb-1"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
@@ -797,21 +798,21 @@ const MainSiteDashboardContent = () => {
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-orange-500/15 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.15)]' 
-                      : 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
+                      ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(249,115,22,0.15)]' 
+                      : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                     }
                   `}
                 >
                   <Icon className="w-5 h-5" />
-                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-400" />}
+                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-500" />}
                   {badgeCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white ring-2 ring-[#0A0A0A]">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white ring-2 ring-white">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
+              <TooltipContent side="right" className="bg-white border-black/10 text-zinc-800 text-xs shadow-lg backdrop-blur-lg">
                 {item.label} {badgeCount > 0 && `(${badgeCount})`}
               </TooltipContent>
             </Tooltip>
@@ -832,7 +833,7 @@ const MainSiteDashboardContent = () => {
                     className="w-11 h-11 flex items-center justify-center rounded-2xl opacity-20 cursor-not-allowed"
                     data-testid={`nav-disabled-${pathSegment}`}
                   >
-                    <Icon className="w-5 h-5 text-zinc-600" />
+                    <Icon className="w-5 h-5 text-zinc-300" />
                   </div>
                 ) : (
                 <NavLink
@@ -842,22 +843,22 @@ const MainSiteDashboardContent = () => {
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-orange-500/15 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.15)]' 
-                      : 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
+                      ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(249,115,22,0.15)]' 
+                      : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                     }
                   `}
                 >
                   <Icon className="w-5 h-5" />
-                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-400" />}
+                  {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-[3px] w-[3px] h-5 rounded-r-full bg-orange-500" />}
                   {badgeCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white ring-2 ring-[#0A0A0A]">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold rounded-full bg-orange-500 text-white ring-2 ring-white">
                       {badgeCount > 99 ? '99+' : badgeCount}
                     </span>
                   )}
                 </NavLink>
                 )}
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
+              <TooltipContent side="right" className="bg-white border-black/10 text-zinc-800 text-xs shadow-lg backdrop-blur-lg">
                 {isLicenseBlocked ? `${item.label} (No license)` : item.label} {!isLicenseBlocked && badgeCount > 0 && `(${badgeCount})`}
               </TooltipContent>
             </Tooltip>
@@ -868,6 +869,13 @@ const MainSiteDashboardContent = () => {
   };
 
   const isClone = !!mainSite?.cloned_from;
+
+  // Check if we're on the dashboard home (for floating panel layout)
+  const isDashboardHome = !isInSiteContext && (
+    location.pathname === `/${mainSiteSlug}` ||
+    location.pathname === `/${mainSiteSlug}/` ||
+    location.pathname === `/${mainSiteSlug}/dashboard`
+  );
 
   // Build topbar title
   const topBarTitle = isInSiteContext && currentSite
@@ -900,7 +908,7 @@ const MainSiteDashboardContent = () => {
     <DevToolsProvider enabled={isClone}>
     <TooltipProvider delayDuration={0}>
       {/* Outer shell: banners + workspace */}
-      <div className="h-screen flex flex-col overflow-hidden bg-[#0A0A0A] text-white" style={{ height: '100dvh' }}>
+      <div className="h-screen flex flex-col overflow-hidden bg-[#F0F0F2]" style={{ height: '100dvh' }}>
         {/* Banners */}
         {isClone && (
           <div className="flex-shrink-0 bg-cyan-600 text-white px-4 py-1.5 z-[60]" data-testid="clone-banner">
@@ -928,197 +936,50 @@ const MainSiteDashboardContent = () => {
           </div>
         )}
 
-        {/* Workspace Shell (flex row) */}
-        <div className="flex flex-grow overflow-hidden">
-
-          {/* Desktop Sidebar — 80px icon-only */}
-          <aside
-            data-testid="workspace-sidebar"
-            className="hidden lg:flex w-[80px] h-full flex-shrink-0 flex-col items-center py-5 bg-[#0A0A0A]/85 backdrop-blur-xl border-r border-white/[0.08] z-50"
-          >
-            {/* Logo */}
-            <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
-              <span className="text-white font-black text-base tracking-tight">C</span>
-            </div>
-
-            {/* Navigation Icons */}
-            {renderIconNavigation()}
-
-            {/* Bottom: Settings + User */}
-            <div className="mt-auto flex flex-col items-center gap-2 pt-3 flex-shrink-0">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => navigate(`/${mainSiteSlug}/settings`)}
-                    data-testid="nav-settings"
-                    className="w-11 h-11 flex items-center justify-center rounded-2xl text-zinc-500 hover:text-white hover:bg-white/[0.06] transition-all duration-200"
-                  >
-                    <UserCog className="w-5 h-5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
-                  Personal Settings
-                </TooltipContent>
-              </Tooltip>
-
-              {/* User Avatar + Full Dropdown */}
+        {/* ─── Horizontal Top Navigation ─── */}
+        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-white/60 backdrop-blur-2xl border-b border-black/[0.06] z-50" data-testid="workspace-topbar">
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors">
+            <Menu className="w-5 h-5" />
+          </button>
+          <button onClick={() => navigate(`/${mainSiteSlug}`)} className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0" data-testid="logo-pill">
+            <Radio className="w-4 h-4" />
+            <span className="hidden sm:inline">Clara</span>
+          </button>
+          <div className="hidden lg:flex items-center gap-0.5 mx-auto bg-zinc-100/80 rounded-full p-1" data-testid="pill-nav">
+            {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, 4).map(i => ({ label: i.label, to: i.to }))].map(tab => {
+              const isTabActive = tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/'));
+              return (<NavLink key={tab.to} to={tab.to} end={tab.to === `/${mainSiteSlug}`} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isTabActive ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-800 hover:bg-white/60'}`} data-testid={`pill-${tab.label.toLowerCase()}`}>{tab.label}</NavLink>);
+            })}
+            {flatNavItems.length > 4 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button
-                    data-testid="user-menu-trigger"
-                    className="w-11 h-11 rounded-2xl overflow-hidden hover:ring-2 hover:ring-orange-500/30 transition-all duration-200 flex-shrink-0"
-                  >
-                    {getAvatarUrl(user) ? (
-                      <img src={getAvatarUrl(user)} alt={user?.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
-                        {user?.name?.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </button>
+                  <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" side="right" className="w-56 bg-[#141414]/90 backdrop-blur-2xl border-white/10 ml-2">
-                  <div className="px-3 py-2 flex items-center gap-3">
-                    {getAvatarUrl(user) ? (
-                      <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold">
-                        {user?.name?.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm font-medium text-white">{user?.name}</p>
-                      <p className="text-xs text-zinc-500">{user?.email}</p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator className="bg-white/[0.06]" />
-                  <DropdownMenuItem className="text-zinc-400 cursor-default">
-                    <RoleIcon className="w-4 h-4 mr-2" />
-                    {displayRoleName}
-                  </DropdownMenuItem>
-                  {/* Main Sites Switcher - grouped by environment */}
-                  {myMainSites.length > 0 && (
-                    <>
-                      <DropdownMenuSeparator className="bg-white/[0.06]" />
-                      {(() => {
-                        const envGroups = {};
-                        myMainSites.forEach(site => {
-                          const envId = site.environment_id || 'default';
-                          if (!envGroups[envId]) {
-                            envGroups[envId] = { name: site.environment_name || 'Production', color: site.environment_color, sites: [] };
-                          }
-                          envGroups[envId].sites.push(site);
-                        });
-                        const currentEnvId = mainSite?.environment_id;
-                        const sortedEnvIds = Object.keys(envGroups).sort((a, b) => {
-                          if (a === currentEnvId) return -1;
-                          if (b === currentEnvId) return 1;
-                          return (envGroups[a].name || '').localeCompare(envGroups[b].name || '');
-                        });
-                        return sortedEnvIds.map(envId => (
-                          <div key={envId}>
-                            <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: envGroups[envId].color || '#71717a' }}>
-                              {envId === currentEnvId && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#f97316' }} />}
-                              {envGroups[envId].name}
-                            </div>
-                            {envGroups[envId].sites.map(site => {
-                              const siteLabel = site.cloned_from ? 'Clone' : site.site_type === 'technical' ? 'Data Connection' : site.site_type === 'server' ? 'Virtual Datacenter' : site.site_type === 'task_scheduler' ? 'Tasks' : site.site_type === 'external_host' ? 'External Host' : site.site_type === 'wp_security' ? 'WP Security' : 'Radio';
-                              const labelColor = site.cloned_from ? 'text-amber-500' : site.site_type === 'technical' ? 'text-emerald-400' : site.site_type === 'server' ? 'text-blue-400' : site.site_type === 'task_scheduler' ? 'text-violet-400' : site.site_type === 'external_host' ? 'text-cyan-400' : site.site_type === 'wp_security' ? 'text-red-400' : 'text-zinc-600';
-                              return (
-                                <DropdownMenuItem key={site.id} onClick={() => navigate(`/${site.slug}`)} className={`text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-zinc-800/50 text-orange-500' : ''}`}>
-                                  <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
-                                  <span className="truncate">{site.name}</span>
-                                  <span className={`ml-auto text-[10px] flex-shrink-0 ${site.slug === mainSiteSlug ? 'text-orange-500' : labelColor}`}>
-                                    {site.slug === mainSiteSlug ? 'active' : siteLabel}
-                                  </span>
-                                </DropdownMenuItem>
-                              );
-                            })}
-                          </div>
-                        ));
-                      })()}
-                    </>
-                  )}
-                  {user?.is_network_admin && (
-                    <>
-                      <DropdownMenuSeparator className="bg-white/[0.06]" />
-                      <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer">
-                        <Network className="w-4 h-4 mr-2" />
-                        Network Management
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  <DropdownMenuSeparator className="bg-white/[0.06]" />
-                  <DropdownMenuItem onClick={() => navigate(`/${mainSiteSlug}/settings`)} className="text-zinc-400 focus:text-white focus:bg-zinc-800">
-                    <UserCog className="w-4 h-4 mr-2" />
-                    Personal Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/[0.06]" />
-                  <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-500/10">
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign out
-                  </DropdownMenuItem>
+                <DropdownMenuContent align="center" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
+                  {flatNavItems.slice(4).map(item => { const Icon = item.icon; return (<DropdownMenuItem key={item.to} onClick={() => navigate(item.to)} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer"><Icon className="w-4 h-4 mr-2" />{item.label}</DropdownMenuItem>); })}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          </aside>
-
-          {/* Mobile Sidebar Overlay */}
-          {sidebarOpen && (
-            <div className="lg:hidden fixed inset-0 bg-black/60 z-40" onClick={closeSidebar} />
-          )}
-
-          {/* Mobile Sidebar */}
-          <aside
-            className={`
-              lg:hidden fixed top-0 left-0 h-full z-50
-              w-64 bg-[#0A0A0A]/95 backdrop-blur-2xl border-r border-white/[0.08]
-              transform transition-transform duration-300 ease-in-out
-              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}
-          >
-            <div className="p-6 pt-4 h-full flex flex-col">
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
-                    <span className="text-white font-black text-sm">C</span>
+            )}
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0 ml-auto lg:ml-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2.5 hover:bg-black/[0.03] rounded-xl px-2 py-1.5 transition-colors" data-testid="user-menu-trigger">
+                  {getAvatarUrl(user) ? (
+                    <img src={getAvatarUrl(user)} alt={user?.name} className="w-9 h-9 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-semibold text-sm">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="hidden md:block text-left">
+                    <p className="text-sm font-medium text-zinc-800 leading-tight">{user?.name}</p>
+                    <p className="text-[11px] text-zinc-400">{displayRoleName}</p>
                   </div>
-                  <BrandLogo className="text-lg font-bold text-white" />
-                </div>
-                <Button variant="ghost" size="icon" onClick={closeSidebar} className="text-zinc-400 hover:text-white">
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <nav className="space-y-1">
-                  {flatNavItems.map((item) => {
-                    const Icon = item.icon;
-                    const fullPath = item.to;
-                    const isActive = location.pathname === fullPath || location.pathname.startsWith(fullPath + '/');
-                    const badgeCount = getBadgeCount(item.featureId || item.to);
-                    return (
-                      <NavLink
-                        key={item.to}
-                        to={fullPath}
-                        onClick={closeSidebar}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                          isActive ? 'bg-orange-500/15 text-orange-400' : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span className="font-medium">{item.label}</span>
-                        {badgeCount > 0 && (
-                          <span className="ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full min-w-[20px] text-center bg-orange-500 text-white">
-                            {badgeCount > 99 ? '99+' : badgeCount}
-                          </span>
-                        )}
-                      </NavLink>
-                    );
-                  })}
-                </nav>
-              </div>
-              <div className="pt-4 border-t border-white/[0.08] mt-4">
-                <div className="flex items-center gap-3 p-3">
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
+                <div className="px-3 py-2 flex items-center gap-3">
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />
                   ) : (
@@ -1126,70 +987,118 @@ const MainSiteDashboardContent = () => {
                       {user?.name?.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{user?.name}</p>
-                    <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
+                  <div>
+                    <p className="text-sm font-medium text-zinc-800">{user?.name}</p>
+                    <p className="text-xs text-zinc-400">{user?.email}</p>
                   </div>
                 </div>
-                <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-400 hover:bg-orange-500/10 mt-2">
-                  <LogOut className="w-4 h-4" />
+                <DropdownMenuSeparator className="bg-black/[0.06]" />
+                {myMainSites.length > 0 && (
+                  <>
+                    {(() => {
+                      const envGroups = {};
+                      myMainSites.forEach(site => { const envId = site.environment_id || 'default'; if (!envGroups[envId]) { envGroups[envId] = { name: site.environment_name || 'Production', color: site.environment_color, sites: [] }; } envGroups[envId].sites.push(site); });
+                      const currentEnvId = mainSite?.environment_id;
+                      const sortedEnvIds = Object.keys(envGroups).sort((a, b) => { if (a === currentEnvId) return -1; if (b === currentEnvId) return 1; return (envGroups[a].name || '').localeCompare(envGroups[b].name || ''); });
+                      return sortedEnvIds.map(envId => (
+                        <div key={envId}>
+                          <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: envGroups[envId].color || '#71717a' }}>
+                            {envId === currentEnvId && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#f97316' }} />}
+                            {envGroups[envId].name}
+                          </div>
+                          {envGroups[envId].sites.map(site => (
+                            <DropdownMenuItem key={site.id} onClick={() => navigate(`/${site.slug}`)} className={`text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-orange-50 text-orange-600' : ''}`}>
+                              <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+                              <span className="truncate">{site.name}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </div>
+                      ));
+                    })()}
+                    <DropdownMenuSeparator className="bg-black/[0.06]" />
+                  </>
+                )}
+                {user?.is_network_admin && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer">
+                      <Network className="w-4 h-4 mr-2" />
+                      Network Management
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-black/[0.06]" />
+                  </>
+                )}
+                <DropdownMenuItem onClick={() => navigate(`/${mainSiteSlug}/settings`)} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5">
+                  <UserCog className="w-4 h-4 mr-2" />
+                  Personal Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-black/[0.06]" />
+                <DropdownMenuItem onClick={handleLogout} className="text-orange-500 focus:text-orange-500 focus:bg-orange-50">
+                  <LogOut className="w-4 h-4 mr-2" />
                   Sign out
-                </Button>
-              </div>
-            </div>
-          </aside>
-
-          {/* Main Content Area */}
-          <div className="flex flex-col flex-grow relative overflow-hidden">
-            {/* TopBar */}
-            <WorkspaceTopBar
-              title={topBarTitle}
-              subtitle={displayRoleName}
-              titleBadge={topBarTitleBadge}
-              onMobileMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-              rightContent={
-                <>
-                  {!licenseLoading && licenseInfo?.has_license && licenseInfo?.days_remaining !== null && licenseInfo.days_remaining <= 30 && (
-                    <span className="text-xs text-red-500 font-semibold" data-testid="license-expiry-warning">
-                      License: {licenseInfo.days_remaining}d
-                    </span>
-                  )}
-                </>
-              }
-            />
-
-            {/* Workspace Canvas */}
-            <WorkspaceCanvas>
-              {isLicenseBlocked ? (
-                <CanvasPanel position="main" testId="no-license-block">
-                  <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="max-w-md text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto rounded-full bg-red-950/50 border border-red-800/50 flex items-center justify-center">
-                        <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                      </div>
-                      <h2 className="text-xl font-bold text-zinc-100">No Active License</h2>
-                      <p className="text-sm text-zinc-400">This site does not have an active license.</p>
-                      <a href="mailto:info@koodh.com" className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-medium transition-colors">
-                        info@koodh.com
-                      </a>
-                    </div>
-                  </div>
-                </CanvasPanel>
-              ) : (
-                <CanvasPanel position="main" scrollable testId="main-content-panel">
-                  {isInSiteContext && currentSite ? (
-                    <Outlet context={{ siteTab, setSiteTab, currentSite, fetchCurrentSite }} />
-                  ) : (
-                    <Outlet />
-                  )}
-                </CanvasPanel>
-              )}
-            </WorkspaceCanvas>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+        </nav>
 
-        </div>
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={closeSidebar} />
+        )}
+
+        {/* Mobile Sidebar */}
+        <aside className={`lg:hidden fixed top-0 left-0 h-full z-50 w-72 bg-white/95 backdrop-blur-2xl border-r border-black/[0.06] transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          <div className="p-5 h-full flex flex-col">
+            <div className="flex justify-between items-center mb-6">
+              <div className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold">
+                <Radio className="w-4 h-4" />Clara
+              </div>
+              <Button variant="ghost" size="icon" onClick={closeSidebar} className="text-zinc-400 hover:text-zinc-700"><X className="w-5 h-5" /></Button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <nav className="space-y-1">
+                <NavLink to={`/${mainSiteSlug}`} end onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
+                  <LayoutDashboard className="w-5 h-5" /><span className="font-medium">Dashboard</span>
+                </NavLink>
+                {flatNavItems.map((item) => { const Icon = item.icon; return (
+                  <NavLink key={item.to} to={item.to} onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
+                    <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
+                  </NavLink>
+                ); })}
+              </nav>
+            </div>
+            <div className="pt-4 border-t border-black/[0.06] mt-4">
+              <Button variant="ghost" onClick={handleLogout} className="w-full justify-start gap-2 text-orange-500 hover:text-orange-600 hover:bg-orange-50">
+                <LogOut className="w-4 h-4" />Sign out
+              </Button>
+            </div>
+          </div>
+        </aside>
+
+        {/* ─── Workspace Canvas ─── */}
+        <WorkspaceCanvas>
+          {isLicenseBlocked ? (
+            <CanvasPanel position="main" testId="no-license-block">
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="max-w-md text-center space-y-4">
+                  <h2 className="text-xl font-bold text-zinc-800">No Active License</h2>
+                  <p className="text-sm text-zinc-500">This site does not have an active license.</p>
+                  <a href="mailto:info@koodh.com" className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-medium transition-colors">info@koodh.com</a>
+                </div>
+              </div>
+            </CanvasPanel>
+          ) : isDashboardHome ? (
+            <Outlet />
+          ) : (
+            <CanvasPanel position="main" scrollable testId="main-content-panel">
+              {isInSiteContext && currentSite ? (
+                <Outlet context={{ siteTab, setSiteTab, currentSite, fetchCurrentSite }} />
+              ) : (
+                <Outlet />
+              )}
+            </CanvasPanel>
+          )}
+        </WorkspaceCanvas>
       </div>
     </TooltipProvider>
     {isClone && <DevToolsPanel />}

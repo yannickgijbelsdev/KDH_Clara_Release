@@ -147,12 +147,12 @@ h1, h2, h3, h4, h5, h6 {
   height: 100dvh;
   width: 100vw;
   overflow: hidden;
-  background: #0A0A0A;
-  color: #fff;
+  background: #F0F0F2;
+  color: #1a1a1a;
 }
 
 .workspace-shell ::selection {
-  background: rgba(249, 115, 22, 0.3);
+  background: rgba(249, 115, 22, 0.25);
 }
 
 /* Hide scrollbar in sidebar navigation */
@@ -172,9 +172,144 @@ h1, h2, h3, h4, h5, h6 {
   background: transparent;
 }
 .panel-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 2px;
 }
 .panel-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Light-theme text overrides for dark-themed page content inside panels */
+[data-testid="main-content-panel"] {
+  color: #27272a;
+}
+[data-testid="main-content-panel"] .text-white {
+  color: #18181b !important;
+}
+[data-testid="main-content-panel"] .text-zinc-100 {
+  color: #27272a !important;
+}
+[data-testid="main-content-panel"] .text-zinc-200 {
+  color: #3f3f46 !important;
+}
+[data-testid="main-content-panel"] .text-zinc-300 {
+  color: #52525b !important;
+}
+[data-testid="main-content-panel"] .text-zinc-400 {
+  color: #71717a !important;
+}
+[data-testid="main-content-panel"] .text-zinc-500 {
+  color: #a1a1aa !important;
+}
+
+/* Dark background overrides — make them light */
+[data-testid="main-content-panel"] .bg-\[\#09090b\],
+[data-testid="main-content-panel"] .bg-\[\#18181b\],
+[data-testid="main-content-panel"] .bg-zinc-900,
+[data-testid="main-content-panel"] .bg-zinc-950 {
+  background-color: #fafafa !important;
+}
+[data-testid="main-content-panel"] .bg-zinc-800 {
+  background-color: #f4f4f5 !important;
+}
+[data-testid="main-content-panel"] .bg-zinc-800\/50 {
+  background-color: #f4f4f5 !important;
+}
+[data-testid="main-content-panel"] .bg-zinc-900\/50,
+[data-testid="main-content-panel"] .bg-zinc-800\/80 {
+  background-color: #f4f4f5 !important;
+}
+
+/* Border overrides */
+[data-testid="main-content-panel"] .border-zinc-800,
+[data-testid="main-content-panel"] .border-zinc-700,
+[data-testid="main-content-panel"] .border-zinc-600 {
+  border-color: #e4e4e7 !important;
+}
+[data-testid="main-content-panel"] .border-white\/5,
+[data-testid="main-content-panel"] .border-white\/10,
+[data-testid="main-content-panel"] .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Divide overrides */
+[data-testid="main-content-panel"] .divide-zinc-800 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e4e4e7 !important;
+}
+
+/* Glass effect overrides */
+[data-testid="main-content-panel"] .glass {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Hover overrides */
+[data-testid="main-content-panel"] .hover\:bg-zinc-800:hover,
+[data-testid="main-content-panel"] .hover\:bg-zinc-700:hover {
+  background-color: #e4e4e7 !important;
+}
+[data-testid="main-content-panel"] .hover\:text-white:hover {
+  color: #18181b !important;
+}
+[data-testid="main-content-panel"] .hover\:bg-white\/5:hover,
+[data-testid="main-content-panel"] .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Focus overrides */
+[data-testid="main-content-panel"] .focus\:bg-zinc-800:focus {
+  background-color: #e4e4e7 !important;
+}
+
+/* Ring overrides */
+[data-testid="main-content-panel"] .ring-zinc-800 {
+  --tw-ring-color: #e4e4e7 !important;
+}
+
+/* Placeholder overrides */
+[data-testid="main-content-panel"] .placeholder-zinc-500::placeholder,
+[data-testid="main-content-panel"] .placeholder-zinc-600::placeholder {
+  color: #a1a1aa !important;
+}
+
+/* Gradient from overrides */
+[data-testid="main-content-panel"] .from-zinc-900,
+[data-testid="main-content-panel"] .from-zinc-950,
+[data-testid="main-content-panel"] .from-\[\#09090b\] {
+  --tw-gradient-from: #fafafa !important;
+}
+
+/* Ensure buttons with white text on colored bg keep white text */
+[data-testid="main-content-panel"] .bg-orange-500 .text-white,
+[data-testid="main-content-panel"] .bg-orange-500.text-white,
+[data-testid="main-content-panel"] .bg-orange-600 .text-white,
+[data-testid="main-content-panel"] .bg-orange-600.text-white,
+[data-testid="main-content-panel"] .bg-red-500 .text-white,
+[data-testid="main-content-panel"] .bg-red-600 .text-white,
+[data-testid="main-content-panel"] .bg-green-500 .text-white,
+[data-testid="main-content-panel"] .bg-blue-500 .text-white,
+[data-testid="main-content-panel"] .btn-primary.text-white,
+[data-testid="main-content-panel"] .bg-orange-500 > *,
+[data-testid="main-content-panel"] .bg-orange-600 > * {
+  color: #fff !important;
+}
+
+/* Keep accent colors as-is */
+[data-testid="main-content-panel"] .text-orange-500,
+[data-testid="main-content-panel"] .text-orange-400,
+[data-testid="main-content-panel"] .text-orange-600,
+[data-testid="main-content-panel"] .bg-orange-500,
+[data-testid="main-content-panel"] .bg-orange-600,
+[data-testid="main-content-panel"] .text-red-400,
+[data-testid="main-content-panel"] .text-red-500,
+[data-testid="main-content-panel"] .text-green-400,
+[data-testid="main-content-panel"] .text-green-500,
+[data-testid="main-content-panel"] .text-blue-400,
+[data-testid="main-content-panel"] .text-blue-500,
+[data-testid="main-content-panel"] .text-amber-400,
+[data-testid="main-content-panel"] .text-amber-500,
+[data-testid="main-content-panel"] .text-cyan-400,
+[data-testid="main-content-panel"] .text-violet-400,
+[data-testid="main-content-panel"] .text-emerald-400 {
+  /* keep original */
 }
