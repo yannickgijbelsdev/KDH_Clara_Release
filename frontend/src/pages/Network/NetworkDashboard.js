@@ -831,7 +831,7 @@ export default function NetworkDashboard() {
             {environments.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-black/[0.08] bg-white/60 rounded-full hover:bg-white/80" data-testid="env-switcher">
+                  <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-zinc-300 bg-zinc-100 text-zinc-700 rounded-full hover:bg-zinc-200 shadow-sm" data-testid="env-switcher">
                     <Server className="w-3 h-3" />
                     <span className="hidden md:inline">{environments.find(e => e.id === selectedEnvId)?.name || 'Environment'}</span>
                     <ChevronDown className="w-3 h-3 opacity-50" />

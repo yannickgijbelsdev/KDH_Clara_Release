@@ -50,11 +50,11 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
 
   return (
     <Dialog open={open} onOpenChange={() => completed && onClose?.()}>
-      <DialogContent className="sm:max-w-md bg-[#0c0c0c] border-zinc-800 p-0 overflow-hidden" data-testid="setup-wizard">
+      <DialogContent className="sm:max-w-lg bg-white border-zinc-200 p-0 overflow-hidden rounded-2xl shadow-2xl" data-testid="setup-wizard">
         {/* Progress bar */}
-        <div className="h-1 bg-zinc-900">
+        <div className="h-1.5 bg-zinc-100">
           <div
-            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-700 ease-out"
+            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-700 ease-out rounded-full"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -63,11 +63,11 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
           {/* Animated icon */}
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
             completed
-              ? 'bg-emerald-500/15 border border-emerald-500/30'
-              : 'bg-orange-500/15 border border-orange-500/30'
+              ? 'bg-emerald-50 border border-emerald-200'
+              : 'bg-orange-50 border border-orange-200'
           }`}>
             <Icon className={`w-8 h-8 transition-all duration-500 ${
-              completed ? 'text-emerald-400' : 'text-orange-400'
+              completed ? 'text-emerald-600' : 'text-orange-500'
             } ${!completed ? 'animate-pulse' : ''}`} />
           </div>
 
@@ -77,7 +77,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
           )}
 
           {/* Step text */}
-          <p className="text-sm text-zinc-300 leading-relaxed min-h-[48px] flex items-center" data-testid="setup-step-text">
+          <p className="text-sm text-zinc-600 leading-relaxed min-h-[48px] flex items-center" data-testid="setup-step-text">
             {step.text}
           </p>
 
@@ -89,7 +89,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i <= currentStep
                     ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-orange-500'
-                    : 'w-2 bg-zinc-800'
+                    : 'w-2 bg-zinc-200'
                 }`}
               />
             ))}
@@ -99,7 +99,7 @@ export default function SetupWizard({ open, onClose, siteType = 'radio', siteNam
           {completed && (
             <button
               onClick={() => onClose?.()}
-              className="mt-6 px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+              className="mt-6 px-6 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium transition-colors"
               data-testid="setup-done-btn"
             >
               Get Started

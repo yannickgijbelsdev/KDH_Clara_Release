@@ -38,10 +38,10 @@ export default function LoginWizard({ open, onClose, siteName }) {
 
   return (
     <Dialog open={open} onOpenChange={() => completed && onClose?.()}>
-      <DialogContent className="sm:max-w-md bg-[#0c0c0c] border-zinc-800 p-0 overflow-hidden" data-testid="login-wizard">
-        <div className="h-1 bg-zinc-900">
+      <DialogContent className="sm:max-w-lg bg-white border-zinc-200 p-0 overflow-hidden rounded-2xl shadow-2xl" data-testid="login-wizard">
+        <div className="h-1.5 bg-zinc-100">
           <div
-            className="h-full bg-orange-500 transition-all duration-700 ease-out"
+            className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-700 ease-out rounded-full"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -49,15 +49,15 @@ export default function LoginWizard({ open, onClose, siteName }) {
         <div className="p-8 flex flex-col items-center text-center">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 ${
             completed
-              ? 'bg-emerald-500/15 border border-emerald-500/30'
-              : 'bg-orange-500/15 border border-orange-500/30'
+              ? 'bg-emerald-50 border border-emerald-200'
+              : 'bg-orange-50 border border-orange-200'
           }`}>
             <Icon className={`w-8 h-8 transition-all duration-500 ${
-              completed ? 'text-emerald-400' : 'text-orange-400'
+              completed ? 'text-emerald-600' : 'text-orange-500'
             } ${!completed ? 'animate-pulse' : ''}`} />
           </div>
 
-          <p className="text-sm text-zinc-300 leading-relaxed min-h-[48px] flex items-center" data-testid="login-step-text">
+          <p className="text-sm text-zinc-600 leading-relaxed min-h-[48px] flex items-center" data-testid="login-step-text">
             {step.text}
           </p>
 
@@ -68,7 +68,7 @@ export default function LoginWizard({ open, onClose, siteName }) {
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i <= currentStep
                     ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-orange-500'
-                    : 'w-2 bg-zinc-800'
+                    : 'w-2 bg-zinc-200'
                 }`}
               />
             ))}
@@ -77,7 +77,7 @@ export default function LoginWizard({ open, onClose, siteName }) {
           {completed && (
             <button
               onClick={() => onClose?.()}
-              className="mt-6 px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors"
+              className="mt-6 px-6 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium transition-colors"
               data-testid="login-done-btn"
             >
               {buttonLabel}
