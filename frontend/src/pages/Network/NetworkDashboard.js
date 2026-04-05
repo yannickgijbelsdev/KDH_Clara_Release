@@ -57,6 +57,7 @@ import {
 import { WorkspaceCanvas } from '../../components/workspace/WorkspaceCanvas';
 import { CanvasPanel } from '../../components/workspace/CanvasPanel';
 import ServerRackView from '../../components/workspace/ServerRackView';
+import CreateMainSiteWizard from '../../components/workspace/CreateMainSiteWizard';
 import EnvironmentManager from './EnvironmentManager';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
@@ -357,6 +358,7 @@ export default function NetworkDashboard() {
   const [availableFeatures, setAvailableFeatures] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showNewWizard, setShowNewWizard] = useState(false);
   const [createStep, setCreateStep] = useState(0);
   const [editingSite, setEditingSite] = useState(null);
   const [formData, setFormData] = useState({
@@ -471,9 +473,7 @@ export default function NetworkDashboard() {
   const autoSlug = (name) => name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 50);
   const slugExists = (slug) => mainSites.some(s => s.slug === slug);
   const openCreateWizard = () => {
-    setCreateStep(0);
-    setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio', linked_main_site_id: '' });
-    setShowCreateDialog(true);
+    setShowNewWizard(true);
   };
 
   const RoleIcon = roleIcons[user?.role] || Network;
@@ -1538,6 +1538,16 @@ export default function NetworkDashboard() {
         onClose={() => setSetupWizard({ open: false, siteType: 'radio', siteName: '' })}
         siteType={setupWizard.siteType}
         siteName={setupWizard.siteName}
+      />
+
+      {/* New Create Main Site Wizard */}
+      <CreateMainSiteWizard
+        open={showNewWizard}
+        onClose={() => setShowNewWizard(false)}
+        onCreated={fetchMainSites}
+        token={token}
+        environments={environments}
+        selectedEnvId={selectedEnvId}
       />
 
       </div>
