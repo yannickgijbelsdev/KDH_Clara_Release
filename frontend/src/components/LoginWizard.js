@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent } from './ui/dialog';
-import { Check, Zap } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { getAvatarUrl } from '../utils/avatar';
 
 const LoginStep = ({ label, status, delay }) => (
   <motion.div
@@ -30,7 +31,7 @@ const LoginStep = ({ label, status, delay }) => (
   </motion.div>
 );
 
-export default function LoginWizard({ open, onClose, siteName, userName }) {
+export default function LoginWizard({ open, onClose, siteName, userName, user }) {
   const [currentStep, setCurrentStep] = useState(-1);
   const [completed, setCompleted] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -129,9 +130,15 @@ export default function LoginWizard({ open, onClose, siteName, userName }) {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center mb-6"
+                className="w-20 h-20 rounded-full overflow-hidden mb-6 ring-4 ring-emerald-100"
               >
-                <Zap className="w-8 h-8 text-white" />
+                {getAvatarUrl(user) ? (
+                  <img src={getAvatarUrl(user)} alt={userName} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-2xl">
+                    {userName?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
               </motion.div>
 
               <h2 className="text-2xl font-bold text-zinc-900 mb-2" data-testid="welcome-title">
