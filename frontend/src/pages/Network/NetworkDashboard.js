@@ -790,6 +790,28 @@ export default function NetworkDashboard() {
             <span className="hidden sm:inline">Clara</span>
           </Link>
 
+          {/* Environment switcher - next to logo */}
+          {environments.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-zinc-300 bg-zinc-100 text-zinc-700 rounded-full hover:bg-zinc-200 shadow-sm" data-testid="env-switcher">
+                  <Server className="w-3 h-3" />
+                  <span className="hidden md:inline">{environments.find(e => e.id === selectedEnvId)?.name || 'Environment'}</span>
+                  <ChevronDown className="w-3 h-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
+                {environments.map(env => (
+                  <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={`cursor-pointer ${selectedEnvId === env.id ? 'bg-orange-50 text-orange-600' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}>
+                    <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
+                    {env.name}
+                    <span className="ml-auto text-xs text-zinc-500">{env.site_count || 0}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           {/* Pill Tabs */}
           <div className="hidden lg:flex items-center gap-0.5 mx-auto bg-zinc-100/80 rounded-full p-1" data-testid="pill-nav">
             {flatNavItems.filter(i => !i.link).slice(0, 5).map(tab => {
@@ -826,28 +848,8 @@ export default function NetworkDashboard() {
             )}
           </div>
 
-          {/* Environment switcher + User menu */}
+          {/* User menu */}
           <div className="flex items-center gap-3 flex-shrink-0 ml-auto lg:ml-0">
-            {environments.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-zinc-300 bg-zinc-100 text-zinc-700 rounded-full hover:bg-zinc-200 shadow-sm" data-testid="env-switcher">
-                    <Server className="w-3 h-3" />
-                    <span className="hidden md:inline">{environments.find(e => e.id === selectedEnvId)?.name || 'Environment'}</span>
-                    <ChevronDown className="w-3 h-3 opacity-50" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
-                  {environments.map(env => (
-                    <DropdownMenuItem key={env.id} onClick={() => setSelectedEnvId(env.id)} className={`cursor-pointer ${selectedEnvId === env.id ? 'bg-orange-50 text-orange-600' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}>
-                      <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: env.color || '#3b82f6' }} />
-                      {env.name}
-                      <span className="ml-auto text-xs text-zinc-500">{env.site_count || 0}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
