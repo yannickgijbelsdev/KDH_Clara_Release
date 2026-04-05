@@ -57,7 +57,7 @@ export default function DevToolsPanel() {
       {/* Main Panel */}
       {panelOpen && (
         <div
-          className={`fixed z-[9999] bg-[#0d0d0f] border border-zinc-800 shadow-2xl transition-all ${
+          className={`fixed z-[9999] bg-[#0d0d0f] border border-zinc-200 shadow-2xl transition-all ${
             expanded
               ? 'inset-4 rounded-2xl'
               : 'bottom-4 right-4 rounded-2xl w-[480px]'
@@ -66,7 +66,7 @@ export default function DevToolsPanel() {
           data-testid="devtools-panel"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800 bg-zinc-900/50 rounded-t-2xl">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-200 bg-white/60 rounded-t-2xl">
             <div className="flex items-center gap-2">
               <Activity className="w-3.5 h-3.5 text-orange-500" />
               <span className="text-xs font-bold text-orange-400">DevTools</span>
@@ -104,7 +104,7 @@ export default function DevToolsPanel() {
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b border-zinc-800">
+          <div className="flex border-b border-zinc-200">
             {[
               { id: 'network', label: 'Network', icon: Activity, count: filteredCalls.length },
               { id: 'inspect', label: 'Inspect', icon: Eye },
@@ -116,7 +116,7 @@ export default function DevToolsPanel() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all border-b-2 ${
                   panelTab === tab.id
                     ? 'border-orange-500 text-orange-400'
-                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-600'
                 }`}
                 data-testid={`devtools-tab-${tab.id}`}
               >
@@ -158,7 +158,7 @@ export default function DevToolsPanel() {
                     }`}>
                       {call.pending ? '...' : call.status}
                     </span>
-                    <span className="flex-1 text-zinc-300 truncate font-mono">{call.url}</span>
+                    <span className="flex-1 text-zinc-600 truncate font-mono">{call.url}</span>
                     {call.duration && (
                       <span className="text-zinc-600 whitespace-nowrap">{call.duration}ms</span>
                     )}
@@ -177,7 +177,7 @@ export default function DevToolsPanel() {
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                     inspecting
                       ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                      : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600'
+                      : 'bg-zinc-800 text-zinc-400 border border-zinc-300 hover:border-zinc-600'
                   }`}
                   data-testid="devtools-inspect-btn"
                 >
@@ -210,11 +210,11 @@ export default function DevToolsPanel() {
       {detailOpen && selectedCall && (
         <div className="fixed inset-0 z-[10000] bg-black/60 flex items-center justify-center p-4" onClick={() => setDetailOpen(false)}>
           <div
-            className="bg-[#0d0d0f] border border-zinc-800 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden"
+            className="bg-[#0d0d0f] border border-zinc-200 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden"
             onClick={e => e.stopPropagation()}
             data-testid="devtools-call-detail"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200">
               <div className="flex items-center gap-2">
                 <span className={`font-mono font-bold text-sm ${METHOD_COLORS[selectedCall.method]}`}>
                   {selectedCall.method}
@@ -230,14 +230,14 @@ export default function DevToolsPanel() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="px-4 py-3 border-b border-zinc-800">
+            <div className="px-4 py-3 border-b border-zinc-200">
               <p className="text-xs text-zinc-500 mb-1">URL</p>
               <p className="text-sm font-mono text-zinc-200 break-all">{selectedCall.url}</p>
             </div>
             {selectedCall.requestBody && (
-              <div className="px-4 py-3 border-b border-zinc-800">
+              <div className="px-4 py-3 border-b border-zinc-200">
                 <p className="text-xs text-zinc-500 mb-1">Request Body</p>
-                <pre className="text-xs font-mono text-zinc-300 bg-zinc-900 rounded-lg p-3 overflow-auto max-h-40">
+                <pre className="text-xs font-mono text-zinc-600 bg-white/80 backdrop-blur rounded-lg p-3 overflow-auto max-h-40">
                   {JSON.stringify(selectedCall.requestBody, null, 2)}
                 </pre>
               </div>
@@ -245,7 +245,7 @@ export default function DevToolsPanel() {
             {selectedCall.responsePreview && (
               <div className="px-4 py-3 overflow-auto" style={{ maxHeight: '40vh' }}>
                 <p className="text-xs text-zinc-500 mb-1">Response</p>
-                <pre className="text-xs font-mono text-zinc-300 bg-zinc-900 rounded-lg p-3 overflow-auto max-h-60">
+                <pre className="text-xs font-mono text-zinc-600 bg-white/80 backdrop-blur rounded-lg p-3 overflow-auto max-h-60">
                   {typeof selectedCall.responsePreview === 'object'
                     ? JSON.stringify(selectedCall.responsePreview, null, 2)
                     : selectedCall.responsePreview}
@@ -353,11 +353,11 @@ function SnapshotsTabContent() {
       ) : (
         <div className="space-y-1.5">
           {snapshots.map(snap => (
-            <div key={snap.id} className="flex items-center justify-between bg-zinc-900 rounded-lg px-3 py-2">
+            <div key={snap.id} className="flex items-center justify-between bg-white/80 backdrop-blur rounded-lg px-3 py-2">
               <div>
                 <div className="flex items-center gap-2">
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                    snap.type === 'pre-restore' ? 'bg-purple-500/20 text-purple-400' : 'bg-zinc-700 text-zinc-300'
+                    snap.type === 'pre-restore' ? 'bg-purple-500/20 text-purple-400' : 'bg-zinc-700 text-zinc-600'
                   }`}>
                     {snap.type === 'pre-restore' ? 'Pre-Restore' : 'Snapshot'}
                   </span>

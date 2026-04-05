@@ -57,7 +57,7 @@ export default function XmlUpload() {
   return (
     <div className="space-y-6 max-w-2xl" data-testid="xml-upload-page">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded hover:bg-zinc-100 text-zinc-400 hover:text-white">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
@@ -74,7 +74,7 @@ export default function XmlUpload() {
         className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer ${
           isDragging
             ? 'border-orange-500 bg-orange-500/5'
-            : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 hover:bg-zinc-800/30'
+            : 'border-zinc-300 bg-white/60 hover:border-zinc-600 hover:bg-zinc-100/30'
         }`}
         data-testid="xml-dropzone"
       >
@@ -89,7 +89,7 @@ export default function XmlUpload() {
           {uploading ? (
             <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
           ) : (
-            <div className="p-4 rounded-full bg-zinc-800 border border-zinc-700">
+            <div className="p-4 rounded-full bg-zinc-800 border border-zinc-300">
               <Upload className={`w-8 h-8 ${isDragging ? 'text-orange-500' : 'text-zinc-500'}`} />
             </div>
           )}
@@ -136,7 +136,7 @@ export default function XmlUpload() {
                     size="sm"
                     variant="outline"
                     onClick={() => setResult(null)}
-                    className="border-zinc-700 text-zinc-300"
+                    className="border-zinc-300 text-zinc-600"
                   >
                     Upload Another
                   </Button>

@@ -10,7 +10,7 @@ const PRIORITY_DOT = {
 };
 
 const PRIORITY_BG = {
-  low: 'bg-zinc-500/15 border-zinc-500/30 text-zinc-300',
+  low: 'bg-zinc-500/15 border-zinc-500/30 text-zinc-600',
   medium: 'bg-blue-500/15 border-blue-500/30 text-blue-300',
   high: 'bg-orange-500/15 border-orange-500/30 text-orange-300',
   urgent: 'bg-red-500/15 border-red-500/30 text-red-300',
@@ -86,9 +86,9 @@ function MonthView({ year, month, tasksByDate, onTaskClick }) {
   const today = dateKey(new Date());
 
   return (
-    <div className="grid grid-cols-7 border-t border-l border-zinc-800" data-testid="month-view">
+    <div className="grid grid-cols-7 border-t border-l border-zinc-200" data-testid="month-view">
       {DAY_LABELS.map(d => (
-        <div key={d} className="px-2 py-1.5 text-[11px] font-semibold text-zinc-500 uppercase border-b border-r border-zinc-800 bg-zinc-900/50">
+        <div key={d} className="px-2 py-1.5 text-[11px] font-semibold text-zinc-500 uppercase border-b border-r border-zinc-200 bg-white/60">
           {d}
         </div>
       ))}
@@ -99,7 +99,7 @@ function MonthView({ year, month, tasksByDate, onTaskClick }) {
         return (
           <div
             key={i}
-            className={`min-h-[100px] border-b border-r border-zinc-800 p-1.5 ${outside ? 'bg-zinc-900/30' : 'bg-zinc-900/70'}`}
+            className={`min-h-[100px] border-b border-r border-zinc-200 p-1.5 ${outside ? 'bg-zinc-900/30' : 'bg-zinc-900/70'}`}
           >
             <div className={`text-xs font-medium mb-1 ${isToday ? 'text-orange-400' : outside ? 'text-zinc-600' : 'text-zinc-400'}`}>
               {isToday ? (
@@ -133,12 +133,12 @@ function WeekView({ baseDate, tasksByDate, onTaskClick }) {
         const isToday = key === today;
         const dayTasks = tasksByDate[key] || [];
         return (
-          <div key={i} className={`rounded-xl border p-3 min-h-[200px] ${isToday ? 'border-orange-500/40 bg-orange-500/5' : 'border-zinc-800 bg-zinc-900/50'}`}>
+          <div key={i} className={`rounded-xl border p-3 min-h-[200px] ${isToday ? 'border-orange-500/40 bg-orange-500/5' : 'border-zinc-200 bg-white/60'}`}>
             <div className="text-center mb-3">
               <div className={`text-[10px] font-semibold uppercase ${isToday ? 'text-orange-400' : 'text-zinc-500'}`}>
                 {DAY_LABELS[i]}
               </div>
-              <div className={`text-lg font-bold ${isToday ? 'text-orange-400' : 'text-zinc-300'}`}>
+              <div className={`text-lg font-bold ${isToday ? 'text-orange-400' : 'text-zinc-600'}`}>
                 {date.getDate()}
               </div>
               <div className="text-[10px] text-zinc-600">
@@ -227,7 +227,7 @@ export default function TaskCalendarView({ tasks, columns, onTaskClick }) {
   return (
     <div className="flex flex-col h-full" data-testid="calendar-view">
       {/* Calendar header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="w-8 h-8" data-testid="cal-prev">
             <ChevronLeft className="w-4 h-4" />
@@ -236,7 +236,7 @@ export default function TaskCalendarView({ tasks, columns, onTaskClick }) {
           <Button variant="ghost" size="icon" onClick={() => navigate(1)} className="w-8 h-8" data-testid="cal-next">
             <ChevronRight className="w-4 h-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={goToday} className="border-zinc-700 text-zinc-300 text-xs h-7 ml-2" data-testid="cal-today">
+          <Button variant="outline" size="sm" onClick={goToday} className="border-zinc-300 text-zinc-600 text-xs h-7 ml-2" data-testid="cal-today">
             Today
           </Button>
         </div>
@@ -256,17 +256,17 @@ export default function TaskCalendarView({ tasks, columns, onTaskClick }) {
           </div>
 
           {/* View toggle */}
-          <div className="flex bg-zinc-800 rounded-lg p-0.5" data-testid="cal-view-toggle">
+          <div className="flex bg-zinc-100 rounded-lg p-0.5" data-testid="cal-view-toggle">
             <button
               onClick={() => setViewMode('month')}
-              className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'month' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+              className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'month' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
               data-testid="cal-month-btn"
             >
               Month
             </button>
             <button
               onClick={() => setViewMode('week')}
-              className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'week' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+              className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'week' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
               data-testid="cal-week-btn"
             >
               Week

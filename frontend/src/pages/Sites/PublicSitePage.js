@@ -480,7 +480,7 @@ export default function PublicSitePage() {
               <form onSubmit={handleSubmit} className="space-y-3">
                 {(site.form_fields || []).map(field => (
                   <div key={field.id}>
-                    <label className="block text-sm font-medium text-zinc-300 mb-1">
+                    <label className="block text-sm font-medium text-zinc-600 mb-1">
                       {field.label}
                       {field.required && <span className="text-red-400 ml-1">*</span>}
                     </label>
@@ -491,7 +491,7 @@ export default function PublicSitePage() {
                         required={field.required}
                         rows={3}
                         placeholder={field.placeholder || ''}
-                        className="w-full bg-zinc-800 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none"
+                        className="w-full bg-zinc-100 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none"
                         style={{ '--tw-ring-color': buttonColor }}
                       />
                     ) : field.type === 'select' ? (
@@ -499,7 +499,7 @@ export default function PublicSitePage() {
                         value={formData[field.id] || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
-                        className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm"
+                        className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-white text-sm"
                       >
                         <option value="">{field.placeholder || 'Select...'}</option>
                         {(field.options || []).map(opt => (
@@ -540,9 +540,9 @@ export default function PublicSitePage() {
                     ) : field.type === 'file' ? (
                       <div className="space-y-2">
                         {fieldFiles[field.id] ? (
-                          <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg text-sm">
+                          <div className="flex items-center gap-2 p-2 bg-zinc-100 rounded-lg text-sm">
                             {(() => { const FileIcon = getFileIcon(fieldFiles[field.id].type); return <FileIcon className="h-4 w-4 text-zinc-400" />; })()}
-                            <span className="flex-1 truncate text-zinc-300">{fieldFiles[field.id].name}</span>
+                            <span className="flex-1 truncate text-zinc-600">{fieldFiles[field.id].name}</span>
                             <button type="button" onClick={() => { setFieldFiles(prev => { const n = {...prev}; delete n[field.id]; return n; }); setFormData(prev => ({ ...prev, [field.id]: '' })); }} className="text-zinc-500 hover:text-red-400">
                               <X className="h-4 w-4" />
                             </button>
@@ -553,7 +553,7 @@ export default function PublicSitePage() {
                               accept={field.file_accept === 'image' ? 'image/*' : field.file_accept === 'audio' ? 'audio/*' : field.file_accept === 'video' ? 'video/*' : 'image/*,audio/*,video/*'}
                               onChange={(e) => handleFieldFileUpload(field.id, e)}
                               className="hidden" disabled={uploading} />
-                            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-700/50 text-sm text-zinc-400">
+                            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-300/50 text-sm text-zinc-400">
                               <Upload className="h-4 w-4" />
                               {uploading ? 'Uploading...' : `Upload ${field.file_accept === 'all' ? 'file' : field.file_accept || 'file'}`}
                             </div>
@@ -576,7 +576,7 @@ export default function PublicSitePage() {
                 {/* File Upload Section */}
                 {site.form_file_upload_enabled && (
                   <div>
-                    <label className="block text-sm font-medium text-zinc-300 mb-1">
+                    <label className="block text-sm font-medium text-zinc-600 mb-1">
                       Bestanden toevoegen
                     </label>
                     <div className="space-y-2">
@@ -588,10 +588,10 @@ export default function PublicSitePage() {
                             return (
                               <div 
                                 key={index}
-                                className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg text-sm"
+                                className="flex items-center gap-2 p-2 bg-zinc-100 rounded-lg text-sm"
                               >
                                 <FileIcon className="h-4 w-4 text-zinc-400" />
-                                <span className="flex-1 truncate text-zinc-300">{file.name}</span>
+                                <span className="flex-1 truncate text-zinc-600">{file.name}</span>
                                 <button
                                   type="button"
                                   onClick={() => removeFile(index)}
@@ -616,7 +616,7 @@ export default function PublicSitePage() {
                           className="hidden"
                           disabled={uploading}
                         />
-                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition border border-dashed border-zinc-700/50 text-sm text-zinc-400">
+                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-300/50 text-sm text-zinc-400">
                           {uploading ? (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin" />

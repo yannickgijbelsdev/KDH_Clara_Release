@@ -292,7 +292,7 @@ const StreamPlayer = ({ stream }) => {
   const colors = colorClasses[stream.color] || colorClasses.orange;
 
   return (
-    <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-5`} data-testid={`stream-player-${stream.id}`}>
+    <div className={`bg-zinc-100 border ${colors.border} rounded-xl p-5`} data-testid={`stream-player-${stream.id}`}>
       {/* Audio element */}
       <audio ref={audioRef} preload="none" />
       
@@ -359,7 +359,7 @@ const StreamPlayer = ({ stream }) => {
           variant="outline"
           size="sm"
           disabled={!isPlaying}
-          className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+          className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
           data-testid={`mute-btn-${stream.id}`}
         >
           {isMuted ? (

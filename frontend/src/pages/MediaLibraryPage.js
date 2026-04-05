@@ -774,7 +774,7 @@ const MediaLibraryPage = () => {
                 data-testid="new-folder-btn"
                 onClick={() => setShowNewFolderDialog(true)}
                 variant="outline"
-                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               >
                 <FolderPlus className="w-4 h-4 mr-2" />
                 New Folder
@@ -858,7 +858,7 @@ const MediaLibraryPage = () => {
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="document">Documents</SelectItem>
                   <SelectItem value="audio">Audio</SelectItem>
@@ -959,14 +959,14 @@ const MediaLibraryPage = () => {
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                      <DropdownMenuContent align="end" className="bg-zinc-100 border-zinc-200">
                         {canPreview(asset) && (
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
                               setPreviewAsset(asset);
                             }}
-                            className="text-zinc-300"
+                            className="text-zinc-600"
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             Preview
@@ -977,7 +977,7 @@ const MediaLibraryPage = () => {
                             e.stopPropagation();
                             window.open(getFileUrl(asset), '_blank');
                           }}
-                          className="text-zinc-300"
+                          className="text-zinc-600"
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Download
@@ -988,7 +988,7 @@ const MediaLibraryPage = () => {
                             e.stopPropagation();
                             handleOpenShareDialog(asset);
                           }}
-                          className="text-zinc-300"
+                          className="text-zinc-600"
                         >
                           <Share2 className="w-4 h-4 mr-2" />
                           Share
@@ -1001,7 +1001,7 @@ const MediaLibraryPage = () => {
                                 setEditingAsset(asset);
                                 setNewTitle(asset.title);
                               }}
-                              className="text-zinc-300"
+                              className="text-zinc-600"
                             >
                               <Pencil className="w-4 h-4 mr-2" />
                               Rename
@@ -1091,7 +1091,7 @@ const MediaLibraryPage = () => {
 
       {/* New Folder Dialog */}
       <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
-        <DialogContent className="bg-[#18181b] border-zinc-800">
+        <DialogContent className="bg-zinc-100 border-zinc-200">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <FolderPlus className="w-5 h-5 text-orange-500" />
@@ -1136,7 +1136,7 @@ const MediaLibraryPage = () => {
 
       {/* Rename Folder Dialog */}
       <Dialog open={!!editingFolder} onOpenChange={() => setEditingFolder(null)}>
-        <DialogContent className="bg-[#18181b] border-zinc-800">
+        <DialogContent className="bg-zinc-100 border-zinc-200">
           <DialogHeader>
             <DialogTitle className="text-white">Rename Folder</DialogTitle>
           </DialogHeader>
@@ -1163,7 +1163,7 @@ const MediaLibraryPage = () => {
 
       {/* Delete Folder Confirmation Dialog */}
       <Dialog open={!!deletingFolder} onOpenChange={() => setDeletingFolder(null)}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 sm:max-w-md">
+        <DialogContent className="bg-zinc-100 border-zinc-200 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-500" />
@@ -1172,7 +1172,7 @@ const MediaLibraryPage = () => {
           </DialogHeader>
           
           <div className="py-4">
-            <p className="text-zinc-300 mb-2">
+            <p className="text-zinc-600 mb-2">
               Are you sure you want to delete <span className="font-semibold text-white">&ldquo;{deletingFolder?.name}&rdquo;</span>?
             </p>
             <p className="text-sm text-zinc-400">
@@ -1209,7 +1209,7 @@ const MediaLibraryPage = () => {
           setSelectedSeriesToShare([]);
         }
       }}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="bg-zinc-100 border-zinc-200 sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Share2 className="w-5 h-5 text-orange-500" />
@@ -1234,17 +1234,17 @@ const MediaLibraryPage = () => {
                           {share.user_id ? (
                             <>
                               <Users className="w-4 h-4 text-blue-400" />
-                              <span className="text-sm text-zinc-300">{share.user_name}</span>
+                              <span className="text-sm text-zinc-600">{share.user_name}</span>
                             </>
                           ) : share.series_id ? (
                             <>
                               <Tv className="w-4 h-4 text-green-400" />
-                              <span className="text-sm text-zinc-300">{share.series_title} <span className="text-xs text-zinc-500">(Series)</span></span>
+                              <span className="text-sm text-zinc-600">{share.series_title} <span className="text-xs text-zinc-500">(Series)</span></span>
                             </>
                           ) : share.show_id ? (
                             <>
                               <Tv className="w-4 h-4 text-purple-400" />
-                              <span className="text-sm text-zinc-300">{share.show_title} <span className="text-xs text-zinc-500">(Show)</span></span>
+                              <span className="text-sm text-zinc-600">{share.show_title} <span className="text-xs text-zinc-500">(Show)</span></span>
                             </>
                           ) : (
                             <span className="text-sm text-zinc-400">Unknown</span>
@@ -1284,7 +1284,7 @@ const MediaLibraryPage = () => {
                           onChange={() => toggleUserSelection(user.id)}
                           className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
                         />
-                        <span className="text-sm text-zinc-300">{user.name}</span>
+                        <span className="text-sm text-zinc-600">{user.name}</span>
                         <span className="text-xs text-zinc-500">{user.role}</span>
                       </label>
                     ))}
@@ -1325,7 +1325,7 @@ const MediaLibraryPage = () => {
                             onChange={() => toggleSeriesSelection(series.id)}
                             className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
                           />
-                          <span className="text-sm text-zinc-300">{series.title}</span>
+                          <span className="text-sm text-zinc-600">{series.title}</span>
                         </label>
                       ))}
                     {showSeries.filter(s => !folderShares.some(fs => fs.series_id === s.id)).length === 0 && (
@@ -1366,7 +1366,7 @@ const MediaLibraryPage = () => {
                             onChange={() => toggleShowSelection(show.id)}
                             className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
                           />
-                          <span className="text-sm text-zinc-300">{show.title}</span>
+                          <span className="text-sm text-zinc-600">{show.title}</span>
                           {show.scheduled_date && (
                             <span className="text-xs text-zinc-500">
                               {new Date(show.scheduled_date).toLocaleDateString()}
@@ -1410,7 +1410,7 @@ const MediaLibraryPage = () => {
 
       {/* Edit Title Dialog */}
       <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
-        <DialogContent className="bg-[#18181b] border-zinc-800">
+        <DialogContent className="bg-zinc-100 border-zinc-200">
           <DialogHeader>
             <DialogTitle className="text-white">Rename File</DialogTitle>
           </DialogHeader>
@@ -1441,7 +1441,7 @@ const MediaLibraryPage = () => {
 
       {/* Preview Dialog */}
       <Dialog open={!!previewAsset} onOpenChange={() => setPreviewAsset(null)}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="bg-zinc-100 border-zinc-200 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-white flex items-center gap-3">
               {previewAsset && (
@@ -1460,7 +1460,7 @@ const MediaLibraryPage = () => {
             <div className="flex-1 overflow-auto min-h-0">
               {/* Image Preview */}
               {getPreviewType(previewAsset) === 'image' && (
-                <div className="flex items-center justify-center p-4 bg-zinc-900 rounded-lg">
+                <div className="flex items-center justify-center p-4 bg-white/80 backdrop-blur rounded-lg">
                   <img
                     src={getFileUrl(previewAsset)}
                     alt={previewAsset.title}
@@ -1471,7 +1471,7 @@ const MediaLibraryPage = () => {
 
               {/* PDF Preview */}
               {getPreviewType(previewAsset) === 'pdf' && (
-                <div className="w-full h-[60vh] bg-zinc-900 rounded-lg overflow-hidden">
+                <div className="w-full h-[60vh] bg-white/80 backdrop-blur rounded-lg overflow-hidden">
                   <iframe
                     src={`${getFileUrl(previewAsset)}#toolbar=1&navpanes=0`}
                     className="w-full h-full"
@@ -1482,7 +1482,7 @@ const MediaLibraryPage = () => {
 
               {/* Audio Preview */}
               {getPreviewType(previewAsset) === 'audio' && (
-                <div className="p-8 bg-zinc-900 rounded-lg">
+                <div className="p-8 bg-white/80 backdrop-blur rounded-lg">
                   <div className="flex flex-col items-center gap-6">
                     <div className="w-32 h-32 rounded-full bg-amber-500/20 flex items-center justify-center">
                       <Volume2 className="w-16 h-16 text-amber-500" />
@@ -1505,7 +1505,7 @@ const MediaLibraryPage = () => {
 
               {/* Video Preview */}
               {getPreviewType(previewAsset) === 'video' && (
-                <div className="p-4 bg-zinc-900 rounded-lg">
+                <div className="p-4 bg-white/80 backdrop-blur rounded-lg">
                   <video
                     controls
                     autoPlay
@@ -1526,7 +1526,7 @@ const MediaLibraryPage = () => {
 
               {/* Unsupported Preview */}
               {getPreviewType(previewAsset) === 'unsupported' && (
-                <div className="p-8 bg-zinc-900 rounded-lg text-center">
+                <div className="p-8 bg-white/80 backdrop-blur rounded-lg text-center">
                   <File className="w-16 h-16 text-zinc-500 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">Preview not available</h3>
                   <p className="text-zinc-400 mb-4">
@@ -1541,7 +1541,7 @@ const MediaLibraryPage = () => {
             <Button
               variant="outline"
               onClick={() => setPreviewAsset(null)}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="border-zinc-300 text-zinc-600 hover:bg-zinc-100"
             >
               Close
             </Button>
@@ -1558,7 +1558,7 @@ const MediaLibraryPage = () => {
 
       {/* Share Dialog */}
       <Dialog open={!!shareAsset} onOpenChange={() => setShareAsset(null)}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 sm:max-w-md">
+        <DialogContent className="bg-zinc-100 border-zinc-200 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Share2 className="w-5 h-5 text-orange-500" />
@@ -1585,14 +1585,14 @@ const MediaLibraryPage = () => {
                       data-testid="share-url-input"
                       readOnly
                       value={getShareUrl(shareInfo.share_token)}
-                      className="bg-white/5 border-white/10 text-zinc-300 text-sm font-mono"
+                      className="bg-white/5 border-white/10 text-zinc-600 text-sm font-mono"
                     />
                     <Button
                       data-testid="copy-share-link-btn"
                       variant="outline"
                       size="icon"
                       onClick={handleCopyShareLink}
-                      className="flex-shrink-0 border-zinc-700 hover:bg-zinc-800"
+                      className="flex-shrink-0 border-zinc-300 hover:bg-zinc-100"
                     >
                       {copied ? (
                         <Check className="w-4 h-4 text-green-500" />
@@ -1604,7 +1604,7 @@ const MediaLibraryPage = () => {
                       variant="outline"
                       size="icon"
                       onClick={() => window.open(getShareUrl(shareInfo.share_token), '_blank')}
-                      className="flex-shrink-0 border-zinc-700 hover:bg-zinc-800"
+                      className="flex-shrink-0 border-zinc-300 hover:bg-zinc-100"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </Button>
@@ -1614,7 +1614,7 @@ const MediaLibraryPage = () => {
                     Anyone with this link can view and download this file without logging in.
                   </p>
                   
-                  <div className="pt-2 border-t border-zinc-800">
+                  <div className="pt-2 border-t border-zinc-200">
                     <Button
                       data-testid="revoke-share-link-btn"
                       variant="ghost"
@@ -1692,7 +1692,7 @@ const MediaLibraryPage = () => {
           className="fixed inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm z-50"
           data-testid="upload-progress-overlay"
         >
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-2xl min-w-[320px]">
+          <div className="bg-zinc-900 border border-zinc-300 rounded-xl p-6 shadow-2xl min-w-[320px]">
             <div className="flex items-center gap-3 mb-4">
               <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
               <div>
@@ -1700,7 +1700,7 @@ const MediaLibraryPage = () => {
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
               </div>
             </div>
-            <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
               <div
                 className="bg-gradient-to-r from-orange-500 to-orange-400 h-full rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${uploadProgress}%` }}
@@ -1792,24 +1792,24 @@ const DroppableFolderItem = ({
                 <MoreVertical className="w-3 h-3" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-[#27272a] border-zinc-700">
+            <DropdownMenuContent align="end" className="bg-zinc-100 border-zinc-300">
               <DropdownMenuItem
                 onClick={(e) => { e.stopPropagation(); onNewSubfolder(); }}
-                className="text-zinc-300"
+                className="text-zinc-600"
               >
                 <FolderPlus className="w-4 h-4 mr-2" />
                 New Subfolder
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => { e.stopPropagation(); onRename(); }}
-                className="text-zinc-300"
+                className="text-zinc-600"
               >
                 <Pencil className="w-4 h-4 mr-2" />
                 Rename
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => { e.stopPropagation(); onShare(); }}
-                className="text-zinc-300"
+                className="text-zinc-600"
               >
                 <Users className="w-4 h-4 mr-2" />
                 Share / Link
@@ -1853,10 +1853,10 @@ const DraggableAssetCard = ({ asset, children }) => {
       <div
         {...listeners}
         {...attributes}
-        className="absolute top-4 left-4 p-1.5 rounded bg-zinc-700/90 opacity-0 group-hover/drag:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-20 hover:bg-zinc-600 shadow-lg"
+        className="absolute top-4 left-4 p-1.5 rounded bg-zinc-700/90 opacity-0 group-hover/drag:opacity-100 cursor-grab active:cursor-grabbing transition-opacity z-20 hover:bg-zinc-200 shadow-lg"
         title="Sleep naar een map"
       >
-        <GripVertical className="w-4 h-4 text-zinc-300" />
+        <GripVertical className="w-4 h-4 text-zinc-600" />
       </div>
       {children}
     </div>
@@ -1886,7 +1886,7 @@ const TextFilePreview = ({ url }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8 bg-zinc-900 rounded-lg">
+      <div className="flex items-center justify-center p-8 bg-white/80 backdrop-blur rounded-lg">
         <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
@@ -1894,15 +1894,15 @@ const TextFilePreview = ({ url }) => {
 
   if (error) {
     return (
-      <div className="p-8 bg-zinc-900 rounded-lg text-center">
+      <div className="p-8 bg-white/80 backdrop-blur rounded-lg text-center">
         <p className="text-zinc-400">Failed to load file content</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-zinc-900 rounded-lg p-4 max-h-[60vh] overflow-auto">
-      <pre className="text-sm text-zinc-300 whitespace-pre-wrap font-mono">
+    <div className="bg-white/80 backdrop-blur rounded-lg p-4 max-h-[60vh] overflow-auto">
+      <pre className="text-sm text-zinc-600 whitespace-pre-wrap font-mono">
         {content}
       </pre>
     </div>

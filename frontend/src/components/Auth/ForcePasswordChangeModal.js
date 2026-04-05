@@ -45,7 +45,7 @@ export default function ForcePasswordChangeModal() {
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center" data-testid="force-password-modal">
-      <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-8 w-full max-w-md shadow-2xl">
+      <div className="bg-white/80 backdrop-blur rounded-2xl border border-zinc-200 p-8 w-full max-w-md shadow-2xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center">
             <ShieldAlert className="w-6 h-6 text-red-400" />
@@ -61,7 +61,7 @@ export default function ForcePasswordChangeModal() {
             <label className="text-xs text-zinc-500 mb-1 block">Current Password</label>
             <input
               type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
+              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
               required autoFocus data-testid="current-password-input"
             />
           </div>
@@ -69,7 +69,7 @@ export default function ForcePasswordChangeModal() {
             <label className="text-xs text-zinc-500 mb-1 block">New Password</label>
             <input
               type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
+              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
               required minLength={8} data-testid="new-password-input"
             />
           </div>
@@ -77,7 +77,7 @@ export default function ForcePasswordChangeModal() {
             <label className="text-xs text-zinc-500 mb-1 block">Confirm New Password</label>
             <input
               type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
+              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
               required data-testid="confirm-password-input"
             />
           </div>

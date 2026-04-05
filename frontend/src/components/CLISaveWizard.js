@@ -44,7 +44,7 @@ export default function CLISaveWizard({ open, onClose }) {
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md bg-[#0c0c0c] border-zinc-800 p-0 overflow-hidden [&>button]:hidden" data-testid="cli-save-wizard">
+      <DialogContent className="sm:max-w-md bg-white border-zinc-200 p-0 overflow-hidden [&>button]:hidden" data-testid="cli-save-wizard">
         <div className="h-1 bg-zinc-900">
           <div
             className="h-full bg-orange-500 transition-all duration-700 ease-out"
@@ -63,7 +63,7 @@ export default function CLISaveWizard({ open, onClose }) {
             } ${!completed ? 'animate-pulse' : ''}`} />
           </div>
 
-          <p className="text-sm text-zinc-300 leading-relaxed min-h-[48px] flex items-center" data-testid="cli-save-step-text">
+          <p className="text-sm text-zinc-600 leading-relaxed min-h-[48px] flex items-center" data-testid="cli-save-step-text">
             {step.text}
           </p>
 

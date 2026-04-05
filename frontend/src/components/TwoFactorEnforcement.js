@@ -46,7 +46,7 @@ const TwoFactorEnforcement = ({ user, onComplete, onSkipped }) => {
     return (
       <Dialog open={true} onOpenChange={() => {}}>
         <DialogContent
-          className="bg-zinc-900 border-zinc-800 max-w-lg"
+          className="bg-zinc-900 border-zinc-200 max-w-lg"
           data-testid="2fa-setup-dialog"
           hideClose
           onPointerDownOutside={(e) => e.preventDefault()}
@@ -67,7 +67,7 @@ const TwoFactorEnforcement = ({ user, onComplete, onSkipped }) => {
   return (
     <Dialog open={true} onOpenChange={() => {}}>
       <DialogContent
-        className="bg-zinc-900 border-zinc-800 max-w-md"
+        className="bg-zinc-900 border-zinc-200 max-w-md"
         data-testid="2fa-enforcement-dialog"
         hideClose
         onPointerDownOutside={(e) => e.preventDefault()}

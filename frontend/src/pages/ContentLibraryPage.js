@@ -218,7 +218,7 @@ const ContentLibraryPage = () => {
             data-testid="content-calendar-btn"
             onClick={() => navigate(buildPath('/content/calendar'))}
             variant="outline"
-            className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
+            className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
           >
             <CalendarDays className="w-4 h-4" />
             Calendar
@@ -245,7 +245,7 @@ const ContentLibraryPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search content..."
-            className="pl-10 bg-[#18181b] border-zinc-800 text-white placeholder:text-zinc-500"
+            className="pl-10 bg-zinc-100 border-zinc-200 text-white placeholder:text-zinc-500"
           />
         </div>
 
@@ -254,34 +254,34 @@ const ContentLibraryPage = () => {
             <Button
               variant="outline"
               data-testid="type-filter-btn"
-              className="bg-[#18181b] border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
+              className="bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
             >
               <Filter className="w-4 h-4" />
               {typeFilter ? typeLabels[typeFilter] : 'All Types'}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+          <DropdownMenuContent className="bg-zinc-100 border-zinc-200">
             <DropdownMenuItem
               onClick={() => setTypeFilter('')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               All Types
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTypeFilter('text')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               <FileText className="w-4 h-4 mr-2" /> Text
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTypeFilter('link')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               <Link className="w-4 h-4 mr-2" /> Link
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTypeFilter('reference')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               <BookOpen className="w-4 h-4 mr-2" /> Reference
             </DropdownMenuItem>
@@ -293,27 +293,27 @@ const ContentLibraryPage = () => {
             <Button
               variant="outline"
               data-testid="status-filter-btn"
-              className="bg-[#18181b] border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
+              className="bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
             >
               {statusFilter ? statusLabels[statusFilter] : 'All Status'}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+          <DropdownMenuContent className="bg-zinc-100 border-zinc-200">
             <DropdownMenuItem
               onClick={() => setStatusFilter('')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               All Status
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('draft')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               Draft
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('ready')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               Ready
             </DropdownMenuItem>
@@ -327,16 +327,16 @@ const ContentLibraryPage = () => {
               <Button
                 variant="outline"
                 data-testid="source-filter-btn"
-                className="bg-[#18181b] border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
+                className="bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
               >
                 <Globe className="w-4 h-4" />
                 {sourceFilter || 'All Sources'}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+            <DropdownMenuContent className="bg-zinc-100 border-zinc-200">
               <DropdownMenuItem
                 onClick={() => setSourceFilter('')}
-                className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                className="text-zinc-600 focus:text-white focus:bg-zinc-800"
               >
                 All Sources
               </DropdownMenuItem>
@@ -344,7 +344,7 @@ const ContentLibraryPage = () => {
                 <DropdownMenuItem
                   key={source}
                   onClick={() => setSourceFilter(source)}
-                  className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                  className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                 >
                   {source}
                 </DropdownMenuItem>
@@ -360,16 +360,16 @@ const ContentLibraryPage = () => {
               <Button
                 variant="outline"
                 data-testid="category-filter-btn"
-                className="bg-[#18181b] border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
+                className="bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
               >
                 <Folder className="w-4 h-4" />
                 {categoryFilter ? categories.find(c => c.id === categoryFilter)?.name : 'All Categories'}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+            <DropdownMenuContent className="bg-zinc-100 border-zinc-200">
               <DropdownMenuItem
                 onClick={() => setCategoryFilter('')}
-                className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                className="text-zinc-600 focus:text-white focus:bg-zinc-800"
               >
                 All Categories
               </DropdownMenuItem>
@@ -377,7 +377,7 @@ const ContentLibraryPage = () => {
                 <DropdownMenuItem
                   key={cat.id}
                   onClick={() => setCategoryFilter(cat.id)}
-                  className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                  className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                 >
                   {cat.name}
                 </DropdownMenuItem>
@@ -409,16 +409,16 @@ const ContentLibraryPage = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 animate-pulse"
+              className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 animate-pulse"
             >
-              <div className="h-6 bg-zinc-800 rounded w-1/3 mb-3" />
-              <div className="h-4 bg-zinc-800 rounded w-2/3" />
+              <div className="h-6 bg-zinc-100 rounded w-1/3 mb-3" />
+              <div className="h-4 bg-zinc-100 rounded w-2/3" />
             </div>
           ))}
         </div>
       ) : filteredContent.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <FileText className="w-8 h-8 text-zinc-500" />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">
@@ -449,7 +449,7 @@ const ContentLibraryPage = () => {
                 key={item.id}
                 data-testid={`content-item-${index}`}
                 onClick={() => navigate(buildPath(`/content/${item.id}`))}
-                className="bg-[#18181b] border border-zinc-800 rounded-xl p-5 cursor-pointer hover:border-zinc-700 transition-colors group"
+                className="bg-zinc-100 border border-zinc-200 rounded-xl p-5 cursor-pointer hover:border-zinc-300 transition-colors group"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -467,7 +467,7 @@ const ContentLibraryPage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="p-2 bg-zinc-800 rounded-lg">
+                      <div className="p-2 bg-zinc-100 rounded-lg">
                         <TypeIcon className="w-5 h-5 text-zinc-400" />
                       </div>
                     )}

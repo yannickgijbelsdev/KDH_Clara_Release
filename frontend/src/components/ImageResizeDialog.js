@@ -48,7 +48,7 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-800 max-w-md" data-testid="image-resize-dialog">
+      <DialogContent className="bg-zinc-900 border-zinc-200 max-w-md" data-testid="image-resize-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-400" />
@@ -72,10 +72,10 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">Max allowed</span>
-              <span className="text-zinc-300">{formatFileSize(MAX_FILE_SIZE)}</span>
+              <span className="text-zinc-600">{formatFileSize(MAX_FILE_SIZE)}</span>
             </div>
             {result && (
-              <div className="flex justify-between text-sm pt-1 border-t border-zinc-700">
+              <div className="flex justify-between text-sm pt-1 border-t border-zinc-300">
                 <span className="text-zinc-400">New size</span>
                 <span className="text-emerald-400 font-medium">{formatFileSize(result.newSize)}</span>
               </div>
@@ -96,7 +96,7 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
                 </span>
                 <span className="text-white font-mono">{progress}%</span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${
                     result ? 'bg-emerald-500' : 'bg-orange-500'

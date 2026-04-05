@@ -81,7 +81,7 @@ const MediaCompressDialog = ({ file, open, onClose, onCompressed, onSkip }) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-800 max-w-md" data-testid="media-compress-dialog">
+      <DialogContent className="bg-zinc-900 border-zinc-200 max-w-md" data-testid="media-compress-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-400" />
@@ -107,22 +107,22 @@ const MediaCompressDialog = ({ file, open, onClose, onCompressed, onSkip }) => {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">Recommended max</span>
-              <span className="text-zinc-300">{formatFileSize(MAX_MEDIA_SIZE)}</span>
+              <span className="text-zinc-600">{formatFileSize(MAX_MEDIA_SIZE)}</span>
             </div>
             {isAudio && (
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400">Output format</span>
-                <span className="text-zinc-300">MP3 128kbps stereo</span>
+                <span className="text-zinc-600">MP3 128kbps stereo</span>
               </div>
             )}
             {!isAudio && (
               <div className="flex justify-between text-sm">
                 <span className="text-zinc-400">Output format</span>
-                <span className="text-zinc-300">MP4 720p</span>
+                <span className="text-zinc-600">MP4 720p</span>
               </div>
             )}
             {result && (
-              <div className="flex justify-between text-sm pt-1 border-t border-zinc-700">
+              <div className="flex justify-between text-sm pt-1 border-t border-zinc-300">
                 <span className="text-zinc-400">New size</span>
                 <span className="text-emerald-400 font-medium">{formatFileSize(result.newSize)}</span>
               </div>
@@ -147,7 +147,7 @@ const MediaCompressDialog = ({ file, open, onClose, onCompressed, onSkip }) => {
                 </span>
                 <span className="text-white font-mono">{progress}%</span>
               </div>
-              <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${
                     result ? 'bg-emerald-500' : 'bg-orange-500'

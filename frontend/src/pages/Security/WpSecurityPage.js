@@ -20,10 +20,10 @@ function StepIndicator({ steps, current }) {
     <div className="flex items-center gap-1 mb-4 flex-wrap">
       {steps.map((s, i) => (
         <div key={i} className="flex items-center gap-1">
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${i <= current ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'bg-zinc-800 text-zinc-600 border border-zinc-700'}`}>
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${i <= current ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'bg-zinc-800 text-zinc-600 border border-zinc-300'}`}>
             {i < current ? <Check className="w-3 h-3" /> : i + 1}
           </div>
-          <span className={`text-[10px] hidden sm:inline ${i <= current ? 'text-zinc-300' : 'text-zinc-600'}`}>{s}</span>
+          <span className={`text-[10px] hidden sm:inline ${i <= current ? 'text-zinc-600' : 'text-zinc-600'}`}>{s}</span>
           {i < steps.length - 1 && <div className={`w-4 h-px ${i < current ? 'bg-red-500/50' : 'bg-zinc-700'}`} />}
         </div>
       ))}
@@ -32,7 +32,7 @@ function StepIndicator({ steps, current }) {
 }
 
 function SyncBadge({ result }) {
-  if (!result) return <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500 border border-zinc-700">Local only</span>;
+  if (!result) return <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500 border border-zinc-300">Local only</span>;
   if (result.status === 'ok') return <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Synced to Cloudflare</span>;
 
   const steps = result.steps || [];
@@ -281,7 +281,7 @@ export default function WpSecurityPage() {
         </TipBox>
         <div className="space-y-2">
           <Label className="text-xs text-zinc-400">WordPress URL</Label>
-          <Input value={wpUrl} onChange={e => setWpUrl(e.target.value)} placeholder="https://example.com" className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm" data-testid="wp-url-input" />
+          <Input value={wpUrl} onChange={e => setWpUrl(e.target.value)} placeholder="https://example.com" className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="wp-url-input" />
         </div>
         <Button onClick={saveWpUrl} disabled={!wpUrl.trim() || wpSaving} className="bg-red-600 hover:bg-red-700" data-testid="save-wp-url-btn">
           {wpSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />} Save & Continue
@@ -299,7 +299,7 @@ export default function WpSecurityPage() {
         <TipBox color="orange" title="Connect Cloudflare to enable real protection">
           Without Cloudflare, rules are only stored locally. With Cloudflare credentials, Clara will automatically create WAF rules, block IPs, and add rate limiting directly in your Cloudflare zone.
         </TipBox>
-        <div className="rounded-md bg-zinc-800/60 border border-zinc-700/50 p-3 space-y-2">
+        <div className="rounded-md bg-zinc-800/60 border border-zinc-300/50 p-3 space-y-2">
           <p className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold">How to get your API Token:</p>
           <ol className="space-y-1 text-xs text-zinc-400 list-decimal list-inside">
             <li>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300">dash.cloudflare.com/profile/api-tokens</a></li>
@@ -314,15 +314,15 @@ export default function WpSecurityPage() {
           <div className="space-y-1">
             <Label className="text-xs text-zinc-400">API Token {config?.cf_api_token_set && <span className="text-emerald-400 ml-1">(saved: {config.cf_api_token_preview})</span>}</Label>
             <div className="relative">
-              <Input type={showCfToken ? 'text' : 'password'} value={cfToken} onChange={e => setCfToken(e.target.value)} placeholder={config?.cf_api_token_set ? 'Leave blank to keep current token' : 'Paste your API Token here'} className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm pr-10" data-testid="cf-token-input" />
-              <button onClick={() => setShowCfToken(!showCfToken)} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300">
+              <Input type={showCfToken ? 'text' : 'password'} value={cfToken} onChange={e => setCfToken(e.target.value)} placeholder={config?.cf_api_token_set ? 'Leave blank to keep current token' : 'Paste your API Token here'} className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm pr-10" data-testid="cf-token-input" />
+              <button onClick={() => setShowCfToken(!showCfToken)} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-600">
                 {showCfToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-zinc-400">Zone ID <span className="text-zinc-600">(from Cloudflare dashboard → Overview → right sidebar)</span></Label>
-            <Input value={cfZoneId} onChange={e => setCfZoneId(e.target.value)} placeholder="e.g. abc123def456..." className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm" data-testid="cf-zone-input" />
+            <Input value={cfZoneId} onChange={e => setCfZoneId(e.target.value)} placeholder="e.g. abc123def456..." className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="cf-zone-input" />
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export default function WpSecurityPage() {
             {cfSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />} Save Credentials
           </Button>
           {config?.cf_api_token_set && (
-            <Button onClick={testCfConnection} disabled={cfTesting} variant="outline" className="border-zinc-700 text-zinc-300" data-testid="test-cf-btn">
+            <Button onClick={testCfConnection} disabled={cfTesting} variant="outline" className="border-zinc-300 text-zinc-600" data-testid="test-cf-btn">
               {cfTesting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />} Test Connection
             </Button>
           )}
@@ -364,7 +364,7 @@ export default function WpSecurityPage() {
         </TipBox>
         <div className="space-y-2">
           {wafRules.map(rule => (
-            <div key={rule.id} className={`flex items-center justify-between p-3 rounded-lg border ${rule.enabled ? 'bg-zinc-800/50 border-zinc-700' : 'bg-zinc-900/50 border-zinc-800 opacity-60'}`} data-testid={`waf-rule-${rule.id}`}>
+            <div key={rule.id} className={`flex items-center justify-between p-3 rounded-lg border ${rule.enabled ? 'bg-zinc-100/70 border-zinc-300' : 'bg-white/60 border-zinc-200 opacity-60'}`} data-testid={`waf-rule-${rule.id}`}>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-zinc-200">{rule.name}</span>
@@ -396,19 +396,19 @@ export default function WpSecurityPage() {
           Block specific IP addresses. {hasCf ? 'IPs will be blocked directly in Cloudflare.' : 'Connect Cloudflare in Step 2 to block IPs at the edge.'}
         </TipBox>
         <div className="flex gap-2">
-          <Input value={newBlockIp} onChange={e => setNewBlockIp(e.target.value)} placeholder="IP address (e.g. 192.168.1.1)" className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm flex-1" data-testid="block-ip-input" />
-          <Input value={newBlockNote} onChange={e => setNewBlockNote(e.target.value)} placeholder="Note (optional)" className="bg-zinc-800 border-zinc-700 text-white text-sm w-48" data-testid="block-note-input" />
+          <Input value={newBlockIp} onChange={e => setNewBlockIp(e.target.value)} placeholder="IP address (e.g. 192.168.1.1)" className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm flex-1" data-testid="block-ip-input" />
+          <Input value={newBlockNote} onChange={e => setNewBlockNote(e.target.value)} placeholder="Note (optional)" className="bg-zinc-800 border-zinc-300 text-white text-sm w-48" data-testid="block-note-input" />
           <Button onClick={addToBlocklist} disabled={!newBlockIp.trim() || blockSaving} variant="destructive" size="sm" data-testid="add-block-btn">
             {blockSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
           </Button>
         </div>
         {blocklist.length > 0 && (
-          <div className="rounded-md border border-zinc-700/50 overflow-hidden">
+          <div className="rounded-md border border-zinc-300/50 overflow-hidden">
             <table className="w-full text-xs">
               <thead><tr className="bg-zinc-800/80"><th className="text-left px-3 py-1.5 text-zinc-400">IP</th><th className="text-left px-3 py-1.5 text-zinc-400">Note</th><th className="text-left px-3 py-1.5 text-zinc-400">Added</th><th className="w-8"></th></tr></thead>
               <tbody>
                 {blocklist.map(entry => (
-                  <tr key={entry.ip} className="border-t border-zinc-800" data-testid={`blocked-ip-${entry.ip}`}>
+                  <tr key={entry.ip} className="border-t border-zinc-200" data-testid={`blocked-ip-${entry.ip}`}>
                     <td className="px-3 py-2 font-mono text-zinc-200">{entry.ip}</td>
                     <td className="px-3 py-2 text-zinc-500">{entry.note || '—'}</td>
                     <td className="px-3 py-2 text-zinc-600">{entry.added_at ? new Date(entry.added_at).toLocaleDateString() : '—'}</td>
@@ -433,22 +433,22 @@ export default function WpSecurityPage() {
           Automatically blocks IPs that attempt too many failed logins. {hasCf ? 'Rules are enforced via Cloudflare WAF.' : 'Connect Cloudflare to enforce at the edge.'} Works alongside Wordfence.
         </TipBox>
         <div className="space-y-3">
-          <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 bg-zinc-800/50 cursor-pointer">
-            <input type="checkbox" checked={loginProtection.enabled} onChange={e => setLoginProtection({...loginProtection, enabled: e.target.checked})} className="rounded bg-zinc-700 border-zinc-600 text-red-500" />
+          <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-300 bg-zinc-100/70 cursor-pointer">
+            <input type="checkbox" checked={loginProtection.enabled} onChange={e => setLoginProtection({...loginProtection, enabled: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-red-500" />
             <div><p className="text-sm text-zinc-200">Enable Login Protection</p><p className="text-xs text-zinc-500">Master switch for all login protection features</p></div>
           </label>
-          <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 bg-zinc-800/50 cursor-pointer">
-            <input type="checkbox" checked={loginProtection.block_xmlrpc} onChange={e => setLoginProtection({...loginProtection, block_xmlrpc: e.target.checked})} className="rounded bg-zinc-700 border-zinc-600 text-red-500" />
+          <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-300 bg-zinc-100/70 cursor-pointer">
+            <input type="checkbox" checked={loginProtection.block_xmlrpc} onChange={e => setLoginProtection({...loginProtection, block_xmlrpc: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-red-500" />
             <div><p className="text-sm text-zinc-200">Block XML-RPC Authentication</p><p className="text-xs text-zinc-500">Blocks authentication via xmlrpc.php — the #1 brute force vector</p></div>
           </label>
-          <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-700 bg-zinc-800/50 cursor-pointer">
-            <input type="checkbox" checked={loginProtection.limit_login_attempts} onChange={e => setLoginProtection({...loginProtection, limit_login_attempts: e.target.checked})} className="rounded bg-zinc-700 border-zinc-600 text-red-500" />
+          <label className="flex items-center gap-3 p-3 rounded-lg border border-zinc-300 bg-zinc-100/70 cursor-pointer">
+            <input type="checkbox" checked={loginProtection.limit_login_attempts} onChange={e => setLoginProtection({...loginProtection, limit_login_attempts: e.target.checked})} className="rounded bg-zinc-200 border-zinc-600 text-red-500" />
             <div><p className="text-sm text-zinc-200">Limit Login Attempts</p><p className="text-xs text-zinc-500">Auto-block after too many failed attempts</p></div>
           </label>
           {loginProtection.limit_login_attempts && (
             <div className="ml-8 space-y-1">
               <Label className="text-xs text-zinc-400">Max attempts before block</Label>
-              <Input type="number" value={loginProtection.max_attempts} onChange={e => setLoginProtection({...loginProtection, max_attempts: parseInt(e.target.value) || 5})} className="bg-zinc-800 border-zinc-700 text-white w-24 text-sm" min={1} max={50} />
+              <Input type="number" value={loginProtection.max_attempts} onChange={e => setLoginProtection({...loginProtection, max_attempts: parseInt(e.target.value) || 5})} className="bg-zinc-800 border-zinc-300 text-white w-24 text-sm" min={1} max={50} />
             </div>
           )}
         </div>
@@ -470,7 +470,7 @@ export default function WpSecurityPage() {
           Clara checks if Wordfence is installed on your WordPress site and scans for known vulnerabilities in your plugins and themes using the Wordfence Intelligence database.
         </TipBox>
 
-        <Button onClick={loadWordfenceStatus} disabled={wfLoading} variant="outline" className="border-zinc-700 text-zinc-300" data-testid="scan-wordfence-btn">
+        <Button onClick={loadWordfenceStatus} disabled={wfLoading} variant="outline" className="border-zinc-300 text-zinc-600" data-testid="scan-wordfence-btn">
           {wfLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Search className="w-4 h-4 mr-2" />}
           {wfStatus ? 'Re-scan' : 'Scan Now'}
         </Button>
@@ -501,7 +501,7 @@ export default function WpSecurityPage() {
             {wfStatus.vulnerability_scan && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-medium text-zinc-300">Vulnerability Scan</h4>
+                  <h4 className="text-xs font-medium text-zinc-600">Vulnerability Scan</h4>
                   <span className="text-[10px] text-zinc-500">
                     {wfStatus.vulnerability_scan.scanned_count} software detected
                     {wfStatus.vulnerability_scan.wordpress_version && ` | WP ${wfStatus.vulnerability_scan.wordpress_version}`}
@@ -525,7 +525,7 @@ export default function WpSecurityPage() {
                 {wfStatus.vulnerability_scan.detected_software?.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {wfStatus.vulnerability_scan.detected_software.map((sw, i) => (
-                      <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">{sw.type}/{sw.slug} v{sw.version}</span>
+                      <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-300">{sw.type}/{sw.slug} v{sw.version}</span>
                     ))}
                   </div>
                 )}
@@ -543,7 +543,7 @@ export default function WpSecurityPage() {
 function WizardStep({ stepNum, title, icon, completed, summary, active, editStep, setEditStep, badge, prerequisite, alwaysShowContent, children }) {
   const isOpen = active || editStep === stepNum || alwaysShowContent;
   return (
-    <Card className={`border-zinc-800 ${active ? 'bg-gradient-to-r from-red-950/30 to-zinc-900 ring-1 ring-red-500/30' : 'bg-zinc-900'}`}>
+    <Card className={`border-zinc-200 ${active ? 'bg-gradient-to-r from-red-950/30 to-zinc-900 ring-1 ring-red-500/30' : 'bg-zinc-900'}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === stepNum ? null : stepNum)}>
           <div className="flex items-center gap-2">
@@ -566,7 +566,7 @@ function WizardStep({ stepNum, title, icon, completed, summary, active, editStep
 function TipBox({ color = 'red', title, children }) {
   const colors = { red: 'text-red-400', orange: 'text-orange-400', emerald: 'text-emerald-400' };
   return (
-    <div className="rounded-md bg-zinc-800/60 border border-zinc-700/50 p-3">
+    <div className="rounded-md bg-zinc-800/60 border border-zinc-300/50 p-3">
       <p className={`text-[10px] uppercase tracking-wider ${colors[color]} font-semibold mb-1`}>{title}</p>
       <p className="text-xs text-zinc-400">{children}</p>
     </div>

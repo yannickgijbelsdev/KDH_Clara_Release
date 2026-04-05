@@ -65,7 +65,7 @@ export default function BrandingSettings() {
   return (
     <div className="space-y-6" data-testid="branding-settings">
       {/* Platform Name & Logo */}
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-white border-zinc-200">
         <CardHeader>
           <CardTitle className="text-lg text-white flex items-center gap-2">
             <Star className="w-5 h-5 text-orange-400" />
@@ -75,14 +75,14 @@ export default function BrandingSettings() {
         <CardContent className="space-y-6">
           {/* Platform Name */}
           <div className="space-y-2">
-            <Label className="text-zinc-300">Platform Name</Label>
+            <Label className="text-zinc-600">Platform Name</Label>
             <div className="flex gap-2">
               <Input
                 data-testid="platform-name-input"
                 value={platformName}
                 onChange={(e) => setPlatformName(e.target.value)}
                 placeholder="Clara"
-                className="bg-zinc-800 border-zinc-700 text-white max-w-xs"
+                className="bg-zinc-800 border-zinc-300 text-white max-w-xs"
               />
               <Button
                 data-testid="save-platform-name-btn"
@@ -98,7 +98,7 @@ export default function BrandingSettings() {
 
           {/* Logo Type */}
           <div className="space-y-3">
-            <Label className="text-zinc-300">Logo Display</Label>
+            <Label className="text-zinc-600">Logo Display</Label>
             <div className="flex gap-3">
               <button
                 data-testid="logo-type-text"
@@ -106,7 +106,7 @@ export default function BrandingSettings() {
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors ${
                   branding.logo_type === 'text'
                     ? 'bg-orange-500/15 border-orange-500/40 text-orange-400'
-                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                    : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:border-zinc-600'
                 }`}
               >
                 <Type className="w-4 h-4" />
@@ -124,7 +124,7 @@ export default function BrandingSettings() {
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors ${
                   branding.logo_type === 'image'
                     ? 'bg-orange-500/15 border-orange-500/40 text-orange-400'
-                    : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                    : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:border-zinc-600'
                 }`}
               >
                 <Image className="w-4 h-4" />
@@ -134,7 +134,7 @@ export default function BrandingSettings() {
 
             {/* Logo Preview / Upload */}
             {branding.logo_type === 'image' && (
-              <div className="flex items-center gap-4 p-3 bg-zinc-800 rounded-lg">
+              <div className="flex items-center gap-4 p-3 bg-zinc-100 rounded-lg">
                 {branding.logo_url ? (
                   <>
                     <img
@@ -171,10 +171,10 @@ export default function BrandingSettings() {
 
           {/* Favicon */}
           <div className="space-y-3">
-            <Label className="text-zinc-300">Favicon</Label>
+            <Label className="text-zinc-600">Favicon</Label>
             <div className="flex items-center gap-4">
               {branding.favicon_url ? (
-                <div className="flex items-center gap-3 p-3 bg-zinc-800 rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-zinc-100 rounded-lg">
                   <img
                     src={resolveUrl(branding.favicon_url)}
                     alt="Favicon"
@@ -195,7 +195,7 @@ export default function BrandingSettings() {
                   data-testid="upload-favicon-btn"
                   onClick={() => faviconInputRef.current?.click()}
                   variant="outline"
-                  className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700"
+                  className="bg-zinc-800 border-zinc-300 text-zinc-600 hover:bg-zinc-200"
                   disabled={uploading === 'upload-favicon'}
                 >
                   {uploading === 'upload-favicon' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}

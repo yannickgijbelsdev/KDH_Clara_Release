@@ -349,8 +349,8 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
   const timestamps = calculateTimestamps(items, showStartTime);
 
   return (
-    <div data-testid="rundown-editor" className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
-      <div className="sticky top-0 z-10 bg-[#18181b] pb-4 -mx-6 px-6 pt-0 border-b border-zinc-800/50 mb-6">
+    <div data-testid="rundown-editor" className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
+      <div className="sticky top-0 z-10 bg-zinc-100 pb-4 -mx-6 px-6 pt-0 border-b border-zinc-200/50 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-violet-500/20 rounded-lg">
@@ -367,13 +367,13 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
           <div className="flex items-center gap-4">
             {/* Live Mode Toggle */}
             {showStartTime && items.length > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 rounded-lg">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 rounded-lg">
                 {liveMode ? (
                   <Play className="w-4 h-4 text-green-400" />
                 ) : (
                   <Pause className="w-4 h-4 text-zinc-500" />
                 )}
-                <Label htmlFor="live-mode" className="text-sm text-zinc-300 cursor-pointer">
+                <Label htmlFor="live-mode" className="text-sm text-zinc-600 cursor-pointer">
                   Follow live
                 </Label>
                 <Switch
@@ -398,7 +398,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
         </div>
 
         {/* Live Viewers + Members Row */}
-        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-800/30">
+        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-zinc-200/30">
           {/* Members avatars */}
           <div className="flex items-center gap-2" data-testid="rundown-members">
             <Users className="w-3.5 h-3.5 text-zinc-500" />
@@ -447,7 +447,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
         </div>
       </div>
       {presenters && presenters.length > 0 && (
-        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-zinc-800/50">
+        <div className="flex items-center gap-2 mb-4 pb-4 border-b border-zinc-200/50">
           <Users className="w-4 h-4 text-violet-400" />
           <span className="text-sm text-zinc-400">Presenters:</span>
           <div className="flex items-center gap-2 flex-wrap">
@@ -477,8 +477,8 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="text-center py-12 border border-dashed border-zinc-800 rounded-xl">
-          <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-3">
+        <div className="text-center py-12 border border-dashed border-zinc-200 rounded-xl">
+          <div className="w-12 h-12 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <ListOrdered className="w-6 h-6 text-zinc-500" />
           </div>
           <h3 className="text-white font-medium mb-1">No items yet</h3>
@@ -487,7 +487,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
             <Button
               onClick={handleAddItem}
               variant="outline"
-              className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-800 hover:text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add First Item
@@ -537,13 +537,13 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
 
       {/* Member Picker Dialog */}
       <Dialog open={showMemberDialog} onOpenChange={setShowMemberDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Rundown Members</DialogTitle>
             <DialogDescription className="text-zinc-400">Select team members who participate in this rundown</DialogDescription>
           </DialogHeader>
           <Input value={memberSearch} onChange={e => setMemberSearch(e.target.value)} placeholder="Search members..."
-            className="bg-zinc-800 border-zinc-700 text-white text-sm h-8 mb-2" />
+            className="bg-zinc-800 border-zinc-300 text-white text-sm h-8 mb-2" />
           <div className="max-h-64 overflow-y-auto space-y-1">
             {siteUsers.filter(u => !memberSearch || u.name?.toLowerCase().includes(memberSearch.toLowerCase()) || u.email?.toLowerCase().includes(memberSearch.toLowerCase())).map(u => {
               const isMember = members.some(m => m.id === u.id);

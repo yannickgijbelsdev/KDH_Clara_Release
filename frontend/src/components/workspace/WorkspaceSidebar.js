@@ -65,7 +65,7 @@ export const WorkspaceSidebar = ({
                 </TooltipTrigger>
                 <TooltipContent
                   side="right"
-                  className="bg-zinc-900 border-zinc-800 text-white text-xs"
+                  className="bg-white border-zinc-200 text-zinc-900 text-xs"
                 >
                   {item.label} (No license)
                 </TooltipContent>
@@ -100,7 +100,7 @@ export const WorkspaceSidebar = ({
               </TooltipTrigger>
               <TooltipContent
                 side="right"
-                className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg"
+                className="bg-white/95 border-zinc-200 text-white text-xs backdrop-blur-lg"
               >
                 {item.label}
                 {badgeCount > 0 && ` (${badgeCount})`}
@@ -126,7 +126,7 @@ export const WorkspaceSidebar = ({
             </TooltipTrigger>
             <TooltipContent
               side="right"
-              className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg"
+              className="bg-white/95 border-zinc-200 text-white text-xs backdrop-blur-lg"
             >
               Personal Settings
             </TooltipContent>

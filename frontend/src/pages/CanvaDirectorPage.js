@@ -294,10 +294,10 @@ const CanvaDirectorPage = () => {
         <div className="flex items-center gap-2">
           {config.configured && authStatus.connected && (
             <>
-              <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-300" onClick={disconnectCanva}>
+              <Button size="sm" variant="outline" className="border-zinc-300 text-zinc-600" onClick={disconnectCanva}>
                 <Unlink className="w-4 h-4 mr-1" /> Disconnect
               </Button>
-              <Button size="sm" variant="outline" className="border-zinc-700 text-zinc-300" onClick={fetchDesigns}>
+              <Button size="sm" variant="outline" className="border-zinc-300 text-zinc-600" onClick={fetchDesigns}>
                 <RefreshCw className="w-4 h-4 mr-1" /> Refresh
               </Button>
             </>
@@ -319,7 +319,7 @@ const CanvaDirectorPage = () => {
       )}
 
       {/* Step 1: API Credentials */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : config.configured ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+      <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : config.configured ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config.configured ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
@@ -332,7 +332,7 @@ const CanvaDirectorPage = () => {
           </div>
         </div>
         {(setupStep === 0 || editStep === 0) && isAdmin && (
-          <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
+          <div className="px-5 pb-5 space-y-4 border-t border-zinc-200 pt-4">
             <div className="flex items-start gap-2 p-3 bg-[#7d2ae8]/5 rounded-lg border border-[#7d2ae8]/10">
               <AlertCircle className="w-4 h-4 text-[#a855f7] mt-0.5 flex-shrink-0" />
               <div className="text-xs text-zinc-400">
@@ -343,13 +343,13 @@ const CanvaDirectorPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-zinc-400 mb-1 block">Client ID</label>
-                <Input value={configForm.client_id} onChange={e => setConfigForm(p => ({ ...p, client_id: e.target.value }))} placeholder={config.client_id || 'OC-AZ...'} className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm" data-testid="canva-client-id" />
+                <Input value={configForm.client_id} onChange={e => setConfigForm(p => ({ ...p, client_id: e.target.value }))} placeholder={config.client_id || 'OC-AZ...'} className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="canva-client-id" />
                 <p className="text-xs text-zinc-600 mt-1">Get from <a href="https://www.canva.com/developers/" target="_blank" rel="noreferrer" className="text-[#7d2ae8] hover:underline">canva.com/developers</a></p>
               </div>
               <div>
                 <label className="text-xs text-zinc-400 mb-1 block">Client Secret</label>
                 <div className="flex gap-2">
-                  <Input type={showSecret ? 'text' : 'password'} value={configForm.client_secret} onChange={e => setConfigForm(p => ({ ...p, client_secret: e.target.value }))} placeholder={config.configured ? '••••••••' : 'Enter client secret'} className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm" data-testid="canva-client-secret" />
+                  <Input type={showSecret ? 'text' : 'password'} value={configForm.client_secret} onChange={e => setConfigForm(p => ({ ...p, client_secret: e.target.value }))} placeholder={config.configured ? '••••••••' : 'Enter client secret'} className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="canva-client-secret" />
                   <Button variant="ghost" size="icon" onClick={() => setShowSecret(!showSecret)} className="text-zinc-400">
                     {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
@@ -364,7 +364,7 @@ const CanvaDirectorPage = () => {
       </div>
 
       {/* Step 2: Redirect URI & Linked Sites */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : (config.configured && config.redirect_uri) ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+      <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : (config.configured && config.redirect_uri) ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${(config.configured && config.redirect_uri) ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
@@ -377,7 +377,7 @@ const CanvaDirectorPage = () => {
           </div>
         </div>
         {(setupStep === 1 || editStep === 1) && isAdmin && (
-          <div className="px-5 pb-5 space-y-4 border-t border-zinc-800 pt-4">
+          <div className="px-5 pb-5 space-y-4 border-t border-zinc-200 pt-4">
             <div className="flex items-start gap-2 p-3 bg-[#7d2ae8]/5 rounded-lg border border-[#7d2ae8]/10">
               <AlertCircle className="w-4 h-4 text-[#a855f7] mt-0.5 flex-shrink-0" />
               <div className="text-xs text-zinc-400">
@@ -387,7 +387,7 @@ const CanvaDirectorPage = () => {
             </div>
             <div>
               <label className="text-xs text-zinc-400 mb-1 block">Redirect URI</label>
-              <Input value={configForm.redirect_uri} onChange={e => setConfigForm(p => ({ ...p, redirect_uri: e.target.value }))} placeholder="Auto-detected if empty" className="bg-zinc-800 border-zinc-700 text-white font-mono text-sm max-w-md" data-testid="canva-redirect-uri" />
+              <Input value={configForm.redirect_uri} onChange={e => setConfigForm(p => ({ ...p, redirect_uri: e.target.value }))} placeholder="Auto-detected if empty" className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm max-w-md" data-testid="canva-redirect-uri" />
               <p className="text-xs text-zinc-600 mt-1">Set this in your Canva Developer Portal as the callback URL</p>
             </div>
             <div>
@@ -397,7 +397,7 @@ const CanvaDirectorPage = () => {
                 {allMainSites.map(site => {
                   const isLinked = configForm.linked_main_site_ids.includes(site.id);
                   return (
-                    <label key={site.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isLinked ? 'bg-[#7d2ae8]/15 border border-[#7d2ae8]/30' : 'bg-zinc-800/50 border border-zinc-800 hover:border-zinc-700'}`}>
+                    <label key={site.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isLinked ? 'bg-[#7d2ae8]/15 border border-[#7d2ae8]/30' : 'bg-zinc-100/70 border border-zinc-200 hover:border-zinc-300'}`}>
                       <input type="checkbox" checked={isLinked} onChange={() => setConfigForm(p => ({ ...p, linked_main_site_ids: isLinked ? p.linked_main_site_ids.filter(id => id !== site.id) : [...p.linked_main_site_ids, site.id] }))} className="accent-[#7d2ae8] w-4 h-4" />
                       <span className="text-sm text-white">{site.name}</span>
                     </label>
@@ -413,7 +413,7 @@ const CanvaDirectorPage = () => {
       </div>
 
       {/* Step 3: Connect Account */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 2 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : authStatus.connected ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+      <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 2 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : authStatus.connected ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${authStatus.connected ? 'bg-emerald-500/20' : setupStep === 2 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
@@ -426,7 +426,7 @@ const CanvaDirectorPage = () => {
           </div>
         </div>
         {setupStep === 2 && (
-          <div className="px-5 pb-5 border-t border-zinc-800 pt-4 text-center">
+          <div className="px-5 pb-5 border-t border-zinc-200 pt-4 text-center">
             <div className="flex items-start gap-2 p-3 bg-[#7d2ae8]/5 rounded-lg border border-[#7d2ae8]/10 text-left mb-4">
               <AlertCircle className="w-4 h-4 text-[#a855f7] mt-0.5 flex-shrink-0" />
               <div className="text-xs text-zinc-400">
@@ -444,7 +444,7 @@ const CanvaDirectorPage = () => {
       </div>
 
       {/* Step 4: Start Designing */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 3 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : 'border-zinc-800'}`}>
+      <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 3 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${setupStep === 3 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
@@ -456,20 +456,20 @@ const CanvaDirectorPage = () => {
             </div>
           </div>
           {setupStep === 3 && (
-            <div className="flex gap-1 bg-zinc-800 rounded-lg p-0.5" data-testid="canva-tabs">
-              <button onClick={() => setActiveTab('designs')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'designs' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`} data-testid="canva-tab-designs">Designs</button>
-              <button onClick={() => setActiveTab('activity')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'activity' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`} data-testid="canva-tab-activity">Activity</button>
+            <div className="flex gap-1 bg-zinc-100 rounded-lg p-0.5" data-testid="canva-tabs">
+              <button onClick={() => setActiveTab('designs')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'designs' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`} data-testid="canva-tab-designs">Designs</button>
+              <button onClick={() => setActiveTab('activity')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'activity' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`} data-testid="canva-tab-activity">Activity</button>
             </div>
           )}
         </div>
         {setupStep === 3 && (
-          <div className="border-t border-zinc-800 p-5">
+          <div className="border-t border-zinc-200 p-5">
             {activeTab === 'designs' && (
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                    <Input placeholder="Search designs..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchDesigns()} className="pl-10 bg-zinc-800 border-zinc-700 text-white" data-testid="canva-search" />
+                    <Input placeholder="Search designs..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchDesigns()} className="pl-10 bg-zinc-800 border-zinc-300 text-white" data-testid="canva-search" />
                   </div>
                   <Button size="sm" className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white" onClick={() => setCreateOpen(true)} data-testid="canva-create-btn">
                     <Plus className="w-4 h-4 mr-1" /> New Design
@@ -477,24 +477,24 @@ const CanvaDirectorPage = () => {
                 </div>
 
                 {createOpen && (
-                  <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-4">
+                  <div className="bg-zinc-100/70 border border-zinc-300 rounded-xl p-4">
                     <h3 className="text-white font-medium text-sm mb-3">Create New Design</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                       <div>
                         <label className="text-xs text-zinc-400 mb-1 block">Title</label>
-                        <Input value={createForm.title} onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))} placeholder="My Design" className="bg-zinc-800 border-zinc-700 text-white" data-testid="canva-design-title" />
+                        <Input value={createForm.title} onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))} placeholder="My Design" className="bg-zinc-800 border-zinc-300 text-white" data-testid="canva-design-title" />
                       </div>
                       <div>
                         <label className="text-xs text-zinc-400 mb-1 block">Width (px)</label>
-                        <Input type="number" value={createForm.width} onChange={e => setCreateForm(p => ({ ...p, width: parseInt(e.target.value) || 0 }))} className="bg-zinc-800 border-zinc-700 text-white" />
+                        <Input type="number" value={createForm.width} onChange={e => setCreateForm(p => ({ ...p, width: parseInt(e.target.value) || 0 }))} className="bg-zinc-800 border-zinc-300 text-white" />
                       </div>
                       <div>
                         <label className="text-xs text-zinc-400 mb-1 block">Height (px)</label>
-                        <Input type="number" value={createForm.height} onChange={e => setCreateForm(p => ({ ...p, height: parseInt(e.target.value) || 0 }))} className="bg-zinc-800 border-zinc-700 text-white" />
+                        <Input type="number" value={createForm.height} onChange={e => setCreateForm(p => ({ ...p, height: parseInt(e.target.value) || 0 }))} className="bg-zinc-800 border-zinc-300 text-white" />
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="border-zinc-700 text-zinc-400" onClick={() => setCreateOpen(false)}>Cancel</Button>
+                      <Button variant="outline" size="sm" className="border-zinc-300 text-zinc-400" onClick={() => setCreateOpen(false)}>Cancel</Button>
                       <Button size="sm" className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white" onClick={createDesign} disabled={creating} data-testid="canva-create-submit">
                         {creating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />} Create
                       </Button>
@@ -515,7 +515,7 @@ const CanvaDirectorPage = () => {
                       const thumbnail = d.thumbnail?.url || d.urls?.thumbnail_url;
                       const editUrl = d.urls?.edit_url;
                       return (
-                        <div key={d.id} className="bg-zinc-800/50 border border-zinc-700 rounded-xl overflow-hidden group" data-testid={`canva-design-${d.id}`}>
+                        <div key={d.id} className="bg-zinc-100/70 border border-zinc-300 rounded-xl overflow-hidden group" data-testid={`canva-design-${d.id}`}>
                           <div className="aspect-video bg-zinc-800 relative overflow-hidden">
                             {thumbnail ? <img src={thumbnail} alt={d.title} className="w-full h-full object-cover" /> : (
                               <div className="flex items-center justify-center h-full"><Image className="w-8 h-8 text-zinc-600" /></div>
@@ -548,7 +548,7 @@ const CanvaDirectorPage = () => {
                   </div>
                 ) : (
                   activity.map((act, i) => (
-                    <div key={i} className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-3 flex items-center gap-3">
+                    <div key={i} className="bg-zinc-100/70 border border-zinc-300 rounded-xl p-3 flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${act.action === 'create_design' ? 'bg-emerald-500/15' : 'bg-blue-500/15'}`}>
                         {act.action === 'create_design' ? <Plus className="w-4 h-4 text-emerald-400" /> : <Download className="w-4 h-4 text-blue-400" />}
                       </div>

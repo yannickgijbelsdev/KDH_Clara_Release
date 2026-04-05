@@ -135,7 +135,7 @@ const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
           {overflowCount > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="w-7 h-7 rounded-full bg-zinc-700 border-2 border-[#18181b] flex items-center justify-center cursor-default">
+                <div className="w-7 h-7 rounded-full bg-zinc-200 border-2 border-[#18181b] flex items-center justify-center cursor-default">
                   <span className="text-xs font-semibold text-white">+{overflowCount}</span>
                 </div>
               </TooltipTrigger>
@@ -445,8 +445,8 @@ const ShowDetailPage = () => {
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-8 bg-zinc-800 rounded w-48 mb-8" />
-        <div className="h-64 bg-zinc-800 rounded-xl" />
+        <div className="h-8 bg-zinc-100 rounded w-48 mb-8" />
+        <div className="h-64 bg-zinc-100 rounded-xl" />
       </div>
     );
   }
@@ -523,7 +523,7 @@ const ShowDetailPage = () => {
             onClick={handlePrintView}
             variant="outline"
             size="sm"
-            className="gap-2 border-zinc-700 text-zinc-300 hover:bg-white/5"
+            className="gap-2 border-zinc-300 text-zinc-600 hover:bg-white/5"
           >
             <Printer className="w-4 h-4" />
             Export / Print
@@ -535,7 +535,7 @@ const ShowDetailPage = () => {
       </div>
 
       {/* Show Details Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Show Details</h2>
           {!isEditing ? (
@@ -552,7 +552,7 @@ const ShowDetailPage = () => {
                     });
                     setIsEditing(true);
                   }}
-                  className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                 >
                   <Edit2 className="w-4 h-4" />
                   Edit
@@ -562,7 +562,7 @@ const ShowDetailPage = () => {
                   size="sm"
                   data-testid="delete-show-btn"
                   onClick={handleDeleteClick}
-                  className="gap-2 bg-transparent border-zinc-700 text-orange-500 hover:bg-orange-500/10 hover:text-rose-400 hover:border-orange-500/50"
+                  className="gap-2 bg-transparent border-zinc-300 text-orange-500 hover:bg-orange-500/10 hover:text-rose-400 hover:border-orange-500/50"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
@@ -578,7 +578,7 @@ const ShowDetailPage = () => {
                   setIsEditing(false);
                   setEditData(show);
                 }}
-                className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -601,87 +601,87 @@ const ShowDetailPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-zinc-300">Title</Label>
+                <Label className="text-zinc-600">Title</Label>
                 <Input
                   data-testid="edit-title-input"
                   value={editData.title}
                   onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                  className="bg-[#27272a] border-zinc-700 text-white"
+                  className="bg-zinc-100 border-zinc-300 text-white"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-300">Description</Label>
+                <Label className="text-zinc-600">Description</Label>
                 <Textarea
                   data-testid="edit-description-input"
                   value={editData.description || ''}
                   onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                  className="bg-[#27272a] border-zinc-700 text-white resize-none"
+                  className="bg-zinc-100 border-zinc-300 text-white resize-none"
                   rows={3}
                 />
               </div>
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-zinc-300">Date</Label>
+                <Label className="text-zinc-600">Date</Label>
                 <Input
                   type="date"
                   data-testid="edit-date-input"
                   value={editData.date}
                   onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                  className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                  className="bg-zinc-100 border-zinc-300 text-white font-mono"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-zinc-300">Start Time</Label>
+                  <Label className="text-zinc-600">Start Time</Label>
                   <Input
                     type="time"
                     data-testid="edit-start-time-input"
                     value={editData.start_time}
                     onChange={(e) => setEditData({ ...editData, start_time: e.target.value })}
-                    className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                    className="bg-zinc-100 border-zinc-300 text-white font-mono"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-zinc-300">End Time</Label>
+                  <Label className="text-zinc-600">End Time</Label>
                   <Input
                     type="time"
                     data-testid="edit-end-time-input"
                     value={editData.end_time}
                     onChange={(e) => setEditData({ ...editData, end_time: e.target.value })}
-                    className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                    className="bg-zinc-100 border-zinc-300 text-white font-mono"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-300">Status</Label>
+                <Label className="text-zinc-600">Status</Label>
                 <Select
                   value={editData.status}
                   onValueChange={(value) => setEditData({ ...editData, status: value })}
                 >
                   <SelectTrigger
                     data-testid="edit-status-select"
-                    className="bg-[#27272a] border-zinc-700 text-white"
+                    className="bg-zinc-100 border-zinc-300 text-white"
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#18181b] border-zinc-800">
-                    <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                    <SelectItem value="scheduled" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Scheduled</SelectItem>
-                    <SelectItem value="completed" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Completed</SelectItem>
+                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                    <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
+                    <SelectItem value="scheduled" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Scheduled</SelectItem>
+                    <SelectItem value="completed" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {/* Presenters Selection */}
               <div className="space-y-2">
-                <Label className="text-zinc-300">Presenters</Label>
+                <Label className="text-zinc-600">Presenters</Label>
                 <Popover open={presenterPopoverOpen} onOpenChange={setPresenterPopoverOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       type="button"
                       variant="outline"
                       data-testid="edit-presenters-select"
-                      className="w-full justify-start text-left bg-[#27272a] border-zinc-700 text-white hover:bg-zinc-700"
+                      className="w-full justify-start text-left bg-zinc-100 border-zinc-300 text-white hover:bg-zinc-200"
                     >
                       <Users className="w-4 h-4 mr-2 text-violet-400" />
                       {editData.presenter_ids?.length > 0 ? (
@@ -695,8 +695,8 @@ const ShowDetailPage = () => {
                       )}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-72 p-0 bg-[#18181b] border-zinc-800" align="start">
-                    <div className="p-2 border-b border-zinc-800">
+                  <PopoverContent className="w-72 p-0 bg-zinc-100 border-zinc-200" align="start">
+                    <div className="p-2 border-b border-zinc-200">
                       <p className="text-sm text-zinc-400 font-medium">Team Members</p>
                     </div>
                     <div className="max-h-60 overflow-y-auto p-2 space-y-1">
@@ -708,10 +708,10 @@ const ShowDetailPage = () => {
                           className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
                             editData.presenter_ids?.includes(user.id)
                               ? 'bg-violet-500/20 text-violet-400'
-                              : 'hover:bg-zinc-800 text-zinc-300'
+                              : 'hover:bg-zinc-100 text-zinc-600'
                           }`}
                         >
-                          <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+                          <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
                             {getAvatarUrl(user) ? (
                               <img src={getAvatarUrl(user)} alt={user.name} className="w-full h-full object-cover" />
                             ) : (
@@ -740,7 +740,7 @@ const ShowDetailPage = () => {
           <div>
             {/* Presenters */}
             {show.presenters && show.presenters.length > 0 && (
-              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-zinc-800">
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-zinc-200">
                 <div className="flex items-center gap-2 text-violet-400">
                   <Users className="w-4 h-4" />
                   <span className="text-sm font-medium">Presenters:</span>
@@ -751,7 +751,7 @@ const ShowDetailPage = () => {
                       key={presenter.id}
                       className="flex items-center gap-2 px-2 py-1 bg-violet-500/10 border border-violet-500/30 rounded-full"
                     >
-                      <div className="w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+                      <div className="w-5 h-5 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
                         {getAvatarUrl(presenter) ? (
                           <img src={getAvatarUrl(presenter)} alt={presenter.name} className="w-full h-full object-cover" />
                         ) : (
@@ -775,7 +775,7 @@ const ShowDetailPage = () => {
 
       {/* Show Settings Section - Recurrence Only */}
       {!show.is_recurring && !show.parent_show_id && isEditor && (
-        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
+        <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Settings className="w-5 h-5 text-orange-400" />
@@ -784,7 +784,7 @@ const ShowDetailPage = () => {
           </div>
           
           <div>
-            <h3 className="text-sm font-medium text-zinc-300 mb-3">Recurrence</h3>
+            <h3 className="text-sm font-medium text-zinc-600 mb-3">Recurrence</h3>
             <p className="text-zinc-500 text-sm mb-3">Make this a recurring show to automatically schedule future episodes.</p>
             <Button
               variant="outline"
@@ -793,7 +793,7 @@ const ShowDetailPage = () => {
                 setEnableRecurrenceData({ interval: 1, endDate: null });
                 setEnableRecurrenceDialogOpen(true);
               }}
-              className="gap-2 bg-transparent border-zinc-700 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
+              className="gap-2 bg-transparent border-zinc-300 text-violet-400 hover:bg-violet-500/10 hover:border-violet-500/50"
             >
               <Repeat className="w-4 h-4" />
               Make Recurring
@@ -804,7 +804,7 @@ const ShowDetailPage = () => {
 
       {/* Recurrence Settings Section - Only for recurring shows */}
       {show.is_recurring && (
-        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
+        <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
@@ -823,7 +823,7 @@ const ShowDetailPage = () => {
                       });
                       setIsEditingRecurrence(true);
                     }}
-                    className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                    className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                   >
                     <Settings className="w-4 h-4" />
                     Configure
@@ -832,7 +832,7 @@ const ShowDetailPage = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setStopRecurrenceDialogOpen(true)}
-                    className="gap-2 bg-transparent border-zinc-700 text-orange-500 hover:bg-orange-500/10 hover:text-orange-400 hover:border-orange-500/50"
+                    className="gap-2 bg-transparent border-zinc-300 text-orange-500 hover:bg-orange-500/10 hover:text-orange-400 hover:border-orange-500/50"
                   >
                     <CalendarOff className="w-4 h-4" />
                     Stop Recurring
@@ -845,7 +845,7 @@ const ShowDetailPage = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsEditingRecurrence(false)}
-                  className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                 >
                   <X className="w-4 h-4" />
                   Cancel
@@ -892,14 +892,14 @@ const ShowDetailPage = () => {
                   value={String(recurrenceData.interval)}
                   onValueChange={(value) => setRecurrenceData({ ...recurrenceData, interval: parseInt(value) })}
                 >
-                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#18181b] border-zinc-800">
-                    <SelectItem value="1" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
-                    <SelectItem value="2" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
-                    <SelectItem value="3" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
-                    <SelectItem value="4" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 4 weeks</SelectItem>
+                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                    <SelectItem value="1" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
+                    <SelectItem value="2" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
+                    <SelectItem value="3" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
+                    <SelectItem value="4" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 4 weeks</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -910,7 +910,7 @@ const ShowDetailPage = () => {
                     <Button
                       variant="outline"
                       className={cn(
-                        'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-700 hover:bg-zinc-700',
+                        'w-full justify-start text-left font-normal bg-zinc-100 border-zinc-300 hover:bg-zinc-200',
                         !recurrenceData.endDate && 'text-zinc-500'
                       )}
                     >
@@ -918,8 +918,8 @@ const ShowDetailPage = () => {
                       {recurrenceData.endDate ? format(recurrenceData.endDate, 'PPP') : 'No end date'}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-[#18181b] border-zinc-800" align="start">
-                    <div className="p-2 border-b border-zinc-800">
+                  <PopoverContent className="w-auto p-0 bg-zinc-100 border-zinc-200" align="start">
+                    <div className="p-2 border-b border-zinc-200">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -934,7 +934,7 @@ const ShowDetailPage = () => {
                       selected={recurrenceData.endDate}
                       onSelect={(date) => setRecurrenceData({ ...recurrenceData, endDate: date })}
                       initialFocus
-                      className="bg-[#18181b]"
+                      className="bg-zinc-100"
                     />
                   </PopoverContent>
                 </Popover>
@@ -1009,11 +1009,11 @@ const ShowDetailPage = () => {
                                 href={`${API}/uploads/media/${asset.file_storage_key}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg hover:bg-zinc-800 transition-colors group"
+                                className="flex items-center gap-3 p-3 bg-zinc-100/70 rounded-lg hover:bg-zinc-100 transition-colors group"
                               >
                                 <FileIcon className="w-5 h-5 text-zinc-400 flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm text-zinc-300 truncate">{asset.title}</p>
+                                  <p className="text-sm text-zinc-600 truncate">{asset.title}</p>
                                   <p className="text-xs text-zinc-500">{asset.kind}</p>
                                 </div>
                                 <ExternalLink className="w-4 h-4 text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -1048,7 +1048,7 @@ const ShowDetailPage = () => {
 
       {/* Delete Confirmation Dialog (Non-recurring) */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Show</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -1056,7 +1056,7 @@ const ShowDetailPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -1072,7 +1072,7 @@ const ShowDetailPage = () => {
 
       {/* Recurring Show - Edit Dialog */}
       <AlertDialog open={recurringEditDialogOpen} onOpenChange={setRecurringEditDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
@@ -1083,14 +1083,14 @@ const ShowDetailPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <Button
               variant="outline"
               onClick={() => handleSave(false)}
               disabled={saving}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="border-zinc-300 text-zinc-600 hover:bg-zinc-100"
             >
               {saving ? 'Saving...' : 'Only This One'}
             </Button>
@@ -1107,7 +1107,7 @@ const ShowDetailPage = () => {
 
       {/* Recurring Show - Delete Dialog */}
       <AlertDialog open={recurringDeleteDialogOpen} onOpenChange={setRecurringDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
@@ -1118,7 +1118,7 @@ const ShowDetailPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <Button
@@ -1140,7 +1140,7 @@ const ShowDetailPage = () => {
 
       {/* Stop Recurrence Dialog */}
       <AlertDialog open={stopRecurrenceDialogOpen} onOpenChange={setStopRecurrenceDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <CalendarOff className="w-5 h-5 text-orange-400" />
@@ -1151,7 +1151,7 @@ const ShowDetailPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <Button
@@ -1171,7 +1171,7 @@ const ShowDetailPage = () => {
                   toast.error('Failed to stop recurrence');
                 }
               }}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="border-zinc-300 text-zinc-600 hover:bg-zinc-100"
             >
               Keep Future Shows
             </Button>
@@ -1201,7 +1201,7 @@ const ShowDetailPage = () => {
 
       {/* Enable Recurrence Dialog */}
       <AlertDialog open={enableRecurrenceDialogOpen} onOpenChange={setEnableRecurrenceDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
@@ -1219,14 +1219,14 @@ const ShowDetailPage = () => {
                 value={String(enableRecurrenceData.interval)}
                 onValueChange={(value) => setEnableRecurrenceData({ ...enableRecurrenceData, interval: parseInt(value) })}
               >
-                <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
-                  <SelectItem value="1" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
-                  <SelectItem value="2" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
-                  <SelectItem value="3" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
-                  <SelectItem value="4" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Every 4 weeks</SelectItem>
+                <SelectContent className="bg-zinc-100 border-zinc-200">
+                  <SelectItem value="1" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
+                  <SelectItem value="2" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
+                  <SelectItem value="3" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
+                  <SelectItem value="4" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 4 weeks</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1238,7 +1238,7 @@ const ShowDetailPage = () => {
                   <Button
                     variant="outline"
                     className={cn(
-                      'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-700 hover:bg-zinc-800',
+                      'w-full justify-start text-left font-normal bg-zinc-100 border-zinc-300 hover:bg-zinc-100',
                       !enableRecurrenceData.endDate && 'text-zinc-500'
                     )}
                   >
@@ -1246,13 +1246,13 @@ const ShowDetailPage = () => {
                     {enableRecurrenceData.endDate ? format(enableRecurrenceData.endDate, 'PPP') : 'No end date (1 year default)'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[#18181b] border-zinc-800" align="start">
+                <PopoverContent className="w-auto p-0 bg-zinc-100 border-zinc-200" align="start">
                   {enableRecurrenceData.endDate && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setEnableRecurrenceData({ ...enableRecurrenceData, endDate: null })}
-                      className="w-full text-zinc-400 hover:text-white hover:bg-zinc-800"
+                      className="w-full text-zinc-400 hover:text-white hover:bg-zinc-100"
                     >
                       Clear end date
                     </Button>
@@ -1263,7 +1263,7 @@ const ShowDetailPage = () => {
                     onSelect={(date) => setEnableRecurrenceData({ ...enableRecurrenceData, endDate: date })}
                     disabled={(date) => date < new Date()}
                     initialFocus
-                    className="bg-[#18181b]"
+                    className="bg-zinc-100"
                   />
                 </PopoverContent>
               </Popover>
@@ -1271,7 +1271,7 @@ const ShowDetailPage = () => {
           </div>
 
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <Button

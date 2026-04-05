@@ -64,7 +64,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
   };
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg border ${item.enabled ? 'bg-zinc-800/50 border-zinc-700' : 'bg-zinc-900/50 border-zinc-800 opacity-60'}`}>
+    <div className={`flex items-center gap-3 p-3 rounded-lg border ${item.enabled ? 'bg-zinc-800/50 border-zinc-300' : 'bg-white/60 border-zinc-200 opacity-60'}`}>
       {/* Enable/Disable checkbox */}
       <Switch
         checked={item.enabled}
@@ -90,7 +90,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
           onKeyDown={(e) => e.key === 'Enter' && handleContentBlur()}
           placeholder="Enter text..."
           disabled={!item.enabled}
-          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-white text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+          className="bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-1.5 text-white text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
         />
       ) : (
         <span className="text-zinc-500 text-sm flex-1">{typeConfig.description}</span>
@@ -106,7 +106,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
           value={item.duration}
           onChange={(e) => onUpdate({ ...item, duration: parseInt(e.target.value) || 5 })}
           disabled={!item.enabled}
-          className="bg-zinc-800 border-zinc-700 text-white w-16 text-center h-8 text-sm"
+          className="bg-zinc-800 border-zinc-300 text-white w-16 text-center h-8 text-sm"
         />
         <span className="text-zinc-500 text-xs">sec</span>
       </div>
@@ -205,9 +205,9 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#18181b] border border-zinc-700 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-zinc-100 border border-zinc-300 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between p-4 border-b border-zinc-200">
           <h3 className="text-lg font-semibold text-white">
             {output ? 'Edit Output' : 'New Output'}
           </h3>
@@ -226,7 +226,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
                 value={name}
                 onChange={handleNameChange}
                 placeholder="e.g. Streaming, DAB+, FM"
-                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                className="bg-zinc-800 border-zinc-300 text-white mt-1"
               />
             </div>
             <div>
@@ -236,13 +236,13 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                 placeholder="e.g. streaming, dab, fm"
                 disabled={!!output}
-                className="bg-zinc-800 border-zinc-700 text-white mt-1 font-mono"
+                className="bg-zinc-800 border-zinc-300 text-white mt-1 font-mono"
               />
             </div>
           </div>
 
           {/* Preview URL */}
-          <div className="bg-zinc-900 rounded-lg p-3">
+          <div className="bg-white/80 backdrop-blur rounded-lg p-3">
             <Label className="text-zinc-500 text-xs">API URL for MagicRDS:</Label>
             <code className="text-orange-400 text-sm block mt-1">
               https://clara.koodh.com/api/rds-builder/output/{station}/{slug || 'slug'}.txt
@@ -286,8 +286,8 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 p-4 border-t border-zinc-800">
-          <Button variant="outline" onClick={onClose} className="border-zinc-700 text-zinc-300">
+        <div className="flex justify-end gap-2 p-4 border-t border-zinc-200">
+          <Button variant="outline" onClick={onClose} className="border-zinc-300 text-zinc-600">
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
@@ -331,7 +331,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
   const enabledItemCount = output.items?.filter(i => i.enabled).length || 0;
 
   return (
-    <div className={`bg-zinc-800/50 border rounded-lg p-4 ${output.enabled ? 'border-zinc-700' : 'border-zinc-800 opacity-60'}`}>
+    <div className={`bg-zinc-800/50 border rounded-lg p-4 ${output.enabled ? 'border-zinc-300' : 'border-zinc-200 opacity-60'}`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${output.enabled ? 'bg-green-500' : 'bg-zinc-600'}`} />
@@ -349,7 +349,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
       </div>
 
       {/* Current output preview */}
-      <div className="bg-zinc-900 rounded-lg p-3 mb-3">
+      <div className="bg-white/80 backdrop-blur rounded-lg p-3 mb-3">
         <span className="text-zinc-500 text-xs block mb-1">Current output:</span>
         <span className="text-orange-400 font-medium">
           {output.current_text || <span className="text-zinc-600 italic">No output</span>}
@@ -379,7 +379,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Output</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -387,7 +387,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-white hover:bg-zinc-700">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
@@ -467,7 +467,7 @@ const RDSOutputManager = ({ station, stationName, color }) => {
 
   if (loading) {
     return (
-      <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+      <div className={`bg-zinc-100 border ${colors.border} rounded-xl p-6`}>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
         </div>
@@ -476,7 +476,7 @@ const RDSOutputManager = ({ station, stationName, color }) => {
   }
 
   return (
-    <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+    <div className={`bg-zinc-100 border ${colors.border} rounded-xl p-6`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">

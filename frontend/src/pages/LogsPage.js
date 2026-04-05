@@ -268,10 +268,10 @@ const LogsPage = () => {
   const renderLogRow = (log) => {
     const ActionIcon = getActionIcon(log.action);
     return (
-      <tr key={log.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
+      <tr key={log.id} className="border-b border-zinc-200 hover:bg-zinc-100/70">
         <td className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-zinc-800 rounded-lg">
+            <div className="p-2 bg-zinc-100 rounded-lg">
               <ActionIcon className="w-4 h-4 text-orange-400" />
             </div>
             <div>
@@ -283,7 +283,7 @@ const LogsPage = () => {
           </div>
         </td>
         <td className="px-4 py-3">
-          <span className={`px-2 py-1 rounded text-xs font-medium ${categoryColors[log.category] || 'bg-zinc-700 text-zinc-300'}`}>
+          <span className={`px-2 py-1 rounded text-xs font-medium ${categoryColors[log.category] || 'bg-zinc-200 text-zinc-600'}`}>
             {log.category}
           </span>
         </td>
@@ -291,7 +291,7 @@ const LogsPage = () => {
           <div className="flex items-center gap-2">
             <User className="w-4 h-4 text-zinc-500" />
             <div>
-              <p className="text-zinc-300 text-sm">{log.user_name || 'System'}</p>
+              <p className="text-zinc-600 text-sm">{log.user_name || 'System'}</p>
               <p className="text-zinc-500 text-xs">{log.user_email}</p>
             </div>
           </div>
@@ -333,7 +333,7 @@ const LogsPage = () => {
               variant={showArchive ? "default" : "outline"}
               className={showArchive 
                 ? "gap-2 bg-orange-500 hover:bg-orange-600 text-white" 
-                : "gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                : "gap-2 border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               }
             >
               <Archive className="w-4 h-4" />
@@ -343,7 +343,7 @@ const LogsPage = () => {
           <Button
             onClick={() => { fetchLogs(); fetchStats(); }}
             variant="outline"
-            className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            className="gap-2 border-zinc-300 text-zinc-600 hover:bg-zinc-100"
           >
             <RefreshCw className="w-4 h-4" />
             Refresh
@@ -354,19 +354,19 @@ const LogsPage = () => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Total Events</p>
             <p className="text-2xl font-bold text-white">{stats.total.toLocaleString()}</p>
           </div>
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Last 24 Hours</p>
             <p className="text-2xl font-bold text-orange-500">{stats.recent_24h.toLocaleString()}</p>
           </div>
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Chat Events</p>
             <p className="text-2xl font-bold text-emerald-400">{stats.by_category?.chat || 0}</p>
           </div>
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Content Events</p>
             <p className="text-2xl font-bold text-green-400">{stats.by_category?.content || 0}</p>
           </div>
@@ -377,7 +377,7 @@ const LogsPage = () => {
       {showArchive && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Calendar */}
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <Button variant="ghost" size="icon" onClick={previousMonth} className="text-zinc-400 hover:text-white">
                 <ChevronLeft className="w-5 h-5" />
@@ -422,7 +422,7 @@ const LogsPage = () => {
                       ${isSelected 
                         ? 'bg-orange-500 text-white' 
                         : hasLogs 
-                          ? 'bg-zinc-800 text-white hover:bg-zinc-700' 
+                          ? 'bg-zinc-800 text-white hover:bg-zinc-200' 
                           : 'text-zinc-600 cursor-not-allowed'
                       }
                       ${isToday(day) && !isSelected ? 'ring-2 ring-orange-500/50' : ''}
@@ -443,8 +443,8 @@ const LogsPage = () => {
           {/* Archive Logs for Selected Date */}
           <div className="lg:col-span-2">
             {selectedDate ? (
-              <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+              <div className="bg-zinc-100 border border-zinc-200 rounded-xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-white">
                       {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
@@ -452,10 +452,10 @@ const LogsPage = () => {
                     <p className="text-sm text-zinc-400">{archiveLogs.length} events</p>
                   </div>
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-40 bg-[#27272a] border-zinc-700 text-white">
+                    <SelectTrigger className="w-40 bg-zinc-100 border-zinc-300 text-white">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#18181b] border-zinc-800">
+                    <SelectContent className="bg-zinc-100 border-zinc-200">
                       <SelectItem value="all">All Categories</SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.value} value={cat.value}>
@@ -487,7 +487,7 @@ const LogsPage = () => {
                 )}
               </div>
             ) : (
-              <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-8 text-center h-full flex flex-col items-center justify-center">
+              <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-8 text-center h-full flex flex-col items-center justify-center">
                 <CalendarIcon className="w-12 h-12 text-zinc-600 mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">Select a Date</h3>
                 <p className="text-zinc-400">Click on a date in the calendar to view logs from that day</p>
@@ -501,7 +501,7 @@ const LogsPage = () => {
       {!showArchive && (
         <>
           {/* Filters */}
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 mb-6">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
@@ -510,16 +510,16 @@ const LogsPage = () => {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(0); }}
                   placeholder="Search by action, user, email, or IP..."
-                  className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                  className="pl-10 bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
                 />
               </div>
               
               <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(0); }}>
-                <SelectTrigger data-testid="category-filter" className="w-full md:w-48 bg-[#27272a] border-zinc-700 text-white">
+                <SelectTrigger data-testid="category-filter" className="w-full md:w-48 bg-zinc-100 border-zinc-300 text-white">
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
@@ -530,11 +530,11 @@ const LogsPage = () => {
               </Select>
               
               <Select value={userFilter} onValueChange={(v) => { setUserFilter(v); setPage(0); }}>
-                <SelectTrigger data-testid="user-filter" className="w-full md:w-48 bg-[#27272a] border-zinc-700 text-white">
+                <SelectTrigger data-testid="user-filter" className="w-full md:w-48 bg-zinc-100 border-zinc-300 text-white">
                   <User className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All Users" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   <SelectItem value="all">All Users</SelectItem>
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
@@ -547,7 +547,7 @@ const LogsPage = () => {
           </div>
 
           {/* Logs Table */}
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl overflow-hidden">
             {loading ? (
               <div className="p-8 text-center">
                 <RefreshCw className="w-8 h-8 text-zinc-500 animate-spin mx-auto mb-2" />
@@ -564,7 +564,7 @@ const LogsPage = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-zinc-800 bg-zinc-900/50">
+                      <tr className="border-b border-zinc-200 bg-white/60">
                         <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Action</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">Category</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">User</th>
@@ -580,7 +580,7 @@ const LogsPage = () => {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800">
+                  <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-200">
                     <p className="text-sm text-zinc-400">
                       Showing {page * limit + 1} to {Math.min((page + 1) * limit, total)} of {total} logs
                     </p>
@@ -590,7 +590,7 @@ const LogsPage = () => {
                         size="sm"
                         onClick={() => setPage(p => Math.max(0, p - 1))}
                         disabled={page === 0}
-                        className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+                        className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </Button>
@@ -602,7 +602,7 @@ const LogsPage = () => {
                         size="sm"
                         onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                         disabled={page >= totalPages - 1}
-                        className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 disabled:opacity-50"
+                        className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </Button>

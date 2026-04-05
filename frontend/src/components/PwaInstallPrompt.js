@@ -66,13 +66,13 @@ const PwaInstallPrompt = () => {
 
   return (
     <div data-testid="pwa-install-prompt" className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md mx-4 bg-zinc-900 border border-zinc-700/60 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
+      <div className="relative w-full max-w-md mx-4 bg-zinc-900 border border-zinc-300/60 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
         {/* Header accent */}
         <div className="h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500" />
 
         <div className="p-6">
           {/* Close */}
-          <button data-testid="pwa-install-dismiss" onClick={() => setShow(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-300 transition-colors">
+          <button data-testid="pwa-install-dismiss" onClick={() => setShow(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-600 transition-colors">
             <X className="w-5 h-5" />
           </button>
 
@@ -108,7 +108,7 @@ const PwaInstallPrompt = () => {
               {(isIOS || isSafari) && (
                 <div className="flex items-start gap-3 bg-zinc-800/60 rounded-xl p-3.5">
                   <Share className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-zinc-300">
+                  <div className="text-sm text-zinc-600">
                     <span className="font-semibold text-zinc-100">Safari: </span>
                     Tap the <span className="text-orange-400 font-medium">Share</span> button in the toolbar, then select <span className="text-orange-400 font-medium">"Add to Home Screen"</span>
                   </div>
@@ -117,7 +117,7 @@ const PwaInstallPrompt = () => {
               {(isChrome || isEdge) && !isIOS && (
                 <div className="flex items-start gap-3 bg-zinc-800/60 rounded-xl p-3.5">
                   <MoreVertical className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-zinc-300">
+                  <div className="text-sm text-zinc-600">
                     <span className="font-semibold text-zinc-100">{isEdge ? 'Edge' : 'Chrome'}: </span>
                     Tap <span className="text-orange-400 font-medium">{isAndroid ? 'the menu (three dots)' : 'the install icon in the address bar'}</span>, then select <span className="text-orange-400 font-medium">"Install app"</span>
                   </div>
@@ -126,7 +126,7 @@ const PwaInstallPrompt = () => {
               {!isIOS && !isSafari && !isChrome && !isEdge && (
                 <div className="flex items-start gap-3 bg-zinc-800/60 rounded-xl p-3.5">
                   <Download className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-zinc-300">
+                  <div className="text-sm text-zinc-600">
                     Open Clara in <span className="text-orange-400 font-medium">Chrome</span> or <span className="text-orange-400 font-medium">Edge</span> for the best install experience.
                   </div>
                 </div>
@@ -135,8 +135,8 @@ const PwaInstallPrompt = () => {
           )}
 
           {/* Footer actions */}
-          <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
-            <button data-testid="pwa-install-dont-show" onClick={saveDismiss} className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+          <div className="flex items-center justify-between pt-3 border-t border-zinc-200">
+            <button data-testid="pwa-install-dont-show" onClick={saveDismiss} className="text-xs text-zinc-500 hover:text-zinc-600 transition-colors">
               Don't show again
             </button>
             <span className="text-[10px] text-zinc-600">Settings &gt; Personal Settings</span>

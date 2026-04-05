@@ -153,7 +153,7 @@ const RichTextEditor = ({
           style={{ zIndex: 100000 }}
           data-testid="editor-upload-overlay"
         >
-          <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 shadow-2xl min-w-[320px]">
+          <div className="bg-zinc-900 border border-zinc-300 rounded-xl p-6 shadow-2xl min-w-[320px]">
             <div className="flex items-center gap-3 mb-4">
               {uploadSuccess ? (
                 <CheckCircle className="w-6 h-6 text-green-500" />
@@ -167,7 +167,7 @@ const RichTextEditor = ({
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
               </div>
             </div>
-            <div className="w-full bg-zinc-800 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-zinc-100 rounded-full h-3 overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-300 ease-out ${
                   uploadSuccess ? 'bg-gradient-to-r from-green-500 to-green-400' : 'bg-gradient-to-r from-orange-500 to-orange-400'

@@ -201,7 +201,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
 
       {/* Setup Dialog */}
       <Dialog open={setupDialogOpen} onOpenChange={setSetupDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-emerald-500" />
@@ -226,7 +226,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               <p className="text-sm text-zinc-400 text-center">
                 Gebruik Google Authenticator, Authy, of een andere TOTP app
               </p>
-              <div className="bg-zinc-800 rounded-lg p-3">
+              <div className="bg-zinc-100 rounded-lg p-3">
                 <p className="text-xs text-zinc-500 mb-1">Or enter this code manually:</p>
                 <code className="text-sm text-white font-mono break-all">{setupData.secret}</code>
               </div>
@@ -309,7 +309,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
 
       {/* Disable Dialog */}
       <Dialog open={disableDialogOpen} onOpenChange={setDisableDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
               <ShieldOff className="w-5 h-5" />
@@ -356,7 +356,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
 
       {/* Backup Codes Dialog */}
       <Dialog open={backupCodesDialogOpen} onOpenChange={setBackupCodesDialogOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <KeyRound className="w-5 h-5 text-orange-500" />
@@ -401,7 +401,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
 
             {backupCodes.length > 0 && (
               <>
-                <div className="border-t border-zinc-800 pt-4">
+                <div className="border-t border-zinc-200 pt-4">
                   <p className="text-sm text-zinc-400 mb-2">Je nieuwe backup codes:</p>
                   <div className="grid grid-cols-2 gap-2">
                     {backupCodes.map((code, i) => (

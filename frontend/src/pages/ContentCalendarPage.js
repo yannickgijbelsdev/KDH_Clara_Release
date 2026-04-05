@@ -232,14 +232,14 @@ const ContentCalendarPage = () => {
           <Button
             variant="outline"
             onClick={() => navigate(navTo('/content'))}
-            className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+            className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
           >
             <List className="w-4 h-4 mr-2" />
             Back to list
           </Button>
         </div>
 
-        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6">
+        <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4 sm:p-6">
           {/* Calendar Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
             <div className="flex items-center gap-2 sm:gap-4">
@@ -250,7 +250,7 @@ const ContentCalendarPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => { setCurrentMonth(new Date()); setSelectedDate(new Date()); }}
-                className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 Today
               </Button>
@@ -261,7 +261,7 @@ const ContentCalendarPage = () => {
                 size="icon"
                 data-testid="prev-month-btn"
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -270,7 +270,7 @@ const ContentCalendarPage = () => {
                 size="icon"
                 data-testid="next-month-btn"
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -290,7 +290,7 @@ const ContentCalendarPage = () => {
           {loading ? (
             <div className="grid grid-cols-7 gap-1">
               {Array.from({ length: 35 }).map((_, i) => (
-                <div key={i} className="aspect-square bg-zinc-800/50 rounded-lg animate-pulse" />
+                <div key={i} className="aspect-square bg-zinc-100/70 rounded-lg animate-pulse" />
               ))}
             </div>
           ) : (
@@ -310,15 +310,15 @@ const ContentCalendarPage = () => {
                     onClick={() => setSelectedDate(day)}
                     className={`
                       aspect-square p-1 rounded-lg transition-all duration-200 relative
-                      ${isCurrentMonth ? 'bg-[#27272a]' : 'bg-[#1a1a1c]'}
+                      ${isCurrentMonth ? 'bg-zinc-100' : 'bg-[#1a1a1c]'}
                       ${isSelected ? 'ring-2 ring-orange-500 bg-orange-500/10' : ''}
                       ${dayIsToday && !isSelected ? 'ring-2 ring-violet-500' : ''}
-                      hover:bg-zinc-700
+                      hover:bg-zinc-200
                     `}
                   >
                     <span className={`
                       text-sm font-mono block mb-1
-                      ${isCurrentMonth ? 'text-zinc-300' : 'text-zinc-600'}
+                      ${isCurrentMonth ? 'text-zinc-600' : 'text-zinc-600'}
                       ${dayIsToday ? 'text-violet-400 font-bold' : ''}
                       ${isSelected ? 'text-rose-400' : ''}
                     `}>
@@ -352,7 +352,7 @@ const ContentCalendarPage = () => {
           )}
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-zinc-800">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-zinc-200">
             <span className="text-xs text-zinc-500">Status:</span>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500" />
@@ -382,7 +382,7 @@ const ContentCalendarPage = () => {
 
       {/* Sidebar - Selected Date Details */}
       <div className="w-full lg:w-80 lg:shrink-0">
-        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6 lg:sticky lg:top-8">
+        <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4 sm:p-6 lg:sticky lg:top-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-orange-500/20 rounded-lg">
               <CalendarIcon className="w-5 h-5 text-orange-500" />
@@ -398,7 +398,7 @@ const ContentCalendarPage = () => {
           </div>
 
           {selectedDate && (
-            <div className="border-t border-zinc-800 pt-4">
+            <div className="border-t border-zinc-200 pt-4">
               {selectedDateEntries.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="w-8 h-8 text-zinc-600 mx-auto mb-3" />
@@ -414,7 +414,7 @@ const ContentCalendarPage = () => {
                       key={entry.id}
                       data-testid={`sidebar-content-${entry.id}`}
                       onClick={() => navigate(navTo(`/content/${entry.contentId}`))}
-                      className="w-full text-left p-3 bg-[#27272a] rounded-lg hover:bg-zinc-700 transition-colors group"
+                      className="w-full text-left p-3 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors group"
                     >
                       <div className="flex gap-3">
                         {/* Featured Image */}

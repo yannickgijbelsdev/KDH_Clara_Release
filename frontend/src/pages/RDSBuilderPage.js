@@ -114,7 +114,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
 
   if (loading) {
     return (
-      <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+      <div className={`bg-zinc-100 border ${colors.border} rounded-xl p-6`}>
         <div className="flex items-center justify-center py-4">
           <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
         </div>
@@ -123,7 +123,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
   }
 
   return (
-    <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+    <div className={`bg-zinc-100 border ${colors.border} rounded-xl p-6`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
           onClick={() => navigate(navTo('/rds-scheduler'))}
           variant="outline"
           size="sm"
-          className="border-zinc-700 text-zinc-300 hover:text-white"
+          className="border-zinc-300 text-zinc-600 hover:text-white"
         >
           <Calendar className="w-4 h-4 mr-2" />
           Scheduler
@@ -160,8 +160,8 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
               key={text.id}
               className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
                 text.enabled 
-                  ? 'bg-zinc-800/50 border-zinc-700' 
-                  : 'bg-zinc-900/50 border-zinc-800 opacity-60'
+                  ? 'bg-zinc-100/70 border-zinc-300' 
+                  : 'bg-white/60 border-zinc-200 opacity-60'
               }`}
             >
               {/* Toggle Switch */}
@@ -231,7 +231,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
       )}
 
       {/* Info note */}
-      <div className="mt-4 pt-4 border-t border-zinc-800">
+      <div className="mt-4 pt-4 border-t border-zinc-200">
         <p className="text-xs text-zinc-500">
           <strong className="text-zinc-400">Priority:</strong> Shows &gt; Scheduled texts &gt; Sequence items
         </p>
@@ -271,7 +271,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
   };
 
   return (
-    <div className="bg-[#27272a] rounded-lg p-4 border border-zinc-700">
+    <div className="bg-zinc-100 rounded-lg p-4 border border-zinc-300">
       <div className="flex items-center gap-3">
         {/* Drag handle / Move buttons */}
         <div className="flex flex-col gap-1">
@@ -301,7 +301,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
         </div>
 
         {/* Type icon */}
-        <div className="p-2 bg-zinc-800 rounded-lg">
+        <div className="p-2 bg-zinc-100 rounded-lg">
           <TypeIcon className="w-4 h-4 text-zinc-400" />
         </div>
 
@@ -309,7 +309,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
         <select
           value={item.type}
           onChange={(e) => onUpdate({ ...item, type: e.target.value })}
-          className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-sm flex-shrink-0"
+          className="bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-white text-sm flex-shrink-0"
         >
           {ITEM_TYPES.map(type => (
             <option key={type.value} value={type.value}>{type.label}</option>
@@ -329,7 +329,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
               }
             }}
             placeholder="Enter text..."
-            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-white flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
             data-testid={`custom-text-input-${index}`}
           />
         )}
@@ -348,7 +348,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
             max="60"
             value={item.duration}
             onChange={(e) => onUpdate({ ...item, duration: parseInt(e.target.value) || 5 })}
-            className="bg-zinc-800 border-zinc-700 text-white w-16 text-center"
+            className="bg-zinc-800 border-zinc-300 text-white w-16 text-center"
           />
           <span className="text-zinc-500 text-sm">sec</span>
         </div>
@@ -486,7 +486,7 @@ const StationBuilder = ({ station, stationName, color }) => {
 
   if (loading) {
     return (
-      <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+      <div className={`bg-zinc-100 border ${colors.border} rounded-xl p-6`}>
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
         </div>
@@ -495,7 +495,7 @@ const StationBuilder = ({ station, stationName, color }) => {
   }
 
   return (
-    <div className={`bg-[#18181b] border ${colors.border} rounded-xl p-6`}>
+    <div className={`bg-zinc-100 border ${colors.border} rounded-xl p-6`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -542,7 +542,7 @@ const StationBuilder = ({ station, stationName, color }) => {
             variant="outline"
             size="sm"
             onClick={copyOutputUrl}
-            className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+            className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
           >
             {copiedUrl ? (
               <Check className="w-3 h-3 mr-1 text-green-500" />
@@ -564,7 +564,7 @@ const StationBuilder = ({ station, stationName, color }) => {
       </div>
 
       {/* Output URL */}
-      <div className="bg-[#27272a] rounded-lg p-3 mb-6">
+      <div className="bg-zinc-100 rounded-lg p-3 mb-6">
         <Label className="text-zinc-400 text-xs mb-1 block">MagicRDS URL:</Label>
         <code className={`text-sm ${colors.text} break-all`}>
           https://clara.koodh.com/api/rds-builder/output/{station}.txt
@@ -592,14 +592,14 @@ const StationBuilder = ({ station, stationName, color }) => {
       <Button
         variant="outline"
         onClick={addItem}
-        className="w-full border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+        className="w-full border-dashed border-zinc-300 text-zinc-400 hover:bg-zinc-100"
       >
         <Plus className="w-4 h-4 mr-2" />
         Add Item
       </Button>
 
       {/* Loop toggle */}
-      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-zinc-800">
+      <div className="flex items-center gap-2 mt-4 pt-4 border-t border-zinc-200">
         <Switch
           checked={sequence?.loop || false}
           onCheckedChange={(checked) => setSequence({ ...sequence, loop: checked })}
@@ -657,7 +657,7 @@ const RDSBuilderPage = () => {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'outputs'
               ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-              : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-white'
+              : 'bg-zinc-800 text-zinc-400 border border-zinc-300 hover:text-white'
           }`}
         >
           📡 Multi-Output (Streaming, DAB, FM)
@@ -667,7 +667,7 @@ const RDSBuilderPage = () => {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'legacy'
               ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-              : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:text-white'
+              : 'bg-zinc-800 text-zinc-400 border border-zinc-300 hover:text-white'
           }`}
         >
           🔄 Sequence Builder (Legacy)

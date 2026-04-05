@@ -249,7 +249,7 @@ const AdminApprovalPage = () => {
         <Button
           onClick={fetchContent}
           variant="outline"
-          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-2"
+          className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 gap-2"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh
@@ -264,7 +264,7 @@ const AdminApprovalPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by title or author..."
-            className="pl-10 bg-[#18181b] border-zinc-800 text-white placeholder:text-zinc-500"
+            className="pl-10 bg-zinc-100 border-zinc-200 text-white placeholder:text-zinc-500"
           />
         </div>
 
@@ -272,37 +272,37 @@ const AdminApprovalPage = () => {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="bg-[#18181b] border-zinc-800 text-zinc-300 hover:bg-zinc-800 hover:text-white gap-2"
+              className="bg-zinc-100 border-zinc-200 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
             >
               {statusFilter === 'all' ? 'All Status' :
                statusFilter === 'pending' ? 'Pending' :
                statusFilter === 'approved' ? 'Approved' : 'Rejected'}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+          <DropdownMenuContent className="bg-zinc-100 border-zinc-200">
             <DropdownMenuItem
               onClick={() => setStatusFilter('all')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               All Status
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('pending')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               <Clock className="w-4 h-4 mr-2 text-yellow-500" />
               Pending
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('approved')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
               Approved
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('rejected')}
-              className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
             >
               <XCircle className="w-4 h-4 mr-2 text-red-500" />
               Rejected
@@ -317,16 +317,16 @@ const AdminApprovalPage = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 animate-pulse"
+              className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 animate-pulse"
             >
-              <div className="h-6 bg-zinc-800 rounded w-1/3 mb-3" />
-              <div className="h-4 bg-zinc-800 rounded w-2/3" />
+              <div className="h-6 bg-zinc-100 rounded w-1/3 mb-3" />
+              <div className="h-4 bg-zinc-100 rounded w-2/3" />
             </div>
           ))}
         </div>
       ) : filteredContent.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-green-500" />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">
@@ -349,10 +349,10 @@ const AdminApprovalPage = () => {
             return (
               <div
                 key={item.id}
-                className={`bg-[#18181b] border rounded-xl p-4 sm:p-5 transition-all ${
+                className={`bg-zinc-100 border rounded-xl p-4 sm:p-5 transition-all ${
                   isPending
                     ? 'border-yellow-500/50 hover:border-yellow-500'
-                    : 'border-zinc-800 hover:border-zinc-700'
+                    : 'border-zinc-200 hover:border-zinc-300'
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -370,7 +370,7 @@ const AdminApprovalPage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="p-3 bg-zinc-800 rounded-lg">
+                      <div className="p-3 bg-zinc-100 rounded-lg">
                         <TypeIcon className="w-6 h-6 text-zinc-400" />
                       </div>
                     )}
@@ -424,7 +424,7 @@ const AdminApprovalPage = () => {
                       </div>
 
                       {item.approval_notes && (
-                        <p className="text-xs text-zinc-400 mt-2 italic bg-zinc-800/50 rounded px-2 py-1">
+                        <p className="text-xs text-zinc-400 mt-2 italic bg-zinc-100/70 rounded px-2 py-1">
                           Note: {item.approval_notes}
                         </p>
                       )}
@@ -437,7 +437,7 @@ const AdminApprovalPage = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(navTo(`/content/${item.id}`))}
-                      className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1"
+                      className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 gap-1"
                     >
                       <Eye className="w-4 h-4" />
                       View
@@ -470,7 +470,7 @@ const AdminApprovalPage = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => openApprovalDialog(item, 'pending')}
-                        className="bg-transparent border-zinc-700 text-zinc-400 hover:bg-zinc-800"
+                        className="bg-transparent border-zinc-300 text-zinc-400 hover:bg-zinc-100"
                       >
                         Revoke
                       </Button>
@@ -496,7 +496,7 @@ const AdminApprovalPage = () => {
 
       {/* Approval Dialog */}
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               {approvalAction === 'approved' && (
@@ -552,7 +552,7 @@ const AdminApprovalPage = () => {
                     ? 'Please explain what needs to be fixed...'
                     : 'Add any notes...'
                 }
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 resize-none"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500 resize-none"
                 rows={3}
               />
             </div>
@@ -561,7 +561,7 @@ const AdminApprovalPage = () => {
               <Button
                 variant="outline"
                 onClick={() => setApprovalDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               >
                 Cancel
               </Button>

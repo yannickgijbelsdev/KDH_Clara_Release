@@ -228,7 +228,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
   const content = (
     <>
       {/* Tabs */}
-      <div className="flex gap-1 bg-zinc-800/50 rounded-lg p-1 mb-4">
+      <div className="flex gap-1 bg-zinc-100/70 rounded-lg p-1 mb-4">
         {[
           { id: 'smtp', label: 'SMTP Config', icon: Mail },
           { id: 'alert', label: 'System Alert', icon: AlertCircle },
@@ -238,7 +238,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm transition-colors ${tab === t.id ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm transition-colors ${tab === t.id ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
             data-testid={`notif-tab-${t.id}`}
           >
             <t.icon className="w-4 h-4" />
@@ -256,7 +256,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
               <div className="relative">
                 <button
                   onClick={() => setProviderOpen(!providerOpen)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-left"
+                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-800 border border-zinc-300 hover:border-zinc-600 text-left"
                   data-testid="smtp-provider-select"
                 >
                   <div>
@@ -268,12 +268,12 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${providerOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {providerOpen && (
-                  <div className="absolute z-50 mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl overflow-hidden">
+                  <div className="absolute z-50 mt-1 w-full bg-zinc-800 border border-zinc-300 rounded-lg shadow-xl overflow-hidden">
                     {providers.map(p => (
                       <button
                         key={p.id}
                         onClick={() => selectProvider(p.id)}
-                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-700 transition-colors ${smtpForm.provider === p.id ? 'bg-zinc-700/50' : ''}`}
+                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${smtpForm.provider === p.id ? 'bg-zinc-700/50' : ''}`}
                         data-testid={`smtp-provider-${p.id}`}
                       >
                         <Mail className="w-4 h-4 text-zinc-400 flex-shrink-0" />
@@ -294,11 +294,11 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>SMTP Host</Label>
-                  <Input value={smtpForm.host} onChange={e => setSmtpForm(p => ({ ...p, host: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="smtp.example.com" data-testid="smtp-host" />
+                  <Input value={smtpForm.host} onChange={e => setSmtpForm(p => ({ ...p, host: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="smtp.example.com" data-testid="smtp-host" />
                 </div>
                 <div>
                   <Label>Port</Label>
-                  <Input type="number" value={smtpForm.port} onChange={e => setSmtpForm(p => ({ ...p, port: parseInt(e.target.value) || 587 }))} className="bg-zinc-800 border-zinc-700" data-testid="smtp-port" />
+                  <Input type="number" value={smtpForm.port} onChange={e => setSmtpForm(p => ({ ...p, port: parseInt(e.target.value) || 587 }))} className="bg-zinc-800 border-zinc-300" data-testid="smtp-port" />
                 </div>
               </div>
             )}
@@ -306,22 +306,22 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Username / Email</Label>
-                <Input value={smtpForm.username} onChange={e => setSmtpForm(p => ({ ...p, username: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="user@example.com" data-testid="smtp-username" />
+                <Input value={smtpForm.username} onChange={e => setSmtpForm(p => ({ ...p, username: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="user@example.com" data-testid="smtp-username" />
               </div>
               <div>
                 <Label>Password / App Password</Label>
-                <Input type="password" value={smtpForm.password} onChange={e => setSmtpForm(p => ({ ...p, password: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="••••••••" data-testid="smtp-password" />
+                <Input type="password" value={smtpForm.password} onChange={e => setSmtpForm(p => ({ ...p, password: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="••••••••" data-testid="smtp-password" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Sender Email</Label>
-                <Input value={smtpForm.from_email} onChange={e => setSmtpForm(p => ({ ...p, from_email: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="noreply@example.com" data-testid="smtp-from-email" />
+                <Input value={smtpForm.from_email} onChange={e => setSmtpForm(p => ({ ...p, from_email: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="noreply@example.com" data-testid="smtp-from-email" />
               </div>
               <div>
                 <Label>Sender Name</Label>
-                <Input value={smtpForm.from_name} onChange={e => setSmtpForm(p => ({ ...p, from_name: e.target.value }))} className="bg-zinc-800 border-zinc-700" placeholder="Clara Radio Dashboard" data-testid="smtp-from-name" />
+                <Input value={smtpForm.from_name} onChange={e => setSmtpForm(p => ({ ...p, from_name: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="Clara Radio Dashboard" data-testid="smtp-from-name" />
               </div>
             </div>
 
@@ -345,13 +345,13 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
 
             {/* Test Email */}
             {smtpConfig?.configured && (
-              <Card className="bg-zinc-800/50 border-zinc-700">
+              <Card className="bg-zinc-100/70 border-zinc-300">
                 <CardContent className="flex items-center gap-3 p-4">
                   <Send className="w-5 h-5 text-zinc-400 flex-shrink-0" />
                   <Input
                     value={testEmailAddr}
                     onChange={e => setTestEmailAddr(e.target.value)}
-                    className="bg-zinc-800 border-zinc-700 flex-1"
+                    className="bg-zinc-800 border-zinc-300 flex-1"
                     placeholder="test@example.com"
                     data-testid="test-email-input"
                   />
@@ -372,7 +372,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
               Configure a system-wide alert email that receives <strong className="text-white">all</strong> notifications from all sites — ideal for global administrators.
             </p>
 
-            <div className="flex items-center justify-between p-4 rounded-lg bg-zinc-800/50 border border-zinc-700">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-zinc-100/70 border border-zinc-300">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${systemAlert.enabled ? 'bg-emerald-500/10' : 'bg-zinc-700'}`}>
                   <Bell className={`w-5 h-5 ${systemAlert.enabled ? 'text-emerald-400' : 'text-zinc-500'}`} />
@@ -399,7 +399,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   value={systemAlert.email}
                   onChange={(e) => setSystemAlert(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="clara.global@koodh.com"
-                  className="bg-zinc-800 border-zinc-700 mt-1"
+                  className="bg-zinc-800 border-zinc-300 mt-1"
                   data-testid="system-alert-email"
                 />
               </div>
@@ -418,7 +418,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       className={`p-3 rounded-lg border text-left transition-colors ${
                         systemAlert.mode === m.id
                           ? 'border-orange-500/50 bg-orange-500/10'
-                          : 'border-zinc-700 bg-zinc-800/50 hover:border-zinc-600'
+                          : 'border-zinc-300 bg-zinc-100/70 hover:border-zinc-600'
                       }`}
                       data-testid={`system-alert-mode-${m.id}`}
                     >
@@ -447,7 +447,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
               <div className="relative">
                 <button
                   onClick={() => setSiteDropdownOpen(!siteDropdownOpen)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-800 border border-zinc-700 hover:border-zinc-600 text-left"
+                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-800 border border-zinc-300 hover:border-zinc-600 text-left"
                   data-testid="site-selector"
                 >
                   <div className="flex items-center gap-2">
@@ -457,10 +457,10 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${siteDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {siteDropdownOpen && (
-                  <div className="absolute z-50 mt-1 w-full bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full bg-zinc-800 border border-zinc-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
                     <button
                       onClick={() => { setSelectedSiteId(''); setSiteDropdownOpen(false); }}
-                      className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-700 transition-colors ${!selectedSiteId ? 'bg-zinc-700/50' : ''}`}
+                      className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${!selectedSiteId ? 'bg-zinc-700/50' : ''}`}
                       data-testid="site-option-global"
                     >
                       <Globe className="w-4 h-4 text-zinc-400 flex-shrink-0" />
@@ -474,7 +474,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       <button
                         key={site.id}
                         onClick={() => { setSelectedSiteId(site.id); setSiteDropdownOpen(false); }}
-                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-700 transition-colors ${selectedSiteId === site.id ? 'bg-zinc-700/50' : ''}`}
+                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${selectedSiteId === site.id ? 'bg-zinc-700/50' : ''}`}
                         data-testid={`site-option-${site.slug}`}
                       >
                         <div className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : 'bg-zinc-700'}`}>
@@ -504,14 +504,14 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   const activeCount = (roleCfg.categories || []).length;
 
                   return (
-                    <Card key={role.slug} className={`bg-zinc-800/50 border-zinc-700 ${isExpanded ? 'border-orange-500/30' : ''}`}>
+                    <Card key={role.slug} className={`bg-zinc-100/70 border-zinc-300 ${isExpanded ? 'border-orange-500/30' : ''}`}>
                       <button
                         className="w-full flex items-center justify-between p-4 text-left"
                         onClick={() => setSelectedRole(isExpanded ? null : role.slug)}
                         data-testid={`role-notif-${role.slug}`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-300">
+                          <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-bold text-zinc-600">
                             {role.name?.charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -530,7 +530,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       </button>
 
                       {isExpanded && (
-                        <CardContent className="pt-0 pb-4 px-4 space-y-4 border-t border-zinc-700/50">
+                        <CardContent className="pt-0 pb-4 px-4 space-y-4 border-t border-zinc-300/50">
                           {/* Mode selector */}
                           <div className="pt-3">
                             <Label className="text-xs text-zinc-400 mb-2 block">Notification Type</Label>
@@ -542,7 +542,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                                   className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors ${
                                     roleCfg.mode === m.id
                                       ? 'bg-orange-500/10 border-orange-500/30 text-orange-400'
-                                      : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                                      : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:border-zinc-600'
                                   }`}
                                   data-testid={`role-mode-${role.slug}-${m.id}`}
                                 >
@@ -562,7 +562,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                                 const Icon = CATEGORY_ICONS[cat.id] || Bell;
                                 const active = (roleCfg.categories || []).includes(cat.id);
                                 return (
-                                  <div key={cat.id} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-zinc-800/50">
+                                  <div key={cat.id} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-zinc-100/70">
                                     <div className="flex items-center gap-2.5">
                                       <Icon className={`w-4 h-4 ${active ? 'text-orange-400' : 'text-zinc-500'}`} />
                                       <div>
@@ -620,12 +620,12 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   const failedCount = (evt.emails_failed || []).length;
                   const attemptedCount = (evt.emails_attempted || []).length;
                   return (
-                    <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-zinc-800/30 hover:bg-zinc-800/50" data-testid={`notif-log-${i}`}>
+                    <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-zinc-800/30 hover:bg-zinc-100/70" data-testid={`notif-log-${i}`}>
                       <Icon className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-medium text-white truncate">{evt.event_type}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-400">{evt.category}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-400">{evt.category}</span>
                           {sentCount > 0 && (
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                               {sentCount} sent
@@ -676,7 +676,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
   // Dialog mode
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-800 max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="notification-settings">
+      <DialogContent className="bg-white border-zinc-200 max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="notification-settings">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Bell className="w-5 h-5 text-orange-400" />

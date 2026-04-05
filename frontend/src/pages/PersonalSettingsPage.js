@@ -70,7 +70,7 @@ const PersonalSettingsPage = () => {
       </div>
 
       {/* Profile Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <User className="w-5 h-5 text-orange-400" />
           Profile
@@ -89,7 +89,7 @@ const PersonalSettingsPage = () => {
       </div>
 
       {/* Security Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <Shield className="w-5 h-5 text-orange-400" />
           Beveiliging
@@ -99,7 +99,7 @@ const PersonalSettingsPage = () => {
       </div>
 
       {/* Menu Display Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <LayoutGrid className="w-5 h-5 text-orange-400" />
           Navigation Display
@@ -122,7 +122,7 @@ const PersonalSettingsPage = () => {
           </div>
 
           {/* Preview */}
-          <div className="border border-zinc-700 rounded-lg p-4 bg-zinc-900/50">
+          <div className="border border-zinc-300 rounded-lg p-4 bg-white/60">
             <p className="text-xs text-zinc-500 uppercase tracking-wider mb-3">Preview</p>
             <div className="flex gap-8">
               {/* Grouped Preview */}
@@ -163,7 +163,7 @@ const PersonalSettingsPage = () => {
       </div>
 
       {/* App Install Prompt */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <Smartphone className="w-5 h-5 text-orange-400" />
           Install App Prompt

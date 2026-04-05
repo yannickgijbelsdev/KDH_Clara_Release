@@ -158,7 +158,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
 
   const PermissionToggles = () => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/50 border border-zinc-700">
+      <div className="flex items-center justify-between p-3 rounded-lg bg-zinc-100/70 border border-zinc-300">
         <div className="flex items-center gap-3">
           <Lock className="w-4 h-4 text-amber-400" />
           <div>
@@ -177,7 +177,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
         {PERMISSION_CATEGORIES.map(cat => {
           const Icon = cat.icon;
           return (
-            <div key={cat.id} className="flex items-center justify-between p-3 rounded-lg bg-zinc-800/50 border border-zinc-700">
+            <div key={cat.id} className="flex items-center justify-between p-3 rounded-lg bg-zinc-100/70 border border-zinc-300">
               <div className="flex items-center gap-3">
                 <Icon className="w-4 h-4 text-zinc-400" />
                 <div>
@@ -209,10 +209,10 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
       ) : (
         <div className="space-y-4">
           {admins.map(admin => (
-            <Card key={admin.id} className={`bg-zinc-800/50 border-zinc-700 ${admin.is_primary_network_admin ? 'border-orange-500/30' : ''}`}>
+            <Card key={admin.id} className={`bg-zinc-100/70 border-zinc-300 ${admin.is_primary_network_admin ? 'border-orange-500/30' : ''}`}>
               <CardContent className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${admin.is_primary_network_admin ? 'bg-gradient-to-br from-orange-500 to-amber-600 text-white' : 'bg-zinc-700 text-zinc-300'}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${admin.is_primary_network_admin ? 'bg-gradient-to-br from-orange-500 to-amber-600 text-white' : 'bg-zinc-200 text-zinc-600'}`}>
                     {admin.name?.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -249,7 +249,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
           {(isPrimary || isNetworkAdmin) && (
             <Button
               onClick={() => { resetForm(); setShowAddDialog(true); }}
-              className="w-full gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 border-dashed"
+              className="w-full gap-2 bg-zinc-800 hover:bg-zinc-200 border border-zinc-300 border-dashed"
               variant="outline"
               data-testid="add-network-admin-btn"
             >
@@ -262,7 +262,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
 
       {/* Add Admin Dialog */}
       <Dialog open={showAddDialog} onOpenChange={(v) => { if (!v) { setShowAddDialog(false); resetForm(); } }}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="add-admin-dialog">
+        <DialogContent className="bg-white border-zinc-200 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="add-admin-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-emerald-400" />
@@ -275,7 +275,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
               <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                 <p className="text-sm text-emerald-400 mb-2">Temporary password:</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-2 bg-zinc-800 rounded text-white font-mono text-sm">{tempPassword}</code>
+                  <code className="flex-1 p-2 bg-zinc-100 rounded text-white font-mono text-sm">{tempPassword}</code>
                   <Button size="icon" variant="ghost" onClick={() => { navigator.clipboard.writeText(tempPassword); toast.success('Copied!'); }}>
                     <Copy className="w-4 h-4" />
                   </Button>
@@ -289,9 +289,9 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
               {/* Select existing user */}
               {allUsers.length > 0 && (
                 <div>
-                  <Label className="text-sm text-zinc-300 mb-2 block">Select existing user</Label>
+                  <Label className="text-sm text-zinc-600 mb-2 block">Select existing user</Label>
                   <select
-                    className="w-full h-10 px-3 rounded-md bg-zinc-800 border border-zinc-700 text-white text-sm"
+                    className="w-full h-10 px-3 rounded-md bg-zinc-800 border border-zinc-300 text-white text-sm"
                     value=""
                     onChange={(e) => {
                       const selected = allUsers.find(u => u.id === e.target.value);
@@ -324,7 +324,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="bg-zinc-800 border-zinc-700"
+                    className="bg-zinc-800 border-zinc-300"
                     data-testid="admin-name-input"
                   />
                 </div>
@@ -335,14 +335,14 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="bg-zinc-800 border-zinc-700"
+                    className="bg-zinc-800 border-zinc-300"
                     data-testid="admin-email-input"
                   />
                 </div>
               </div>
 
               <div>
-                <Label className="text-sm text-zinc-300 mb-2 block">Permissions</Label>
+                <Label className="text-sm text-zinc-600 mb-2 block">Permissions</Label>
                 <PermissionToggles />
               </div>
 
@@ -360,7 +360,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
 
       {/* Edit Permissions Dialog */}
       <Dialog open={!!editingAdmin} onOpenChange={(v) => { if (!v) { setEditingAdmin(null); resetForm(); } }}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="edit-permissions-dialog">
+        <DialogContent className="bg-white border-zinc-200 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="edit-permissions-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-blue-400" />
@@ -390,7 +390,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
   // Dialog mode
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="network-admin-manager">
+      <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="network-admin-manager">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Crown className="w-5 h-5 text-orange-400" />

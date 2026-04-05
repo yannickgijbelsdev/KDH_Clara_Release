@@ -49,7 +49,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
       {stats.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {stats.map(s => (
-            <div key={s.member_id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+            <div key={s.member_id} className="bg-zinc-900 border border-zinc-200 rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Server className="w-4 h-4 text-zinc-400" />
@@ -60,7 +60,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
                     ? 'bg-emerald-500/15 text-emerald-400'
                     : s.last_known_status === 'offline'
                     ? 'bg-red-500/15 text-red-400'
-                    : 'bg-zinc-700 text-zinc-400'
+                    : 'bg-zinc-200 text-zinc-400'
                 }`}>
                   {s.last_known_status === 'online' ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
                   {s.last_known_status || 'unknown'}
@@ -97,7 +97,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
           <select
             value={filterMember}
             onChange={e => setFilterMember(e.target.value)}
-            className="bg-zinc-800 border border-zinc-700 rounded-lg px-2 py-1 text-sm text-white"
+            className="bg-zinc-800 border border-zinc-300 rounded-lg px-2 py-1 text-sm text-white"
             data-testid="zt-history-filter"
           >
             <option value="">All clients</option>

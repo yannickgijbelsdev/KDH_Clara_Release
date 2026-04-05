@@ -68,7 +68,7 @@ const RadioPanels = ({ mainSite, mainSiteSlug, navigate, shows, teamMembers, con
       <div className="px-5 py-4">
         <div className="flex items-center justify-between">
           <div><span className="text-2xl font-bold text-zinc-900">{shows.length}</span><p className="text-xs text-zinc-400">Total shows</p></div>
-          <button onClick={() => navigate(`/${mainSiteSlug}/calendar`)} className="bg-zinc-900 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-zinc-800 transition-colors flex items-center gap-1.5">
+          <button onClick={() => navigate(`/${mainSiteSlug}/calendar`)} className="bg-zinc-900 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-zinc-100 transition-colors flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5" />Schedule
           </button>
         </div>
@@ -123,7 +123,7 @@ const GenericPanels = ({ mainSite, mainSiteSlug, navigate, teamMembers, loading,
                 <button key={item.to} onClick={() => navigate(`/${mainSiteSlug}/${item.to}`)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 transition-colors group">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.color}`}><item.icon className="w-4 h-4" /></div>
                   <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900">{item.label}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-zinc-300 ml-auto group-hover:text-zinc-500 transition-colors" />
+                  <ArrowRight className="w-3.5 h-3.5 text-zinc-600 ml-auto group-hover:text-zinc-500 transition-colors" />
                 </button>
               ))}
             </div>
@@ -269,7 +269,7 @@ export default function DashboardHome() {
                     <button key={item.to} onClick={() => navigate(`/${mainSiteSlug}/${item.to}`)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 transition-colors group">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.color}`}><item.icon className="w-4 h-4" /></div>
                       <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900">{item.label}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-zinc-300 ml-auto group-hover:text-zinc-500 transition-colors" />
+                      <ArrowRight className="w-3.5 h-3.5 text-zinc-600 ml-auto group-hover:text-zinc-500 transition-colors" />
                     </button>
                   ))}
                 </div>

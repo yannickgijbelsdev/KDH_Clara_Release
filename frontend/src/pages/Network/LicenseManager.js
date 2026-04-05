@@ -259,7 +259,7 @@ export default function LicenseManager() {
   return (
     <div className="space-y-6" data-testid="license-manager">
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-zinc-800 pb-2">
+      <div className="flex gap-2 border-b border-zinc-200 pb-2">
         {[
           { id: 'overview', label: 'License Overview', icon: Globe },
           { id: 'requests', label: 'Requests', icon: FileText, badge: licenseRequests.filter(r => r.status === 'pending').length },
@@ -307,9 +307,9 @@ export default function LicenseManager() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {unassignedSites.map(site => (
-                  <div key={site.site_id} className="flex items-center justify-between bg-zinc-900/50 rounded-lg px-3 py-2">
+                  <div key={site.site_id} className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-700 text-zinc-300'}`}>
+                      <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
                         {SITE_TYPE_LABELS[site.site_type] || site.site_type}
                       </span>
                       <span className="text-sm text-zinc-200">{site.site_name}</span>
@@ -323,7 +323,7 @@ export default function LicenseManager() {
                         className={`h-7 px-2 text-xs rounded border transition-colors ${
                           site.is_demo
                             ? 'bg-amber-600/20 border-amber-600/40 text-amber-400 hover:bg-amber-600/30'
-                            : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700'
+                            : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:bg-zinc-200'
                         }`}
                         data-testid={`toggle-demo-${site.site_slug}`}
                       >
@@ -342,7 +342,7 @@ export default function LicenseManager() {
 
           {/* Assigned sites */}
           {assignedSites.length > 0 && (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-white border-zinc-200">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-green-400 flex items-center gap-2">
                   <Shield className="w-4 h-4" />
@@ -352,9 +352,9 @@ export default function LicenseManager() {
               <CardContent>
                 <div className="space-y-2">
                   {assignedSites.map(site => (
-                    <div key={site.site_id} className="flex items-center justify-between bg-zinc-800/50 rounded-lg px-3 py-2">
+                    <div key={site.site_id} className="flex items-center justify-between bg-zinc-100/70 rounded-lg px-3 py-2">
                       <div className="flex items-center gap-3">
-                        <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-700 text-zinc-300'}`}>
+                        <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
                           {SITE_TYPE_LABELS[site.site_type] || site.site_type}
                         </span>
                         <span className="text-sm text-zinc-200">{site.site_name}</span>
@@ -398,7 +398,7 @@ export default function LicenseManager() {
           </p>
 
           {licenseRequests.length === 0 ? (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-white border-zinc-200">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="w-12 h-12 text-zinc-600 mb-3" />
                 <p className="text-zinc-400 text-sm">No license requests yet</p>
@@ -413,13 +413,13 @@ export default function LicenseManager() {
                 const statusColor = isPending ? 'bg-amber-500/15 text-amber-400 border-amber-500/25' : isApproved ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : 'bg-red-500/15 text-red-400 border-red-500/25';
                 const StatusIcon = isPending ? Clock : isApproved ? CheckCircle : XCircle;
                 return (
-                  <Card key={req.id} className="bg-zinc-900 border-zinc-800" data-testid={`license-request-${req.id}`}>
+                  <Card key={req.id} className="bg-white border-zinc-200" data-testid={`license-request-${req.id}`}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-white font-medium">{req.site_name}</span>
-                            <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[req.site_type] || 'bg-zinc-700 text-zinc-300'}`}>
+                            <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[req.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
                               {SITE_TYPE_LABELS[req.site_type] || req.site_type}
                             </span>
                             <span className={`px-2 py-0.5 rounded text-xs border ${statusColor}`}>
@@ -428,10 +428,10 @@ export default function LicenseManager() {
                             </span>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-zinc-400">
-                            <div><span className="text-zinc-600">Slug:</span> <span className="text-zinc-300 font-mono">/{req.site_slug}</span></div>
-                            <div><span className="text-zinc-600">Environment:</span> <span className="text-zinc-300">{req.environment_name}</span></div>
-                            <div><span className="text-zinc-600">Requested by:</span> <span className="text-zinc-300">{req.requester_name}</span></div>
-                            <div><span className="text-zinc-600">Date:</span> <span className="text-zinc-300">{new Date(req.created_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
+                            <div><span className="text-zinc-600">Slug:</span> <span className="text-zinc-600 font-mono">/{req.site_slug}</span></div>
+                            <div><span className="text-zinc-600">Environment:</span> <span className="text-zinc-600">{req.environment_name}</span></div>
+                            <div><span className="text-zinc-600">Requested by:</span> <span className="text-zinc-600">{req.requester_name}</span></div>
+                            <div><span className="text-zinc-600">Date:</span> <span className="text-zinc-600">{new Date(req.created_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
                           </div>
                           {req.reviewed_by && (
                             <p className="text-xs text-zinc-500 mt-2">
@@ -486,14 +486,14 @@ export default function LicenseManager() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {packages.map(pkg => (
-              <Card key={pkg.id} className="bg-zinc-900 border-zinc-800" data-testid={`package-card-${pkg.slug}`}>
+              <Card key={pkg.id} className="bg-white border-zinc-200" data-testid={`package-card-${pkg.slug}`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base text-zinc-100 flex items-center gap-2">
                       <Package className="w-4 h-4 text-orange-400" />
                       {pkg.name}
                       {pkg.is_default && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-400">Default</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-200 text-zinc-400">Default</span>
                       )}
                     </CardTitle>
                     <div className="flex gap-1">
@@ -513,13 +513,13 @@ export default function LicenseManager() {
                   <div className="space-y-3">
                     {/* Pricing */}
                     <div className="flex gap-3">
-                      <div className="bg-zinc-800 rounded px-2 py-1 text-center flex-1">
+                      <div className="bg-zinc-100 rounded px-2 py-1 text-center flex-1">
                         <p className="text-[10px] text-zinc-500 uppercase">Monthly</p>
                         <p className="text-sm font-semibold text-zinc-200">
                           {pkg.monthly_price > 0 ? `${pkg.currency} ${pkg.monthly_price.toFixed(2)}` : 'Free'}
                         </p>
                       </div>
-                      <div className="bg-zinc-800 rounded px-2 py-1 text-center flex-1">
+                      <div className="bg-zinc-100 rounded px-2 py-1 text-center flex-1">
                         <p className="text-[10px] text-zinc-500 uppercase">Yearly</p>
                         <p className="text-sm font-semibold text-zinc-200">
                           {pkg.yearly_price > 0 ? `${pkg.currency} ${pkg.yearly_price.toFixed(2)}` : 'Free'}
@@ -533,7 +533,7 @@ export default function LicenseManager() {
                         {(pkg.features || []).map(fId => {
                           const feat = availableFeatures.find(f => f.id === fId);
                           return (
-                            <span key={fId} className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-300">
+                            <span key={fId} className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-600">
                               {feat?.name || fId}
                             </span>
                           );
@@ -550,7 +550,7 @@ export default function LicenseManager() {
 
       {/* Package Create/Edit Dialog */}
       <Dialog open={pkgDialog} onOpenChange={setPkgDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPkg ? 'Edit Package' : 'Create Package'}</DialogTitle>
           </DialogHeader>
@@ -591,13 +591,13 @@ export default function LicenseManager() {
                     <p className="text-xs text-zinc-500 uppercase mb-1 capitalize">{group}</p>
                     <div className="space-y-1">
                       {features.map(f => (
-                        <label key={f.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-zinc-800 cursor-pointer">
+                        <label key={f.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-zinc-100 cursor-pointer">
                           <Checkbox
                             checked={pkgForm.features.includes(f.id)}
                             onCheckedChange={() => toggleFeature(f.id)}
                             data-testid={`feature-checkbox-${f.id}`}
                           />
-                          <span className="text-sm text-zinc-300">{f.name}</span>
+                          <span className="text-sm text-zinc-600">{f.name}</span>
                         </label>
                       ))}
                     </div>
@@ -617,7 +617,7 @@ export default function LicenseManager() {
 
       {/* Assignment Dialog */}
       <Dialog open={assignDialog} onOpenChange={setAssignDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
           <DialogHeader>
             <DialogTitle>Assign License</DialogTitle>
           </DialogHeader>
@@ -625,7 +625,7 @@ export default function LicenseManager() {
             <div>
               <Label>Site</Label>
               <select
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
+                className="w-full rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
                 value={assignForm.main_site_id}
                 onChange={e => setAssignForm(p => ({ ...p, main_site_id: e.target.value }))}
                 data-testid="assign-site-select"
@@ -641,7 +641,7 @@ export default function LicenseManager() {
             <div>
               <Label>Package</Label>
               <select
-                className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
+                className="w-full rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
                 value={assignForm.package_id}
                 onChange={e => setAssignForm(p => ({ ...p, package_id: e.target.value }))}
                 data-testid="assign-package-select"
@@ -661,7 +661,7 @@ export default function LicenseManager() {
                     className={`flex-1 px-3 py-1.5 rounded text-sm transition-colors ${
                       assignForm.billing_cycle === c.value
                         ? 'bg-orange-600 text-white'
-                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200'
                     }`}
                     data-testid={`billing-cycle-${c.value}`}
                   >
@@ -694,7 +694,7 @@ export default function LicenseManager() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialog.open} onOpenChange={open => !open && setDeleteDialog(prev => ({ ...prev, open: false }))}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-700">
+        <AlertDialogContent className="bg-zinc-900 border-zinc-300">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {deleteDialog.type === 'package' ? 'Package' : 'License'}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -717,7 +717,7 @@ export default function LicenseManager() {
 
 function StatCard({ label, value, icon: Icon, color }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
+    <div className="bg-zinc-900 border border-zinc-200 rounded-lg p-3">
       <div className="flex items-center gap-2 mb-1">
         <Icon className={`w-4 h-4 ${color}`} />
         <span className="text-xs text-zinc-500">{label}</span>

@@ -242,7 +242,7 @@ const RDSSettingsPage = () => {
       </div>
 
       {/* Settings Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-orange-400" />
@@ -253,7 +253,7 @@ const RDSSettingsPage = () => {
               variant="outline"
               size="sm"
               onClick={() => setEditMode(true)}
-              className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="gap-2 border-zinc-300 text-zinc-600 hover:bg-zinc-100"
             >
               <Settings className="w-4 h-4" />
               Edit
@@ -270,7 +270,7 @@ const RDSSettingsPage = () => {
                     cache_refresh_interval: settings.cache_refresh_interval,
                   });
                 }}
-                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               >
                 Cancel
               </Button>
@@ -290,26 +290,26 @@ const RDSSettingsPage = () => {
         {editMode ? (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Production Base URL</Label>
+              <Label className="text-zinc-600">Production Base URL</Label>
               <Input
                 value={editData.production_base_url}
                 onChange={(e) => setEditData({ ...editData, production_base_url: e.target.value })}
                 placeholder="https://clara.koodh.com"
-                className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                className="bg-zinc-100 border-zinc-300 text-white font-mono"
               />
               <p className="text-xs text-zinc-500">
                 The base URL of your production environment. This is used for the API endpoints.
               </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-zinc-300">Cache Refresh Interval (minutes)</Label>
+              <Label className="text-zinc-600">Cache Refresh Interval (minutes)</Label>
               <Input
                 type="number"
                 min="1"
                 max="60"
                 value={editData.cache_refresh_interval}
                 onChange={(e) => setEditData({ ...editData, cache_refresh_interval: parseInt(e.target.value) || 5 })}
-                className="bg-[#27272a] border-zinc-700 text-white w-24"
+                className="bg-zinc-100 border-zinc-300 text-white w-24"
               />
               <p className="text-xs text-zinc-500">
                 How often the live show cache is automatically refreshed.
@@ -339,7 +339,7 @@ const RDSSettingsPage = () => {
       </div>
 
       {/* API Endpoints Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <ExternalLink className="w-5 h-5 text-violet-400" />
           <h2 className="text-lg font-semibold text-white">API Endpoints</h2>
@@ -368,9 +368,9 @@ const RDSSettingsPage = () => {
                 {stationEndpoints.map((endpoint, index) => (
                   <div
                     key={index}
-                    className={`bg-[#27272a] rounded-lg p-3 border ${
+                    className={`bg-zinc-100 rounded-lg p-3 border ${
                       stationColor === 'orange' ? 'border-orange-500/30' : 
-                      stationColor === 'violet' ? 'border-violet-500/30' : 'border-zinc-800'
+                      stationColor === 'violet' ? 'border-violet-500/30' : 'border-zinc-200'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -393,7 +393,7 @@ const RDSSettingsPage = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => copyToClipboard(endpoint.full_url, endpoint.name)}
-                        className="shrink-0 gap-1 border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs px-2 py-1 h-7"
+                        className="shrink-0 gap-1 border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs px-2 py-1 h-7"
                       >
                         {copiedUrl === endpoint.name ? (
                           <Check className="w-3 h-3 text-green-500" />
@@ -411,7 +411,7 @@ const RDSSettingsPage = () => {
       </div>
 
       {/* Cache Logs Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-5 h-5 text-zinc-400" />
           <h2 className="text-lg font-semibold text-white">Cache Logs</h2>
@@ -428,7 +428,7 @@ const RDSSettingsPage = () => {
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="flex items-start gap-3 p-3 bg-[#27272a] rounded-lg"
+                className="flex items-start gap-3 p-3 bg-zinc-100 rounded-lg"
               >
                 {getStatusIcon(log.status)}
                 <div className="flex-1 min-w-0">
@@ -452,7 +452,7 @@ const RDSSettingsPage = () => {
       </div>
 
       {/* Shoutcast Filters Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-orange-400" />
           <h2 className="text-lg font-semibold text-white">Now Playing Filters</h2>
@@ -472,7 +472,7 @@ const RDSSettingsPage = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setEditingFilters(null)}
-                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+                    className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
                   >
                     Cancel
                   </Button>
@@ -491,7 +491,7 @@ const RDSSettingsPage = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setEditingFilters('mfy')}
-                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+                  className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
                 >
                   <Settings className="w-3 h-3 mr-1" />
                   Edit
@@ -503,20 +503,20 @@ const RDSSettingsPage = () => {
           {editingFilters === 'mfy' ? (
             <div className="space-y-2">
               {mfyFilters.map((filter, idx) => (
-                <div key={idx} className="flex flex-col gap-2 bg-[#27272a] rounded-lg p-2">
+                <div key={idx} className="flex flex-col gap-2 bg-zinc-100 rounded-lg p-2">
                   <div className="flex gap-2 items-center">
                     <Input
                       value={filter.match}
                       onChange={(e) => updateFilter('mfy', idx, 'match', e.target.value)}
                       placeholder="Text to filter (e.g. ft.)"
-                      className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                      className="bg-zinc-800 border-zinc-300 text-white text-xs flex-1"
                     />
                     <span className="text-zinc-500 text-xs">→</span>
                     <Input
                       value={filter.replace}
                       onChange={(e) => updateFilter('mfy', idx, 'replace', e.target.value)}
                       placeholder="Replace with (e.g. &)"
-                      className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                      className="bg-zinc-800 border-zinc-300 text-white text-xs flex-1"
                     />
                     <Button
                       variant="ghost"
@@ -545,7 +545,7 @@ const RDSSettingsPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => addFilter('mfy')}
-                className="border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800 text-xs w-full"
+                className="border-dashed border-zinc-300 text-zinc-400 hover:bg-zinc-100 text-xs w-full"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Add filter
@@ -558,7 +558,7 @@ const RDSSettingsPage = () => {
               ) : (
                 <div className="space-y-1">
                   {mfyFilters.map((f, i) => (
-                    <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1 flex items-center gap-1">
+                    <div key={i} className="text-xs bg-zinc-100 rounded px-2 py-1 flex items-center gap-1">
                       <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
                       <span className="text-zinc-600 mx-1">→</span>
                       <span className="text-orange-400">{f.replace || '(remove)'}</span>
@@ -582,7 +582,7 @@ const RDSSettingsPage = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => setEditingFilters(null)}
-                    className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+                    className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
                   >
                     Cancel
                   </Button>
@@ -601,7 +601,7 @@ const RDSSettingsPage = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setEditingFilters('grk')}
-                  className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs"
+                  className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
                 >
                   <Settings className="w-3 h-3 mr-1" />
                   Edit
@@ -613,20 +613,20 @@ const RDSSettingsPage = () => {
           {editingFilters === 'grk' ? (
             <div className="space-y-2">
               {grkFilters.map((filter, idx) => (
-                <div key={idx} className="flex flex-col gap-2 bg-[#27272a] rounded-lg p-2">
+                <div key={idx} className="flex flex-col gap-2 bg-zinc-100 rounded-lg p-2">
                   <div className="flex gap-2 items-center">
                     <Input
                       value={filter.match}
                       onChange={(e) => updateFilter('grk', idx, 'match', e.target.value)}
                       placeholder="Text to filter (e.g. ft.)"
-                      className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                      className="bg-zinc-800 border-zinc-300 text-white text-xs flex-1"
                     />
                     <span className="text-zinc-500 text-xs">→</span>
                     <Input
                       value={filter.replace}
                       onChange={(e) => updateFilter('grk', idx, 'replace', e.target.value)}
                       placeholder="Replace with (e.g. &)"
-                      className="bg-zinc-800 border-zinc-700 text-white text-xs flex-1"
+                      className="bg-zinc-800 border-zinc-300 text-white text-xs flex-1"
                     />
                     <Button
                       variant="ghost"
@@ -655,7 +655,7 @@ const RDSSettingsPage = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => addFilter('grk')}
-                className="border-dashed border-zinc-700 text-zinc-400 hover:bg-zinc-800 text-xs w-full"
+                className="border-dashed border-zinc-300 text-zinc-400 hover:bg-zinc-100 text-xs w-full"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Add filter
@@ -668,7 +668,7 @@ const RDSSettingsPage = () => {
               ) : (
                 <div className="space-y-1">
                   {grkFilters.map((f, i) => (
-                    <div key={i} className="text-xs bg-[#27272a] rounded px-2 py-1 flex items-center gap-1">
+                    <div key={i} className="text-xs bg-zinc-100 rounded px-2 py-1 flex items-center gap-1">
                       <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
                       <span className="text-zinc-600 mx-1">→</span>
                       <span className="text-violet-400">{f.replace || '(remove)'}</span>
@@ -684,7 +684,7 @@ const RDSSettingsPage = () => {
 
       {/* Stale Now Playing Config */}
       {staleConfig && (
-        <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+        <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-amber-400" />
@@ -714,7 +714,7 @@ const RDSSettingsPage = () => {
                 max={120}
                 value={staleConfig.timeout_minutes || 15}
                 onChange={e => setStaleConfig({...staleConfig, timeout_minutes: parseInt(e.target.value) || 15})}
-                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                className="bg-zinc-800 border-zinc-300 text-white mt-1"
                 data-testid="stale-timeout-input"
               />
               <p className="text-[10px] text-zinc-600 mt-1">After this many minutes of the same song, show fallback text</p>
@@ -727,7 +727,7 @@ const RDSSettingsPage = () => {
                 max={300}
                 value={staleConfig.recovery_seconds || 30}
                 onChange={e => setStaleConfig({...staleConfig, recovery_seconds: parseInt(e.target.value) || 30})}
-                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                className="bg-zinc-800 border-zinc-300 text-white mt-1"
                 data-testid="stale-recovery-input"
               />
               <p className="text-[10px] text-zinc-600 mt-1">New song must persist this long to recover from stale</p>
@@ -740,7 +740,7 @@ const RDSSettingsPage = () => {
               <Input
                 value={staleConfig.fallback_text?.mfy || ''}
                 onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, mfy: e.target.value}})}
-                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                className="bg-zinc-800 border-zinc-300 text-white mt-1"
                 placeholder="e.g. altijd dichtbij"
                 data-testid="stale-fallback-mfy"
               />
@@ -750,7 +750,7 @@ const RDSSettingsPage = () => {
               <Input
                 value={staleConfig.fallback_text?.grk || ''}
                 onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, grk: e.target.value}})}
-                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                className="bg-zinc-800 border-zinc-300 text-white mt-1"
                 placeholder="e.g. the feelgood station"
                 data-testid="stale-fallback-grk"
               />
@@ -760,7 +760,7 @@ const RDSSettingsPage = () => {
       )}
 
       {/* Shoutcast Logs Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Music className="w-5 h-5 text-green-400" />
           <h2 className="text-lg font-semibold text-white">Shoutcast Logs</h2>

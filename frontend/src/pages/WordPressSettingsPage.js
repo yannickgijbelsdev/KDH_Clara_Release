@@ -243,8 +243,8 @@ const WordPressSettingsPage = () => {
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-8 bg-zinc-800 rounded w-48 mb-8" />
-        <div className="h-64 bg-zinc-800 rounded-xl" />
+        <div className="h-8 bg-zinc-100 rounded w-48 mb-8" />
+        <div className="h-64 bg-zinc-100 rounded-xl" />
       </div>
     );
   }
@@ -304,8 +304,8 @@ const WordPressSettingsPage = () => {
 
       {/* Sites List */}
       {sites.length === 0 ? (
-        <div className="text-center py-16 bg-[#18181b] border border-zinc-800 rounded-xl">
-          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="text-center py-16 bg-zinc-100 border border-zinc-200 rounded-xl">
+          <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Globe className="w-8 h-8 text-zinc-500" />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">No WordPress sites connected</h3>
@@ -326,7 +326,7 @@ const WordPressSettingsPage = () => {
               <div
                 key={site.id}
                 data-testid={`wp-site-${site.id}`}
-                className="bg-[#18181b] border border-zinc-800 rounded-xl p-6"
+                className="bg-zinc-100 border border-zinc-200 rounded-xl p-6"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -362,7 +362,7 @@ const WordPressSettingsPage = () => {
                       size="sm"
                       onClick={() => handleTest(site.id)}
                       disabled={testingId === site.id}
-                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
                     >
                       {testingId === site.id ? (
                         <>
@@ -378,7 +378,7 @@ const WordPressSettingsPage = () => {
                       size="sm"
                       onClick={() => handleSyncCategories(site.id)}
                       disabled={syncingCategoriesId === site.id || !site.is_active}
-                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
                       title="Sync categories from WordPress"
                     >
                       {syncingCategoriesId === site.id ? (
@@ -395,7 +395,7 @@ const WordPressSettingsPage = () => {
                       size="sm"
                       onClick={() => handleImportPosts(site.id)}
                       disabled={importingPostsId === site.id || !site.is_active}
-                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
                       data-testid={`import-posts-${site.id}`}
                       title="Import published and scheduled posts from WordPress"
                     >
@@ -413,7 +413,7 @@ const WordPressSettingsPage = () => {
                       size="sm"
                       data-testid={`edit-site-${site.id}`}
                       onClick={() => openEditDialog(site)}
-                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
                     >
                       <Edit2 className="w-4 h-4" />
                     </Button>
@@ -422,7 +422,7 @@ const WordPressSettingsPage = () => {
                       size="sm"
                       data-testid={`delete-site-${site.id}`}
                       onClick={() => confirmDelete(site.id)}
-                      className="bg-transparent border-zinc-700 text-rose-500 hover:bg-rose-500/10"
+                      className="bg-transparent border-zinc-300 text-rose-500 hover:bg-rose-500/10"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -454,7 +454,7 @@ const WordPressSettingsPage = () => {
 
       {/* Add/Edit Site Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[550px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[550px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {editingSite ? 'Edit WordPress Site' : 'Add WordPress Site'}
@@ -468,19 +468,19 @@ const WordPressSettingsPage = () => {
 
           <form onSubmit={handleSave} className="space-y-5 mt-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Site Name</Label>
+              <Label className="text-zinc-600">Site Name</Label>
               <Input
                 data-testid="wp-name-input"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Station A Website"
                 required
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">WordPress Site URL</Label>
+              <Label className="text-zinc-600">WordPress Site URL</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
@@ -490,13 +490,13 @@ const WordPressSettingsPage = () => {
                   onChange={(e) => setFormData({ ...formData, wp_base_url: e.target.value })}
                   placeholder="https://your-site.com"
                   required
-                  className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                  className="pl-10 bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Username</Label>
+              <Label className="text-zinc-600">Username</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
@@ -505,13 +505,13 @@ const WordPressSettingsPage = () => {
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   placeholder="admin"
                   required
-                  className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                  className="pl-10 bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Application Password</Label>
+              <Label className="text-zinc-600">Application Password</Label>
               <div className="relative">
                 <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
@@ -521,7 +521,7 @@ const WordPressSettingsPage = () => {
                   onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
                   placeholder={editingSite ? '••••••••••••••••' : 'xxxx xxxx xxxx xxxx xxxx xxxx'}
                   required={!editingSite}
-                  className="pl-10 bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                  className="pl-10 bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
                 />
               </div>
               {editingSite && (
@@ -531,33 +531,33 @@ const WordPressSettingsPage = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-zinc-300">Default Post Type</Label>
+                <Label className="text-zinc-600">Default Post Type</Label>
                 <Select
                   value={formData.default_post_type}
                   onValueChange={(value) => setFormData({ ...formData, default_post_type: value })}
                 >
-                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#18181b] border-zinc-800">
-                    <SelectItem value="post" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Post</SelectItem>
-                    <SelectItem value="page" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Page</SelectItem>
+                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                    <SelectItem value="post" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Post</SelectItem>
+                    <SelectItem value="page" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Page</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-zinc-300">Default Status</Label>
+                <Label className="text-zinc-600">Default Status</Label>
                 <Select
                   value={formData.default_publish_status}
                   onValueChange={(value) => setFormData({ ...formData, default_publish_status: value })}
                 >
-                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#18181b] border-zinc-800">
-                    <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                    <SelectItem value="publish" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Published</SelectItem>
+                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                    <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
+                    <SelectItem value="publish" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Published</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -571,7 +571,7 @@ const WordPressSettingsPage = () => {
                   setEditDialogOpen(false);
                   resetForm();
                 }}
-                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               >
                 Cancel
               </Button>
@@ -600,7 +600,7 @@ const WordPressSettingsPage = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Remove WordPress Site</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -608,7 +608,7 @@ const WordPressSettingsPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

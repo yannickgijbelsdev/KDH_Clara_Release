@@ -96,7 +96,7 @@ export default function XmlDashboard() {
             placeholder="Search files..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 bg-zinc-800/50 border-zinc-700 text-white h-9"
+            className="pl-9 bg-zinc-100/70 border-zinc-300 text-white h-9"
             data-testid="xml-search-input"
           />
         </div>
@@ -106,7 +106,7 @@ export default function XmlDashboard() {
               key={s}
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                statusFilter === s ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 border border-zinc-700'
+                statusFilter === s ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200 border border-zinc-300'
               }`}
               data-testid={`filter-${s || 'all'}`}
             >
@@ -116,7 +116,7 @@ export default function XmlDashboard() {
         </div>
         <button
           onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}
-          className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-700 border border-zinc-700"
+          className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-200 border border-zinc-300"
           data-testid="sort-toggle"
         >
           <ArrowUpDown className="w-3 h-3" />
@@ -125,11 +125,11 @@ export default function XmlDashboard() {
       </div>
 
       {/* Table */}
-      <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden">
+      <div className="bg-white/60 border border-zinc-200 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm" data-testid="xml-table">
             <thead>
-              <tr className="border-b border-zinc-800">
+              <tr className="border-b border-zinc-200">
                 <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase">File name</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase hidden md:table-cell">Project</th>
                 <th className="text-left px-4 py-3 text-xs font-medium text-zinc-500 uppercase hidden lg:table-cell">Upload date</th>
@@ -147,7 +147,7 @@ export default function XmlDashboard() {
                 const st = STATUS_CONFIG[imp.status] || STATUS_CONFIG.processing;
                 const StIcon = st.icon;
                 return (
-                  <tr key={imp.id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors" data-testid={`import-row-${imp.id}`}>
+                  <tr key={imp.id} className="border-b border-zinc-200/50 hover:bg-zinc-100/30 transition-colors" data-testid={`import-row-${imp.id}`}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-zinc-500 flex-shrink-0" />
@@ -159,7 +159,7 @@ export default function XmlDashboard() {
                       {new Date(imp.upload_date).toLocaleString()}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded ${imp.source === 'agent' ? 'bg-blue-500/10 text-blue-400' : 'bg-zinc-700 text-zinc-300'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded ${imp.source === 'agent' ? 'bg-blue-500/10 text-blue-400' : 'bg-zinc-200 text-zinc-600'}`}>
                         {imp.source === 'agent' ? 'Agent' : 'Manual'}
                       </span>
                     </td>
@@ -170,10 +170,10 @@ export default function XmlDashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => navigate(`xml-imports/${imp.id}`)} className="p-1.5 rounded hover:bg-zinc-700 text-zinc-400 hover:text-white" title="View" data-testid={`view-${imp.id}`}>
+                        <button onClick={() => navigate(`xml-imports/${imp.id}`)} className="p-1.5 rounded hover:bg-zinc-200 text-zinc-400 hover:text-white" title="View" data-testid={`view-${imp.id}`}>
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDownload(imp.id, imp.file_name)} className="p-1.5 rounded hover:bg-zinc-700 text-zinc-400 hover:text-white" title="Download">
+                        <button onClick={() => handleDownload(imp.id, imp.file_name)} className="p-1.5 rounded hover:bg-zinc-200 text-zinc-400 hover:text-white" title="Download">
                           <Download className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(imp.id)} className="p-1.5 rounded hover:bg-red-500/20 text-zinc-400 hover:text-red-400" title="Delete" data-testid={`delete-${imp.id}`}>
@@ -190,7 +190,7 @@ export default function XmlDashboard() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-800">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-zinc-200">
             <span className="text-xs text-zinc-500">Page {page} of {totalPages}</span>
             <div className="flex gap-1">
               <Button variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="h-7 text-zinc-400">

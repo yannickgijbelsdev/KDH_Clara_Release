@@ -509,7 +509,7 @@ const DashboardLayout = () => {
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="ml-2 mt-1 space-y-1 border-l border-zinc-800 pl-3">
+                        <div className="ml-2 mt-1 space-y-1 border-l border-zinc-200 pl-3">
                           {siteGroup.items.map((item) => {
                             const Icon = item.icon;
                             const isActive = siteTab === item.tab;
@@ -569,7 +569,7 @@ const DashboardLayout = () => {
                         </div>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="ml-2 mt-1 space-y-1 border-l border-zinc-800 pl-3">
+                        <div className="ml-2 mt-1 space-y-1 border-l border-zinc-200 pl-3">
                           {group.items.map((item) => {
                             const Icon = item.icon;
                             const navRoute = getNavRoute(item.to);
@@ -613,7 +613,7 @@ const DashboardLayout = () => {
                         <ArrowLeft className="w-5 h-5" />
                       </NavLink>
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                    <TooltipContent side="right" className="bg-white border-zinc-200 text-zinc-900">
                       Back to Sites
                     </TooltipContent>
                   </Tooltip>
@@ -649,7 +649,7 @@ const DashboardLayout = () => {
                           )}
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                      <TooltipContent side="right" className="bg-white border-zinc-200 text-zinc-900">
                         {item.label} {badgeCount > 0 && `(${badgeCount})`}
                       </TooltipContent>
                     </Tooltip>
@@ -685,7 +685,7 @@ const DashboardLayout = () => {
                           )}
                         </NavLink>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="bg-zinc-900 border-zinc-800 text-white">
+                      <TooltipContent side="right" className="bg-white border-zinc-200 text-zinc-900">
                         {item.label} {badgeCount > 0 && `(${badgeCount})`}
                       </TooltipContent>
                     </Tooltip>
@@ -724,7 +724,7 @@ const DashboardLayout = () => {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align={useGroupedMenu ? "end" : "start"} side={useGroupedMenu ? "top" : "right"} className="w-56 bg-[#18181b] border-zinc-800 ml-2">
+              <DropdownMenuContent align={useGroupedMenu ? "end" : "start"} side={useGroupedMenu ? "top" : "right"} className="w-56 bg-zinc-100 border-zinc-200 ml-2">
                 <div className="px-3 py-2 flex items-center gap-3">
                   {getAvatarUrl(user) ? (
                     <img 
@@ -831,7 +831,7 @@ const DashboardLayout = () => {
             {user?.team_name && (
               <div className="mb-6 px-1">
                 <p className="text-xs text-zinc-500 uppercase tracking-wider">Team</p>
-                <p className="text-sm text-zinc-300 font-medium truncate">{user.team_name}</p>
+                <p className="text-sm text-zinc-600 font-medium truncate">{user.team_name}</p>
               </div>
             )}
 
@@ -951,7 +951,7 @@ const DashboardLayout = () => {
         {/* Main content */}
         <main className={`${useGroupedMenu ? 'lg:ml-56' : 'lg:ml-[72px]'} min-h-screen ${impersonating ? 'pt-26 lg:pt-10' : 'pt-16 lg:pt-0'} transition-all duration-300`}>
           {/* Page Header */}
-          <div className="hidden lg:block border-b border-white/5 bg-[#09090b]/80 backdrop-blur-sm sticky top-0 z-30">
+          <div className="hidden lg:block border-b border-white/5 bg-[#F0F0F2]/80 backdrop-blur-sm sticky top-0 z-30">
             <div className="px-8 py-4">
               <div className="flex items-center justify-between">
                 <div>

@@ -92,7 +92,7 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
       <div className="flex gap-1">
         {BG_TYPES.map(t => (
           <button key={t.id} onClick={() => setConfig(p => ({ ...p, [`${prefix}_bg_type`]: t.id }))}
-            className={`px-2 py-1 rounded text-[10px] transition-colors ${bgType === t.id ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>
+            className={`px-2 py-1 rounded text-[10px] transition-colors ${bgType === t.id ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200'}`}>
             {t.label}
           </button>
         ))}
@@ -103,7 +103,7 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
           <label className="text-[10px] text-zinc-500 uppercase">Color</label>
           <Input type="color" value={toHex6(config[`${prefix}_bg_color`])}
             onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_color`]: e.target.value }))}
-            className="h-8 bg-zinc-800 border-zinc-700" />
+            className="h-8 bg-zinc-800 border-zinc-300" />
         </div>
       )}
 
@@ -114,13 +114,13 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
               <label className="text-[10px] text-zinc-500 uppercase">Start</label>
               <Input type="color" value={config[`${prefix}_bg_gradient_start`] || '#000000'}
                 onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_gradient_start`]: e.target.value }))}
-                className="h-8 bg-zinc-800 border-zinc-700" />
+                className="h-8 bg-zinc-800 border-zinc-300" />
             </div>
             <div>
               <label className="text-[10px] text-zinc-500 uppercase">End</label>
               <Input type="color" value={config[`${prefix}_bg_gradient_end`] || '#333333'}
                 onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_gradient_end`]: e.target.value }))}
-                className="h-8 bg-zinc-800 border-zinc-700" />
+                className="h-8 bg-zinc-800 border-zinc-300" />
             </div>
           </div>
           <div>
@@ -141,7 +141,7 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
                 alt="" className="w-full h-full object-cover" />
             </div>
           )}
-          <Input type="file" accept="image/*" className="h-8 text-xs bg-zinc-800 border-zinc-700"
+          <Input type="file" accept="image/*" className="h-8 text-xs bg-zinc-800 border-zinc-300"
             onChange={e => { if (e.target.files[0]) uploadBgImage(e.target.files[0], prefix); }} />
           <p className="text-[10px] text-zinc-500">Max 10MB. Use high-res for best quality.</p>
         </div>
@@ -378,7 +378,7 @@ export default function VmixDirector() {
       />
 
       {/* Step 1: XML Servers Status */}
-      <div className={`bg-zinc-900/50 border rounded-xl transition-all ${setupStep === 0 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : xmlServers.length > 0 ? 'border-emerald-500/20' : 'border-zinc-800'}`}>
+      <div className={`bg-white/60 border rounded-xl transition-all ${setupStep === 0 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : xmlServers.length > 0 ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${xmlServers.length > 0 ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
@@ -398,7 +398,7 @@ export default function VmixDirector() {
           )}
         </div>
         {setupStep === 0 && xmlServers.length === 0 && (
-          <div className="px-4 pb-4 border-t border-zinc-800 pt-3">
+          <div className="px-4 pb-4 border-t border-zinc-200 pt-3">
             <div className="flex items-start gap-2 p-3 bg-orange-500/5 rounded-lg border border-orange-500/10">
               <Settings className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-zinc-400">
@@ -413,14 +413,14 @@ export default function VmixDirector() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Canvas Preview */}
         <div className="xl:col-span-2 space-y-4">
-          <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
+          <div className="bg-white/60 border border-white/5 rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-zinc-600 flex items-center gap-2">
                 <Monitor className="w-4 h-4" /> Live Canvas Preview
               </h2>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowGrid(g => !g)}
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] transition-colors ${showGrid ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-500 border border-zinc-700'}`}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] transition-colors ${showGrid ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-500 border border-zinc-300'}`}
                   data-testid="vmix-grid-toggle">
                   <Grid className="w-3 h-3" /> Grid
                 </button>
@@ -506,8 +506,8 @@ export default function VmixDirector() {
           </div>
 
           {/* Overlay URLs for vMix */}
-          <div className={`bg-zinc-900/50 border rounded-xl p-4 transition-all ${setupStep === 3 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : 'border-white/5'}`}>
-            <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+          <div className={`bg-white/60 border rounded-xl p-4 transition-all ${setupStep === 3 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : 'border-white/5'}`}>
+            <h2 className="text-sm font-semibold text-zinc-600 mb-3 flex items-center gap-2">
               <Link2 className="w-4 h-4" /> vMix Overlay URLs
             </h2>
             <p className="text-xs text-zinc-500 mb-3">Copy these URLs into vMix as Web Browser Input sources &mdash; <span className="text-zinc-400">{PRODUCTION_URL}</span></p>
@@ -515,9 +515,9 @@ export default function VmixDirector() {
               {Object.entries(ELEMENT_TYPES).map(([type, meta]) => {
                 const urlType = type === 'now_playing_show' ? 'now-playing-show' : type === 'now_playing_track' ? 'now-playing-track' : type;
                 return (
-                  <div key={type} className="flex items-center gap-2 bg-zinc-800/50 rounded-lg px-3 py-2">
+                  <div key={type} className="flex items-center gap-2 bg-zinc-100/70 rounded-lg px-3 py-2">
                     <meta.icon className="w-4 h-4 flex-shrink-0" style={{ color: meta.color }} />
-                    <span className="text-xs text-zinc-300 flex-1">{meta.label}</span>
+                    <span className="text-xs text-zinc-600 flex-1">{meta.label}</span>
                     <Button size="sm" variant="ghost" onClick={() => copyOverlayUrl(urlType)} className="h-7 px-2 text-xs text-zinc-400 hover:text-white">
                       <Copy className="w-3 h-3 mr-1" /> Copy URL
                     </Button>
@@ -534,8 +534,8 @@ export default function VmixDirector() {
         {/* Side Panel — Element Config */}
         <div className="space-y-4">
           {/* Element List */}
-          <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
-            <h2 className="text-sm font-semibold text-zinc-300 mb-3">Overlay Elements</h2>
+          <div className="bg-white/60 border border-white/5 rounded-xl p-4">
+            <h2 className="text-sm font-semibold text-zinc-600 mb-3">Overlay Elements</h2>
             <div className="space-y-1.5">
               {config.elements.map(el => {
                 const meta = ELEMENT_TYPES[el.type];
@@ -545,13 +545,13 @@ export default function VmixDirector() {
                     key={el.id}
                     data-testid={`vmix-el-toggle-${el.id}`}
                     onClick={() => setActiveElement(el.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${activeElement === el.id ? 'bg-orange-500/15 border border-orange-500/25' : 'bg-zinc-800/30 border border-transparent hover:bg-zinc-800/60'}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${activeElement === el.id ? 'bg-orange-500/15 border border-orange-500/25' : 'bg-zinc-800/30 border border-transparent hover:bg-zinc-100/60'}`}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" style={{ color: meta?.color }} />
                     <span className="text-sm text-zinc-200 flex-1">{meta?.label}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleElement(el.id); }}
-                      className={`w-8 h-5 rounded-full transition-colors flex items-center ${el.enabled ? 'bg-orange-500 justify-end' : 'bg-zinc-700 justify-start'}`}
+                      className={`w-8 h-5 rounded-full transition-colors flex items-center ${el.enabled ? 'bg-orange-500 justify-end' : 'bg-zinc-200 justify-start'}`}
                     >
                       <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
                     </button>
@@ -563,8 +563,8 @@ export default function VmixDirector() {
 
           {/* Active Element Config */}
           {activeEl && (
-            <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
-              <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+            <div className="bg-white/60 border border-white/5 rounded-xl p-4">
+              <h2 className="text-sm font-semibold text-zinc-600 mb-3 flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 {ELEMENT_TYPES[activeEl.type]?.label} Settings
               </h2>
@@ -576,25 +576,25 @@ export default function VmixDirector() {
                     <label className="text-[10px] text-zinc-500 uppercase">X Position (%)</label>
                     <Input type="number" min={0} max={100} value={Math.round(activeEl.x)}
                       onChange={e => updateElement(activeEl.id, { x: parseFloat(e.target.value) || 0 })}
-                      className="h-8 text-xs bg-zinc-800 border-zinc-700" />
+                      className="h-8 text-xs bg-zinc-800 border-zinc-300" />
                   </div>
                   <div>
                     <label className="text-[10px] text-zinc-500 uppercase">Y Position (%)</label>
                     <Input type="number" min={0} max={100} value={Math.round(activeEl.y)}
                       onChange={e => updateElement(activeEl.id, { y: parseFloat(e.target.value) || 0 })}
-                      className="h-8 text-xs bg-zinc-800 border-zinc-700" />
+                      className="h-8 text-xs bg-zinc-800 border-zinc-300" />
                   </div>
                   <div>
                     <label className="text-[10px] text-zinc-500 uppercase">Width (%)</label>
                     <Input type="number" min={1} max={100} value={Math.round(activeEl.width)}
                       onChange={e => updateElement(activeEl.id, { width: parseFloat(e.target.value) || 1 })}
-                      className="h-8 text-xs bg-zinc-800 border-zinc-700" />
+                      className="h-8 text-xs bg-zinc-800 border-zinc-300" />
                   </div>
                   <div>
                     <label className="text-[10px] text-zinc-500 uppercase">Height (%)</label>
                     <Input type="number" min={1} max={100} value={Math.round(activeEl.height)}
                       onChange={e => updateElement(activeEl.id, { height: parseFloat(e.target.value) || 1 })}
-                      className="h-8 text-xs bg-zinc-800 border-zinc-700" />
+                      className="h-8 text-xs bg-zinc-800 border-zinc-300" />
                   </div>
                 </div>
 
@@ -603,11 +603,11 @@ export default function VmixDirector() {
                   <div className="space-y-2 pt-2 border-t border-white/5">
                     <label className="text-[10px] text-zinc-500 uppercase">Upload Logo</label>
                     {config.logo_url && (
-                      <div className="w-16 h-16 bg-zinc-800 rounded-lg flex items-center justify-center overflow-hidden">
+                      <div className="w-16 h-16 bg-zinc-100 rounded-lg flex items-center justify-center overflow-hidden">
                         <img src={config.logo_url.startsWith('http') ? config.logo_url : `${BASE}${config.logo_url}`} alt="" className="max-w-full max-h-full object-contain" />
                       </div>
                     )}
-                    <Input data-testid="vmix-logo-upload" type="file" accept="image/*" className="h-8 text-xs bg-zinc-800 border-zinc-700"
+                    <Input data-testid="vmix-logo-upload" type="file" accept="image/*" className="h-8 text-xs bg-zinc-800 border-zinc-300"
                       onChange={e => { if (e.target.files[0]) uploadLogo(e.target.files[0]); }} />
                   </div>
                 )}
@@ -617,7 +617,7 @@ export default function VmixDirector() {
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Format</label>
                       <select value={config.clock_format} onChange={e => setConfig(p => ({ ...p, clock_format: e.target.value }))}
-                        className="w-full h-8 text-xs bg-zinc-800 border border-zinc-700 rounded-md text-white px-2">
+                        className="w-full h-8 text-xs bg-zinc-800 border border-zinc-300 rounded-md text-white px-2">
                         <option value="HH:mm:ss">HH:mm:ss</option>
                         <option value="HH:mm">HH:mm</option>
                       </select>
@@ -625,13 +625,13 @@ export default function VmixDirector() {
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
                       <Input type="color" value={config.clock_text_color} onChange={e => setConfig(p => ({ ...p, clock_text_color: e.target.value }))}
-                        className="h-8 bg-zinc-800 border-zinc-700" />
+                        className="h-8 bg-zinc-800 border-zinc-300" />
                     </div>
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Font Size (px)</label>
                       <Input type="number" min={12} max={120} value={config.clock_font_size}
                         onChange={e => setConfig(p => ({ ...p, clock_font_size: parseInt(e.target.value) || 48 }))}
-                        className="h-8 text-xs bg-zinc-800 border-zinc-700" />
+                        className="h-8 text-xs bg-zinc-800 border-zinc-300" />
                     </div>
                     <BgEditor config={config} setConfig={setConfig} prefix="clock" uploadBgImage={uploadBgImage} />
                   </div>
@@ -643,7 +643,7 @@ export default function VmixDirector() {
                       <label className="text-[10px] text-zinc-500 uppercase">Scrolling</label>
                       <button
                         onClick={() => setConfig(p => ({ ...p, ticker_scroll: !p.ticker_scroll }))}
-                        className={`w-8 h-5 rounded-full transition-colors flex items-center ${config.ticker_scroll ? 'bg-orange-500 justify-end' : 'bg-zinc-700 justify-start'}`}
+                        className={`w-8 h-5 rounded-full transition-colors flex items-center ${config.ticker_scroll ? 'bg-orange-500 justify-end' : 'bg-zinc-200 justify-start'}`}
                       >
                         <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
                       </button>
@@ -653,7 +653,7 @@ export default function VmixDirector() {
                       <div className="flex gap-1 mt-1">
                         {SEPARATORS.map(s => (
                           <button key={s.id} onClick={() => setConfig(p => ({ ...p, ticker_separator: s.id }))}
-                            className={`px-2 py-1 rounded text-xs ${config.ticker_separator === s.id ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>
+                            className={`px-2 py-1 rounded text-xs ${config.ticker_separator === s.id ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200'}`}>
                             {s.preview}
                           </button>
                         ))}
@@ -661,19 +661,19 @@ export default function VmixDirector() {
                       {config.ticker_separator === 'custom' && (
                         <Input value={config.ticker_custom_separator} placeholder="Custom separator"
                           onChange={e => setConfig(p => ({ ...p, ticker_custom_separator: e.target.value }))}
-                          className="h-8 text-xs bg-zinc-800 border-zinc-700 mt-1" />
+                          className="h-8 text-xs bg-zinc-800 border-zinc-300 mt-1" />
                       )}
                     </div>
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
                       <Input type="color" value={toHex6(config.ticker_text_color)} onChange={e => setConfig(p => ({ ...p, ticker_text_color: e.target.value }))}
-                        className="h-8 bg-zinc-800 border-zinc-700" />
+                        className="h-8 bg-zinc-800 border-zinc-300" />
                     </div>
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Font Size (px)</label>
                       <Input type="number" min={10} max={60} value={config.ticker_font_size}
                         onChange={e => setConfig(p => ({ ...p, ticker_font_size: parseInt(e.target.value) || 24 }))}
-                        className="h-8 text-xs bg-zinc-800 border-zinc-700" />
+                        className="h-8 text-xs bg-zinc-800 border-zinc-300" />
                     </div>
                     <BgEditor config={config} setConfig={setConfig} prefix="ticker" uploadBgImage={uploadBgImage} />
                   </div>
@@ -685,7 +685,7 @@ export default function VmixDirector() {
                       <label className="text-[10px] text-zinc-500 uppercase">XML Server Source</label>
                       <select value={config.now_playing_xml_server_id || ''}
                         onChange={e => setConfig(p => ({ ...p, now_playing_xml_server_id: e.target.value || null }))}
-                        className="w-full h-8 text-xs bg-zinc-800 border border-zinc-700 rounded-md text-white px-2">
+                        className="w-full h-8 text-xs bg-zinc-800 border border-zinc-300 rounded-md text-white px-2">
                         <option value="">Select XML Server...</option>
                         {xmlServers.map(s => (
                           <option key={s.id} value={s.id}>{s.name}</option>
@@ -697,7 +697,7 @@ export default function VmixDirector() {
                         <label className="text-[10px] text-zinc-500 uppercase">Show Presenter Photo</label>
                         <button
                           onClick={() => setConfig(p => ({ ...p, now_playing_show_photo: !p.now_playing_show_photo }))}
-                          className={`w-8 h-5 rounded-full transition-colors flex items-center ${config.now_playing_show_photo ? 'bg-orange-500 justify-end' : 'bg-zinc-700 justify-start'}`}
+                          className={`w-8 h-5 rounded-full transition-colors flex items-center ${config.now_playing_show_photo ? 'bg-orange-500 justify-end' : 'bg-zinc-200 justify-start'}`}
                         >
                           <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
                         </button>
@@ -711,7 +711,7 @@ export default function VmixDirector() {
                           ...p,
                           [activeEl.type === 'now_playing_show' ? 'now_playing_show_text_color' : 'now_playing_track_text_color']: e.target.value
                         }))}
-                        className="h-8 bg-zinc-800 border-zinc-700" />
+                        className="h-8 bg-zinc-800 border-zinc-300" />
                     </div>
                     <BgEditor config={config} setConfig={setConfig} prefix={activeEl.type} uploadBgImage={uploadBgImage} />
                   </div>
@@ -721,8 +721,8 @@ export default function VmixDirector() {
           )}
 
           {/* Ticker Messages */}
-          <div className="bg-zinc-900/50 border border-white/5 rounded-xl p-4">
-            <h2 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
+          <div className="bg-white/60 border border-white/5 rounded-xl p-4">
+            <h2 className="text-sm font-semibold text-zinc-600 mb-3 flex items-center gap-2">
               <Type className="w-4 h-4" /> Ticker Messages
             </h2>
             <div className="space-y-1.5 mb-3 max-h-48 overflow-y-auto">
@@ -741,7 +741,7 @@ export default function VmixDirector() {
             </div>
             <div className="flex gap-2">
               <Input data-testid="vmix-new-message" value={newMessage} onChange={e => setNewMessage(e.target.value)}
-                placeholder="New ticker message..." className="h-8 text-xs bg-zinc-800 border-zinc-700 flex-1"
+                placeholder="New ticker message..." className="h-8 text-xs bg-zinc-800 border-zinc-300 flex-1"
                 onKeyDown={e => { if (e.key === 'Enter') addMessage(); }} />
               <Button data-testid="vmix-add-message" size="sm" onClick={addMessage} className="h-8 bg-orange-500 hover:bg-orange-600">
                 <Plus className="w-4 h-4" />

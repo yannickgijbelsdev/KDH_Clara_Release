@@ -44,11 +44,11 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
     status?.status === 'error' ? <XCircle className="w-3.5 h-3.5 text-red-400" /> :
     <Wifi className="w-3.5 h-3.5 text-zinc-500" />;
 
-  const bgColor = loading ? 'bg-zinc-800/50 border-zinc-700' :
+  const bgColor = loading ? 'bg-zinc-800/50 border-zinc-300' :
     status?.status === 'ok' ? 'bg-emerald-500/5 border-emerald-500/20' :
     status?.status === 'warning' ? 'bg-amber-500/5 border-amber-500/20' :
     status?.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
-    'bg-zinc-800/50 border-zinc-700';
+    'bg-zinc-800/50 border-zinc-300';
 
   const statusColor = status?.status === 'ok' ? 'text-emerald-400' :
     status?.status === 'warning' ? 'text-amber-400' :
@@ -65,17 +65,17 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
           {icon}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              {label && <span className="text-xs font-medium text-zinc-300">{label}</span>}
+              {label && <span className="text-xs font-medium text-zinc-600">{label}</span>}
               {status?.message && <span className={`text-xs ${loading ? 'text-zinc-400' : statusColor}`}>{loading ? 'Testing connection...' : status.message}</span>}
               {!status && !loading && <span className="text-xs text-zinc-500">Click to test connection</span>}
             </div>
             {/* Render structured steps as a numbered list */}
             {hasSteps && status.status !== 'ok' && !loading && (
-              <div className="mt-2 rounded-md bg-zinc-900/60 border border-zinc-700/50 p-2.5" data-testid="connection-steps">
+              <div className="mt-2 rounded-md bg-zinc-900/60 border border-zinc-300/50 p-2.5" data-testid="connection-steps">
                 <p className="text-[10px] uppercase tracking-wider text-amber-500 font-semibold mb-1.5">How to fix this:</p>
                 <ol className="space-y-1 list-none">
                   {status.steps.map((step, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                    <li key={i} className="flex items-start gap-2 text-xs text-zinc-600">
                       <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
                       <span>{step}</span>
                     </li>
@@ -110,7 +110,7 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
         <button
           onClick={runTest}
           disabled={loading}
-          className="flex-shrink-0 p-1.5 rounded-md hover:bg-zinc-700/50 text-zinc-500 hover:text-zinc-300 transition-colors ml-2"
+          className="flex-shrink-0 p-1.5 rounded-md hover:bg-zinc-700/50 text-zinc-500 hover:text-zinc-600 transition-colors ml-2"
           data-testid="connection-retest-btn"
           title="Test connection"
         >

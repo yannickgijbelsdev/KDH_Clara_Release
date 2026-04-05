@@ -204,9 +204,9 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="roles-manager">
-      <div className="bg-[#0a0a0b] border border-zinc-800 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-[#0a0a0b] border border-zinc-200 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
           <div className="flex items-center gap-3">
             <UserCog className="w-5 h-5 text-green-500" />
             <div>
@@ -214,15 +214,15 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
               <p className="text-xs text-zinc-500">{mainSiteName}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-zinc-600">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="flex flex-1 overflow-hidden">
           {/* Left: Role List */}
-          <div className="w-56 border-r border-zinc-800 flex flex-col">
-            <div className="p-3 border-b border-zinc-800">
+          <div className="w-56 border-r border-zinc-200 flex flex-col">
+            <div className="p-3 border-b border-zinc-200">
               <Button
                 onClick={() => setShowNewRole(true)}
                 size="sm"
@@ -235,12 +235,12 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
 
             {/* New role form */}
             {showNewRole && (
-              <div className="p-3 border-b border-zinc-800 space-y-2 bg-zinc-900/50">
+              <div className="p-3 border-b border-zinc-200 space-y-2 bg-white/60">
                 <input
                   value={newRoleName}
                   onChange={e => setNewRoleName(e.target.value)}
                   placeholder="Role name"
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-sm"
                   data-testid="new-role-name"
                   autoFocus
                   onKeyDown={e => e.key === 'Enter' && createRole()}
@@ -266,7 +266,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                   key={role.id}
                   onClick={() => selectRole(role)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-all cursor-pointer ${
-                    activeRoleId === role.id ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-300'
+                    activeRoleId === role.id ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-600'
                   }`}
                   data-testid={`role-${role.slug}`}
                 >
@@ -278,7 +278,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                   {!role.is_system && (
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteRole(role.id); }}
-                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-700 rounded text-zinc-500 hover:text-red-400"
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-zinc-200 rounded text-zinc-500 hover:text-red-400"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
@@ -293,7 +293,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
             {activeRole ? (
               <>
                 {/* Role Meta */}
-                <div className="px-6 py-4 border-b border-zinc-800 flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1">
                     <div className="w-4 h-4 rounded-full" style={{ backgroundColor: editedMeta?.color }} />
                     {activeRole.is_system ? (
@@ -306,14 +306,14 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                         <input
                           value={editedMeta?.name || ''}
                           onChange={e => { setEditedMeta(m => ({ ...m, name: e.target.value })); setHasChanges(true); }}
-                          className="bg-transparent border-b border-zinc-700 focus:border-zinc-500 text-base font-semibold px-1 py-0.5 outline-none"
+                          className="bg-transparent border-b border-zinc-300 focus:border-zinc-500 text-base font-semibold px-1 py-0.5 outline-none"
                           data-testid="role-name-input"
                         />
                         <input
                           value={editedMeta?.description || ''}
                           onChange={e => { setEditedMeta(m => ({ ...m, description: e.target.value })); setHasChanges(true); }}
                           placeholder="Description..."
-                          className="bg-transparent border-b border-zinc-800 focus:border-zinc-600 text-xs text-zinc-500 px-1 py-0.5 outline-none flex-1"
+                          className="bg-transparent border-b border-zinc-200 focus:border-zinc-600 text-xs text-zinc-500 px-1 py-0.5 outline-none flex-1"
                         />
                         <div className="flex gap-1">
                           {COLORS.map(c => (
@@ -337,14 +337,14 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                 </div>
 
                 {/* Column headers */}
-                <div className="px-6 py-2 border-b border-zinc-800/50 flex items-center bg-zinc-900/30">
+                <div className="px-6 py-2 border-b border-zinc-200/50 flex items-center bg-zinc-900/30">
                   <div className="flex-1 text-xs text-zinc-600 font-medium">FEATURE / PERMISSION</div>
                   <div className="flex" style={{ width: '280px' }}>
                     {ACTIONS.map(action => (
                       <button
                         key={action}
                         onClick={() => toggleAllForAction(action)}
-                        className="w-[70px] text-center text-xs text-zinc-500 hover:text-zinc-300 font-medium py-1 cursor-pointer"
+                        className="w-[70px] text-center text-xs text-zinc-500 hover:text-zinc-600 font-medium py-1 cursor-pointer"
                         title={`Toggle all ${ACTION_LABELS[action]}`}
                       >
                         {ACTION_LABELS[action]}
@@ -369,7 +369,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                       <div key={category.group}>
                         {/* Group header */}
                         <div
-                          className="flex items-center px-6 py-2.5 bg-zinc-900/50 border-b border-zinc-800/30 cursor-pointer hover:bg-zinc-900/80"
+                          className="flex items-center px-6 py-2.5 bg-white/60 border-b border-zinc-200/30 cursor-pointer hover:bg-white/70"
                           onClick={() => setExpandedGroups(g => ({ ...g, [category.group]: !isExpanded }))}
                         >
                           <div className="flex items-center gap-2 flex-1">
@@ -396,7 +396,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                           return (
                             <div
                               key={perm.id}
-                              className="flex items-center px-6 py-2 border-b border-zinc-800/20 hover:bg-zinc-900/30"
+                              className="flex items-center px-6 py-2 border-b border-zinc-200/20 hover:bg-zinc-900/30"
                               data-testid={`perm-row-${perm.id}`}
                             >
                               <div className="flex items-center gap-2 flex-1 pl-6">
@@ -407,13 +407,13 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                                       ? 'bg-green-600 border-green-600 text-white'
                                       : ACTIONS.some(a => perms[a])
                                         ? 'bg-green-600/30 border-green-600/50 text-green-400'
-                                        : 'border-zinc-700 text-transparent'
+                                        : 'border-zinc-300 text-transparent'
                                   }`}
                                   title="Toggle all actions"
                                 >
                                   {allEnabled ? <Check className="w-3 h-3" /> : ACTIONS.some(a => perms[a]) ? <Minus className="w-2.5 h-2.5" /> : null}
                                 </button>
-                                <span className="text-sm text-zinc-300">{perm.label}</span>
+                                <span className="text-sm text-zinc-600">{perm.label}</span>
                               </div>
                               <div className="flex" style={{ width: '280px' }}>
                                 {ACTIONS.map(action => (
@@ -423,7 +423,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                                       className={`w-6 h-6 rounded border flex items-center justify-center transition-all ${
                                         perms[action]
                                           ? 'bg-green-600 border-green-600 text-white'
-                                          : 'border-zinc-700 hover:border-zinc-600'
+                                          : 'border-zinc-300 hover:border-zinc-600'
                                       }`}
                                       data-testid={`perm-${perm.id}-${action}`}
                                     >

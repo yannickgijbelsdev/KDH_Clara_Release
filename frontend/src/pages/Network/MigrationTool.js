@@ -100,7 +100,7 @@ export default function MigrationTool() {
 
   return (
     <>
-      <Card className="bg-zinc-900 border-zinc-800">
+      <Card className="bg-white border-zinc-200">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <Database className="w-5 h-5 text-orange-500" />
@@ -118,7 +118,7 @@ export default function MigrationTool() {
       </Card>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Database className="w-5 h-5 text-orange-500" />
@@ -138,7 +138,7 @@ export default function MigrationTool() {
           {status && !migrationResult && (
             <div className="space-y-4">
               {/* Current Status */}
-              <div className="bg-zinc-800 rounded-lg p-4">
+              <div className="bg-zinc-100 rounded-lg p-4">
                 <h3 className="text-white font-medium mb-3">Current Status</h3>
                 
                 <div className="grid grid-cols-3 gap-4 text-center mb-4">
@@ -171,12 +171,12 @@ export default function MigrationTool() {
 
               {/* Collections to migrate */}
               {Object.keys(status.collections || {}).length > 0 && (
-                <div className="bg-zinc-800 rounded-lg p-4">
+                <div className="bg-zinc-100 rounded-lg p-4">
                   <h3 className="text-white font-medium mb-3">Collections</h3>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {Object.entries(status.collections).map(([name, data]) => (
                       <div key={name} className="flex items-center justify-between text-sm">
-                        <span className="text-zinc-300">{data.description}</span>
+                        <span className="text-zinc-600">{data.description}</span>
                         <span className={data.needs_migration > 0 ? 'text-orange-500' : 'text-green-500'}>
                           {data.needs_migration > 0 ? `${data.needs_migration} to migrate` : '✓ Done'}
                         </span>
@@ -188,7 +188,7 @@ export default function MigrationTool() {
 
               {/* Migration Settings */}
               {needsMigration && (
-                <div className="bg-zinc-800 rounded-lg p-4">
+                <div className="bg-zinc-100 rounded-lg p-4">
                   <h3 className="text-white font-medium mb-3">Migration Settings</h3>
                   
                   {/* Auto-detected info banner */}
@@ -203,11 +203,11 @@ export default function MigrationTool() {
                   
                   <div className="space-y-3">
                     <div>
-                      <Label className="text-zinc-300">Main Site Name</Label>
+                      <Label className="text-zinc-600">Main Site Name</Label>
                       <Input
                         value={formData.main_site_name}
                         onChange={(e) => setFormData({ ...formData, main_site_name: e.target.value })}
-                        className="bg-zinc-900 border-zinc-700"
+                        className="bg-zinc-900 border-zinc-300"
                         placeholder="My Organization"
                       />
                       {detectedInfo?.suggested_name && formData.main_site_name !== detectedInfo.suggested_name && (
@@ -221,7 +221,7 @@ export default function MigrationTool() {
                       )}
                     </div>
                     <div>
-                      <Label className="text-zinc-300">URL Slug</Label>
+                      <Label className="text-zinc-600">URL Slug</Label>
                       <div className="flex items-center gap-2">
                         <span className="text-zinc-500">/</span>
                         <Input
@@ -230,7 +230,7 @@ export default function MigrationTool() {
                             ...formData, 
                             main_site_slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') 
                           })}
-                          className="bg-zinc-900 border-zinc-700"
+                          className="bg-zinc-900 border-zinc-300"
                           placeholder="my-organization"
                         />
                       </div>
@@ -284,7 +284,7 @@ export default function MigrationTool() {
               </div>
 
               {migrationResult.success && (
-                <div className="bg-zinc-800 rounded-lg p-4">
+                <div className="bg-zinc-100 rounded-lg p-4">
                   <h3 className="text-white font-medium mb-3">Results</h3>
                   
                   <div className="space-y-2 text-sm">
@@ -304,7 +304,7 @@ export default function MigrationTool() {
 
                   {Object.keys(migrationResult.stats?.collections_updated || {}).length > 0 && (
                     <div className="mt-4">
-                      <h4 className="text-zinc-300 text-sm font-medium mb-2">Collections Updated</h4>
+                      <h4 className="text-zinc-600 text-sm font-medium mb-2">Collections Updated</h4>
                       <div className="space-y-1 max-h-32 overflow-y-auto">
                         {Object.entries(migrationResult.stats.collections_updated).map(([name, data]) => (
                           <div key={name} className="flex justify-between text-xs">

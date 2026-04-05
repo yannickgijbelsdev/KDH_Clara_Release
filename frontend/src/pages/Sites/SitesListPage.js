@@ -147,7 +147,7 @@ export default function SitesListPage() {
 
       {/* Sites Grid */}
       {sites.length === 0 ? (
-        <div className="text-center py-16 bg-zinc-900/50 rounded-xl">
+        <div className="text-center py-16 bg-white/60 rounded-xl">
           <Globe className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">No sites yet</h3>
           <p className="text-zinc-400 mb-6">
@@ -166,7 +166,7 @@ export default function SitesListPage() {
           {sites.map(site => (
             <div 
               key={site.id}
-              className="bg-zinc-900/50 rounded-xl overflow-hidden hover:bg-zinc-900/80 transition group"
+              className="bg-white/60 rounded-xl overflow-hidden hover:bg-white/70 transition group"
             >
               <div className="p-6">
                 <div className="flex items-start justify-between">
@@ -250,7 +250,7 @@ export default function SitesListPage() {
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-800">
+        <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
             <DialogTitle>Create new site</DialogTitle>
           </DialogHeader>
@@ -262,7 +262,7 @@ export default function SitesListPage() {
                 value={newSite.name}
                 onChange={(e) => setNewSite(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="My Radio Page"
-                className="bg-zinc-800 border-zinc-700"
+                className="bg-zinc-800 border-zinc-300"
               />
             </div>
             
@@ -279,7 +279,7 @@ export default function SitesListPage() {
                     slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') 
                   }))}
                   placeholder="my-page"
-                  className="bg-zinc-800 border-zinc-700"
+                  className="bg-zinc-800 border-zinc-300"
                 />
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function SitesListPage() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, siteId: null, siteName: '' })}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Site verwijderen</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -310,7 +310,7 @@ export default function SitesListPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-white hover:bg-zinc-200">
               Annuleren
             </AlertDialogCancel>
             <AlertDialogAction 

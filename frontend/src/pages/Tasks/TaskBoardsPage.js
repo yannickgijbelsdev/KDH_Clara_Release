@@ -79,7 +79,7 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
             <div
               key={board.id}
               onClick={() => onSelect(board.id)}
-              className="group cursor-pointer rounded-xl border border-zinc-800 bg-zinc-900 hover:border-zinc-600 transition-all p-5"
+              className="group cursor-pointer rounded-xl border border-zinc-200 bg-zinc-900 hover:border-zinc-600 transition-all p-5"
               data-testid={`board-card-${board.id}`}
             >
               <div className="flex items-start justify-between mb-3">
@@ -90,7 +90,7 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
                       <MoreHorizontal className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-700">
+                  <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-300">
                     <DropdownMenuItem className="text-red-400" onClick={e => { e.stopPropagation(); onDelete(board.id); }}>
                       <Trash2 className="w-4 h-4 mr-2" /> Delete
                     </DropdownMenuItem>
@@ -109,14 +109,14 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
       )}
 
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Create Board</DialogTitle>
             <DialogDescription className="text-zinc-400">Add a new Kanban board to organize your tasks.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-2">
-            <Input placeholder="Board name" value={name} onChange={e => setName(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" data-testid="board-name-input" autoFocus />
-            <Textarea placeholder="Description (optional)" value={desc} onChange={e => setDesc(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" rows={2} />
+            <Input placeholder="Board name" value={name} onChange={e => setName(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white" data-testid="board-name-input" autoFocus />
+            <Textarea placeholder="Description (optional)" value={desc} onChange={e => setDesc(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white" rows={2} />
             <div>
               <label className="text-sm text-zinc-400 mb-2 block">Color</label>
               <div className="flex gap-2">
@@ -143,7 +143,7 @@ function SortableTaskCard({ task, onClick }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}
-      className="group bg-zinc-800/80 rounded-lg border border-zinc-700/50 p-3 cursor-pointer hover:border-zinc-500 transition-all"
+      className="group bg-zinc-800/80 rounded-lg border border-zinc-300/50 p-3 cursor-pointer hover:border-zinc-500 transition-all"
       onClick={() => onClick(task)} data-testid={`task-card-${task.id}`}
     >
       <div className="flex items-start gap-2">
@@ -214,10 +214,10 @@ function DroppableColumn({ column, tasks, onAddTask, onTaskClick, onEditColumn, 
   };
 
   return (
-    <div className={`flex flex-col w-72 min-w-[288px] bg-zinc-900/60 rounded-xl border transition-colors ${isOver ? 'border-orange-500/50' : 'border-zinc-800'}`}
+    <div className={`flex flex-col w-72 min-w-[288px] bg-zinc-900/60 rounded-xl border transition-colors ${isOver ? 'border-orange-500/50' : 'border-zinc-200'}`}
       data-testid={`column-${column.id}`}
     >
-      <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-zinc-200">
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: column.color }} />
           <h3 className="text-sm font-semibold text-zinc-200">{column.name}</h3>
@@ -229,7 +229,7 @@ function DroppableColumn({ column, tasks, onAddTask, onTaskClick, onEditColumn, 
               <MoreHorizontal className="w-3.5 h-3.5 text-zinc-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-700">
+          <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-300">
             <DropdownMenuItem onClick={() => onEditColumn(column)}>
               <Pencil className="w-3.5 h-3.5 mr-2" /> Rename
             </DropdownMenuItem>
@@ -246,11 +246,11 @@ function DroppableColumn({ column, tasks, onAddTask, onTaskClick, onEditColumn, 
           ))}
         </SortableContext>
       </div>
-      <div className="p-2 border-t border-zinc-800">
+      <div className="p-2 border-t border-zinc-200">
         {addingTask ? (
           <div className="space-y-2">
             <Input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Task title..." autoFocus
-              className="bg-zinc-800 border-zinc-700 text-white text-sm h-8"
+              className="bg-zinc-800 border-zinc-300 text-white text-sm h-8"
               onKeyDown={e => { if (e.key === 'Enter') handleAddTask(); if (e.key === 'Escape') setAddingTask(false); }}
               data-testid={`add-task-input-${column.id}`}
             />
@@ -347,20 +347,20 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-700 max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-zinc-900 border-zinc-300 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-white sr-only">Edit Task</DialogTitle>
           <DialogDescription className="sr-only">Edit task details, checklist, labels, and attachments.</DialogDescription>
         </DialogHeader>
         <div className="space-y-5 pt-2">
           {/* Title */}
-          <Input value={title} onChange={e => setTitle(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white text-lg font-semibold h-11" data-testid="task-title-input" />
+          <Input value={title} onChange={e => setTitle(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white text-lg font-semibold h-11" data-testid="task-title-input" />
 
           {/* Priority & Deadline row */}
           <div className="flex gap-3 flex-wrap">
             <div className="flex-1 min-w-[140px]">
               <label className="text-xs text-zinc-400 mb-1 block">Priority</label>
-              <select value={priority} onChange={e => setPriority(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 text-sm" data-testid="task-priority-select">
+              <select value={priority} onChange={e => setPriority(e.target.value)} className="w-full bg-zinc-800 border border-zinc-300 text-white rounded-md px-3 py-2 text-sm" data-testid="task-priority-select">
                 {Object.entries(PRIORITY_CONFIG).map(([key, val]) => (
                   <option key={key} value={key}>{val.label}</option>
                 ))}
@@ -368,11 +368,11 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
             </div>
             <div className="flex-1 min-w-[140px]">
               <label className="text-xs text-zinc-400 mb-1 block">Deadline</label>
-              <Input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white text-sm" data-testid="task-deadline-input" />
+              <Input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white text-sm" data-testid="task-deadline-input" />
             </div>
             <div className="flex-1 min-w-[140px]">
               <label className="text-xs text-zinc-400 mb-1 block">Assignee</label>
-              <select value={assigneeId} onChange={e => setAssigneeId(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 text-sm" data-testid="task-assignee-select">
+              <select value={assigneeId} onChange={e => setAssigneeId(e.target.value)} className="w-full bg-zinc-800 border border-zinc-300 text-white rounded-md px-3 py-2 text-sm" data-testid="task-assignee-select">
                 <option value="">Unassigned</option>
                 {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
               </select>
@@ -382,7 +382,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
           {/* Description */}
           <div>
             <label className="text-xs text-zinc-400 mb-1 block">Description</label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Add a description..." className="bg-zinc-800 border-zinc-700 text-white text-sm" data-testid="task-description-input" />
+            <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Add a description..." className="bg-zinc-800 border-zinc-300 text-white text-sm" data-testid="task-description-input" />
           </div>
 
           {/* Labels */}
@@ -397,8 +397,8 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
               ))}
             </div>
             <div className="flex gap-1">
-              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Add label..." className="bg-zinc-800 border-zinc-700 text-white text-xs h-7 flex-1" onKeyDown={e => e.key === 'Enter' && addLabel()} />
-              <Button size="sm" variant="outline" onClick={addLabel} className="h-7 text-xs border-zinc-700">Add</Button>
+              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Add label..." className="bg-zinc-800 border-zinc-300 text-white text-xs h-7 flex-1" onKeyDown={e => e.key === 'Enter' && addLabel()} />
+              <Button size="sm" variant="outline" onClick={addLabel} className="h-7 text-xs border-zinc-300">Add</Button>
             </div>
           </div>
 
@@ -409,7 +409,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
               {checklist.length > 0 && <span className="text-zinc-500 ml-1">({checkedCount}/{checklist.length})</span>}
             </label>
             {checklist.length > 0 && (
-              <div className="w-full bg-zinc-800 rounded-full h-1.5 mb-2">
+              <div className="w-full bg-zinc-100 rounded-full h-1.5 mb-2">
                 <div className="bg-green-500 h-1.5 rounded-full transition-all" style={{ width: `${checklist.length > 0 ? (checkedCount / checklist.length) * 100 : 0}%` }} />
               </div>
             )}
@@ -423,8 +423,8 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
               ))}
             </div>
             <div className="flex gap-1">
-              <Input value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)} placeholder="Add item..." className="bg-zinc-800 border-zinc-700 text-white text-xs h-7 flex-1" onKeyDown={e => e.key === 'Enter' && addCheckItem()} />
-              <Button size="sm" variant="outline" onClick={addCheckItem} className="h-7 text-xs border-zinc-700">Add</Button>
+              <Input value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)} placeholder="Add item..." className="bg-zinc-800 border-zinc-300 text-white text-xs h-7 flex-1" onKeyDown={e => e.key === 'Enter' && addCheckItem()} />
+              <Button size="sm" variant="outline" onClick={addCheckItem} className="h-7 text-xs border-zinc-300">Add</Button>
             </div>
           </div>
 
@@ -438,7 +438,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
                     ? `${API}/task-boards/attachments/download/${att.url.split('/').slice(4).join('/')}`
                     : att.url?.startsWith('/api/') ? `${API}${att.url.replace('/api/', '/')}` : att.url;
                   return (
-                  <div key={att.id} className="flex items-center gap-2 text-xs bg-zinc-800 rounded px-2 py-1.5 group" data-testid={`attachment-${att.id}`}>
+                  <div key={att.id} className="flex items-center gap-2 text-xs bg-zinc-100 rounded px-2 py-1.5 group" data-testid={`attachment-${att.id}`}>
                     <Paperclip className="w-3 h-3 text-zinc-400" />
                     <a href={attUrl} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline flex-1 truncate">{att.name}</a>
                     <span className="text-zinc-500">{(att.size / 1024).toFixed(0)} KB</span>
@@ -448,7 +448,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
                 })}
               </div>
             )}
-            <label className={`flex items-center gap-2 text-xs text-zinc-400 cursor-pointer border border-dashed border-zinc-700 rounded px-3 py-2 hover:border-zinc-500 transition-colors ${uploading ? 'opacity-50' : ''}`}>
+            <label className={`flex items-center gap-2 text-xs text-zinc-400 cursor-pointer border border-dashed border-zinc-300 rounded px-3 py-2 hover:border-zinc-500 transition-colors ${uploading ? 'opacity-50' : ''}`}>
               <Upload className="w-3.5 h-3.5" /> {uploading ? 'Uploading...' : 'Upload file'}
               <input type="file" className="hidden" onChange={handleFileUpload} disabled={uploading} />
             </label>
@@ -459,26 +459,26 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
             <label className="text-xs text-zinc-400 mb-1.5 block flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Comments ({(task.comments || []).length})</label>
             <div className="space-y-2 mb-2 max-h-40 overflow-y-auto">
               {(task.comments || []).map(c => (
-                <div key={c.id} className="bg-zinc-800 rounded px-3 py-2 group">
+                <div key={c.id} className="bg-zinc-100 rounded px-3 py-2 group">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-zinc-300">{c.author_name}</span>
+                    <span className="text-xs font-medium text-zinc-600">{c.author_name}</span>
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-zinc-500">{new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                       <X className="w-3 h-3 text-zinc-500 cursor-pointer opacity-0 group-hover:opacity-100" onClick={() => onDeleteComment(task.id, c.id)} />
                     </div>
                   </div>
-                  <p className="text-sm text-zinc-300 mt-1">{c.text}</p>
+                  <p className="text-sm text-zinc-600 mt-1">{c.text}</p>
                 </div>
               ))}
             </div>
             <div className="flex gap-1">
-              <Input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Write a comment..." className="bg-zinc-800 border-zinc-700 text-white text-xs h-8 flex-1" onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
-              <Button size="sm" onClick={handleAddComment} className="bg-zinc-700 hover:bg-zinc-600 text-white h-8 text-xs">Post</Button>
+              <Input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Write a comment..." className="bg-zinc-800 border-zinc-300 text-white text-xs h-8 flex-1" onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
+              <Button size="sm" onClick={handleAddComment} className="bg-zinc-200 hover:bg-zinc-200 text-white h-8 text-xs">Post</Button>
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex justify-between pt-2 border-t border-zinc-800">
+          <div className="flex justify-between pt-2 border-t border-zinc-200">
             <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300 text-xs" onClick={() => onDelete(task.id)} data-testid="delete-task-btn">
               <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete Task
             </Button>
@@ -697,7 +697,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
   return (
     <div className="flex flex-col h-full" data-testid="kanban-board">
       {/* Board header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800 bg-zinc-900/50 shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-200 bg-white/60 shrink-0">
         <Button variant="ghost" size="icon" onClick={onBack} className="w-8 h-8" data-testid="back-to-boards-btn">
           <ArrowLeft className="w-4 h-4" />
         </Button>
@@ -708,7 +708,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
         {/* Member avatars */}
         <div className="flex items-center ml-4 -space-x-2" data-testid="board-members-avatars">
           {boardMembers.slice(0, 6).map(member => (
-            <div key={member.id} title={member.name} className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+            <div key={member.id} title={member.name} className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
               {getAvatarUrl(member) ? (
                 <img src={getAvatarUrl(member)} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -725,17 +725,17 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
 
         <div className="ml-auto flex items-center gap-2">
           {/* View toggle */}
-          <div className="flex bg-zinc-800 rounded-lg p-0.5" data-testid="view-toggle">
+          <div className="flex bg-zinc-100 rounded-lg p-0.5" data-testid="view-toggle">
             <button
               onClick={() => setViewMode('kanban')}
-              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
               data-testid="kanban-view-btn"
             >
               <Columns3 className="w-3.5 h-3.5" /> Kanban
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-zinc-700 text-white' : 'text-zinc-400 hover:text-zinc-300'}`}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
               data-testid="calendar-view-btn"
             >
               <CalendarDays className="w-3.5 h-3.5" /> Calendar
@@ -744,21 +744,21 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           {/* Member picker */}
           <div className="relative">
             <Button variant="outline" size="sm" onClick={() => setShowMemberPicker(p => !p)}
-              className="border-zinc-700 text-zinc-300 text-xs h-7" data-testid="manage-members-btn">
+              className="border-zinc-300 text-zinc-600 text-xs h-7" data-testid="manage-members-btn">
               <User className="w-3.5 h-3.5 mr-1" /> Members ({boardMembers.length})
             </Button>
             {showMemberPicker && (
-              <div className="absolute right-0 top-9 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl w-64 max-h-72 overflow-y-auto" data-testid="member-picker-dropdown">
-                <div className="p-2 border-b border-zinc-800">
-                  <p className="text-xs font-semibold text-zinc-300">Board Members</p>
+              <div className="absolute right-0 top-9 z-50 bg-zinc-900 border border-zinc-300 rounded-lg shadow-xl w-64 max-h-72 overflow-y-auto" data-testid="member-picker-dropdown">
+                <div className="p-2 border-b border-zinc-200">
+                  <p className="text-xs font-semibold text-zinc-600">Board Members</p>
                   <p className="text-[10px] text-zinc-500">Select who can participate</p>
                 </div>
                 {users.map(u => {
                   const isMember = (board.members || []).includes(u.id);
                   return (
                     <div key={u.id} onClick={() => toggleBoardMember(u.id)}
-                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${isMember ? 'bg-orange-500/10' : 'hover:bg-zinc-800'}`}>
-                      <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white">
+                      className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${isMember ? 'bg-orange-500/10' : 'hover:bg-zinc-100'}`}>
+                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-white">
                         {u.name?.charAt(0).toUpperCase() || '?'}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -772,7 +772,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
               </div>
             )}
           </div>
-          <Button variant="outline" size="sm" onClick={() => setShowAddCol(true)} className="border-zinc-700 text-zinc-300 text-xs h-7" data-testid="add-column-btn">
+          <Button variant="outline" size="sm" onClick={() => setShowAddCol(true)} className="border-zinc-300 text-zinc-600 text-xs h-7" data-testid="add-column-btn">
             <Plus className="w-3.5 h-3.5 mr-1" /> Column
           </Button>
         </div>
@@ -802,14 +802,14 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
             ))}
             {/* Add column inline */}
             {!showAddCol && (
-              <button onClick={() => setShowAddCol(true)} className="w-72 min-w-[288px] rounded-xl border-2 border-dashed border-zinc-800 flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:border-zinc-600 transition-colors h-32">
+              <button onClick={() => setShowAddCol(true)} className="w-72 min-w-[288px] rounded-xl border-2 border-dashed border-zinc-200 flex items-center justify-center text-zinc-500 hover:text-zinc-600 hover:border-zinc-600 transition-colors h-32">
                 <Plus className="w-5 h-5 mr-2" /> Add Column
               </button>
             )}
           </div>
           <DragOverlay>
             {activeTask ? (
-              <div className="bg-zinc-800 rounded-lg border border-orange-500/50 p-3 shadow-xl w-72 opacity-90">
+              <div className="bg-zinc-100 rounded-lg border border-orange-500/50 p-3 shadow-xl w-72 opacity-90">
                 <p className="text-sm text-white font-medium">{activeTask.title}</p>
               </div>
             ) : null}
@@ -834,13 +834,13 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
 
       {/* Add column dialog */}
       <Dialog open={showAddCol} onOpenChange={setShowAddCol}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-sm">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-white">Add Column</DialogTitle>
             <DialogDescription className="text-zinc-400">Create a new column for this board.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            <Input value={newColName} onChange={e => setNewColName(e.target.value)} placeholder="Column name" className="bg-zinc-800 border-zinc-700 text-white" autoFocus onKeyDown={e => e.key === 'Enter' && handleAddColumn()} data-testid="new-column-name-input" />
+            <Input value={newColName} onChange={e => setNewColName(e.target.value)} placeholder="Column name" className="bg-zinc-800 border-zinc-300 text-white" autoFocus onKeyDown={e => e.key === 'Enter' && handleAddColumn()} data-testid="new-column-name-input" />
             <Button onClick={handleAddColumn} className="w-full bg-orange-500 hover:bg-orange-600 text-white" data-testid="confirm-add-column">Add Column</Button>
           </div>
         </DialogContent>
@@ -848,13 +848,13 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
 
       {/* Edit column dialog */}
       <Dialog open={!!editCol} onOpenChange={() => setEditCol(null)}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-sm">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-white">Rename Column</DialogTitle>
             <DialogDescription className="text-zinc-400">Change the column name.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            <Input value={editColName} onChange={e => setEditColName(e.target.value)} className="bg-zinc-800 border-zinc-700 text-white" autoFocus onKeyDown={e => e.key === 'Enter' && handleEditColumn()} />
+            <Input value={editColName} onChange={e => setEditColName(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white" autoFocus onKeyDown={e => e.key === 'Enter' && handleEditColumn()} />
             <Button onClick={handleEditColumn} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save</Button>
           </div>
         </DialogContent>

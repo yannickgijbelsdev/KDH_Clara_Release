@@ -190,7 +190,7 @@ export default function BackupManagementPage() {
 
   if (!user?.is_network_admin) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-400">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center text-zinc-400">
         Network admin access required
       </div>
     );
@@ -202,9 +202,9 @@ export default function BackupManagementPage() {
   const totalSize = completedBackups.reduce((sum, b) => sum + (b.size_bytes || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white">
+    <div className="min-h-screen bg-[#F0F0F2] text-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#F0F0F2]/80 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate('/')} data-testid="backup-back-btn">
@@ -249,7 +249,7 @@ export default function BackupManagementPage() {
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${
                 selectedSite?.id === site.id
                   ? 'bg-orange-600 text-white'
-                  : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800 border border-zinc-800'
+                  : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-100 border border-zinc-200'
               }`}
               data-testid={`site-tab-${site.slug || site.id}`}
             >
@@ -289,7 +289,7 @@ export default function BackupManagementPage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {clones.map(clone => (
-                <div key={clone.id} className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 flex items-center justify-between">
+                <div key={clone.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4 flex items-center justify-between">
                   <div>
                     <p className="font-medium text-sm">{clone.name}</p>
                     <p className="text-xs text-zinc-500">{formatDate(clone.created_at)}</p>
@@ -323,7 +323,7 @@ export default function BackupManagementPage() {
               <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
             </div>
           ) : backups.length === 0 ? (
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
+            <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-12 text-center">
               <Database className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
               <p className="text-zinc-500 text-sm">No backups yet</p>
               <p className="text-zinc-600 text-xs mt-1">Create your first backup or wait for the daily automatic backup</p>
@@ -336,7 +336,7 @@ export default function BackupManagementPage() {
                 return (
                   <div
                     key={backup.id}
-                    className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 hover:border-zinc-700 transition-colors"
+                    className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4 hover:border-zinc-300 transition-colors"
                     data-testid={`backup-row-${backup.id}`}
                   >
                     <div className="flex items-center gap-4">
@@ -351,7 +351,7 @@ export default function BackupManagementPage() {
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                             backup.type === 'automatic' ? 'bg-blue-500/10 text-blue-400' :
                             backup.type === 'pre-restore' ? 'bg-purple-500/10 text-purple-400' :
-                            'bg-zinc-700 text-zinc-300'
+                            'bg-zinc-200 text-zinc-600'
                           }`}>
                             {TYPE_LABELS[backup.type] || backup.type}
                           </span>
@@ -413,7 +413,7 @@ export default function BackupManagementPage() {
       {/* Restore Confirmation Dialog */}
       {showRestoreConfirm && (
         <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4" data-testid="restore-confirm-dialog">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full">
+          <div className="bg-zinc-900 border border-zinc-300 rounded-2xl p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-amber-400" />
@@ -449,7 +449,7 @@ export default function BackupManagementPage() {
       {/* Clone Dialog */}
       {showCloneDialog && (
         <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4" data-testid="clone-dialog">
-          <div className="bg-zinc-900 border border-zinc-700 rounded-2xl p-6 max-w-md w-full">
+          <div className="bg-zinc-900 border border-zinc-300 rounded-2xl p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                 <Copy className="w-5 h-5 text-blue-400" />
@@ -464,7 +464,7 @@ export default function BackupManagementPage() {
               type="text"
               value={cloneName}
               onChange={e => setCloneName(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white mb-4 focus:outline-none focus:border-orange-500"
+              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-sm text-white mb-4 focus:outline-none focus:border-orange-500"
               placeholder="e.g. [TEST] Radiogroep MFY/GRK"
               data-testid="clone-name-input"
             />
@@ -495,7 +495,7 @@ export default function BackupManagementPage() {
 
 function StatusCard({ icon: Icon, label, value, color }) {
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4" data-testid={`status-${label.toLowerCase().replace(/\s/g,'-')}`}>
+    <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4" data-testid={`status-${label.toLowerCase().replace(/\s/g,'-')}`}>
       <div className="flex items-center gap-2 mb-2">
         <Icon className={`w-4 h-4 ${color}`} />
         <span className="text-xs text-zinc-500">{label}</span>

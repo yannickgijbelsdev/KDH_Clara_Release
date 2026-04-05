@@ -246,7 +246,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Create New Show</DialogTitle>
         </DialogHeader>
@@ -254,7 +254,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           {/* Show Title Selection */}
           <div className="space-y-2">
-            <Label className="text-zinc-300">Show Title</Label>
+            <Label className="text-zinc-600">Show Title</Label>
             
             {loadingTitles ? (
               <div className="flex items-center gap-2 text-zinc-500 py-2">
@@ -273,7 +273,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                     value={newTitleName}
                     onChange={(e) => setNewTitleName(e.target.value)}
                     placeholder="Enter new show title..."
-                    className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 flex-1"
+                    className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500 flex-1"
                     autoFocus
                   />
                   <Button
@@ -303,23 +303,23 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
               >
                 <SelectTrigger 
                   data-testid="show-title-select"
-                  className="bg-[#27272a] border-zinc-700 text-white"
+                  className="bg-[#27272a] border-zinc-300 text-white"
                 >
                   <SelectValue placeholder="Select a show title..." />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   {showTitles.map((title) => (
                     <SelectItem 
                       key={title.id} 
                       value={title.id}
-                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                     >
                       {title.name}
                     </SelectItem>
                   ))}
                   {isAdmin && (
                     <>
-                      <div className="border-t border-zinc-800 my-1" />
+                      <div className="border-t border-zinc-200 my-1" />
                       <SelectItem 
                         value="add-new"
                         className="text-rose-400 focus:text-rose-300 focus:bg-orange-500/10"
@@ -337,13 +337,13 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Description (optional)</Label>
+            <Label className="text-zinc-600">Description (optional)</Label>
             <Textarea
               data-testid="show-description-input"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Brief description of the show..."
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 resize-none"
+              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500 resize-none"
               rows={2}
             />
           </div>
@@ -351,23 +351,23 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
           {/* Studio Selection */}
           {studios.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-zinc-300">Studio / Room (optional)</Label>
+              <Label className="text-zinc-600">Studio / Room (optional)</Label>
               <Select
                 value={formData.studio_id}
                 onValueChange={(value) => setFormData({ ...formData, studio_id: value })}
               >
                 <SelectTrigger 
                   data-testid="show-studio-select"
-                  className="bg-[#27272a] border-zinc-700 text-white"
+                  className="bg-[#27272a] border-zinc-300 text-white"
                 >
                   <SelectValue placeholder="Select a studio..." />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   {studios.map((studio) => (
                     <SelectItem 
                       key={studio.id} 
                       value={studio.id}
-                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                     >
                       {studio.name}
                     </SelectItem>
@@ -378,14 +378,14 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
           )}
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Start Date</Label>
+            <Label className="text-zinc-600">Start Date</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   data-testid="show-date-picker"
                   className={cn(
-                    'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-700 hover:bg-zinc-700',
+                    'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-300 hover:bg-zinc-700',
                     !date && 'text-zinc-500'
                   )}
                 >
@@ -393,13 +393,13 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                   {date ? format(date, 'PPP') : 'Pick a date'}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-[#18181b] border-zinc-800" align="start">
+              <PopoverContent className="w-auto p-0 bg-zinc-100 border-zinc-200" align="start">
                 <Calendar
                   mode="single"
                   selected={date}
                   onSelect={setDate}
                   initialFocus
-                  className="bg-[#18181b]"
+                  className="bg-zinc-100"
                 />
               </PopoverContent>
             </Popover>
@@ -407,32 +407,32 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Start Time</Label>
+              <Label className="text-zinc-600">Start Time</Label>
               <Input
                 type="time"
                 data-testid="show-start-time-input"
                 value={formData.start_time}
                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                 required
-                className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                className="bg-[#27272a] border-zinc-300 text-white font-mono"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-zinc-300">End Time</Label>
+              <Label className="text-zinc-600">End Time</Label>
               <Input
                 type="time"
                 data-testid="show-end-time-input"
                 value={formData.end_time}
                 onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                 required
-                className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                className="bg-[#27272a] border-zinc-300 text-white font-mono"
               />
             </div>
           </div>
 
           {/* Presenters Selection */}
           <div className="space-y-2">
-            <Label className="text-zinc-300 flex items-center gap-2">
+            <Label className="text-zinc-600 flex items-center gap-2">
               <Users className="w-4 h-4" />
               Presenters
             </Label>
@@ -442,7 +442,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                   type="button"
                   variant="outline"
                   data-testid="show-presenters-select"
-                  className="w-full justify-start text-left bg-[#27272a] border-zinc-700 text-white hover:bg-zinc-700"
+                  className="w-full justify-start text-left bg-[#27272a] border-zinc-300 text-white hover:bg-zinc-700"
                 >
                   <Users className="w-4 h-4 mr-2 text-violet-400" />
                   {formData.presenter_ids?.length > 0 ? (
@@ -456,8 +456,8 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-72 p-0 bg-[#18181b] border-zinc-800" align="start">
-                <div className="p-2 border-b border-zinc-800">
+              <PopoverContent className="w-72 p-0 bg-zinc-100 border-zinc-200" align="start">
+                <div className="p-2 border-b border-zinc-200">
                   <p className="text-sm text-zinc-400 font-medium">Team Members</p>
                 </div>
                 <div className="max-h-60 overflow-y-auto p-2 space-y-1">
@@ -469,7 +469,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                       className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
                         formData.presenter_ids?.includes(user.id)
                           ? 'bg-violet-500/20 text-violet-400'
-                          : 'hover:bg-zinc-800 text-zinc-300'
+                          : 'hover:bg-zinc-800 text-zinc-600'
                       }`}
                     >
                       <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
@@ -498,7 +498,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
 
           {/* Recurrence Section */}
           <div className="space-y-2">
-            <Label className="text-zinc-300 flex items-center gap-2">
+            <Label className="text-zinc-600 flex items-center gap-2">
               <Repeat className="w-4 h-4" />
               Repeat
             </Label>
@@ -508,16 +508,16 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
             >
               <SelectTrigger 
                 data-testid="show-recurrence-select"
-                className="bg-[#27272a] border-zinc-700 text-white"
+                className="bg-[#27272a] border-zinc-300 text-white"
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#18181b] border-zinc-800">
+              <SelectContent className="bg-zinc-100 border-zinc-200">
                 {recurrenceOptions.map((option) => (
                   <SelectItem 
                     key={option.value} 
                     value={option.value}
-                    className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                    className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                   >
                     {option.label}
                   </SelectItem>
@@ -529,14 +529,14 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
           {/* End Date for recurring shows */}
           {isRecurring && (
             <div className="space-y-2 p-3 bg-violet-500/10 rounded-lg border border-violet-500/20">
-              <Label className="text-zinc-300">End Date (optional)</Label>
+              <Label className="text-zinc-600">End Date (optional)</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     data-testid="show-end-date-picker"
                     className={cn(
-                      'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-700 hover:bg-zinc-700',
+                      'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-300 hover:bg-zinc-700',
                       !endDate && 'text-zinc-500'
                     )}
                   >
@@ -544,14 +544,14 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                     {endDate ? format(endDate, 'PPP') : 'No end date (1 year)'}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[#18181b] border-zinc-800" align="start">
+                <PopoverContent className="w-auto p-0 bg-zinc-100 border-zinc-200" align="start">
                   <Calendar
                     mode="single"
                     selected={endDate}
                     onSelect={setEndDate}
                     disabled={(d) => date && d < date}
                     initialFocus
-                    className="bg-[#18181b]"
+                    className="bg-zinc-100"
                   />
                 </PopoverContent>
               </Popover>
@@ -565,21 +565,21 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
           )}
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Status</Label>
+            <Label className="text-zinc-600">Status</Label>
             <Select
               value={formData.status}
               onValueChange={(value) => setFormData({ ...formData, status: value })}
             >
               <SelectTrigger 
                 data-testid="show-status-select"
-                className="bg-[#27272a] border-zinc-700 text-white"
+                className="bg-[#27272a] border-zinc-300 text-white"
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#18181b] border-zinc-800">
-                <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                <SelectItem value="scheduled" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Scheduled</SelectItem>
-                <SelectItem value="completed" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Completed</SelectItem>
+              <SelectContent className="bg-zinc-100 border-zinc-200">
+                <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
+                <SelectItem value="scheduled" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Scheduled</SelectItem>
+                <SelectItem value="completed" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Completed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -589,7 +589,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-800 hover:text-white"
             >
               Cancel
             </Button>

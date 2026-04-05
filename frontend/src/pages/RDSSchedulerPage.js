@@ -140,9 +140,9 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#18181b] border border-zinc-700 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-zinc-100 border border-zinc-300 rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between p-4 border-b border-zinc-200">
           <h3 className="text-lg font-semibold text-white">
             {item ? 'Edit scheduled text' : 'New scheduled text'}
           </h3>
@@ -160,7 +160,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="Enter RDS text..."
-              className="bg-zinc-800 border-zinc-700 text-white mt-1 resize-none"
+              className="bg-zinc-800 border-zinc-300 text-white mt-1 resize-none"
               rows={3}
             />
           </div>
@@ -169,12 +169,12 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
           <div>
             <Label className="text-zinc-400 text-sm">Visible on</Label>
             <Select value={targetStation} onValueChange={setTargetStation}>
-              <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
+              <SelectTrigger className="bg-zinc-800 border-zinc-300 text-white mt-1">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-zinc-800 border-zinc-700">
+              <SelectContent className="bg-zinc-800 border-zinc-300">
                 {STATION_OPTIONS.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value} className="text-zinc-300">
+                  <SelectItem key={opt.value} value={opt.value} className="text-zinc-600">
                     {opt.label}
                   </SelectItem>
                 ))}
@@ -190,7 +190,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                className="bg-zinc-800 border-zinc-300 text-white mt-1"
               />
             </div>
             <div>
@@ -199,7 +199,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                className="bg-zinc-800 border-zinc-300 text-white mt-1"
               />
             </div>
           </div>
@@ -209,12 +209,12 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
             <div>
               <Label className="text-zinc-400 text-sm">Duration type</Label>
               <Select value={durationType} onValueChange={setDurationType}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
+                <SelectTrigger className="bg-zinc-800 border-zinc-300 text-white mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
+                <SelectContent className="bg-zinc-800 border-zinc-300">
                   {DURATION_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-zinc-300">
+                    <SelectItem key={opt.value} value={opt.value} className="text-zinc-600">
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -230,7 +230,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
                   max="1440"
                   value={durationMinutes}
                   onChange={(e) => setDurationMinutes(parseInt(e.target.value) || 5)}
-                  className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                  className="bg-zinc-800 border-zinc-300 text-white mt-1"
                 />
               </div>
             )}
@@ -241,12 +241,12 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
             <div>
               <Label className="text-zinc-400 text-sm">Recurrence</Label>
               <Select value={recurrenceType} onValueChange={setRecurrenceType}>
-                <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white mt-1">
+                <SelectTrigger className="bg-zinc-800 border-zinc-300 text-white mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-700">
+                <SelectContent className="bg-zinc-800 border-zinc-300">
                   {RECURRENCE_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-zinc-300">
+                    <SelectItem key={opt.value} value={opt.value} className="text-zinc-600">
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -260,7 +260,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
                   type="date"
                   value={recurrenceEndDate}
                   onChange={(e) => setRecurrenceEndDate(e.target.value)}
-                  className="bg-zinc-800 border-zinc-700 text-white mt-1"
+                  className="bg-zinc-800 border-zinc-300 text-white mt-1"
                 />
               </div>
             )}
@@ -277,14 +277,14 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
           </div>
 
           {/* Info */}
-          <div className="bg-zinc-900 rounded-lg p-3 text-xs text-zinc-500">
+          <div className="bg-white/80 backdrop-blur rounded-lg p-3 text-xs text-zinc-500">
             <p><strong>Note:</strong> Shows always take priority over scheduled custom texts. Custom text is only shown when there is no active show.</p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 p-4 border-t border-zinc-800">
-          <Button variant="outline" onClick={onClose} className="border-zinc-700 text-zinc-300">
+        <div className="flex justify-end gap-2 p-4 border-t border-zinc-200">
+          <Button variant="outline" onClick={onClose} className="border-zinc-300 text-zinc-600">
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white">
@@ -305,14 +305,14 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
   return (
     <div
       className={`aspect-square p-1 rounded-lg transition-all duration-200 relative
-        ${isCurrentMonth ? 'bg-[#27272a]' : 'bg-[#1a1a1c]'}
+        ${isCurrentMonth ? 'bg-zinc-100' : 'bg-[#1a1a1c]'}
         ${isToday ? 'ring-2 ring-violet-500' : ''}
-        hover:bg-zinc-700 group
+        hover:bg-zinc-200 group
       `}
     >
       <div className="flex items-center justify-between mb-1">
         <span className={`text-sm font-mono
-          ${isCurrentMonth ? 'text-zinc-300' : 'text-zinc-600'}
+          ${isCurrentMonth ? 'text-zinc-600' : 'text-zinc-600'}
           ${isToday ? 'text-violet-400 font-bold' : ''}
         `}>
           {format(date, 'd')}
@@ -497,7 +497,7 @@ const RDSSchedulerPage = () => {
       </div>
 
       {/* Station Selector & Month Navigation */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 sm:p-6 mb-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4 sm:p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-4">
             <h2 className="text-lg sm:text-xl font-bold text-white">
@@ -507,7 +507,7 @@ const RDSSchedulerPage = () => {
               variant="outline"
               size="sm"
               onClick={handleToday}
-              className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             >
               Today
             </Button>
@@ -517,7 +517,7 @@ const RDSSchedulerPage = () => {
               variant="outline"
               size="icon"
               onClick={handlePrevMonth}
-              className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -525,7 +525,7 @@ const RDSSchedulerPage = () => {
               variant="outline"
               size="icon"
               onClick={handleNextMonth}
-              className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -538,7 +538,7 @@ const RDSSchedulerPage = () => {
             variant={station === 'mfy' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setStation('mfy')}
-            className={station === 'mfy' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-zinc-700 text-zinc-400 hover:text-white'}
+            className={station === 'mfy' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-zinc-300 text-zinc-400 hover:text-white'}
           >
             <Radio className="w-4 h-4 mr-2" />
             Radio MFY
@@ -547,7 +547,7 @@ const RDSSchedulerPage = () => {
             variant={station === 'grk' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setStation('grk')}
-            className={station === 'grk' ? 'bg-violet-500 hover:bg-violet-600 text-white' : 'border-zinc-700 text-zinc-400 hover:text-white'}
+            className={station === 'grk' ? 'bg-violet-500 hover:bg-violet-600 text-white' : 'border-zinc-300 text-zinc-400 hover:text-white'}
           >
             <Radio className="w-4 h-4 mr-2" />
             Radio GRK
@@ -567,7 +567,7 @@ const RDSSchedulerPage = () => {
         {loading ? (
           <div className="grid grid-cols-7 gap-1">
             {Array.from({ length: 35 }).map((_, i) => (
-              <div key={i} className="aspect-square bg-zinc-800/50 rounded-lg animate-pulse" />
+              <div key={i} className="aspect-square bg-zinc-100/70 rounded-lg animate-pulse" />
             ))}
           </div>
         ) : (
@@ -586,7 +586,7 @@ const RDSSchedulerPage = () => {
         )}
 
         {/* Legend */}
-        <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-zinc-800">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-6 mt-4 sm:mt-6 pt-4 border-t border-zinc-200">
           <span className="text-xs text-zinc-500">Status:</span>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-orange-500" />
@@ -632,7 +632,7 @@ const RDSSchedulerPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Scheduled Text</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -640,7 +640,7 @@ const RDSSchedulerPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-white hover:bg-zinc-200">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 

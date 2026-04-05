@@ -319,7 +319,7 @@ const ZeroTierPage = () => {
             variant="outline"
             size="sm"
             onClick={() => setConfigOpen(!configOpen)}
-            className="border-zinc-700 text-zinc-300"
+            className="border-zinc-300 text-zinc-600"
             data-testid="zt-config-btn"
           >
             <Settings className="w-4 h-4 mr-1" /> Config
@@ -331,7 +331,7 @@ const ZeroTierPage = () => {
                 size="sm"
                 onClick={handleSendDailySummary}
                 disabled={sendingSummary}
-                className="border-zinc-700 text-zinc-300"
+                className="border-zinc-300 text-zinc-600"
                 data-testid="zt-send-summary-btn"
               >
                 <Mail className={`w-4 h-4 mr-1 ${sendingSummary ? 'animate-pulse' : ''}`} /> {sendingSummary ? 'Sending...' : 'Send Summary'}
@@ -341,7 +341,7 @@ const ZeroTierPage = () => {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="border-zinc-700 text-zinc-300"
+                className="border-zinc-300 text-zinc-600"
                 data-testid="zt-refresh-btn"
               >
                 <RefreshCw className={`w-4 h-4 mr-1 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
@@ -353,11 +353,11 @@ const ZeroTierPage = () => {
 
       {/* Tab Navigation */}
       {isConfigured && (
-        <div className="flex gap-1 bg-zinc-900 rounded-lg p-1 mb-6 w-fit" data-testid="zt-tabs">
+        <div className="flex gap-1 bg-white/80 backdrop-blur rounded-lg p-1 mb-6 w-fit" data-testid="zt-tabs">
           <button
             onClick={() => setActiveTab('members')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'members' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'
+              activeTab === 'members' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-600'
             }`}
             data-testid="zt-tab-members"
           >
@@ -366,7 +366,7 @@ const ZeroTierPage = () => {
           <button
             onClick={() => setActiveTab('history')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'history' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-300'
+              activeTab === 'history' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-600'
             }`}
             data-testid="zt-tab-history"
           >
@@ -377,7 +377,7 @@ const ZeroTierPage = () => {
 
       {/* Config Panel */}
       {configOpen && (
-        <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-5 mb-6" data-testid="zt-config-panel">
+        <div className="bg-white/70 border border-zinc-200 rounded-xl p-5 mb-6" data-testid="zt-config-panel">
           <h3 className="text-white font-medium mb-4">ZeroTier Configuration</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -388,7 +388,7 @@ const ZeroTierPage = () => {
                   value={configForm.api_token}
                   onChange={e => setConfigForm(prev => ({ ...prev, api_token: e.target.value }))}
                   placeholder={config?.api_token_masked || 'Enter ZeroTier API token'}
-                  className="bg-zinc-800 border-zinc-700 text-white"
+                  className="bg-zinc-800 border-zinc-300 text-white"
                   data-testid="zt-token-input"
                 />
                 <Button variant="ghost" size="icon" onClick={() => setShowToken(!showToken)} className="text-zinc-400">
@@ -403,7 +403,7 @@ const ZeroTierPage = () => {
                 value={configForm.network_id}
                 onChange={e => setConfigForm(prev => ({ ...prev, network_id: e.target.value }))}
                 placeholder="e.g. 8056c2e21c000001"
-                className="bg-zinc-800 border-zinc-700 text-white"
+                className="bg-zinc-800 border-zinc-300 text-white"
                 data-testid="zt-network-input"
               />
             </div>
@@ -421,7 +421,7 @@ const ZeroTierPage = () => {
 
       {/* Not Configured State */}
       {!isConfigured && (
-        <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-12 text-center">
+        <div className="bg-white/60 border border-zinc-200 rounded-xl p-12 text-center">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
           <h2 className="text-white text-lg font-semibold mb-2">ZeroTier Not Configured</h2>
           <p className="text-zinc-400 mb-4">Enter your API token and Network ID to start monitoring.</p>
@@ -437,25 +437,25 @@ const ZeroTierPage = () => {
           {/* Network Overview */}
           {network && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4">
+              <div className="bg-white/70 border border-zinc-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-zinc-500 text-xs mb-2">
                   <Globe className="w-3.5 h-3.5" /> Network
                 </div>
                 <p className="text-white font-semibold truncate">{network.name || network.id}</p>
               </div>
-              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4">
+              <div className="bg-white/70 border border-zinc-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-zinc-500 text-xs mb-2">
                   <Server className="w-3.5 h-3.5" /> Total Members
                 </div>
                 <p className="text-white font-semibold text-2xl">{members?.total || 0}</p>
               </div>
-              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4">
+              <div className="bg-white/70 border border-zinc-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-emerald-500 text-xs mb-2">
                   <Wifi className="w-3.5 h-3.5" /> Online
                 </div>
                 <p className="text-emerald-400 font-semibold text-2xl">{members?.online || 0}</p>
               </div>
-              <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl p-4">
+              <div className="bg-white/70 border border-zinc-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 text-red-500 text-xs mb-2">
                   <WifiOff className="w-3.5 h-3.5" /> Offline
                 </div>
@@ -465,15 +465,15 @@ const ZeroTierPage = () => {
           )}
 
           {/* Members List */}
-          <div className="bg-zinc-900/80 border border-zinc-800 rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
+          <div className="bg-white/70 border border-zinc-200 rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-zinc-200 flex items-center justify-between">
               <div>
                 <h3 className="text-white font-medium">Network Members</h3>
                 <p className="text-xs text-zinc-600 mt-0.5">Clients offline for 30+ days are automatically deauthorized</p>
               </div>
               <div className="flex items-center gap-3">
                 {/* Category filter */}
-                <div className="flex bg-zinc-800 rounded-lg p-0.5" data-testid="zt-category-filter">
+                <div className="flex bg-zinc-100 rounded-lg p-0.5" data-testid="zt-category-filter">
                   {[
                     { key: 'all', label: 'All' },
                     { key: 'client', label: 'Clients', icon: Monitor },
@@ -484,8 +484,8 @@ const ZeroTierPage = () => {
                       onClick={() => setCategoryFilter(f.key)}
                       className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                         categoryFilter === f.key
-                          ? 'bg-zinc-700 text-white'
-                          : 'text-zinc-500 hover:text-zinc-300'
+                          ? 'bg-zinc-200 text-white'
+                          : 'text-zinc-500 hover:text-zinc-600'
                       }`}
                       data-testid={`zt-filter-${f.key}`}
                     >
@@ -506,7 +506,7 @@ const ZeroTierPage = () => {
                 {filteredMembers.map(member => (
                   <div key={member.id}>
                     <div
-                      className="px-5 py-3 flex items-center gap-4 hover:bg-zinc-800/30 transition-colors cursor-pointer group"
+                      className="px-5 py-3 flex items-center gap-4 hover:bg-zinc-100/30 transition-colors cursor-pointer group"
                       onClick={() => setSelectedMember(selectedMember?.id === member.id ? null : member)}
                       data-testid={`zt-member-${member.id}`}
                     >
@@ -634,7 +634,7 @@ const ZeroTierPage = () => {
 
                     {/* Expanded member detail */}
                     {selectedMember?.id === member.id && (
-                      <div className="px-5 py-4 bg-zinc-800/30 border-t border-zinc-700/50">
+                      <div className="px-5 py-4 bg-zinc-800/30 border-t border-zinc-300/50">
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                           <div>
                             <span className="text-xs text-zinc-500 block">Node ID</span>
@@ -673,7 +673,7 @@ const ZeroTierPage = () => {
                                 className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
                                   member.category !== 'server'
                                     ? 'bg-zinc-600 text-white'
-                                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-600'
                                 }`}
                               >
                                 <Monitor className="w-3 h-3" /> Client
@@ -683,7 +683,7 @@ const ZeroTierPage = () => {
                                 className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
                                   member.category === 'server'
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+                                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-600'
                                 }`}
                               >
                                 <Server className="w-3 h-3" /> Server
@@ -695,7 +695,7 @@ const ZeroTierPage = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            className={`border-zinc-700 ${alertSettings[member.id]?.enabled ? 'text-amber-400 border-amber-500/30' : ''}`}
+                            className={`border-zinc-300 ${alertSettings[member.id]?.enabled ? 'text-amber-400 border-amber-500/30' : ''}`}
                             onClick={(e) => { e.stopPropagation(); openAlertDialog(member); }}
                             data-testid="zt-alert-expanded-btn"
                           >
@@ -707,7 +707,7 @@ const ZeroTierPage = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-zinc-700"
+                            className="border-zinc-300"
                             onClick={(e) => { e.stopPropagation(); setEditingName(member.id); setEditNameValue(member.name || ''); }}
                             data-testid="zt-rename-expanded-btn"
                           >
@@ -754,7 +754,7 @@ const ZeroTierPage = () => {
 
       {/* Alert Configuration Dialog */}
       <Dialog open={!!alertDialogMember} onOpenChange={() => setAlertDialogMember(null)}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-white max-w-md">
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-amber-400" />
@@ -776,12 +776,12 @@ const ZeroTierPage = () => {
                     key={uid}
                     onClick={() => toggleRecipient(u)}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                      selected ? 'bg-amber-500/15 border border-amber-500/30' : 'border border-transparent hover:bg-zinc-800'
+                      selected ? 'bg-amber-500/15 border border-amber-500/30' : 'border border-transparent hover:bg-zinc-100'
                     }`}
                     data-testid={`alert-recipient-${uid}`}
                   >
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                      selected ? 'bg-amber-500 text-white' : 'bg-zinc-700 text-zinc-400'
+                      selected ? 'bg-amber-500 text-white' : 'bg-zinc-200 text-zinc-400'
                     }`}>
                       {(u.name || u.email || '?').charAt(0).toUpperCase()}
                     </div>
@@ -795,7 +795,7 @@ const ZeroTierPage = () => {
               })
             )}
           </div>
-          <div className="flex justify-between items-center mt-4 pt-3 border-t border-zinc-800">
+          <div className="flex justify-between items-center mt-4 pt-3 border-t border-zinc-200">
             <span className="text-xs text-zinc-500">
               {alertRecipients.length} recipient{alertRecipients.length !== 1 ? 's' : ''} selected
             </span>
@@ -833,7 +833,7 @@ const ZeroTierPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
+        <AlertDialogContent className="bg-white border-zinc-200 text-zinc-900">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-400" />
@@ -844,7 +844,7 @@ const ZeroTierPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-zinc-600 hover:bg-zinc-200">Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700 text-white"
               onClick={() => handleDeleteMember(deleteConfirm)}
@@ -858,7 +858,7 @@ const ZeroTierPage = () => {
 
       {/* IP Edit Dialog */}
       <AlertDialog open={!!ipEditMember} onOpenChange={() => setIpEditMember(null)}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800 text-white">
+        <AlertDialogContent className="bg-white border-zinc-200 text-zinc-900">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-amber-400" />
@@ -879,14 +879,14 @@ const ZeroTierPage = () => {
               value={ipEditValue}
               onChange={e => setIpEditValue(e.target.value)}
               placeholder="e.g. 10.147.17.50"
-              className="bg-zinc-800 border-zinc-700 text-white font-mono"
+              className="bg-zinc-800 border-zinc-300 text-white font-mono"
               onKeyDown={e => { if (e.key === 'Enter') handleUpdateIp(); }}
               data-testid="zt-ip-edit-input"
             />
             <p className="text-xs text-zinc-600 mt-1">Separate multiple IPs with commas</p>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-zinc-600 hover:bg-zinc-200">Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-amber-600 hover:bg-amber-700 text-white"
               onClick={handleUpdateIp}

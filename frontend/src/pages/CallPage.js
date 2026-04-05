@@ -39,7 +39,7 @@ export default function CallPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                tab === t.id ? 'bg-green-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'
+                tab === t.id ? 'bg-green-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-200 hover:border-zinc-300'
               }`}
               data-testid={`tab-${t.id}`}
             >
@@ -150,7 +150,7 @@ function CallsTab({ token }) {
   return (
     <div className="space-y-6" data-testid="calls-tab">
       {/* Audio Profile Selector */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+      <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Settings className="w-4 h-4 text-zinc-400" /> Active Audio Profile
         </h3>
@@ -165,7 +165,7 @@ function CallsTab({ token }) {
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedProfile?.id === p.id
                     ? 'bg-green-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200'
                 }`}
                 data-testid={`profile-select-${p.id}`}
               >
@@ -178,7 +178,7 @@ function CallsTab({ token }) {
       </div>
 
       {/* Create Invite */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+      <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <Link2 className="w-4 h-4 text-green-400" /> Create Invite Link
         </h3>
@@ -187,7 +187,7 @@ function CallsTab({ token }) {
             value={label}
             onChange={e => setLabel(e.target.value)}
             placeholder="Caller name or description (optional)"
-            className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm"
+            className="flex-1 bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm"
             data-testid="invite-label-input"
           />
           <Button
@@ -211,7 +211,7 @@ function CallsTab({ token }) {
             const isThisCallActive = activeCall?.inviteId === invite.id && callState !== 'idle';
 
             return (
-              <div key={invite.id} className="bg-zinc-900 rounded-xl border border-zinc-800 p-5" data-testid={`invite-${invite.id}`}>
+              <div key={invite.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5" data-testid={`invite-${invite.id}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -234,10 +234,10 @@ function CallsTab({ token }) {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-zinc-500 font-mono truncate max-w-[300px]">{invite.url}</span>
-                        <button onClick={() => copyLink(invite.url)} className="text-zinc-500 hover:text-zinc-300" title="Copy link">
+                        <button onClick={() => copyLink(invite.url)} className="text-zinc-500 hover:text-zinc-600" title="Copy link">
                           <Copy className="w-3.5 h-3.5" />
                         </button>
-                        <a href={invite.url} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-zinc-300" title="Open link">
+                        <a href={invite.url} target="_blank" rel="noopener noreferrer" className="text-zinc-500 hover:text-zinc-600" title="Open link">
                           <ExternalLink className="w-3.5 h-3.5" />
                         </a>
                       </div>
@@ -279,7 +279,7 @@ function CallsTab({ token }) {
                     )}
                     <button
                       onClick={() => deleteInvite(invite.id)}
-                      className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-red-400"
+                      className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-red-400"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -292,7 +292,7 @@ function CallsTab({ token }) {
       )}
 
       {activeInvites.length === 0 && (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-12 text-center">
           <Phone className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
           <p className="text-sm text-zinc-500">No active invite links. Create one to start calling.</p>
         </div>
@@ -416,13 +416,13 @@ function ProfilesTab({ token }) {
       </div>
 
       {showForm && (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 space-y-4" data-testid="profile-form">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5 space-y-4" data-testid="profile-form">
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Profile Name</label>
             <input
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm"
+              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm"
               placeholder="e.g. Studio A, Home Setup"
               data-testid="profile-name-input"
             />
@@ -435,7 +435,7 @@ function ProfilesTab({ token }) {
               <select
                 value={form.input_device_id}
                 onChange={e => setForm({ ...form, input_device_id: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm"
+                className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm"
                 data-testid="profile-input-select"
               >
                 <option value="">System default</option>
@@ -451,7 +451,7 @@ function ProfilesTab({ token }) {
               <select
                 value={form.output_device_id}
                 onChange={e => setForm({ ...form, output_device_id: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm"
+                className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm"
                 data-testid="profile-output-select"
               >
                 <option value="">System default</option>
@@ -472,14 +472,14 @@ function ProfilesTab({ token }) {
 
       <div className="space-y-3">
         {profiles.length === 0 ? (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
+          <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-12 text-center">
             <Settings className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
             <p className="text-sm text-zinc-500">No audio profiles yet. Create one to get started.</p>
           </div>
         ) : profiles.map(p => {
           const warnings = deviceWarnings[p.id];
           return (
-            <div key={p.id} className={`bg-zinc-900 rounded-xl border p-5 ${warnings ? 'border-amber-500/30' : 'border-zinc-800'}`} data-testid={`profile-${p.id}`}>
+            <div key={p.id} className={`bg-white/80 backdrop-blur rounded-xl border p-5 ${warnings ? 'border-amber-500/30' : 'border-zinc-200'}`} data-testid={`profile-${p.id}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
@@ -507,10 +507,10 @@ function ProfilesTab({ token }) {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => editProfile(p)} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300">
+                  <button onClick={() => editProfile(p)} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-zinc-600">
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button onClick={() => deleteProfile(p.id)} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500 hover:text-red-400">
+                  <button onClick={() => deleteProfile(p.id)} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500 hover:text-red-400">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -554,14 +554,14 @@ function HistoryTab({ token }) {
       <p className="text-sm text-zinc-500">{invites.length} completed call(s)</p>
 
       {invites.length === 0 ? (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-12 text-center">
           <Clock className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
           <p className="text-sm text-zinc-500">No call history yet.</p>
         </div>
       ) : (
         <div className="space-y-2">
           {invites.map(invite => (
-            <div key={invite.id} className="bg-zinc-900 rounded-xl border border-zinc-800 px-5 py-3.5 flex items-center justify-between">
+            <div key={invite.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 px-5 py-3.5 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center">
                   <PhoneOff className="w-4 h-4 text-zinc-500" />

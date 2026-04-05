@@ -462,8 +462,8 @@ const ContentDetailPage = () => {
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-8 bg-zinc-800 rounded w-48 mb-8" />
-        <div className="h-64 bg-zinc-800 rounded-xl" />
+        <div className="h-8 bg-zinc-100 rounded w-48 mb-8" />
+        <div className="h-64 bg-zinc-100 rounded-xl" />
       </div>
     );
   }
@@ -530,7 +530,7 @@ const ContentDetailPage = () => {
               disabled={isPublishBlocked}
               className={`gap-2 ${
                 isPublishBlocked 
-                  ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed opacity-60' 
+                  ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed opacity-60' 
                   : 'bg-violet-500 hover:bg-violet-600 text-white'
               }`}
             >
@@ -581,7 +581,7 @@ const ContentDetailPage = () => {
                     ? 'bg-orange-500/10 border-orange-500/30'
                     : ps.sync_status === 'failed'
                     ? 'bg-red-500/10 border-red-500/30'
-                    : 'bg-zinc-800/50 border-zinc-700'
+                    : 'bg-zinc-100/70 border-zinc-300'
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -629,7 +629,7 @@ const ContentDetailPage = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => window.open(ps.wp_permalink, '_blank')}
-                      className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                      className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
                     >
                       <ExternalLink className="w-4 h-4" />
                       View
@@ -653,7 +653,7 @@ const ContentDetailPage = () => {
       )}
 
       {/* Content Details */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-white">Content Details</h2>
           {!isEditing ? (
@@ -664,7 +664,7 @@ const ContentDetailPage = () => {
                   size="sm"
                   data-testid="edit-content-btn"
                   onClick={() => setIsEditing(true)}
-                  className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
                 >
                   <Edit2 className="w-4 h-4" />
                   Edit
@@ -674,7 +674,7 @@ const ContentDetailPage = () => {
                   size="sm"
                   data-testid="delete-content-btn"
                   onClick={() => setDeleteDialogOpen(true)}
-                  className="gap-2 bg-transparent border-zinc-700 text-orange-500 hover:bg-orange-500/10 hover:text-rose-400"
+                  className="gap-2 bg-transparent border-zinc-300 text-orange-500 hover:bg-orange-500/10 hover:text-rose-400"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete
@@ -690,7 +690,7 @@ const ContentDetailPage = () => {
                   setIsEditing(false);
                   setEditData({ ...content });
                 }}
-                className="gap-2 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="gap-2 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -712,45 +712,45 @@ const ContentDetailPage = () => {
         {isEditing ? (
           <div className="space-y-5">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Title</Label>
+              <Label className="text-zinc-600">Title</Label>
               <Input
                 data-testid="edit-title-input"
                 value={editData.title}
                 onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                className="bg-[#27272a] border-zinc-700 text-white"
+                className="bg-zinc-100 border-zinc-300 text-white"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-zinc-300">Type</Label>
+                <Label className="text-zinc-600">Type</Label>
                 <Select
                   value={editData.type}
                   onValueChange={(value) => setEditData({ ...editData, type: value })}
                 >
-                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#18181b] border-zinc-800">
-                    <SelectItem value="text" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Text</SelectItem>
-                    <SelectItem value="link" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Link</SelectItem>
-                    <SelectItem value="reference" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Reference</SelectItem>
+                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                    <SelectItem value="text" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Text</SelectItem>
+                    <SelectItem value="link" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Link</SelectItem>
+                    <SelectItem value="reference" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Reference</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-zinc-300">Status</Label>
+                <Label className="text-zinc-600">Status</Label>
                 <Select
                   value={editData.status}
                   onValueChange={(value) => setEditData({ ...editData, status: value })}
                 >
-                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#18181b] border-zinc-800">
-                    <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                    <SelectItem value="ready" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Ready</SelectItem>
+                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                    <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
+                    <SelectItem value="ready" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Ready</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -758,17 +758,17 @@ const ContentDetailPage = () => {
 
             {editData.type === 'link' && (
               <div className="space-y-2">
-                <Label className="text-zinc-300">External URL</Label>
+                <Label className="text-zinc-600">External URL</Label>
                 <Input
                   value={editData.external_url}
                   onChange={(e) => setEditData({ ...editData, external_url: e.target.value })}
-                  className="bg-[#27272a] border-zinc-700 text-white"
+                  className="bg-zinc-100 border-zinc-300 text-white"
                 />
               </div>
             )}
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Body</Label>
+              <Label className="text-zinc-600">Body</Label>
               <RichTextEditor
                 id="edit-content-body"
                 value={editData.body}
@@ -779,15 +779,15 @@ const ContentDetailPage = () => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Category</Label>
+              <Label className="text-zinc-600">Category</Label>
               <Select
                 value={editData.category_id || "none"}
                 onValueChange={(value) => setEditData({ ...editData, category_id: value === "none" ? "" : value })}
               >
-                <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   <SelectItem value="none" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
                     No category
                   </SelectItem>
@@ -795,7 +795,7 @@ const ContentDetailPage = () => {
                     <SelectItem
                       key={cat.id}
                       value={cat.id}
-                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                     >
                       <div className="flex items-center gap-2">
                         <Folder className="w-4 h-4 text-orange-400" />
@@ -826,10 +826,10 @@ const ContentDetailPage = () => {
 
             <div>
               <Label className="text-zinc-500 text-xs uppercase tracking-wider">Body</Label>
-              <div className="mt-2 p-4 bg-[#27272a] rounded-lg prose prose-invert prose-sm max-w-none">
+              <div className="mt-2 p-4 bg-zinc-100 rounded-lg prose prose-invert prose-sm max-w-none">
                 {content.body ? (
                   <div 
-                    className="text-zinc-300 content-body-display"
+                    className="text-zinc-600 content-body-display"
                     dangerouslySetInnerHTML={{ __html: content.body }}
                   />
                 ) : (
@@ -901,7 +901,7 @@ const ContentDetailPage = () => {
                   <Label className="text-zinc-500 text-xs uppercase tracking-wider">Category</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <Folder className="w-4 h-4 text-orange-400" />
-                    <span className="text-zinc-300">{content.category.name}</span>
+                    <span className="text-zinc-600">{content.category.name}</span>
                   </div>
                 </div>
               )}
@@ -911,7 +911,7 @@ const ContentDetailPage = () => {
                   <Label className="text-zinc-500 text-xs uppercase tracking-wider">Created By</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <User className="w-4 h-4 text-zinc-400" />
-                    <span className="text-zinc-300">{content.created_by_name}</span>
+                    <span className="text-zinc-600">{content.created_by_name}</span>
                   </div>
                 </div>
               )}
@@ -921,7 +921,7 @@ const ContentDetailPage = () => {
                   <Label className="text-zinc-500 text-xs uppercase tracking-wider">Source</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <Globe className="w-4 h-4 text-blue-400" />
-                    <span className="text-zinc-300">{content.source}</span>
+                    <span className="text-zinc-600">{content.source}</span>
                   </div>
                 </div>
               )}
@@ -932,16 +932,16 @@ const ContentDetailPage = () => {
 
       {/* Audit Log Section - Admin Only */}
       {isAdmin && (
-        <div className="bg-[#18181b] border border-zinc-800 rounded-xl overflow-hidden">
+        <div className="bg-zinc-100 border border-zinc-200 rounded-xl overflow-hidden">
           <button
             onClick={toggleAuditLogs}
-            className="w-full flex items-center justify-between p-4 hover:bg-zinc-800/50 transition-colors"
+            className="w-full flex items-center justify-between p-4 hover:bg-zinc-100/70 transition-colors"
           >
             <div className="flex items-center gap-3">
               <History className="w-5 h-5 text-orange-400" />
               <span className="font-semibold text-white">Edit History</span>
               {auditLogs.length > 0 && (
-                <span className="px-2 py-0.5 bg-zinc-700 rounded-full text-xs text-zinc-300">
+                <span className="px-2 py-0.5 bg-zinc-200 rounded-full text-xs text-zinc-600">
                   {auditLogs.length} entries
                 </span>
               )}
@@ -956,7 +956,7 @@ const ContentDetailPage = () => {
                     handleExportPdf();
                   }}
                   disabled={exportingPdf}
-                  className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-700 gap-2"
+                  className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-200 gap-2"
                 >
                   {exportingPdf ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -975,7 +975,7 @@ const ContentDetailPage = () => {
           </button>
           
           {auditLogsExpanded && (
-            <div className="border-t border-zinc-800">
+            <div className="border-t border-zinc-200">
               {loadingAuditLogs ? (
                 <div className="p-8 text-center">
                   <Loader2 className="w-6 h-6 animate-spin text-orange-400 mx-auto" />
@@ -990,7 +990,7 @@ const ContentDetailPage = () => {
               ) : (
                 <div className="divide-y divide-zinc-800 max-h-[400px] overflow-y-auto">
                   {auditLogs.map((log, index) => (
-                    <div key={log.id || index} className="p-4 hover:bg-zinc-800/30">
+                    <div key={log.id || index} className="p-4 hover:bg-zinc-100/30">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-0.5 rounded text-xs font-medium ${
@@ -1001,7 +1001,7 @@ const ContentDetailPage = () => {
                           }`}>
                             {log.action?.toUpperCase()}
                           </span>
-                          <span className="text-zinc-300 font-medium">{log.user_name}</span>
+                          <span className="text-zinc-600 font-medium">{log.user_name}</span>
                         </div>
                         <div className="text-right">
                           <p className="text-zinc-400 text-sm">
@@ -1016,7 +1016,7 @@ const ContentDetailPage = () => {
                       {log.changes && log.changes.length > 0 && (
                         <div className="mt-3 space-y-2">
                           {log.changes.map((change, changeIdx) => (
-                            <div key={changeIdx} className="bg-zinc-800/50 rounded-lg p-3">
+                            <div key={changeIdx} className="bg-zinc-100/70 rounded-lg p-3">
                               <p className="text-orange-400 text-xs font-medium uppercase mb-1">
                                 {change.field}
                               </p>
@@ -1029,7 +1029,7 @@ const ContentDetailPage = () => {
                                 </div>
                                 <div>
                                   <p className="text-zinc-500 text-xs mb-1">After:</p>
-                                  <p className="text-zinc-300 break-words">
+                                  <p className="text-zinc-600 break-words">
                                     {change.new_value || <span className="italic text-zinc-600">(empty)</span>}
                                   </p>
                                 </div>
@@ -1053,7 +1053,7 @@ const ContentDetailPage = () => {
 
       {/* Multi-site Publish Dialog with Featured Images */}
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               Publish to WordPress
@@ -1084,7 +1084,7 @@ const ContentDetailPage = () => {
                     className={`p-4 rounded-xl border transition-colors ${
                       isSelected 
                         ? 'border-violet-500/50 bg-violet-500/5' 
-                        : 'border-zinc-800 bg-[#27272a]'
+                        : 'border-zinc-200 bg-zinc-100'
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -1126,12 +1126,12 @@ const ContentDetailPage = () => {
                                   onValueChange={(value) => updateSiteSettings(site.id, 'post_type', value)}
                                   disabled={!!publishStatus?.wp_post_id}
                                 >
-                                  <SelectTrigger className="h-9 bg-[#18181b] border-zinc-700 text-white mt-1">
+                                  <SelectTrigger className="h-9 bg-zinc-100 border-zinc-300 text-white mt-1">
                                     <SelectValue />
                                   </SelectTrigger>
-                                  <SelectContent className="bg-[#18181b] border-zinc-800">
-                                    <SelectItem value="post" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Post</SelectItem>
-                                    <SelectItem value="page" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Page</SelectItem>
+                                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                                    <SelectItem value="post" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Post</SelectItem>
+                                    <SelectItem value="page" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Page</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
@@ -1147,13 +1147,13 @@ const ContentDetailPage = () => {
                                     }
                                   }}
                                 >
-                                  <SelectTrigger className="h-9 bg-[#18181b] border-zinc-700 text-white mt-1">
+                                  <SelectTrigger className="h-9 bg-zinc-100 border-zinc-300 text-white mt-1">
                                     <SelectValue />
                                   </SelectTrigger>
-                                  <SelectContent className="bg-[#18181b] border-zinc-800">
-                                    <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                                    <SelectItem value="publish" className="text-zinc-300 focus:text-white focus:bg-zinc-800">Published</SelectItem>
-                                    <SelectItem value="future" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                                    <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
+                                    <SelectItem value="publish" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Published</SelectItem>
+                                    <SelectItem value="future" className="text-zinc-600 focus:text-white focus:bg-zinc-800">
                                       <div className="flex items-center gap-2">
                                         <Calendar className="w-3 h-3" />
                                         Schedule
@@ -1176,7 +1176,7 @@ const ContentDetailPage = () => {
                                   value={settings.scheduled_date || ''}
                                   onChange={(e) => updateSiteSettings(site.id, 'scheduled_date', e.target.value)}
                                   min={new Date().toISOString().slice(0, 16)}
-                                  className="bg-[#18181b] border-zinc-700 text-white h-9"
+                                  className="bg-zinc-100 border-zinc-300 text-white h-9"
                                 />
                                 <p className="text-xs text-zinc-500 mt-2">
                                   Post will be automatically published at the scheduled time
@@ -1185,7 +1185,7 @@ const ContentDetailPage = () => {
                             )}
 
                             {/* Featured Image Section */}
-                            <div className="border-t border-zinc-700 pt-4">
+                            <div className="border-t border-zinc-300 pt-4">
                               <Label className="text-xs text-zinc-400 mb-2 block">Featured Image (Optional)</Label>
                               
                               {image ? (
@@ -1198,7 +1198,7 @@ const ContentDetailPage = () => {
                                     />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-zinc-300 truncate max-w-[200px]" title={image.file_name}>
+                                    <p className="text-sm text-zinc-600 truncate max-w-[200px]" title={image.file_name}>
                                       {image.file_name}
                                     </p>
                                     <p className="text-xs text-zinc-500">
@@ -1213,7 +1213,7 @@ const ContentDetailPage = () => {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => fileInputRefs.current[site.id]?.click()}
-                                        className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-xs h-7"
+                                        className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs h-7"
                                       >
                                         Replace
                                       </Button>
@@ -1222,7 +1222,7 @@ const ContentDetailPage = () => {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleRemoveImage(site.id)}
-                                        className="bg-transparent border-zinc-700 text-rose-400 hover:bg-orange-500/10 text-xs h-7"
+                                        className="bg-transparent border-zinc-300 text-rose-400 hover:bg-orange-500/10 text-xs h-7"
                                       >
                                         Remove
                                       </Button>
@@ -1232,7 +1232,7 @@ const ContentDetailPage = () => {
                               ) : (
                                 <div
                                   onClick={() => fileInputRefs.current[site.id]?.click()}
-                                  className="border-2 border-dashed border-zinc-700 rounded-lg p-4 text-center cursor-pointer hover:border-violet-500/50 hover:bg-violet-500/5 transition-colors"
+                                  className="border-2 border-dashed border-zinc-300 rounded-lg p-4 text-center cursor-pointer hover:border-violet-500/50 hover:bg-violet-500/5 transition-colors"
                                 >
                                   {isUploading ? (
                                     <div className="flex flex-col items-center">
@@ -1267,11 +1267,11 @@ const ContentDetailPage = () => {
             )}
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-zinc-800 mt-4">
+          <div className="flex gap-3 pt-4 border-t border-zinc-200 mt-4">
             <Button
               variant="outline"
               onClick={() => setPublishDialogOpen(false)}
-              className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
             >
               Cancel
             </Button>
@@ -1296,27 +1296,27 @@ const ContentDetailPage = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Content</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               <p className="mb-3">Are you sure you want to delete "{content.title}"?</p>
-              <div className="p-3 bg-zinc-800/50 rounded-lg space-y-2 text-sm">
-                <p className="text-zinc-300">This will:</p>
+              <div className="p-3 bg-zinc-100/70 rounded-lg space-y-2 text-sm">
+                <p className="text-zinc-600">This will:</p>
                 <ul className="list-disc list-inside space-y-1 text-zinc-400">
                   <li>Move the content to Trash</li>
                   {hasPublishedSites && (
                     <li className="text-orange-400">Delete the post from all linked WordPress sites</li>
                   )}
                 </ul>
-                <p className="text-zinc-500 text-xs mt-2 pt-2 border-t border-zinc-700">
+                <p className="text-zinc-500 text-xs mt-2 pt-2 border-t border-zinc-300">
                   Admins can restore deleted content from the Trash.
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -1339,7 +1339,7 @@ const ContentDetailPage = () => {
 
       {/* Social Media / Canva Prompt */}
       <Dialog open={canvaPrompt.open} onOpenChange={open => !open && setCanvaPrompt({ open: false, slug: '', name: '' })}>
-        <DialogContent className="sm:max-w-md bg-[#0c0c0c] border-zinc-800" data-testid="canva-social-prompt">
+        <DialogContent className="sm:max-w-md bg-white border-zinc-200" data-testid="canva-social-prompt">
           <DialogHeader>
             <DialogTitle className="text-white">Create Social Media Post?</DialogTitle>
             <DialogDescription className="text-zinc-400">
@@ -1349,7 +1349,7 @@ const ContentDetailPage = () => {
           <div className="flex justify-end gap-2 pt-4">
             <Button
               variant="outline"
-              className="border-zinc-700 text-zinc-400"
+              className="border-zinc-300 text-zinc-400"
               onClick={() => setCanvaPrompt({ open: false, slug: '', name: '' })}
               data-testid="canva-social-skip"
             >

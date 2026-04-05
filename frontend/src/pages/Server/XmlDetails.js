@@ -84,7 +84,7 @@ export default function XmlDetails() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white">
+          <button onClick={() => navigate(-1)} className="p-1.5 rounded hover:bg-zinc-100 text-zinc-400 hover:text-white">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
@@ -93,7 +93,7 @@ export default function XmlDetails() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => window.open(`${API}/xml-imports/${importId}/download`, '_blank')} className="border-zinc-700 text-zinc-300">
+          <Button variant="outline" size="sm" onClick={() => window.open(`${API}/xml-imports/${importId}/download`, '_blank')} className="border-zinc-300 text-zinc-600">
             <Download className="w-4 h-4 mr-1.5" />Download
           </Button>
           <Button variant="outline" size="sm" onClick={handleDelete} className="border-red-500/30 text-red-400 hover:bg-red-500/10" data-testid="delete-import-btn">
@@ -120,7 +120,7 @@ export default function XmlDetails() {
       )}
 
       {/* Info grid */}
-      <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl divide-y divide-zinc-800">
+      <div className="bg-white/60 border border-zinc-200 rounded-xl divide-y divide-zinc-800">
         {fields.map(({ icon: Icon, label, value }) => (
           <div key={label} className="flex items-center px-4 py-3 gap-3">
             <Icon className="w-4 h-4 text-zinc-500 flex-shrink-0" />
@@ -134,11 +134,11 @@ export default function XmlDetails() {
       {metaFields.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-zinc-400 mb-2">Parsed Metadata</h3>
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl divide-y divide-zinc-800">
+          <div className="bg-white/60 border border-zinc-200 rounded-xl divide-y divide-zinc-800">
             {metaFields.map(({ label, value }) => (
               <div key={label} className="flex items-center px-4 py-2.5 gap-3">
                 <span className="text-xs text-zinc-500 w-28 flex-shrink-0">{label}</span>
-                <span className="text-sm text-zinc-300 font-mono">{value}</span>
+                <span className="text-sm text-zinc-600 font-mono">{value}</span>
               </div>
             ))}
           </div>
@@ -152,19 +152,19 @@ export default function XmlDetails() {
           size="sm"
           onClick={loadPreview}
           disabled={previewLoading}
-          className="border-zinc-700 text-zinc-300 mb-3"
+          className="border-zinc-300 text-zinc-600 mb-3"
           data-testid="preview-xml-btn"
         >
           {previewLoading ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Code className="w-4 h-4 mr-1.5" />}
           {showPreview ? 'Hide XML Preview' : 'Show XML Preview'}
         </Button>
         {showPreview && xmlContent && (
-          <div className="bg-[#0d1117] border border-zinc-800 rounded-xl overflow-hidden" data-testid="xml-preview">
-            <div className="px-4 py-2 bg-zinc-900 border-b border-zinc-800 flex items-center gap-2">
+          <div className="bg-[#0d1117] border border-zinc-200 rounded-xl overflow-hidden" data-testid="xml-preview">
+            <div className="px-4 py-2 bg-zinc-900 border-b border-zinc-200 flex items-center gap-2">
               <Code className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-xs text-zinc-500">{imp.file_name}</span>
             </div>
-            <pre className="p-4 text-xs text-zinc-300 overflow-auto max-h-[500px] font-mono leading-relaxed whitespace-pre-wrap">
+            <pre className="p-4 text-xs text-zinc-600 overflow-auto max-h-[500px] font-mono leading-relaxed whitespace-pre-wrap">
               {xmlContent}
             </pre>
           </div>

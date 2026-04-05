@@ -157,7 +157,7 @@ const TrashPage = () => {
         <Button
           onClick={fetchDeletedContent}
           variant="outline"
-          className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-2"
+          className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 gap-2"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh
@@ -173,7 +173,7 @@ const TrashPage = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search deleted content..."
-              className="pl-10 bg-[#18181b] border-zinc-800 text-white placeholder:text-zinc-500"
+              className="pl-10 bg-zinc-100 border-zinc-200 text-white placeholder:text-zinc-500"
             />
           </div>
         </div>
@@ -185,16 +185,16 @@ const TrashPage = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 animate-pulse"
+              className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 animate-pulse"
             >
-              <div className="h-6 bg-zinc-800 rounded w-1/3 mb-3" />
-              <div className="h-4 bg-zinc-800 rounded w-2/3" />
+              <div className="h-6 bg-zinc-100 rounded w-1/3 mb-3" />
+              <div className="h-4 bg-zinc-100 rounded w-2/3" />
             </div>
           ))}
         </div>
       ) : filteredContent.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Trash2 className="w-8 h-8 text-zinc-500" />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">
@@ -215,7 +215,7 @@ const TrashPage = () => {
             return (
               <div
                 key={item.id}
-                className="bg-[#18181b] border border-red-500/20 rounded-xl p-4 sm:p-5 hover:border-red-500/40 transition-colors"
+                className="bg-zinc-100 border border-red-500/20 rounded-xl p-4 sm:p-5 hover:border-red-500/40 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -232,7 +232,7 @@ const TrashPage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="p-3 bg-zinc-800 rounded-lg opacity-60">
+                      <div className="p-3 bg-zinc-100 rounded-lg opacity-60">
                         <TypeIcon className="w-6 h-6 text-zinc-400" />
                       </div>
                     )}
@@ -290,7 +290,7 @@ const TrashPage = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => navigate(navTo(`/content/${item.id}`))}
-                      className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-1"
+                      className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 gap-1"
                     >
                       <Eye className="w-4 h-4" />
                       View
@@ -329,7 +329,7 @@ const TrashPage = () => {
 
       {/* Permanent Delete Confirmation Dialog */}
       <AlertDialog open={!!permanentDeleteItem} onOpenChange={() => setPermanentDeleteItem(null)}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -347,7 +347,7 @@ const TrashPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

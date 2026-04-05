@@ -131,7 +131,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
 
                   {/* Name */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-zinc-300 truncate leading-tight">{site.name}</div>
+                    <div className="text-[13px] font-semibold text-zinc-600 truncate leading-tight">{site.name}</div>
                     <div className="text-[10px] text-zinc-600 truncate">/{site.slug}</div>
                   </div>
 

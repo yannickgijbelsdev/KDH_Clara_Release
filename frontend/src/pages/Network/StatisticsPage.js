@@ -31,7 +31,7 @@ const PIE_COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 shadow-xl">
+    <div className="bg-zinc-900 border border-zinc-300 rounded-lg px-3 py-2 shadow-xl">
       <p className="text-xs text-zinc-400 mb-1">{label}</p>
       {payload.map((entry, i) => (
         <p key={i} className="text-sm" style={{ color: entry.color }}>
@@ -108,7 +108,7 @@ export default function StatisticsPage() {
 
   if (!user?.is_network_admin) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-400">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center text-zinc-400">
         Network admin access required
       </div>
     );
@@ -116,7 +116,7 @@ export default function StatisticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
         <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
       </div>
     );
@@ -134,9 +134,9 @@ export default function StatisticsPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white">
+    <div className="min-h-screen bg-[#F0F0F2] text-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#F0F0F2]/80 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <Button
@@ -188,7 +188,7 @@ export default function StatisticsPage() {
         {overview?.wordpress_sites?.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" data-testid="wp-site-stats">
             {overview.wordpress_sites.map(site => (
-              <div key={site.site_id} className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+              <div key={site.site_id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Globe className="w-4 h-4 text-zinc-500" />
                   <span className="text-sm font-medium">{site.site_name}</span>
@@ -211,7 +211,7 @@ export default function StatisticsPage() {
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Monthly Trend Chart */}
-          <div className="lg:col-span-2 bg-zinc-900 rounded-xl border border-zinc-800 p-5" data-testid="monthly-chart">
+          <div className="lg:col-span-2 bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5" data-testid="monthly-chart">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp className="w-4 h-4 text-zinc-500" />
               <h3 className="text-sm font-semibold">Monthly Trend (12 months)</h3>
@@ -249,7 +249,7 @@ export default function StatisticsPage() {
           </div>
 
           {/* Approval Breakdown */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5" data-testid="approval-chart">
+          <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5" data-testid="approval-chart">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="w-4 h-4 text-zinc-500" />
               <h3 className="text-sm font-semibold">Approval Status</h3>
@@ -292,7 +292,7 @@ export default function StatisticsPage() {
 
         {/* Per-Site Monthly Stacked Bar */}
         {perSite?.months?.length > 0 && perSite?.site_names?.length > 0 && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 mb-8" data-testid="per-site-chart">
+          <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5 mb-8" data-testid="per-site-chart">
             <div className="flex items-center gap-2 mb-4">
               <Globe className="w-4 h-4 text-zinc-500" />
               <h3 className="text-sm font-semibold">Publishing per WordPress Site</h3>
@@ -314,7 +314,7 @@ export default function StatisticsPage() {
 
         {/* Weekly Activity */}
         {weeklyActivity?.weeks?.length > 0 && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 mb-8" data-testid="weekly-chart">
+          <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5 mb-8" data-testid="weekly-chart">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="w-4 h-4 text-zinc-500" />
               <h3 className="text-sm font-semibold">Weekly Content Activity</h3>
@@ -333,7 +333,7 @@ export default function StatisticsPage() {
 
         {/* Category Breakdown */}
         {overview?.categories?.length > 0 && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 mb-8" data-testid="category-stats">
+          <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5 mb-8" data-testid="category-stats">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="w-4 h-4 text-zinc-500" />
               <h3 className="text-sm font-semibold">Content per Category</h3>
@@ -345,13 +345,13 @@ export default function StatisticsPage() {
                 return (
                   <div key={i} className="flex items-center gap-3">
                     <span className="text-xs text-zinc-400 w-36 truncate capitalize">{cat.name}</span>
-                    <div className="flex-1 h-5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="flex-1 h-5 bg-zinc-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${pct}%`, background: PIE_COLORS[i % PIE_COLORS.length] }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-zinc-300 w-8 text-right">{cat.count}</span>
+                    <span className="text-xs font-semibold text-zinc-600 w-8 text-right">{cat.count}</span>
                   </div>
                 );
               })}
@@ -361,7 +361,7 @@ export default function StatisticsPage() {
 
         {/* Top Authors */}
         {authors?.authors?.length > 0 && (
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 mb-8" data-testid="top-authors">
+          <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5 mb-8" data-testid="top-authors">
             <div className="flex items-center gap-2 mb-4">
               <Award className="w-4 h-4 text-zinc-500" />
               <h3 className="text-sm font-semibold">Top Content Creators</h3>
@@ -369,7 +369,7 @@ export default function StatisticsPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-zinc-500 text-xs border-b border-zinc-800">
+                  <tr className="text-zinc-500 text-xs border-b border-zinc-200">
                     <th className="text-left py-2 px-2">#</th>
                     <th className="text-left py-2 px-2">Author</th>
                     <th className="text-right py-2 px-2">Total</th>
@@ -380,12 +380,12 @@ export default function StatisticsPage() {
                 </thead>
                 <tbody>
                   {authors.authors.map((author, i) => (
-                    <tr key={author.user_id} className="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+                    <tr key={author.user_id} className="border-b border-zinc-200/50 hover:bg-zinc-100/30">
                       <td className="py-2.5 px-2">
                         {i < 3 ? (
                           <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
                             i === 0 ? 'bg-amber-500/20 text-amber-400' :
-                            i === 1 ? 'bg-zinc-400/20 text-zinc-300' :
+                            i === 1 ? 'bg-zinc-400/20 text-zinc-600' :
                             'bg-orange-500/20 text-orange-400'
                           }`}>{i + 1}</span>
                         ) : (
@@ -419,7 +419,7 @@ export default function StatisticsPage() {
 
 function KPICard({ icon: Icon, label, value, color }) {
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4" data-testid={`kpi-${label.toLowerCase().replace(/\s/g,'-')}`}>
+    <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4" data-testid={`kpi-${label.toLowerCase().replace(/\s/g,'-')}`}>
       <div className="flex items-center gap-2 mb-2">
         <Icon className={`w-4 h-4 ${color}`} />
         <span className="text-xs text-zinc-500">{label}</span>

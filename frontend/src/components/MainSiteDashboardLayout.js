@@ -183,6 +183,29 @@ const MainSiteDashboardContent = () => {
   const location = useLocation();
   const { siteId } = useParams();
 
+  // Route guard: redirect to dashboard if current path is invalid for this site type
+  useEffect(() => {
+    if (loading || !mainSite || !mainSiteSlug) return;
+    const currentPath = location.pathname;
+    const basePath = `/${mainSiteSlug}`;
+    // Only check subpaths, not the root
+    if (currentPath === basePath || currentPath === `${basePath}/` || currentPath === `${basePath}/dashboard`) return;
+    
+    const subPath = currentPath.replace(basePath, '').replace(/^\//, '').split('/')[0];
+    if (!subPath || subPath === 'settings') return; // settings is always valid
+    
+    const enabledFeatures = mainSite.enabled_features || [];
+    const validRoutes = new Set(['dashboard', 'settings']);
+    enabledFeatures.forEach(f => {
+      const nav = FEATURE_NAV_ITEMS[f];
+      if (nav) validRoutes.add(nav.to);
+    });
+    
+    if (!validRoutes.has(subPath)) {
+      navigate(`/${mainSiteSlug}`, { replace: true });
+    }
+  }, [mainSite, mainSiteSlug, location.pathname, loading, navigate]);
+
   // Show top loader during main site loading
   useEffect(() => {
     if (loading) startLoading();
@@ -660,7 +683,7 @@ const MainSiteDashboardContent = () => {
         
         {/* Sites submenu */}
         {sites.length > 0 && !isInSiteContext && (
-          <div className="mt-4 pt-4 border-t border-zinc-800 space-y-1">
+          <div className="mt-4 pt-4 border-t border-zinc-200 space-y-1">
             <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Sites</div>
             {sites.map(site => (
               <NavLink
@@ -711,7 +734,7 @@ const MainSiteDashboardContent = () => {
             onOpenChange={() => toggleGroup(group.id)}
             className="mb-3"
           >
-            <CollapsibleTrigger className="flex items-center gap-2 px-3 py-2.5 w-full text-left text-zinc-500 hover:text-zinc-300 transition-colors">
+            <CollapsibleTrigger className="flex items-center gap-2 px-3 py-2.5 w-full text-left text-zinc-500 hover:text-zinc-600 transition-colors">
               <group.icon className="h-4 w-4" />
               <span className="flex-1 text-xs font-semibold uppercase tracking-wider">{group.label}</span>
               {expandedGroups.includes(group.id) ? (
@@ -725,7 +748,7 @@ const MainSiteDashboardContent = () => {
               
               {/* Sites submenu */}
               {group.id === 'sites' && sites.length > 0 && !isInSiteContext && (
-                <div className="ml-4 mt-2 space-y-1 border-l border-zinc-800 pl-3">
+                <div className="ml-4 mt-2 space-y-1 border-l border-zinc-200 pl-3">
                   {sites.map(site => (
                     <NavLink
                       key={site.id}
@@ -735,7 +758,7 @@ const MainSiteDashboardContent = () => {
                         `flex items-center gap-2 px-2 py-2 rounded text-xs transition-colors ${
                           isActive
                             ? 'bg-orange-500/10 text-orange-500'
-                            : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
+                            : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-600'
                         }`
                       }
                     >
@@ -774,7 +797,7 @@ const MainSiteDashboardContent = () => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-zinc-900/95 border-zinc-800 text-white text-xs backdrop-blur-lg">
+            <TooltipContent side="right" className="bg-white/95 border-zinc-200 text-white text-xs backdrop-blur-lg">
               Back to Sites
             </TooltipContent>
           </Tooltip>
@@ -832,7 +855,7 @@ const MainSiteDashboardContent = () => {
                     className="w-11 h-11 flex items-center justify-center rounded-2xl opacity-20 cursor-not-allowed"
                     data-testid={`nav-disabled-${pathSegment}`}
                   >
-                    <Icon className="w-5 h-5 text-zinc-300" />
+                    <Icon className="w-5 h-5 text-zinc-600" />
                   </div>
                 ) : (
                 <NavLink

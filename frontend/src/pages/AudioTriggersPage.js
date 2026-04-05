@@ -85,7 +85,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
   return (
     <div className="space-y-3">
       {windows.map((window, index) => (
-        <div key={index} className="bg-zinc-800/50 rounded-lg p-3 border border-zinc-700">
+        <div key={index} className="bg-zinc-100/70 rounded-lg p-3 border border-zinc-300">
           <div className="flex items-center gap-3 mb-2">
             <div className="flex items-center gap-2">
               <Label className="text-xs text-zinc-400">From</Label>
@@ -93,7 +93,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
                 type="time"
                 value={window.start_time}
                 onChange={(e) => updateWindow(index, 'start_time', e.target.value)}
-                className="w-24 h-8 bg-zinc-900 border-zinc-700 text-sm"
+                className="w-24 h-8 bg-zinc-900 border-zinc-300 text-sm"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
                 type="time"
                 value={window.end_time}
                 onChange={(e) => updateWindow(index, 'end_time', e.target.value)}
-                className="w-24 h-8 bg-zinc-900 border-zinc-700 text-sm"
+                className="w-24 h-8 bg-zinc-900 border-zinc-300 text-sm"
               />
             </div>
             <Button
@@ -122,7 +122,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
                 className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                   (window.days || []).includes(dayIndex)
                     ? 'bg-orange-500 text-white'
-                    : 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600'
+                    : 'bg-zinc-200 text-zinc-400 hover:bg-zinc-200'
                 }`}
               >
                 {name}
@@ -155,11 +155,11 @@ const AudioFileUpload = ({ label, filename, onUpload, onDelete, isUploading }) =
 
   return (
     <div className="space-y-2">
-      <Label className="text-sm text-zinc-300">{label}</Label>
+      <Label className="text-sm text-zinc-600">{label}</Label>
       {filename ? (
-        <div className="flex items-center gap-2 p-2 bg-zinc-800 rounded-lg border border-zinc-700">
+        <div className="flex items-center gap-2 p-2 bg-zinc-100 rounded-lg border border-zinc-300">
           <Music className="w-4 h-4 text-green-400" />
-          <span className="text-sm text-zinc-300 flex-1 truncate">{filename}</span>
+          <span className="text-sm text-zinc-600 flex-1 truncate">{filename}</span>
           <Button
             variant="ghost"
             size="sm"
@@ -170,7 +170,7 @@ const AudioFileUpload = ({ label, filename, onUpload, onDelete, isUploading }) =
           </Button>
         </div>
       ) : (
-        <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-zinc-600 transition-colors">
+        <label className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-zinc-300 rounded-lg cursor-pointer hover:border-zinc-600 transition-colors">
           {isUploading ? (
             <Loader2 className="w-5 h-5 animate-spin text-zinc-400" />
           ) : (
@@ -327,7 +327,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#18181b] border-zinc-800 max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-zinc-100 border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <Volume2 className="w-5 h-5 text-orange-400" />
@@ -339,24 +339,24 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Name</Label>
+              <Label className="text-zinc-600">Name</Label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Commercial Break MFY"
-                className="bg-zinc-900 border-zinc-700"
+                className="bg-zinc-900 border-zinc-300"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-zinc-300">Station</Label>
+              <Label className="text-zinc-600">Station</Label>
               <Select
                 value={formData.station}
                 onValueChange={(v) => setFormData({ ...formData, station: v })}
               >
-                <SelectTrigger className="bg-zinc-900 border-zinc-700">
+                <SelectTrigger className="bg-zinc-900 border-zinc-300">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-700">
+                <SelectContent className="bg-zinc-900 border-zinc-300">
                   <SelectItem value="mfy">Radio MFY</SelectItem>
                   <SelectItem value="grk">Radio GRK</SelectItem>
                   <SelectItem value="both">Both Stations</SelectItem>
@@ -367,7 +367,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
 
           {/* Time Windows */}
           <div className="space-y-2">
-            <Label className="text-zinc-300 flex items-center gap-2">
+            <Label className="text-zinc-600 flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Listening Windows (when to monitor for the sound)
             </Label>
@@ -421,10 +421,10 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                 value={formData.in_action_type}
                 onValueChange={(v) => setFormData({ ...formData, in_action_type: v })}
               >
-                <SelectTrigger className="bg-zinc-900 border-zinc-700">
+                <SelectTrigger className="bg-zinc-900 border-zinc-300">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-700">
+                <SelectContent className="bg-zinc-900 border-zinc-300">
                   <SelectItem value="custom_text">Show Custom Text</SelectItem>
                   <SelectItem value="show_name">Show Program Name</SelectItem>
                 </SelectContent>
@@ -434,7 +434,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                   value={formData.in_action_text}
                   onChange={(e) => setFormData({ ...formData, in_action_text: e.target.value })}
                   placeholder="e.g., Reclame"
-                  className="bg-zinc-900 border-zinc-700"
+                  className="bg-zinc-900 border-zinc-300"
                 />
               )}
             </div>
@@ -444,10 +444,10 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                 value={formData.out_action_type}
                 onValueChange={(v) => setFormData({ ...formData, out_action_type: v })}
               >
-                <SelectTrigger className="bg-zinc-900 border-zinc-700">
+                <SelectTrigger className="bg-zinc-900 border-zinc-300">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-700">
+                <SelectContent className="bg-zinc-900 border-zinc-300">
                   <SelectItem value="now_playing">Resume Now Playing</SelectItem>
                   <SelectItem value="show_name">Show Program Name</SelectItem>
                   <SelectItem value="custom_text">Show Custom Text</SelectItem>
@@ -458,7 +458,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                   value={formData.out_action_text}
                   onChange={(e) => setFormData({ ...formData, out_action_text: e.target.value })}
                   placeholder="Custom text..."
-                  className="bg-zinc-900 border-zinc-700"
+                  className="bg-zinc-900 border-zinc-300"
                 />
               )}
             </div>
@@ -467,19 +467,19 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
           {/* Advanced Settings */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Timeout (minutes)</Label>
+              <Label className="text-zinc-600">Timeout (minutes)</Label>
               <Input
                 type="number"
                 min="1"
                 max="30"
                 value={formData.timeout_minutes}
                 onChange={(e) => setFormData({ ...formData, timeout_minutes: parseInt(e.target.value) || 5 })}
-                className="bg-zinc-900 border-zinc-700"
+                className="bg-zinc-900 border-zinc-300"
               />
               <p className="text-xs text-zinc-500">Auto-deactivate if no OUT sound detected</p>
             </div>
             <div className="space-y-2">
-              <Label className="text-zinc-300">Match Threshold ({Math.round(formData.threshold * 100)}%)</Label>
+              <Label className="text-zinc-600">Match Threshold ({Math.round(formData.threshold * 100)}%)</Label>
               <input
                 type="range"
                 min="0.5"
@@ -494,9 +494,9 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
           </div>
 
           {/* Enable Switch */}
-          <div className="flex items-center justify-between p-3 bg-zinc-800 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-zinc-100 rounded-lg">
             <div>
-              <Label className="text-zinc-300">Enable Trigger</Label>
+              <Label className="text-zinc-600">Enable Trigger</Label>
               <p className="text-xs text-zinc-500">When enabled, the system will listen for this sound</p>
             </div>
             <Switch
@@ -507,8 +507,8 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
-            <Button variant="outline" onClick={onClose} className="border-zinc-700">
+          <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200">
+            <Button variant="outline" onClick={onClose} className="border-zinc-300">
               Cancel
             </Button>
             <Button
@@ -648,7 +648,7 @@ const AudioTriggersPage = () => {
           <Button
             variant="outline"
             onClick={() => setShowLogs(!showLogs)}
-            className="border-zinc-700"
+            className="border-zinc-300"
           >
             <Calendar className="w-4 h-4 mr-2" />
             {showLogs ? 'Hide Logs' : 'Show Logs'}
@@ -680,7 +680,7 @@ const AudioTriggersPage = () => {
       {/* Triggers List */}
       <div className="space-y-4">
         {triggers.length === 0 ? (
-          <div className="text-center py-12 bg-zinc-900/50 rounded-lg border border-zinc-800">
+          <div className="text-center py-12 bg-white/60 rounded-lg border border-zinc-200">
             <Volume2 className="w-12 h-12 mx-auto mb-4 text-zinc-600" />
             <p className="text-zinc-400">No audio triggers configured</p>
             <p className="text-sm text-zinc-500 mt-1">Create one to start detecting sounds in your stream</p>
@@ -781,7 +781,7 @@ const AudioTriggersPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, triggerId: null, triggerName: '' })}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Audio Trigger</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -789,7 +789,7 @@ const AudioTriggersPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-white hover:bg-zinc-200">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
@@ -812,7 +812,7 @@ const AudioTriggersPage = () => {
               Refresh
             </Button>
           </div>
-          <div className="bg-zinc-900/50 rounded-lg border border-zinc-800 overflow-hidden">
+          <div className="bg-white/60 rounded-lg border border-zinc-200 overflow-hidden">
             {logs.length === 0 ? (
               <div className="p-8 text-center text-zinc-500">
                 No detection logs yet
@@ -831,7 +831,7 @@ const AudioTriggersPage = () => {
                   </thead>
                   <tbody>
                     {logs.map((log) => (
-                      <tr key={log.id} className="border-t border-zinc-800">
+                      <tr key={log.id} className="border-t border-zinc-200">
                         <td className="px-4 py-2 text-zinc-400">
                           {format(new Date(log.timestamp), 'HH:mm:ss')}
                         </td>

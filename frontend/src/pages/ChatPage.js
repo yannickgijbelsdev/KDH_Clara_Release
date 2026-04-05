@@ -203,7 +203,7 @@ const MessageAttachment = ({ attachment_url, attachment_type, attachment_name })
       className="flex items-center gap-2 mt-2 p-2 bg-black/20 rounded-lg hover:bg-black/30 transition-colors"
     >
       <Paperclip className="w-4 h-4 text-zinc-400" />
-      <span className="text-sm text-zinc-300 truncate">{attachment_name || 'File'}</span>
+      <span className="text-sm text-zinc-600 truncate">{attachment_name || 'File'}</span>
     </a>
   );
 };
@@ -859,8 +859,8 @@ const ChatPage = () => {
                       </div>
                     ))}
                     {activeThread.members?.length > 4 && (
-                      <div className="w-8 h-8 rounded-full bg-zinc-700 border-2 border-[#18181b] flex items-center justify-center">
-                        <span className="text-xs font-semibold text-zinc-300">+{activeThread.members.length - 4}</span>
+                      <div className="w-8 h-8 rounded-full bg-zinc-200 border-2 border-[#18181b] flex items-center justify-center">
+                        <span className="text-xs font-semibold text-zinc-600">+{activeThread.members.length - 4}</span>
                       </div>
                     )}
                   </div>
@@ -873,10 +873,10 @@ const ChatPage = () => {
                           <Settings className="w-5 h-5 text-zinc-400" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-[#18181b] border-zinc-800">
+                      <DropdownMenuContent className="bg-zinc-100 border-zinc-200">
                         <DropdownMenuItem 
                           onClick={() => setShowManageDialog(true)}
-                          className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                          className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                         >
                           <UserPlus className="w-4 h-4 mr-2" />
                           Manage Members
@@ -996,7 +996,7 @@ const ChatPage = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowEmojiPicker(false)}
-                          className="absolute -top-2 -right-2 z-10 h-6 w-6 p-0 rounded-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-600"
+                          className="absolute -top-2 -right-2 z-10 h-6 w-6 p-0 rounded-full bg-zinc-800 hover:bg-zinc-200 border border-zinc-600"
                         >
                           <X className="w-3 h-3" />
                         </Button>
@@ -1081,7 +1081,7 @@ const ChatPage = () => {
 
       {/* New Chat Dialog */}
       <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Plus className="w-5 h-5 text-orange-500" />
@@ -1096,7 +1096,7 @@ const ChatPage = () => {
             <div className="grid grid-cols-2 gap-4 py-4">
               <button
                 onClick={() => setNewChatType('private')}
-                className="p-6 rounded-xl border border-zinc-700 hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all group"
+                className="p-6 rounded-xl border border-zinc-300 hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-all group"
                 data-testid="new-private-chat-btn"
               >
                 <User className="w-10 h-10 text-emerald-500 mx-auto mb-3 group-hover:scale-110 transition-transform" />
@@ -1105,7 +1105,7 @@ const ChatPage = () => {
               </button>
               <button
                 onClick={() => setNewChatType('group')}
-                className="p-6 rounded-xl border border-zinc-700 hover:border-violet-500/50 hover:bg-violet-500/10 transition-all group"
+                className="p-6 rounded-xl border border-zinc-300 hover:border-violet-500/50 hover:bg-violet-500/10 transition-all group"
                 data-testid="new-group-chat-btn"
               >
                 <UsersRound className="w-10 h-10 text-violet-500 mx-auto mb-3 group-hover:scale-110 transition-transform" />
@@ -1141,7 +1141,7 @@ const ChatPage = () => {
                     value={groupName}
                     onChange={(e) => setGroupName(e.target.value)}
                     placeholder="Enter group name..."
-                    className="bg-[#27272a] border-zinc-700 text-white"
+                    className="bg-zinc-100 border-zinc-300 text-white"
                     data-testid="group-name-input"
                   />
                 </div>
@@ -1157,12 +1157,12 @@ const ChatPage = () => {
                     value={memberSearch}
                     onChange={(e) => setMemberSearch(e.target.value)}
                     placeholder="Search team members..."
-                    className="bg-[#27272a] border-zinc-700 text-white pl-10"
+                    className="bg-zinc-100 border-zinc-300 text-white pl-10"
                   />
                 </div>
               </div>
 
-              <ScrollArea className="h-[250px] rounded-lg border border-zinc-800">
+              <ScrollArea className="h-[250px] rounded-lg border border-zinc-200">
                 <div className="p-2 space-y-1">
                   {filteredMembers.length === 0 ? (
                     <p className="text-center text-zinc-500 py-8">No team members found</p>
@@ -1218,7 +1218,7 @@ const ChatPage = () => {
 
       {/* Manage Members Dialog */}
       <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-violet-500" />
@@ -1233,7 +1233,7 @@ const ChatPage = () => {
             {/* Current Members */}
             <div>
               <Label className="text-zinc-400 mb-2 block">Current Members ({activeThread?.members?.length || 0})</Label>
-              <ScrollArea className="h-[200px] rounded-lg border border-zinc-800">
+              <ScrollArea className="h-[200px] rounded-lg border border-zinc-200">
                 <div className="p-2 space-y-1">
                   {activeThread?.members?.map((member) => {
                     const memberRole = activeThread.member_roles?.[member.id] || 'member';
@@ -1258,14 +1258,14 @@ const ChatPage = () => {
                               value={memberRole}
                               onValueChange={(value) => handleManageMember('set_role', member.id, value)}
                             >
-                              <SelectTrigger className="w-24 h-8 bg-zinc-800 border-zinc-700 text-xs">
+                              <SelectTrigger className="w-24 h-8 bg-zinc-800 border-zinc-300 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-[#18181b] border-zinc-800">
-                                <SelectItem value="member" className="text-zinc-300">Member</SelectItem>
-                                <SelectItem value="admin" className="text-zinc-300">Admin</SelectItem>
+                              <SelectContent className="bg-zinc-100 border-zinc-200">
+                                <SelectItem value="member" className="text-zinc-600">Member</SelectItem>
+                                <SelectItem value="admin" className="text-zinc-600">Admin</SelectItem>
                                 {getUserRole() === 'owner' && (
-                                  <SelectItem value="owner" className="text-zinc-300">Owner</SelectItem>
+                                  <SelectItem value="owner" className="text-zinc-600">Owner</SelectItem>
                                 )}
                               </SelectContent>
                             </Select>
@@ -1290,7 +1290,7 @@ const ChatPage = () => {
             {nonGroupMembers.length > 0 && (
               <div>
                 <Label className="text-zinc-400 mb-2 block">Add Members</Label>
-                <ScrollArea className="h-[150px] rounded-lg border border-zinc-800">
+                <ScrollArea className="h-[150px] rounded-lg border border-zinc-200">
                   <div className="p-2 space-y-1">
                     {nonGroupMembers.map((member) => (
                       <button
@@ -1318,7 +1318,7 @@ const ChatPage = () => {
 
       {/* Delete Group/Chat Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-500" />
@@ -1334,7 +1334,7 @@ const ChatPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <Button

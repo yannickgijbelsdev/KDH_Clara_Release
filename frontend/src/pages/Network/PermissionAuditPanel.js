@@ -69,14 +69,14 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
     ? 'bg-transparent w-full flex flex-col' 
     : 'fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4';
   const contentClass = inline
-    ? 'bg-[#0a0a0b] border border-zinc-800 rounded-2xl w-full flex flex-col overflow-hidden'
-    : 'bg-[#0a0a0b] border border-zinc-800 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden';
+    ? 'bg-[#0a0a0b] border border-zinc-200 rounded-2xl w-full flex flex-col overflow-hidden'
+    : 'bg-[#0a0a0b] border border-zinc-200 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden';
 
   return (
     <div className={wrapperClass} data-testid="permission-audit-panel">
       <div className={contentClass}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
           <div className="flex items-center gap-3">
             <ShieldAlert className="w-5 h-5 text-amber-500" />
             <div>
@@ -89,7 +89,7 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
               <RefreshCw className="w-3.5 h-3.5" /> Refresh
             </Button>
             {!inline && (
-              <button onClick={onClose} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-500">
+              <button onClick={onClose} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500">
                 <X className="w-5 h-5" />
               </button>
             )}
@@ -103,7 +103,7 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
         ) : (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-4 gap-3 px-6 py-4 border-b border-zinc-800">
+            <div className="grid grid-cols-4 gap-3 px-6 py-4 border-b border-zinc-200">
               <StatCard label="Total Denials" value={stats?.total_denials || 0} icon={ShieldAlert} color="text-red-400" />
               <StatCard label="Last 24h" value={stats?.denials_24h || 0} icon={Clock} color="text-amber-400" />
               <StatCard
@@ -123,13 +123,13 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
             </div>
 
             {/* Filter Bar */}
-            <div className="px-6 py-3 border-b border-zinc-800/50 flex items-center gap-3">
+            <div className="px-6 py-3 border-b border-zinc-200/50 flex items-center gap-3">
               <Search className="w-4 h-4 text-zinc-600" />
               <input
                 value={filter.email}
                 onChange={e => setFilter(f => ({ ...f, email: e.target.value }))}
                 placeholder="Filter by email..."
-                className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm w-48"
+                className="bg-zinc-900 border border-zinc-200 rounded-lg px-3 py-1.5 text-sm w-48"
                 onKeyDown={e => e.key === 'Enter' && applyFilter()}
                 data-testid="audit-filter-email"
               />
@@ -137,7 +137,7 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
                 value={filter.feature}
                 onChange={e => setFilter(f => ({ ...f, feature: e.target.value }))}
                 placeholder="Filter by feature..."
-                className="bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm w-40"
+                className="bg-zinc-900 border border-zinc-200 rounded-lg px-3 py-1.5 text-sm w-40"
                 onKeyDown={e => e.key === 'Enter' && applyFilter()}
                 data-testid="audit-filter-feature"
               />
@@ -164,8 +164,8 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="sticky top-0 bg-zinc-900/80 backdrop-blur">
-                    <tr className="text-xs text-zinc-500 border-b border-zinc-800/50">
+                  <thead className="sticky top-0 bg-white/70 backdrop-blur">
+                    <tr className="text-xs text-zinc-500 border-b border-zinc-200/50">
                       <th className="text-left px-6 py-2.5 font-medium">When</th>
                       <th className="text-left px-3 py-2.5 font-medium">User</th>
                       <th className="text-left px-3 py-2.5 font-medium">Role</th>
@@ -177,11 +177,11 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
                   </thead>
                   <tbody>
                     {logs.map((log, i) => (
-                      <tr key={i} className="border-b border-zinc-800/20 hover:bg-zinc-900/30" data-testid={`audit-row-${i}`}>
+                      <tr key={i} className="border-b border-zinc-200/20 hover:bg-zinc-900/30" data-testid={`audit-row-${i}`}>
                         <td className="px-6 py-2.5 text-xs text-zinc-500 whitespace-nowrap" title={log.timestamp}>
                           {timeAgo(log.timestamp)}
                         </td>
-                        <td className="px-3 py-2.5 text-sm text-zinc-300 font-mono truncate max-w-[180px]">
+                        <td className="px-3 py-2.5 text-sm text-zinc-600 font-mono truncate max-w-[180px]">
                           {log.user_email}
                         </td>
                         <td className="px-3 py-2.5">
@@ -189,7 +189,7 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
                             {log.role}
                           </span>
                         </td>
-                        <td className="px-3 py-2.5 text-sm text-zinc-300">{log.feature}</td>
+                        <td className="px-3 py-2.5 text-sm text-zinc-600">{log.feature}</td>
                         <td className="px-3 py-2.5">
                           <span className={`text-xs px-2 py-0.5 rounded-full ${ACTION_COLORS[log.action] || 'bg-zinc-800 text-zinc-400'}`}>
                             {log.action}
@@ -214,7 +214,7 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
 
 function StatCard({ label, value, sub, icon: Icon, color }) {
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-4">
+    <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4">
       <div className="flex items-center gap-2 mb-2">
         <Icon className={`w-4 h-4 ${color}`} />
         <span className="text-xs text-zinc-500">{label}</span>

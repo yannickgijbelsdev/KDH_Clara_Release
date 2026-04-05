@@ -189,7 +189,7 @@ export default function PublicCallPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-green-500" />
       </div>
     );
@@ -197,8 +197,8 @@ export default function PublicCallPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
-        <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-8 max-w-md text-center">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur rounded-2xl border border-zinc-200 p-8 max-w-md text-center">
           <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold mb-2">Cannot Join Call</h1>
           <p className="text-sm text-zinc-400">{error}</p>
@@ -209,8 +209,8 @@ export default function PublicCallPage() {
 
   if (callState === 'ended') {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
-        <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-8 max-w-md text-center">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur rounded-2xl border border-zinc-200 p-8 max-w-md text-center">
           <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-4" />
           <h1 className="text-xl font-bold mb-2">Call Ended</h1>
           <p className="text-sm text-zinc-400">Duration: {formatDuration(duration)}</p>
@@ -223,8 +223,8 @@ export default function PublicCallPage() {
   // Preview / Accept screen
   if (callState === 'preview') {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center" data-testid="public-call-page">
-        <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-8 max-w-md w-full mx-4">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center" data-testid="public-call-page">
+        <div className="bg-white/80 backdrop-blur rounded-2xl border border-zinc-200 p-8 max-w-md w-full mx-4">
           <div className="text-center mb-6">
             <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
               <Phone className="w-8 h-8 text-green-400" />
@@ -234,7 +234,7 @@ export default function PublicCallPage() {
               {invite?.host_name ? `${invite.host_name} wants to talk to you` : 'You have been invited to join a call'}
             </p>
             {invite?.label && (
-              <p className="text-xs text-zinc-500 mt-2 bg-zinc-800 rounded-lg px-3 py-1.5 inline-block">{invite.label}</p>
+              <p className="text-xs text-zinc-500 mt-2 bg-zinc-100 rounded-lg px-3 py-1.5 inline-block">{invite.label}</p>
             )}
           </div>
 
@@ -245,7 +245,7 @@ export default function PublicCallPage() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-sm"
+                className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-4 py-3 text-sm"
                 data-testid="caller-name-input"
               />
             </div>
@@ -270,9 +270,9 @@ export default function PublicCallPage() {
 
   // Active call / Connecting
   return (
-    <div className="min-h-screen bg-[#09090b] flex items-center justify-center" data-testid="public-call-active">
+    <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center" data-testid="public-call-active">
       <audio ref={remoteAudioRef} autoPlay style={{ display: 'none' }} />
-      <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-8 max-w-md w-full mx-4 text-center">
+      <div className="bg-white/80 backdrop-blur rounded-2xl border border-zinc-200 p-8 max-w-md w-full mx-4 text-center">
         <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 ${
           callState === 'active' ? 'bg-green-500/10' : 'bg-amber-500/10'
         }`}>
@@ -307,7 +307,7 @@ export default function PublicCallPage() {
           <button
             onClick={toggleMute}
             className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-              isMuted ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+              isMuted ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-600 hover:bg-zinc-200'
             }`}
             data-testid="caller-mute-btn"
           >

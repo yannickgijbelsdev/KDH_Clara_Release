@@ -355,7 +355,7 @@ const ShowManagementPage = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-[#18181b] border border-zinc-800 p-1">
+        <TabsList className="bg-zinc-100 border border-zinc-200 p-1">
           <TabsTrigger 
             value="titles" 
             className="data-[state=active]:bg-orange-500 data-[state=active]:text-white"
@@ -374,7 +374,7 @@ const ShowManagementPage = () => {
 
         {/* Show Titles Tab */}
         <TabsContent value="titles">
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-white">Show Titles</h2>
@@ -405,7 +405,7 @@ const ShowManagementPage = () => {
                 {showTitles.map((title) => (
                   <div
                     key={title.id}
-                    className="flex items-center justify-between p-4 bg-[#27272a] rounded-lg hover:bg-zinc-800/50 transition-colors"
+                    className="flex items-center justify-between p-4 bg-zinc-100 rounded-lg hover:bg-zinc-100/70 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       {/* Show Image or Icon */}
@@ -455,13 +455,13 @@ const ShowManagementPage = () => {
                             <Image className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                        <DropdownMenuContent align="end" className="bg-zinc-100 border-zinc-200">
                           <DropdownMenuItem
                             onClick={() => {
                               setImageTargetTitleId(title.id);
                               setTimeout(() => imageInputRef.current?.click(), 100);
                             }}
-                            className="text-zinc-300"
+                            className="text-zinc-600"
                           >
                             <Camera className="w-4 h-4 mr-2" />
                             {title.image ? 'Change Image' : 'Upload Image'}
@@ -507,7 +507,7 @@ const ShowManagementPage = () => {
 
         {/* Studios Tab */}
         <TabsContent value="studios">
-          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-white">Studios / Rooms</h2>
@@ -538,7 +538,7 @@ const ShowManagementPage = () => {
                 {studios.map((studio) => (
                   <div
                     key={studio.id}
-                    className="flex items-center justify-between p-4 bg-[#27272a] rounded-lg hover:bg-zinc-800/50 transition-colors"
+                    className="flex items-center justify-between p-4 bg-zinc-100 rounded-lg hover:bg-zinc-100/70 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg bg-violet-500/20 flex items-center justify-center">
@@ -583,7 +583,7 @@ const ShowManagementPage = () => {
 
       {/* Show Title Dialog */}
       <Dialog open={titleDialogOpen} onOpenChange={setTitleDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {editingTitle ? 'Edit Show Title' : 'Add Show Title'}
@@ -597,51 +597,51 @@ const ShowManagementPage = () => {
 
           <form onSubmit={handleSaveTitle} className="space-y-5 mt-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Title Name</Label>
+              <Label className="text-zinc-600">Title Name</Label>
               <Input
                 data-testid="title-name-input"
                 value={titleFormData.name}
                 onChange={(e) => setTitleFormData({ ...titleFormData, name: e.target.value })}
                 placeholder="Morning Drive Show"
                 required
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Description (optional)</Label>
+              <Label className="text-zinc-600">Description (optional)</Label>
               <Input
                 value={titleFormData.description}
                 onChange={(e) => setTitleFormData({ ...titleFormData, description: e.target.value })}
                 placeholder="Brief description..."
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-zinc-300">Default Start Time</Label>
+                <Label className="text-zinc-600">Default Start Time</Label>
                 <Input
                   type="time"
                   value={titleFormData.default_start_time}
                   onChange={(e) => setTitleFormData({ ...titleFormData, default_start_time: e.target.value })}
-                  className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                  className="bg-zinc-100 border-zinc-300 text-white font-mono"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-zinc-300">Default End Time</Label>
+                <Label className="text-zinc-600">Default End Time</Label>
                 <Input
                   type="time"
                   value={titleFormData.default_end_time}
                   onChange={(e) => setTitleFormData({ ...titleFormData, default_end_time: e.target.value })}
-                  className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                  className="bg-zinc-100 border-zinc-300 text-white font-mono"
                 />
               </div>
             </div>
 
             {/* RDS Station Selection */}
             <div className="space-y-2">
-              <Label className="text-zinc-300">RDS Station</Label>
+              <Label className="text-zinc-600">RDS Station</Label>
               <p className="text-xs text-zinc-500 mb-2">Choose on which radio station(s) this show should be displayed in RDS</p>
               <div className="grid grid-cols-2 gap-2">
                 {[
@@ -662,8 +662,8 @@ const ShowManagementPage = () => {
                           ? 'bg-violet-500/20 border-violet-500 text-violet-400'
                           : option.color === 'green'
                           ? 'bg-green-500/20 border-green-500 text-green-400'
-                          : 'bg-zinc-700 border-zinc-600 text-zinc-300'
-                        : 'bg-[#27272a] border-zinc-700 text-zinc-400 hover:border-zinc-600'
+                          : 'bg-zinc-200 border-zinc-600 text-zinc-600'
+                        : 'bg-zinc-100 border-zinc-300 text-zinc-400 hover:border-zinc-600'
                     }`}
                   >
                     {option.label}
@@ -674,14 +674,14 @@ const ShowManagementPage = () => {
 
             {/* Default Presenters Selection */}
             <div className="space-y-2">
-              <Label className="text-zinc-300">Default Presenters</Label>
+              <Label className="text-zinc-600">Default Presenters</Label>
               <p className="text-xs text-zinc-500 mb-2">Select the default presenters for this show</p>
               <Popover open={presenterPopoverOpen} onOpenChange={setPresenterPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full justify-start text-left bg-[#27272a] border-zinc-700 text-white hover:bg-zinc-700"
+                    className="w-full justify-start text-left bg-zinc-100 border-zinc-300 text-white hover:bg-zinc-200"
                   >
                     <Users className="w-4 h-4 mr-2 text-violet-400" />
                     {titleFormData.default_presenter_ids?.length > 0 ? (
@@ -695,8 +695,8 @@ const ShowManagementPage = () => {
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-72 p-0 bg-[#18181b] border-zinc-800" align="start">
-                  <div className="p-2 border-b border-zinc-800">
+                <PopoverContent className="w-72 p-0 bg-zinc-100 border-zinc-200" align="start">
+                  <div className="p-2 border-b border-zinc-200">
                     <p className="text-sm text-zinc-400 font-medium">Team Members</p>
                   </div>
                   <div className="max-h-60 overflow-y-auto p-2 space-y-1">
@@ -708,10 +708,10 @@ const ShowManagementPage = () => {
                         className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
                           titleFormData.default_presenter_ids?.includes(user.id)
                             ? 'bg-violet-500/20 text-violet-400'
-                            : 'hover:bg-zinc-800 text-zinc-300'
+                            : 'hover:bg-zinc-100 text-zinc-600'
                         }`}
                       >
-                        <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+                        <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
                           {getAvatarUrl(user) ? (
                             <img src={getAvatarUrl(user)} alt={user.name} className="w-full h-full object-cover" />
                           ) : (
@@ -740,7 +740,7 @@ const ShowManagementPage = () => {
                 type="button"
                 variant="outline"
                 onClick={() => setTitleDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 Cancel
               </Button>
@@ -765,7 +765,7 @@ const ShowManagementPage = () => {
 
       {/* Studio Dialog */}
       <Dialog open={studioDialogOpen} onOpenChange={setStudioDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {editingStudio ? 'Edit Studio' : 'Add Studio'}
@@ -779,24 +779,24 @@ const ShowManagementPage = () => {
 
           <form onSubmit={handleSaveStudio} className="space-y-5 mt-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Studio Name</Label>
+              <Label className="text-zinc-600">Studio Name</Label>
               <Input
                 data-testid="studio-name-input"
                 value={studioFormData.name}
                 onChange={(e) => setStudioFormData({ ...studioFormData, name: e.target.value })}
                 placeholder="Studio A"
                 required
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Description (optional)</Label>
+              <Label className="text-zinc-600">Description (optional)</Label>
               <Input
                 value={studioFormData.description}
                 onChange={(e) => setStudioFormData({ ...studioFormData, description: e.target.value })}
                 placeholder="Main broadcast studio..."
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
@@ -805,7 +805,7 @@ const ShowManagementPage = () => {
                 type="button"
                 variant="outline"
                 onClick={() => setStudioDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 Cancel
               </Button>
@@ -830,7 +830,7 @@ const ShowManagementPage = () => {
 
       {/* Delete Title Confirmation */}
       <AlertDialog open={deleteTitleDialogOpen} onOpenChange={setDeleteTitleDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Show Title</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -839,7 +839,7 @@ const ShowManagementPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -854,7 +854,7 @@ const ShowManagementPage = () => {
 
       {/* Delete Studio Confirmation */}
       <AlertDialog open={deleteStudioDialogOpen} onOpenChange={setDeleteStudioDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Studio</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -863,7 +863,7 @@ const ShowManagementPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

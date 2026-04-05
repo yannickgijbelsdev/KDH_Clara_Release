@@ -57,7 +57,7 @@ const UserAvatar = ({ user, size = 'sm', ring = false, ringColor = 'violet' }) =
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-zinc-800 border-zinc-700 text-white text-xs px-2 py-1">
+        <TooltipContent side="top" className="bg-zinc-800 border-zinc-300 text-white text-xs px-2 py-1">
           {user.name}
         </TooltipContent>
       </Tooltip>
@@ -126,7 +126,7 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
           {...attributes}
           {...listeners}
           data-testid={`drag-handle-${index}`}
-          className="drag-handle p-1 text-zinc-500 hover:text-zinc-300 transition-colors mt-0.5 shrink-0"
+          className="drag-handle p-1 text-zinc-500 hover:text-zinc-600 transition-colors mt-0.5 shrink-0"
         >
           <GripVertical className="w-5 h-5" />
         </button>
@@ -164,7 +164,7 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
         </div>
         <h4 className={`text-white font-medium break-words ${isBeingEdited ? 'text-amber-100' : ''}`}>{displayTitle}</h4>
         {displayNotes && (
-          <p className={`text-sm break-words whitespace-pre-wrap mt-1 ${isBeingEdited ? 'text-amber-200/70' : 'text-zinc-300'}`}>{displayNotes}</p>
+          <p className={`text-sm break-words whitespace-pre-wrap mt-1 ${isBeingEdited ? 'text-amber-200/70' : 'text-zinc-600'}`}>{displayNotes}</p>
         )}
       </div>
 

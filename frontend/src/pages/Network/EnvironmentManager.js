@@ -188,7 +188,7 @@ export default function EnvironmentManager() {
       {/* Environment Cards */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {environments.map(env => (
-          <Card key={env.id} className="bg-zinc-900 border-zinc-800 overflow-hidden" data-testid={`env-card-${env.slug}`}>
+          <Card key={env.id} className="bg-zinc-900 border-zinc-200 overflow-hidden" data-testid={`env-card-${env.slug}`}>
             <div className="h-1" style={{ backgroundColor: env.color || '#3b82f6' }} />
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -196,7 +196,7 @@ export default function EnvironmentManager() {
                   <Server className="w-4 h-4" style={{ color: env.color }} />
                   {env.name}
                   {env.is_default && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-400">Default</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-200 text-zinc-400">Default</span>
                   )}
                 </CardTitle>
                 {isSystemAdmin && (
@@ -228,13 +228,13 @@ export default function EnvironmentManager() {
                 </div>
               </div>
               {isSystemAdmin && (
-                <div className="flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg bg-zinc-800/50">
+                <div className="flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg bg-zinc-100/70">
                   <div className="flex items-center gap-2">
                     {env.s3_enabled !== false
                       ? <Cloud className="w-4 h-4 text-emerald-400" />
                       : <CloudOff className="w-4 h-4 text-red-400" />
                     }
-                    <span className="text-xs text-zinc-300">Cloud Resources</span>
+                    <span className="text-xs text-zinc-600">Cloud Resources</span>
                   </div>
                   <button
                     onClick={() => toggleS3(env.id, env.s3_enabled !== false)}
@@ -262,7 +262,7 @@ export default function EnvironmentManager() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={envDialog} onOpenChange={setEnvDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
           <DialogHeader><DialogTitle>{editingEnv ? 'Edit Environment' : 'New Environment'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -292,11 +292,11 @@ export default function EnvironmentManager() {
 
       {/* Admin Dialog */}
       <Dialog open={adminDialog.open} onOpenChange={open => !open && setAdminDialog(prev => ({ ...prev, open: false }))}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
           <DialogHeader><DialogTitle>Admins - {adminDialog.envName}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             {envAdmins.map(a => (
-              <div key={a.id} className="flex items-center justify-between bg-zinc-800 rounded-lg px-3 py-2">
+              <div key={a.id} className="flex items-center justify-between bg-zinc-100 rounded-lg px-3 py-2">
                 <div>
                   <p className="text-sm text-zinc-200 flex items-center gap-1.5">
                     {a.user_name}
@@ -310,8 +310,8 @@ export default function EnvironmentManager() {
               </div>
             ))}
             {isSystemAdmin && (
-              <div className="flex gap-2 pt-2 border-t border-zinc-800">
-                <select className="flex-1 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
+              <div className="flex gap-2 pt-2 border-t border-zinc-200">
+                <select className="flex-1 rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
                   value={selectedUserId} onChange={e => setSelectedUserId(e.target.value)}>
                   <option value="">Select user...</option>
                   {allUsers.filter(u => !envAdmins.some(a => a.user_id === u.id)).map(u => (
@@ -327,10 +327,10 @@ export default function EnvironmentManager() {
 
       {/* Copy Site Dialog */}
       <Dialog open={copyDialog.open} onOpenChange={open => !open && setCopyDialog(prev => ({ ...prev, open: false }))}>
-        <DialogContent className="bg-zinc-900 border-zinc-700 max-w-md">
+        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
           <DialogHeader><DialogTitle>Copy Site to {copyDialog.envName}</DialogTitle></DialogHeader>
           <p className="text-sm text-zinc-400">Select a site to copy its structure (features, roles). Data will not be copied.</p>
-          <select className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
+          <select className="w-full rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
             value={selectedSiteId} onChange={e => setSelectedSiteId(e.target.value)} data-testid="copy-site-select">
             <option value="">Select a site...</option>
             {availableSites.map(s => (
@@ -346,7 +346,7 @@ export default function EnvironmentManager() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialog.open} onOpenChange={open => !open && setDeleteDialog(prev => ({ ...prev, open: false }))}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-700">
+        <AlertDialogContent className="bg-zinc-900 border-zinc-300">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Environment?</AlertDialogTitle>
             <AlertDialogDescription>

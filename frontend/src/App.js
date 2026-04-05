@@ -76,11 +76,7 @@ const ProtectedRoute = ({ children }) => {
   }, []);
   
   if (loading || !configLoaded) {
-    return (
-      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
-        <div className="animate-pulse text-zinc-400">Loading...</div>
-      </div>
-    );
+    return <div className="min-h-screen bg-[#F0F0F2]" />;
   }
   
   if (!user) {
@@ -93,11 +89,7 @@ const ProtectedRoute = ({ children }) => {
       if (baseDomain && hostname.endsWith(`.${baseDomain}`)) {
         const loginRedirectUrl = buildLoginRedirectUrl(subdomainConfig);
         window.location.href = loginRedirectUrl;
-        return (
-          <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
-            <div className="animate-pulse text-zinc-400">Redirecting to login...</div>
-          </div>
-        );
+        return <div className="min-h-screen bg-[#F0F0F2]" />;
       }
     }
     return <Navigate to="/login" replace />;
@@ -111,11 +103,7 @@ const AppRoutes = () => {
   const { resolved } = useSubdomainRouter();
   
   if (loading || !resolved) {
-    return (
-      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
-        <div className="animate-pulse text-zinc-400">Loading...</div>
-      </div>
-    );
+    return <div className="min-h-screen bg-[#F0F0F2]" />;
   }
   
   return (
@@ -318,11 +306,7 @@ const MainSiteIndex = () => {
   }, [loading, mainSite, mainSiteSlug, navigate]);
   
   if (loading || !mainSite) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="animate-pulse text-zinc-400">Loading...</div>
-      </div>
-    );
+    return <div className="flex items-center justify-center h-full" />;
   }
   
   // Standard sites: show the canvas dashboard home

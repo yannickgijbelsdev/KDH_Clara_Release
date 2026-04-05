@@ -146,7 +146,7 @@ const ApiExplorerPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
         <div className="flex items-center gap-3 text-zinc-400">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span>API endpoints laden...</span>
@@ -156,9 +156,9 @@ const ApiExplorerPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#09090b]">
+    <div className="min-h-screen bg-[#F0F0F2]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#09090b]/95 backdrop-blur border-b border-zinc-800">
+      <header className="sticky top-0 z-50 bg-[#F0F0F2]/95 backdrop-blur border-b border-zinc-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -190,7 +190,7 @@ const ApiExplorerPage = () => {
       </header>
 
       {/* Filters */}
-      <div className="sticky top-[73px] z-40 bg-[#09090b]/95 backdrop-blur border-b border-zinc-800">
+      <div className="sticky top-[73px] z-40 bg-[#F0F0F2]/95 backdrop-blur border-b border-zinc-200">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
@@ -199,7 +199,7 @@ const ApiExplorerPage = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Zoek endpoints..."
-                className="pl-10 bg-zinc-900 border-zinc-800"
+                className="pl-10 bg-white border-zinc-200"
               />
             </div>
             
@@ -218,7 +218,7 @@ const ApiExplorerPage = () => {
               ))}
             </div>
             
-            <div className="flex items-center gap-2 border-l border-zinc-800 pl-4">
+            <div className="flex items-center gap-2 border-l border-zinc-200 pl-4">
               <Button variant="ghost" size="sm" onClick={expandAll}>
                 Alles uitklappen
               </Button>
@@ -244,11 +244,11 @@ const ApiExplorerPage = () => {
             const isExpanded = expandedCategories[categoryName];
             
             return (
-              <div key={categoryName} className="bg-zinc-900/50 border border-zinc-800 rounded-xl overflow-hidden">
+              <div key={categoryName} className="bg-white/60 border border-zinc-200 rounded-xl overflow-hidden">
                 {/* Category Header */}
                 <button
                   onClick={() => toggleCategory(categoryName)}
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-100/70 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-orange-500/10 rounded-lg">
@@ -273,11 +273,11 @@ const ApiExplorerPage = () => {
                 
                 {/* Endpoints List */}
                 {isExpanded && (
-                  <div className="border-t border-zinc-800">
+                  <div className="border-t border-zinc-200">
                     {categoryData.endpoints.map((endpoint, idx) => (
                       <div
                         key={`${endpoint.method}-${endpoint.path}-${idx}`}
-                        className="px-4 py-3 flex items-center gap-4 hover:bg-zinc-800/30 transition-colors border-b border-zinc-800/50 last:border-b-0"
+                        className="px-4 py-3 flex items-center gap-4 hover:bg-zinc-100/30 transition-colors border-b border-zinc-200/50 last:border-b-0"
                       >
                         {/* Method Badge */}
                         <span className={`px-2 py-1 text-xs font-bold rounded border min-w-[70px] text-center ${methodColors[endpoint.method] || 'bg-zinc-800 text-zinc-400'}`}>

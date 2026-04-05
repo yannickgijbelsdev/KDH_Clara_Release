@@ -125,7 +125,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[800px] max-h-[90vh] overflow-y-auto"
+        className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[800px] max-h-[90vh] overflow-y-auto"
         onInteractOutside={(e) => {
           // Prevent dialog from closing when clicking TinyMCE elements
           const target = e.target;
@@ -154,38 +154,38 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
-            <Label className="text-zinc-300">Title</Label>
+            <Label className="text-zinc-600">Title</Label>
             <Input
               data-testid="content-title-input"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Content title"
               required
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Type</Label>
+              <Label className="text-zinc-600">Type</Label>
               <Select
                 value={formData.type}
                 onValueChange={(value) => setFormData({ ...formData, type: value })}
               >
                 <SelectTrigger
                   data-testid="content-type-select"
-                  className="bg-[#27272a] border-zinc-700 text-white"
+                  className="bg-[#27272a] border-zinc-300 text-white"
                 >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   {contentTypes.map((type) => {
                     const Icon = type.icon;
                     return (
                       <SelectItem
                         key={type.value}
                         value={type.value}
-                        className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                        className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                       >
                         <div className="flex items-center gap-2">
                           <Icon className="w-4 h-4" />
@@ -199,18 +199,18 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Category</Label>
+              <Label className="text-zinc-600">Category</Label>
               <Select
                 value={formData.category_id || "none"}
                 onValueChange={(value) => setFormData({ ...formData, category_id: value === "none" ? "" : value })}
               >
                 <SelectTrigger
                   data-testid="content-category-select"
-                  className="bg-[#27272a] border-zinc-700 text-white"
+                  className="bg-[#27272a] border-zinc-300 text-white"
                 >
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   <SelectItem value="none" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
                     No category
                   </SelectItem>
@@ -218,7 +218,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                     <SelectItem
                       key={cat.id}
                       value={cat.id}
-                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                     >
                       <div className="flex items-center gap-2">
                         <Folder className="w-4 h-4 text-orange-400" />
@@ -233,20 +233,20 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
 
           {formData.type === 'link' && (
             <div className="space-y-2">
-              <Label className="text-zinc-300">External URL</Label>
+              <Label className="text-zinc-600">External URL</Label>
               <Input
                 data-testid="content-url-input"
                 type="url"
                 value={formData.external_url}
                 onChange={(e) => setFormData({ ...formData, external_url: e.target.value })}
                 placeholder="https://example.com"
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
           )}
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Body</Label>
+            <Label className="text-zinc-600">Body</Label>
             <RichTextEditor
               id="create-content-body"
               value={formData.body}
@@ -257,22 +257,22 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Status</Label>
+            <Label className="text-zinc-600">Status</Label>
             <Select
               value={formData.status}
               onValueChange={(value) => setFormData({ ...formData, status: value })}
             >
               <SelectTrigger
                 data-testid="content-status-select"
-                className="bg-[#27272a] border-zinc-700 text-white"
+                className="bg-[#27272a] border-zinc-300 text-white"
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#18181b] border-zinc-800">
-                <SelectItem value="draft" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+              <SelectContent className="bg-zinc-100 border-zinc-200">
+                <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">
                   Draft
                 </SelectItem>
-                <SelectItem value="ready" className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                <SelectItem value="ready" className="text-zinc-600 focus:text-white focus:bg-zinc-800">
                   Ready
                 </SelectItem>
               </SelectContent>
@@ -284,7 +284,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-800 hover:text-white"
             >
               Cancel
             </Button>

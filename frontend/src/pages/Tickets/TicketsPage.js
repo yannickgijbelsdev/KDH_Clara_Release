@@ -79,7 +79,7 @@ function TicketList() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               filter === s
                 ? 'bg-orange-600 text-white'
-                : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'
+                : 'bg-zinc-900 text-zinc-400 border border-zinc-200 hover:border-zinc-300'
             }`}
             data-testid={`filter-${s}`}
           >
@@ -93,7 +93,7 @@ function TicketList() {
           <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
         </div>
       ) : tickets.length === 0 ? (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-16 text-center">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-16 text-center">
           <MessageSquare className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
           <p className="text-base text-zinc-500">No tickets yet</p>
         </div>
@@ -107,7 +107,7 @@ function TicketList() {
               <div
                 key={ticket.id}
                 onClick={() => navigate(`/${mainSiteSlug}/tickets/${ticket.id}`)}
-                className="bg-zinc-900 rounded-xl border border-zinc-800 hover:border-zinc-700 p-5 cursor-pointer transition-colors"
+                className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 hover:border-zinc-300 p-5 cursor-pointer transition-colors"
                 data-testid={`ticket-row-${ticket.id}`}
               >
                 <div className="flex items-start gap-4">
@@ -249,7 +249,7 @@ function TicketDetail({ ticketId }) {
                 className={`text-xs px-3 py-1.5 rounded-lg transition-all font-medium ${
                   ticket.status === s
                     ? `${STATUS_CONFIG[s]?.bg} ${STATUS_CONFIG[s]?.color}`
-                    : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-800'
+                    : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-100'
                 }`}
                 data-testid={`status-btn-${s}`}
               >
@@ -264,7 +264,7 @@ function TicketDetail({ ticketId }) {
         {/* Left: Conversation */}
         <div className="lg:col-span-2 space-y-5">
           {/* Original Description */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+          <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-400 text-sm font-bold">
                 {ticket.creator_name?.charAt(0)?.toUpperCase() || '?'}
@@ -276,7 +276,7 @@ function TicketDetail({ ticketId }) {
                 </span>
               </div>
             </div>
-            <p className="text-base text-zinc-300 whitespace-pre-wrap leading-relaxed">{ticket.description}</p>
+            <p className="text-base text-zinc-600 whitespace-pre-wrap leading-relaxed">{ticket.description}</p>
           </div>
 
           {/* Messages */}
@@ -286,13 +286,13 @@ function TicketDetail({ ticketId }) {
               className={`rounded-xl border p-5 ${
                 msg.is_admin
                   ? 'bg-blue-500/5 border-blue-500/20'
-                  : 'bg-zinc-900 border-zinc-800'
+                  : 'bg-zinc-900 border-zinc-200'
               }`}
               data-testid={`message-${msg.id}`}
             >
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${
-                  msg.is_admin ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-700 text-zinc-300'
+                  msg.is_admin ? 'bg-blue-500/20 text-blue-400' : 'bg-zinc-200 text-zinc-600'
                 }`}>
                   {msg.user_name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
@@ -304,7 +304,7 @@ function TicketDetail({ ticketId }) {
                   </span>
                 </div>
               </div>
-              <p className="text-base text-zinc-300 whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+              <p className="text-base text-zinc-600 whitespace-pre-wrap leading-relaxed">{msg.message}</p>
             </div>
           ))}
 
@@ -319,7 +319,7 @@ function TicketDetail({ ticketId }) {
                 onChange={e => setMessage(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                 placeholder="Type a reply..."
-                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-5 py-3 text-base text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500"
+                className="flex-1 bg-zinc-900 border border-zinc-300 rounded-xl px-5 py-3 text-base text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500"
                 data-testid="reply-message-input"
               />
               <Button
@@ -337,7 +337,7 @@ function TicketDetail({ ticketId }) {
         {/* Right: Info + Visual Journey */}
         <div className="space-y-6">
           {/* Ticket Meta */}
-          <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 space-y-4" data-testid="ticket-meta">
+          <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5 space-y-4" data-testid="ticket-meta">
             <MetaRow icon={Globe} label="Page" value={ticket.page_name} />
             <MetaRow icon={MapPin} label="URL" value={ticket.page_url?.replace(/^https?:\/\/[^/]+/, '')} />
             <MetaRow icon={Monitor} label="Browser" value={ticket.browser_info} />
@@ -347,7 +347,7 @@ function TicketDetail({ ticketId }) {
 
           {/* Visual User Journey */}
           {ticket.user_journey?.length > 0 && (
-            <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5" data-testid="visual-journey">
+            <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5" data-testid="visual-journey">
               <h3 className="text-sm font-semibold text-zinc-400 mb-4 flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
                 User Journey
@@ -368,7 +368,7 @@ function MetaRow({ icon: Icon, label, value }) {
       <Icon className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
       <div className="min-w-0">
         <p className="text-xs text-zinc-500">{label}</p>
-        <p className="text-sm text-zinc-300 break-all">{value}</p>
+        <p className="text-sm text-zinc-600 break-all">{value}</p>
       </div>
     </div>
   );
@@ -409,7 +409,7 @@ function VisualJourney({ steps, errorPage }) {
               <div className={`flex-1 rounded-lg p-3 border transition-all ${
                 isLast
                   ? 'bg-red-500/5 border-red-500/20'
-                  : 'bg-zinc-800/50 border-zinc-800 hover:border-zinc-700'
+                  : 'bg-zinc-100/70 border-zinc-200 hover:border-zinc-300'
               }`}>
                 <div className="flex items-center justify-between">
                   <span className={`text-sm font-medium ${isLast ? 'text-red-400' : 'text-zinc-200'}`}>

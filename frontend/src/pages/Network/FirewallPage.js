@@ -50,7 +50,7 @@ export default function FirewallPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                tab === t.id ? 'bg-red-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'
+                tab === t.id ? 'bg-red-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-200 hover:border-zinc-300'
               }`}
               data-testid={`tab-${t.id}`}
             >
@@ -106,7 +106,7 @@ function OverviewTab({ token, mainSiteId }) {
         {cards.map(c => {
           const Icon = c.icon;
           return (
-            <div key={c.label} className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+            <div key={c.label} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-10 h-10 rounded-lg ${c.bg} flex items-center justify-center`}>
                   <Icon className={`w-5 h-5 ${c.color}`} />
@@ -119,12 +119,12 @@ function OverviewTab({ token, mainSiteId }) {
         })}
       </div>
       {stats?.top_blocked_ips?.length > 0 && (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
           <h3 className="text-base font-semibold mb-4 flex items-center gap-2"><Ban className="w-4 h-4 text-red-400" />Top Blocked IPs</h3>
           <div className="space-y-2">
             {stats.top_blocked_ips.map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0">
-                <span className="text-sm font-mono text-zinc-300">{item.ip}</span>
+              <div key={i} className="flex items-center justify-between py-2 border-b border-zinc-200 last:border-0">
+                <span className="text-sm font-mono text-zinc-600">{item.ip}</span>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-zinc-500 truncate max-w-[200px]">{item.reason}</span>
                   <span className="text-xs bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full">{item.count}x</span>
@@ -190,7 +190,7 @@ function AuditTab({ token, mainSiteId }) {
   return (
     <div className="space-y-6" data-testid="audit-tab">
       {/* Score Card */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6">
+      <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-5">
             <div className={`w-20 h-20 rounded-2xl ${scoreBg} flex items-center justify-center`}>
@@ -217,7 +217,7 @@ function AuditTab({ token, mainSiteId }) {
             const SevIcon = severityIcon[issue.severity] || Info;
             const sevColor = severityColor[issue.severity] || severityColor.info;
             return (
-              <div key={i} className="bg-zinc-900 rounded-xl border border-zinc-800 p-4 flex items-start gap-4">
+              <div key={i} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4 flex items-start gap-4">
                 <div className={`w-9 h-9 rounded-lg ${sevColor.split(' ')[1]} flex items-center justify-center flex-shrink-0`}>
                   <SevIcon className={`w-5 h-5 ${sevColor.split(' ')[0]}`} />
                 </div>
@@ -234,13 +234,13 @@ function AuditTab({ token, mainSiteId }) {
 
       {/* Weak Password Users */}
       {audit.weak_password_users?.length > 0 && (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
           <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-amber-400" /> Users with Weak Passwords
           </h3>
           <div className="space-y-3">
             {audit.weak_password_users.map(u => (
-              <div key={u.id} className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+              <div key={u.id} className="flex items-center justify-between py-2 border-b border-zinc-200 last:border-0">
                 <div>
                   <span className="text-sm font-medium">{u.name}</span>
                   <span className="text-xs text-zinc-500 ml-2">{u.email}</span>
@@ -268,13 +268,13 @@ function AuditTab({ token, mainSiteId }) {
 
       {/* Users without 2FA */}
       {audit.users_without_2fa_list?.length > 0 && (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
           <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
             <ShieldOff className="w-4 h-4 text-red-400" /> Users without 2FA
           </h3>
           <div className="space-y-2">
             {audit.users_without_2fa_list.map(u => (
-              <div key={u.id} className="flex items-center justify-between py-2 border-b border-zinc-800 last:border-0">
+              <div key={u.id} className="flex items-center justify-between py-2 border-b border-zinc-200 last:border-0">
                 <div>
                   <span className="text-sm font-medium">{u.name}</span>
                   <span className="text-xs text-zinc-500 ml-2">{u.email}</span>
@@ -342,20 +342,20 @@ function SessionsTab({ token, mainSiteId }) {
     <div className="space-y-6" data-testid="sessions-tab">
       <div className="flex items-center justify-between">
         <p className="text-sm text-zinc-500">{sessions.length} active session(s)</p>
-        <button onClick={fetchSessions} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400">
+        <button onClick={fetchSessions} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-400">
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
 
       {sessions.length === 0 ? (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-12 text-center">
           <Users className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
           <p className="text-sm text-zinc-500">No active sessions</p>
         </div>
       ) : (
         <div className="space-y-3">
           {sessions.map(session => (
-            <div key={session.id} className="bg-zinc-900 rounded-xl border border-zinc-800 p-5" data-testid={`session-${session.id}`}>
+            <div key={session.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5" data-testid={`session-${session.id}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
@@ -481,7 +481,7 @@ function EndpointsTab({ token, mainSiteId }) {
           </p>
           <p className="text-xs text-zinc-600 mt-1">RDS endpoints are always public and cannot be locked.</p>
         </div>
-        <button onClick={fetchData} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400">
+        <button onClick={fetchData} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-400">
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
@@ -503,7 +503,7 @@ function EndpointsTab({ token, mainSiteId }) {
           const isExpanded = expandedGroup === group.id;
 
           return (
-            <div key={group.id} className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden" data-testid={`endpoint-${group.id}`}>
+            <div key={group.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 overflow-hidden" data-testid={`endpoint-${group.id}`}>
               <div className="p-4 flex items-center justify-between">
                 <div
                   className="flex items-center gap-3 flex-1 cursor-pointer"
@@ -537,16 +537,16 @@ function EndpointsTab({ token, mainSiteId }) {
 
               {/* Connection details when expanded and public */}
               {isExpanded && isPublic && conn && conn.connections?.length > 0 && (
-                <div className="border-t border-zinc-800 p-4 bg-zinc-950/50">
+                <div className="border-t border-zinc-200 p-4 bg-zinc-950/50">
                   <h4 className="text-xs font-semibold text-zinc-400 mb-3 flex items-center gap-2">
                     <Monitor className="w-3.5 h-3.5" />
                     Active Connections (last hour)
                   </h4>
                   <div className="space-y-2">
                     {conn.connections.map((c, i) => (
-                      <div key={i} className="flex items-center justify-between py-2 border-b border-zinc-800/50 last:border-0">
+                      <div key={i} className="flex items-center justify-between py-2 border-b border-zinc-200/50 last:border-0">
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-mono text-zinc-300">{c.ip}</span>
+                          <span className="text-sm font-mono text-zinc-600">{c.ip}</span>
                           {c.country_name && c.country_name !== 'Unknown' && (
                             <span className="text-xs text-zinc-500 flex items-center gap-1">
                               <Globe className="w-3 h-3" />
@@ -571,13 +571,13 @@ function EndpointsTab({ token, mainSiteId }) {
               )}
 
               {isExpanded && isPublic && (!conn || conn.connections?.length === 0) && (
-                <div className="border-t border-zinc-800 p-4 bg-zinc-950/50 text-center">
+                <div className="border-t border-zinc-200 p-4 bg-zinc-950/50 text-center">
                   <p className="text-xs text-zinc-600">No connections in the last hour</p>
                 </div>
               )}
 
               {isExpanded && !isPublic && (
-                <div className="border-t border-zinc-800 p-4 bg-zinc-950/50 text-center">
+                <div className="border-t border-zinc-200 p-4 bg-zinc-950/50 text-center">
                   <p className="text-xs text-zinc-600">Endpoint is private — set to public to see connections</p>
                 </div>
               )}
@@ -644,15 +644,15 @@ function RulesTab({ token, mainSiteId }) {
         </Button>
       </div>
       {showForm && (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 space-y-4" data-testid="rule-form">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5 space-y-4" data-testid="rule-form">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Rule Name</label>
-              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm" placeholder="e.g. Block suspicious range" data-testid="rule-name-input" />
+              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" placeholder="e.g. Block suspicious range" data-testid="rule-name-input" />
             </div>
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Type</label>
-              <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm" data-testid="rule-type-select">
+              <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" data-testid="rule-type-select">
                 <option value="blacklist">Blacklist (block these IPs)</option>
                 <option value="whitelist">Whitelist (only allow these IPs)</option>
               </select>
@@ -660,11 +660,11 @@ function RulesTab({ token, mainSiteId }) {
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">IP Addresses / CIDR Ranges (one per line)</label>
-            <textarea value={form.ip_patterns} onChange={e => setForm({ ...form, ip_patterns: e.target.value })} rows={4} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder={"192.168.1.100\n10.0.0.0/24"} data-testid="rule-patterns-input" />
+            <textarea value={form.ip_patterns} onChange={e => setForm({ ...form, ip_patterns: e.target.value })} rows={4} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder={"192.168.1.100\n10.0.0.0/24"} data-testid="rule-patterns-input" />
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Description</label>
-            <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm" placeholder="Optional description" />
+            <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" placeholder="Optional description" />
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
@@ -678,7 +678,7 @@ function RulesTab({ token, mainSiteId }) {
         {rules.length === 0 ? (
           <EmptyState icon={Shield} text="No IP rules configured yet" />
         ) : rules.map(rule => (
-          <div key={rule.id} className={`bg-zinc-900 rounded-xl border p-5 ${rule.active ? 'border-zinc-800' : 'border-zinc-800/50 opacity-60'}`}>
+          <div key={rule.id} className={`bg-white/80 backdrop-blur rounded-xl border p-5 ${rule.active ? 'border-zinc-200' : 'border-zinc-200/50 opacity-60'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${rule.type === 'whitelist' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
@@ -694,10 +694,10 @@ function RulesTab({ token, mainSiteId }) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => toggleRule(rule)} className="p-2 rounded-lg hover:bg-zinc-800 transition-colors" title={rule.active ? 'Disable' : 'Enable'}>
+                <button onClick={() => toggleRule(rule)} className="p-2 rounded-lg hover:bg-zinc-100 transition-colors" title={rule.active ? 'Disable' : 'Enable'}>
                   {rule.active ? <ShieldCheck className="w-4 h-4 text-green-400" /> : <ShieldOff className="w-4 h-4 text-zinc-500" />}
                 </button>
-                <button onClick={() => deleteRule(rule.id)} className="p-2 rounded-lg hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-red-400">
+                <button onClick={() => deleteRule(rule.id)} className="p-2 rounded-lg hover:bg-zinc-100 transition-colors text-zinc-500 hover:text-red-400">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -755,19 +755,19 @@ function BlocksTab({ token, mainSiteId }) {
         </Button>
       </div>
       {showForm && (
-        <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-5 space-y-4" data-testid="block-form">
+        <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5 space-y-4" data-testid="block-form">
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">IP Address</label>
-              <input value={form.ip} onChange={e => setForm({ ...form, ip: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="192.168.1.100" data-testid="block-ip-input" />
+              <input value={form.ip} onChange={e => setForm({ ...form, ip: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="192.168.1.100" data-testid="block-ip-input" />
             </div>
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Reason</label>
-              <input value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm" placeholder="Suspicious activity" />
+              <input value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" placeholder="Suspicious activity" />
             </div>
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Duration (minutes, empty = permanent)</label>
-              <input value={form.duration_minutes} onChange={e => setForm({ ...form, duration_minutes: e.target.value })} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm" placeholder="30" type="number" />
+              <input value={form.duration_minutes} onChange={e => setForm({ ...form, duration_minutes: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" placeholder="30" type="number" />
             </div>
           </div>
           <div className="flex gap-2 justify-end">
@@ -780,7 +780,7 @@ function BlocksTab({ token, mainSiteId }) {
         {blocks.length === 0 ? (
           <EmptyState icon={ShieldCheck} text="No blocked IPs" />
         ) : blocks.map(block => (
-          <div key={block.id} className="bg-zinc-900 rounded-xl border border-zinc-800 p-5">
+          <div key={block.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center"><Ban className="w-5 h-5 text-red-400" /></div>
@@ -847,11 +847,11 @@ function LogsTab({ token, mainSiteId }) {
     <div className="space-y-6" data-testid="logs-tab">
       <div className="flex items-center justify-between">
         <p className="text-sm text-zinc-500">{total} events</p>
-        <button onClick={fetchLogs} className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400"><RefreshCw className="w-4 h-4" /></button>
+        <button onClick={fetchLogs} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-400"><RefreshCw className="w-4 h-4" /></button>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {eventTypes.map(type => (
-          <button key={type} onClick={() => { setFilter(type); setPage(0); }} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${filter === type ? 'bg-red-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-800 hover:border-zinc-700'}`}>
+          <button key={type} onClick={() => { setFilter(type); setPage(0); }} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${filter === type ? 'bg-red-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-200 hover:border-zinc-300'}`}>
             {type === 'all' ? 'All' : type.replace(/_/g, ' ')}
           </button>
         ))}
@@ -861,7 +861,7 @@ function LogsTab({ token, mainSiteId }) {
           {logs.length === 0 ? <EmptyState icon={Activity} text="No events found" /> : logs.map(log => {
             const colors = EC[log.event_type] || 'text-zinc-400 bg-zinc-500/10';
             return (
-              <div key={log.id} className="bg-zinc-900 rounded-xl border border-zinc-800 px-5 py-3.5 flex items-center gap-4">
+              <div key={log.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 px-5 py-3.5 flex items-center gap-4">
                 <div className={`w-8 h-8 rounded-lg ${colors.split(' ')[1]} flex items-center justify-center flex-shrink-0`}>
                   <Activity className={`w-4 h-4 ${colors.split(' ')[0]}`} />
                 </div>
@@ -928,7 +928,7 @@ function SettingsTab({ token, mainSiteId }) {
 
   return (
     <div className="space-y-6" data-testid="settings-tab">
-      <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-6 space-y-6">
+      <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-semibold">Firewall Enabled</h3>
@@ -936,7 +936,7 @@ function SettingsTab({ token, mainSiteId }) {
           </div>
           <Toggle checked={settings.enabled} onChange={v => update('enabled', v)} testId="toggle-enabled" />
         </div>
-        <hr className="border-zinc-800" />
+        <hr className="border-zinc-200" />
         <div>
           <h3 className="text-base font-semibold mb-4 flex items-center gap-2"><ShieldAlert className="w-4 h-4 text-amber-400" />Brute Force Protection</h3>
           <div className="grid grid-cols-3 gap-4">
@@ -945,7 +945,7 @@ function SettingsTab({ token, mainSiteId }) {
             <NumInput label="Ban Duration (minutes)" value={settings.brute_force_ban_minutes} onChange={v => update('brute_force_ban_minutes', parseInt(v) || 30)} testId="bf-ban" />
           </div>
         </div>
-        <hr className="border-zinc-800" />
+        <hr className="border-zinc-200" />
         <div>
           <h3 className="text-base font-semibold mb-4 flex items-center gap-2"><Activity className="w-4 h-4 text-blue-400" />Rate Limiting</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -953,7 +953,7 @@ function SettingsTab({ token, mainSiteId }) {
             <NumInput label="Window (seconds)" value={settings.rate_limit_window_seconds} onChange={v => update('rate_limit_window_seconds', parseInt(v) || 60)} testId="rl-window" />
           </div>
         </div>
-        <hr className="border-zinc-800" />
+        <hr className="border-zinc-200" />
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-semibold flex items-center gap-2"><Globe className="w-4 h-4 text-purple-400" />Geo-Blocking</h3>
@@ -962,7 +962,7 @@ function SettingsTab({ token, mainSiteId }) {
           {settings.geo_blocking_enabled && (
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Blocked Country Codes (comma-separated, e.g. CN,RU,KP)</label>
-              <input value={settings.blocked_countries?.join(', ') || ''} onChange={e => update('blocked_countries', e.target.value.split(',').map(c => c.trim().toUpperCase()).filter(Boolean))} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="CN, RU, KP" data-testid="geo-countries-input" />
+              <input value={settings.blocked_countries?.join(', ') || ''} onChange={e => update('blocked_countries', e.target.value.split(',').map(c => c.trim().toUpperCase()).filter(Boolean))} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="CN, RU, KP" data-testid="geo-countries-input" />
               <p className="text-xs text-zinc-600 mt-1">Use ISO 3166-1 alpha-2 codes. Network admins bypass geo-blocking.</p>
             </div>
           )}
@@ -989,7 +989,7 @@ function NumInput({ label, value, onChange, testId }) {
   return (
     <div>
       <label className="text-xs text-zinc-500 mb-1 block">{label}</label>
-      <input type="number" value={value} onChange={e => onChange(e.target.value)} className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm" data-testid={testId} />
+      <input type="number" value={value} onChange={e => onChange(e.target.value)} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" data-testid={testId} />
     </div>
   );
 }
@@ -998,7 +998,7 @@ function Spinner() {
 }
 function EmptyState({ icon: Icon, text }) {
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-12 text-center">
+    <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-12 text-center">
       <Icon className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
       <p className="text-sm text-zinc-500">{text}</p>
     </div>

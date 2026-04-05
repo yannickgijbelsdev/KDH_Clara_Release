@@ -228,7 +228,7 @@ function DebugContent({ data }) {
         {data.recent_logs?.length > 0 ? (
           <div className="space-y-1 max-h-60 overflow-y-auto">
             {data.recent_logs.slice(0, 20).map((log, i) => (
-              <div key={i} className="text-xs p-1.5 flex items-center gap-2 border-b border-zinc-800/50 last:border-0">
+              <div key={i} className="text-xs p-1.5 flex items-center gap-2 border-b border-zinc-200/50 last:border-0">
                 <span className="text-zinc-500 w-14 flex-shrink-0">{log.timestamp?.slice(11, 19)}</span>
                 <span className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-400 text-[10px]">{log.category}</span>
                 <span className="text-zinc-600">{log.action}</span>
@@ -303,7 +303,7 @@ function UserAccessSection({ token, API }) {
                 <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-100/50 rounded p-2">
                   <span className="text-zinc-800 font-medium">{u.user_name}</span>
                   <span className="text-zinc-500">{u.user_email}</span>
-                  <span className="text-xs bg-zinc-700 px-2 py-0.5 rounded">{u.user_global_role}</span>
+                  <span className="text-xs bg-zinc-200 px-2 py-0.5 rounded">{u.user_global_role}</span>
                 </div>
               ))}
             </div>
@@ -332,7 +332,7 @@ function UserAccessSection({ token, API }) {
                             access.site_role === 'admin' ? 'bg-orange-500/20 text-orange-400' :
                             access.site_role === 'news_admin' ? 'bg-emerald-500/20 text-emerald-400' :
                             access.site_role === 'editor' ? 'bg-violet-500/20 text-violet-400' :
-                            'bg-zinc-700 text-zinc-400'
+                            'bg-zinc-200 text-zinc-400'
                           }`}>
                             {roleLabels[access.site_role] || access.site_role}
                           </span>
@@ -1157,7 +1157,7 @@ export default function NetworkDashboard() {
                         }}
                         disabled={ztGuard.loading}
                         variant="outline"
-                        className="w-full bg-zinc-50 border-zinc-200 hover:bg-zinc-700"
+                        className="w-full bg-zinc-50 border-zinc-200 hover:bg-zinc-200"
                       >
                         Save Configuration
                       </Button>
@@ -1302,7 +1302,7 @@ export default function NetworkDashboard() {
                       <button key={pkg.type} data-testid={`package-${pkg.type}`}
                         onClick={() => setFormData(p => ({ ...p, site_type: pkg.type, enabled_features: pkg.features }))}
                         className={`w-full flex items-center gap-4 p-3 rounded-lg border text-left transition-all ${
-                          formData.site_type === pkg.type ? `${PACKAGE_COLORS[pkg.color]} border-2` : 'bg-zinc-100/50 border-zinc-700 hover:border-zinc-600'
+                          formData.site_type === pkg.type ? `${PACKAGE_COLORS[pkg.color]} border-2` : 'bg-zinc-100/50 border-zinc-300 hover:border-zinc-600'
                         }`}>
                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.site_type === pkg.type ? 'bg-white/10' : 'bg-zinc-700/50'}`}>
                           <pkg.icon className={`w-5 h-5 ${formData.site_type === pkg.type ? PACKAGE_ICON_COLORS[pkg.color] : 'text-zinc-500'}`} />
@@ -1344,18 +1344,18 @@ export default function NetworkDashboard() {
               {createStep === 2 && (
                 <div className="space-y-4">
                   {(() => { const pkg = PACKAGES.find(p => p.type === formData.site_type); return (
-                    <div className="bg-zinc-100/50 rounded-lg p-4 border border-zinc-700 space-y-3">
+                    <div className="bg-zinc-100/50 rounded-lg p-4 border border-zinc-300 space-y-3">
                       <div className="flex items-center gap-3">
                         {pkg && <pkg.icon className={`w-6 h-6 ${PACKAGE_ICON_COLORS[pkg.color]}`} />}
                         <div>
                           <p className="text-sm font-medium text-zinc-100">{formData.name}</p>
                           <p className="text-xs font-mono text-zinc-500">/{formData.slug}</p>
                         </div>
-                        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full border ${SITE_TYPE_BADGE[formData.site_type] || 'bg-zinc-100 text-zinc-400 border-zinc-700'}`}>
+                        <span className={`ml-auto text-xs px-2 py-0.5 rounded-full border ${SITE_TYPE_BADGE[formData.site_type] || 'bg-zinc-100 text-zinc-400 border-zinc-300'}`}>
                           {SITE_TYPE_LABELS[formData.site_type] || formData.site_type}
                         </span>
                       </div>
-                      <div className="border-t border-zinc-700 pt-3">
+                      <div className="border-t border-zinc-300 pt-3">
                         <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5">Included Features</p>
                         <div className="flex flex-wrap gap-1">
                           {(pkg?.features || []).map(f => (
@@ -1388,7 +1388,7 @@ export default function NetworkDashboard() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-white hover:bg-zinc-700">
+            <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-white hover:bg-zinc-200">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 

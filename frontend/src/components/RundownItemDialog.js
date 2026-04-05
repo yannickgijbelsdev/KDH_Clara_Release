@@ -157,7 +157,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+      <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {editingItem ? 'Edit Item' : 'Add Rundown Item'}
@@ -166,25 +166,25 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
 
         <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           <div className="space-y-2">
-            <Label className="text-zinc-300">Type</Label>
+            <Label className="text-zinc-600">Type</Label>
             <Select
               value={formData.type}
               onValueChange={(value) => handleFieldChange('type', value)}
             >
               <SelectTrigger
                 data-testid="item-type-select"
-                className="bg-[#27272a] border-zinc-700 text-white"
+                className="bg-[#27272a] border-zinc-300 text-white"
               >
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#18181b] border-zinc-800">
+              <SelectContent className="bg-zinc-100 border-zinc-200">
                 {itemTypes.map((type) => {
                   const Icon = type.icon;
                   return (
                     <SelectItem
                       key={type.value}
                       value={type.value}
-                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
                     >
                       <div className="flex items-center gap-2">
                         <Icon className="w-4 h-4" />
@@ -198,20 +198,20 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
           </div>
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Title</Label>
+            <Label className="text-zinc-600">Title</Label>
             <Input
               data-testid="item-title-input"
               value={formData.title}
               onChange={(e) => handleFieldChange('title', e.target.value)}
               placeholder="Enter title..."
               required
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500"
             />
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-zinc-300">Notes (optional)</Label>
+              <Label className="text-zinc-600">Notes (optional)</Label>
               {wordCount > 0 && (
                 <span className="text-xs text-zinc-500">
                   {wordCount} words
@@ -223,14 +223,14 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
               value={formData.notes}
               onChange={(e) => handleFieldChange('notes', e.target.value)}
               placeholder="Additional notes or script text..."
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 resize-none"
+              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500 resize-none"
               rows={4}
             />
             {estimatedDuration && (
               <div className="flex items-center justify-between p-2 bg-violet-500/10 border border-violet-500/30 rounded-lg">
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="w-4 h-4 text-violet-400" />
-                  <span className="text-zinc-300">
+                  <span className="text-zinc-600">
                     Estimated speaking time: <span className="font-mono text-violet-400">{estimatedDuration}</span>
                   </span>
                   <span className="text-zinc-500 text-xs">({WORDS_PER_MINUTE} wpm)</span>
@@ -250,13 +250,13 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
           </div>
 
           <div className="space-y-2">
-            <Label className="text-zinc-300">Duration (optional)</Label>
+            <Label className="text-zinc-600">Duration (optional)</Label>
             <Input
               data-testid="item-duration-input"
               value={formData.duration}
               onChange={(e) => handleFieldChange('duration', e.target.value)}
               placeholder="MM:SS"
-              className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500 font-mono"
+              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500 font-mono"
             />
             <p className="text-xs text-zinc-500">Format: MM:SS (e.g., 03:30)</p>
           </div>
@@ -266,7 +266,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
               type="button"
               variant="outline"
               onClick={() => handleClose(false)}
-              className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-800 hover:text-white"
             >
               Cancel
             </Button>

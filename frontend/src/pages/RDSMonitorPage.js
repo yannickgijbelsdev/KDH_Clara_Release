@@ -68,7 +68,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
     : data?.current_text;
 
   return (
-    <div className="bg-zinc-900 rounded-xl p-6 space-y-4">
+    <div className="bg-white/80 backdrop-blur rounded-xl p-6 space-y-4">
       {cacheStale && (
         <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 flex items-center gap-2">
           <AlertCircle className="w-5 h-5 text-amber-400" />
@@ -114,7 +114,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
       </div>
 
       {/* Current Output */}
-      <div className="bg-zinc-800/50 rounded-lg p-4 border border-zinc-700">
+      <div className="bg-zinc-100/70 rounded-lg p-4 border border-zinc-300">
         <div className="flex items-center gap-2 mb-2">
           {getItemTypeIcon(displayType)}
           <span className="text-xs text-zinc-400 uppercase tracking-wider">
@@ -530,7 +530,7 @@ const RDSMonitorPage = () => {
         </div>
 
         {/* History Section */}
-        <div className="bg-zinc-900 rounded-xl p-6">
+        <div className="bg-white/80 backdrop-blur rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <History className="w-5 h-5 text-zinc-400" />
             <h2 className="text-lg font-semibold text-white">Recent Changes</h2>
@@ -543,7 +543,7 @@ const RDSMonitorPage = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-xs text-zinc-500 uppercase tracking-wider border-b border-zinc-800">
+                  <tr className="text-left text-xs text-zinc-500 uppercase tracking-wider border-b border-zinc-200">
                     <th className="pb-3 pr-4">Time</th>
                     <th className="pb-3 pr-4">Station</th>
                     <th className="pb-3 pr-4">Type</th>
@@ -564,7 +564,7 @@ const RDSMonitorPage = () => {
                         </span>
                       </td>
                       <td className="py-3 pr-4">
-                        <span className="flex items-center gap-1 text-zinc-300">
+                        <span className="flex items-center gap-1 text-zinc-600">
                           {getItemTypeIcon(entry.item_type)}
                           {getItemTypeLabel(entry.item_type)}
                         </span>

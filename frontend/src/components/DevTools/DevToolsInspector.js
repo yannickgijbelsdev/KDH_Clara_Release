@@ -224,7 +224,7 @@ export default function DevToolsInspector() {
             <div className="mb-2">
               <span className="text-[10px] text-zinc-500">File</span>
               <div className="flex items-center gap-1">
-                <p className="text-xs font-mono text-zinc-300 flex-1 truncate">{activeTooltip.filePath}</p>
+                <p className="text-xs font-mono text-zinc-600 flex-1 truncate">{activeTooltip.filePath}</p>
                 <button
                   onClick={(e) => { e.stopPropagation(); viewCode(activeTooltip.filePath); }}
                   className="text-cyan-400 hover:text-cyan-300 p-0.5"
@@ -252,7 +252,7 @@ export default function DevToolsInspector() {
                         method === 'PUT' ? 'text-amber-400' :
                         'text-red-400'
                       }`}>{method}</span>
-                      <span className="text-[10px] font-mono text-zinc-300">{path}</span>
+                      <span className="text-[10px] font-mono text-zinc-600">{path}</span>
                     </div>
                   );
                 })}
@@ -270,13 +270,13 @@ export default function DevToolsInspector() {
           data-testid="code-viewer-modal"
         >
           <div
-            className="bg-[#0d0d0f] border border-zinc-700 rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden"
+            className="bg-[#0d0d0f] border border-zinc-300 rounded-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200">
               <div className="flex items-center gap-2">
                 <Code className="w-4 h-4 text-cyan-400" />
-                <span className="text-sm font-mono text-zinc-300">{codeModal}</span>
+                <span className="text-sm font-mono text-zinc-600">{codeModal}</span>
               </div>
               <button
                 onClick={() => { setCodeModal(null); setCodeContent(null); }}
@@ -289,7 +289,7 @@ export default function DevToolsInspector() {
               {codeLoading ? (
                 <div className="text-center py-12 text-zinc-600 text-sm">Loading source...</div>
               ) : (
-                <pre className="p-4 text-xs font-mono text-zinc-300 leading-5 whitespace-pre">
+                <pre className="p-4 text-xs font-mono text-zinc-600 leading-5 whitespace-pre">
                   {codeContent?.split('\n').map((line, i) => (
                     <div key={i} className="flex hover:bg-zinc-800/50">
                       <span className="text-zinc-600 w-12 text-right pr-4 select-none flex-shrink-0">{i + 1}</span>

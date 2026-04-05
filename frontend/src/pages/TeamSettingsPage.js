@@ -409,8 +409,8 @@ const TeamSettingsPage = () => {
   if (loading) {
     return (
       <div className="animate-pulse">
-        <div className="h-8 bg-zinc-800 rounded w-48 mb-8" />
-        <div className="h-64 bg-zinc-800 rounded-xl" />
+        <div className="h-8 bg-zinc-100 rounded w-48 mb-8" />
+        <div className="h-64 bg-zinc-100 rounded-xl" />
       </div>
     );
   }
@@ -439,7 +439,7 @@ const TeamSettingsPage = () => {
       </div>
 
       {/* Team Info */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-8">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-500/20 rounded-lg">
@@ -460,7 +460,7 @@ const TeamSettingsPage = () => {
       </div>
 
       {/* Users Section */}
-      <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-violet-500/20 rounded-lg">
@@ -480,7 +480,7 @@ const TeamSettingsPage = () => {
                   searchAvailableUsers();
                 }}
                 variant="outline"
-                className="gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="gap-2 border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               >
                 <ArrowLeftRight className="w-4 h-4" />
                 Add Existing User
@@ -507,10 +507,10 @@ const TeamSettingsPage = () => {
               <div
                 key={member.id}
                 data-testid={`user-row-${member.id}`}
-                className="flex items-center justify-between p-4 bg-[#27272a] rounded-lg"
+                className="flex items-center justify-between p-4 bg-zinc-100 rounded-lg"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
                     {getAvatarUrl(member) ? (
                       <img
                         src={getAvatarUrl(member)}
@@ -528,7 +528,7 @@ const TeamSettingsPage = () => {
                     <div className="flex items-center gap-2">
                       <p className="text-white font-medium">{member.name}</p>
                       {isCurrentUser && (
-                        <span className="text-xs bg-zinc-700 text-zinc-300 px-2 py-0.5 rounded">
+                        <span className="text-xs bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded">
                           You
                         </span>
                       )}
@@ -553,15 +553,15 @@ const TeamSettingsPage = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-zinc-400 hover:text-white hover:bg-zinc-700"
+                            className="text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200"
                           >
                             <Edit2 className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                        <DropdownMenuContent align="end" className="bg-zinc-100 border-zinc-200">
                           <DropdownMenuItem
                             onClick={() => openEditUser(member)}
-                            className="text-zinc-300"
+                            className="text-zinc-600"
                           >
                             <User className="w-4 h-4 mr-2" />
                             Edit Profile
@@ -571,7 +571,7 @@ const TeamSettingsPage = () => {
                               setAvatarTargetUserId(member.id);
                               setTimeout(() => avatarInputRef.current?.click(), 100);
                             }}
-                            className="text-zinc-300"
+                            className="text-zinc-600"
                           >
                             <Camera className="w-4 h-4 mr-2" />
                             {member.avatar ? 'Change Avatar' : 'Upload Avatar'}
@@ -579,7 +579,7 @@ const TeamSettingsPage = () => {
                           {member.avatar && (
                             <DropdownMenuItem
                               onClick={() => handleRemoveAvatar(member.id)}
-                              className="text-zinc-300"
+                              className="text-zinc-600"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Remove Avatar
@@ -587,7 +587,7 @@ const TeamSettingsPage = () => {
                           )}
                           <DropdownMenuItem
                             onClick={() => openResetPassword(member)}
-                            className="text-zinc-300"
+                            className="text-zinc-600"
                           >
                             <KeyRound className="w-4 h-4 mr-2" />
                             Change Password
@@ -601,13 +601,13 @@ const TeamSettingsPage = () => {
                         value={member.role}
                         onValueChange={(value) => handleUpdateRole(member.id, value)}
                       >
-                        <SelectTrigger className="w-40 bg-[#18181b] border-zinc-700 text-zinc-300">
+                        <SelectTrigger className="w-40 bg-zinc-100 border-zinc-300 text-zinc-600">
                           <div className="flex items-center gap-2">
                             <RoleIcon className="w-4 h-4" />
                             <span>{getRoleLabel(member.role)}</span>
                           </div>
                         </SelectTrigger>
-                        <SelectContent className="bg-[#18181b] border-zinc-800">
+                        <SelectContent className="bg-zinc-100 border-zinc-200">
                           {/* Show current role if not in available roles (legacy) */}
                           {!availableRoles.find(r => r.slug === member.role) && (
                             <SelectItem value={member.role} className="text-zinc-500 focus:text-white focus:bg-zinc-800">
@@ -620,7 +620,7 @@ const TeamSettingsPage = () => {
                           {availableRoles.map((role) => {
                             const Icon = getRoleIcon(role.slug);
                             return (
-                              <SelectItem key={role.slug} value={role.slug} className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                              <SelectItem key={role.slug} value={role.slug} className="text-zinc-600 focus:text-white focus:bg-zinc-800">
                                 <div className="flex items-center gap-2">
                                   <Icon className="w-4 h-4" style={{ color: role.color }} />
                                   {role.name}
@@ -636,15 +636,15 @@ const TeamSettingsPage = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-zinc-400 hover:text-white hover:bg-zinc-700"
+                            className="text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200"
                           >
                             <Edit2 className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#18181b] border-zinc-800">
+                        <DropdownMenuContent align="end" className="bg-zinc-100 border-zinc-200">
                           <DropdownMenuItem
                             onClick={() => openEditUser(member)}
-                            className="text-zinc-300"
+                            className="text-zinc-600"
                           >
                             <User className="w-4 h-4 mr-2" />
                             Edit Profile
@@ -654,7 +654,7 @@ const TeamSettingsPage = () => {
                               setAvatarTargetUserId(member.id);
                               setTimeout(() => avatarInputRef.current?.click(), 100);
                             }}
-                            className="text-zinc-300"
+                            className="text-zinc-600"
                           >
                             <Camera className="w-4 h-4 mr-2" />
                             {member.avatar ? 'Change Avatar' : 'Upload Avatar'}
@@ -662,7 +662,7 @@ const TeamSettingsPage = () => {
                           {member.avatar && (
                             <DropdownMenuItem
                               onClick={() => handleRemoveAvatar(member.id)}
-                              className="text-zinc-300"
+                              className="text-zinc-600"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Remove Avatar
@@ -670,7 +670,7 @@ const TeamSettingsPage = () => {
                           )}
                           <DropdownMenuItem
                             onClick={() => openResetPassword(member)}
-                            className="text-zinc-300"
+                            className="text-zinc-600"
                           >
                             <KeyRound className="w-4 h-4 mr-2" />
                             Reset Password
@@ -715,7 +715,7 @@ const TeamSettingsPage = () => {
 
       {/* Invite User Dialog */}
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Invite User</DialogTitle>
             <DialogDescription className="text-zinc-400">
@@ -725,19 +725,19 @@ const TeamSettingsPage = () => {
 
           <form onSubmit={handleInviteUser} className="space-y-5 mt-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Name</Label>
+              <Label className="text-zinc-600">Name</Label>
               <Input
                 data-testid="invite-name-input"
                 value={inviteData.name}
                 onChange={(e) => setInviteData({ ...inviteData, name: e.target.value })}
                 placeholder="John Doe"
                 required
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Email</Label>
+              <Label className="text-zinc-600">Email</Label>
               <Input
                 data-testid="invite-email-input"
                 type="email"
@@ -745,27 +745,27 @@ const TeamSettingsPage = () => {
                 onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
                 placeholder="john@example.com"
                 required
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Role</Label>
+              <Label className="text-zinc-600">Role</Label>
               <Select
                 value={inviteData.role}
                 onValueChange={(value) => setInviteData({ ...inviteData, role: value })}
               >
                 <SelectTrigger
                   data-testid="invite-role-select"
-                  className="bg-[#27272a] border-zinc-700 text-white"
+                  className="bg-zinc-100 border-zinc-300 text-white"
                 >
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#18181b] border-zinc-800">
+                <SelectContent className="bg-zinc-100 border-zinc-200">
                   {availableRoles.map((role) => {
                     const Icon = getRoleIcon(role.slug);
                     return (
-                      <SelectItem key={role.slug} value={role.slug} className="text-zinc-300 focus:text-white focus:bg-zinc-800">
+                      <SelectItem key={role.slug} value={role.slug} className="text-zinc-600 focus:text-white focus:bg-zinc-800">
                         <div className="flex items-center gap-2">
                           <Icon className="w-4 h-4" style={{ color: role.color }} />
                           {role.name}{role.description ? ` - ${role.description}` : ''}
@@ -782,7 +782,7 @@ const TeamSettingsPage = () => {
                 type="button"
                 variant="outline"
                 onClick={() => setInviteDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 Cancel
               </Button>
@@ -801,7 +801,7 @@ const TeamSettingsPage = () => {
 
       {/* Add Existing User Dialog */}
       <Dialog open={addExistingUserDialogOpen} onOpenChange={setAddExistingUserDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               <ArrowLeftRight className="w-5 h-5 text-violet-400" />
@@ -815,19 +815,19 @@ const TeamSettingsPage = () => {
           <div className="mt-4 space-y-4">
             {/* Search */}
             <div>
-              <Label className="text-zinc-300 mb-2 block">Search Users</Label>
+              <Label className="text-zinc-600 mb-2 block">Search Users</Label>
               <div className="flex gap-2">
                 <Input
                   placeholder="Search by name or email..."
                   value={userSearchQuery}
                   onChange={(e) => setUserSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && searchAvailableUsers(userSearchQuery)}
-                  className="bg-[#27272a] border-zinc-700 text-white"
+                  className="bg-zinc-100 border-zinc-300 text-white"
                 />
                 <Button
                   onClick={() => searchAvailableUsers(userSearchQuery)}
                   disabled={searchingUsers}
-                  className="bg-zinc-700 hover:bg-zinc-600"
+                  className="bg-zinc-200 hover:bg-zinc-200"
                 >
                   {searchingUsers ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
                 </Button>
@@ -848,7 +848,7 @@ const TeamSettingsPage = () => {
                   className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                     selectedExistingUser?.id === availableUser.id
                       ? 'bg-violet-500/20 border border-violet-500/50'
-                      : 'bg-[#27272a] hover:bg-zinc-700'
+                      : 'bg-zinc-100 hover:bg-zinc-200'
                   }`}
                 >
                   <div>
@@ -870,18 +870,18 @@ const TeamSettingsPage = () => {
             {/* Role Selection */}
             {selectedExistingUser && (
               <div>
-                <Label className="text-zinc-300 mb-2 block">
+                <Label className="text-zinc-600 mb-2 block">
                   Role for {selectedExistingUser.name}
                 </Label>
                 <Select value={existingUserRole} onValueChange={setExistingUserRole}>
-                  <SelectTrigger className="bg-[#27272a] border-zinc-700 text-white">
+                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#18181b] border-zinc-800">
+                  <SelectContent className="bg-zinc-100 border-zinc-200">
                     {availableRoles.map((role) => {
                       const Icon = getRoleIcon(role.slug);
                       return (
-                        <SelectItem key={role.slug} value={role.slug} className="text-zinc-300">
+                        <SelectItem key={role.slug} value={role.slug} className="text-zinc-600">
                           <div className="flex items-center gap-2">
                             <Icon className="w-4 h-4" style={{ color: role.color }} />
                             {role.name}
@@ -903,7 +903,7 @@ const TeamSettingsPage = () => {
                   setUserSearchQuery('');
                   setAvailableUsers([]);
                 }}
-                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
               >
                 Cancel
               </Button>
@@ -921,7 +921,7 @@ const TeamSettingsPage = () => {
 
       {/* Temporary Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">User Invited!</DialogTitle>
             <DialogDescription className="text-zinc-400">
@@ -930,16 +930,16 @@ const TeamSettingsPage = () => {
           </DialogHeader>
 
           <div className="mt-4">
-            <Label className="text-zinc-300 mb-2 block">Temporary Password</Label>
+            <Label className="text-zinc-600 mb-2 block">Temporary Password</Label>
             <div className="flex items-center gap-2">
               <Input
                 value={tempPassword}
                 readOnly
-                className="bg-[#27272a] border-zinc-700 text-white font-mono"
+                className="bg-zinc-100 border-zinc-300 text-white font-mono"
               />
               <Button
                 onClick={() => copyToClipboard(tempPassword)}
-                className="bg-zinc-700 hover:bg-zinc-600"
+                className="bg-zinc-200 hover:bg-zinc-200"
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               </Button>
@@ -963,7 +963,7 @@ const TeamSettingsPage = () => {
 
       {/* Delete User Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#18181b] border-zinc-800">
+        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Remove User</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -971,7 +971,7 @@ const TeamSettingsPage = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
@@ -986,7 +986,7 @@ const TeamSettingsPage = () => {
 
       {/* Edit User Dialog */}
       <Dialog open={editUserDialogOpen} onOpenChange={setEditUserDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Edit User</DialogTitle>
             <DialogDescription className="text-zinc-400">
@@ -996,19 +996,19 @@ const TeamSettingsPage = () => {
 
           <form onSubmit={handleUpdateUser} className="space-y-5 mt-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">Display Name</Label>
+              <Label className="text-zinc-600">Display Name</Label>
               <Input
                 data-testid="edit-user-name-input"
                 value={editUserData.name}
                 onChange={(e) => setEditUserData({ ...editUserData, name: e.target.value })}
                 placeholder="John Doe"
                 required
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Email Address</Label>
+              <Label className="text-zinc-600">Email Address</Label>
               <Input
                 data-testid="edit-user-email-input"
                 type="email"
@@ -1016,7 +1016,7 @@ const TeamSettingsPage = () => {
                 onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
                 placeholder="john@example.com"
                 required
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
             </div>
 
@@ -1025,7 +1025,7 @@ const TeamSettingsPage = () => {
                 type="button"
                 variant="outline"
                 onClick={() => setEditUserDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 Cancel
               </Button>
@@ -1044,7 +1044,7 @@ const TeamSettingsPage = () => {
 
       {/* Reset Password Dialog */}
       <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
-        <DialogContent className="bg-[#18181b] border-zinc-800 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Reset Password</DialogTitle>
             <DialogDescription className="text-zinc-400">
@@ -1054,7 +1054,7 @@ const TeamSettingsPage = () => {
 
           <form onSubmit={handleResetPassword} className="space-y-5 mt-4">
             <div className="space-y-2">
-              <Label className="text-zinc-300">New Password</Label>
+              <Label className="text-zinc-600">New Password</Label>
               <Input
                 data-testid="reset-password-input"
                 type="password"
@@ -1063,7 +1063,7 @@ const TeamSettingsPage = () => {
                 placeholder="Enter new password"
                 required
                 minLength={6}
-                className="bg-[#27272a] border-zinc-700 text-white placeholder:text-zinc-500"
+                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
               />
               <p className="text-xs text-zinc-500">Minimum 6 characters</p>
             </div>
@@ -1073,7 +1073,7 @@ const TeamSettingsPage = () => {
                 type="button"
                 variant="outline"
                 onClick={() => setResetPasswordDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
               >
                 Cancel
               </Button>
