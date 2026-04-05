@@ -48,7 +48,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
       {/* The 3D rack cabinet */}
       <div
         className={`relative transition-transform duration-300 ${isSelected ? 'scale-105' : 'group-hover:scale-[1.03]'}`}
-        style={{ transformStyle: 'preserve-3d', width: 200 }}
+        style={{ transformStyle: 'preserve-3d', width: 280 }}
       >
         {/* ── Rack top ── */}
         <div
@@ -80,11 +80,11 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
           }}
         >
           {/* Rack rails (left + right) */}
-          <div className="absolute left-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-zinc-600/30 to-zinc-700/20 border-r border-white/[0.03]" />
-          <div className="absolute right-0 top-0 bottom-0 w-[6px] bg-gradient-to-b from-zinc-600/30 to-zinc-700/20 border-l border-white/[0.03]" />
+          <div className="absolute left-0 top-0 bottom-0 w-[8px] bg-gradient-to-b from-zinc-600/30 to-zinc-700/20 border-r border-white/[0.03]" />
+          <div className="absolute right-0 top-0 bottom-0 w-[8px] bg-gradient-to-b from-zinc-600/30 to-zinc-700/20 border-l border-white/[0.03]" />
 
           {/* Server blades */}
-          <div className="px-[10px] py-2 space-y-[5px]">
+          <div className="px-[14px] py-3 space-y-[6px]">
             {Array.from({ length: SERVERS_PER_RACK }).map((_, i) => {
               const site = sites[i];
               const cfg = site ? (SITE_TYPE_CONFIG[site.site_type] || SITE_TYPE_CONFIG.radio) : null;
@@ -93,7 +93,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
               if (!site) {
                 // Empty slot
                 return (
-                  <div key={i} className="relative h-[48px] rounded-[3px] border border-dashed border-white/[0.04] bg-white/[0.01] flex items-center justify-center">
+                  <div key={i} className="relative h-[60px] rounded-[3px] border border-dashed border-white/[0.04] bg-white/[0.01] flex items-center justify-center">
                     <span className="text-[9px] text-zinc-700 tracking-wide">EMPTY SLOT</span>
                   </div>
                 );
@@ -102,7 +102,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
               return (
                 <div
                   key={i}
-                  className="relative h-[48px] rounded-[4px] flex items-center gap-2.5 px-3 transition-all duration-200 group/blade"
+                  className="relative h-[60px] rounded-[4px] flex items-center gap-2.5 px-3 transition-all duration-200 group/blade"
                   style={{
                     background: `linear-gradient(90deg, ${cfg.color}18 0%, ${cfg.color}06 60%, transparent 100%)`,
                     border: `1px solid ${cfg.color}25`,
@@ -123,16 +123,16 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
 
                   {/* Icon */}
                   <div
-                    className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0"
+                    className="w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: `${cfg.color}20` }}
                   >
-                    <Icon className="w-4 h-4" style={{ color: cfg.color }} />
+                    <Icon className="w-5 h-5" style={{ color: cfg.color }} />
                   </div>
 
                   {/* Name */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-semibold text-zinc-300 truncate leading-tight">{site.name}</div>
-                    <div className="text-[8px] text-zinc-600 truncate">/{site.slug}</div>
+                    <div className="text-[13px] font-semibold text-zinc-300 truncate leading-tight">{site.name}</div>
+                    <div className="text-[10px] text-zinc-600 truncate">/{site.slug}</div>
                   </div>
 
                   {/* Activity indicator */}
