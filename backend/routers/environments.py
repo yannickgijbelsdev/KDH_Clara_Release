@@ -44,12 +44,14 @@ class EnvironmentCreate(BaseModel):
     slug: str
     description: Optional[str] = None
     color: str = "#3b82f6"
+    max_racks: int = 5
 
 
 class EnvironmentUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     color: Optional[str] = None
+    max_racks: Optional[int] = None
     s3_enabled: Optional[bool] = None
 
 
@@ -208,6 +210,7 @@ async def create_environment(data: EnvironmentCreate, current_user: dict = Depen
         "slug": data.slug,
         "description": data.description,
         "color": data.color,
+        "max_racks": data.max_racks,
         "is_default": False,
         "created_at": _now(),
         "updated_at": _now(),

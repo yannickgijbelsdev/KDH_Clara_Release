@@ -14,6 +14,7 @@ import {
   Server, Plus, Edit, Trash2, Users, Globe, Shield, Crown,
   Copy, Loader2, ChevronRight, Cloud, CloudOff
 } from 'lucide-react';
+import CreateEnvironmentWizard from '../../components/workspace/CreateEnvironmentWizard';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -24,8 +25,9 @@ export default function EnvironmentManager() {
   const [environments, setEnvironments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [envDialog, setEnvDialog] = useState(false);
+  const [createWizardOpen, setCreateWizardOpen] = useState(false);
   const [editingEnv, setEditingEnv] = useState(null);
-  const [envForm, setEnvForm] = useState({ name: '', slug: '', description: '', color: '#3b82f6' });
+  const [envForm, setEnvForm] = useState({ name: '', slug: '', description: '', color: '#3b82f6', max_racks: 5 });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: '', name: '' });
 
   // Admin management
@@ -55,14 +57,12 @@ export default function EnvironmentManager() {
 
   // ---- Environment CRUD ----
   const openCreate = () => {
-    setEditingEnv(null);
-    setEnvForm({ name: '', slug: '', description: '', color: '#3b82f6' });
-    setEnvDialog(true);
+    setCreateWizardOpen(true);
   };
 
   const openEdit = (env) => {
     setEditingEnv(env);
-    setEnvForm({ name: env.name, slug: env.slug, description: env.description || '', color: env.color || '#3b82f6' });
+    setEnvForm({ name: env.name, slug: env.slug, description: env.description || '', color: env.color || '#3b82f6', max_racks: env.max_racks || 5 });
     setEnvDialog(true);
   };
 
@@ -71,7 +71,7 @@ export default function EnvironmentManager() {
       const url = editingEnv ? `${API}/api/environments/${editingEnv.id}` : `${API}/api/environments`;
       const method = editingEnv ? 'PUT' : 'POST';
       const body = editingEnv
-        ? { name: envForm.name, description: envForm.description, color: envForm.color }
+        ? { name: envForm.name, description: envForm.description, color: envForm.color, max_racks: envForm.max_racks }
         : envForm;
       const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
       if (!res.ok) { const err = await res.json(); toast.error(err.detail); return; }
@@ -188,15 +188,15 @@ export default function EnvironmentManager() {
       {/* Environment Cards */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {environments.map(env => (
-          <Card key={env.id} className="bg-zinc-900 border-zinc-200 overflow-hidden" data-testid={`env-card-${env.slug}`}>
+          <Card key={env.id} className="bg-white border-zinc-200 overflow-hidden" data-testid={`env-card-${env.slug}`}>
             <div className="h-1" style={{ backgroundColor: env.color || '#3b82f6' }} />
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base text-zinc-100 flex items-center gap-2">
+                <CardTitle className="text-base text-zinc-900 flex items-center gap-2">
                   <Server className="w-4 h-4" style={{ color: env.color }} />
                   {env.name}
                   {env.is_default && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-200 text-zinc-400">Default</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-500">Default</span>
                   )}
                 </CardTitle>
                 {isSystemAdmin && (
@@ -216,13 +216,16 @@ export default function EnvironmentManager() {
             </CardHeader>
             <CardContent>
               <div className="flex gap-4 mb-3">
-                <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                   <Globe className="w-3.5 h-3.5" /> {env.site_count || 0} sites
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                <div className="flex items-center gap-1.5 text-xs text-zinc-500">
                   <Users className="w-3.5 h-3.5" /> {env.admin_count || 0} admins
                 </div>
-                <div className={`flex items-center gap-1.5 text-xs ${env.s3_enabled !== false ? 'text-emerald-400' : 'text-red-400'}`}>
+                <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+                  <Server className="w-3.5 h-3.5" /> max {env.max_racks || 5} racks
+                </div>
+                <div className={`flex items-center gap-1.5 text-xs ${env.s3_enabled !== false ? 'text-emerald-500' : 'text-red-400'}`}>
                   {env.s3_enabled !== false ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}
                   {env.s3_enabled !== false ? 'Cloud on' : 'Cloud off'}
                 </div>
@@ -260,45 +263,62 @@ export default function EnvironmentManager() {
         ))}
       </div>
 
-      {/* Create/Edit Dialog */}
+      {/* Create Wizard */}
+      <CreateEnvironmentWizard
+        open={createWizardOpen}
+        onClose={() => setCreateWizardOpen(false)}
+        onCreated={fetchData}
+        token={token}
+      />
+
+      {/* Edit Dialog (simpler - no deploy animation needed) */}
       <Dialog open={envDialog} onOpenChange={setEnvDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
-          <DialogHeader><DialogTitle>{editingEnv ? 'Edit Environment' : 'New Environment'}</DialogTitle></DialogHeader>
+        <DialogContent className="bg-white border-zinc-200 max-w-md">
+          <DialogHeader><DialogTitle className="text-zinc-900">Edit Environment</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Name</Label><Input value={envForm.name} onChange={e => setEnvForm(p => ({ ...p, name: e.target.value }))} placeholder="Staging" data-testid="env-name-input" /></div>
-              <div><Label>Slug</Label><Input value={envForm.slug} onChange={e => setEnvForm(p => ({ ...p, slug: e.target.value }))} placeholder="staging" disabled={!!editingEnv} data-testid="env-slug-input" /></div>
+              <div><Label className="text-zinc-700">Name</Label><Input value={envForm.name} onChange={e => setEnvForm(p => ({ ...p, name: e.target.value }))} placeholder="Staging" className="bg-white border-zinc-300 text-zinc-900" data-testid="env-name-input" /></div>
+              <div><Label className="text-zinc-700">Slug</Label><Input value={envForm.slug} onChange={e => setEnvForm(p => ({ ...p, slug: e.target.value }))} placeholder="staging" disabled={!!editingEnv} className="bg-white border-zinc-300 text-zinc-900 font-mono" data-testid="env-slug-input" /></div>
             </div>
-            <div><Label>Description</Label><Input value={envForm.description} onChange={e => setEnvForm(p => ({ ...p, description: e.target.value }))} placeholder="Test environment" /></div>
+            <div><Label className="text-zinc-700">Description</Label><Input value={envForm.description} onChange={e => setEnvForm(p => ({ ...p, description: e.target.value }))} placeholder="Test environment" className="bg-white border-zinc-300 text-zinc-900" /></div>
             <div>
-              <Label>Color</Label>
+              <Label className="text-zinc-700">Color</Label>
               <div className="flex gap-2 mt-1">
                 {DEFAULT_COLORS.map(c => (
                   <button key={c} onClick={() => setEnvForm(p => ({ ...p, color: c }))}
-                    className={`w-7 h-7 rounded-full border-2 transition-all ${envForm.color === c ? 'border-white scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                    className={`w-7 h-7 rounded-full border-2 transition-all ${envForm.color === c ? 'border-zinc-900 scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
                     style={{ backgroundColor: c }} />
                 ))}
+              </div>
+            </div>
+            <div>
+              <Label className="text-zinc-700">Maximum Racks</Label>
+              <div className="flex items-center gap-3 mt-1">
+                <div className="flex items-center bg-white border border-zinc-200 rounded-xl overflow-hidden">
+                  <button onClick={() => setEnvForm(p => ({ ...p, max_racks: Math.max(1, (p.max_racks || 5) - 1) }))} className="px-3 py-1.5 text-zinc-500 hover:bg-zinc-50 font-bold">-</button>
+                  <span className="px-4 py-1.5 font-bold text-zinc-900 tabular-nums">{envForm.max_racks || 5}</span>
+                  <button onClick={() => setEnvForm(p => ({ ...p, max_racks: Math.min(50, (p.max_racks || 5) + 1) }))} className="px-3 py-1.5 text-zinc-500 hover:bg-zinc-50 font-bold">+</button>
+                </div>
+                <span className="text-sm text-zinc-500">racks</span>
               </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEnvDialog(false)}>Cancel</Button>
-            <Button onClick={saveEnv} disabled={!envForm.name || !envForm.slug} data-testid="save-env-btn">
-              {editingEnv ? 'Update' : 'Create'}
-            </Button>
+            <Button onClick={saveEnv} disabled={!envForm.name || !envForm.slug} data-testid="save-env-btn">Update</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Admin Dialog */}
       <Dialog open={adminDialog.open} onOpenChange={open => !open && setAdminDialog(prev => ({ ...prev, open: false }))}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
-          <DialogHeader><DialogTitle>Admins - {adminDialog.envName}</DialogTitle></DialogHeader>
+        <DialogContent className="bg-white border-zinc-200 max-w-md">
+          <DialogHeader><DialogTitle className="text-zinc-900">Admins - {adminDialog.envName}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             {envAdmins.map(a => (
-              <div key={a.id} className="flex items-center justify-between bg-zinc-100 rounded-lg px-3 py-2">
+              <div key={a.id} className="flex items-center justify-between bg-zinc-50 rounded-lg px-3 py-2">
                 <div>
-                  <p className="text-sm text-zinc-200 flex items-center gap-1.5">
+                  <p className="text-sm text-zinc-800 flex items-center gap-1.5">
                     {a.user_name}
                     {a.is_system_admin && <Crown className="w-3 h-3 text-red-400" />}
                   </p>
@@ -310,8 +330,8 @@ export default function EnvironmentManager() {
               </div>
             ))}
             {isSystemAdmin && (
-              <div className="flex gap-2 pt-2 border-t border-zinc-200">
-                <select className="flex-1 rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
+              <div className="flex gap-2 pt-2 border-t border-zinc-100">
+                <select className="flex-1 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800"
                   value={selectedUserId} onChange={e => setSelectedUserId(e.target.value)}>
                   <option value="">Select user...</option>
                   {allUsers.filter(u => !envAdmins.some(a => a.user_id === u.id)).map(u => (
@@ -327,10 +347,10 @@ export default function EnvironmentManager() {
 
       {/* Copy Site Dialog */}
       <Dialog open={copyDialog.open} onOpenChange={open => !open && setCopyDialog(prev => ({ ...prev, open: false }))}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
-          <DialogHeader><DialogTitle>Copy Site to {copyDialog.envName}</DialogTitle></DialogHeader>
-          <p className="text-sm text-zinc-400">Select a site to copy its structure (features, roles). Data will not be copied.</p>
-          <select className="w-full rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
+        <DialogContent className="bg-white border-zinc-200 max-w-md">
+          <DialogHeader><DialogTitle className="text-zinc-900">Copy Site to {copyDialog.envName}</DialogTitle></DialogHeader>
+          <p className="text-sm text-zinc-500">Select a site to copy its structure (features, roles). Data will not be copied.</p>
+          <select className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800"
             value={selectedSiteId} onChange={e => setSelectedSiteId(e.target.value)} data-testid="copy-site-select">
             <option value="">Select a site...</option>
             {availableSites.map(s => (
@@ -346,9 +366,9 @@ export default function EnvironmentManager() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialog.open} onOpenChange={open => !open && setDeleteDialog(prev => ({ ...prev, open: false }))}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-300">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Environment?</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete Environment?</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete "{deleteDialog.name}". All sites must be removed first.
             </AlertDialogDescription>
