@@ -55,9 +55,9 @@ const StepIndicator = ({ currentStep, totalSteps }) => (
 /* ── Step 1: Choose Environment ── */
 const StepEnvironment = ({ selected, onSelect }) => (
   <div>
-    <h2 className="text-2xl font-bold text-zinc-900 mb-1">Choose your environment</h2>
-    <p className="text-sm text-zinc-500 mb-6">Select the type of server rack you want to deploy.</p>
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+    <h2 className="text-xl font-bold text-zinc-900 mb-1">Choose your environment</h2>
+    <p className="text-sm text-zinc-500 mb-4">Select the type of server rack you want to deploy.</p>
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
       {SITE_TYPES.map(type => {
         const Icon = type.icon;
         const isActive = selected === type.id;
@@ -71,7 +71,7 @@ const StepEnvironment = ({ selected, onSelect }) => (
             }`}
           >
             {/* Background preview */}
-            <div className="h-20 relative overflow-hidden bg-zinc-100">
+            <div className="h-16 relative overflow-hidden bg-zinc-100">
               <img
                 src={SITE_TYPE_BACKGROUNDS[type.id]}
                 alt=""
@@ -88,14 +88,14 @@ const StepEnvironment = ({ selected, onSelect }) => (
               )}
             </div>
             {/* Label */}
-            <div className="px-3 py-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${type.color}15` }}>
-                  <Icon className="w-3.5 h-3.5" style={{ color: type.color }} />
+            <div className="px-3 py-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${type.color}15` }}>
+                  <Icon className="w-3 h-3" style={{ color: type.color }} />
                 </div>
-                <span className={`text-sm font-semibold ${isActive ? 'text-zinc-900' : 'text-zinc-700'}`}>{type.label}</span>
+                <span className={`text-xs font-semibold ${isActive ? 'text-zinc-900' : 'text-zinc-700'}`}>{type.label}</span>
               </div>
-              <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">{type.desc}</p>
+              <p className="text-[10px] text-zinc-400 mt-0.5 leading-snug">{type.desc}</p>
             </div>
           </button>
         );
@@ -415,19 +415,19 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !deploying) handleClose(); }}>
-      <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[90vh] overflow-hidden p-0 rounded-[24px]" data-testid="create-wizard-dialog">
+      <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[85vh] overflow-hidden p-0 rounded-[24px]" data-testid="create-wizard-dialog">
         {/* Header with close */}
-        <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 pt-4 pb-0 flex-shrink-0">
           <StepIndicator currentStep={step} totalSteps={5} />
           {!deploying && (
-            <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors -mt-4">
+            <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
               <X className="w-4 h-4 text-zinc-400" />
             </button>
           )}
         </div>
 
         {/* Content - scrollable */}
-        <div className="px-8 pb-8 pt-2 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+        <div className="px-6 pb-6 pt-2 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 60px)' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
