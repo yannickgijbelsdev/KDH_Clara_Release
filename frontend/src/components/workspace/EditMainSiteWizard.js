@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dialog, DialogContent } from '../ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
@@ -29,6 +29,8 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const { token } = useAuth();
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+
+  const [uploadError, setUploadError] = useState('');
 
   // General
   const [name, setName] = useState('');
@@ -106,6 +108,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   };
 
   const handleLogoUpload = async (file) => {
+    setUploadError('');
     const fd = new FormData();
     fd.append('file', file);
     try {
@@ -115,8 +118,13 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
       if (res.ok) {
         const data = await res.json();
         setLogoUrl(data.logo_url);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        setUploadError(err.detail || `Upload failed (${res.status})`);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      setUploadError('Network error - could not upload');
+    }
   };
 
   const handleAssignLicense = async () => {
@@ -175,6 +183,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose?.()}>
       <DialogContent className="sm:max-w-xl bg-white border-zinc-200 p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto" data-testid="edit-site-wizard">
+        <DialogTitle className="sr-only">Edit {site?.name}</DialogTitle>
         {/* Step indicator */}
         <div className="flex items-center border-b border-zinc-100 px-6 pt-5 pb-4 gap-1">
           {STEPS.map((s, i) => {
@@ -218,6 +227,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
                   </label>
                   {logoUrl && <button onClick={() => setLogoUrl('')} className="text-xs text-red-500 hover:underline self-start">Remove</button>}
+                  {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
                 </div>
               </div>
 
