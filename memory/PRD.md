@@ -12,23 +12,30 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## What's Been Implemented
 
+### April 6, 2026 - Multi-Step Wizard Refactor (All Dialogs)
+- [x] **CreateShowDialog.js** - Converted to 3-step wizard (Show Info, Schedule, Team & Status)
+- [x] **CreateContentDialog.js** - Converted to 3-step wizard (Type & Title, Content, Settings)
+- [x] **RundownItemDialog.js** - Converted to 2-step wizard (Item Info, Details)
+- [x] **CreateEnvironmentWizard.js** - Updated deploy step to match MainSiteWizard (hero background image, large green checkmark circles)
+- [x] **TeamSettingsPage.js** - All dialogs (Invite User, Add Existing User, Edit User, Reset Password, Temp Password) converted to wizard layout
+- [x] **ShowManagementPage.js** - Show Title and Studio dialogs converted to wizard layout
+- All dialogs now use: WizardStepIndicator, white bg, rounded-[24px], px-8 padding, border-t footer with Back/Continue buttons
+
 ### April 5, 2026 - Login Wizard Redesign & UI Fixes
-- [x] **LoginWizard rewritten** with circle loader → checkmark animation (matching deployment wizard style)
-  - 4 loading steps: "Logging in to Clara", "Making a secure connection to the Clara Datacenter", "Connecting to the Clara Global Protect services", "Preparing {sitename} to show all the data"
-  - After completion: animated transition to welcome popup "Welcome, {username} to {sitename}!"
-  - "Enter Clara" / "Enter {sitename}" button
-  - Files: `frontend/src/components/LoginWizard.js`, `frontend/src/App.js`
-- [x] **Production environment dropdown** made visible (was white-on-white)
-  - Changed from `bg-white/60 border-black/[0.08]` to `bg-zinc-100 border-zinc-300 text-zinc-700`
-  - File: `frontend/src/pages/Network/NetworkDashboard.js`
-- [x] **SetupWizard** converted to light theme (`bg-white` instead of `bg-[#0c0c0c]`)
-  - File: `frontend/src/components/SetupWizard.js`
-- [x] **LoginWizard** converted to light theme with wider layout (`sm:max-w-lg`)
+- [x] **LoginWizard rewritten** with circle loader -> checkmark animation
+- [x] **Production environment dropdown** made visible
+- [x] **SetupWizard** converted to light theme
+- [x] **LoginWizard** converted to light theme with wider layout
+- [x] **WizardStepIndicator.js** - Shared step component created
+- [x] **CreateMainSiteWizard.js** - Reference wizard with deploy animation
+- [x] **CreateEnvironmentWizard.js** - Multi-step env creator with max_racks
+- [x] **Dashboard Canvas** - Floating panels, live time/date, full-page backgrounds
+- [x] **Dark mode removal** - All dark mode remnants removed from sub-components
 
 ## Prioritized Backlog
 
 ### P0 - Critical
-- [ ] Verify CreateMainSiteWizard backend integration (POST /api/main-sites/ payload)
+- (none currently)
 
 ### P1 - High Priority
 - [ ] Calendar Integration (Google Calendar / Outlook) for Clara Tasks
@@ -36,11 +43,11 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ### P2 - Medium Priority
 - [ ] Python linting cleanup (unused variables in wordpress.py, rds_builder_scheduler.py)
-- [ ] CLISaveWizard.js convert to light theme
 - [ ] Payment Gateway (Stripe/Mollie) for License Manager
 - [ ] Stream Monitor VU Meters
 - [ ] Refactoring: NetworkDashboard.js decomposition (1500+ lines)
 - [ ] Cleanup obsolete ProRadio sync code
+- [ ] Accessibility: Add VisuallyHidden DialogTitle to wizard dialogs for screen reader compliance
 
 ## Test Credentials
 - System Administrator: admkoodh@koodh.com / KYLovie13monx
