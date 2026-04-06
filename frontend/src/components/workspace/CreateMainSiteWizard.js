@@ -375,13 +375,25 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     setDeploying(true);
     setDeployStatus(0);
 
-    // Variable delays per step type to feel realistic
+    // Start the actual API call immediately in the background
+    const envId = selectedEnvId || environments?.[0]?.id;
+    const body = {
+      name, slug, site_type: siteType,
+      environment_id: envId,
+      enabled_features: features,
+    };
+    const apiPromise = fetch(`${API}/api/main-sites`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+
+    // Run the animation steps in parallel with the API call
     const stepDelays = [
       1800,  // Preparing rack space
-      2500,  // Deploying environment (longest — feels like real work)
+      2500,  // Deploying environment
       2000,  // Setting up firewall
     ];
-    // Extra steps (2FA, features, admin, final) get medium delays
     const extraCount = (require2FA ? 1 : 0) + features.length + 2;
     for (let j = 0; j < extraCount; j++) {
       stepDelays.push(1200 + Math.random() * 1000);
@@ -390,25 +402,20 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     for (let i = 0; i <= totalDeploySteps; i++) {
       const delay = stepDelays[i] || (1200 + Math.random() * 800);
       await new Promise(r => setTimeout(r, delay));
-      setDeployStatus(i + 1);
+      // Don't finish the last step yet — wait for the API
+      if (i < totalDeploySteps) {
+        setDeployStatus(i + 1);
+      }
     }
 
-    // Actually create the site
+    // Animation is done — now wait for the API to actually finish
     try {
-      const envId = selectedEnvId || environments?.[0]?.id;
-      const body = {
-        name, slug, site_type: siteType,
-        environment_id: envId,
-        enabled_features: features,
-      };
-      const res = await fetch(`${API}/api/main-sites`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
+      const res = await apiPromise;
       if (res.ok) {
+        // Site is now in the database and rack — mark final step done
+        setDeployStatus(totalDeploySteps + 1);
         setDeployDone(true);
-        setTimeout(() => { onCreated?.(); handleClose(); }, 1500);
+        setTimeout(() => { onCreated?.(); handleClose(); }, 2000);
       } else {
         const err = await res.json().catch(() => ({}));
         alert(err.detail || 'Failed to create site');
