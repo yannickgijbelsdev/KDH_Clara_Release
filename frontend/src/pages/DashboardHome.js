@@ -85,7 +85,14 @@ export default function DashboardHome() {
 
   const firstName = user?.name?.split(' ')[0] || 'User';
   const activeShows = shows.filter(s => s.status === 'active' || !s.status);
-  const now = new Date();
+
+  // Live clock that ticks every second
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const hours = now.getHours();
   const greeting = hours < 12 ? 'Good morning' : hours < 18 ? 'Good afternoon' : 'Good evening';
 
@@ -119,7 +126,6 @@ export default function DashboardHome() {
         {/* ─── MOBILE / TABLET: stacked layout ─── */}
         <div className="lg:hidden flex flex-col gap-3 pointer-events-auto">
           <WelcomePanel greeting={greeting} firstName={firstName} mainSite={mainSite} loading={loading} teamMembers={teamMembers} activeShows={activeShows} contentCount={contentCount} isRadio={isRadio} />
-          <TimePanel now={now} />
           {isRadio ? (
             <OnAirPanel activeShows={activeShows} shows={shows} navigate={navigate} mainSiteSlug={mainSiteSlug} />
           ) : (
@@ -132,19 +138,15 @@ export default function DashboardHome() {
             <FeaturesPanel features={features} theme={theme} />
           )}
           <TeamPanel teamMembers={teamMembers} loading={loading} navigate={navigate} mainSiteSlug={mainSiteSlug} />
+          <TimePanel now={now} />
         </div>
 
         {/* ─── DESKTOP: canvas with floating panels ─── */}
         <div className="hidden lg:flex flex-col h-full gap-4 pointer-events-auto">
 
-          {/* Row 1: Welcome (stretch) + Time (fixed) */}
-          <div className="flex gap-4 flex-shrink-0">
-            <div className="flex-1 min-w-0">
-              <WelcomePanel greeting={greeting} firstName={firstName} mainSite={mainSite} loading={loading} teamMembers={teamMembers} activeShows={activeShows} contentCount={contentCount} isRadio={isRadio} />
-            </div>
-            <div className="w-[200px] flex-shrink-0">
-              <TimePanel now={now} />
-            </div>
+          {/* Row 1: Welcome (full width) */}
+          <div className="flex-shrink-0">
+            <WelcomePanel greeting={greeting} firstName={firstName} mainSite={mainSite} loading={loading} teamMembers={teamMembers} activeShows={activeShows} contentCount={contentCount} isRadio={isRadio} />
           </div>
 
           {/* Row 2: Left panel + [canvas center] + Right panel */}
@@ -169,6 +171,11 @@ export default function DashboardHome() {
                 <FeaturesPanel features={features} theme={theme} />
               )}
             </div>
+          </div>
+
+          {/* Row 3: Time centered at bottom */}
+          <div className="flex-shrink-0 flex justify-center">
+            <TimePanel now={now} />
           </div>
         </div>
       </div>
@@ -200,11 +207,10 @@ function WelcomePanel({ greeting, firstName, mainSite, loading, teamMembers, act
 
 function TimePanel({ now }) {
   return (
-    <Panel testId="panel-time" delay={0.08} className="h-full flex items-center justify-center">
-      <div className="px-5 py-5 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-zinc-900 tabular-nums">{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-        <span className="text-xs text-zinc-400 mt-1">{now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' })}</span>
-      </div>
+    <Panel testId="panel-time" delay={0.3} className="inline-flex items-center gap-4 px-6 py-3">
+      <span className="text-2xl font-bold text-zinc-900 tabular-nums">{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+      <span className="w-px h-5 bg-zinc-200" />
+      <span className="text-sm text-zinc-500">{now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
     </Panel>
   );
 }
