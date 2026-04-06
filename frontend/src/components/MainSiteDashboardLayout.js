@@ -973,7 +973,7 @@ const MainSiteDashboardContent = () => {
               <DropdownMenuTrigger asChild>
                 <button className="h-9 flex items-center gap-2 px-3 rounded-full border border-zinc-200 bg-zinc-50 hover:bg-zinc-100 text-sm font-medium text-zinc-700 transition-colors flex-shrink-0" data-testid="main-site-switcher">
                   {mainSite?.logo_url ? (
-                    <img src={mainSite.logo_url} alt="" className="w-4 h-4 rounded object-cover" />
+                    <img src={`${process.env.REACT_APP_BACKEND_URL}${mainSite.logo_url}`} alt="" className="w-5 h-5 rounded object-contain" />
                   ) : (
                     <Globe className="w-3.5 h-3.5 text-zinc-400" />
                   )}
@@ -1009,7 +1009,7 @@ const MainSiteDashboardContent = () => {
                           data-testid={`switch-site-${site.slug}`}
                         >
                           {site.logo_url ? (
-                            <img src={site.logo_url} alt="" className="w-4 h-4 rounded object-cover mr-2 flex-shrink-0" />
+                            <img src={`${process.env.REACT_APP_BACKEND_URL}${site.logo_url}`} alt="" className="w-6 h-6 rounded object-contain mr-2 flex-shrink-0" />
                           ) : (
                             <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
                           )}
@@ -1154,7 +1154,7 @@ const MainSiteDashboardContent = () => {
         </aside>
 
         {/* ─── Workspace Canvas ─── */}
-        <WorkspaceCanvas backgroundImage={isDashboardHome && mainSite?.site_type !== 'radio' ? 'none' : undefined}>
+        <WorkspaceCanvas backgroundImage={isDashboardHome ? 'none' : undefined}>
           {isLicenseBlocked ? (
             <CanvasPanel position="main" testId="no-license-block">
               <div className="flex items-center justify-center min-h-[60vh]">

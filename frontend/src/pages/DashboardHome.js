@@ -89,8 +89,6 @@ export default function DashboardHome() {
   const hours = now.getHours();
   const greeting = hours < 12 ? 'Good morning' : hours < 18 ? 'Good afternoon' : 'Good evening';
 
-  const bgImg = mainSite?.logo_url ? `${API}${mainSite.logo_url}` : theme.img;
-
   const features = mainSite?.enabled_features || [];
   const navItems = [];
   if (!isRadio) {
@@ -115,28 +113,6 @@ export default function DashboardHome() {
 
   return (
     <>
-      {/* Central background image */}
-      {bgImg && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <motion.img
-            src={bgImg}
-            alt=""
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: mainSite?.logo_url ? 0.25 : 0.45, scale: 1 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className={mainSite?.logo_url ? 'w-[30%] max-w-[320px] object-contain select-none' : 'w-[55%] max-w-[780px] object-contain select-none'}
-            draggable={false}
-          />
-        </div>
-      )}
-
-      {/* Radial fade */}
-      {bgImg && (
-        <div className="absolute inset-0 pointer-events-none z-[1]" style={{
-          background: 'radial-gradient(ellipse at center, transparent 25%, #F0F0F2 68%)',
-        }} />
-      )}
-
       {/* ── Canvas layout ── */}
       <div className="absolute inset-0 z-10 p-4 lg:p-5 pointer-events-none overflow-y-auto">
 
