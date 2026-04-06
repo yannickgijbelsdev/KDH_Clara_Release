@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
@@ -260,6 +260,7 @@ const DeployStep = ({ label, status, delay }) => (
 const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus }) => {
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const bgImg = SITE_TYPE_BACKGROUNDS[siteType];
+  const scrollRef = useRef(null);
 
   const deploySteps = [
     { id: 'rack', label: `Preparing rack space for ${siteName}...` },
@@ -270,6 +271,16 @@ const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus 
     { id: 'admin', label: 'Assigning site admin permissions...' },
     { id: 'final', label: 'Finalizing your environment...' },
   ];
+
+  // Auto-scroll to the active step
+  useEffect(() => {
+    if (scrollRef.current) {
+      const active = scrollRef.current.querySelector('[data-active="true"]');
+      if (active) {
+        active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }, [deployStatus]);
 
   return (
     <div className="text-center">
@@ -286,15 +297,19 @@ const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus 
       <h2 className="text-xl font-bold text-zinc-900 mb-1">Clara is deploying your server</h2>
       <p className="text-sm text-zinc-500 mb-6">This will only take a moment...</p>
 
-      <div className="text-left max-h-[280px] overflow-y-auto px-2">
-        {deploySteps.map((step, i) => (
-          <DeployStep
-            key={step.id}
-            label={step.label}
-            status={deployStatus >= deploySteps.length ? 'done' : deployStatus === i ? 'loading' : deployStatus > i ? 'done' : 'pending'}
-            delay={i * 0.1}
-          />
-        ))}
+      <div ref={scrollRef} className="text-left max-h-[280px] overflow-y-auto px-2">
+        {deploySteps.map((step, i) => {
+          const isActive = deployStatus === i;
+          return (
+            <div key={step.id} data-active={isActive ? 'true' : undefined}>
+              <DeployStep
+                label={step.label}
+                status={deployStatus >= deploySteps.length ? 'done' : isActive ? 'loading' : deployStatus > i ? 'done' : 'pending'}
+                delay={i * 0.1}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {deployStatus >= deploySteps.length && (
@@ -360,9 +375,21 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     setDeploying(true);
     setDeployStatus(0);
 
-    // Tick through deploy animation
+    // Variable delays per step type to feel realistic
+    const stepDelays = [
+      1800,  // Preparing rack space
+      2500,  // Deploying environment (longest — feels like real work)
+      2000,  // Setting up firewall
+    ];
+    // Extra steps (2FA, features, admin, final) get medium delays
+    const extraCount = (require2FA ? 1 : 0) + features.length + 2;
+    for (let j = 0; j < extraCount; j++) {
+      stepDelays.push(1200 + Math.random() * 1000);
+    }
+
     for (let i = 0; i <= totalDeploySteps; i++) {
-      await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+      const delay = stepDelays[i] || (1200 + Math.random() * 800);
+      await new Promise(r => setTimeout(r, delay));
       setDeployStatus(i + 1);
     }
 
