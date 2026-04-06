@@ -38,9 +38,9 @@ export default function CallWidget() {
     >
       {/* Expanded view */}
       {expanded ? (
-        <div className="bg-zinc-900 border border-zinc-300 rounded-2xl shadow-2xl w-72 overflow-hidden">
+        <div className="bg-white border border-zinc-200 rounded-2xl shadow-2xl w-72 overflow-hidden">
           {/* Header */}
-          <div className="bg-zinc-800/80 px-4 py-3 flex items-center justify-between">
+          <div className="bg-zinc-50 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={`w-2.5 h-2.5 rounded-full ${callState === 'active' ? 'bg-green-500 animate-pulse' : 'bg-amber-500 animate-pulse'}`} />
               <span className="text-sm font-medium">
@@ -89,7 +89,7 @@ export default function CallWidget() {
             <button
               onClick={toggleMute}
               className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-zinc-800 text-zinc-600 hover:bg-zinc-700'
+                isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
               }`}
               data-testid="call-mute-btn"
               title={isMuted ? 'Unmute' : 'Mute'}

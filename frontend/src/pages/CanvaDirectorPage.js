@@ -343,13 +343,13 @@ const CanvaDirectorPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-zinc-400 mb-1 block">Client ID</label>
-                <Input value={configForm.client_id} onChange={e => setConfigForm(p => ({ ...p, client_id: e.target.value }))} placeholder={config.client_id || 'OC-AZ...'} className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="canva-client-id" />
+                <Input value={configForm.client_id} onChange={e => setConfigForm(p => ({ ...p, client_id: e.target.value }))} placeholder={config.client_id || 'OC-AZ...'} className="bg-white border-zinc-300 text-zinc-900 font-mono text-sm" data-testid="canva-client-id" />
                 <p className="text-xs text-zinc-600 mt-1">Get from <a href="https://www.canva.com/developers/" target="_blank" rel="noreferrer" className="text-[#7d2ae8] hover:underline">canva.com/developers</a></p>
               </div>
               <div>
                 <label className="text-xs text-zinc-400 mb-1 block">Client Secret</label>
                 <div className="flex gap-2">
-                  <Input type={showSecret ? 'text' : 'password'} value={configForm.client_secret} onChange={e => setConfigForm(p => ({ ...p, client_secret: e.target.value }))} placeholder={config.configured ? '••••••••' : 'Enter client secret'} className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="canva-client-secret" />
+                  <Input type={showSecret ? 'text' : 'password'} value={configForm.client_secret} onChange={e => setConfigForm(p => ({ ...p, client_secret: e.target.value }))} placeholder={config.configured ? '••••••••' : 'Enter client secret'} className="bg-white border-zinc-300 text-zinc-900 font-mono text-sm" data-testid="canva-client-secret" />
                   <Button variant="ghost" size="icon" onClick={() => setShowSecret(!showSecret)} className="text-zinc-400">
                     {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
@@ -387,7 +387,7 @@ const CanvaDirectorPage = () => {
             </div>
             <div>
               <label className="text-xs text-zinc-400 mb-1 block">Redirect URI</label>
-              <Input value={configForm.redirect_uri} onChange={e => setConfigForm(p => ({ ...p, redirect_uri: e.target.value }))} placeholder="Auto-detected if empty" className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm max-w-md" data-testid="canva-redirect-uri" />
+              <Input value={configForm.redirect_uri} onChange={e => setConfigForm(p => ({ ...p, redirect_uri: e.target.value }))} placeholder="Auto-detected if empty" className="bg-white border-zinc-300 text-zinc-900 font-mono text-sm max-w-md" data-testid="canva-redirect-uri" />
               <p className="text-xs text-zinc-600 mt-1">Set this in your Canva Developer Portal as the callback URL</p>
             </div>
             <div>
@@ -469,7 +469,7 @@ const CanvaDirectorPage = () => {
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                    <Input placeholder="Search designs..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchDesigns()} className="pl-10 bg-zinc-800 border-zinc-300 text-white" data-testid="canva-search" />
+                    <Input placeholder="Search designs..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchDesigns()} className="pl-10 bg-white border-zinc-300 text-zinc-900" data-testid="canva-search" />
                   </div>
                   <Button size="sm" className="bg-[#7d2ae8] hover:bg-[#6b21c8] text-white" onClick={() => setCreateOpen(true)} data-testid="canva-create-btn">
                     <Plus className="w-4 h-4 mr-1" /> New Design
@@ -482,15 +482,15 @@ const CanvaDirectorPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
                       <div>
                         <label className="text-xs text-zinc-400 mb-1 block">Title</label>
-                        <Input value={createForm.title} onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))} placeholder="My Design" className="bg-zinc-800 border-zinc-300 text-white" data-testid="canva-design-title" />
+                        <Input value={createForm.title} onChange={e => setCreateForm(p => ({ ...p, title: e.target.value }))} placeholder="My Design" className="bg-white border-zinc-300 text-zinc-900" data-testid="canva-design-title" />
                       </div>
                       <div>
                         <label className="text-xs text-zinc-400 mb-1 block">Width (px)</label>
-                        <Input type="number" value={createForm.width} onChange={e => setCreateForm(p => ({ ...p, width: parseInt(e.target.value) || 0 }))} className="bg-zinc-800 border-zinc-300 text-white" />
+                        <Input type="number" value={createForm.width} onChange={e => setCreateForm(p => ({ ...p, width: parseInt(e.target.value) || 0 }))} className="bg-white border-zinc-300 text-zinc-900" />
                       </div>
                       <div>
                         <label className="text-xs text-zinc-400 mb-1 block">Height (px)</label>
-                        <Input type="number" value={createForm.height} onChange={e => setCreateForm(p => ({ ...p, height: parseInt(e.target.value) || 0 }))} className="bg-zinc-800 border-zinc-300 text-white" />
+                        <Input type="number" value={createForm.height} onChange={e => setCreateForm(p => ({ ...p, height: parseInt(e.target.value) || 0 }))} className="bg-white border-zinc-300 text-zinc-900" />
                       </div>
                     </div>
                     <div className="flex gap-2">

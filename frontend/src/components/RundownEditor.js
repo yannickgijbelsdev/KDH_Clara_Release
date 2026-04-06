@@ -537,7 +537,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
 
       {/* Member Picker Dialog */}
       <Dialog open={showMemberDialog} onOpenChange={setShowMemberDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
+        <DialogContent className="bg-white border-zinc-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Rundown Members</DialogTitle>
             <DialogDescription className="text-zinc-400">Select team members who participate in this rundown</DialogDescription>

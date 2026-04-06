@@ -44,11 +44,11 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
     status?.status === 'error' ? <XCircle className="w-3.5 h-3.5 text-red-400" /> :
     <Wifi className="w-3.5 h-3.5 text-zinc-500" />;
 
-  const bgColor = loading ? 'bg-zinc-800/50 border-zinc-300' :
+  const bgColor = loading ? 'bg-zinc-50 border-zinc-200' :
     status?.status === 'ok' ? 'bg-emerald-500/5 border-emerald-500/20' :
     status?.status === 'warning' ? 'bg-amber-500/5 border-amber-500/20' :
     status?.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
-    'bg-zinc-800/50 border-zinc-300';
+    'bg-zinc-50 border-zinc-200';
 
   const statusColor = status?.status === 'ok' ? 'text-emerald-400' :
     status?.status === 'warning' ? 'text-amber-400' :
@@ -71,12 +71,12 @@ export function ConnectionStatus({ testUrl, headers, autoCheck = true, label, cl
             </div>
             {/* Render structured steps as a numbered list */}
             {hasSteps && status.status !== 'ok' && !loading && (
-              <div className="mt-2 rounded-md bg-zinc-900/60 border border-zinc-300/50 p-2.5" data-testid="connection-steps">
+              <div className="mt-2 rounded-md bg-zinc-50 border border-zinc-200 p-2.5" data-testid="connection-steps">
                 <p className="text-[10px] uppercase tracking-wider text-amber-500 font-semibold mb-1.5">How to fix this:</p>
                 <ol className="space-y-1 list-none">
                   {status.steps.map((step, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs text-zinc-600">
-                      <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+                      <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-200 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
                       <span>{step}</span>
                     </li>
                   ))}

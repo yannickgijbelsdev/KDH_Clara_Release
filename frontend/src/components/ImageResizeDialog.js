@@ -48,7 +48,7 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-zinc-900 border-zinc-200 max-w-md" data-testid="image-resize-dialog">
+      <DialogContent className="bg-white border-zinc-200 max-w-md" data-testid="image-resize-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-400" />
@@ -61,10 +61,10 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
 
         <div className="space-y-4">
           {/* File info */}
-          <div className="bg-zinc-800/50 rounded-lg p-4 space-y-2">
+          <div className="bg-zinc-50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">File</span>
-              <span className="text-white font-medium truncate ml-4 max-w-[250px]">{file.name}</span>
+              <span className="text-zinc-900 font-medium truncate ml-4 max-w-[250px]">{file.name}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">Current size</span>
@@ -94,7 +94,7 @@ const ImageResizeDialog = ({ file, open, onClose, onResized }) => {
                   )}
                   {result ? 'Done!' : 'Resizing...'}
                 </span>
-                <span className="text-white font-mono">{progress}%</span>
+                <span className="text-zinc-900 font-mono">{progress}%</span>
               </div>
               <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
                 <div

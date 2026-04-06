@@ -161,7 +161,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Content title"
               required
-              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500"
+              className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
             />
           </div>
 
@@ -174,7 +174,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
               >
                 <SelectTrigger
                   data-testid="content-type-select"
-                  className="bg-[#27272a] border-zinc-300 text-white"
+                  className="bg-white border-zinc-300 text-zinc-900"
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -206,19 +206,19 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
               >
                 <SelectTrigger
                   data-testid="content-category-select"
-                  className="bg-[#27272a] border-zinc-300 text-white"
+                  className="bg-white border-zinc-300 text-zinc-900"
                 >
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-100 border-zinc-200">
-                  <SelectItem value="none" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
+                  <SelectItem value="none" className="text-zinc-500 focus:text-zinc-900 focus:bg-zinc-100">
                     No category
                   </SelectItem>
                   {categories.map((cat) => (
                     <SelectItem
                       key={cat.id}
                       value={cat.id}
-                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                     >
                       <div className="flex items-center gap-2">
                         <Folder className="w-4 h-4 text-orange-400" />
@@ -240,7 +240,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                 value={formData.external_url}
                 onChange={(e) => setFormData({ ...formData, external_url: e.target.value })}
                 placeholder="https://example.com"
-                className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500"
+                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
               />
             </div>
           )}
@@ -264,15 +264,15 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
             >
               <SelectTrigger
                 data-testid="content-status-select"
-                className="bg-[#27272a] border-zinc-300 text-white"
+                className="bg-white border-zinc-300 text-zinc-900"
               >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-zinc-100 border-zinc-200">
-                <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">
+                <SelectItem value="draft" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">
                   Draft
                 </SelectItem>
-                <SelectItem value="ready" className="text-zinc-600 focus:text-white focus:bg-zinc-800">
+                <SelectItem value="ready" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">
                   Ready
                 </SelectItem>
               </SelectContent>
@@ -284,7 +284,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-800 hover:text-white"
+              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             >
               Cancel
             </Button>
@@ -311,3 +311,4 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
 };
 
 export default CreateContentDialog;
+;

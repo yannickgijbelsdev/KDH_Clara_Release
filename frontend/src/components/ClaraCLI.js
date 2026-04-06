@@ -220,7 +220,7 @@ export default function ClaraCLI() {
       {/* CLI Toggle Button */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-6 z-40 w-11 h-11 rounded-full bg-zinc-800 border border-zinc-300 hover:border-emerald-500/50 hover:bg-zinc-700 flex items-center justify-center transition-all shadow-lg group"
+        className="fixed bottom-20 right-6 z-40 w-11 h-11 rounded-full bg-white border border-zinc-200 hover:border-emerald-500/50 hover:bg-zinc-50 flex items-center justify-center transition-all shadow-lg group"
         data-testid="cli-toggle-btn"
         title="Clara CLI"
       >
@@ -240,9 +240,9 @@ export default function ClaraCLI() {
               <div className="flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm font-medium text-zinc-600">Clara CLI</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500 font-mono">v1.0</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 font-mono">v1.0</span>
               </div>
-              <button onClick={() => setOpen(false)} className="text-zinc-500 hover:text-white transition-colors" data-testid="cli-close-btn">
+              <button onClick={() => setOpen(false)} className="text-zinc-500 hover:text-zinc-900 transition-colors" data-testid="cli-close-btn">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -256,7 +256,7 @@ export default function ClaraCLI() {
               /* Access Gate */
               <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center space-y-4 max-w-sm">
-                  <div className="w-14 h-14 mx-auto rounded-full bg-zinc-800 border border-zinc-300 flex items-center justify-center">
+                  <div className="w-14 h-14 mx-auto rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center">
                     {accessStatus === 'pending' ? (
                       <ShieldCheck className="w-7 h-7 text-amber-400" />
                     ) : (
@@ -265,7 +265,7 @@ export default function ClaraCLI() {
                   </div>
                   {accessStatus === 'pending' ? (
                     <>
-                      <h3 className="text-lg font-semibold text-white">Access Request Pending</h3>
+                      <h3 className="text-lg font-semibold text-zinc-900">Access Request Pending</h3>
                       <p className="text-sm text-zinc-400">
                         Your CLI access request has been submitted and is awaiting approval from Clara Support.
                         You will be notified once your request is reviewed.
@@ -280,7 +280,7 @@ export default function ClaraCLI() {
                     </>
                   ) : (
                     <>
-                      <h3 className="text-lg font-semibold text-white">CLI Access Required</h3>
+                      <h3 className="text-lg font-semibold text-zinc-900">CLI Access Required</h3>
                       <p className="text-sm text-zinc-400">
                         The Clara CLI provides server-level operations for advanced administration.
                         Access requires approval from Clara Support to ensure security and compliance.
@@ -320,7 +320,7 @@ export default function ClaraCLI() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="flex-1 bg-transparent text-white font-mono text-[13px] outline-none placeholder:text-zinc-600"
+                    className="flex-1 bg-transparent text-zinc-900 font-mono text-[13px] outline-none placeholder:text-zinc-400"
                     placeholder="Type a command..."
                     autoComplete="off"
                     spellCheck={false}
@@ -347,7 +347,7 @@ export default function ClaraCLI() {
 
       {/* Feature Configuration Dialog */}
       <Dialog open={!!featureConfig} onOpenChange={(open) => { if (!open) setFeatureConfig(null); }}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-white border-zinc-200 max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base">
               Feature Configuration — {featureConfig?.site_name}
@@ -358,12 +358,12 @@ export default function ClaraCLI() {
             {featureConfig?.features?.map(f => (
               <button key={f.id} onClick={() => toggleFeatureConfig(f.id)}
                 className={`w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all ${
-                  f.enabled ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-zinc-800/50 border-zinc-300 hover:border-zinc-600'
+                  f.enabled ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
                 }`} data-testid={`feature-toggle-${f.id}`}>
-                <div className={`w-5 h-5 rounded flex items-center justify-center ${f.enabled ? 'bg-emerald-500 text-white' : 'bg-zinc-700'}`}>
+                <div className={`w-5 h-5 rounded flex items-center justify-center ${f.enabled ? 'bg-emerald-500 text-white' : 'bg-zinc-200'}`}>
                   {f.enabled && <Check className="w-3 h-3" />}
                 </div>
-                <span className={`text-sm ${f.enabled ? 'text-zinc-200' : 'text-zinc-500'}`}>{f.name}</span>
+                <span className={`text-sm ${f.enabled ? 'text-zinc-800' : 'text-zinc-500'}`}>{f.name}</span>
               </button>
             ))}
           </div>

@@ -157,7 +157,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
+      <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[450px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {editingItem ? 'Edit Item' : 'Add Rundown Item'}
@@ -173,7 +173,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
             >
               <SelectTrigger
                 data-testid="item-type-select"
-                className="bg-[#27272a] border-zinc-300 text-white"
+                className="bg-white border-zinc-300 text-zinc-900"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -184,7 +184,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
                     <SelectItem
                       key={type.value}
                       value={type.value}
-                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                     >
                       <div className="flex items-center gap-2">
                         <Icon className="w-4 h-4" />
@@ -205,7 +205,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
               onChange={(e) => handleFieldChange('title', e.target.value)}
               placeholder="Enter title..."
               required
-              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500"
+              className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
             />
           </div>
 
@@ -223,7 +223,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
               value={formData.notes}
               onChange={(e) => handleFieldChange('notes', e.target.value)}
               placeholder="Additional notes or script text..."
-              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500 resize-none"
+              className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 resize-none"
               rows={4}
             />
             {estimatedDuration && (
@@ -256,7 +256,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
               value={formData.duration}
               onChange={(e) => handleFieldChange('duration', e.target.value)}
               placeholder="MM:SS"
-              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500 font-mono"
+              className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 font-mono"
             />
             <p className="text-xs text-zinc-500">Format: MM:SS (e.g., 03:30)</p>
           </div>
@@ -266,7 +266,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
               type="button"
               variant="outline"
               onClick={() => handleClose(false)}
-              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-800 hover:text-white"
+              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             >
               Cancel
             </Button>

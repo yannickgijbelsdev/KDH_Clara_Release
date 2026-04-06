@@ -264,7 +264,7 @@ const AdminApprovalPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by title or author..."
-            className="pl-10 bg-zinc-100 border-zinc-200 text-white placeholder:text-zinc-500"
+            className="pl-10 bg-white border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
           />
         </div>
 
@@ -496,7 +496,7 @@ const AdminApprovalPage = () => {
 
       {/* Approval Dialog */}
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               {approvalAction === 'approved' && (
@@ -552,7 +552,7 @@ const AdminApprovalPage = () => {
                     ? 'Please explain what needs to be fixed...'
                     : 'Add any notes...'
                 }
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500 resize-none"
+                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 resize-none"
                 rows={3}
               />
             </div>

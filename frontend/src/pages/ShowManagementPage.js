@@ -583,7 +583,7 @@ const ShowManagementPage = () => {
 
       {/* Show Title Dialog */}
       <Dialog open={titleDialogOpen} onOpenChange={setTitleDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {editingTitle ? 'Edit Show Title' : 'Add Show Title'}
@@ -604,7 +604,7 @@ const ShowManagementPage = () => {
                 onChange={(e) => setTitleFormData({ ...titleFormData, name: e.target.value })}
                 placeholder="Morning Drive Show"
                 required
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
               />
             </div>
 
@@ -614,7 +614,7 @@ const ShowManagementPage = () => {
                 value={titleFormData.description}
                 onChange={(e) => setTitleFormData({ ...titleFormData, description: e.target.value })}
                 placeholder="Brief description..."
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
               />
             </div>
 
@@ -765,7 +765,7 @@ const ShowManagementPage = () => {
 
       {/* Studio Dialog */}
       <Dialog open={studioDialogOpen} onOpenChange={setStudioDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[450px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {editingStudio ? 'Edit Studio' : 'Add Studio'}
@@ -786,7 +786,7 @@ const ShowManagementPage = () => {
                 onChange={(e) => setStudioFormData({ ...studioFormData, name: e.target.value })}
                 placeholder="Studio A"
                 required
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
               />
             </div>
 
@@ -796,7 +796,7 @@ const ShowManagementPage = () => {
                 value={studioFormData.description}
                 onChange={(e) => setStudioFormData({ ...studioFormData, description: e.target.value })}
                 placeholder="Main broadcast studio..."
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
               />
             </div>
 
@@ -832,7 +832,7 @@ const ShowManagementPage = () => {
       <AlertDialog open={deleteTitleDialogOpen} onOpenChange={setDeleteTitleDialogOpen}>
         <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Show Title</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete Show Title</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               Are you sure you want to delete "{selectedTitle?.name}"? 
               This won't affect existing shows, but DJs won't be able to select this title for new shows.
@@ -856,7 +856,7 @@ const ShowManagementPage = () => {
       <AlertDialog open={deleteStudioDialogOpen} onOpenChange={setDeleteStudioDialogOpen}>
         <AlertDialogContent className="bg-zinc-100 border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Studio</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete Studio</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               Are you sure you want to delete "{selectedStudio?.name}"? 
               This won't affect existing shows assigned to this studio.

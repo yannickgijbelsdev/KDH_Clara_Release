@@ -100,7 +100,7 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
       ref={setNodeRef}
       style={style}
       data-testid={`rundown-item-${index}`}
-      className={`group relative flex items-start gap-4 bg-[#27272a] rounded-lg p-4 ${typeColors[item.type]} ${
+      className={`group relative flex items-start gap-4 bg-white border border-zinc-100 rounded-lg p-4 ${typeColors[item.type]} ${
         isDragging ? 'dragging z-50' : ''
       } ${isActive ? 'ring-2 ring-green-500 bg-green-500/10' : ''} ${
         isBeingEdited ? 'ring-2 ring-amber-500/60 bg-amber-500/5' : ''

@@ -24,7 +24,7 @@ const SessionWarningModal = () => {
     <Dialog open={showSessionWarning} onOpenChange={dismissSessionWarning}>
       <DialogContent className="bg-zinc-100 border-zinc-200 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2">
+          <DialogTitle className="text-zinc-900 flex items-center gap-2">
             <Clock className="w-5 h-5 text-orange-500" />
             Session Expiring Soon
           </DialogTitle>

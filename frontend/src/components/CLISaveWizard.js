@@ -45,7 +45,7 @@ export default function CLISaveWizard({ open, onClose }) {
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md bg-white border-zinc-200 p-0 overflow-hidden [&>button]:hidden" data-testid="cli-save-wizard">
-        <div className="h-1 bg-zinc-900">
+        <div className="h-1 bg-zinc-200">
           <div
             className="h-full bg-orange-500 transition-all duration-700 ease-out"
             style={{ width: `${progress}%` }}

@@ -246,7 +246,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Create New Show</DialogTitle>
         </DialogHeader>
@@ -262,7 +262,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                 Loading titles...
               </div>
             ) : showTitles.length === 0 && !isAdmin ? (
-              <div className="p-3 bg-zinc-800/50 rounded-lg text-zinc-400 text-sm">
+              <div className="p-3 bg-zinc-50 rounded-lg text-zinc-500 text-sm">
                 No show titles available. Please ask an admin to create show titles.
               </div>
             ) : isAddingNewTitle && isAdmin ? (
@@ -273,7 +273,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                     value={newTitleName}
                     onChange={(e) => setNewTitleName(e.target.value)}
                     placeholder="Enter new show title..."
-                    className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500 flex-1"
+                    className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 flex-1"
                     autoFocus
                   />
                   <Button
@@ -290,7 +290,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsAddingNewTitle(false)}
-                  className="text-zinc-400 hover:text-white"
+                  className="text-zinc-400 hover:text-zinc-900"
                 >
                   Cancel
                 </Button>
@@ -303,7 +303,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
               >
                 <SelectTrigger 
                   data-testid="show-title-select"
-                  className="bg-[#27272a] border-zinc-300 text-white"
+                  className="bg-white border-zinc-300 text-zinc-900"
                 >
                   <SelectValue placeholder="Select a show title..." />
                 </SelectTrigger>
@@ -312,7 +312,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                     <SelectItem 
                       key={title.id} 
                       value={title.id}
-                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                     >
                       {title.name}
                     </SelectItem>
@@ -343,7 +343,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Brief description of the show..."
-              className="bg-[#27272a] border-zinc-300 text-white placeholder:text-zinc-500 resize-none"
+              className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 resize-none"
               rows={2}
             />
           </div>
@@ -358,7 +358,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
               >
                 <SelectTrigger 
                   data-testid="show-studio-select"
-                  className="bg-[#27272a] border-zinc-300 text-white"
+                  className="bg-white border-zinc-300 text-zinc-900"
                 >
                   <SelectValue placeholder="Select a studio..." />
                 </SelectTrigger>
@@ -367,7 +367,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                     <SelectItem 
                       key={studio.id} 
                       value={studio.id}
-                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                     >
                       {studio.name}
                     </SelectItem>
@@ -385,7 +385,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                   variant="outline"
                   data-testid="show-date-picker"
                   className={cn(
-                    'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-300 hover:bg-zinc-700',
+                    'w-full justify-start text-left font-normal bg-white border-zinc-300 hover:bg-zinc-50',
                     !date && 'text-zinc-500'
                   )}
                 >
@@ -414,7 +414,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                 value={formData.start_time}
                 onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
                 required
-                className="bg-[#27272a] border-zinc-300 text-white font-mono"
+                className="bg-white border-zinc-300 text-zinc-900 font-mono"
               />
             </div>
             <div className="space-y-2">
@@ -425,7 +425,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                 value={formData.end_time}
                 onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
                 required
-                className="bg-[#27272a] border-zinc-300 text-white font-mono"
+                className="bg-white border-zinc-300 text-zinc-900 font-mono"
               />
             </div>
           </div>
@@ -442,7 +442,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                   type="button"
                   variant="outline"
                   data-testid="show-presenters-select"
-                  className="w-full justify-start text-left bg-[#27272a] border-zinc-300 text-white hover:bg-zinc-700"
+                  className="w-full justify-start text-left bg-white border-zinc-300 text-zinc-900 hover:bg-zinc-50"
                 >
                   <Users className="w-4 h-4 mr-2 text-violet-400" />
                   {formData.presenter_ids?.length > 0 ? (
@@ -508,7 +508,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
             >
               <SelectTrigger 
                 data-testid="show-recurrence-select"
-                className="bg-[#27272a] border-zinc-300 text-white"
+                className="bg-white border-zinc-300 text-zinc-900"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -517,7 +517,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                   <SelectItem 
                     key={option.value} 
                     value={option.value}
-                    className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                    className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                   >
                     {option.label}
                   </SelectItem>
@@ -536,7 +536,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                     variant="outline"
                     data-testid="show-end-date-picker"
                     className={cn(
-                      'w-full justify-start text-left font-normal bg-[#27272a] border-zinc-300 hover:bg-zinc-700',
+                      'w-full justify-start text-left font-normal bg-white border-zinc-300 hover:bg-zinc-50',
                       !endDate && 'text-zinc-500'
                     )}
                   >
@@ -572,7 +572,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
             >
               <SelectTrigger 
                 data-testid="show-status-select"
-                className="bg-[#27272a] border-zinc-300 text-white"
+                className="bg-white border-zinc-300 text-zinc-900"
               >
                 <SelectValue />
               </SelectTrigger>
@@ -589,7 +589,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-800 hover:text-white"
+              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
             >
               Cancel
             </Button>

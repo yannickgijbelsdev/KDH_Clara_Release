@@ -153,7 +153,7 @@ const RichTextEditor = ({
           style={{ zIndex: 100000 }}
           data-testid="editor-upload-overlay"
         >
-          <div className="bg-zinc-900 border border-zinc-300 rounded-xl p-6 shadow-2xl min-w-[320px]">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xl min-w-[320px]">
             <div className="flex items-center gap-3 mb-4">
               {uploadSuccess ? (
                 <CheckCircle className="w-6 h-6 text-green-500" />
@@ -161,7 +161,7 @@ const RichTextEditor = ({
                 <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
               )}
               <div>
-                <p className="text-white font-medium">
+                <p className="text-zinc-900 font-medium">
                   {uploadSuccess ? 'Upload complete!' : 'Uploading file...'}
                 </p>
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>

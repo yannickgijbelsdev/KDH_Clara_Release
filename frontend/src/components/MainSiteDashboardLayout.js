@@ -613,7 +613,7 @@ const MainSiteDashboardContent = () => {
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors w-full text-left ${
             isActive
               ? 'bg-orange-500/10 text-orange-500'
-              : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+              : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
           }`}
         >
           <Icon className="h-4 w-4" />
@@ -636,7 +636,7 @@ const MainSiteDashboardContent = () => {
           `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
             isActive
               ? 'bg-orange-500/10 text-orange-500'
-              : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+              : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
           }`
         }
       >
@@ -662,7 +662,7 @@ const MainSiteDashboardContent = () => {
         {isInSiteContext && (
           <button
             onClick={() => navigate(`/${mainSiteSlug}/sites`)}
-            className="flex items-center gap-2 px-3 py-2 mb-4 text-zinc-400 hover:text-white transition-colors w-full"
+            className="flex items-center gap-2 px-3 py-2 mb-4 text-zinc-400 hover:text-zinc-700 transition-colors w-full"
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="text-sm">Back to Sites</span>
@@ -694,7 +694,7 @@ const MainSiteDashboardContent = () => {
                   `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                     isActive
                       ? 'bg-orange-500/10 text-orange-500'
-                      : 'text-zinc-400 hover:bg-zinc-800 hover:text-white'
+                      : 'text-zinc-400 hover:bg-zinc-50 hover:text-zinc-700'
                   }`
                 }
               >
@@ -720,7 +720,7 @@ const MainSiteDashboardContent = () => {
         {isInSiteContext && (
           <button
             onClick={() => navigate(`/${mainSiteSlug}/sites`)}
-            className="flex items-center gap-2 px-3 py-2 mb-4 text-zinc-400 hover:text-white transition-colors w-full"
+            className="flex items-center gap-2 px-3 py-2 mb-4 text-zinc-400 hover:text-zinc-700 transition-colors w-full"
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="text-sm">Back to Sites</span>
@@ -758,7 +758,7 @@ const MainSiteDashboardContent = () => {
                         `flex items-center gap-2 px-2 py-2 rounded text-xs transition-colors ${
                           isActive
                             ? 'bg-orange-500/10 text-orange-500'
-                            : 'text-zinc-500 hover:bg-zinc-800 hover:text-zinc-600'
+                            : 'text-zinc-500 hover:bg-zinc-50 hover:text-zinc-600'
                         }`
                       }
                     >
@@ -797,7 +797,7 @@ const MainSiteDashboardContent = () => {
                 <ArrowLeft className="w-5 h-5" />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="bg-white/95 border-zinc-200 text-white text-xs backdrop-blur-lg">
+            <TooltipContent side="right" className="bg-white/95 border-zinc-200 text-zinc-900 text-xs backdrop-blur-lg">
               Back to Sites
             </TooltipContent>
           </Tooltip>

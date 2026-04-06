@@ -66,7 +66,7 @@ const PwaInstallPrompt = () => {
 
   return (
     <div data-testid="pwa-install-prompt" className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md mx-4 bg-zinc-900 border border-zinc-300/60 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
+      <div className="relative w-full max-w-md mx-4 bg-white border border-zinc-200 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header accent */}
         <div className="h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500" />
 
@@ -81,7 +81,7 @@ const PwaInstallPrompt = () => {
             <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4">
               <Smartphone className="w-8 h-8 text-orange-400" />
             </div>
-            <h2 className="text-lg font-bold text-zinc-100">Install Clara as an App</h2>
+            <h2 className="text-lg font-bold text-zinc-900">Install Clara as an App</h2>
             <p className="text-sm text-zinc-400 mt-1.5 max-w-xs leading-relaxed">
               Get quick access from your home screen with a native app experience.
             </p>
@@ -95,7 +95,7 @@ const PwaInstallPrompt = () => {
             className={`w-full flex items-center justify-center gap-2.5 text-sm font-semibold rounded-xl px-5 py-3 transition-colors mb-4 ${
               hasNativePrompt
                 ? 'bg-orange-500 hover:bg-orange-400 text-white cursor-pointer'
-                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                : 'bg-zinc-100 text-zinc-400 cursor-not-allowed'
             }`}
           >
             <Download className="w-5 h-5" />
@@ -106,25 +106,25 @@ const PwaInstallPrompt = () => {
           {!hasNativePrompt && (
             <div className="space-y-2 mb-4">
               {(isIOS || isSafari) && (
-                <div className="flex items-start gap-3 bg-zinc-800/60 rounded-xl p-3.5">
+                <div className="flex items-start gap-3 bg-zinc-50 rounded-xl p-3.5">
                   <Share className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-zinc-600">
-                    <span className="font-semibold text-zinc-100">Safari: </span>
+                    <span className="font-semibold text-zinc-900">Safari: </span>
                     Tap the <span className="text-orange-400 font-medium">Share</span> button in the toolbar, then select <span className="text-orange-400 font-medium">"Add to Home Screen"</span>
                   </div>
                 </div>
               )}
               {(isChrome || isEdge) && !isIOS && (
-                <div className="flex items-start gap-3 bg-zinc-800/60 rounded-xl p-3.5">
+                <div className="flex items-start gap-3 bg-zinc-50 rounded-xl p-3.5">
                   <MoreVertical className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-zinc-600">
-                    <span className="font-semibold text-zinc-100">{isEdge ? 'Edge' : 'Chrome'}: </span>
+                    <span className="font-semibold text-zinc-900">{isEdge ? 'Edge' : 'Chrome'}: </span>
                     Tap <span className="text-orange-400 font-medium">{isAndroid ? 'the menu (three dots)' : 'the install icon in the address bar'}</span>, then select <span className="text-orange-400 font-medium">"Install app"</span>
                   </div>
                 </div>
               )}
               {!isIOS && !isSafari && !isChrome && !isEdge && (
-                <div className="flex items-start gap-3 bg-zinc-800/60 rounded-xl p-3.5">
+                <div className="flex items-start gap-3 bg-zinc-50 rounded-xl p-3.5">
                   <Download className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-zinc-600">
                     Open Clara in <span className="text-orange-400 font-medium">Chrome</span> or <span className="text-orange-400 font-medium">Edge</span> for the best install experience.

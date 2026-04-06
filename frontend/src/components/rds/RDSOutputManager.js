@@ -368,11 +368,11 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
       </div>
 
       {/* URL */}
-      <div className="flex items-center justify-between bg-zinc-900 rounded px-2 py-1.5">
-        <code className="text-xs text-zinc-400 truncate flex-1">
+      <div className="flex items-center justify-between bg-zinc-50 rounded px-2 py-1.5">
+        <code className="text-xs text-zinc-500 truncate flex-1">
           /output/{station}/{output.slug}.txt
         </code>
-        <Button variant="ghost" size="sm" onClick={copyUrl} className="h-6 px-2 text-zinc-400 hover:text-white">
+        <Button variant="ghost" size="sm" onClick={copyUrl} className="h-6 px-2 text-zinc-400 hover:text-zinc-700">
           {copiedUrl ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
         </Button>
       </div>

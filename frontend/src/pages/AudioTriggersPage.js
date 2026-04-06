@@ -329,7 +329,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-zinc-100 border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2">
+          <DialogTitle className="text-zinc-900 flex items-center gap-2">
             <Volume2 className="w-5 h-5 text-orange-400" />
             {trigger ? 'Edit Audio Trigger' : 'Create Audio Trigger'}
           </DialogTitle>

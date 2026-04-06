@@ -100,7 +100,7 @@ export default function HelpButton() {
           className="fixed bottom-4 right-4 z-[9990] group"
           data-testid="help-button"
         >
-          <div className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-300 hover:border-zinc-600 rounded-full pl-3 pr-4 py-2 shadow-xl transition-all">
+          <div className="flex items-center gap-2 bg-white hover:bg-zinc-50 border border-zinc-200 hover:border-zinc-300 rounded-full pl-3 pr-4 py-2 shadow-xl transition-all">
             <HelpCircle className="w-4 h-4 text-orange-400" />
             <span className="text-xs text-zinc-600 font-medium">Help</span>
           </div>
@@ -111,7 +111,7 @@ export default function HelpButton() {
       {open && (
         <div className="fixed inset-0 z-[9995] bg-black/60 flex items-center justify-center p-4" onClick={() => setOpen(false)}>
           <div
-            className="bg-[#0d0d0f] border border-zinc-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
+            className="bg-white border border-zinc-200 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}
             data-testid="help-dialog"
           >
@@ -121,7 +121,7 @@ export default function HelpButton() {
                 <AlertCircle className="w-4 h-4 text-orange-400" />
                 <span className="text-sm font-semibold">Report an Issue</span>
               </div>
-              <button onClick={() => setOpen(false)} className="text-zinc-500 hover:text-white">
+              <button onClick={() => setOpen(false)} className="text-zinc-500 hover:text-zinc-900">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -143,7 +143,7 @@ export default function HelpButton() {
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g. Can't save content item"
-                  className="w-full bg-zinc-900 border border-zinc-300 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500"
+                  className="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-orange-500"
                   data-testid="ticket-title-input"
                   autoFocus
                 />
@@ -157,7 +157,7 @@ export default function HelpButton() {
                   onChange={e => setDescription(e.target.value)}
                   placeholder="What happened? What did you expect?"
                   rows={3}
-                  className="w-full bg-zinc-900 border border-zinc-300 rounded-lg px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500 resize-none"
+                  className="w-full bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-orange-500 resize-none"
                   data-testid="ticket-description-input"
                 />
               </div>
@@ -173,7 +173,7 @@ export default function HelpButton() {
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                         priority === p.value
                           ? `${p.color} border-transparent text-white`
-                          : 'bg-zinc-900 border-zinc-300 text-zinc-400 hover:border-zinc-600'
+                          : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:border-zinc-300'
                       }`}
                       data-testid={`priority-${p.value}`}
                     >
@@ -184,13 +184,13 @@ export default function HelpButton() {
               </div>
 
               {/* Journey Preview */}
-              <div className="bg-zinc-900 border border-zinc-200 rounded-lg p-3">
+              <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3">
                 <p className="text-[10px] text-zinc-500 mb-1.5">Your path (auto-captured)</p>
                 <div className="flex items-center gap-1 overflow-x-auto pb-1">
                   {(getJourney() || []).slice(-6).map((step, i, arr) => (
                     <div key={i} className="flex items-center gap-1 flex-shrink-0">
                       <span className={`text-[10px] px-1.5 py-0.5 rounded ${
-                        i === arr.length - 1 ? 'bg-orange-500/20 text-orange-400' : 'bg-zinc-800 text-zinc-400'
+                        i === arr.length - 1 ? 'bg-orange-500/20 text-orange-400' : 'bg-zinc-100 text-zinc-500'
                       }`}>
                         {step.name}
                       </span>

@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Radio, Users, FileText, Calendar, ArrowRight, Search, Mic, Clock,
-  Globe, HardDrive, Network, LayoutGrid, Shield, ExternalLink,
-  Layers, Server, Activity, CheckCircle, Zap, BarChart3
+  Radio, Users, FileText, Calendar, ArrowRight, Search, Mic,
+  HardDrive, Network, LayoutGrid, Shield, ExternalLink,
+  Layers, Server, CheckCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMainSite } from '../context/MainSiteContext';
@@ -15,7 +15,6 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const STUDIO_IMG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/9c133714c33f42124837a555a90289699f0f5190e464c69e21122133740a9121.png';
 const DATACENTER_IMG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/890e7b1a8c829f2400a99ab38a6f95cc67ee2cf484d5e0f7284db9d387dccdaa.png';
 
-/* ── Site type configuration ── */
 const SITE_TYPE_THEMES = {
   radio:          { img: STUDIO_IMG, accent: '#f97316', label: 'Radio Station',    icon: Radio },
   external_host:  { img: null,       accent: '#06b6d4', label: 'External Host',    icon: ExternalLink },
@@ -37,119 +36,6 @@ const Panel = ({ children, className = '', delay = 0, testId }) => (
   </motion.div>
 );
 
-/* ── Panels per type ── */
-
-const RadioPanels = ({ mainSite, mainSiteSlug, navigate, shows, teamMembers, contentCount, loading, activeShows, greeting, firstName }) => (
-  <>
-    {/* TOP-LEFT: Shows counter */}
-    <Panel testId="panel-shows-counter" className="px-6 py-5 pointer-events-auto col-span-1 xl:absolute xl:top-0 xl:left-0" delay={0}>
-      <div className="flex items-center gap-5 flex-wrap">
-        <div>
-          <span className="text-4xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : activeShows.length}</span>
-          <p className="text-xs text-zinc-400 mt-0.5 font-medium">Active Shows</p>
-        </div>
-        <div className="w-px h-10 bg-zinc-200 hidden sm:block" />
-        <div>
-          <span className="text-4xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : teamMembers.length}</span>
-          <p className="text-xs text-zinc-400 mt-0.5 font-medium">Team Members</p>
-        </div>
-        <button onClick={() => navigate(`/${mainSiteSlug}/shows`)} className="ml-auto sm:ml-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors flex items-center gap-2 shadow-lg shadow-orange-500/25">
-          Open Shows <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
-    </Panel>
-
-    {/* LEFT: On-Air */}
-    <Panel testId="panel-live-show" className="w-full xl:w-[260px] overflow-hidden pointer-events-auto col-span-1 xl:absolute xl:top-[38%] xl:left-0 xl:-translate-y-1/2" delay={0.12}>
-      <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-5 py-4 text-white">
-        <div className="flex items-center gap-2 mb-2"><Mic className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wide">On Air</span></div>
-        <p className="text-lg font-bold leading-tight">{activeShows.length > 0 ? activeShows[0].name : 'No live show'}</p>
-      </div>
-      <div className="px-5 py-4">
-        <div className="flex items-center justify-between">
-          <div><span className="text-2xl font-bold text-zinc-900">{shows.length}</span><p className="text-xs text-zinc-400">Total shows</p></div>
-          <button onClick={() => navigate(`/${mainSiteSlug}/calendar`)} className="bg-zinc-900 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-zinc-100 transition-colors flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />Schedule
-          </button>
-        </div>
-      </div>
-    </Panel>
-  </>
-);
-
-const GenericPanels = ({ mainSite, mainSiteSlug, navigate, teamMembers, loading, theme }) => {
-  const features = mainSite?.enabled_features || [];
-  const Icon = theme.icon;
-
-  const navItems = [];
-  if (features.includes('sites')) navItems.push({ label: 'Sites', icon: Layers, to: 'sites', color: 'text-blue-500 bg-blue-50' });
-  if (features.includes('zerotier')) navItems.push({ label: 'ZeroTier', icon: Network, to: 'zerotier', color: 'text-emerald-500 bg-emerald-50' });
-  if (features.includes('wp_security')) navItems.push({ label: 'Firewall', icon: Shield, to: 'firewall', color: 'text-red-500 bg-red-50' });
-  if (features.includes('task_boards')) navItems.push({ label: 'Task Boards', icon: LayoutGrid, to: 'task-boards', color: 'text-violet-500 bg-violet-50' });
-  if (features.includes('xml_imports')) navItems.push({ label: 'XML Imports', icon: Server, to: 'xml-imports', color: 'text-blue-500 bg-blue-50' });
-  if (features.includes('team_settings')) navItems.push({ label: 'Team', icon: Users, to: 'team', color: 'text-emerald-500 bg-emerald-50' });
-  if (features.includes('content_library')) navItems.push({ label: 'Content', icon: FileText, to: 'content', color: 'text-violet-500 bg-violet-50' });
-  if (features.includes('calendar')) navItems.push({ label: 'Calendar', icon: Calendar, to: 'calendar', color: 'text-blue-500 bg-blue-50' });
-
-  return (
-    <>
-      {/* TOP-LEFT: Status */}
-      <Panel testId="panel-site-status" className="px-6 py-5 pointer-events-auto col-span-1 xl:absolute xl:top-0 xl:left-0" delay={0}>
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${theme.accent}15` }}>
-            <Icon className="w-6 h-6" style={{ color: theme.accent }} />
-          </div>
-          <div>
-            <span className="text-lg font-bold text-zinc-900">{theme.label}</span>
-            <div className="flex items-center gap-2 mt-0.5">
-              <div className="w-2 h-2 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 6px #22c55e80' }} />
-              <span className="text-xs text-zinc-500">Online</span>
-            </div>
-          </div>
-          <div className="ml-4 flex items-center gap-3">
-            <div className="text-center"><span className="text-2xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : teamMembers.length}</span><p className="text-[10px] text-zinc-400">Team</p></div>
-            <div className="text-center"><span className="text-2xl font-bold text-zinc-900 tabular-nums">{features.length}</span><p className="text-[10px] text-zinc-400">Features</p></div>
-          </div>
-        </div>
-      </Panel>
-
-      {/* CENTER-LEFT: Quick Actions */}
-      {navItems.length > 0 && (
-        <Panel testId="panel-quick-actions" className="w-full xl:w-[240px] pointer-events-auto col-span-1 xl:absolute xl:top-[35%] xl:left-0 xl:-translate-y-1/2" delay={0.12}>
-          <div className="px-4 py-3">
-            <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Actions</span>
-            <div className="mt-3 space-y-1">
-              {navItems.slice(0, 5).map(item => (
-                <button key={item.to} onClick={() => navigate(`/${mainSiteSlug}/${item.to}`)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 transition-colors group">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.color}`}><item.icon className="w-4 h-4" /></div>
-                  <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900">{item.label}</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-zinc-600 ml-auto group-hover:text-zinc-500 transition-colors" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </Panel>
-      )}
-
-      {/* RIGHT: Features */}
-      <Panel testId="panel-features" className="w-full xl:w-[250px] pointer-events-auto col-span-1 xl:absolute xl:top-[10%] xl:right-0" delay={0.15}>
-        <div className="px-5 py-4">
-          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Enabled Features</span>
-          <div className="mt-3 space-y-2.5">
-            {features.map(f => (
-              <div key={f} className="flex items-center gap-2.5">
-                <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: theme.accent }} />
-                <span className="text-sm text-zinc-700 capitalize">{f.replace(/_/g, ' ')}</span>
-              </div>
-            ))}
-            {features.length === 0 && <p className="text-xs text-zinc-400 italic">No features enabled</p>}
-          </div>
-        </div>
-      </Panel>
-    </>
-  );
-};
-
 export default function DashboardHome() {
   const { mainSite, mainSiteSlug } = useMainSite();
   const { user, token } = useAuth();
@@ -162,6 +48,7 @@ export default function DashboardHome() {
   const siteType = mainSite?.site_type || 'radio';
   const isRadio = siteType === 'radio';
   const theme = SITE_TYPE_THEMES[siteType] || SITE_TYPE_THEMES.radio;
+  const Icon = theme.icon;
 
   const fetchData = useCallback(async () => {
     if (!mainSite?.id || !token) return;
@@ -204,9 +91,31 @@ export default function DashboardHome() {
 
   const bgImg = mainSite?.logo_url ? `${API}${mainSite.logo_url}` : theme.img;
 
+  const features = mainSite?.enabled_features || [];
+  const navItems = [];
+  if (!isRadio) {
+    if (features.includes('sites')) navItems.push({ label: 'Sites', icon: Layers, to: 'sites', color: 'text-blue-500 bg-blue-50' });
+    if (features.includes('zerotier')) navItems.push({ label: 'ZeroTier', icon: Network, to: 'zerotier', color: 'text-emerald-500 bg-emerald-50' });
+    if (features.includes('wp_security')) navItems.push({ label: 'Firewall', icon: Shield, to: 'firewall', color: 'text-red-500 bg-red-50' });
+    if (features.includes('task_boards')) navItems.push({ label: 'Task Boards', icon: LayoutGrid, to: 'task-boards', color: 'text-violet-500 bg-violet-50' });
+    if (features.includes('xml_imports')) navItems.push({ label: 'XML Imports', icon: Server, to: 'xml-imports', color: 'text-blue-500 bg-blue-50' });
+    if (features.includes('team_settings')) navItems.push({ label: 'Team', icon: Users, to: 'team', color: 'text-emerald-500 bg-emerald-50' });
+    if (features.includes('content_library')) navItems.push({ label: 'Content', icon: FileText, to: 'content', color: 'text-violet-500 bg-violet-50' });
+    if (features.includes('calendar')) navItems.push({ label: 'Calendar', icon: Calendar, to: 'calendar', color: 'text-blue-500 bg-blue-50' });
+  }
+
+  const quickNav = isRadio
+    ? [
+        { label: 'Shows', icon: Radio, to: 'shows', color: 'text-orange-500 bg-orange-50' },
+        { label: 'Calendar', icon: Calendar, to: 'calendar', color: 'text-blue-500 bg-blue-50' },
+        { label: 'Content', icon: FileText, to: 'content', color: 'text-violet-500 bg-violet-50' },
+        { label: 'Team', icon: Users, to: 'team', color: 'text-emerald-500 bg-emerald-50' },
+      ]
+    : navItems;
+
   return (
     <>
-      {/* Central Image */}
+      {/* Central background image */}
       {bgImg && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
           <motion.img
@@ -221,166 +130,238 @@ export default function DashboardHome() {
         </div>
       )}
 
-      {/* Fade edges */}
-      <div className="absolute inset-0 pointer-events-none z-[1]" style={{
-        background: bgImg
-          ? 'radial-gradient(ellipse at center, transparent 25%, #F0F0F2 68%)'
-          : 'none',
-      }} />
+      {/* Radial fade */}
+      {bgImg && (
+        <div className="absolute inset-0 pointer-events-none z-[1]" style={{
+          background: 'radial-gradient(ellipse at center, transparent 25%, #F0F0F2 68%)',
+        }} />
+      )}
 
-      {/* ── Panels ── */}
-      <div className="absolute inset-0 z-10 p-5 pointer-events-none overflow-y-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pointer-events-auto">
+      {/* ── Canvas layout ── */}
+      <div className="absolute inset-0 z-10 p-4 lg:p-5 pointer-events-none overflow-y-auto">
 
-          {/* Row 1: Welcome + Stats */}
-          <Panel testId="panel-welcome" className="px-6 py-5 md:col-span-2 lg:col-span-2" delay={0.06}>
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <h2 className="text-xl font-bold text-zinc-900">{greeting}, {firstName}!</h2>
-                <p className="text-sm text-zinc-400 mt-1">Let's manage <strong className="text-zinc-600">{mainSite?.name || 'your site'}</strong> today.</p>
-              </div>
-              <div className="flex items-center gap-6">
-                <div className="text-center"><span className="text-2xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : teamMembers.length}</span><p className="text-[10px] text-zinc-400">Team</p></div>
-                {isRadio && <div className="text-center"><span className="text-2xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : activeShows.length}</span><p className="text-[10px] text-zinc-400">Shows</p></div>}
-                {isRadio && <div className="text-center"><span className="text-2xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : contentCount}</span><p className="text-[10px] text-zinc-400">Content</p></div>}
-              </div>
-            </div>
-          </Panel>
-
-          {/* Time */}
-          <Panel testId="panel-time" className="lg:col-span-1" delay={0.08}>
-            <div className="px-5 py-5 flex flex-col items-center justify-center h-full">
-              <span className="text-2xl font-bold text-zinc-900 tabular-nums">{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              <span className="text-xs text-zinc-400 mt-1">{now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' })}</span>
-            </div>
-          </Panel>
-
-          {/* Type-specific: On-Air or Status */}
+        {/* ─── MOBILE / TABLET: stacked layout ─── */}
+        <div className="lg:hidden flex flex-col gap-3 pointer-events-auto">
+          <WelcomePanel greeting={greeting} firstName={firstName} mainSite={mainSite} loading={loading} teamMembers={teamMembers} activeShows={activeShows} contentCount={contentCount} isRadio={isRadio} />
+          <TimePanel now={now} />
           {isRadio ? (
-            <Panel testId="panel-live-show" className="overflow-hidden" delay={0.12}>
-              <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-5 py-4 text-white">
-                <div className="flex items-center gap-2 mb-1"><Mic className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wide">On Air</span></div>
-                <p className="text-base font-bold leading-tight">{activeShows.length > 0 ? activeShows[0].name : 'No live show'}</p>
-              </div>
-              <div className="px-5 py-3 flex items-center justify-between">
-                <div><span className="text-xl font-bold text-zinc-900">{shows.length}</span><span className="text-xs text-zinc-400 ml-1">shows</span></div>
-                <button onClick={() => navigate(`/${mainSiteSlug}/shows`)} className="bg-zinc-900 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-zinc-800 transition-colors flex items-center gap-1.5">
-                  Open Shows <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </Panel>
+            <OnAirPanel activeShows={activeShows} shows={shows} navigate={navigate} mainSiteSlug={mainSiteSlug} />
           ) : (
-            <Panel testId="panel-site-status" className="px-5 py-4" delay={0.12}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${theme.accent}15` }}>
-                  <Icon className="w-5 h-5" style={{ color: theme.accent }} />
-                </div>
-                <div>
-                  <span className="text-sm font-bold text-zinc-900">{theme.label}</span>
-                  <div className="flex items-center gap-1.5 mt-0.5"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-[11px] text-zinc-500">Online</span></div>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 text-center">
-                <div><span className="text-lg font-bold text-zinc-900">{teamMembers.length}</span><p className="text-[10px] text-zinc-400">Team</p></div>
-                <div><span className="text-lg font-bold text-zinc-900">{features.length}</span><p className="text-[10px] text-zinc-400">Features</p></div>
-              </div>
-            </Panel>
+            <StatusPanel theme={theme} Icon={Icon} teamMembers={teamMembers} features={features} loading={loading} />
           )}
+          <NavPanel items={quickNav} navigate={navigate} mainSiteSlug={mainSiteSlug} />
+          {isRadio ? (
+            <MetricsPanel shows={shows} contentCount={contentCount} teamMembers={teamMembers} />
+          ) : (
+            <FeaturesPanel features={features} theme={theme} />
+          )}
+          <TeamPanel teamMembers={teamMembers} loading={loading} navigate={navigate} mainSiteSlug={mainSiteSlug} />
+        </div>
 
-          {/* Navigation */}
-          <Panel testId="panel-schedule" className="lg:col-span-1" delay={0.15}>
-            <div className="px-4 py-3">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Navigation</span>
-              <div className="mt-2 space-y-0.5">
-                {(isRadio
-                  ? [
-                      { label: 'Shows', icon: Radio, to: 'shows', color: 'text-orange-500 bg-orange-50' },
-                      { label: 'Calendar', icon: Calendar, to: 'calendar', color: 'text-blue-500 bg-blue-50' },
-                      { label: 'Content', icon: FileText, to: 'content', color: 'text-violet-500 bg-violet-50' },
-                      { label: 'Team', icon: Users, to: 'team', color: 'text-emerald-500 bg-emerald-50' },
-                    ]
-                  : navItems
-                ).map(item => (
-                  <button key={item.to} onClick={() => navigate(`/${mainSiteSlug}/${item.to}`)} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-zinc-50 transition-colors group">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color}`}><item.icon className="w-3.5 h-3.5" /></div>
-                    <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900">{item.label}</span>
-                    <ArrowRight className="w-3 h-3 text-zinc-300 ml-auto group-hover:text-zinc-500" />
-                  </button>
-                ))}
-              </div>
+        {/* ─── DESKTOP: canvas with floating panels ─── */}
+        <div className="hidden lg:flex flex-col h-full gap-4 pointer-events-auto">
+
+          {/* Row 1: Welcome (stretch) + Time (fixed) */}
+          <div className="flex gap-4 flex-shrink-0">
+            <div className="flex-1 min-w-0">
+              <WelcomePanel greeting={greeting} firstName={firstName} mainSite={mainSite} loading={loading} teamMembers={teamMembers} activeShows={activeShows} contentCount={contentCount} isRadio={isRadio} />
             </div>
-          </Panel>
+            <div className="w-[200px] flex-shrink-0">
+              <TimePanel now={now} />
+            </div>
+          </div>
 
-          {/* Metrics / Features */}
-          <Panel testId="panel-metrics" className="lg:col-span-1" delay={0.2}>
-            <div className="px-5 py-4">
+          {/* Row 2: Left panel + [canvas center] + Right panel */}
+          <div className="flex gap-4 flex-1 min-h-0">
+            <div className="w-[280px] flex-shrink-0 flex flex-col gap-4">
               {isRadio ? (
-                <>
-                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Station Metrics</span>
-                  <div className="mt-3 space-y-3">
-                    {[
-                      { label: 'Shows', value: shows.length, unit: 'total', color: 'bg-orange-500', pct: Math.min(shows.length * 10, 100) },
-                      { label: 'Content', value: contentCount, unit: 'items', color: 'bg-violet-500', pct: Math.min(contentCount * 5, 100) },
-                      { label: 'Team', value: teamMembers.length, unit: 'members', color: 'bg-emerald-500', pct: Math.min(teamMembers.length * 15, 100) },
-                    ].map(stat => (
-                      <div key={stat.label}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-zinc-500">{stat.label}</span>
-                          <span className="text-sm font-bold text-zinc-800">{stat.value} <span className="text-xs font-normal text-zinc-400">{stat.unit}</span></span>
-                        </div>
-                        <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                          <motion.div initial={{ width: 0 }} animate={{ width: `${stat.pct}%` }} transition={{ duration: 0.8, delay: 0.4 }} className={`h-full rounded-full ${stat.color}`} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
+                <OnAirPanel activeShows={activeShows} shows={shows} navigate={navigate} mainSiteSlug={mainSiteSlug} />
               ) : (
-                <>
-                  <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Enabled Features</span>
-                  <div className="mt-3 space-y-2">
-                    {features.map(f => (
-                      <div key={f} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: theme.accent }} />
-                        <span className="text-sm text-zinc-700 capitalize">{f.replace(/_/g, ' ')}</span>
-                      </div>
-                    ))}
-                    {features.length === 0 && <p className="text-xs text-zinc-400 italic">No features enabled</p>}
-                  </div>
-                </>
+                <StatusPanel theme={theme} Icon={Icon} teamMembers={teamMembers} features={features} loading={loading} />
+              )}
+              <TeamPanel teamMembers={teamMembers} loading={loading} navigate={navigate} mainSiteSlug={mainSiteSlug} />
+            </div>
+
+            {/* Center: empty canvas area for background image */}
+            <div className="flex-1 pointer-events-none" />
+
+            <div className="w-[260px] flex-shrink-0 flex flex-col gap-4">
+              <NavPanel items={quickNav} navigate={navigate} mainSiteSlug={mainSiteSlug} />
+              {isRadio ? (
+                <MetricsPanel shows={shows} contentCount={contentCount} teamMembers={teamMembers} />
+              ) : (
+                <FeaturesPanel features={features} theme={theme} />
               )}
             </div>
-          </Panel>
-
-          {/* Team members */}
-          <Panel testId="panel-team" className="lg:col-span-1" delay={0.24}>
-            <div className="px-5 py-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-zinc-800">Team Members</span>
-                <button onClick={() => navigate(`/${mainSiteSlug}/team`)} className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center hover:bg-zinc-200 transition-colors">
-                  <Search className="w-3.5 h-3.5 text-zinc-500" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {teamMembers.slice(0, 6).map((member, i) => (
-                  <div key={member.id || i} className="relative group">
-                    {getAvatarUrl(member) ? (
-                      <img src={getAvatarUrl(member)} alt={member.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-semibold text-xs border-2 border-white shadow-sm">
-                        {member.name?.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {teamMembers.length > 6 && <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 text-xs font-bold border-2 border-white">+{teamMembers.length - 6}</div>}
-                {teamMembers.length === 0 && !loading && <p className="text-xs text-zinc-400">No team members yet</p>}
-              </div>
-            </div>
-          </Panel>
-
+          </div>
         </div>
       </div>
     </>
+  );
+}
+
+/* ════════════════════════════════════════════
+   Individual panel components
+   ════════════════════════════════════════════ */
+
+function WelcomePanel({ greeting, firstName, mainSite, loading, teamMembers, activeShows, contentCount, isRadio }) {
+  return (
+    <Panel testId="panel-welcome" className="px-6 py-5" delay={0.06}>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-zinc-900">{greeting}, {firstName}!</h2>
+          <p className="text-sm text-zinc-400 mt-1">Let's manage <strong className="text-zinc-600">{mainSite?.name || 'your site'}</strong> today.</p>
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="text-center"><span className="text-2xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : teamMembers.length}</span><p className="text-[10px] text-zinc-400">Team</p></div>
+          {isRadio && <div className="text-center"><span className="text-2xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : activeShows.length}</span><p className="text-[10px] text-zinc-400">Shows</p></div>}
+          {isRadio && <div className="text-center"><span className="text-2xl font-bold text-zinc-900 tabular-nums">{loading ? '—' : contentCount}</span><p className="text-[10px] text-zinc-400">Content</p></div>}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function TimePanel({ now }) {
+  return (
+    <Panel testId="panel-time" delay={0.08} className="h-full flex items-center justify-center">
+      <div className="px-5 py-5 flex flex-col items-center justify-center">
+        <span className="text-2xl font-bold text-zinc-900 tabular-nums">{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        <span className="text-xs text-zinc-400 mt-1">{now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' })}</span>
+      </div>
+    </Panel>
+  );
+}
+
+function OnAirPanel({ activeShows, shows, navigate, mainSiteSlug }) {
+  return (
+    <Panel testId="panel-live-show" className="overflow-hidden" delay={0.12}>
+      <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-5 py-4 text-white">
+        <div className="flex items-center gap-2 mb-1"><Mic className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wide">On Air</span></div>
+        <p className="text-base font-bold leading-tight">{activeShows.length > 0 ? activeShows[0].name : 'No live show'}</p>
+      </div>
+      <div className="px-5 py-3 flex items-center justify-between">
+        <div><span className="text-xl font-bold text-zinc-900">{shows.length}</span><span className="text-xs text-zinc-400 ml-1">shows</span></div>
+        <button onClick={() => navigate(`/${mainSiteSlug}/shows`)} className="bg-zinc-900 text-white text-xs font-semibold px-4 py-2 rounded-full hover:bg-zinc-800 transition-colors flex items-center gap-1.5" data-testid="open-shows-btn">
+          Open Shows <ArrowRight className="w-3 h-3" />
+        </button>
+      </div>
+    </Panel>
+  );
+}
+
+function StatusPanel({ theme, Icon, teamMembers, features, loading }) {
+  return (
+    <Panel testId="panel-site-status" className="px-5 py-4" delay={0.12}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${theme.accent}15` }}>
+          <Icon className="w-5 h-5" style={{ color: theme.accent }} />
+        </div>
+        <div>
+          <span className="text-sm font-bold text-zinc-900">{theme.label}</span>
+          <div className="flex items-center gap-1.5 mt-0.5"><div className="w-2 h-2 rounded-full bg-emerald-500" /><span className="text-[11px] text-zinc-500">Online</span></div>
+        </div>
+      </div>
+      <div className="flex items-center gap-4 text-center">
+        <div><span className="text-lg font-bold text-zinc-900">{loading ? '—' : teamMembers.length}</span><p className="text-[10px] text-zinc-400">Team</p></div>
+        <div><span className="text-lg font-bold text-zinc-900">{features.length}</span><p className="text-[10px] text-zinc-400">Features</p></div>
+      </div>
+    </Panel>
+  );
+}
+
+function NavPanel({ items, navigate, mainSiteSlug }) {
+  if (!items.length) return null;
+  return (
+    <Panel testId="panel-navigation" className="overflow-hidden" delay={0.15}>
+      <div className="px-4 py-3">
+        <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Quick Navigation</span>
+        <div className="mt-2 space-y-0.5">
+          {items.map(item => (
+            <button key={item.to} onClick={() => navigate(`/${mainSiteSlug}/${item.to}`)} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-zinc-50 transition-colors group" data-testid={`nav-${item.to}`}>
+              <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color}`}><item.icon className="w-3.5 h-3.5" /></div>
+              <span className="text-sm font-medium text-zinc-700 group-hover:text-zinc-900">{item.label}</span>
+              <ArrowRight className="w-3 h-3 text-zinc-300 ml-auto group-hover:text-zinc-500" />
+            </button>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function MetricsPanel({ shows, contentCount, teamMembers }) {
+  return (
+    <Panel testId="panel-metrics" delay={0.2}>
+      <div className="px-5 py-4">
+        <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Station Metrics</span>
+        <div className="mt-3 space-y-3">
+          {[
+            { label: 'Shows', value: shows.length, unit: 'total', color: 'bg-orange-500', pct: Math.min(shows.length * 10, 100) },
+            { label: 'Content', value: contentCount, unit: 'items', color: 'bg-violet-500', pct: Math.min(contentCount * 5, 100) },
+            { label: 'Team', value: teamMembers.length, unit: 'members', color: 'bg-emerald-500', pct: Math.min(teamMembers.length * 15, 100) },
+          ].map(stat => (
+            <div key={stat.label}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-zinc-500">{stat.label}</span>
+                <span className="text-sm font-bold text-zinc-800">{stat.value} <span className="text-xs font-normal text-zinc-400">{stat.unit}</span></span>
+              </div>
+              <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                <motion.div initial={{ width: 0 }} animate={{ width: `${stat.pct}%` }} transition={{ duration: 0.8, delay: 0.4 }} className={`h-full rounded-full ${stat.color}`} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function FeaturesPanel({ features, theme }) {
+  return (
+    <Panel testId="panel-features" delay={0.2}>
+      <div className="px-5 py-4">
+        <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Enabled Features</span>
+        <div className="mt-3 space-y-2">
+          {features.map(f => (
+            <div key={f} className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: theme.accent }} />
+              <span className="text-sm text-zinc-700 capitalize">{f.replace(/_/g, ' ')}</span>
+            </div>
+          ))}
+          {features.length === 0 && <p className="text-xs text-zinc-400 italic">No features enabled</p>}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function TeamPanel({ teamMembers, loading, navigate, mainSiteSlug }) {
+  return (
+    <Panel testId="panel-team" delay={0.24}>
+      <div className="px-5 py-4">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-semibold text-zinc-800">Team Members</span>
+          <button onClick={() => navigate(`/${mainSiteSlug}/team`)} className="w-7 h-7 rounded-full bg-zinc-100 flex items-center justify-center hover:bg-zinc-200 transition-colors" data-testid="team-search-btn">
+            <Search className="w-3.5 h-3.5 text-zinc-500" />
+          </button>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          {teamMembers.slice(0, 6).map((member, i) => (
+            <div key={member.id || i} className="relative group">
+              {getAvatarUrl(member) ? (
+                <img src={getAvatarUrl(member)} alt={member.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-semibold text-xs border-2 border-white shadow-sm">
+                  {member.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          ))}
+          {teamMembers.length > 6 && <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 text-xs font-bold border-2 border-white">+{teamMembers.length - 6}</div>}
+          {teamMembers.length === 0 && !loading && <p className="text-xs text-zinc-400">No team members yet</p>}
+        </div>
+      </div>
+    </Panel>
   );
 }
