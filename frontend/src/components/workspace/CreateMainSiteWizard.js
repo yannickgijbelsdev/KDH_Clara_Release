@@ -415,7 +415,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !deploying) handleClose(); }}>
-      <DialogContent className="bg-white border-zinc-200 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px]" data-testid="create-wizard-dialog">
+      <DialogContent hideClose className="bg-white border-zinc-200 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="create-wizard-dialog">
         {/* Header with close */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
           <StepIndicator currentStep={step} totalSteps={5} />
@@ -427,7 +427,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
         </div>
 
         {/* Content - scrollable when needed */}
-        <div className="px-8 pb-8 pt-2 overflow-y-auto" style={{ maxHeight: 'calc(92vh - 70px)' }}>
+        <div className="px-8 pt-2 overflow-y-auto flex-1 min-h-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -443,37 +443,37 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               {step === 4 && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} />}
             </motion.div>
           </AnimatePresence>
-
-          {/* Footer actions */}
-          {step < 4 && (
-            <div className="flex items-center justify-between mt-8 pt-5 border-t border-zinc-100">
-              <Button
-                variant="ghost"
-                onClick={() => step === 0 ? handleClose() : setStep(s => s - 1)}
-                className="gap-2 text-zinc-500"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                {step === 0 ? 'Cancel' : 'Back'}
-              </Button>
-              <Button
-                onClick={handleNext}
-                disabled={!canNext()}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full"
-                data-testid="wizard-next-btn"
-              >
-                {step === 3 ? (
-                  <>
-                    <Zap className="w-4 h-4" /> Deploy Server
-                  </>
-                ) : (
-                  <>
-                    Continue <ChevronRight className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
         </div>
+
+        {/* Footer actions - always visible at bottom */}
+        {step < 4 && (
+          <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+            <Button
+              variant="ghost"
+              onClick={() => step === 0 ? handleClose() : setStep(s => s - 1)}
+              className="gap-2 text-zinc-500"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {step === 0 ? 'Cancel' : 'Back'}
+            </Button>
+            <Button
+              onClick={handleNext}
+              disabled={!canNext()}
+              className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full"
+              data-testid="wizard-next-btn"
+            >
+              {step === 3 ? (
+                <>
+                  <Zap className="w-4 h-4" /> Deploy Server
+                </>
+              ) : (
+                <>
+                  Continue <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
