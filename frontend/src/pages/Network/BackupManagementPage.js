@@ -202,9 +202,9 @@ export default function BackupManagementPage() {
   const totalSize = completedBackups.reduce((sum, b) => sum + (b.size_bytes || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#F0F0F2] text-white">
+    <div className="min-h-screen bg-[#F0F0F2] text-zinc-900">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#F0F0F2]/80 backdrop-blur-xl border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#F0F0F2]/80 backdrop-blur-xl border-b border-zinc-200">
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate('/')} data-testid="backup-back-btn">
@@ -248,8 +248,8 @@ export default function BackupManagementPage() {
               onClick={() => setSelectedSite(site)}
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${
                 selectedSite?.id === site.id
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-100 border border-zinc-200'
+                  ? 'bg-orange-600 text-zinc-900'
+                  : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 border border-zinc-200'
               }`}
               data-testid={`site-tab-${site.slug || site.id}`}
             >
@@ -413,7 +413,7 @@ export default function BackupManagementPage() {
       {/* Restore Confirmation Dialog */}
       {showRestoreConfirm && (
         <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4" data-testid="restore-confirm-dialog">
-          <div className="bg-zinc-900 border border-zinc-300 rounded-2xl p-6 max-w-md w-full">
+          <div className="bg-white/80 backdrop-blur border border-zinc-200 rounded-2xl p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-amber-400" />
@@ -449,7 +449,7 @@ export default function BackupManagementPage() {
       {/* Clone Dialog */}
       {showCloneDialog && (
         <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4" data-testid="clone-dialog">
-          <div className="bg-zinc-900 border border-zinc-300 rounded-2xl p-6 max-w-md w-full">
+          <div className="bg-white/80 backdrop-blur border border-zinc-200 rounded-2xl p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
                 <Copy className="w-5 h-5 text-blue-400" />
@@ -464,7 +464,7 @@ export default function BackupManagementPage() {
               type="text"
               value={cloneName}
               onChange={e => setCloneName(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-sm text-white mb-4 focus:outline-none focus:border-orange-500"
+              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 mb-4 focus:outline-none focus:border-orange-500"
               placeholder="e.g. [TEST] Radiogroep MFY/GRK"
               data-testid="clone-name-input"
             />

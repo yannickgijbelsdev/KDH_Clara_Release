@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
-  Layers, Users, Plus, Server, ChevronLeft, ChevronRight, X, Zap
+  Layers, Users, Plus, Server, ChevronLeft, ChevronRight, X, Zap, Pencil, Trash2
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 
@@ -193,7 +193,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
 /* ════════════════════════════════════════════════════
    MAIN VIEW
    ════════════════════════════════════════════════════ */
-export default function ServerRackView({ sites, onCreateSite, environments, selectedEnvId, user }) {
+export default function ServerRackView({ sites, onCreateSite, onEditSite, onDeleteSite, environments, selectedEnvId, user }) {
   const [selectedRack, setSelectedRack] = useState(null);
 
   const envName = environments?.find(e => e.id === selectedEnvId)?.name || 'Production';
@@ -337,6 +337,18 @@ export default function ServerRackView({ sites, onCreateSite, environments, sele
                             <div className="flex-1 min-w-0">
                               <div className="text-sm font-semibold text-zinc-800 group-hover:text-zinc-950 truncate">{site.name}</div>
                               <div className="text-[11px] text-zinc-400">/{site.slug} &middot; {site.user_count || 0} users &middot; {site.site_count || 0} sites</div>
+                            </div>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                              {onEditSite && (
+                                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEditSite(site); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-zinc-100 transition-colors" data-testid={`edit-site-${site.slug}`}>
+                                  <Pencil className="w-3.5 h-3.5 text-zinc-400" />
+                                </button>
+                              )}
+                              {onDeleteSite && (
+                                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDeleteSite(site.id, site.name); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 transition-colors" data-testid={`delete-site-${site.slug}`}>
+                                  <Trash2 className="w-3.5 h-3.5 text-zinc-400 hover:text-red-500" />
+                                </button>
+                              )}
                             </div>
                             <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0" style={{ backgroundColor: `${cfg.color}12`, color: cfg.color }}>{cfg.label}</span>
                           </div>

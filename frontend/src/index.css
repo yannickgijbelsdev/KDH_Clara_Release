@@ -27,6 +27,10 @@
   --radius: 0.75rem;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -34,6 +38,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #F0F0F2;
   color: #18181b;
+  overflow-x: hidden;
+}
+
+#root {
+  overflow-x: hidden;
 }
 
 code {
