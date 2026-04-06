@@ -58,32 +58,23 @@ export const MainSiteProvider = ({ children }) => {
     }
 
     try {
-      const res = await fetch(`${API}/api/main-sites/by-slug/${mainSiteSlug}`, {
-        method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        }
-      });
+      const headers = { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
+
+      // Fetch site data and user access in parallel for speed
+      const [res, accessRes] = await Promise.all([
+        fetch(`${API}/api/main-sites/by-slug/${mainSiteSlug}`, { method: 'GET', headers }),
+        fetch(`${API}/api/main-sites/my/access`, { method: 'GET', headers }),
+      ]);
 
       if (res.ok) {
         const data = await res.json();
-        
-        // IMPORTANT: Update the global site ID BEFORE setting mainSite state
-        // This ensures the interceptor sends the correct ID for any child component API calls
         _currentMainSiteId = data.id;
-        
         setMainSite(data);
         setError(null);
 
-        // Get user's role for this main site
-        const accessRes = await fetch(`${API}/api/main-sites/my/access`, {
-          method: 'GET',
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          }
-        });
         if (accessRes.ok) {
           const accessData = await accessRes.json();
           const siteAccess = accessData.main_sites?.find(s => s.slug === mainSiteSlug);
@@ -94,12 +85,10 @@ export const MainSiteProvider = ({ children }) => {
         _currentMainSiteId = null;
         setMainSite(null);
       } else if (res.status === 401) {
-        // Token expired or invalid, redirect to login
         setError('Session expired');
         _currentMainSiteId = null;
         setMainSite(null);
       } else if (res.status === 403) {
-        // Check if account is blocked
         try {
           const errData = await res.json();
           setError(errData.detail || 'Access denied');
