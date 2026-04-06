@@ -10,6 +10,8 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 
+import WizardStepIndicator from './WizardStepIndicator';
+
 const API = process.env.REACT_APP_BACKEND_URL;
 
 /* ── Background images per type ── */
@@ -31,26 +33,7 @@ const SITE_TYPES = [
   { id: 'wp_security',    icon: Shield,      label: 'WP Security',       desc: 'WordPress firewall & security scanning',    color: '#ef4444', features: ['wp_security', 'team_settings'] },
 ];
 
-const STEP_LABELS = ['Environment', 'Details', 'Admin', 'Security', 'Deploying'];
-
-/* ── Step indicator ── */
-const StepIndicator = ({ currentStep, totalSteps }) => (
-  <div className="flex items-center gap-2 mb-8">
-    {STEP_LABELS.map((label, i) => (
-      <div key={i} className="flex items-center gap-2">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-          i < currentStep ? 'bg-emerald-500 text-white' :
-          i === currentStep ? 'bg-zinc-900 text-white ring-4 ring-zinc-900/10' :
-          'bg-zinc-100 text-zinc-400'
-        }`}>
-          {i < currentStep ? <Check className="w-4 h-4" /> : i + 1}
-        </div>
-        <span className={`text-xs font-medium hidden sm:inline ${i === currentStep ? 'text-zinc-900' : 'text-zinc-400'}`}>{label}</span>
-        {i < totalSteps - 1 && <div className={`w-8 h-px ${i < currentStep ? 'bg-emerald-500' : 'bg-zinc-200'}`} />}
-      </div>
-    ))}
-  </div>
-);
+const MAIN_SITE_STEPS = ['Environment', 'Details', 'Admin', 'Security', 'Deploying'];
 
 /* ── Step 1: Choose Environment ── */
 const StepEnvironment = ({ selected, onSelect }) => (
@@ -452,7 +435,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       <DialogContent hideClose className="bg-white border-zinc-200 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="create-wizard-dialog">
         {/* Header with close */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
-          <StepIndicator currentStep={step} totalSteps={5} />
+          <WizardStepIndicator currentStep={step} steps={MAIN_SITE_STEPS} />
           {!deploying && (
             <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
               <X className="w-4 h-4 text-zinc-400" />

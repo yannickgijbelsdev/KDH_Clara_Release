@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format, addWeeks } from 'date-fns';
-import { CalendarIcon, Repeat, Plus, Loader2, Users, User, Check } from 'lucide-react';
+import { CalendarIcon, Repeat, Plus, Loader2, Users, User, Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -25,6 +23,7 @@ import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { getAvatarUrl } from '../utils/avatar';
+import WizardStepIndicator from './workspace/WizardStepIndicator';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -36,9 +35,12 @@ const recurrenceOptions = [
   { value: 'weekly-4', label: 'Every 4 weeks', interval: 4 },
 ];
 
+const SHOW_STEPS = ['Show Info', 'Schedule', 'Team & Status'];
+
 const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) => {
   const { isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [wizardStep, setWizardStep] = useState(0);
   const [date, setDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showTitles, setShowTitles] = useState([]);
@@ -105,6 +107,9 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
   useEffect(() => {
     if (open && defaultDate) {
       setDate(defaultDate);
+    }
+    if (open) {
+      setWizardStep(0);
     }
   }, [open, defaultDate]);
 

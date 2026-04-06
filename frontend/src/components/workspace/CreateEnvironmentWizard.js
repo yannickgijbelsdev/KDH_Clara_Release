@@ -9,20 +9,13 @@ import {
   Globe, Shield, Users, Crown
 } from 'lucide-react';
 import { toast } from 'sonner';
+import WizardStepIndicator from './WizardStepIndicator';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DEFAULT_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
+const ENV_STEPS = ['General', 'Settings', 'Admin', 'Deploying'];
 
-/* ── Step Indicator ── */
-const StepIndicator = ({ currentStep, totalSteps }) => (
-  <div className="flex items-center gap-1.5">
-    {Array.from({ length: totalSteps }, (_, i) => (
-      <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${
-        i <= currentStep ? 'w-6 bg-blue-500' : 'w-3 bg-zinc-200'
-      }`} />
-    ))}
-  </div>
-);
+const ENV_STEPS_LABELS = ENV_STEPS; // reference
 
 /* ── Deploy Step ── */
 const DeployStep = ({ label, status, delay }) => (
@@ -364,7 +357,7 @@ export default function CreateEnvironmentWizard({ open, onClose, onCreated, toke
       <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="create-env-wizard">
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
-          <StepIndicator currentStep={step} totalSteps={4} />
+          <WizardStepIndicator currentStep={step} steps={ENV_STEPS} />
           {!deploying && (
             <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
               <X className="w-4 h-4 text-zinc-400" />
