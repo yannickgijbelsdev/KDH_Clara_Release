@@ -58,6 +58,7 @@ import { WorkspaceCanvas } from '../../components/workspace/WorkspaceCanvas';
 import { CanvasPanel } from '../../components/workspace/CanvasPanel';
 import ServerRackView from '../../components/workspace/ServerRackView';
 import CreateMainSiteWizard from '../../components/workspace/CreateMainSiteWizard';
+import EditMainSiteWizard from '../../components/workspace/EditMainSiteWizard';
 import EnvironmentManager from './EnvironmentManager';
 import { useNavigate } from 'react-router-dom';
 import { getAvatarUrl } from '../../utils/avatar';
@@ -1174,82 +1175,27 @@ export default function NetworkDashboard() {
           )}
           </WorkspaceCanvas>
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={showCreateDialog || !!editingSite} onOpenChange={(open) => {
+      {/* Edit Site Wizard */}
+      <EditMainSiteWizard
+        open={!!editingSite}
+        onClose={() => setEditingSite(null)}
+        site={editingSite}
+        onUpdated={fetchMainSites}
+      />
+
+      {/* Create Dialog (old fallback - kept for non-wizard create) */}
+      <Dialog open={showCreateDialog} onOpenChange={(open) => {
         if (!open) {
           setShowCreateDialog(false);
-          setEditingSite(null);
           setCreateStep(0);
           setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
         }
       }}>
         <DialogContent className="bg-white border-zinc-200 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingSite ? 'Edit Main Site' : 'Create Main Site'}</DialogTitle>
+            <DialogTitle>Create Main Site</DialogTitle>
           </DialogHeader>
 
-          {editingSite ? (
-            /* Edit mode: name/slug/logo form */
-            <div className="space-y-4 py-2">
-              {/* Logo upload */}
-              <div className="space-y-2">
-                <Label>Custom Logo</Label>
-                <div className="flex items-center gap-4">
-                  {formData.logo_url ? (
-                    <img src={formData.logo_url.startsWith('/') ? `${API}${formData.logo_url}` : formData.logo_url} alt="Logo" className="w-14 h-14 rounded-xl object-cover border border-zinc-200 bg-zinc-50" />
-                  ) : (
-                    <div className="w-14 h-14 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-400 text-xs">No logo</div>
-                  )}
-                  <div>
-                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl text-sm text-zinc-700 font-medium transition-colors">
-                      <Upload className="w-4 h-4" />
-                      Upload logo
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const fd = new FormData();
-                          fd.append('file', file);
-                          try {
-                            const res = await fetch(`${API}/api/main-sites/${editingSite.id}/logo`, {
-                              method: 'POST',
-                              headers: { Authorization: `Bearer ${token}` },
-                              body: fd,
-                            });
-                            if (res.ok) {
-                              const data = await res.json();
-                              setFormData(prev => ({ ...prev, logo_url: data.logo_url }));
-                            }
-                          } catch (err) { console.error('Logo upload failed:', err); }
-                        }}
-                      />
-                    </label>
-                    {formData.logo_url && (
-                      <button onClick={() => setFormData(prev => ({ ...prev, logo_url: '' }))} className="ml-2 text-xs text-red-500 hover:underline">Remove</button>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Site name" className="bg-zinc-50 border-zinc-200" />
-              </div>
-              <div className="space-y-2">
-                <Label>URL Slug</Label>
-                <div className="flex items-center gap-1">
-                  <span className="text-zinc-500 text-sm">/</span>
-                  <Input value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })} className="bg-zinc-50 border-zinc-200 font-mono" />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => { setEditingSite(null); setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' }); }}>Cancel</Button>
-                <Button onClick={handleUpdateSite}>Save Changes</Button>
-              </DialogFooter>
-            </div>
-          ) : (
             /* Create wizard */
             <div className="space-y-4 py-2">
               {/* Step indicator */}
@@ -1376,7 +1322,6 @@ export default function NetworkDashboard() {
                 </div>
               )}
             </div>
-          )}
         </DialogContent>
       </Dialog>
 
