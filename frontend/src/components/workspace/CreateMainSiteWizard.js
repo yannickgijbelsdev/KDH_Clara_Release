@@ -71,7 +71,7 @@ const StepEnvironment = ({ selected, onSelect }) => (
             }`}
           >
             {/* Background preview */}
-            <div className="h-28 relative overflow-hidden bg-zinc-100">
+            <div className="h-20 relative overflow-hidden bg-zinc-100">
               <img
                 src={SITE_TYPE_BACKGROUNDS[type.id]}
                 alt=""
@@ -415,9 +415,9 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !deploying) handleClose(); }}>
-      <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[92vh] overflow-y-auto p-0 rounded-[24px]" data-testid="create-wizard-dialog">
+      <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[90vh] overflow-hidden p-0 rounded-[24px]" data-testid="create-wizard-dialog">
         {/* Header with close */}
-        <div className="flex items-center justify-between px-8 pt-6 pb-0">
+        <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
           <StepIndicator currentStep={step} totalSteps={5} />
           {!deploying && (
             <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors -mt-4">
@@ -426,8 +426,8 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
           )}
         </div>
 
-        {/* Content */}
-        <div className="px-8 pb-8 pt-2">
+        {/* Content - scrollable */}
+        <div className="px-8 pb-8 pt-2 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={step}

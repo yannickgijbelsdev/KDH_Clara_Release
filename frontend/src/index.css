@@ -41,6 +41,11 @@ body {
   overflow-x: hidden;
 }
 
+/* Hide body scroll when any Radix dialog is open */
+body[data-scroll-locked] {
+  overflow: hidden !important;
+}
+
 #root {
   overflow-x: hidden;
 }

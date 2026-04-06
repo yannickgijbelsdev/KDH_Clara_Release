@@ -182,7 +182,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose?.()}>
-      <DialogContent className="sm:max-w-xl bg-white border-zinc-200 p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto" data-testid="edit-site-wizard">
+      <DialogContent className="sm:max-w-xl bg-white border-zinc-200 p-0 overflow-hidden rounded-2xl shadow-2xl max-h-[90vh]" data-testid="edit-site-wizard">
         <DialogTitle className="sr-only">Edit {site?.name}</DialogTitle>
         {/* Step indicator */}
         <div className="flex items-center border-b border-zinc-100 px-6 pt-5 pb-4 gap-1">
