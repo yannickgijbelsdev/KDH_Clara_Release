@@ -24,6 +24,10 @@ import {
   FileCheck,
   ShieldAlert,
   CircleDot,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Zap,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -62,6 +66,8 @@ import {
 } from '../components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { getAvatarUrl } from '../utils/avatar';
+import { AnimatePresence, motion } from 'framer-motion';
+import WizardStepIndicator from '../components/workspace/WizardStepIndicator';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -715,84 +721,85 @@ const TeamSettingsPage = () => {
 
       {/* Invite User Dialog */}
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Invite User</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Add a new team member. They&apos;ll receive a temporary password.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="invite-user-wizard">
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+            <WizardStepIndicator currentStep={0} steps={['User Info', 'Role']} />
+            <button onClick={() => setInviteDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          </div>
 
-          <form onSubmit={handleInviteUser} className="space-y-5 mt-4">
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Name</Label>
-              <Input
-                data-testid="invite-name-input"
-                value={inviteData.name}
-                onChange={(e) => setInviteData({ ...inviteData, name: e.target.value })}
-                placeholder="John Doe"
-                required
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
-              />
+          <form onSubmit={handleInviteUser} className="flex flex-col flex-1 min-h-0">
+            <div className="px-8 pt-4 pb-2 overflow-y-auto flex-1">
+              <h2 className="text-2xl font-bold text-zinc-900 mb-1">Invite new member</h2>
+              <p className="text-sm text-zinc-500 mb-6">Add a new team member. They'll receive a temporary password.</p>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Name</Label>
+                  <Input
+                    data-testid="invite-name-input"
+                    value={inviteData.name}
+                    onChange={(e) => setInviteData({ ...inviteData, name: e.target.value })}
+                    placeholder="John Doe"
+                    required
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Email</Label>
+                  <Input
+                    data-testid="invite-email-input"
+                    type="email"
+                    value={inviteData.email}
+                    onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
+                    placeholder="john@example.com"
+                    required
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Role</Label>
+                  <div className="space-y-2">
+                    {availableRoles.map((role) => {
+                      const Icon = getRoleIcon(role.slug);
+                      const isActive = inviteData.role === role.slug;
+                      return (
+                        <button
+                          key={role.slug}
+                          type="button"
+                          onClick={() => setInviteData({ ...inviteData, role: role.slug })}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                            isActive ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300'
+                          }`}
+                        >
+                          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isActive ? 'bg-zinc-900' : 'bg-zinc-100'}`}>
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-zinc-400'}`} style={isActive ? {} : { color: role.color }} />
+                          </div>
+                          <div className="flex-1">
+                            <span className={`text-sm font-semibold ${isActive ? 'text-zinc-900' : 'text-zinc-600'}`}>{role.name}</span>
+                            {role.description && <p className="text-xs text-zinc-400">{role.description}</p>}
+                          </div>
+                          {isActive && <Check className="w-4 h-4 text-zinc-900" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Email</Label>
-              <Input
-                data-testid="invite-email-input"
-                type="email"
-                value={inviteData.email}
-                onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
-                placeholder="john@example.com"
-                required
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Role</Label>
-              <Select
-                value={inviteData.role}
-                onValueChange={(value) => setInviteData({ ...inviteData, role: value })}
-              >
-                <SelectTrigger
-                  data-testid="invite-role-select"
-                  className="bg-zinc-100 border-zinc-300 text-white"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-zinc-100 border-zinc-200">
-                  {availableRoles.map((role) => {
-                    const Icon = getRoleIcon(role.slug);
-                    return (
-                      <SelectItem key={role.slug} value={role.slug} className="text-zinc-600 focus:text-white focus:bg-zinc-800">
-                        <div className="flex items-center gap-2">
-                          <Icon className="w-4 h-4" style={{ color: role.color }} />
-                          {role.name}{role.description ? ` - ${role.description}` : ''}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setInviteDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-              >
-                Cancel
+            {/* Footer */}
+            <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setInviteDialogOpen(false)} className="gap-2 text-zinc-500">
+                <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
-              <Button
-                type="submit"
-                data-testid="submit-invite-btn"
-                disabled={inviting}
-                className="flex-1 bg-violet-500 hover:bg-violet-600 text-white"
-              >
-                {inviting ? 'Inviting...' : 'Send Invite'}
+              <Button type="submit" data-testid="submit-invite-btn" disabled={inviting}
+                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                {inviting ? <><Loader2 className="w-4 h-4 animate-spin" /> Inviting...</> : <><Zap className="w-4 h-4" /> Send Invite</>}
               </Button>
             </div>
           </form>
@@ -801,182 +808,160 @@ const TeamSettingsPage = () => {
 
       {/* Add Existing User Dialog */}
       <Dialog open={addExistingUserDialogOpen} onOpenChange={setAddExistingUserDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2">
-              <ArrowLeftRight className="w-5 h-5 text-violet-400" />
-              Add Existing User
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Add a user from another main site to {mainSite?.name}.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="add-existing-user-wizard">
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+            <WizardStepIndicator currentStep={selectedExistingUser ? 1 : 0} steps={['Search', 'Role & Confirm']} />
+            <button onClick={() => { setAddExistingUserDialogOpen(false); setSelectedExistingUser(null); setUserSearchQuery(''); setAvailableUsers([]); }}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          </div>
 
-          <div className="mt-4 space-y-4">
-            {/* Search */}
-            <div>
-              <Label className="text-zinc-600 mb-2 block">Search Users</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Search by name or email..."
-                  value={userSearchQuery}
-                  onChange={(e) => setUserSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && searchAvailableUsers(userSearchQuery)}
-                  className="bg-zinc-100 border-zinc-300 text-white"
-                />
-                <Button
-                  onClick={() => searchAvailableUsers(userSearchQuery)}
-                  disabled={searchingUsers}
-                  className="bg-zinc-200 hover:bg-zinc-200"
-                >
-                  {searchingUsers ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
-                </Button>
-              </div>
-            </div>
+          <div className="px-8 pt-4 pb-2 overflow-y-auto flex-1 min-h-0">
+            <h2 className="text-2xl font-bold text-zinc-900 mb-1">Add existing user</h2>
+            <p className="text-sm text-zinc-500 mb-6">Add a user from another main site to {mainSite?.name}.</p>
 
-            {/* Available Users List */}
-            <div className="max-h-64 overflow-y-auto space-y-2">
-              {availableUsers.length === 0 && !searchingUsers && (
-                <p className="text-zinc-500 text-sm text-center py-4">
-                  {userSearchQuery ? 'No users found' : 'Search for users to add'}
-                </p>
-              )}
-              {availableUsers.map((availableUser) => (
-                <div
-                  key={availableUser.id}
-                  onClick={() => setSelectedExistingUser(availableUser)}
-                  className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedExistingUser?.id === availableUser.id
-                      ? 'bg-violet-500/20 border border-violet-500/50'
-                      : 'bg-zinc-100 hover:bg-zinc-200'
-                  }`}
-                >
-                  <div>
-                    <p className="text-white font-medium">{availableUser.name}</p>
-                    <p className="text-sm text-zinc-500">{availableUser.email}</p>
-                    {availableUser.other_main_sites?.length > 0 && (
-                      <p className="text-xs text-zinc-600 mt-1">
-                        Also in: {availableUser.other_main_sites.join(', ')}
-                      </p>
-                    )}
-                  </div>
-                  {selectedExistingUser?.id === availableUser.id && (
-                    <Check className="w-5 h-5 text-violet-400" />
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Role Selection */}
-            {selectedExistingUser && (
+            <div className="space-y-4">
+              {/* Search */}
               <div>
-                <Label className="text-zinc-600 mb-2 block">
-                  Role for {selectedExistingUser.name}
-                </Label>
-                <Select value={existingUserRole} onValueChange={setExistingUserRole}>
-                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                <Label className="text-zinc-700 font-medium mb-2 block">Search Users</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Search by name or email..."
+                    value={userSearchQuery}
+                    onChange={(e) => setUserSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && searchAvailableUsers(userSearchQuery)}
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
+                  />
+                  <Button onClick={() => searchAvailableUsers(userSearchQuery)} disabled={searchingUsers}
+                    className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl h-12">
+                    {searchingUsers ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Available Users List */}
+              <div className="max-h-52 overflow-y-auto space-y-1.5">
+                {availableUsers.length === 0 && !searchingUsers && (
+                  <p className="text-zinc-400 text-sm text-center py-4">
+                    {userSearchQuery ? 'No users found' : 'Search for users to add'}
+                  </p>
+                )}
+                {availableUsers.map((availableUser) => (
+                  <button key={availableUser.id} type="button"
+                    onClick={() => setSelectedExistingUser(availableUser)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                      selectedExistingUser?.id === availableUser.id
+                        ? 'border-zinc-900 bg-zinc-50'
+                        : 'border-zinc-200 hover:border-zinc-300'
+                    }`}>
+                    <div className="w-9 h-9 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 font-semibold text-xs">
+                      {availableUser.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-zinc-900">{availableUser.name}</p>
+                      <p className="text-xs text-zinc-400 truncate">{availableUser.email}</p>
+                      {availableUser.other_main_sites?.length > 0 && (
+                        <p className="text-xs text-zinc-400 mt-0.5">Also in: {availableUser.other_main_sites.join(', ')}</p>
+                      )}
+                    </div>
+                    {selectedExistingUser?.id === availableUser.id && <Check className="w-4 h-4 text-zinc-900 flex-shrink-0" />}
+                  </button>
+                ))}
+              </div>
+
+              {/* Role Selection */}
+              {selectedExistingUser && (
+                <div>
+                  <Label className="text-zinc-700 font-medium mb-2 block">
+                    Role for {selectedExistingUser.name}
+                  </Label>
+                  <div className="space-y-1.5">
                     {availableRoles.map((role) => {
                       const Icon = getRoleIcon(role.slug);
+                      const isActive = existingUserRole === role.slug;
                       return (
-                        <SelectItem key={role.slug} value={role.slug} className="text-zinc-600">
-                          <div className="flex items-center gap-2">
-                            <Icon className="w-4 h-4" style={{ color: role.color }} />
-                            {role.name}
+                        <button key={role.slug} type="button" onClick={() => setExistingUserRole(role.slug)}
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                            isActive ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300'
+                          }`}>
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? 'bg-zinc-900' : 'bg-zinc-100'}`}>
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-zinc-400'}`} style={isActive ? {} : { color: role.color }} />
                           </div>
-                        </SelectItem>
+                          <span className={`text-sm font-medium ${isActive ? 'text-zinc-900' : 'text-zinc-600'}`}>{role.name}</span>
+                          {isActive && <Check className="w-4 h-4 text-zinc-900 ml-auto" />}
+                        </button>
                       );
                     })}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setAddExistingUserDialogOpen(false);
-                  setSelectedExistingUser(null);
-                  setUserSearchQuery('');
-                  setAvailableUsers([]);
-                }}
-                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleAddExistingUser}
-                disabled={!selectedExistingUser || addingExistingUser}
-                className="flex-1 bg-violet-500 hover:bg-violet-600 text-white"
-              >
-                {addingExistingUser ? 'Adding...' : 'Add User'}
-              </Button>
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+            <Button variant="ghost" onClick={() => { setAddExistingUserDialogOpen(false); setSelectedExistingUser(null); setUserSearchQuery(''); setAvailableUsers([]); }}
+              className="gap-2 text-zinc-500">
+              <ChevronLeft className="w-4 h-4" /> Cancel
+            </Button>
+            <Button onClick={handleAddExistingUser} disabled={!selectedExistingUser || addingExistingUser}
+              className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+              {addingExistingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Adding...</> : <><Zap className="w-4 h-4" /> Add User</>}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Temporary Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">User Invited!</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Share this temporary password with the new user. They should change it after first login.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="mt-4">
-            <Label className="text-zinc-600 mb-2 block">Temporary Password</Label>
-            <div className="flex items-center gap-2">
-              <Input
-                value={tempPassword}
-                readOnly
-                className="bg-zinc-100 border-zinc-300 text-white font-mono"
-              />
-              <Button
-                onClick={() => copyToClipboard(tempPassword)}
-                className="bg-zinc-200 hover:bg-zinc-200"
-              >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              </Button>
-            </div>
-            <p className="text-xs text-zinc-500 mt-2">
-              The user can log in with their email and this password.
-            </p>
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-md max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="temp-password-dialog">
+          <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+            <h2 className="text-lg font-bold text-zinc-900">User Invited!</h2>
+            <button onClick={() => { setPasswordDialogOpen(false); setTempPassword(''); }}
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
           </div>
 
-          <Button
-            onClick={() => {
-              setPasswordDialogOpen(false);
-              setTempPassword('');
-            }}
-            className="w-full mt-4 bg-violet-500 hover:bg-violet-600 text-white"
-          >
-            Done
-          </Button>
+          <div className="px-8 pt-4 pb-2 flex-1">
+            <p className="text-sm text-zinc-500 mb-6">Share this temporary password with the new user. They should change it after first login.</p>
+            <div className="space-y-3">
+              <Label className="text-zinc-700 font-medium">Temporary Password</Label>
+              <div className="flex items-center gap-2">
+                <Input value={tempPassword} readOnly className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 font-mono rounded-xl" />
+                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl">
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-zinc-400">The user can log in with their email and this password.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+            <Button onClick={() => { setPasswordDialogOpen(false); setTempPassword(''); }}
+              className="bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">Done</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Delete User Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
+        <AlertDialogContent className="bg-white border-zinc-200 rounded-[24px]">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Remove User</AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400">
+            <AlertDialogTitle className="text-zinc-900">Remove User</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-500">
               Are you sure you want to remove {selectedUser?.name} from the team? They will lose access to all team shows.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900">
+            <AlertDialogCancel className="bg-transparent border-zinc-200 text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 rounded-full">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRemoveUser}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-red-500 hover:bg-red-600 text-white rounded-full"
             >
               Remove
             </AlertDialogAction>
@@ -986,106 +971,100 @@ const TeamSettingsPage = () => {
 
       {/* Edit User Dialog */}
       <Dialog open={editUserDialogOpen} onOpenChange={setEditUserDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Edit User</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Update user profile information.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="edit-user-wizard">
+          <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+            <WizardStepIndicator currentStep={0} steps={['Profile Info']} />
+            <button onClick={() => setEditUserDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          </div>
 
-          <form onSubmit={handleUpdateUser} className="space-y-5 mt-4">
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Display Name</Label>
-              <Input
-                data-testid="edit-user-name-input"
-                value={editUserData.name}
-                onChange={(e) => setEditUserData({ ...editUserData, name: e.target.value })}
-                placeholder="John Doe"
-                required
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
-              />
+          <form onSubmit={handleUpdateUser} className="flex flex-col flex-1 min-h-0">
+            <div className="px-8 pt-4 pb-2 overflow-y-auto flex-1">
+              <h2 className="text-2xl font-bold text-zinc-900 mb-1">Edit user</h2>
+              <p className="text-sm text-zinc-500 mb-6">Update user profile information.</p>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Display Name</Label>
+                  <Input
+                    data-testid="edit-user-name-input"
+                    value={editUserData.name}
+                    onChange={(e) => setEditUserData({ ...editUserData, name: e.target.value })}
+                    placeholder="John Doe"
+                    required
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Email Address</Label>
+                  <Input
+                    data-testid="edit-user-email-input"
+                    type="email"
+                    value={editUserData.email}
+                    onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
+                    placeholder="john@example.com"
+                    required
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Email Address</Label>
-              <Input
-                data-testid="edit-user-email-input"
-                type="email"
-                value={editUserData.email}
-                onChange={(e) => setEditUserData({ ...editUserData, email: e.target.value })}
-                placeholder="john@example.com"
-                required
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
-              />
+            <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setEditUserDialogOpen(false)} className="gap-2 text-zinc-500">
+                <ChevronLeft className="w-4 h-4" /> Cancel
+              </Button>
+              <Button type="submit" data-testid="save-user-btn" disabled={savingUser}
+                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                {savingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> Save Changes</>}
+              </Button>
             </div>
-
-            <DialogFooter className="gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setEditUserDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                data-testid="save-user-btn"
-                disabled={savingUser}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                {savingUser ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* Reset Password Dialog */}
       <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Reset Password</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Set a new password for {editingUser?.name}.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-md max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="reset-password-wizard">
+          <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+            <WizardStepIndicator currentStep={0} steps={['New Password']} />
+            <button onClick={() => setResetPasswordDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          </div>
 
-          <form onSubmit={handleResetPassword} className="space-y-5 mt-4">
-            <div className="space-y-2">
-              <Label className="text-zinc-600">New Password</Label>
-              <Input
-                data-testid="reset-password-input"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-                required
-                minLength={6}
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
-              />
-              <p className="text-xs text-zinc-500">Minimum 6 characters</p>
+          <form onSubmit={handleResetPassword} className="flex flex-col flex-1 min-h-0">
+            <div className="px-8 pt-4 pb-2 overflow-y-auto flex-1">
+              <h2 className="text-2xl font-bold text-zinc-900 mb-1">Reset password</h2>
+              <p className="text-sm text-zinc-500 mb-6">Set a new password for {editingUser?.name}.</p>
+
+              <div className="space-y-2">
+                <Label className="text-zinc-700 font-medium">New Password</Label>
+                <Input
+                  data-testid="reset-password-input"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  required
+                  minLength={6}
+                  className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
+                />
+                <p className="text-xs text-zinc-400">Minimum 6 characters</p>
+              </div>
             </div>
 
-            <DialogFooter className="gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setResetPasswordDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-              >
-                Cancel
+            <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setResetPasswordDialogOpen(false)} className="gap-2 text-zinc-500">
+                <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
-              <Button
-                type="submit"
-                data-testid="confirm-reset-password-btn"
-                disabled={resettingPassword}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                {resettingPassword ? 'Resetting...' : 'Reset Password'}
+              <Button type="submit" data-testid="confirm-reset-password-btn" disabled={resettingPassword}
+                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                {resettingPassword ? <><Loader2 className="w-4 h-4 animate-spin" /> Resetting...</> : <><Zap className="w-4 h-4" /> Reset Password</>}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

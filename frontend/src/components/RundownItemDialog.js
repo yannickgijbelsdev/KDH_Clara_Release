@@ -1,32 +1,25 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
+  Music, Mic, FileText, Radio, Clock, Wand2,
+  ChevronLeft, ChevronRight, X, Zap, Loader2
+} from 'lucide-react';
+import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
 import { toast } from 'sonner';
-import { Music, Mic, FileText, Radio, Clock, Wand2 } from 'lucide-react';
+import WizardStepIndicator from './workspace/WizardStepIndicator';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const itemTypes = [
-  { value: 'music', label: 'Music', icon: Music },
-  { value: 'talk', label: 'Talk', icon: Mic },
-  { value: 'item', label: 'Item', icon: FileText },
-  { value: 'ad', label: 'Ad', icon: Radio },
+  { value: 'music', label: 'Music', icon: Music, desc: 'Song or jingle' },
+  { value: 'talk', label: 'Talk', icon: Mic, desc: 'Spoken segment' },
+  { value: 'item', label: 'Item', icon: FileText, desc: 'Generic rundown item' },
+  { value: 'ad', label: 'Ad', icon: Radio, desc: 'Advertisement break' },
 ];
 
 const WORDS_PER_MINUTE = 150;
@@ -40,8 +33,11 @@ const calculateSpeakingDuration = (text) => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
+const ITEM_STEPS = ['Item Info', 'Details'];
+
 const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, sendWsMessage }) => {
   const [loading, setLoading] = useState(false);
+  const [wizardStep, setWizardStep] = useState(0);
   const [formData, setFormData] = useState({
     type: 'music',
     title: '',
@@ -60,16 +56,11 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
         duration: editingItem.duration || '',
       });
     } else {
-      setFormData({
-        type: 'music',
-        title: '',
-        notes: '',
-        duration: '',
-      });
+      setFormData({ type: 'music', title: '', notes: '', duration: '' });
     }
+    if (open) setWizardStep(0);
   }, [editingItem, open]);
 
-  // Send editing_start when dialog opens for an existing item
   useEffect(() => {
     if (open && editingItem && sendWsMessage && !editingStartedRef.current) {
       editingStartedRef.current = true;
@@ -83,17 +74,11 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
     }
   }, [open, editingItem, sendWsMessage]);
 
-  // Throttled broadcast of field changes
   const broadcastChange = useCallback((field, value) => {
     if (!editingItem || !sendWsMessage) return;
     if (throttleRef.current) clearTimeout(throttleRef.current);
     throttleRef.current = setTimeout(() => {
-      sendWsMessage({
-        type: 'editing_update',
-        item_id: editingItem.id,
-        field,
-        value
-      });
+      sendWsMessage({ type: 'editing_update', item_id: editingItem.id, field, value });
     }, 150);
   }, [editingItem, sendWsMessage]);
 
@@ -119,21 +104,15 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
-
     try {
       let response;
       if (editingItem) {
-        response = await axios.put(
-          `${API}/shows/${showId}/rundown/${editingItem.id}`,
-          formData
-        );
+        response = await axios.put(`${API}/shows/${showId}/rundown/${editingItem.id}`, formData);
       } else {
         response = await axios.post(`${API}/shows/${showId}/rundown`, formData);
       }
-      // Send editing_end before closing
       if (editingItem && sendWsMessage) {
         sendWsMessage({ type: 'editing_end', item_id: editingItem.id });
         editingStartedRef.current = false;
@@ -152,134 +131,173 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
       sendWsMessage({ type: 'editing_end', item_id: editingItem.id });
       editingStartedRef.current = false;
     }
+    setWizardStep(0);
     onOpenChange(isOpen);
+  };
+
+  const canNext = () => {
+    if (wizardStep === 0) return formData.title.trim().length > 0;
+    return true;
+  };
+
+  const handleNext = () => {
+    if (wizardStep === 1) {
+      handleSubmit();
+    } else {
+      setWizardStep(s => s + 1);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[450px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            {editingItem ? 'Edit Item' : 'Add Rundown Item'}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="rundown-item-wizard">
+        {/* Header */}
+        <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+          <WizardStepIndicator currentStep={wizardStep} steps={ITEM_STEPS} />
+          <button onClick={() => handleClose(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+            <X className="w-4 h-4 text-zinc-400" />
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
-          <div className="space-y-2">
-            <Label className="text-zinc-600">Type</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) => handleFieldChange('type', value)}
+        {/* Content */}
+        <div className="px-8 pt-4 pb-2 overflow-y-auto flex-1 min-h-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={wizardStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25 }}
             >
-              <SelectTrigger
-                data-testid="item-type-select"
-                className="bg-white border-zinc-300 text-zinc-900"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-100 border-zinc-200">
-                {itemTypes.map((type) => {
-                  const Icon = type.icon;
-                  return (
-                    <SelectItem
-                      key={type.value}
-                      value={type.value}
-                      className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Icon className="w-4 h-4" />
-                        {type.label}
+              {/* Step 0: Item Info */}
+              {wizardStep === 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-zinc-900 mb-1">
+                    {editingItem ? 'Edit item' : 'New rundown item'}
+                  </h2>
+                  <p className="text-sm text-zinc-500 mb-6">Choose the type and give it a name.</p>
+
+                  <div className="space-y-5">
+                    {/* Type cards */}
+                    <div className="space-y-2">
+                      <Label className="text-zinc-700 font-medium">Type</Label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {itemTypes.map(type => {
+                          const Icon = type.icon;
+                          const isActive = formData.type === type.value;
+                          return (
+                            <button key={type.value} type="button"
+                              onClick={() => handleFieldChange('type', type.value)}
+                              data-testid={`item-type-${type.value}`}
+                              className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                                isActive ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300'
+                              }`}>
+                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${isActive ? 'bg-zinc-900' : 'bg-zinc-100'}`}>
+                                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-zinc-400'}`} />
+                              </div>
+                              <span className={`text-sm font-semibold ${isActive ? 'text-zinc-900' : 'text-zinc-600'}`}>{type.label}</span>
+                              <p className="text-xs text-zinc-400 mt-0.5">{type.desc}</p>
+                            </button>
+                          );
+                        })}
                       </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
+                    </div>
 
-          <div className="space-y-2">
-            <Label className="text-zinc-600">Title</Label>
-            <Input
-              data-testid="item-title-input"
-              value={formData.title}
-              onChange={(e) => handleFieldChange('title', e.target.value)}
-              placeholder="Enter title..."
-              required
-              className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-zinc-600">Notes (optional)</Label>
-              {wordCount > 0 && (
-                <span className="text-xs text-zinc-500">
-                  {wordCount} words
-                </span>
-              )}
-            </div>
-            <Textarea
-              data-testid="item-notes-input"
-              value={formData.notes}
-              onChange={(e) => handleFieldChange('notes', e.target.value)}
-              placeholder="Additional notes or script text..."
-              className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 resize-none"
-              rows={4}
-            />
-            {estimatedDuration && (
-              <div className="flex items-center justify-between p-2 bg-violet-500/10 border border-violet-500/30 rounded-lg">
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="w-4 h-4 text-violet-400" />
-                  <span className="text-zinc-600">
-                    Estimated speaking time: <span className="font-mono text-violet-400">{estimatedDuration}</span>
-                  </span>
-                  <span className="text-zinc-500 text-xs">({WORDS_PER_MINUTE} wpm)</span>
+                    {/* Title */}
+                    <div className="space-y-2">
+                      <Label className="text-zinc-700 font-medium">Title</Label>
+                      <Input
+                        data-testid="item-title-input"
+                        value={formData.title}
+                        onChange={(e) => handleFieldChange('title', e.target.value)}
+                        placeholder="Enter title..."
+                        className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
                 </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  data-testid="apply-duration-btn"
-                  onClick={applyEstimatedDuration}
-                  className="h-7 px-2 bg-violet-500 hover:bg-violet-600 text-white text-xs gap-1"
-                >
-                  <Wand2 className="w-3 h-3" />
-                  Apply
-                </Button>
-              </div>
+              )}
+
+              {/* Step 1: Details */}
+              {wizardStep === 1 && (
+                <div>
+                  <h2 className="text-2xl font-bold text-zinc-900 mb-1">Details</h2>
+                  <p className="text-sm text-zinc-500 mb-6">Add notes and duration for this item.</p>
+
+                  <div className="space-y-5">
+                    {/* Notes */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-zinc-700 font-medium">Notes (optional)</Label>
+                        {wordCount > 0 && (
+                          <span className="text-xs text-zinc-500">{wordCount} words</span>
+                        )}
+                      </div>
+                      <Textarea
+                        data-testid="item-notes-input"
+                        value={formData.notes}
+                        onChange={(e) => handleFieldChange('notes', e.target.value)}
+                        placeholder="Additional notes or script text..."
+                        className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 resize-none rounded-xl"
+                        rows={5}
+                      />
+                      {estimatedDuration && (
+                        <div className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="w-4 h-4 text-zinc-400" />
+                            <span className="text-zinc-600">
+                              Estimated: <span className="font-mono font-semibold text-zinc-900">{estimatedDuration}</span>
+                            </span>
+                            <span className="text-zinc-400 text-xs">({WORDS_PER_MINUTE} wpm)</span>
+                          </div>
+                          <Button type="button" size="sm" data-testid="apply-duration-btn"
+                            onClick={applyEstimatedDuration}
+                            className="h-7 px-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs gap-1 rounded-full">
+                            <Wand2 className="w-3 h-3" /> Apply
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Duration */}
+                    <div className="space-y-2">
+                      <Label className="text-zinc-700 font-medium">Duration (optional)</Label>
+                      <Input
+                        data-testid="item-duration-input"
+                        value={formData.duration}
+                        onChange={(e) => handleFieldChange('duration', e.target.value)}
+                        placeholder="MM:SS"
+                        className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 font-mono rounded-xl"
+                      />
+                      <p className="text-xs text-zinc-400">Format: MM:SS (e.g., 03:30)</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+          <Button variant="ghost" onClick={() => wizardStep === 0 ? handleClose(false) : setWizardStep(s => s - 1)}
+            className="gap-2 text-zinc-500">
+            <ChevronLeft className="w-4 h-4" />
+            {wizardStep === 0 ? 'Cancel' : 'Back'}
+          </Button>
+          <Button onClick={handleNext} disabled={!canNext() || loading}
+            data-testid="item-wizard-next-btn"
+            className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+            {loading ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
+            ) : wizardStep === 1 ? (
+              <><Zap className="w-4 h-4" /> {editingItem ? 'Update Item' : 'Add Item'}</>
+            ) : (
+              <>Continue <ChevronRight className="w-4 h-4" /></>
             )}
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-zinc-600">Duration (optional)</Label>
-            <Input
-              data-testid="item-duration-input"
-              value={formData.duration}
-              onChange={(e) => handleFieldChange('duration', e.target.value)}
-              placeholder="MM:SS"
-              className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400 font-mono"
-            />
-            <p className="text-xs text-zinc-500">Format: MM:SS (e.g., 03:30)</p>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleClose(false)}
-              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              data-testid="submit-item-btn"
-              disabled={loading}
-              className="flex-1 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
-            >
-              {loading ? 'Saving...' : editingItem ? 'Update' : 'Add Item'}
-            </Button>
-          </div>
-        </form>
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

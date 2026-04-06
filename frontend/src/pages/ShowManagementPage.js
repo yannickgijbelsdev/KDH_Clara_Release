@@ -20,6 +20,9 @@ import {
   User,
   Users,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  Zap,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -56,6 +59,7 @@ import {
 } from '../components/ui/popover';
 import { toast } from 'sonner';
 import { getAvatarUrl } from '../utils/avatar';
+import WizardStepIndicator from '../components/workspace/WizardStepIndicator';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -583,180 +587,142 @@ const ShowManagementPage = () => {
 
       {/* Show Title Dialog */}
       <Dialog open={titleDialogOpen} onOpenChange={setTitleDialogOpen}>
-        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              {editingTitle ? 'Edit Show Title' : 'Add Show Title'}
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              {editingTitle 
-                ? 'Update the show title details.' 
-                : 'Create a new show title that DJs can select when scheduling shows.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="show-title-wizard">
+          <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+            <WizardStepIndicator currentStep={0} steps={['Title Details']} />
+            <button onClick={() => setTitleDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          </div>
 
-          <form onSubmit={handleSaveTitle} className="space-y-5 mt-4">
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Title Name</Label>
-              <Input
-                data-testid="title-name-input"
-                value={titleFormData.name}
-                onChange={(e) => setTitleFormData({ ...titleFormData, name: e.target.value })}
-                placeholder="Morning Drive Show"
-                required
-                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
-              />
-            </div>
+          <form onSubmit={handleSaveTitle} className="flex flex-col flex-1 min-h-0">
+            <div className="px-8 pt-4 pb-2 overflow-y-auto flex-1">
+              <h2 className="text-2xl font-bold text-zinc-900 mb-1">
+                {editingTitle ? 'Edit show title' : 'New show title'}
+              </h2>
+              <p className="text-sm text-zinc-500 mb-6">
+                {editingTitle ? 'Update the show title details.' : 'Create a new show title that DJs can select when scheduling shows.'}
+              </p>
 
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Description (optional)</Label>
-              <Input
-                value={titleFormData.description}
-                onChange={(e) => setTitleFormData({ ...titleFormData, description: e.target.value })}
-                placeholder="Brief description..."
-                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
-              />
-            </div>
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Title Name</Label>
+                  <Input data-testid="title-name-input" value={titleFormData.name}
+                    onChange={(e) => setTitleFormData({ ...titleFormData, name: e.target.value })}
+                    placeholder="Morning Drive Show" required
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl" />
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-zinc-600">Default Start Time</Label>
-                <Input
-                  type="time"
-                  value={titleFormData.default_start_time}
-                  onChange={(e) => setTitleFormData({ ...titleFormData, default_start_time: e.target.value })}
-                  className="bg-zinc-100 border-zinc-300 text-white font-mono"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-zinc-600">Default End Time</Label>
-                <Input
-                  type="time"
-                  value={titleFormData.default_end_time}
-                  onChange={(e) => setTitleFormData({ ...titleFormData, default_end_time: e.target.value })}
-                  className="bg-zinc-100 border-zinc-300 text-white font-mono"
-                />
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Description (optional)</Label>
+                  <Input value={titleFormData.description}
+                    onChange={(e) => setTitleFormData({ ...titleFormData, description: e.target.value })}
+                    placeholder="Brief description..."
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl" />
+                </div>
 
-            {/* RDS Station Selection */}
-            <div className="space-y-2">
-              <Label className="text-zinc-600">RDS Station</Label>
-              <p className="text-xs text-zinc-500 mb-2">Choose on which radio station(s) this show should be displayed in RDS</p>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { value: 'none', label: 'None', color: 'zinc' },
-                  { value: 'mfy', label: 'MFY', color: 'orange' },
-                  { value: 'grk', label: 'GRK', color: 'violet' },
-                  { value: 'both', label: 'Both', color: 'green' },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setTitleFormData({ ...titleFormData, rds_station: option.value })}
-                    className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
-                      titleFormData.rds_station === option.value
-                        ? option.color === 'orange'
-                          ? 'bg-orange-500/20 border-orange-500 text-orange-400'
-                          : option.color === 'violet'
-                          ? 'bg-violet-500/20 border-violet-500 text-violet-400'
-                          : option.color === 'green'
-                          ? 'bg-green-500/20 border-green-500 text-green-400'
-                          : 'bg-zinc-200 border-zinc-600 text-zinc-600'
-                        : 'bg-zinc-100 border-zinc-300 text-zinc-400 hover:border-zinc-600'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Default Presenters Selection */}
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Default Presenters</Label>
-              <p className="text-xs text-zinc-500 mb-2">Select the default presenters for this show</p>
-              <Popover open={presenterPopoverOpen} onOpenChange={setPresenterPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full justify-start text-left bg-zinc-100 border-zinc-300 text-white hover:bg-zinc-200"
-                  >
-                    <Users className="w-4 h-4 mr-2 text-violet-400" />
-                    {titleFormData.default_presenter_ids?.length > 0 ? (
-                      <span className="truncate">
-                        {titleFormData.default_presenter_ids.map(id => 
-                          teamUsers.find(u => u.id === id)?.name || 'Unknown'
-                        ).join(', ')}
-                      </span>
-                    ) : (
-                      <span className="text-zinc-500">Select presenters...</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72 p-0 bg-zinc-100 border-zinc-200" align="start">
-                  <div className="p-2 border-b border-zinc-200">
-                    <p className="text-sm text-zinc-400 font-medium">Team Members</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-zinc-700 font-medium">Default Start Time</Label>
+                    <Input type="time" value={titleFormData.default_start_time}
+                      onChange={(e) => setTitleFormData({ ...titleFormData, default_start_time: e.target.value })}
+                      className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 font-mono rounded-xl" />
                   </div>
-                  <div className="max-h-60 overflow-y-auto p-2 space-y-1">
-                    {teamUsers.map((user) => (
-                      <button
-                        key={user.id}
-                        type="button"
-                        onClick={() => togglePresenter(user.id)}
-                        className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
-                          titleFormData.default_presenter_ids?.includes(user.id)
-                            ? 'bg-violet-500/20 text-violet-400'
-                            : 'hover:bg-zinc-100 text-zinc-600'
-                        }`}
-                      >
-                        <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
-                          {getAvatarUrl(user) ? (
-                            <img src={getAvatarUrl(user)} alt={user.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <User className="w-4 h-4 text-zinc-400" />
-                          )}
-                        </div>
-                        <div className="flex-1 text-left">
-                          <p className="text-sm font-medium">{user.name}</p>
-                          <p className="text-xs text-zinc-500">{user.role}</p>
-                        </div>
-                        {titleFormData.default_presenter_ids?.includes(user.id) && (
-                          <Check className="w-4 h-4 text-violet-400" />
-                        )}
+                  <div className="space-y-2">
+                    <Label className="text-zinc-700 font-medium">Default End Time</Label>
+                    <Input type="time" value={titleFormData.default_end_time}
+                      onChange={(e) => setTitleFormData({ ...titleFormData, default_end_time: e.target.value })}
+                      className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 font-mono rounded-xl" />
+                  </div>
+                </div>
+
+                {/* RDS Station Selection */}
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">RDS Station</Label>
+                  <p className="text-xs text-zinc-400 mb-2">Choose on which radio station(s) this show should be displayed in RDS</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: 'none', label: 'None' },
+                      { value: 'mfy', label: 'MFY' },
+                      { value: 'grk', label: 'GRK' },
+                      { value: 'both', label: 'Both' },
+                    ].map((option) => (
+                      <button key={option.value} type="button"
+                        onClick={() => setTitleFormData({ ...titleFormData, rds_station: option.value })}
+                        className={`px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                          titleFormData.rds_station === option.value
+                            ? 'border-zinc-900 bg-zinc-50 text-zinc-900'
+                            : 'border-zinc-200 text-zinc-500 hover:border-zinc-300'
+                        }`}>
+                        {option.label}
                       </button>
                     ))}
-                    {teamUsers.length === 0 && (
-                      <p className="text-sm text-zinc-500 text-center py-4">No team members found</p>
-                    )}
                   </div>
-                </PopoverContent>
-              </Popover>
+                </div>
+
+                {/* Default Presenters */}
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Default Presenters</Label>
+                  <p className="text-xs text-zinc-400 mb-2">Select the default presenters for this show</p>
+                  <Popover open={presenterPopoverOpen} onOpenChange={setPresenterPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <Button type="button" variant="outline"
+                        className="w-full justify-start text-left h-12 bg-zinc-50 border-zinc-200 text-zinc-900 hover:bg-zinc-100 rounded-xl">
+                        <Users className="w-4 h-4 mr-2 text-zinc-400" />
+                        {titleFormData.default_presenter_ids?.length > 0 ? (
+                          <span className="truncate">
+                            {titleFormData.default_presenter_ids.map(id => teamUsers.find(u => u.id === id)?.name || 'Unknown').join(', ')}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-500">Select presenters...</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-0 bg-white border-zinc-200" align="start">
+                      <div className="p-2 border-b border-zinc-100">
+                        <p className="text-sm text-zinc-500 font-medium">Team Members</p>
+                      </div>
+                      <div className="max-h-60 overflow-y-auto p-2 space-y-1">
+                        {teamUsers.map((user) => (
+                          <button key={user.id} type="button" onClick={() => togglePresenter(user.id)}
+                            className={`w-full flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                              titleFormData.default_presenter_ids?.includes(user.id)
+                                ? 'bg-zinc-100 text-zinc-900'
+                                : 'hover:bg-zinc-50 text-zinc-600'
+                            }`}>
+                            <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
+                              {getAvatarUrl(user) ? (
+                                <img src={getAvatarUrl(user)} alt={user.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <User className="w-4 h-4 text-zinc-400" />
+                              )}
+                            </div>
+                            <div className="flex-1 text-left">
+                              <p className="text-sm font-medium">{user.name}</p>
+                              <p className="text-xs text-zinc-400">{user.role}</p>
+                            </div>
+                            {titleFormData.default_presenter_ids?.includes(user.id) && (
+                              <Check className="w-4 h-4 text-emerald-500" />
+                            )}
+                          </button>
+                        ))}
+                        {teamUsers.length === 0 && (
+                          <p className="text-sm text-zinc-500 text-center py-4">No team members found</p>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
             </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setTitleDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-              >
-                Cancel
+            <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setTitleDialogOpen(false)} className="gap-2 text-zinc-500">
+                <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={savingTitle}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                {savingTitle ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  editingTitle ? 'Update Title' : 'Add Title'
-                )}
+              <Button type="submit" disabled={savingTitle}
+                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                {savingTitle ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> {editingTitle ? 'Update Title' : 'Add Title'}</>}
               </Button>
             </div>
           </form>
@@ -765,63 +731,49 @@ const ShowManagementPage = () => {
 
       {/* Studio Dialog */}
       <Dialog open={studioDialogOpen} onOpenChange={setStudioDialogOpen}>
-        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[450px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              {editingStudio ? 'Edit Studio' : 'Add Studio'}
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              {editingStudio 
-                ? 'Update the studio details.' 
-                : 'Add a new studio or room where shows are broadcast from.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="studio-wizard">
+          <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+            <WizardStepIndicator currentStep={0} steps={['Studio Details']} />
+            <button onClick={() => setStudioDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          </div>
 
-          <form onSubmit={handleSaveStudio} className="space-y-5 mt-4">
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Studio Name</Label>
-              <Input
-                data-testid="studio-name-input"
-                value={studioFormData.name}
-                onChange={(e) => setStudioFormData({ ...studioFormData, name: e.target.value })}
-                placeholder="Studio A"
-                required
-                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
-              />
+          <form onSubmit={handleSaveStudio} className="flex flex-col flex-1 min-h-0">
+            <div className="px-8 pt-4 pb-2 overflow-y-auto flex-1">
+              <h2 className="text-2xl font-bold text-zinc-900 mb-1">
+                {editingStudio ? 'Edit studio' : 'New studio'}
+              </h2>
+              <p className="text-sm text-zinc-500 mb-6">
+                {editingStudio ? 'Update the studio details.' : 'Add a new studio or room where shows are broadcast from.'}
+              </p>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Studio Name</Label>
+                  <Input data-testid="studio-name-input" value={studioFormData.name}
+                    onChange={(e) => setStudioFormData({ ...studioFormData, name: e.target.value })}
+                    placeholder="Studio A" required
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-zinc-700 font-medium">Description (optional)</Label>
+                  <Input value={studioFormData.description}
+                    onChange={(e) => setStudioFormData({ ...studioFormData, description: e.target.value })}
+                    placeholder="Main broadcast studio..."
+                    className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl" />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-zinc-600">Description (optional)</Label>
-              <Input
-                value={studioFormData.description}
-                onChange={(e) => setStudioFormData({ ...studioFormData, description: e.target.value })}
-                placeholder="Main broadcast studio..."
-                className="bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setStudioDialogOpen(false)}
-                className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-              >
-                Cancel
+            <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+              <Button type="button" variant="ghost" onClick={() => setStudioDialogOpen(false)} className="gap-2 text-zinc-500">
+                <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={savingStudio}
-                className="flex-1 bg-violet-500 hover:bg-violet-600 text-white"
-              >
-                {savingStudio ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  editingStudio ? 'Update Studio' : 'Add Studio'
-                )}
+              <Button type="submit" disabled={savingStudio}
+                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                {savingStudio ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> {editingStudio ? 'Update Studio' : 'Add Studio'}</>}
               </Button>
             </div>
           </form>

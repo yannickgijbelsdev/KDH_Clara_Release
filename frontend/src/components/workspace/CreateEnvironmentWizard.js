@@ -6,7 +6,7 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import {
   ChevronLeft, ChevronRight, X, Zap, Server, Check, Loader2,
-  Globe, Shield, Users, Crown
+  Crown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import WizardStepIndicator from './WizardStepIndicator';
@@ -14,23 +14,33 @@ import WizardStepIndicator from './WizardStepIndicator';
 const API = process.env.REACT_APP_BACKEND_URL;
 const DEFAULT_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
 const ENV_STEPS = ['General', 'Settings', 'Admin', 'Deploying'];
+const ENV_BG_IMAGE = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/d4c697409481bd3e0a2010433fc86c64f2e196f4cad3058b6885c32777206577.png';
 
-const ENV_STEPS_LABELS = ENV_STEPS; // reference
-
-/* ── Deploy Step ── */
+/* ── Deploy Step (matching MainSite wizard style) ── */
 const DeployStep = ({ label, status, delay }) => (
   <motion.div
-    initial={{ opacity: 0, x: 10 }}
+    initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
-    transition={{ delay }}
-    className="flex items-center gap-3 py-2"
+    transition={{ delay, duration: 0.4 }}
+    className="flex items-center gap-4 py-3"
   >
-    {status === 'done' && <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />}
-    {status === 'loading' && <Loader2 className="w-4 h-4 text-blue-500 animate-spin flex-shrink-0" />}
-    {status === 'pending' && <div className="w-4 h-4 rounded-full border-2 border-zinc-200 flex-shrink-0" />}
-    <span className={`text-sm ${status === 'done' ? 'text-zinc-600' : status === 'loading' ? 'text-zinc-900 font-medium' : 'text-zinc-400'}`}>
-      {label}
-    </span>
+    <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+      {status === 'done' ? (
+        <motion.div
+          initial={{ scale: 0 }} animate={{ scale: 1 }}
+          className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center"
+        >
+          <Check className="w-5 h-5 text-white" />
+        </motion.div>
+      ) : status === 'loading' ? (
+        <div className="w-10 h-10 rounded-full border-[3px] border-zinc-200 border-t-zinc-900 animate-spin" />
+      ) : (
+        <div className="w-10 h-10 rounded-full border-2 border-zinc-200" />
+      )}
+    </div>
+    <span className={`text-sm font-medium transition-colors ${
+      status === 'done' ? 'text-emerald-700' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
+    }`}>{label}</span>
   </motion.div>
 );
 
@@ -223,22 +233,24 @@ function StepDeploying({ envName, color, maxRacks, deployStatus }) {
 
   return (
     <div className="text-center">
-      <div className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: `${color}15` }}>
-        {allDone ? (
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}>
-            <Check className="w-8 h-8" style={{ color }} />
-          </motion.div>
-        ) : (
-          <Server className="w-8 h-8 animate-pulse" style={{ color }} />
-        )}
+      {/* Hero background image */}
+      <div className="relative h-32 rounded-2xl overflow-hidden mb-6">
+        <img src={ENV_BG_IMAGE} alt="" className="w-full h-full object-cover opacity-50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent" />
+        <div className="absolute bottom-3 left-4 flex items-center gap-2">
+          <Server className="w-5 h-5" style={{ color }} />
+          <span className="text-lg font-bold text-zinc-900">{envName}</span>
+        </div>
       </div>
+
       <h2 className="text-xl font-bold text-zinc-900 mb-1">
-        {allDone ? 'Environment is ready!' : `Deploying ${envName}...`}
+        {allDone ? 'Environment is ready!' : 'Clara is deploying your environment'}
       </h2>
-      <p className="text-sm text-zinc-400 mb-5">
-        {allDone ? 'Your environment is live and ready to use.' : 'Setting up your environment...'}
+      <p className="text-sm text-zinc-500 mb-6">
+        {allDone ? 'Your environment is live and ready to use.' : 'This will only take a moment...'}
       </p>
-      <div ref={scrollRef} className="text-left max-h-[240px] overflow-y-auto px-2">
+
+      <div ref={scrollRef} className="text-left max-h-[280px] overflow-y-auto px-2">
         {deploySteps.map((step, i) => {
           const isActive = deployStatus === i;
           return (
@@ -252,6 +264,18 @@ function StepDeploying({ envName, color, maxRacks, deployStatus }) {
           );
         })}
       </div>
+
+      {allDone && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="mt-6 p-4 bg-emerald-50 rounded-xl border border-emerald-200"
+        >
+          <div className="flex items-center justify-center gap-2 text-emerald-700 font-semibold">
+            <Zap className="w-5 h-5" />
+            Your environment is ready!
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }
