@@ -456,7 +456,7 @@ const CanvaDirectorPage = () => {
             </div>
           </div>
           {setupStep === 3 && (
-            <div className="flex gap-1 bg-white/40 backdrop-blur-sm rounded-lg p-0.5" data-testid="canva-tabs">
+            <div className="flex gap-1 bg-zinc-50 rounded-lg p-0.5" data-testid="canva-tabs">
               <button onClick={() => setActiveTab('designs')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'designs' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`} data-testid="canva-tab-designs">Designs</button>
               <button onClick={() => setActiveTab('activity')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'activity' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`} data-testid="canva-tab-activity">Activity</button>
             </div>

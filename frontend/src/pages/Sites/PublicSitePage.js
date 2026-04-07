@@ -491,7 +491,7 @@ export default function PublicSitePage() {
                         required={field.required}
                         rows={3}
                         placeholder={field.placeholder || ''}
-                        className="w-full bg-white/40 backdrop-blur-sm rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none"
+                        className="w-full bg-zinc-50 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none"
                         style={{ '--tw-ring-color': buttonColor }}
                       />
                     ) : field.type === 'select' ? (
@@ -540,7 +540,7 @@ export default function PublicSitePage() {
                     ) : field.type === 'file' ? (
                       <div className="space-y-2">
                         {fieldFiles[field.id] ? (
-                          <div className="flex items-center gap-2 p-2 bg-white/40 backdrop-blur-sm rounded-lg text-sm">
+                          <div className="flex items-center gap-2 p-2 bg-zinc-50 rounded-lg text-sm">
                             {(() => { const FileIcon = getFileIcon(fieldFiles[field.id].type); return <FileIcon className="h-4 w-4 text-zinc-400" />; })()}
                             <span className="flex-1 truncate text-zinc-600">{fieldFiles[field.id].name}</span>
                             <button type="button" onClick={() => { setFieldFiles(prev => { const n = {...prev}; delete n[field.id]; return n; }); setFormData(prev => ({ ...prev, [field.id]: '' })); }} className="text-zinc-500 hover:text-red-400">
@@ -588,7 +588,7 @@ export default function PublicSitePage() {
                             return (
                               <div 
                                 key={index}
-                                className="flex items-center gap-2 p-2 bg-white/40 backdrop-blur-sm rounded-lg text-sm"
+                                className="flex items-center gap-2 p-2 bg-zinc-50 rounded-lg text-sm"
                               >
                                 <FileIcon className="h-4 w-4 text-zinc-400" />
                                 <span className="flex-1 truncate text-zinc-600">{file.name}</span>

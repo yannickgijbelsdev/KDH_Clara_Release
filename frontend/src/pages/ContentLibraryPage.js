@@ -260,7 +260,7 @@ const ContentLibraryPage = () => {
               {typeFilter ? typeLabels[typeFilter] : 'All Types'}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+          <DropdownMenuContent className="bg-white border-zinc-200">
             <DropdownMenuItem
               onClick={() => setTypeFilter('')}
               className="text-zinc-600 focus:text-white focus:bg-zinc-800"
@@ -298,7 +298,7 @@ const ContentLibraryPage = () => {
               {statusFilter ? statusLabels[statusFilter] : 'All Status'}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+          <DropdownMenuContent className="bg-white border-zinc-200">
             <DropdownMenuItem
               onClick={() => setStatusFilter('')}
               className="text-zinc-600 focus:text-white focus:bg-zinc-800"
@@ -333,7 +333,7 @@ const ContentLibraryPage = () => {
                 {sourceFilter || 'All Sources'}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+            <DropdownMenuContent className="bg-white border-zinc-200">
               <DropdownMenuItem
                 onClick={() => setSourceFilter('')}
                 className="text-zinc-600 focus:text-white focus:bg-zinc-800"
@@ -366,7 +366,7 @@ const ContentLibraryPage = () => {
                 {categoryFilter ? categories.find(c => c.id === categoryFilter)?.name : 'All Categories'}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+            <DropdownMenuContent className="bg-white border-zinc-200">
               <DropdownMenuItem
                 onClick={() => setCategoryFilter('')}
                 className="text-zinc-600 focus:text-white focus:bg-zinc-800"
@@ -409,7 +409,7 @@ const ContentLibraryPage = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 animate-pulse"
+              className="bg-white border border-zinc-200 rounded-xl p-6 animate-pulse"
             >
               <div className="h-6 bg-zinc-100 rounded w-1/3 mb-3" />
               <div className="h-4 bg-zinc-100 rounded w-2/3" />
@@ -449,7 +449,7 @@ const ContentLibraryPage = () => {
                 key={item.id}
                 data-testid={`content-item-${index}`}
                 onClick={() => navigate(buildPath(`/content/${item.id}`))}
-                className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-5 cursor-pointer hover:bg-white/70 hover:border-white/80 transition-all duration-200 group"
+                className="bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer hover:bg-white/70 hover:border-white/80 transition-all duration-200 group"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -467,7 +467,7 @@ const ContentLibraryPage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="p-2 bg-white/40 backdrop-blur-sm rounded-lg">
+                      <div className="p-2 bg-zinc-50 rounded-lg">
                         <TypeIcon className="w-5 h-5 text-zinc-400" />
                       </div>
                     )}

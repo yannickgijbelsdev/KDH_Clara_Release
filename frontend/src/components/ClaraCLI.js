@@ -256,7 +256,7 @@ export default function ClaraCLI() {
               /* Access Gate */
               <div className="flex-1 flex items-center justify-center p-8">
                 <div className="text-center space-y-4 max-w-sm">
-                  <div className="w-14 h-14 mx-auto rounded-full bg-white/50 backdrop-blur-lg border border-white/60 flex items-center justify-center">
+                  <div className="w-14 h-14 mx-auto rounded-full bg-white border border-zinc-200 flex items-center justify-center">
                     {accessStatus === 'pending' ? (
                       <ShieldCheck className="w-7 h-7 text-amber-400" />
                     ) : (
@@ -347,7 +347,7 @@ export default function ClaraCLI() {
 
       {/* Feature Configuration Dialog */}
       <Dialog open={!!featureConfig} onOpenChange={(open) => { if (!open) setFeatureConfig(null); }}>
-        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="bg-white border-zinc-200 max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base">
               Feature Configuration — {featureConfig?.site_name}

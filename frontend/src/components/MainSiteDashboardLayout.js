@@ -983,7 +983,7 @@ const MainSiteDashboardContent = () => {
         )}
 
         {/* ─── Horizontal Top Navigation ─── */}
-        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-white/50 backdrop-blur-2xl border-b border-white/60 shadow-[0_1px_12px_rgba(0,0,0,0.04)] z-50" data-testid="workspace-topbar">
+        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-white/35 backdrop-blur-2xl border-b border-white/40 shadow-[0_1px_12px_rgba(0,0,0,0.04),inset_0_-1px_0_rgba(255,255,255,0.5)] z-50" data-testid="workspace-topbar">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors">
             <Menu className="w-5 h-5" />
           </button>
@@ -995,7 +995,7 @@ const MainSiteDashboardContent = () => {
           {myMainSites.length > 1 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="h-9 flex items-center gap-2 px-3 rounded-full border border-white/60 bg-white/40 backdrop-blur-lg hover:bg-white/60 text-sm font-medium text-zinc-700 transition-all duration-200 flex-shrink-0 shadow-sm" data-testid="main-site-switcher">
+                <button className="h-9 flex items-center gap-2 px-3 rounded-full border border-white/40 bg-white/20 backdrop-blur-xl hover:bg-white/35 text-sm font-medium text-zinc-700 transition-all duration-200 flex-shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" data-testid="main-site-switcher">
                   {mainSite?.logo_url ? (
                     <img src={`${process.env.REACT_APP_BACKEND_URL}${mainSite.logo_url}`} alt="" className="w-5 h-5 rounded object-contain" />
                   ) : (
@@ -1005,7 +1005,7 @@ const MainSiteDashboardContent = () => {
                   <ChevronDown className="w-3 h-3 text-zinc-400" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64 bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+              <DropdownMenuContent align="start" className="w-64 bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl">
                 {(() => {
                   const envGroups = {};
                   myMainSites.forEach(site => {
@@ -1047,20 +1047,20 @@ const MainSiteDashboardContent = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <div className="hidden lg:flex items-center gap-0.5 mx-auto bg-white/30 backdrop-blur-xl rounded-full p-1 border border-white/50 shadow-[0_2px_20px_rgba(0,0,0,0.04)]" data-testid="pill-nav">
+          <div className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 border border-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.6)] bg-white/25 backdrop-blur-2xl" data-testid="pill-nav">
             {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, 4).map(i => ({ label: i.label, to: i.to }))].map(tab => {
               const isTabActive = tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/'));
               const pathSegment = tab.to.split('/').pop();
               const pillBadge = getBadgeCount(pathSegment);
               return (
                 <NavLink key={tab.to} to={tab.to} end={tab.to === `/${mainSiteSlug}`}
-                  className={`relative px-5 py-2 rounded-full text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 z-[1] ${isTabActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-800'}`}
+                  className={`relative px-5 py-2.5 rounded-[20px] text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 z-[1] ${isTabActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-700'}`}
                   data-testid={`pill-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {isTabActive && (
                     <motion.div
                       layoutId="pill-active-indicator"
-                      className="absolute inset-0 bg-zinc-900/85 backdrop-blur-sm rounded-full shadow-lg"
+                      className="absolute inset-0 bg-zinc-900/80 backdrop-blur-md rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]"
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       style={{ zIndex: -1 }}
                     />
@@ -1081,7 +1081,7 @@ const MainSiteDashboardContent = () => {
                 <DropdownMenuTrigger asChild>
                   <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors flex items-center">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+                <DropdownMenuContent align="center" className="bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl">
                   {flatNavItems.slice(4).map(item => {
                     const Icon = item.icon;
                     const dropBadge = getBadgeCount(item.to.split('/').pop());
@@ -1118,7 +1118,7 @@ const MainSiteDashboardContent = () => {
                   </div>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+              <DropdownMenuContent align="end" className="w-56 bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl">
                 <div className="px-3 py-2 flex items-center gap-3">
                   {getAvatarUrl(user) ? (
                     <img src={getAvatarUrl(user)} alt={user?.name} className="w-10 h-10 rounded-xl object-cover" />

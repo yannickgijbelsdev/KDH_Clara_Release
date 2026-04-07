@@ -70,7 +70,7 @@ const PersonalSettingsPage = () => {
       </div>
 
       {/* Profile Section */}
-      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-6">
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <User className="w-5 h-5 text-orange-400" />
           Profile
@@ -89,7 +89,7 @@ const PersonalSettingsPage = () => {
       </div>
 
       {/* Security Section */}
-      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-6">
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <Shield className="w-5 h-5 text-orange-400" />
           Beveiliging
@@ -99,7 +99,7 @@ const PersonalSettingsPage = () => {
       </div>
 
       {/* Menu Display Section */}
-      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-6">
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <LayoutGrid className="w-5 h-5 text-orange-400" />
           Navigation Display
@@ -163,7 +163,7 @@ const PersonalSettingsPage = () => {
       </div>
 
       {/* App Install Prompt */}
-      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-6">
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
           <Smartphone className="w-5 h-5 text-orange-400" />
           Install App Prompt

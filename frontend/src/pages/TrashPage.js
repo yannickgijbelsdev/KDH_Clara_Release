@@ -185,7 +185,7 @@ const TrashPage = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 animate-pulse"
+              className="bg-white border border-zinc-200 rounded-xl p-6 animate-pulse"
             >
               <div className="h-6 bg-zinc-100 rounded w-1/3 mb-3" />
               <div className="h-4 bg-zinc-100 rounded w-2/3" />
@@ -232,7 +232,7 @@ const TrashPage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="p-3 bg-white/40 backdrop-blur-sm rounded-lg opacity-60">
+                      <div className="p-3 bg-zinc-50 rounded-lg opacity-60">
                         <TypeIcon className="w-6 h-6 text-zinc-400" />
                       </div>
                     )}
@@ -329,7 +329,7 @@ const TrashPage = () => {
 
       {/* Permanent Delete Confirmation Dialog */}
       <AlertDialog open={!!permanentDeleteItem} onOpenChange={() => setPermanentDeleteItem(null)}>
-        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-500" />

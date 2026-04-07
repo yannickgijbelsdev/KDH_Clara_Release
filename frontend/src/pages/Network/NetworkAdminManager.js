@@ -262,7 +262,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
 
       {/* Add Admin Dialog */}
       <Dialog open={showAddDialog} onOpenChange={(v) => { if (!v) { setShowAddDialog(false); resetForm(); } }}>
-        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="add-admin-dialog">
+        <DialogContent className="bg-white border-zinc-200 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="add-admin-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-emerald-400" />
@@ -360,7 +360,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
 
       {/* Edit Permissions Dialog */}
       <Dialog open={!!editingAdmin} onOpenChange={(v) => { if (!v) { setEditingAdmin(null); resetForm(); } }}>
-        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="edit-permissions-dialog">
+        <DialogContent className="bg-white border-zinc-200 max-w-lg max-h-[80vh] overflow-y-auto" data-testid="edit-permissions-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-blue-400" />
@@ -390,7 +390,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
   // Dialog mode
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="network-admin-manager">
+      <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[85vh] overflow-y-auto" data-testid="network-admin-manager">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Crown className="w-5 h-5 text-orange-400" />

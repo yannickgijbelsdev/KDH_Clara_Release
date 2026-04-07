@@ -65,7 +65,7 @@ export const WorkspaceSidebar = ({
                 </TooltipTrigger>
                 <TooltipContent
                   side="right"
-                  className="bg-white/50 backdrop-blur-lg border-white/60 text-zinc-900 text-xs"
+                  className="bg-white border-zinc-200 text-zinc-900 text-xs"
                 >
                   {item.label} (No license)
                 </TooltipContent>

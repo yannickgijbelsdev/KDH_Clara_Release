@@ -858,7 +858,7 @@ const MediaLibraryPage = () => {
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                <SelectContent className="bg-white border-zinc-200">
                   <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="document">Documents</SelectItem>
                   <SelectItem value="audio">Audio</SelectItem>
@@ -959,7 +959,7 @@ const MediaLibraryPage = () => {
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+                      <DropdownMenuContent className="bg-white border-zinc-200">
                         {canPreview(asset) && (
                           <DropdownMenuItem
                             onClick={(e) => {
@@ -1091,7 +1091,7 @@ const MediaLibraryPage = () => {
 
       {/* New Folder Dialog */}
       <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
-        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+        <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <FolderPlus className="w-5 h-5 text-orange-500" />
@@ -1136,7 +1136,7 @@ const MediaLibraryPage = () => {
 
       {/* Rename Folder Dialog */}
       <Dialog open={!!editingFolder} onOpenChange={() => setEditingFolder(null)}>
-        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+        <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
             <DialogTitle className="text-white">Rename Folder</DialogTitle>
           </DialogHeader>
@@ -1163,7 +1163,7 @@ const MediaLibraryPage = () => {
 
       {/* Delete Folder Confirmation Dialog */}
       <Dialog open={!!deletingFolder} onOpenChange={() => setDeletingFolder(null)}>
-        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] sm:max-w-md">
+        <DialogContent className="bg-white border-zinc-200 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-500" />
@@ -1209,7 +1209,7 @@ const MediaLibraryPage = () => {
           setSelectedSeriesToShare([]);
         }
       }}>
-        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="bg-white border-zinc-200 sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Share2 className="w-5 h-5 text-orange-500" />
@@ -1410,7 +1410,7 @@ const MediaLibraryPage = () => {
 
       {/* Edit Title Dialog */}
       <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
-        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+        <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
             <DialogTitle className="text-white">Rename File</DialogTitle>
           </DialogHeader>
@@ -1441,7 +1441,7 @@ const MediaLibraryPage = () => {
 
       {/* Preview Dialog */}
       <Dialog open={!!previewAsset} onOpenChange={() => setPreviewAsset(null)}>
-        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="bg-white border-zinc-200 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-white flex items-center gap-3">
               {previewAsset && (
@@ -1558,7 +1558,7 @@ const MediaLibraryPage = () => {
 
       {/* Share Dialog */}
       <Dialog open={!!shareAsset} onOpenChange={() => setShareAsset(null)}>
-        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] sm:max-w-md">
+        <DialogContent className="bg-white border-zinc-200 sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Share2 className="w-5 h-5 text-orange-500" />

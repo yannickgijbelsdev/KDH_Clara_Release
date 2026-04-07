@@ -379,7 +379,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-white/50 backdrop-blur-lg border-white/60">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Output</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">

@@ -653,7 +653,7 @@ const ContentDetailPage = () => {
       )}
 
       {/* Content Details */}
-      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
+      <div className="bg-white border border-zinc-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-semibold text-white">Content Details</h2>
           {!isEditing ? (
@@ -731,7 +731,7 @@ const ContentDetailPage = () => {
                   <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                  <SelectContent className="bg-white border-zinc-200">
                     <SelectItem value="text" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Text</SelectItem>
                     <SelectItem value="link" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Link</SelectItem>
                     <SelectItem value="reference" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Reference</SelectItem>
@@ -748,7 +748,7 @@ const ContentDetailPage = () => {
                   <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                  <SelectContent className="bg-white border-zinc-200">
                     <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
                     <SelectItem value="ready" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Ready</SelectItem>
                   </SelectContent>
@@ -787,7 +787,7 @@ const ContentDetailPage = () => {
                 <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
-                <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                <SelectContent className="bg-white border-zinc-200">
                   <SelectItem value="none" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
                     No category
                   </SelectItem>
@@ -826,7 +826,7 @@ const ContentDetailPage = () => {
 
             <div>
               <Label className="text-zinc-500 text-xs uppercase tracking-wider">Body</Label>
-              <div className="mt-2 p-4 bg-white/40 backdrop-blur-sm rounded-lg prose prose-invert prose-sm max-w-none">
+              <div className="mt-2 p-4 bg-zinc-50 rounded-lg prose prose-invert prose-sm max-w-none">
                 {content.body ? (
                   <div 
                     className="text-zinc-600 content-body-display"
@@ -932,7 +932,7 @@ const ContentDetailPage = () => {
 
       {/* Audit Log Section - Admin Only */}
       {isAdmin && (
-        <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl overflow-hidden">
+        <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
           <button
             onClick={toggleAuditLogs}
             className="w-full flex items-center justify-between p-4 hover:bg-zinc-100/70 transition-colors"
@@ -1053,7 +1053,7 @@ const ContentDetailPage = () => {
 
       {/* Multi-site Publish Dialog with Featured Images */}
       <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
-        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] text-white sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white border-zinc-200 text-white sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               Publish to WordPress
@@ -1129,7 +1129,7 @@ const ContentDetailPage = () => {
                                   <SelectTrigger className="h-9 bg-zinc-100 border-zinc-300 text-white mt-1">
                                     <SelectValue />
                                   </SelectTrigger>
-                                  <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                                  <SelectContent className="bg-white border-zinc-200">
                                     <SelectItem value="post" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Post</SelectItem>
                                     <SelectItem value="page" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Page</SelectItem>
                                   </SelectContent>
@@ -1150,7 +1150,7 @@ const ContentDetailPage = () => {
                                   <SelectTrigger className="h-9 bg-zinc-100 border-zinc-300 text-white mt-1">
                                     <SelectValue />
                                   </SelectTrigger>
-                                  <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                                  <SelectContent className="bg-white border-zinc-200">
                                     <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
                                     <SelectItem value="publish" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Published</SelectItem>
                                     <SelectItem value="future" className="text-zinc-600 focus:text-white focus:bg-zinc-800">
@@ -1296,7 +1296,7 @@ const ContentDetailPage = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Content</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">

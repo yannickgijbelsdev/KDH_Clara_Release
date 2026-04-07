@@ -174,7 +174,7 @@ const CalendarPage = () => {
         </div>
 
         {/* Calendar Header */}
-        <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-4 sm:p-6">
+        <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
             <div className="flex items-center gap-2 sm:gap-4">
               <h2 className="text-lg sm:text-xl font-bold text-white">
@@ -323,7 +323,7 @@ const CalendarPage = () => {
 
       {/* Sidebar - Selected Date Details */}
       <div className="w-full lg:w-80 lg:shrink-0">
-        <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-4 sm:p-6 lg:sticky lg:top-8">
+        <div className="bg-white border border-zinc-200 rounded-xl p-4 sm:p-6 lg:sticky lg:top-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-orange-500/20 rounded-lg">
               <CalendarIcon className="w-5 h-5 text-orange-500" />
@@ -363,7 +363,7 @@ const CalendarPage = () => {
                         key={show.id}
                         data-testid={`sidebar-show-${show.id}`}
                         onClick={() => navigate(navTo(`/shows/${show.id}`))}
-                        className="w-full text-left p-3 bg-white/40 backdrop-blur-sm rounded-lg hover:bg-zinc-200 transition-colors group"
+                        className="w-full text-left p-3 bg-zinc-50 rounded-lg hover:bg-zinc-200 transition-colors group"
                       >
                         <div className="flex gap-3">
                           {/* Show Image */}

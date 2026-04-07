@@ -65,7 +65,7 @@ export default function BrandingSettings() {
   return (
     <div className="space-y-6" data-testid="branding-settings">
       {/* Platform Name & Logo */}
-      <Card className="bg-white/50 backdrop-blur-lg border-white/60">
+      <Card className="bg-white border-zinc-200">
         <CardHeader>
           <CardTitle className="text-lg text-white flex items-center gap-2">
             <Star className="w-5 h-5 text-orange-400" />
@@ -134,7 +134,7 @@ export default function BrandingSettings() {
 
             {/* Logo Preview / Upload */}
             {branding.logo_type === 'image' && (
-              <div className="flex items-center gap-4 p-3 bg-white/40 backdrop-blur-sm rounded-lg">
+              <div className="flex items-center gap-4 p-3 bg-zinc-50 rounded-lg">
                 {branding.logo_url ? (
                   <>
                     <img
@@ -174,7 +174,7 @@ export default function BrandingSettings() {
             <Label className="text-zinc-600">Favicon</Label>
             <div className="flex items-center gap-4">
               {branding.favicon_url ? (
-                <div className="flex items-center gap-3 p-3 bg-white/40 backdrop-blur-sm rounded-lg">
+                <div className="flex items-center gap-3 p-3 bg-zinc-50 rounded-lg">
                   <img
                     src={resolveUrl(branding.favicon_url)}
                     alt="Favicon"

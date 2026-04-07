@@ -271,7 +271,7 @@ const LogsPage = () => {
       <tr key={log.id} className="border-b border-zinc-200 hover:bg-zinc-100/70">
         <td className="px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/40 backdrop-blur-sm rounded-lg">
+            <div className="p-2 bg-zinc-50 rounded-lg">
               <ActionIcon className="w-4 h-4 text-orange-400" />
             </div>
             <div>
@@ -354,19 +354,19 @@ const LogsPage = () => {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-4">
+          <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Total Events</p>
             <p className="text-2xl font-bold text-white">{stats.total.toLocaleString()}</p>
           </div>
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-4">
+          <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Last 24 Hours</p>
             <p className="text-2xl font-bold text-orange-500">{stats.recent_24h.toLocaleString()}</p>
           </div>
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-4">
+          <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Chat Events</p>
             <p className="text-2xl font-bold text-emerald-400">{stats.by_category?.chat || 0}</p>
           </div>
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-4">
+          <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Content Events</p>
             <p className="text-2xl font-bold text-green-400">{stats.by_category?.content || 0}</p>
           </div>
@@ -377,7 +377,7 @@ const LogsPage = () => {
       {showArchive && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Calendar */}
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <Button variant="ghost" size="icon" onClick={previousMonth} className="text-zinc-400 hover:text-white">
                 <ChevronLeft className="w-5 h-5" />
@@ -443,7 +443,7 @@ const LogsPage = () => {
           {/* Archive Logs for Selected Date */}
           <div className="lg:col-span-2">
             {selectedDate ? (
-              <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl overflow-hidden">
+              <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
                 <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-white">
@@ -455,7 +455,7 @@ const LogsPage = () => {
                     <SelectTrigger className="w-40 bg-zinc-100 border-zinc-300 text-white">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                    <SelectContent className="bg-white border-zinc-200">
                       <SelectItem value="all">All Categories</SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.value} value={cat.value}>
@@ -487,7 +487,7 @@ const LogsPage = () => {
                 )}
               </div>
             ) : (
-              <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-8 text-center h-full flex flex-col items-center justify-center">
+              <div className="bg-white border border-zinc-200 rounded-xl p-8 text-center h-full flex flex-col items-center justify-center">
                 <CalendarIcon className="w-12 h-12 text-zinc-600 mb-4" />
                 <h3 className="text-lg font-semibold text-white mb-2">Select a Date</h3>
                 <p className="text-zinc-400">Click on a date in the calendar to view logs from that day</p>
@@ -501,7 +501,7 @@ const LogsPage = () => {
       {!showArchive && (
         <>
           {/* Filters */}
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-4 mb-6">
+          <div className="bg-white border border-zinc-200 rounded-xl p-4 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
@@ -519,7 +519,7 @@ const LogsPage = () => {
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                <SelectContent className="bg-white border-zinc-200">
                   <SelectItem value="all">All Categories</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat.value} value={cat.value}>
@@ -534,7 +534,7 @@ const LogsPage = () => {
                   <User className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All Users" />
                 </SelectTrigger>
-                <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
+                <SelectContent className="bg-white border-zinc-200">
                   <SelectItem value="all">All Users</SelectItem>
                   {users.map((user) => (
                     <SelectItem key={user.id} value={user.id}>
@@ -547,7 +547,7 @@ const LogsPage = () => {
           </div>
 
           {/* Logs Table */}
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl overflow-hidden">
+          <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
             {loading ? (
               <div className="p-8 text-center">
                 <RefreshCw className="w-8 h-8 text-zinc-500 animate-spin mx-auto mb-2" />

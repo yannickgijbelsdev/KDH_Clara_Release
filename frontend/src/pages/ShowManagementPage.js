@@ -359,7 +359,7 @@ const ShowManagementPage = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-white/40 backdrop-blur-lg border border-white/60 p-1">
+        <TabsList className="bg-zinc-100 border border-zinc-200 p-1">
           <TabsTrigger 
             value="titles" 
             className="data-[state=active]:bg-orange-500 data-[state=active]:text-white"
@@ -378,7 +378,7 @@ const ShowManagementPage = () => {
 
         {/* Show Titles Tab */}
         <TabsContent value="titles">
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-zinc-900">Show Titles</h2>
@@ -409,7 +409,7 @@ const ShowManagementPage = () => {
                 {showTitles.map((title) => (
                   <div
                     key={title.id}
-                    className="flex items-center justify-between p-4 bg-white/40 backdrop-blur-sm rounded-lg hover:bg-white/60 transition-all duration-200"
+                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-lg hover:bg-white/60 transition-all duration-200"
                   >
                     <div className="flex items-center gap-4">
                       {/* Show Image or Icon */}
@@ -459,7 +459,7 @@ const ShowManagementPage = () => {
                             <Image className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+                        <DropdownMenuContent align="end" className="bg-white border-zinc-200">
                           <DropdownMenuItem
                             onClick={() => {
                               setImageTargetTitleId(title.id);
@@ -511,7 +511,7 @@ const ShowManagementPage = () => {
 
         {/* Studios Tab */}
         <TabsContent value="studios">
-          <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-zinc-900">Studios / Rooms</h2>
@@ -542,7 +542,7 @@ const ShowManagementPage = () => {
                 {studios.map((studio) => (
                   <div
                     key={studio.id}
-                    className="flex items-center justify-between p-4 bg-white/40 backdrop-blur-sm rounded-lg hover:bg-white/60 transition-all duration-200"
+                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-lg hover:bg-white/60 transition-all duration-200"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-lg bg-violet-500/20 flex items-center justify-center">
@@ -587,7 +587,7 @@ const ShowManagementPage = () => {
 
       {/* Show Title Dialog */}
       <Dialog open={titleDialogOpen} onOpenChange={setTitleDialogOpen}>
-        <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="show-title-wizard">
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="show-title-wizard">
           <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
             <WizardStepIndicator currentStep={0} steps={['Title Details']} />
             <button onClick={() => setTitleDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
@@ -678,7 +678,7 @@ const ShowManagementPage = () => {
                         )}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-72 p-0 bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]" align="start">
+                    <PopoverContent className="w-72 p-0 bg-white border-zinc-200" align="start">
                       <div className="p-2 border-b border-zinc-100">
                         <p className="text-sm text-zinc-500 font-medium">Team Members</p>
                       </div>
@@ -731,7 +731,7 @@ const ShowManagementPage = () => {
 
       {/* Studio Dialog */}
       <Dialog open={studioDialogOpen} onOpenChange={setStudioDialogOpen}>
-        <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="studio-wizard">
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="studio-wizard">
           <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
             <WizardStepIndicator currentStep={0} steps={['Studio Details']} />
             <button onClick={() => setStudioDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
@@ -782,7 +782,7 @@ const ShowManagementPage = () => {
 
       {/* Delete Title Confirmation */}
       <AlertDialog open={deleteTitleDialogOpen} onOpenChange={setDeleteTitleDialogOpen}>
-        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Delete Show Title</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -806,7 +806,7 @@ const ShowManagementPage = () => {
 
       {/* Delete Studio Confirmation */}
       <AlertDialog open={deleteStudioDialogOpen} onOpenChange={setDeleteStudioDialogOpen}>
-        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Delete Studio</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">

@@ -725,7 +725,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
 
         <div className="ml-auto flex items-center gap-2">
           {/* View toggle */}
-          <div className="flex bg-white/40 backdrop-blur-sm rounded-lg p-0.5" data-testid="view-toggle">
+          <div className="flex bg-zinc-50 rounded-lg p-0.5" data-testid="view-toggle">
             <button
               onClick={() => setViewMode('kanban')}
               className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
@@ -809,7 +809,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           </div>
           <DragOverlay>
             {activeTask ? (
-              <div className="bg-white/40 backdrop-blur-sm rounded-lg border border-orange-500/50 p-3 shadow-xl w-72 opacity-90">
+              <div className="bg-zinc-50 rounded-lg border border-orange-500/50 p-3 shadow-xl w-72 opacity-90">
                 <p className="text-sm text-white font-medium">{activeTask.title}</p>
               </div>
             ) : null}

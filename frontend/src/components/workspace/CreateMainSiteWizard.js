@@ -432,7 +432,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !deploying) handleClose(); }}>
-      <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="create-wizard-dialog">
+      <DialogContent hideClose className="bg-white border-zinc-200 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="create-wizard-dialog">
         {/* Header with close */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
           <WizardStepIndicator currentStep={step} steps={MAIN_SITE_STEPS} />

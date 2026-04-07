@@ -138,7 +138,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
 
   return (
     <>
-      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl overflow-hidden">
+      <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
         {/* Series Header */}
         <div
           data-testid={`series-bundle-${seriesName.replace(/\s+/g, '-').toLowerCase()}`}
@@ -229,7 +229,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
               <div
                 key={show.id}
                 onClick={() => onShowClick(show.id)}
-                className="p-4 bg-white/40 backdrop-blur-sm rounded-lg cursor-pointer hover:bg-zinc-100 transition-colors group"
+                className="p-4 bg-zinc-50 rounded-lg cursor-pointer hover:bg-zinc-100 transition-colors group"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-white group-hover:text-rose-400">
@@ -254,7 +254,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
 
     {/* Delete Series Confirmation Dialog */}
     <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-      <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+      <AlertDialogContent className="bg-white border-zinc-200">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white flex items-center gap-2">
             <Trash2 className="w-5 h-5 text-orange-500" />
@@ -397,7 +397,7 @@ const ShowsPage = () => {
               {statusFilter ? statusLabels[statusFilter] : 'All Status'}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
+          <DropdownMenuContent className="bg-white border-zinc-200">
             <DropdownMenuItem
               data-testid="filter-all"
               onClick={() => setStatusFilter('')}
@@ -447,7 +447,7 @@ const ShowsPage = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 animate-pulse"
+              className="bg-white border border-zinc-200 rounded-xl p-6 animate-pulse"
             >
               <div className="h-6 bg-zinc-100 rounded w-3/4 mb-4" />
               <div className="h-4 bg-zinc-100 rounded w-1/2 mb-2" />

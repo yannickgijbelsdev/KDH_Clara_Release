@@ -613,7 +613,7 @@ const DashboardLayout = () => {
                         <ArrowLeft className="w-5 h-5" />
                       </NavLink>
                     </TooltipTrigger>
-                    <TooltipContent side="right" className="bg-white/50 backdrop-blur-lg border-white/60 text-zinc-900">
+                    <TooltipContent side="right" className="bg-white border-zinc-200 text-zinc-900">
                       Back to Sites
                     </TooltipContent>
                   </Tooltip>
@@ -649,7 +649,7 @@ const DashboardLayout = () => {
                           )}
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="bg-white/50 backdrop-blur-lg border-white/60 text-zinc-900">
+                      <TooltipContent side="right" className="bg-white border-zinc-200 text-zinc-900">
                         {item.label} {badgeCount > 0 && `(${badgeCount})`}
                       </TooltipContent>
                     </Tooltip>
@@ -685,7 +685,7 @@ const DashboardLayout = () => {
                           )}
                         </NavLink>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="bg-white/50 backdrop-blur-lg border-white/60 text-zinc-900">
+                      <TooltipContent side="right" className="bg-white border-zinc-200 text-zinc-900">
                         {item.label} {badgeCount > 0 && `(${badgeCount})`}
                       </TooltipContent>
                     </Tooltip>

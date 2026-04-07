@@ -603,7 +603,7 @@ export default function VmixDirector() {
                   <div className="space-y-2 pt-2 border-t border-white/5">
                     <label className="text-[10px] text-zinc-500 uppercase">Upload Logo</label>
                     {config.logo_url && (
-                      <div className="w-16 h-16 bg-white/40 backdrop-blur-sm rounded-lg flex items-center justify-center overflow-hidden">
+                      <div className="w-16 h-16 bg-zinc-50 rounded-lg flex items-center justify-center overflow-hidden">
                         <img src={config.logo_url.startsWith('http') ? config.logo_url : `${BASE}${config.logo_url}`} alt="" className="max-w-full max-h-full object-contain" />
                       </div>
                     )}

@@ -452,7 +452,7 @@ export default function DomainManager() {
           )}
 
           {!overview.cloudflare_configured && (
-            <Card className="bg-white/50 backdrop-blur-lg border-white/60">
+            <Card className="bg-white border-zinc-200">
               <CardContent className="p-4 flex items-center gap-3">
                 <Shield className="w-5 h-5 text-zinc-500 flex-shrink-0" />
                 <div>
@@ -464,7 +464,7 @@ export default function DomainManager() {
             </Card>
           )}
 
-          <Card className="bg-white/50 backdrop-blur-lg border-white/60">
+          <Card className="bg-white border-zinc-200">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm text-zinc-400 flex items-center gap-2"><ArrowRight className="w-4 h-4" />Active Subdomain Routes</CardTitle>
             </CardHeader>
@@ -494,7 +494,7 @@ export default function DomainManager() {
       {activeTab === 'sites' && (
         <div className="space-y-4">
           {configs.length > 0 && (
-            <Card className="bg-white/50 backdrop-blur-lg border-white/60">
+            <Card className="bg-white border-zinc-200">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-emerald-400 flex items-center gap-2"><CheckCircle className="w-4 h-4" />Configured Domains ({configs.length})</CardTitle>
               </CardHeader>
@@ -535,7 +535,7 @@ export default function DomainManager() {
           )}
 
           {unconfiguredSites.length > 0 && (
-            <Card className="bg-white/50 backdrop-blur-lg border-white/60">
+            <Card className="bg-white border-zinc-200">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-amber-400 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />Not Configured ({unconfiguredSites.length})</CardTitle>
               </CardHeader>
@@ -666,7 +666,7 @@ export default function DomainManager() {
             })}
           </div>
           {routes.length === 0 && (
-            <Card className="bg-white/50 backdrop-blur-lg border-white/60"><CardContent className="flex flex-col items-center justify-center py-12"><ArrowRight className="w-12 h-12 text-zinc-600 mb-3" /><p className="text-zinc-400 text-sm">No subdomain routes configured yet</p></CardContent></Card>
+            <Card className="bg-white border-zinc-200"><CardContent className="flex flex-col items-center justify-center py-12"><ArrowRight className="w-12 h-12 text-zinc-600 mb-3" /><p className="text-zinc-400 text-sm">No subdomain routes configured yet</p></CardContent></Card>
           )}
         </div>
       )}
@@ -906,7 +906,7 @@ export default function DomainManager() {
 
           {/* DNS Records Table */}
           {cfDnsRecords.length > 0 && (
-            <Card className="bg-white/50 backdrop-blur-lg border-white/60">
+            <Card className="bg-white border-zinc-200">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-zinc-400 flex items-center gap-2"><Layers className="w-4 h-4" />DNS Records ({cfDnsRecords.length})</CardTitle>
               </CardHeader>

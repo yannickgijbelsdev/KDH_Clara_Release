@@ -473,7 +473,7 @@ const ZeroTierPage = () => {
               </div>
               <div className="flex items-center gap-3">
                 {/* Category filter */}
-                <div className="flex bg-white/40 backdrop-blur-sm rounded-lg p-0.5" data-testid="zt-category-filter">
+                <div className="flex bg-zinc-50 rounded-lg p-0.5" data-testid="zt-category-filter">
                   {[
                     { key: 'all', label: 'All' },
                     { key: 'client', label: 'Clients', icon: Monitor },
@@ -754,7 +754,7 @@ const ZeroTierPage = () => {
 
       {/* Alert Configuration Dialog */}
       <Dialog open={!!alertDialogMember} onOpenChange={() => setAlertDialogMember(null)}>
-        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 text-zinc-900 max-w-md">
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-amber-400" />
@@ -833,7 +833,7 @@ const ZeroTierPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
-        <AlertDialogContent className="bg-white/50 backdrop-blur-lg border-white/60 text-zinc-900">
+        <AlertDialogContent className="bg-white border-zinc-200 text-zinc-900">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-400" />
@@ -858,7 +858,7 @@ const ZeroTierPage = () => {
 
       {/* IP Edit Dialog */}
       <AlertDialog open={!!ipEditMember} onOpenChange={() => setIpEditMember(null)}>
-        <AlertDialogContent className="bg-white/50 backdrop-blur-lg border-white/60 text-zinc-900">
+        <AlertDialogContent className="bg-white border-zinc-200 text-zinc-900">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-amber-400" />

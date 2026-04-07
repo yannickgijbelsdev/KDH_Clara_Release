@@ -74,7 +74,7 @@ export default function MainSiteSelector() {
   if (mainSites.length === 0) {
     return (
       <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
-        <Card className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md w-full mx-4 shadow-lg">
+        <Card className="bg-white border-zinc-200 max-w-md w-full mx-4 shadow-lg">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Globe className="w-16 h-16 text-zinc-600 mb-4" />
             <h3 className="text-xl font-semibold text-zinc-800 mb-2">No Access</h3>

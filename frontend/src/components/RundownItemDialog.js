@@ -150,7 +150,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="rundown-item-wizard">
+      <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="rundown-item-wizard">
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
           <WizardStepIndicator currentStep={wizardStep} steps={ITEM_STEPS} />

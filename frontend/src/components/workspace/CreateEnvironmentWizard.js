@@ -378,7 +378,7 @@ export default function CreateEnvironmentWizard({ open, onClose, onCreated, toke
 
   return (
     <Dialog open={open} onOpenChange={v => !v && handleClose()}>
-      <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="create-env-wizard">
+      <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="create-env-wizard">
         {/* Header */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
           <WizardStepIndicator currentStep={step} steps={ENV_STEPS} />
