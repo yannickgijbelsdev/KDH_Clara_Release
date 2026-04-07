@@ -75,7 +75,7 @@ export default function XmlDashboard() {
     <div className="space-y-6" data-testid="xml-dashboard">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">XML Imports</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">XML Imports</h1>
           <p className="text-sm text-zinc-400 mt-1">{total} imports total</p>
         </div>
         <Button
@@ -96,7 +96,7 @@ export default function XmlDashboard() {
             placeholder="Search files..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 bg-zinc-100/70 border-zinc-300 text-white h-9"
+            className="pl-9 bg-zinc-50 border-zinc-200 text-zinc-900 h-9"
             data-testid="xml-search-input"
           />
         </div>
@@ -151,7 +151,7 @@ export default function XmlDashboard() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <FileText className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-                        <span className="text-white truncate max-w-[200px]">{imp.file_name}</span>
+                        <span className="text-zinc-700 truncate max-w-[200px]">{imp.file_name}</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-zinc-400 hidden md:table-cell truncate max-w-[150px]">{imp.project_name || '-'}</td>
@@ -170,10 +170,10 @@ export default function XmlDashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => navigate(`xml-imports/${imp.id}`)} className="p-1.5 rounded hover:bg-zinc-200 text-zinc-400 hover:text-white" title="View" data-testid={`view-${imp.id}`}>
+                        <button onClick={() => navigate(`xml-imports/${imp.id}`)} className="p-1.5 rounded hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700" title="View" data-testid={`view-${imp.id}`}>
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDownload(imp.id, imp.file_name)} className="p-1.5 rounded hover:bg-zinc-200 text-zinc-400 hover:text-white" title="Download">
+                        <button onClick={() => handleDownload(imp.id, imp.file_name)} className="p-1.5 rounded hover:bg-zinc-200 text-zinc-400 hover:text-zinc-700" title="Download">
                           <Download className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(imp.id)} className="p-1.5 rounded hover:bg-red-500/20 text-zinc-400 hover:text-red-400" title="Delete" data-testid={`delete-${imp.id}`}>

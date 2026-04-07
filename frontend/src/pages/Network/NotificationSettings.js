@@ -238,7 +238,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm transition-colors ${tab === t.id ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm transition-colors ${tab === t.id ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-600'}`}
             data-testid={`notif-tab-${t.id}`}
           >
             <t.icon className="w-4 h-4" />
@@ -260,7 +260,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   data-testid="smtp-provider-select"
                 >
                   <div>
-                    <span className="text-sm font-medium text-white">{selectedProvider?.name || 'Select provider'}</span>
+                    <span className="text-sm font-medium text-zinc-900">{selectedProvider?.name || 'Select provider'}</span>
                     {selectedProvider?.help_text && (
                       <p className="text-xs text-zinc-500 mt-0.5">{selectedProvider.help_text}</p>
                     )}
@@ -278,7 +278,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       >
                         <Mail className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                         <div>
-                          <span className="text-sm font-medium text-white block">{p.name}</span>
+                          <span className="text-sm font-medium text-zinc-900 block">{p.name}</span>
                           <span className="text-xs text-zinc-500">{p.host}:{p.port}</span>
                         </div>
                         {smtpForm.provider === p.id && <Check className="w-4 h-4 text-orange-400 ml-auto" />}
@@ -369,7 +369,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
         {tab === 'alert' && (
           <div className="space-y-4">
             <p className="text-sm text-zinc-400">
-              Configure a system-wide alert email that receives <strong className="text-white">all</strong> notifications from all sites — ideal for global administrators.
+              Configure a system-wide alert email that receives <strong className="text-zinc-900">all</strong> notifications from all sites — ideal for global administrators.
             </p>
 
             <div className="flex items-center justify-between p-4 rounded-lg bg-zinc-100/70 border border-zinc-300">
@@ -378,7 +378,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   <Bell className={`w-5 h-5 ${systemAlert.enabled ? 'text-emerald-400' : 'text-zinc-500'}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-white">System Alert Email</p>
+                  <p className="text-sm font-medium text-zinc-900">System Alert Email</p>
                   <p className="text-xs text-zinc-500">{systemAlert.enabled ? 'Active — receiving all notifications' : 'Disabled'}</p>
                 </div>
               </div>
@@ -452,7 +452,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                 >
                   <div className="flex items-center gap-2">
                     <Globe className="w-4 h-4 text-zinc-400" />
-                    <span className="text-sm font-medium text-white">{selectedSiteName}</span>
+                    <span className="text-sm font-medium text-zinc-900">{selectedSiteName}</span>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${siteDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -465,7 +465,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                     >
                       <Globe className="w-4 h-4 text-zinc-400 flex-shrink-0" />
                       <div>
-                        <span className="text-sm font-medium text-white block">Global (all sites)</span>
+                        <span className="text-sm font-medium text-zinc-900 block">Global (all sites)</span>
                         <span className="text-xs text-zinc-500">Default fallback settings</span>
                       </div>
                       {!selectedSiteId && <Check className="w-4 h-4 text-orange-400 ml-auto" />}
@@ -481,7 +481,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                           {site.site_type === 'technical' ? <Monitor className="w-3.5 h-3.5 text-emerald-400" /> : <Globe className="w-3.5 h-3.5 text-zinc-400" />}
                         </div>
                         <div>
-                          <span className="text-sm font-medium text-white block">{site.name}</span>
+                          <span className="text-sm font-medium text-zinc-900 block">{site.name}</span>
                           <span className="text-xs text-zinc-500">/{site.slug}</span>
                         </div>
                         {selectedSiteId === site.id && <Check className="w-4 h-4 text-orange-400 ml-auto" />}
@@ -515,7 +515,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                             {role.name?.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <span className="text-sm font-medium text-white">{role.name}</span>
+                            <span className="text-sm font-medium text-zinc-900">{role.name}</span>
                             <span className="text-xs text-zinc-500 ml-2">{activeCount} {activeCount !== 1 ? 'categories' : 'category'}</span>
                           </div>
                         </div>
@@ -566,7 +566,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                                     <div className="flex items-center gap-2.5">
                                       <Icon className={`w-4 h-4 ${active ? 'text-orange-400' : 'text-zinc-500'}`} />
                                       <div>
-                                        <span className="text-sm text-white">{cat.name}</span>
+                                        <span className="text-sm text-zinc-700">{cat.name}</span>
                                         <p className="text-xs text-zinc-500">{cat.description}</p>
                                       </div>
                                     </div>
@@ -624,7 +624,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       <Icon className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-medium text-white truncate">{evt.event_type}</span>
+                          <span className="text-xs font-medium text-zinc-900 truncate">{evt.event_type}</span>
                           <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-400">{evt.category}</span>
                           {sentCount > 0 && (
                             <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">

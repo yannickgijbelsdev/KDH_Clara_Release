@@ -53,7 +53,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Server className="w-4 h-4 text-zinc-400" />
-                  <span className="text-sm font-medium text-white truncate">{s.member_id}</span>
+                  <span className="text-sm font-medium text-zinc-900 truncate">{s.member_id}</span>
                 </div>
                 <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
                   s.last_known_status === 'online'
@@ -143,7 +143,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
                     {isOffline ? 'OFFLINE' : 'ONLINE'}
                   </div>
 
-                  <span className="text-sm text-white font-medium">{evt.member_name || evt.member_id}</span>
+                  <span className="text-sm text-zinc-700 font-medium">{evt.member_name || evt.member_id}</span>
 
                   {evt.site_name && (
                     <span className="text-xs text-zinc-500">on {evt.site_name}</span>

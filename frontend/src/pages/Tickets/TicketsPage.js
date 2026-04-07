@@ -319,7 +319,7 @@ function TicketDetail({ ticketId }) {
                 onChange={e => setMessage(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                 placeholder="Type a reply..."
-                className="flex-1 bg-zinc-900 border border-zinc-300 rounded-xl px-5 py-3 text-base text-white placeholder:text-zinc-600 focus:outline-none focus:border-orange-500"
+                className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-5 py-3 text-base text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-orange-500"
                 data-testid="reply-message-input"
               />
               <Button

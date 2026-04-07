@@ -96,7 +96,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
             <Radio className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">{stationName}</h3>
+            <h3 className="text-lg font-semibold text-zinc-900">{stationName}</h3>
             <p className="text-sm text-zinc-400 uppercase">{station}</p>
           </div>
         </div>
@@ -131,7 +131,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
             </span>
           )}
         </div>
-        <p className="text-2xl font-bold text-white leading-tight" data-testid={`${station}-current-text`}>
+        <p className="text-2xl font-bold text-zinc-900 leading-tight" data-testid={`${station}-current-text`}>
           {displayText || '-'}
         </p>
         {isLive && data.live_show.presenters?.length > 0 && (
@@ -159,7 +159,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
           </div>
           {calendarLive ? (
             <div>
-              <p className="text-sm font-medium text-white truncate">{calendarLive.title}</p>
+              <p className="text-sm font-medium text-zinc-900 truncate">{calendarLive.title}</p>
               <p className="text-xs text-zinc-500">{calendarLive.start_time} - {calendarLive.end_time}</p>
               {!isLive && (
                 <p className="text-xs text-amber-400 mt-1">
@@ -169,7 +169,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
             </div>
           ) : isLive ? (
             <div>
-              <p className="text-sm font-medium text-white truncate">{data.live_show.title}</p>
+              <p className="text-sm font-medium text-zinc-900 truncate">{data.live_show.title}</p>
               <p className="text-xs text-zinc-500">{data.live_show.start_time} - {data.live_show.end_time}</p>
               <p className="text-xs text-amber-400 mt-1">
                 <AlertCircle className="w-3 h-3 inline mr-1" />Show ended (cache stale)
@@ -194,7 +194,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
               </div>
             )}
           </div>
-          <p className="text-sm text-white truncate">{data?.now_playing?.song || '-'}</p>
+          <p className="text-sm text-zinc-700 truncate">{data?.now_playing?.song || '-'}</p>
         </div>
 
         {/* Scheduled Text */}
@@ -433,7 +433,7 @@ const RDSMonitorPage = () => {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white" data-testid="rds-monitor-title">
+            <h1 className="text-2xl font-bold text-zinc-900" data-testid="rds-monitor-title">
               RDS Monitor
             </h1>
             <p className="text-zinc-400 text-sm">
@@ -533,7 +533,7 @@ const RDSMonitorPage = () => {
         <div className="bg-white/80 backdrop-blur rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <History className="w-5 h-5 text-zinc-400" />
-            <h2 className="text-lg font-semibold text-white">Recent Changes</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Recent Changes</h2>
             <span className="text-sm text-zinc-500">
               ({monitorData?.history?.filter(h => h.item_type !== 'custom_text')?.length || 0} entries)
             </span>

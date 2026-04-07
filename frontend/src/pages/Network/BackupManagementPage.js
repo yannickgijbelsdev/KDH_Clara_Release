@@ -226,7 +226,7 @@ export default function BackupManagementPage() {
             <Button
               onClick={createBackup}
               disabled={creating || !selectedSite}
-              className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl"
+              className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white rounded-xl"
               data-testid="create-backup-btn"
             >
               {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
@@ -468,7 +468,7 @@ export default function BackupManagementPage() {
                 Annuleren
               </Button>
               <Button
-                className="bg-zinc-900 hover:bg-zinc-800 text-white gap-2 rounded-xl"
+                className="bg-zinc-900 hover:bg-zinc-900 text-white gap-2 rounded-xl"
                 onClick={cloneSite}
                 disabled={!cloneName.trim() || cloning}
                 data-testid="clone-confirm-btn"

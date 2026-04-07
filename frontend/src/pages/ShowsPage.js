@@ -59,7 +59,7 @@ const ShowCard = ({ show, index, onClick }) => (
     
     <div className="p-5">
       <div className="flex items-start justify-between mb-3">
-        <h3 className="text-lg font-semibold text-white group-hover:text-orange-500 transition-colors line-clamp-1">
+        <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-orange-500 transition-colors line-clamp-1">
           {show.title}
         </h3>
         <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-orange-500 transition-all group-hover:translate-x-1 flex-shrink-0" />
@@ -153,7 +153,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
                 <Repeat className="w-5 h-5 text-orange-500" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
                   {seriesName}
                   <span className="text-sm font-normal text-zinc-500">
                     ({shows.length} episodes)
@@ -232,7 +232,7 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
                 className="p-4 bg-zinc-50 rounded-lg cursor-pointer hover:bg-zinc-100 transition-colors group"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-white group-hover:text-rose-400">
+                  <span className="text-sm font-medium text-zinc-900 group-hover:text-rose-400">
                     {format(parseISO(show.date), 'EEEE, MMM d, yyyy')}
                   </span>
                   <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-rose-400" />
@@ -256,12 +256,12 @@ const RecurringSeriesBundle = ({ seriesName, shows, onShowClick, onDeleteSeries,
     <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
       <AlertDialogContent className="bg-white border-zinc-200">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-white flex items-center gap-2">
+          <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
             <Trash2 className="w-5 h-5 text-orange-500" />
             Delete Recurring Series
           </AlertDialogTitle>
           <AlertDialogDescription className="text-zinc-400">
-            Are you sure you want to delete <span className="text-white font-medium">"{seriesName}"</span> and all <span className="text-white font-medium">{shows.length} episodes</span>? 
+            Are you sure you want to delete <span className="text-zinc-700 font-medium">"{seriesName}"</span> and all <span className="text-zinc-700 font-medium">{shows.length} episodes</span>? 
             This will permanently delete all rundowns and cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -369,7 +369,7 @@ const ShowsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Shows</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Shows</h1>
           <p className="text-sm sm:text-base text-zinc-400">Plan and manage your radio shows</p>
         </div>
         {canCreateShows && (
@@ -401,28 +401,28 @@ const ShowsPage = () => {
             <DropdownMenuItem
               data-testid="filter-all"
               onClick={() => setStatusFilter('')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               All Status
             </DropdownMenuItem>
             <DropdownMenuItem
               data-testid="filter-draft"
               onClick={() => setStatusFilter('draft')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               Draft
             </DropdownMenuItem>
             <DropdownMenuItem
               data-testid="filter-scheduled"
               onClick={() => setStatusFilter('scheduled')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               Scheduled
             </DropdownMenuItem>
             <DropdownMenuItem
               data-testid="filter-completed"
               onClick={() => setStatusFilter('completed')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               Completed
             </DropdownMenuItem>
@@ -434,7 +434,7 @@ const ShowsPage = () => {
             variant="ghost"
             size="sm"
             onClick={() => setStatusFilter('')}
-            className="text-zinc-400 hover:text-white"
+            className="text-zinc-400 hover:text-zinc-700"
           >
             Clear filter
           </Button>
@@ -460,7 +460,7 @@ const ShowsPage = () => {
           <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Calendar className="w-8 h-8 text-zinc-500" />
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">No shows yet</h3>
+          <h3 className="text-lg font-semibold text-zinc-900 mb-2">No shows yet</h3>
           <p className="text-zinc-400 mb-6">Get started by creating your first show</p>
           <Button
             onClick={() => setIsCreateOpen(true)}
@@ -477,7 +477,7 @@ const ShowsPage = () => {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Layers className="w-5 h-5 text-orange-500" />
-                <h2 className="text-lg font-semibold text-white">Recurring Shows</h2>
+                <h2 className="text-lg font-semibold text-zinc-900">Recurring Shows</h2>
                 <span className="text-sm text-zinc-500">({series.length} series)</span>
               </div>
               <div className="space-y-3">
@@ -500,7 +500,7 @@ const ShowsPage = () => {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Calendar className="w-5 h-5 text-violet-500" />
-                <h2 className="text-lg font-semibold text-white">One-time Shows</h2>
+                <h2 className="text-lg font-semibold text-zinc-900">One-time Shows</h2>
                 <span className="text-sm text-zinc-500">({standalone.length} shows)</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

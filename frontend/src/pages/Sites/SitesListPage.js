@@ -132,7 +132,7 @@ export default function SitesListPage() {
         <div className="flex items-center gap-3">
           <Globe className="h-8 w-8 text-orange-500" />
           <div>
-            <h1 className="text-2xl font-bold text-white">Sites</h1>
+            <h1 className="text-2xl font-bold text-zinc-900">Sites</h1>
             <p className="text-sm text-zinc-400">Manage your public landing pages</p>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function SitesListPage() {
       {sites.length === 0 ? (
         <div className="text-center py-16 bg-white/60 rounded-xl">
           <Globe className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">No sites yet</h3>
+          <h3 className="text-lg font-medium text-zinc-900 mb-2">No sites yet</h3>
           <p className="text-zinc-400 mb-6">
             Create your first public landing page
           </p>
@@ -183,7 +183,7 @@ export default function SitesListPage() {
                       </div>
                     )}
                     <div>
-                      <h3 className="font-semibold text-white">{site.name}</h3>
+                      <h3 className="font-semibold text-zinc-900">{site.name}</h3>
                       <a 
                         href={mainSiteSlug 
                           ? `${window.location.origin}/${mainSiteSlug}/${site.slug}`
@@ -229,7 +229,7 @@ export default function SitesListPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => navigate(`${mainSiteSlug ? `/${mainSiteSlug}` : ''}/sites/${site.id}`)}
-                  className="text-zinc-400 hover:text-white"
+                  className="text-zinc-400 hover:text-zinc-700"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
@@ -310,7 +310,7 @@ export default function SitesListPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-white hover:bg-zinc-200">
+            <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-zinc-900 hover:bg-zinc-200">
               Annuleren
             </AlertDialogCancel>
             <AlertDialogAction 

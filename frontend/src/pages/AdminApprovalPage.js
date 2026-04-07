@@ -233,7 +233,7 @@ const AdminApprovalPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">
             Content Approval
           </h1>
           <p className="text-sm sm:text-base text-zinc-400">
@@ -282,27 +282,27 @@ const AdminApprovalPage = () => {
           <DropdownMenuContent className="bg-white border-zinc-200">
             <DropdownMenuItem
               onClick={() => setStatusFilter('all')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               All Status
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('pending')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               <Clock className="w-4 h-4 mr-2 text-yellow-500" />
               Pending
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('approved')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
               Approved
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('rejected')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               <XCircle className="w-4 h-4 mr-2 text-red-500" />
               Rejected
@@ -329,7 +329,7 @@ const AdminApprovalPage = () => {
           <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-green-500" />
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">
+          <h3 className="text-lg font-semibold text-zinc-900 mb-2">
             {allContent.length === 0 ? 'No content ready for review' : 'No matching content'}
           </h3>
           <p className="text-zinc-400">

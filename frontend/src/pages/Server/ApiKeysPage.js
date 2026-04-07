@@ -66,7 +66,7 @@ export default function ApiKeysPage() {
     <div className="space-y-6" data-testid="api-keys-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">API Keys</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">API Keys</h1>
           <p className="text-sm text-zinc-400 mt-1">Manage API keys for external sync agents</p>
         </div>
         <Button onClick={() => { setShowCreate(true); setNewKey(null); }} className="bg-orange-500 hover:bg-orange-600 text-white" data-testid="create-key-btn">
@@ -89,7 +89,7 @@ export default function ApiKeysPage() {
                     {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <Button size="sm" onClick={copyKey} className="bg-zinc-800 hover:bg-zinc-200 text-white" data-testid="copy-key-btn">
+                <Button size="sm" onClick={copyKey} className="bg-zinc-800 hover:bg-zinc-200 text-zinc-700" data-testid="copy-key-btn">
                   <Copy className="w-4 h-4" />
                 </Button>
               </div>
@@ -115,7 +115,7 @@ export default function ApiKeysPage() {
               value={newKeyName}
               onChange={e => setNewKeyName(e.target.value)}
               placeholder="e.g. Production Sync Agent"
-              className="bg-zinc-100/70 border-zinc-300 text-white mt-1"
+              className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
               autoFocus
               data-testid="key-name-input"
             />
@@ -142,7 +142,7 @@ export default function ApiKeysPage() {
                 <Key className={`w-4 h-4 flex-shrink-0 ${k.active ? 'text-orange-400' : 'text-zinc-600'}`} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-white font-medium">{k.name}</span>
+                    <span className="text-sm text-zinc-700 font-medium">{k.name}</span>
                     {!k.active && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400">Inactive</span>}
                   </div>
                   <div className="flex items-center gap-3 mt-0.5">

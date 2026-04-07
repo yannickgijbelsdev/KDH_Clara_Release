@@ -48,7 +48,7 @@ const UserAvatar = ({ user, size = 'sm', ring = false, ringColor = 'violet' }) =
         <TooltipTrigger asChild>
           <div
             data-testid={`item-avatar-${user.id}`}
-            className={`${sizeClass} ${ringClass} rounded-full bg-zinc-700 flex items-center justify-center font-bold text-white overflow-hidden shrink-0 cursor-default`}
+            className={`${sizeClass} ${ringClass} rounded-full bg-zinc-700 flex items-center justify-center font-bold text-zinc-900 overflow-hidden shrink-0 cursor-default`}
           >
             {getAvatarUrl(user) ? (
               <img src={getAvatarUrl(user)} alt="" className="w-full h-full object-cover" />
@@ -57,7 +57,7 @@ const UserAvatar = ({ user, size = 'sm', ring = false, ringColor = 'violet' }) =
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-zinc-800 border-zinc-300 text-white text-xs px-2 py-1">
+        <TooltipContent side="top" className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs px-2 py-1">
           {user.name}
         </TooltipContent>
       </Tooltip>
@@ -201,7 +201,7 @@ const SortableRundownItem = ({ item, index, timestamp, onEdit, onDelete, canEdit
             size="icon"
             data-testid={`edit-item-${index}`}
             onClick={onEdit}
-            className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-white/10"
+            className="h-8 w-8 text-zinc-400 hover:text-zinc-700 hover:bg-white/10"
           >
             <Edit2 className="w-4 h-4" />
           </Button>

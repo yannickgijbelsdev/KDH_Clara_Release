@@ -279,7 +279,7 @@ export default function StatisticsPage() {
                     <div key={i} className="flex items-center gap-1.5 text-xs">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.fill }} />
                       <span className="text-zinc-400">{d.name}</span>
-                      <span className="font-semibold text-white">{d.value}</span>
+                      <span className="font-semibold text-zinc-900">{d.value}</span>
                     </div>
                   ))}
                 </div>
@@ -396,7 +396,7 @@ export default function StatisticsPage() {
                         <div className="flex items-center gap-2">
                           <AuthorAvatar author={author} />
                           <div>
-                            <p className="font-medium text-white text-sm">{author.name}</p>
+                            <p className="font-medium text-zinc-900 text-sm">{author.name}</p>
                             <p className="text-xs text-zinc-500">{author.email}</p>
                           </div>
                         </div>

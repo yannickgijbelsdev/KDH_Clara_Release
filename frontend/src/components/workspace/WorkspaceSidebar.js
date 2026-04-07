@@ -40,7 +40,7 @@ export const WorkspaceSidebar = ({
     >
       {/* Logo */}
       <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-        <span className="text-white font-black text-base tracking-tight">C</span>
+        <span className="text-zinc-700 font-black text-base tracking-tight">C</span>
       </div>
 
       {/* Main Navigation */}
@@ -174,7 +174,7 @@ export const WorkspaceSidebar = ({
                 </div>
               )}
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white truncate">
+                <p className="text-sm font-medium text-zinc-900 truncate">
                   {user?.name}
                 </p>
                 <p className="text-xs text-zinc-500 truncate">{user?.email}</p>

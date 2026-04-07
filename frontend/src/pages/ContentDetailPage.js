@@ -501,13 +501,13 @@ const ContentDetailPage = () => {
           size="icon"
           data-testid="back-btn"
           onClick={() => navigate(navTo('/content'))}
-          className="text-zinc-400 hover:text-white hover:bg-white/5"
+          className="text-zinc-400 hover:text-zinc-700 hover:bg-white/5"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-black text-white">{content.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900">{content.title}</h1>
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[content.status]}`}>
               {statusLabels[content.status]}
             </span>
@@ -541,7 +541,7 @@ const ContentDetailPage = () => {
               data-testid="publish-wp-btn"
               onClick={() => !isPublishBlocked && openPublishDialog()}
               disabled={isPublishBlocked}
-              className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-full px-5"
+              className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white rounded-full px-5"
             >
               <Upload className="w-4 h-4" />
               {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
@@ -607,7 +607,7 @@ const ContentDetailPage = () => {
                   <div className="flex items-start gap-3">
                     <SyncIcon className={`w-5 h-5 mt-0.5 ${config.color}`} />
                     <div>
-                      <p className="text-white font-medium">
+                      <p className="text-zinc-700 font-medium">
                         {ps.wordpress_site_name}
                       </p>
                       <p className="text-sm text-zinc-400">
@@ -664,7 +664,7 @@ const ContentDetailPage = () => {
       {/* Content Details */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-white">Content Details</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">Content Details</h2>
           {!isEditing ? (
             isEditor && (
               <div className="flex gap-2">
@@ -737,13 +737,13 @@ const ContentDetailPage = () => {
                   value={editData.type}
                   onValueChange={(value) => setEditData({ ...editData, type: value })}
                 >
-                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
+                  <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-zinc-200">
-                    <SelectItem value="text" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Text</SelectItem>
-                    <SelectItem value="link" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Link</SelectItem>
-                    <SelectItem value="reference" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Reference</SelectItem>
+                    <SelectItem value="text" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Text</SelectItem>
+                    <SelectItem value="link" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Link</SelectItem>
+                    <SelectItem value="reference" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Reference</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -754,12 +754,12 @@ const ContentDetailPage = () => {
                   value={editData.status}
                   onValueChange={(value) => setEditData({ ...editData, status: value })}
                 >
-                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
+                  <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-zinc-200">
-                    <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                    <SelectItem value="ready" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Ready</SelectItem>
+                    <SelectItem value="draft" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Draft</SelectItem>
+                    <SelectItem value="ready" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Ready</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -793,7 +793,7 @@ const ContentDetailPage = () => {
                 value={editData.category_id || "none"}
                 onValueChange={(value) => setEditData({ ...editData, category_id: value === "none" ? "" : value })}
               >
-                <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
+                <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900">
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-zinc-200">
@@ -804,7 +804,7 @@ const ContentDetailPage = () => {
                     <SelectItem
                       key={cat.id}
                       value={cat.id}
-                      className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                      className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                     >
                       <div className="flex items-center gap-2">
                         <Folder className="w-4 h-4 text-orange-400" />
@@ -948,7 +948,7 @@ const ContentDetailPage = () => {
           >
             <div className="flex items-center gap-3">
               <History className="w-5 h-5 text-orange-400" />
-              <span className="font-semibold text-white">Edit History</span>
+              <span className="font-semibold text-zinc-900">Edit History</span>
               {auditLogs.length > 0 && (
                 <span className="px-2 py-0.5 bg-zinc-200 rounded-full text-xs text-zinc-600">
                   {auditLogs.length} entries
@@ -1225,7 +1225,7 @@ const ContentDetailPage = () => {
                 <Button variant="ghost" onClick={() => setPublishDialogOpen(false)} className="text-zinc-500">Cancel</Button>
                 <Button data-testid="confirm-publish-btn" onClick={handlePublish}
                   disabled={Object.values(selectedSites).filter(Boolean).length === 0}
-                  className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                  className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
                   <Upload className="w-4 h-4" />
                   Publish to {Object.values(selectedSites).filter(Boolean).length} Site(s)
                 </Button>
@@ -1281,7 +1281,7 @@ const ContentDetailPage = () => {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   className="mt-8 flex justify-center">
                   <Button onClick={() => setPublishDialogOpen(false)}
-                    className="bg-zinc-900 hover:bg-zinc-800 text-white px-8 rounded-full">
+                    className="bg-zinc-900 hover:bg-zinc-900 text-white px-8 rounded-full">
                     Done
                   </Button>
                 </motion.div>
@@ -1295,7 +1295,7 @@ const ContentDetailPage = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Content</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete Content</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               <p className="mb-3">Are you sure you want to delete "{content.title}"?</p>
               <div className="p-3 bg-zinc-100/70 rounded-lg space-y-2 text-sm">
@@ -1338,7 +1338,7 @@ const ContentDetailPage = () => {
       <Dialog open={canvaPrompt.open} onOpenChange={open => !open && setCanvaPrompt({ open: false, slug: '', name: '' })}>
         <DialogContent className="sm:max-w-md bg-white border-zinc-200" data-testid="canva-social-prompt">
           <DialogHeader>
-            <DialogTitle className="text-white">Create Social Media Post?</DialogTitle>
+            <DialogTitle className="text-zinc-900">Create Social Media Post?</DialogTitle>
             <DialogDescription className="text-zinc-400">
               Your content has been published successfully. Would you like to create a social media post for it in Canva?
             </DialogDescription>

@@ -300,7 +300,7 @@ export default function PublicSitePage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor }}>
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-2">Oeps!</h1>
+          <h1 className="text-2xl font-bold text-zinc-900 mb-2">Oeps!</h1>
           <p className="text-zinc-400">{error}</p>
         </div>
       </div>
@@ -320,7 +320,7 @@ export default function PublicSitePage() {
           )}
           <div className="text-center mb-6">
             <Lock className="h-12 w-12 mx-auto mb-4" style={{ color: buttonColor }} />
-            <h1 className="text-xl font-bold text-white">
+            <h1 className="text-xl font-bold text-zinc-900">
               Deze pagina is beveiligd
             </h1>
             <p className="text-zinc-400 mt-2">
@@ -360,7 +360,7 @@ export default function PublicSitePage() {
             />
           )}
           {!site?.logo_url && (
-            <h1 className="text-xl sm:text-2xl font-bold text-white py-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 py-2">
               {site?.name}
             </h1>
           )}
@@ -466,14 +466,14 @@ export default function PublicSitePage() {
         {/* Contact Form */}
         {site?.form_enabled && (
           <div className="rounded-xl p-5 mt-4 mb-6" style={{ backgroundColor: containerColor }}>
-            <h2 className="text-lg font-bold text-white mb-3">Neem contact op</h2>
+            <h2 className="text-lg font-bold text-zinc-900 mb-3">Neem contact op</h2>
             
             {submitted ? (
               <div className="text-center py-6">
                 <div className="h-14 w-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: `${buttonColor}33` }}>
                   <Send className="h-7 w-7" style={{ color: buttonColor }} />
                 </div>
-                <p className="text-white font-medium">Bedankt voor je bericht!</p>
+                <p className="text-zinc-700 font-medium">Bedankt voor je bericht!</p>
                 <p className="text-zinc-400 mt-1 text-sm">We nemen zo snel mogelijk contact op.</p>
               </div>
             ) : (

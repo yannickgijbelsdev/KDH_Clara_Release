@@ -351,7 +351,7 @@ const ShowManagementPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">
             Show Management
           </h1>
           <p className="text-sm sm:text-base text-zinc-400">Manage show titles and studios for your team</p>
@@ -721,7 +721,7 @@ const ShowManagementPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" disabled={savingTitle}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
                 {savingTitle ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> {editingTitle ? 'Update Title' : 'Add Title'}</>}
               </Button>
             </div>
@@ -772,7 +772,7 @@ const ShowManagementPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" disabled={savingStudio}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
                 {savingStudio ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> {editingStudio ? 'Update Studio' : 'Add Studio'}</>}
               </Button>
             </div>

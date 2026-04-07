@@ -310,7 +310,7 @@ const ZeroTierPage = () => {
             <Monitor className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">ZeroTier Network Monitor</h1>
+            <h1 className="text-xl font-bold text-zinc-900">ZeroTier Network Monitor</h1>
             <p className="text-sm text-zinc-500">Real-time network member monitoring</p>
           </div>
         </div>
@@ -357,7 +357,7 @@ const ZeroTierPage = () => {
           <button
             onClick={() => setActiveTab('members')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'members' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-600'
+              activeTab === 'members' ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-zinc-600'
             }`}
             data-testid="zt-tab-members"
           >
@@ -366,7 +366,7 @@ const ZeroTierPage = () => {
           <button
             onClick={() => setActiveTab('history')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'history' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-zinc-600'
+              activeTab === 'history' ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-zinc-600'
             }`}
             data-testid="zt-tab-history"
           >
@@ -378,7 +378,7 @@ const ZeroTierPage = () => {
       {/* Config Panel */}
       {configOpen && (
         <div className="bg-white/70 border border-zinc-200 rounded-xl p-5 mb-6" data-testid="zt-config-panel">
-          <h3 className="text-white font-medium mb-4">ZeroTier Configuration</h3>
+          <h3 className="text-zinc-900 font-medium mb-4">ZeroTier Configuration</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="text-sm text-zinc-400 mb-1 block">API Token</label>
@@ -388,7 +388,7 @@ const ZeroTierPage = () => {
                   value={configForm.api_token}
                   onChange={e => setConfigForm(prev => ({ ...prev, api_token: e.target.value }))}
                   placeholder={config?.api_token_masked || 'Enter ZeroTier API token'}
-                  className="bg-zinc-800 border-zinc-300 text-white"
+                  className="bg-zinc-50 border-zinc-200 text-zinc-900"
                   data-testid="zt-token-input"
                 />
                 <Button variant="ghost" size="icon" onClick={() => setShowToken(!showToken)} className="text-zinc-400">
@@ -403,7 +403,7 @@ const ZeroTierPage = () => {
                 value={configForm.network_id}
                 onChange={e => setConfigForm(prev => ({ ...prev, network_id: e.target.value }))}
                 placeholder="e.g. 8056c2e21c000001"
-                className="bg-zinc-800 border-zinc-300 text-white"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900"
                 data-testid="zt-network-input"
               />
             </div>
@@ -423,7 +423,7 @@ const ZeroTierPage = () => {
       {!isConfigured && (
         <div className="bg-white/60 border border-zinc-200 rounded-xl p-12 text-center">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-white text-lg font-semibold mb-2">ZeroTier Not Configured</h2>
+          <h2 className="text-zinc-900 text-lg font-semibold mb-2">ZeroTier Not Configured</h2>
           <p className="text-zinc-400 mb-4">Enter your API token and Network ID to start monitoring.</p>
           <Button onClick={() => setConfigOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
             <Settings className="w-4 h-4 mr-1" /> Configure Now
@@ -468,7 +468,7 @@ const ZeroTierPage = () => {
           <div className="bg-white/70 border border-zinc-200 rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-zinc-200 flex items-center justify-between">
               <div>
-                <h3 className="text-white font-medium">Network Members</h3>
+                <h3 className="text-zinc-900 font-medium">Network Members</h3>
                 <p className="text-xs text-zinc-600 mt-0.5">Clients offline for 30+ days are automatically deauthorized</p>
               </div>
               <div className="flex items-center gap-3">
@@ -484,7 +484,7 @@ const ZeroTierPage = () => {
                       onClick={() => setCategoryFilter(f.key)}
                       className={`flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                         categoryFilter === f.key
-                          ? 'bg-zinc-200 text-white'
+                          ? 'bg-zinc-200 text-zinc-700'
                           : 'text-zinc-500 hover:text-zinc-600'
                       }`}
                       data-testid={`zt-filter-${f.key}`}
@@ -535,7 +535,7 @@ const ZeroTierPage = () => {
                             </div>
                           ) : (
                             <>
-                              <span className="text-white font-medium truncate">
+                              <span className="text-zinc-700 font-medium truncate">
                                 {member.name || member.id}
                               </span>
                               <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
@@ -638,12 +638,12 @@ const ZeroTierPage = () => {
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                           <div>
                             <span className="text-xs text-zinc-500 block">Node ID</span>
-                            <span className="text-sm text-white font-mono">{selectedMember.id}</span>
+                            <span className="text-sm text-zinc-900 font-mono">{selectedMember.id}</span>
                           </div>
                           <div>
                             <span className="text-xs text-zinc-500 block">IP Assignments</span>
                             <button
-                              className="text-sm text-white font-mono hover:text-blue-400 transition-colors flex items-center gap-1"
+                              className="text-sm text-zinc-900 font-mono hover:text-blue-400 transition-colors flex items-center gap-1"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setIpEditMember(member);
@@ -657,13 +657,13 @@ const ZeroTierPage = () => {
                           </div>
                           <div>
                             <span className="text-xs text-zinc-500 block">Physical Address</span>
-                            <span className="text-sm text-white font-mono">
+                            <span className="text-sm text-zinc-900 font-mono">
                               {selectedMember.physical_address || 'Unknown'}
                             </span>
                           </div>
                           <div>
                             <span className="text-xs text-zinc-500 block">Client Version</span>
-                            <span className="text-sm text-white">{selectedMember.client_version || 'Unknown'}</span>
+                            <span className="text-sm text-zinc-700">{selectedMember.client_version || 'Unknown'}</span>
                           </div>
                           <div>
                             <span className="text-xs text-zinc-500 block mb-1">Category</span>
@@ -673,7 +673,7 @@ const ZeroTierPage = () => {
                                 className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
                                   member.category !== 'server'
                                     ? 'bg-zinc-600 text-white'
-                                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-600'
+                                    : 'bg-zinc-100 text-zinc-500 hover:text-zinc-600'
                                 }`}
                               >
                                 <Monitor className="w-3 h-3" /> Client
@@ -683,7 +683,7 @@ const ZeroTierPage = () => {
                                 className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${
                                   member.category === 'server'
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-600'
+                                    : 'bg-zinc-100 text-zinc-500 hover:text-zinc-600'
                                 }`}
                               >
                                 <Server className="w-3 h-3" /> Server
@@ -786,7 +786,7 @@ const ZeroTierPage = () => {
                       {(u.name || u.email || '?').charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-white truncate">{u.name || u.email}</div>
+                      <div className="text-sm text-zinc-700 truncate">{u.name || u.email}</div>
                       <div className="text-xs text-zinc-500 truncate">{u.email}</div>
                     </div>
                     {selected && <Check className="w-4 h-4 text-amber-400 flex-shrink-0" />}
@@ -840,11 +840,11 @@ const ZeroTierPage = () => {
               Delete Member
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
-              Are you sure you want to delete <strong className="text-white">{deleteConfirm?.name || deleteConfirm?.id}</strong> from the ZeroTier network? This action cannot be undone. The client will need to be re-authorized if it reconnects.
+              Are you sure you want to delete <strong className="text-zinc-900">{deleteConfirm?.name || deleteConfirm?.id}</strong> from the ZeroTier network? This action cannot be undone. The client will need to be re-authorized if it reconnects.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-zinc-600 hover:bg-zinc-200">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100">Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700 text-white"
               onClick={() => handleDeleteMember(deleteConfirm)}
@@ -866,7 +866,7 @@ const ZeroTierPage = () => {
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               <span className="block mb-3">
-                You are about to change the IP assignment for <strong className="text-white">{ipEditMember?.name || ipEditMember?.id}</strong>.
+                You are about to change the IP assignment for <strong className="text-zinc-900">{ipEditMember?.name || ipEditMember?.id}</strong>.
               </span>
               <span className="block p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm">
                 <strong>Warning:</strong> Changing the IP address may cause the device to become unreachable on the network. Make sure you have alternative access to the device before proceeding.
@@ -879,14 +879,14 @@ const ZeroTierPage = () => {
               value={ipEditValue}
               onChange={e => setIpEditValue(e.target.value)}
               placeholder="e.g. 10.147.17.50"
-              className="bg-zinc-800 border-zinc-300 text-white font-mono"
+              className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono"
               onKeyDown={e => { if (e.key === 'Enter') handleUpdateIp(); }}
               data-testid="zt-ip-edit-input"
             />
             <p className="text-xs text-zinc-600 mt-1">Separate multiple IPs with commas</p>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-zinc-600 hover:bg-zinc-200">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100">Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-amber-600 hover:bg-amber-700 text-white"
               onClick={handleUpdateIp}

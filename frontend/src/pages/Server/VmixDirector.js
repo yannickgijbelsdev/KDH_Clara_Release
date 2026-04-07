@@ -33,7 +33,7 @@ function StepIndicator({ steps, current }) {
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
             i < current ? 'bg-emerald-500/20 text-emerald-400' :
             i === current ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
-            'bg-zinc-800 text-zinc-500'
+            'bg-zinc-100 text-zinc-500'
           }`}>
             {i < current ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
             <span className="hidden sm:inline">{s}</span>
@@ -357,7 +357,7 @@ export default function VmixDirector() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">vMix Director</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">vMix Director</h1>
           <p className="text-sm text-zinc-400 mt-1">Design and configure your vMix overlay elements</p>
         </div>
         <Button data-testid="vmix-save-btn" onClick={saveConfig} disabled={saving} className="bg-orange-500 hover:bg-orange-600">
@@ -381,7 +381,7 @@ export default function VmixDirector() {
       <div className={`bg-white/60 border rounded-xl transition-all ${setupStep === 0 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : xmlServers.length > 0 ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${xmlServers.length > 0 ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${xmlServers.length > 0 ? 'bg-emerald-500/20' : setupStep === 0 ? 'bg-orange-500/20' : 'bg-zinc-100'}`}>
               {xmlServers.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Monitor className="w-4 h-4 text-orange-400" />}
             </div>
             <div>
@@ -420,7 +420,7 @@ export default function VmixDirector() {
               </h2>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowGrid(g => !g)}
-                  className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] transition-colors ${showGrid ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-500 border border-zinc-300'}`}
+                  className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] transition-colors ${showGrid ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-100 text-zinc-500 border border-zinc-300'}`}
                   data-testid="vmix-grid-toggle">
                   <Grid className="w-3 h-3" /> Grid
                 </button>
@@ -518,7 +518,7 @@ export default function VmixDirector() {
                   <div key={type} className="flex items-center gap-2 bg-zinc-100/70 rounded-lg px-3 py-2">
                     <meta.icon className="w-4 h-4 flex-shrink-0" style={{ color: meta.color }} />
                     <span className="text-xs text-zinc-600 flex-1">{meta.label}</span>
-                    <Button size="sm" variant="ghost" onClick={() => copyOverlayUrl(urlType)} className="h-7 px-2 text-xs text-zinc-400 hover:text-white">
+                    <Button size="sm" variant="ghost" onClick={() => copyOverlayUrl(urlType)} className="h-7 px-2 text-xs text-zinc-400 hover:text-zinc-700">
                       <Copy className="w-3 h-3 mr-1" /> Copy URL
                     </Button>
                     <a href={`${PRODUCTION_URL}/api/vmix/overlay/${mainSite?.id}/${urlType}`} target="_blank" rel="noreferrer">
@@ -617,7 +617,7 @@ export default function VmixDirector() {
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Format</label>
                       <select value={config.clock_format} onChange={e => setConfig(p => ({ ...p, clock_format: e.target.value }))}
-                        className="w-full h-8 text-xs bg-zinc-800 border border-zinc-300 rounded-md text-white px-2">
+                        className="w-full h-8 text-xs bg-zinc-50 border border-zinc-200 rounded-md text-zinc-900 px-2">
                         <option value="HH:mm:ss">HH:mm:ss</option>
                         <option value="HH:mm">HH:mm</option>
                       </select>
@@ -685,7 +685,7 @@ export default function VmixDirector() {
                       <label className="text-[10px] text-zinc-500 uppercase">XML Server Source</label>
                       <select value={config.now_playing_xml_server_id || ''}
                         onChange={e => setConfig(p => ({ ...p, now_playing_xml_server_id: e.target.value || null }))}
-                        className="w-full h-8 text-xs bg-zinc-800 border border-zinc-300 rounded-md text-white px-2">
+                        className="w-full h-8 text-xs bg-zinc-50 border border-zinc-200 rounded-md text-zinc-900 px-2">
                         <option value="">Select XML Server...</option>
                         {xmlServers.map(s => (
                           <option key={s.id} value={s.id}>{s.name}</option>

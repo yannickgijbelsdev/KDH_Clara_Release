@@ -682,7 +682,7 @@ const ChatPage = () => {
             <Menu className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Team Chat</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Team Chat</h1>
             <p className="text-xs sm:text-sm text-zinc-400 hidden sm:block">Communicate with your team</p>
           </div>
         </div>
@@ -733,7 +733,7 @@ const ChatPage = () => {
                       <div className="flex items-start gap-3">
                         <div className="mt-0.5">{getThreadIcon(thread)}</div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">{getThreadName(thread)}</p>
+                          <p className="text-sm font-medium text-zinc-900 truncate">{getThreadName(thread)}</p>
                           <p className="text-xs text-zinc-500 truncate mt-0.5">{getThreadSubtitle(thread)}</p>
                           {thread.last_message && (
                             <p className="text-xs text-zinc-400 truncate mt-1">{thread.last_message}</p>
@@ -773,7 +773,7 @@ const ChatPage = () => {
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5">{getThreadIcon(thread)}</div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{getThreadName(thread)}</p>
+                      <p className="text-sm font-medium text-zinc-900 truncate">{getThreadName(thread)}</p>
                       <p className="text-xs text-zinc-500 truncate mt-0.5">{getThreadSubtitle(thread)}</p>
                       {thread.last_message && (
                         <p className="text-xs text-zinc-400 truncate mt-1">{thread.last_message}</p>
@@ -824,7 +824,7 @@ const ChatPage = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-white truncate">{getThreadName(activeThread)}</h3>
+                        <h3 className="font-semibold text-zinc-900 truncate">{getThreadName(activeThread)}</h3>
                         {activeThread.type === 'group' && isOwnerOrAdmin() && (
                           <Button
                             variant="ghost"
@@ -854,7 +854,7 @@ const ChatPage = () => {
                         {getAvatarUrl(member) ? (
                           <img src={getAvatarUrl(member)} alt="" className="w-full h-full rounded-full object-cover" />
                         ) : (
-                          <span className="text-xs font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                          <span className="text-xs font-semibold text-zinc-900">{member.name.charAt(0).toUpperCase()}</span>
                         )}
                       </div>
                     ))}
@@ -876,7 +876,7 @@ const ChatPage = () => {
                       <DropdownMenuContent className="bg-white border-zinc-200">
                         <DropdownMenuItem 
                           onClick={() => setShowManageDialog(true)}
-                          className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                          className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                         >
                           <UserPlus className="w-4 h-4 mr-2" />
                           Manage Members
@@ -1024,7 +1024,7 @@ const ChatPage = () => {
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                     className={cn(
                       "h-9 w-9 md:h-10 md:w-10 flex-shrink-0 transition-colors",
-                      showEmojiPicker ? "bg-orange-500/20 text-rose-400" : "hover:bg-white/10 text-zinc-400 hover:text-white"
+                      showEmojiPicker ? "bg-orange-500/20 text-rose-400" : "hover:bg-white/10 text-zinc-400 hover:text-zinc-700"
                     )}
                     data-testid="emoji-picker-btn"
                   >
@@ -1045,7 +1045,7 @@ const ChatPage = () => {
                     size="icon"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="h-9 w-9 md:h-10 md:w-10 flex-shrink-0 hover:bg-white/10 text-zinc-400 hover:text-white"
+                    className="h-9 w-9 md:h-10 md:w-10 flex-shrink-0 hover:bg-white/10 text-zinc-400 hover:text-zinc-700"
                     data-testid="attachment-btn"
                   >
                     {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Paperclip className="w-5 h-5" />}
@@ -1057,7 +1057,7 @@ const ChatPage = () => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Type a message..."
-                    className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 h-9 md:h-10"
+                    className="flex-1 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 h-9 md:h-10"
                     disabled={sending}
                   />
                   <Button
@@ -1081,9 +1081,9 @@ const ChatPage = () => {
 
       {/* New Chat Dialog */}
       <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
-        <DialogContent className="bg-white border-zinc-200 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
               <Plus className="w-5 h-5 text-orange-500" />
               New Chat
             </DialogTitle>
@@ -1100,7 +1100,7 @@ const ChatPage = () => {
                 data-testid="new-private-chat-btn"
               >
                 <User className="w-10 h-10 text-emerald-500 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold text-white mb-1">Private Chat</h3>
+                <h3 className="font-semibold text-zinc-900 mb-1">Private Chat</h3>
                 <p className="text-xs text-zinc-500">1-on-1 conversation</p>
               </button>
               <button
@@ -1109,7 +1109,7 @@ const ChatPage = () => {
                 data-testid="new-group-chat-btn"
               >
                 <UsersRound className="w-10 h-10 text-violet-500 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="font-semibold text-white mb-1">Group Chat</h3>
+                <h3 className="font-semibold text-zinc-900 mb-1">Group Chat</h3>
                 <p className="text-xs text-zinc-500">Chat with multiple people</p>
               </button>
             </div>
@@ -1125,7 +1125,7 @@ const ChatPage = () => {
                     setGroupName('');
                     setMemberSearch('');
                   }}
-                  className="text-zinc-400 hover:text-white"
+                  className="text-zinc-400 hover:text-zinc-700"
                 >
                   ← Back
                 </Button>
@@ -1179,10 +1179,10 @@ const ChatPage = () => {
                         )}
                       >
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-violet-500/30 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                          <span className="text-sm font-semibold text-zinc-900">{member.name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="flex-1 text-left">
-                          <p className="text-sm font-medium text-white">{member.name}</p>
+                          <p className="text-sm font-medium text-zinc-900">{member.name}</p>
                           <p className="text-xs text-zinc-500">{member.role}</p>
                         </div>
                         {selectedMembers.includes(member.id) && <Check className="w-5 h-5 text-orange-500" />}
@@ -1218,9 +1218,9 @@ const ChatPage = () => {
 
       {/* Manage Members Dialog */}
       <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
-        <DialogContent className="bg-white border-zinc-200 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
               <Users className="w-5 h-5 text-violet-500" />
               Manage Members
             </DialogTitle>
@@ -1242,11 +1242,11 @@ const ChatPage = () => {
                     return (
                       <div key={member.id} className="p-3 rounded-lg flex items-center gap-3 bg-white/5">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-violet-500/30 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                          <span className="text-sm font-semibold text-zinc-900">{member.name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-white">{member.name}</p>
+                            <p className="text-sm font-medium text-zinc-900">{member.name}</p>
                             {memberRole === 'owner' && <Crown className="w-4 h-4 text-amber-500" />}
                             {memberRole === 'admin' && <Shield className="w-4 h-4 text-violet-500" />}
                           </div>
@@ -1299,10 +1299,10 @@ const ChatPage = () => {
                         className="w-full p-3 rounded-lg flex items-center gap-3 hover:bg-white/5 transition-all"
                       >
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/30 to-teal-500/30 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-white">{member.name.charAt(0).toUpperCase()}</span>
+                          <span className="text-sm font-semibold text-zinc-900">{member.name.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="flex-1 text-left">
-                          <p className="text-sm font-medium text-white">{member.name}</p>
+                          <p className="text-sm font-medium text-zinc-900">{member.name}</p>
                           <p className="text-xs text-zinc-500">{member.role}</p>
                         </div>
                         <UserPlus className="w-5 h-5 text-emerald-500" />
@@ -1320,15 +1320,15 @@ const ChatPage = () => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white flex items-center gap-2">
+            <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-500" />
               {activeThread?.type === 'private' ? 'Delete Conversation' : 'Delete Group'}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               {activeThread?.type === 'private' ? (
-                <>Are you sure you want to delete this conversation with <span className="text-white font-medium">{getThreadName(activeThread)}</span>?</>
+                <>Are you sure you want to delete this conversation with <span className="text-zinc-700 font-medium">{getThreadName(activeThread)}</span>?</>
               ) : (
-                <>Are you sure you want to delete <span className="text-white font-medium">"{activeThread?.name}"</span>?</>
+                <>Are you sure you want to delete <span className="text-zinc-700 font-medium">"{activeThread?.name}"</span>?</>
               )}
               {' '}This will permanently delete all messages and cannot be undone.
             </AlertDialogDescription>

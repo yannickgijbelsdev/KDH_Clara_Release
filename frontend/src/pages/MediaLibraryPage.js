@@ -761,7 +761,7 @@ const MediaLibraryPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Media Library</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Media Library</h1>
           <p className="text-xs sm:text-sm text-zinc-400">
             {currentFolder ? folders.find(f => f.id === currentFolder)?.name || 'Folder' : 'All files and folders'}
           </p>
@@ -848,13 +848,13 @@ const MediaLibraryPage = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search media..."
-                    className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-500"
+                    className="pl-9 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
                   />
                 </div>
               </form>
 
               <Select value={kindFilter} onValueChange={setKindFilter}>
-                <SelectTrigger data-testid="kind-filter" className="w-full sm:w-40 bg-white/5 border-white/10 text-white">
+                <SelectTrigger data-testid="kind-filter" className="w-full sm:w-40 bg-zinc-50 border-zinc-200 text-zinc-900">
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All types" />
                 </SelectTrigger>
@@ -873,7 +873,7 @@ const MediaLibraryPage = () => {
               <div className="flex items-center gap-2 mb-4 text-sm">
                 <button
                   onClick={() => setCurrentFolder(null)}
-                  className="text-zinc-400 hover:text-white transition-colors"
+                  className="text-zinc-400 hover:text-zinc-700 transition-colors"
                 >
                   All Files
                 </button>
@@ -888,7 +888,7 @@ const MediaLibraryPage = () => {
         {filteredAssets.length === 0 ? (
           <div className="glass-card rounded-xl p-12 text-center">
             <File className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">No media files</h3>
+            <h3 className="text-lg font-semibold text-zinc-900 mb-2">No media files</h3>
             <p className="text-zinc-400 mb-4">
               {searchQuery || kindFilter !== 'all'
                 ? 'No files match your filters'
@@ -935,7 +935,7 @@ const MediaLibraryPage = () => {
                       )} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-white truncate" title={asset.title}>
+                      <h3 className="font-medium text-zinc-900 truncate" title={asset.title}>
                         {asset.title}
                       </h3>
                       <p className="text-xs text-zinc-500 truncate">
@@ -1080,7 +1080,7 @@ const MediaLibraryPage = () => {
                 )}>
                   <File className="w-5 h-5 text-orange-400" />
                 </div>
-                <span className="text-sm text-white font-medium truncate max-w-[200px]">
+                <span className="text-sm text-zinc-700 font-medium truncate max-w-[200px]">
                   {activeAsset.title}
                 </span>
               </div>
@@ -1093,7 +1093,7 @@ const MediaLibraryPage = () => {
       <Dialog open={showNewFolderDialog} onOpenChange={setShowNewFolderDialog}>
         <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
               <FolderPlus className="w-5 h-5 text-orange-500" />
               New Folder
             </DialogTitle>
@@ -1103,7 +1103,7 @@ const MediaLibraryPage = () => {
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
             placeholder="Folder name"
-            className="bg-white/5 border-white/10 text-white"
+            className="bg-zinc-50 border-zinc-200 text-zinc-900"
             autoFocus
           />
           {newFolderParent && (
@@ -1138,13 +1138,13 @@ const MediaLibraryPage = () => {
       <Dialog open={!!editingFolder} onOpenChange={() => setEditingFolder(null)}>
         <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
-            <DialogTitle className="text-white">Rename Folder</DialogTitle>
+            <DialogTitle className="text-zinc-900">Rename Folder</DialogTitle>
           </DialogHeader>
           <Input
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
             placeholder="Folder name"
-            className="bg-white/5 border-white/10 text-white"
+            className="bg-zinc-50 border-zinc-200 text-zinc-900"
           />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEditingFolder(null)}>
@@ -1165,7 +1165,7 @@ const MediaLibraryPage = () => {
       <Dialog open={!!deletingFolder} onOpenChange={() => setDeletingFolder(null)}>
         <DialogContent className="bg-white border-zinc-200 sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-500" />
               Delete Folder
             </DialogTitle>
@@ -1173,7 +1173,7 @@ const MediaLibraryPage = () => {
           
           <div className="py-4">
             <p className="text-zinc-600 mb-2">
-              Are you sure you want to delete <span className="font-semibold text-white">&ldquo;{deletingFolder?.name}&rdquo;</span>?
+              Are you sure you want to delete <span className="font-semibold text-zinc-900">&ldquo;{deletingFolder?.name}&rdquo;</span>?
             </p>
             <p className="text-sm text-zinc-400">
               All files in this folder will be moved to the root level. This action cannot be undone.
@@ -1211,7 +1211,7 @@ const MediaLibraryPage = () => {
       }}>
         <DialogContent className="bg-white border-zinc-200 sm:max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
               <Share2 className="w-5 h-5 text-orange-500" />
               Share &ldquo;{sharingFolder?.name}&rdquo;
             </DialogTitle>
@@ -1412,14 +1412,14 @@ const MediaLibraryPage = () => {
       <Dialog open={!!editingAsset} onOpenChange={() => setEditingAsset(null)}>
         <DialogContent className="bg-white border-zinc-200">
           <DialogHeader>
-            <DialogTitle className="text-white">Rename File</DialogTitle>
+            <DialogTitle className="text-zinc-900">Rename File</DialogTitle>
           </DialogHeader>
           <Input
             data-testid="rename-input"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             placeholder="Enter new title"
-            className="bg-white/5 border-white/10 text-white"
+            className="bg-zinc-50 border-zinc-200 text-zinc-900"
           />
           <DialogFooter>
             <Button
@@ -1443,7 +1443,7 @@ const MediaLibraryPage = () => {
       <Dialog open={!!previewAsset} onOpenChange={() => setPreviewAsset(null)}>
         <DialogContent className="bg-white border-zinc-200 max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="text-white flex items-center gap-3">
+            <DialogTitle className="text-zinc-900 flex items-center gap-3">
               {previewAsset && (
                 <>
                   {(() => {
@@ -1488,7 +1488,7 @@ const MediaLibraryPage = () => {
                       <Volume2 className="w-16 h-16 text-amber-500" />
                     </div>
                     <div className="text-center">
-                      <h3 className="text-lg font-medium text-white mb-1">{previewAsset.title}</h3>
+                      <h3 className="text-lg font-medium text-zinc-900 mb-1">{previewAsset.title}</h3>
                       <p className="text-sm text-zinc-400">{previewAsset.original_filename}</p>
                       <p className="text-xs text-zinc-500 mt-1">{formatFileSize(previewAsset.size)}</p>
                     </div>
@@ -1528,7 +1528,7 @@ const MediaLibraryPage = () => {
               {getPreviewType(previewAsset) === 'unsupported' && (
                 <div className="p-8 bg-white/80 backdrop-blur rounded-lg text-center">
                   <File className="w-16 h-16 text-zinc-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-white mb-2">Preview not available</h3>
+                  <h3 className="text-lg font-medium text-zinc-900 mb-2">Preview not available</h3>
                   <p className="text-zinc-400 mb-4">
                     This file type cannot be previewed. You can download it instead.
                   </p>
@@ -1560,7 +1560,7 @@ const MediaLibraryPage = () => {
       <Dialog open={!!shareAsset} onOpenChange={() => setShareAsset(null)}>
         <DialogContent className="bg-white border-zinc-200 sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
               <Share2 className="w-5 h-5 text-orange-500" />
               Share &ldquo;{shareAsset?.title}&rdquo;
             </DialogTitle>
@@ -1696,7 +1696,7 @@ const MediaLibraryPage = () => {
             <div className="flex items-center gap-3 mb-4">
               <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
               <div>
-                <p className="text-white font-medium">Uploading file...</p>
+                <p className="text-zinc-700 font-medium">Uploading file...</p>
                 <p className="text-zinc-400 text-sm truncate max-w-[220px]">{uploadFileName}</p>
               </div>
             </div>

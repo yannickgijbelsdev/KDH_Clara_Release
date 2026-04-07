@@ -136,7 +136,7 @@ const PresenceAvatars = ({ users, maxDisplay = 5 }) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="w-7 h-7 rounded-full bg-zinc-200 border-2 border-[#18181b] flex items-center justify-center cursor-default">
-                  <span className="text-xs font-semibold text-white">+{overflowCount}</span>
+                  <span className="text-xs font-semibold text-zinc-900">+{overflowCount}</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
@@ -462,7 +462,7 @@ const ShowDetailPage = () => {
           size="icon"
           data-testid="back-btn"
           onClick={() => navigate(navTo('/shows'))}
-          className="text-zinc-400 hover:text-white hover:bg-white/5"
+          className="text-zinc-400 hover:text-zinc-700 hover:bg-white/5"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -480,7 +480,7 @@ const ShowDetailPage = () => {
         
         <div className="flex-1">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-white">{show.title}</h1>
+            <h1 className="text-2xl font-bold text-zinc-900">{show.title}</h1>
             {show.is_recurring && (
               <span className="flex items-center gap-1 px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded-full text-xs font-medium">
                 <Repeat className="w-3 h-3" />
@@ -537,7 +537,7 @@ const ShowDetailPage = () => {
       {/* Show Details Section */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">Show Details</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">Show Details</h2>
           {!isEditing ? (
             isEditor && (
               <div className="flex gap-2">
@@ -628,7 +628,7 @@ const ShowDetailPage = () => {
                   data-testid="edit-date-input"
                   value={editData.date}
                   onChange={(e) => setEditData({ ...editData, date: e.target.value })}
-                  className="bg-zinc-100 border-zinc-300 text-white font-mono"
+                  className="bg-zinc-100 border-zinc-300 text-zinc-900 font-mono"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -639,7 +639,7 @@ const ShowDetailPage = () => {
                     data-testid="edit-start-time-input"
                     value={editData.start_time}
                     onChange={(e) => setEditData({ ...editData, start_time: e.target.value })}
-                    className="bg-zinc-100 border-zinc-300 text-white font-mono"
+                    className="bg-zinc-100 border-zinc-300 text-zinc-900 font-mono"
                   />
                 </div>
                 <div className="space-y-2">
@@ -649,7 +649,7 @@ const ShowDetailPage = () => {
                     data-testid="edit-end-time-input"
                     value={editData.end_time}
                     onChange={(e) => setEditData({ ...editData, end_time: e.target.value })}
-                    className="bg-zinc-100 border-zinc-300 text-white font-mono"
+                    className="bg-zinc-100 border-zinc-300 text-zinc-900 font-mono"
                   />
                 </div>
               </div>
@@ -666,9 +666,9 @@ const ShowDetailPage = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-zinc-200">
-                    <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                    <SelectItem value="scheduled" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Scheduled</SelectItem>
-                    <SelectItem value="completed" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Completed</SelectItem>
+                    <SelectItem value="draft" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Draft</SelectItem>
+                    <SelectItem value="scheduled" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Scheduled</SelectItem>
+                    <SelectItem value="completed" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -779,7 +779,7 @@ const ShowDetailPage = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Settings className="w-5 h-5 text-orange-400" />
-              <h2 className="text-lg font-semibold text-white">Show Settings</h2>
+              <h2 className="text-lg font-semibold text-zinc-900">Show Settings</h2>
             </div>
           </div>
           
@@ -808,7 +808,7 @@ const ShowDetailPage = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
-              <h2 className="text-lg font-semibold text-white">Recurrence Settings</h2>
+              <h2 className="text-lg font-semibold text-zinc-900">Recurrence Settings</h2>
             </div>
             {!isEditingRecurrence ? (
               isEditor && (
@@ -892,14 +892,14 @@ const ShowDetailPage = () => {
                   value={String(recurrenceData.interval)}
                   onValueChange={(value) => setRecurrenceData({ ...recurrenceData, interval: parseInt(value) })}
                 >
-                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
+                  <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-zinc-200">
-                    <SelectItem value="1" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
-                    <SelectItem value="2" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
-                    <SelectItem value="3" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
-                    <SelectItem value="4" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 4 weeks</SelectItem>
+                    <SelectItem value="1" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Every week</SelectItem>
+                    <SelectItem value="2" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Every 2 weeks</SelectItem>
+                    <SelectItem value="3" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Every 3 weeks</SelectItem>
+                    <SelectItem value="4" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Every 4 weeks</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -924,7 +924,7 @@ const ShowDetailPage = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => setRecurrenceData({ ...recurrenceData, endDate: null })}
-                        className="w-full text-zinc-400 hover:text-white"
+                        className="w-full text-zinc-400 hover:text-zinc-700"
                       >
                         Clear end date
                       </Button>
@@ -944,13 +944,13 @@ const ShowDetailPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-zinc-500 mb-1">Frequency</p>
-                <p className="text-white font-medium">
+                <p className="text-zinc-700 font-medium">
                   {recurrenceIntervalLabels[show.recurrence_interval] || 'Every week'}
                 </p>
               </div>
               <div>
                 <p className="text-zinc-500 mb-1">End Date</p>
-                <p className="text-white font-medium">
+                <p className="text-zinc-700 font-medium">
                   {show.recurrence_end_date 
                     ? format(parseISO(show.recurrence_end_date), 'PPP')
                     : 'No end date (repeats indefinitely)'}
@@ -968,7 +968,7 @@ const ShowDetailPage = () => {
       {/* Linked Folders Section */}
       {linkedFolders.length > 0 && (
         <div className="bg-white/5 rounded-xl p-4 sm:p-6 border border-white/10 mb-6">
-          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
             <Folder className="w-5 h-5 text-orange-500" />
             Linked Media Folders
           </h3>
@@ -985,7 +985,7 @@ const ShowDetailPage = () => {
                     ) : (
                       <Folder className="w-5 h-5 text-zinc-400" />
                     )}
-                    <span className="text-white font-medium">{folder.name}</span>
+                    <span className="text-zinc-700 font-medium">{folder.name}</span>
                     <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">
                       {folder.asset_count} file{folder.asset_count !== 1 ? 's' : ''}
                     </span>
@@ -1050,7 +1050,7 @@ const ShowDetailPage = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Show</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete Show</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               Are you sure you want to delete &ldquo;{show.title}&rdquo;? This action cannot be undone and will also delete all rundown items.
             </AlertDialogDescription>
@@ -1074,7 +1074,7 @@ const ShowDetailPage = () => {
       <AlertDialog open={recurringEditDialogOpen} onOpenChange={setRecurringEditDialogOpen}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white flex items-center gap-2">
+            <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
               Update Recurring Show
             </AlertDialogTitle>
@@ -1109,7 +1109,7 @@ const ShowDetailPage = () => {
       <AlertDialog open={recurringDeleteDialogOpen} onOpenChange={setRecurringDeleteDialogOpen}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white flex items-center gap-2">
+            <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
               Delete Recurring Show
             </AlertDialogTitle>
@@ -1142,7 +1142,7 @@ const ShowDetailPage = () => {
       <AlertDialog open={stopRecurrenceDialogOpen} onOpenChange={setStopRecurrenceDialogOpen}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white flex items-center gap-2">
+            <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
               <CalendarOff className="w-5 h-5 text-orange-400" />
               Stop Recurring Show
             </AlertDialogTitle>
@@ -1203,7 +1203,7 @@ const ShowDetailPage = () => {
       <AlertDialog open={enableRecurrenceDialogOpen} onOpenChange={setEnableRecurrenceDialogOpen}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white flex items-center gap-2">
+            <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
               Enable Recurrence
             </AlertDialogTitle>
@@ -1219,14 +1219,14 @@ const ShowDetailPage = () => {
                 value={String(enableRecurrenceData.interval)}
                 onValueChange={(value) => setEnableRecurrenceData({ ...enableRecurrenceData, interval: parseInt(value) })}
               >
-                <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
+                <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-zinc-200">
-                  <SelectItem value="1" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
-                  <SelectItem value="2" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
-                  <SelectItem value="3" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
-                  <SelectItem value="4" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 4 weeks</SelectItem>
+                  <SelectItem value="1" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Every week</SelectItem>
+                  <SelectItem value="2" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Every 2 weeks</SelectItem>
+                  <SelectItem value="3" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Every 3 weeks</SelectItem>
+                  <SelectItem value="4" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Every 4 weeks</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1252,7 +1252,7 @@ const ShowDetailPage = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setEnableRecurrenceData({ ...enableRecurrenceData, endDate: null })}
-                      className="w-full text-zinc-400 hover:text-white hover:bg-zinc-100"
+                      className="w-full text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100"
                     >
                       Clear end date
                     </Button>

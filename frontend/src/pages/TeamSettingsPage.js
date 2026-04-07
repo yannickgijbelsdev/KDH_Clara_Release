@@ -427,7 +427,7 @@ const TeamSettingsPage = () => {
         <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
           <ShieldAlert className="w-8 h-8 text-red-400" />
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Geen toegang</h2>
+        <h2 className="text-xl font-bold text-zinc-900 mb-2">Geen toegang</h2>
         <p className="text-zinc-400 max-w-md">
           Je hebt geen beheerdersrechten om de teaminstellingen te bekijken of aan te passen.
           Neem contact op met een beheerder als je denkt dat dit een fout is.
@@ -440,7 +440,7 @@ const TeamSettingsPage = () => {
     <div data-testid="team-settings-page">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Site Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Site Settings</h1>
         <p className="text-zinc-400">Manage users for {mainSite?.name || 'this site'}</p>
       </div>
 
@@ -451,13 +451,13 @@ const TeamSettingsPage = () => {
             <div className="p-2 bg-orange-500/20 rounded-lg">
               <Building2 className="w-5 h-5 text-orange-500" />
             </div>
-            <h2 className="text-lg font-semibold text-white">Site Information</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Site Information</h2>
           </div>
         </div>
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-2xl font-bold text-white">{team?.name}</p>
+            <p className="text-2xl font-bold text-zinc-900">{team?.name}</p>
             <p className="text-sm text-zinc-500 mt-1">
               {mainSiteSlug ? `/${mainSiteSlug}` : `Created ${new Date(team?.created_at).toLocaleDateString()}`}
             </p>
@@ -473,7 +473,7 @@ const TeamSettingsPage = () => {
               <Users className="w-5 h-5 text-violet-500" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Team Members</h2>
+              <h2 className="text-lg font-semibold text-zinc-900">Team Members</h2>
               <p className="text-sm text-zinc-500">{users.length} members</p>
             </div>
           </div>
@@ -525,14 +525,14 @@ const TeamSettingsPage = () => {
                         key={getAvatarUrl(member)}
                       />
                     ) : (
-                      <span className="text-white font-medium">
+                      <span className="text-zinc-700 font-medium">
                         {member.name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-white font-medium">{member.name}</p>
+                      <p className="text-zinc-700 font-medium">{member.name}</p>
                       {isCurrentUser && (
                         <span className="text-xs bg-zinc-200 text-zinc-600 px-2 py-0.5 rounded">
                           You
@@ -626,7 +626,7 @@ const TeamSettingsPage = () => {
                           {availableRoles.map((role) => {
                             const Icon = getRoleIcon(role.slug);
                             return (
-                              <SelectItem key={role.slug} value={role.slug} className="text-zinc-600 focus:text-white focus:bg-zinc-800">
+                              <SelectItem key={role.slug} value={role.slug} className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">
                                 <div className="flex items-center gap-2">
                                   <Icon className="w-4 h-4" style={{ color: role.color }} />
                                   {role.name}
@@ -798,7 +798,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="submit-invite-btn" disabled={inviting}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
                 {inviting ? <><Loader2 className="w-4 h-4 animate-spin" /> Inviting...</> : <><Zap className="w-4 h-4" /> Send Invite</>}
               </Button>
             </div>
@@ -835,7 +835,7 @@ const TeamSettingsPage = () => {
                     className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
                   />
                   <Button onClick={() => searchAvailableUsers(userSearchQuery)} disabled={searchingUsers}
-                    className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl h-12">
+                    className="bg-zinc-900 hover:bg-zinc-900 text-white rounded-xl h-12">
                     {searchingUsers ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
                   </Button>
                 </div>
@@ -907,7 +907,7 @@ const TeamSettingsPage = () => {
               <ChevronLeft className="w-4 h-4" /> Cancel
             </Button>
             <Button onClick={handleAddExistingUser} disabled={!selectedExistingUser || addingExistingUser}
-              className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+              className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
               {addingExistingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Adding...</> : <><Zap className="w-4 h-4" /> Add User</>}
             </Button>
           </div>
@@ -931,7 +931,7 @@ const TeamSettingsPage = () => {
               <Label className="text-zinc-700 font-medium">Temporary Password</Label>
               <div className="flex items-center gap-2">
                 <Input value={tempPassword} readOnly className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 font-mono rounded-xl" />
-                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl">
+                <Button onClick={() => copyToClipboard(tempPassword)} className="h-12 bg-zinc-900 hover:bg-zinc-900 text-white rounded-xl">
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </Button>
               </div>
@@ -941,7 +941,7 @@ const TeamSettingsPage = () => {
 
           <div className="flex items-center justify-end px-8 py-4 border-t border-zinc-100 flex-shrink-0">
             <Button onClick={() => { setPasswordDialogOpen(false); setTempPassword(''); }}
-              className="bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">Done</Button>
+              className="bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">Done</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -1017,7 +1017,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="save-user-btn" disabled={savingUser}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
                 {savingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Zap className="w-4 h-4" /> Save Changes</>}
               </Button>
             </div>
@@ -1061,7 +1061,7 @@ const TeamSettingsPage = () => {
                 <ChevronLeft className="w-4 h-4" /> Cancel
               </Button>
               <Button type="submit" data-testid="confirm-reset-password-btn" disabled={resettingPassword}
-                className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
                 {resettingPassword ? <><Loader2 className="w-4 h-4 animate-spin" /> Resetting...</> : <><Zap className="w-4 h-4" /> Reset Password</>}
               </Button>
             </div>

@@ -32,7 +32,7 @@ function StepIndicator({ steps, current }) {
 }
 
 function SyncBadge({ result }) {
-  if (!result) return <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-500 border border-zinc-300">Local only</span>;
+  if (!result) return <span className="text-[9px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 border border-zinc-300">Local only</span>;
   if (result.status === 'ok') return <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Synced to Cloudflare</span>;
 
   const steps = result.steps || [];
@@ -281,7 +281,7 @@ export default function WpSecurityPage() {
         </TipBox>
         <div className="space-y-2">
           <Label className="text-xs text-zinc-400">WordPress URL</Label>
-          <Input value={wpUrl} onChange={e => setWpUrl(e.target.value)} placeholder="https://example.com" className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="wp-url-input" />
+          <Input value={wpUrl} onChange={e => setWpUrl(e.target.value)} placeholder="https://example.com" className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono text-sm" data-testid="wp-url-input" />
         </div>
         <Button onClick={saveWpUrl} disabled={!wpUrl.trim() || wpSaving} className="bg-red-600 hover:bg-red-700" data-testid="save-wp-url-btn">
           {wpSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />} Save & Continue
@@ -314,7 +314,7 @@ export default function WpSecurityPage() {
           <div className="space-y-1">
             <Label className="text-xs text-zinc-400">API Token {config?.cf_api_token_set && <span className="text-emerald-400 ml-1">(saved: {config.cf_api_token_preview})</span>}</Label>
             <div className="relative">
-              <Input type={showCfToken ? 'text' : 'password'} value={cfToken} onChange={e => setCfToken(e.target.value)} placeholder={config?.cf_api_token_set ? 'Leave blank to keep current token' : 'Paste your API Token here'} className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm pr-10" data-testid="cf-token-input" />
+              <Input type={showCfToken ? 'text' : 'password'} value={cfToken} onChange={e => setCfToken(e.target.value)} placeholder={config?.cf_api_token_set ? 'Leave blank to keep current token' : 'Paste your API Token here'} className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono text-sm pr-10" data-testid="cf-token-input" />
               <button onClick={() => setShowCfToken(!showCfToken)} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-600">
                 {showCfToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -322,7 +322,7 @@ export default function WpSecurityPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-zinc-400">Zone ID <span className="text-zinc-600">(from Cloudflare dashboard → Overview → right sidebar)</span></Label>
-            <Input value={cfZoneId} onChange={e => setCfZoneId(e.target.value)} placeholder="e.g. abc123def456..." className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="cf-zone-input" />
+            <Input value={cfZoneId} onChange={e => setCfZoneId(e.target.value)} placeholder="e.g. abc123def456..." className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono text-sm" data-testid="cf-zone-input" />
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -369,7 +369,7 @@ export default function WpSecurityPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-sm font-medium text-zinc-200">{rule.name}</span>
                   <span className={`text-[9px] px-1.5 py-0.5 rounded border ${severityColors[rule.severity]}`}>{rule.severity}</span>
-                  <code className="text-[10px] bg-zinc-800 text-zinc-500 px-1.5 py-0.5 rounded">{rule.target}</code>
+                  <code className="text-[10px] bg-zinc-100 text-zinc-500 px-1.5 py-0.5 rounded">{rule.target}</code>
                 </div>
                 <p className="text-xs text-zinc-500 mt-0.5">{rule.description}</p>
               </div>
@@ -396,8 +396,8 @@ export default function WpSecurityPage() {
           Block specific IP addresses. {hasCf ? 'IPs will be blocked directly in Cloudflare.' : 'Connect Cloudflare in Step 2 to block IPs at the edge.'}
         </TipBox>
         <div className="flex gap-2">
-          <Input value={newBlockIp} onChange={e => setNewBlockIp(e.target.value)} placeholder="IP address (e.g. 192.168.1.1)" className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm flex-1" data-testid="block-ip-input" />
-          <Input value={newBlockNote} onChange={e => setNewBlockNote(e.target.value)} placeholder="Note (optional)" className="bg-zinc-800 border-zinc-300 text-white text-sm w-48" data-testid="block-note-input" />
+          <Input value={newBlockIp} onChange={e => setNewBlockIp(e.target.value)} placeholder="IP address (e.g. 192.168.1.1)" className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono text-sm flex-1" data-testid="block-ip-input" />
+          <Input value={newBlockNote} onChange={e => setNewBlockNote(e.target.value)} placeholder="Note (optional)" className="bg-zinc-50 border-zinc-200 text-zinc-900 text-sm w-48" data-testid="block-note-input" />
           <Button onClick={addToBlocklist} disabled={!newBlockIp.trim() || blockSaving} variant="destructive" size="sm" data-testid="add-block-btn">
             {blockSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Ban className="w-4 h-4" />}
           </Button>
@@ -448,7 +448,7 @@ export default function WpSecurityPage() {
           {loginProtection.limit_login_attempts && (
             <div className="ml-8 space-y-1">
               <Label className="text-xs text-zinc-400">Max attempts before block</Label>
-              <Input type="number" value={loginProtection.max_attempts} onChange={e => setLoginProtection({...loginProtection, max_attempts: parseInt(e.target.value) || 5})} className="bg-zinc-800 border-zinc-300 text-white w-24 text-sm" min={1} max={50} />
+              <Input type="number" value={loginProtection.max_attempts} onChange={e => setLoginProtection({...loginProtection, max_attempts: parseInt(e.target.value) || 5})} className="bg-zinc-50 border-zinc-200 text-zinc-900 w-24 text-sm" min={1} max={50} />
             </div>
           )}
         </div>
@@ -547,7 +547,7 @@ function WizardStep({ stepNum, title, icon, completed, summary, active, editStep
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === stepNum ? null : stepNum)}>
           <div className="flex items-center gap-2">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${completed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${completed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
               {completed ? <Check className="w-3 h-3" /> : stepNum + 1}
             </div>
             <span className="text-sm font-medium text-zinc-200">{title}</span>

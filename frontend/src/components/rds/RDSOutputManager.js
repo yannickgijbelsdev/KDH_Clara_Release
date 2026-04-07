@@ -73,12 +73,12 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
       />
 
       {/* Type icon */}
-      <div className={`p-2 rounded-lg ${item.enabled ? 'bg-zinc-700' : 'bg-zinc-800'}`}>
+      <div className={`p-2 rounded-lg ${item.enabled ? 'bg-zinc-700' : 'bg-zinc-100'}`}>
         <TypeIcon className="w-4 h-4 text-zinc-400" />
       </div>
 
       {/* Type label */}
-      <span className="text-sm font-medium text-white w-28">{typeConfig.label}</span>
+      <span className="text-sm font-medium text-zinc-900 w-28">{typeConfig.label}</span>
 
       {/* Content input for custom_text */}
       {item.type === 'custom_text' ? (
@@ -106,7 +106,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
           value={item.duration}
           onChange={(e) => onUpdate({ ...item, duration: parseInt(e.target.value) || 5 })}
           disabled={!item.enabled}
-          className="bg-zinc-800 border-zinc-300 text-white w-16 text-center h-8 text-sm"
+          className="bg-zinc-50 border-zinc-200 text-zinc-900 w-16 text-center h-8 text-sm"
         />
         <span className="text-zinc-500 text-xs">sec</span>
       </div>
@@ -208,7 +208,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
       <div className="bg-zinc-100 border border-zinc-300 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-zinc-200">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-semibold text-zinc-900">
             {output ? 'Edit Output' : 'New Output'}
           </h3>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -226,7 +226,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
                 value={name}
                 onChange={handleNameChange}
                 placeholder="e.g. Streaming, DAB+, FM"
-                className="bg-zinc-800 border-zinc-300 text-white mt-1"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
               />
             </div>
             <div>
@@ -236,7 +236,7 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                 placeholder="e.g. streaming, dab, fm"
                 disabled={!!output}
-                className="bg-zinc-800 border-zinc-300 text-white mt-1 font-mono"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1 font-mono"
               />
             </div>
           </div>
@@ -335,11 +335,11 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${output.enabled ? 'bg-green-500' : 'bg-zinc-600'}`} />
-          <h4 className="font-semibold text-white">{output.name}</h4>
+          <h4 className="font-semibold text-zinc-900">{output.name}</h4>
           <span className="text-xs text-zinc-500 font-mono">/{output.slug}</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => onEdit(output)} className="text-zinc-400 hover:text-white h-8 w-8 p-0">
+          <Button variant="ghost" size="sm" onClick={() => onEdit(output)} className="text-zinc-400 hover:text-zinc-700 h-8 w-8 p-0">
             <Pencil className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setShowDeleteDialog(true)} disabled={deleting} className="text-red-400 hover:text-red-300 h-8 w-8 p-0">
@@ -381,13 +381,13 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Output</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete Output</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               Are you sure you want to delete "{output.name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-white hover:bg-zinc-700">
+            <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-zinc-900 hover:bg-zinc-700">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
@@ -484,7 +484,7 @@ const RDSOutputManager = ({ station, stationName, color }) => {
             <Settings className={`w-5 h-5 ${colors.text}`} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">{stationName} Outputs</h3>
+            <h3 className="text-lg font-semibold text-zinc-900">{stationName} Outputs</h3>
             <p className="text-xs text-zinc-500">Configure multiple outputs for Streaming, DAB, FM, etc.</p>
           </div>
         </div>

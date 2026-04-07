@@ -82,7 +82,7 @@ export default function BrandingSettings() {
                 value={platformName}
                 onChange={(e) => setPlatformName(e.target.value)}
                 placeholder="Clara"
-                className="bg-zinc-800 border-zinc-300 text-white max-w-xs"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 max-w-xs"
               />
               <Button
                 data-testid="save-platform-name-btn"
@@ -147,7 +147,7 @@ export default function BrandingSettings() {
                       size="sm"
                       variant="ghost"
                       onClick={() => logoInputRef.current?.click()}
-                      className="text-zinc-400 hover:text-white"
+                      className="text-zinc-400 hover:text-zinc-700"
                     >
                       <Upload className="w-4 h-4 mr-1" /> Replace
                     </Button>
@@ -185,7 +185,7 @@ export default function BrandingSettings() {
                     size="sm"
                     variant="ghost"
                     onClick={() => faviconInputRef.current?.click()}
-                    className="text-zinc-400 hover:text-white"
+                    className="text-zinc-400 hover:text-zinc-700"
                   >
                     <Upload className="w-4 h-4 mr-1" /> Replace
                   </Button>
@@ -195,7 +195,7 @@ export default function BrandingSettings() {
                   data-testid="upload-favicon-btn"
                   onClick={() => faviconInputRef.current?.click()}
                   variant="outline"
-                  className="bg-zinc-800 border-zinc-300 text-zinc-600 hover:bg-zinc-200"
+                  className="bg-zinc-50 border-zinc-200 text-zinc-600 hover:bg-zinc-100"
                   disabled={uploading === 'upload-favicon'}
                 >
                   {uploading === 'upload-favicon' ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}

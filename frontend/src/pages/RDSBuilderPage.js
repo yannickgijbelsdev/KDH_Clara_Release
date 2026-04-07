@@ -131,7 +131,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
             <CalendarClock className={`w-5 h-5 ${colors.text}`} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">{stationName} Scheduled Texts</h3>
+            <h3 className="text-lg font-semibold text-zinc-900">{stationName} Scheduled Texts</h3>
             <p className="text-xs text-zinc-500">Scheduled custom texts (priority over sequence items)</p>
           </div>
         </div>
@@ -183,7 +183,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
 
               {/* Text content */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate font-medium">
+                <p className="text-sm text-zinc-700 truncate font-medium">
                   {text.text}
                   {text.is_active_now && (
                     <span className="ml-2 px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full animate-pulse">
@@ -348,7 +348,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
             max="60"
             value={item.duration}
             onChange={(e) => onUpdate({ ...item, duration: parseInt(e.target.value) || 5 })}
-            className="bg-zinc-800 border-zinc-300 text-white w-16 text-center"
+            className="bg-zinc-50 border-zinc-200 text-zinc-900 w-16 text-center"
           />
           <span className="text-zinc-500 text-sm">sec</span>
         </div>
@@ -503,7 +503,7 @@ const StationBuilder = ({ station, stationName, color }) => {
             <Radio className={`w-5 h-5 ${colors.text}`} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">{stationName}</h3>
+            <h3 className="text-lg font-semibold text-zinc-900">{stationName}</h3>
             <p className="text-xs text-zinc-500">RDS Text Sequence</p>
           </div>
         </div>
@@ -628,7 +628,7 @@ const RDSBuilderPage = () => {
             <Radio className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">RDS Builder</h1>
+            <h1 className="text-2xl font-bold text-zinc-900">RDS Builder</h1>
             <p className="text-sm text-zinc-500">Configure RDS text outputs for MagicRDS</p>
           </div>
         </div>

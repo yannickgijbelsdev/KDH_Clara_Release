@@ -636,7 +636,7 @@ const AudioTriggersPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-zinc-900 flex items-center gap-3">
             <Volume2 className="w-7 h-7 text-orange-400" />
             Audio Triggers
           </h1>
@@ -704,7 +704,7 @@ const AudioTriggersPage = () => {
                       className="data-[state=checked]:bg-green-500 mt-1"
                     />
                     <div>
-                      <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
                         {trigger.name}
                         <span className={`text-xs px-2 py-0.5 rounded ${colors.bg} ${colors.text} border ${colors.border}`}>
                           {trigger.station === 'both' ? 'Both' : trigger.station.toUpperCase()}
@@ -759,7 +759,7 @@ const AudioTriggersPage = () => {
                         setEditingTrigger(trigger);
                         setDialogOpen(true);
                       }}
-                      className="text-zinc-400 hover:text-white"
+                      className="text-zinc-400 hover:text-zinc-700"
                     >
                       <Settings className="w-4 h-4" />
                     </Button>
@@ -783,13 +783,13 @@ const AudioTriggersPage = () => {
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, triggerId: null, triggerName: '' })}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete Audio Trigger</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Delete Audio Trigger</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               Are you sure you want to delete "{deleteDialog.triggerName}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-300 text-white hover:bg-zinc-200">
+            <AlertDialogCancel className="bg-zinc-50 border-zinc-200 text-zinc-900 hover:bg-zinc-200">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction 
@@ -806,7 +806,7 @@ const AudioTriggersPage = () => {
       {showLogs && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Detection Logs</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Detection Logs</h2>
             <Button variant="ghost" size="sm" onClick={fetchLogs} className="text-zinc-400">
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh

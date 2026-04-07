@@ -232,7 +232,7 @@ export default function TaskCalendarView({ tasks, columns, onTaskClick }) {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="w-8 h-8" data-testid="cal-prev">
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          <h3 className="text-sm font-semibold text-white min-w-[200px] text-center">{headerLabel}</h3>
+          <h3 className="text-sm font-semibold text-zinc-900 min-w-[200px] text-center">{headerLabel}</h3>
           <Button variant="ghost" size="icon" onClick={() => navigate(1)} className="w-8 h-8" data-testid="cal-next">
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -259,14 +259,14 @@ export default function TaskCalendarView({ tasks, columns, onTaskClick }) {
           <div className="flex bg-zinc-50 rounded-lg p-0.5" data-testid="cal-view-toggle">
             <button
               onClick={() => setViewMode('month')}
-              className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'month' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+              className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'month' ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-600'}`}
               data-testid="cal-month-btn"
             >
               Month
             </button>
             <button
               onClick={() => setViewMode('week')}
-              className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'week' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+              className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'week' ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-600'}`}
               data-testid="cal-week-btn"
             >
               Week

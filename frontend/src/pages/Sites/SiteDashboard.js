@@ -376,7 +376,7 @@ export default function SiteDashboard() {
             />
           )}
           <div>
-            <h1 className="text-2xl font-bold text-white">{site.name}</h1>
+            <h1 className="text-2xl font-bold text-zinc-900">{site.name}</h1>
             <a 
               href={publicUrl} 
               target="_blank" 
@@ -398,7 +398,7 @@ export default function SiteDashboard() {
       {activeTab === 'general' && (
         <div className="space-y-6">
           <div className="bg-white/60 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Page settings</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 mb-4">Page settings</h2>
             
             <div className="grid gap-4">
               <div>
@@ -488,7 +488,7 @@ export default function SiteDashboard() {
                 <div className="flex items-center gap-3">
                   <Lock className="h-5 w-5 text-zinc-400" />
                   <div>
-                    <p className="text-white font-medium">Password Protection</p>
+                    <p className="text-zinc-700 font-medium">Password Protection</p>
                     <p className="text-sm text-zinc-400">Visitors must enter a password</p>
                   </div>
                 </div>
@@ -512,7 +512,7 @@ export default function SiteDashboard() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -532,7 +532,7 @@ export default function SiteDashboard() {
             <div className="flex items-center gap-3 mb-4">
               <ImageIcon className="h-5 w-5 text-orange-400" />
               <div>
-                <h2 className="text-lg font-semibold text-white">Header Image</h2>
+                <h2 className="text-lg font-semibold text-zinc-900">Header Image</h2>
                 <p className="text-sm text-zinc-400">Displayed above the audio player (if no video)</p>
               </div>
             </div>
@@ -575,7 +575,7 @@ export default function SiteDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Music className="h-5 w-5 text-orange-400" />
-                <h2 className="text-lg font-semibold text-white">Audio Player</h2>
+                <h2 className="text-lg font-semibold text-zinc-900">Audio Player</h2>
               </div>
               <Switch
                 checked={site.audio_enabled || false}
@@ -677,7 +677,7 @@ export default function SiteDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Video className="h-5 w-5 text-orange-400" />
-                <h2 className="text-lg font-semibold text-white">Video Player</h2>
+                <h2 className="text-lg font-semibold text-zinc-900">Video Player</h2>
               </div>
               <Switch
                 checked={site.video_enabled || false}
@@ -742,7 +742,7 @@ export default function SiteDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <MessageSquare className="h-5 w-5 text-orange-400" />
-                <h2 className="text-lg font-semibold text-white">Contact Form</h2>
+                <h2 className="text-lg font-semibold text-zinc-900">Contact Form</h2>
               </div>
               <Switch
                 checked={site.form_enabled || false}
@@ -773,7 +773,7 @@ export default function SiteDashboard() {
                         <select
                           value={field.type}
                           onChange={(e) => updateFormField(field.id, { type: e.target.value })}
-                          className="bg-zinc-800 border border-zinc-300 rounded-md px-3 py-2 text-sm text-white"
+                          className="bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2 text-sm text-zinc-900"
                         >
                           <option value="text">Text</option>
                           <option value="email">Email</option>
@@ -808,7 +808,7 @@ export default function SiteDashboard() {
                       <Input
                         value={field.placeholder || ''}
                         onChange={(e) => updateFormField(field.id, { placeholder: e.target.value })}
-                        className="bg-zinc-800 border-zinc-300 text-sm h-8"
+                        className="bg-zinc-50 border-zinc-200 text-sm h-8"
                         placeholder="Placeholder text (optional)"
                       />
                       {/* Row 3: Type-specific options */}
@@ -841,7 +841,7 @@ export default function SiteDashboard() {
                             value={(field.options || []).join('\n')}
                             onChange={(e) => updateFormField(field.id, { options: e.target.value.split('\n').filter(Boolean) })}
                             rows={3}
-                            className="w-full bg-zinc-800 border border-zinc-300 rounded-md px-3 py-2 text-sm text-white resize-none"
+                            className="w-full bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2 text-sm text-zinc-900 resize-none"
                             placeholder="Option 1&#10;Option 2&#10;Option 3"
                           />
                         </div>
@@ -864,7 +864,7 @@ export default function SiteDashboard() {
                   <div className="flex items-center gap-3">
                     <FileUp className="h-5 w-5 text-zinc-400" />
                     <div>
-                      <p className="text-white font-medium">Allow file uploads</p>
+                      <p className="text-zinc-700 font-medium">Allow file uploads</p>
                       <p className="text-sm text-zinc-400">Visitors can upload images, audio and video</p>
                     </div>
                   </div>
@@ -885,7 +885,7 @@ export default function SiteDashboard() {
           <div className="bg-white/60 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-6">
               <Palette className="h-5 w-5 text-orange-400" />
-              <h2 className="text-lg font-semibold text-white">Page Styling</h2>
+              <h2 className="text-lg font-semibold text-zinc-900">Page Styling</h2>
             </div>
 
             <div className="space-y-6">
@@ -974,7 +974,7 @@ export default function SiteDashboard() {
               <div className="mt-4 p-4 rounded-lg border border-zinc-300" style={{ backgroundColor: site.background_color || '#09090b' }}>
                 <p className="text-xs text-zinc-500 mb-2">Color preview:</p>
                 <div className="p-4 rounded-lg" style={{ backgroundColor: site.container_color || '#18181b' }}>
-                  <p className="text-white text-sm mb-2">Container preview</p>
+                  <p className="text-zinc-700 text-sm mb-2">Container preview</p>
                   <button
                     className="px-4 py-2 rounded-lg text-white font-medium transition"
                     style={{ backgroundColor: site.button_color || '#f97316' }}
@@ -992,7 +992,7 @@ export default function SiteDashboard() {
       {activeTab === 'submissions' && (
         <div className="space-y-4">
           <div className="bg-white/60 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">Submissions</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 mb-4">Submissions</h2>
             
             {submissions.length === 0 ? (
               <p className="text-zinc-400 text-center py-8">
@@ -1007,7 +1007,7 @@ export default function SiteDashboard() {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="font-medium text-white">{sub.name}</p>
+                        <p className="font-medium text-zinc-900">{sub.name}</p>
                         {sub.phone && (
                           <p className="text-sm text-zinc-400">{sub.phone}</p>
                         )}
@@ -1099,7 +1099,7 @@ export default function SiteDashboard() {
       {activeTab === 'users' && (
         <div className="space-y-4">
           <div className="bg-white/60 rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-white mb-4">User Access</h2>
+            <h2 className="text-lg font-semibold text-zinc-900 mb-4">User Access</h2>
             
             <div className="space-y-4">
               {/* Current users */}
@@ -1112,7 +1112,7 @@ export default function SiteDashboard() {
                       className="flex items-center justify-between p-3 bg-zinc-100/70 rounded-lg"
                     >
                       <div>
-                        <p className="font-medium text-white">{user.name || user.email}</p>
+                        <p className="font-medium text-zinc-900">{user.name || user.email}</p>
                         <p className="text-sm text-zinc-400">{user.role === 'editor' ? 'Editor' : 'View only'}</p>
                       </div>
                       <Button

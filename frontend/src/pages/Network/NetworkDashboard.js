@@ -328,7 +328,7 @@ function UserAccessSection({ token, API }) {
                       return (
                         <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-50/40 rounded p-2">
                           <RIcon className="w-4 h-4 text-zinc-400" />
-                          <span className="text-white font-medium min-w-[150px]">{access.user_name}</span>
+                          <span className="text-zinc-700 font-medium min-w-[150px]">{access.user_name}</span>
                           <span className="text-zinc-500 min-w-[200px]">{access.user_email}</span>
                           <span className={`text-xs px-2 py-0.5 rounded ${
                             access.site_role === 'admin' ? 'bg-orange-500/20 text-orange-400' :

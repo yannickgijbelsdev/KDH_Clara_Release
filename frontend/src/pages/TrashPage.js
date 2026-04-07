@@ -140,7 +140,7 @@ const TrashPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2 flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2 flex items-center gap-3">
             <Trash2 className="w-8 h-8 text-orange-400" />
             Trash
           </h1>
@@ -173,7 +173,7 @@ const TrashPage = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search deleted content..."
-              className="pl-10 bg-zinc-100 border-zinc-200 text-white placeholder:text-zinc-500"
+              className="pl-10 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
             />
           </div>
         </div>
@@ -197,7 +197,7 @@ const TrashPage = () => {
           <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Trash2 className="w-8 h-8 text-zinc-500" />
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">
+          <h3 className="text-lg font-semibold text-zinc-900 mb-2">
             {deletedContent.length === 0 ? 'Trash is empty' : 'No matching content'}
           </h3>
           <p className="text-zinc-400">
@@ -331,7 +331,7 @@ const TrashPage = () => {
       <AlertDialog open={!!permanentDeleteItem} onOpenChange={() => setPermanentDeleteItem(null)}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white flex items-center gap-2">
+            <AlertDialogTitle className="text-zinc-900 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-500" />
               Permanently Delete Content
             </AlertDialogTitle>

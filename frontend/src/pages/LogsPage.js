@@ -275,7 +275,7 @@ const LogsPage = () => {
               <ActionIcon className="w-4 h-4 text-orange-400" />
             </div>
             <div>
-              <p className="text-white font-medium">{log.action}</p>
+              <p className="text-zinc-700 font-medium">{log.action}</p>
               {log.target_name && (
                 <p className="text-zinc-500 text-sm truncate max-w-[200px]">{log.target_name}</p>
               )}
@@ -320,7 +320,7 @@ const LogsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Activity Logs</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Activity Logs</h1>
           <p className="text-sm text-zinc-400">Track all user actions and system events</p>
         </div>
         <div className="flex gap-2">
@@ -356,7 +356,7 @@ const LogsPage = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Total Events</p>
-            <p className="text-2xl font-bold text-white">{stats.total.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-zinc-900">{stats.total.toLocaleString()}</p>
           </div>
           <div className="bg-white border border-zinc-200 rounded-xl p-4">
             <p className="text-zinc-500 text-sm">Last 24 Hours</p>
@@ -379,13 +379,13 @@ const LogsPage = () => {
           {/* Calendar */}
           <div className="bg-white border border-zinc-200 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <Button variant="ghost" size="icon" onClick={previousMonth} className="text-zinc-400 hover:text-white">
+              <Button variant="ghost" size="icon" onClick={previousMonth} className="text-zinc-400 hover:text-zinc-700">
                 <ChevronLeft className="w-5 h-5" />
               </Button>
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-lg font-semibold text-zinc-900">
                 {format(currentMonth, 'MMMM yyyy')}
               </h3>
-              <Button variant="ghost" size="icon" onClick={nextMonth} className="text-zinc-400 hover:text-white">
+              <Button variant="ghost" size="icon" onClick={nextMonth} className="text-zinc-400 hover:text-zinc-700">
                 <ChevronRight className="w-5 h-5" />
               </Button>
             </div>
@@ -422,7 +422,7 @@ const LogsPage = () => {
                       ${isSelected 
                         ? 'bg-orange-500 text-white' 
                         : hasLogs 
-                          ? 'bg-zinc-800 text-white hover:bg-zinc-200' 
+                          ? 'bg-zinc-900 text-white hover:bg-zinc-200' 
                           : 'text-zinc-600 cursor-not-allowed'
                       }
                       ${isToday(day) && !isSelected ? 'ring-2 ring-orange-500/50' : ''}
@@ -446,13 +446,13 @@ const LogsPage = () => {
               <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
                 <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-lg font-semibold text-zinc-900">
                       {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
                     </h3>
                     <p className="text-sm text-zinc-400">{archiveLogs.length} events</p>
                   </div>
                   <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-40 bg-zinc-100 border-zinc-300 text-white">
+                    <SelectTrigger className="w-40 bg-zinc-50 border-zinc-200 text-zinc-900">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent className="bg-white border-zinc-200">
@@ -489,7 +489,7 @@ const LogsPage = () => {
             ) : (
               <div className="bg-white border border-zinc-200 rounded-xl p-8 text-center h-full flex flex-col items-center justify-center">
                 <CalendarIcon className="w-12 h-12 text-zinc-600 mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">Select a Date</h3>
+                <h3 className="text-lg font-semibold text-zinc-900 mb-2">Select a Date</h3>
                 <p className="text-zinc-400">Click on a date in the calendar to view logs from that day</p>
               </div>
             )}
@@ -510,12 +510,12 @@ const LogsPage = () => {
                   value={search}
                   onChange={(e) => { setSearch(e.target.value); setPage(0); }}
                   placeholder="Search by action, user, email, or IP..."
-                  className="pl-10 bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                  className="pl-10 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
                 />
               </div>
               
               <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(0); }}>
-                <SelectTrigger data-testid="category-filter" className="w-full md:w-48 bg-zinc-100 border-zinc-300 text-white">
+                <SelectTrigger data-testid="category-filter" className="w-full md:w-48 bg-zinc-50 border-zinc-200 text-zinc-900">
                   <Filter className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
@@ -530,7 +530,7 @@ const LogsPage = () => {
               </Select>
               
               <Select value={userFilter} onValueChange={(v) => { setUserFilter(v); setPage(0); }}>
-                <SelectTrigger data-testid="user-filter" className="w-full md:w-48 bg-zinc-100 border-zinc-300 text-white">
+                <SelectTrigger data-testid="user-filter" className="w-full md:w-48 bg-zinc-50 border-zinc-200 text-zinc-900">
                   <User className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="All Users" />
                 </SelectTrigger>
@@ -556,7 +556,7 @@ const LogsPage = () => {
             ) : logs.length === 0 ? (
               <div className="p-8 text-center">
                 <Activity className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">No Activity Logs</h3>
+                <h3 className="text-lg font-semibold text-zinc-900 mb-2">No Activity Logs</h3>
                 <p className="text-zinc-400">No logs match your current filters</p>
               </div>
             ) : (

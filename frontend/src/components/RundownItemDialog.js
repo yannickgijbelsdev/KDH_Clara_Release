@@ -253,7 +253,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
                           </div>
                           <Button type="button" size="sm" data-testid="apply-duration-btn"
                             onClick={applyEstimatedDuration}
-                            className="h-7 px-3 bg-zinc-900 hover:bg-zinc-800 text-white text-xs gap-1 rounded-full">
+                            className="h-7 px-3 bg-zinc-900 hover:bg-zinc-900 text-white text-xs gap-1 rounded-full">
                             <Wand2 className="w-3 h-3" /> Apply
                           </Button>
                         </div>
@@ -288,7 +288,7 @@ const RundownItemDialog = ({ open, onOpenChange, showId, editingItem, onSaved, s
           </Button>
           <Button onClick={handleNext} disabled={!canNext() || loading}
             data-testid="item-wizard-next-btn"
-            className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+            className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
             {loading ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
             ) : wizardStep === 1 ? (

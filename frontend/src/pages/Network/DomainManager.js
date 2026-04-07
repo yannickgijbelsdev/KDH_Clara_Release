@@ -113,7 +113,7 @@ function StepIndicator({ steps, current }) {
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
             i < current ? 'bg-emerald-500/20 text-emerald-400' :
             i === current ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
-            'bg-zinc-800 text-zinc-500'
+            'bg-zinc-100 text-zinc-500'
           }`}>
             {i < current ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
             <span className="hidden sm:inline">{s}</span>
@@ -422,7 +422,7 @@ export default function DomainManager() {
         ].map(tab => (
           <button key={tab.id} data-testid={`domain-tab-${tab.id}`} onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              activeTab === tab.id ? 'bg-zinc-800 text-white border-b-2 border-orange-500' : 'text-zinc-400 hover:text-zinc-200'}`}>
+              activeTab === tab.id ? 'bg-zinc-900 text-white border-b-2 border-orange-500' : 'text-zinc-400 hover:text-zinc-200'}`}>
             <tab.icon className="w-4 h-4" />{tab.label}
           </button>
         ))}
@@ -630,7 +630,7 @@ export default function DomainManager() {
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-mono text-white font-medium">{route.subdomain}.{baseDomain}</span>
                           <span className={`px-2 py-0.5 rounded text-[10px] border ${ROUTE_TYPE_COLORS[route.route_type] || 'bg-zinc-200 text-zinc-600 border-zinc-600'}`}>{ROUTE_TYPE_LABELS[route.route_type] || route.route_type}</span>
-                          {route.is_system && <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-500">System</span>}
+                          {route.is_system && <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-500">System</span>}
                           {/* DNS status badge */}
                           {cfConfig?.configured && route.is_active && (
                             dns.exists ? (
@@ -691,7 +691,7 @@ export default function DomainManager() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
                 <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfConfig?.api_token_set ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfConfig?.api_token_set ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
                     {cfConfig?.api_token_set ? <Check className="w-3.5 h-3.5" /> : '1'}
                   </div>
                   <span className="text-sm font-medium text-zinc-200">API Token</span>
@@ -758,7 +758,7 @@ export default function DomainManager() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
                 <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfConfig?.zone_id ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfConfig?.zone_id ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
                     {cfConfig?.zone_id ? <Check className="w-3.5 h-3.5" /> : '2'}
                   </div>
                   <span className="text-sm font-medium text-zinc-200">Zone ID & Base Domain</span>
@@ -823,7 +823,7 @@ export default function DomainManager() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfVerifyResult?.valid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfVerifyResult?.valid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
                     {cfVerifyResult?.valid ? <Check className="w-3.5 h-3.5" /> : '3'}
                   </div>
                   <span className="text-sm font-medium text-zinc-200">Verify Connection</span>
@@ -850,7 +850,7 @@ export default function DomainManager() {
                           <ol className="space-y-1 list-none">
                             {cfVerifyResult.steps.map((step, i) => (
                               <li key={i} className="flex items-start gap-2 text-xs text-zinc-600">
-                                <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+                                <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-100 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
                                 <span>{step}</span>
                               </li>
                             ))}
@@ -879,7 +879,7 @@ export default function DomainManager() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-zinc-800 text-zinc-500">4</div>
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-zinc-100 text-zinc-500">4</div>
                   <span className="text-sm font-medium text-zinc-200">Sync DNS Records</span>
                 </div>
                 <a href={cfDnsUrl} target="_blank" rel="noopener noreferrer"
@@ -939,7 +939,7 @@ export default function DomainManager() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 4 ? null : 4)}>
                 <div className="flex items-center gap-2">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${workerResult?.status === 'ok' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${workerResult?.status === 'ok' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
                     {workerResult?.status === 'ok' ? <Check className="w-3 h-3" /> : '5'}
                   </div>
                   <span className="text-sm font-medium text-zinc-200">Cloudflare Worker</span>
@@ -1083,7 +1083,7 @@ export default function DomainManager() {
                             <ol className="space-y-1 list-none">
                               {workerResult.steps.map((step, i) => (
                                 <li key={i} className="flex items-start gap-2 text-xs text-zinc-600">
-                                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
+                                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-zinc-100 text-zinc-500 flex items-center justify-center text-[10px] font-bold mt-0.5">{i + 1}</span>
                                   <span>{step}</span>
                                 </li>
                               ))}

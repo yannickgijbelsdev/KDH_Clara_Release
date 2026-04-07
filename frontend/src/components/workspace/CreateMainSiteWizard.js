@@ -476,7 +476,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
             <Button
               onClick={handleNext}
               disabled={!canNext()}
-              className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full"
+              className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full"
               data-testid="wizard-next-btn"
             >
               {step === 3 ? (

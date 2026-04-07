@@ -266,7 +266,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                   key={role.id}
                   onClick={() => selectRole(role)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-all cursor-pointer ${
-                    activeRoleId === role.id ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-600'
+                    activeRoleId === role.id ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-600'
                   }`}
                   data-testid={`role-${role.slug}`}
                 >

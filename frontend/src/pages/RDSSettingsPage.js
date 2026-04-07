@@ -226,7 +226,7 @@ const RDSSettingsPage = () => {
             <Radio className="w-6 h-6 text-orange-500" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">RDS Settings</h1>
+            <h1 className="text-2xl font-bold text-zinc-900">RDS Settings</h1>
             <p className="text-sm text-zinc-500">MagicRDS and external systems integration</p>
           </div>
         </div>
@@ -246,7 +246,7 @@ const RDSSettingsPage = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-orange-400" />
-            <h2 className="text-lg font-semibold text-white">Configuration</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">Configuration</h2>
           </div>
           {!editMode ? (
             <Button
@@ -295,7 +295,7 @@ const RDSSettingsPage = () => {
                 value={editData.production_base_url}
                 onChange={(e) => setEditData({ ...editData, production_base_url: e.target.value })}
                 placeholder="https://clara.koodh.com"
-                className="bg-zinc-100 border-zinc-300 text-white font-mono"
+                className="bg-zinc-100 border-zinc-300 text-zinc-900 font-mono"
               />
               <p className="text-xs text-zinc-500">
                 The base URL of your production environment. This is used for the API endpoints.
@@ -309,7 +309,7 @@ const RDSSettingsPage = () => {
                 max="60"
                 value={editData.cache_refresh_interval}
                 onChange={(e) => setEditData({ ...editData, cache_refresh_interval: parseInt(e.target.value) || 5 })}
-                className="bg-zinc-100 border-zinc-300 text-white w-24"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 w-24"
               />
               <p className="text-xs text-zinc-500">
                 How often the live show cache is automatically refreshed.
@@ -320,15 +320,15 @@ const RDSSettingsPage = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-zinc-500 text-sm mb-1">Production URL</p>
-              <p className="text-white font-mono">{settings?.production_base_url || '-'}</p>
+              <p className="text-zinc-900 font-mono">{settings?.production_base_url || '-'}</p>
             </div>
             <div>
               <p className="text-zinc-500 text-sm mb-1">Cache Interval</p>
-              <p className="text-white">Every {settings?.cache_refresh_interval || 5} minutes</p>
+              <p className="text-zinc-700">Every {settings?.cache_refresh_interval || 5} minutes</p>
             </div>
             <div>
               <p className="text-zinc-500 text-sm mb-1">Last Cache Refresh</p>
-              <p className="text-white">
+              <p className="text-zinc-700">
                 {settings?.last_cache_refresh
                   ? formatInTimeZone(new Date(settings.last_cache_refresh), 'Europe/Brussels', 'MMM dd yyyy HH:mm:ss')
                   : 'Not yet run'}
@@ -342,7 +342,7 @@ const RDSSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <ExternalLink className="w-5 h-5 text-violet-400" />
-          <h2 className="text-lg font-semibold text-white">API Endpoints</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">API Endpoints</h2>
         </div>
         <p className="text-zinc-500 text-sm mb-4">
           Copy these URLs to use in MagicRDS or other external systems.
@@ -376,7 +376,7 @@ const RDSSettingsPage = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-white text-sm font-medium">{endpoint.name.replace(`${station.toUpperCase()} - `, '').replace('Alle Stations - ', '').replace('All Stations - ', '')}</h4>
+                          <h4 className="text-zinc-700 text-sm font-medium">{endpoint.name.replace(`${station.toUpperCase()} - `, '').replace('Alle Stations - ', '').replace('All Stations - ', '')}</h4>
                           <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
                             Public
                           </span>
@@ -414,7 +414,7 @@ const RDSSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-5 h-5 text-zinc-400" />
-          <h2 className="text-lg font-semibold text-white">Cache Logs</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">Cache Logs</h2>
           <span className="text-xs text-zinc-500 ml-2">Laatste 20</span>
         </div>
 
@@ -433,7 +433,7 @@ const RDSSettingsPage = () => {
                 {getStatusIcon(log.status)}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-white text-sm font-medium">
+                    <span className="text-zinc-700 text-sm font-medium">
                       {getStatusLabel(log.status)}
                     </span>
                     {log.show_title && (
@@ -455,7 +455,7 @@ const RDSSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-orange-400" />
-          <h2 className="text-lg font-semibold text-white">Now Playing Filters</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">Now Playing Filters</h2>
         </div>
         <p className="text-zinc-500 text-sm mb-4">
           Filter certain texts from the now playing info. If the text matches, it will be replaced.
@@ -509,14 +509,14 @@ const RDSSettingsPage = () => {
                       value={filter.match}
                       onChange={(e) => updateFilter('mfy', idx, 'match', e.target.value)}
                       placeholder="Text to filter (e.g. ft.)"
-                      className="bg-zinc-800 border-zinc-300 text-white text-xs flex-1"
+                      className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1"
                     />
                     <span className="text-zinc-500 text-xs">→</span>
                     <Input
                       value={filter.replace}
                       onChange={(e) => updateFilter('mfy', idx, 'replace', e.target.value)}
                       placeholder="Replace with (e.g. &)"
-                      className="bg-zinc-800 border-zinc-300 text-white text-xs flex-1"
+                      className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1"
                     />
                     <Button
                       variant="ghost"
@@ -619,14 +619,14 @@ const RDSSettingsPage = () => {
                       value={filter.match}
                       onChange={(e) => updateFilter('grk', idx, 'match', e.target.value)}
                       placeholder="Text to filter (e.g. ft.)"
-                      className="bg-zinc-800 border-zinc-300 text-white text-xs flex-1"
+                      className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1"
                     />
                     <span className="text-zinc-500 text-xs">→</span>
                     <Input
                       value={filter.replace}
                       onChange={(e) => updateFilter('grk', idx, 'replace', e.target.value)}
                       placeholder="Replace with (e.g. &)"
-                      className="bg-zinc-800 border-zinc-300 text-white text-xs flex-1"
+                      className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1"
                     />
                     <Button
                       variant="ghost"
@@ -688,7 +688,7 @@ const RDSSettingsPage = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-amber-400" />
-              <h2 className="text-lg font-semibold text-white">Stale Now Playing Timeout</h2>
+              <h2 className="text-lg font-semibold text-zinc-900">Stale Now Playing Timeout</h2>
             </div>
             <Button
               onClick={handleSaveStaleConfig}
@@ -714,7 +714,7 @@ const RDSSettingsPage = () => {
                 max={120}
                 value={staleConfig.timeout_minutes || 15}
                 onChange={e => setStaleConfig({...staleConfig, timeout_minutes: parseInt(e.target.value) || 15})}
-                className="bg-zinc-800 border-zinc-300 text-white mt-1"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
                 data-testid="stale-timeout-input"
               />
               <p className="text-[10px] text-zinc-600 mt-1">After this many minutes of the same song, show fallback text</p>
@@ -727,7 +727,7 @@ const RDSSettingsPage = () => {
                 max={300}
                 value={staleConfig.recovery_seconds || 30}
                 onChange={e => setStaleConfig({...staleConfig, recovery_seconds: parseInt(e.target.value) || 30})}
-                className="bg-zinc-800 border-zinc-300 text-white mt-1"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
                 data-testid="stale-recovery-input"
               />
               <p className="text-[10px] text-zinc-600 mt-1">New song must persist this long to recover from stale</p>
@@ -740,7 +740,7 @@ const RDSSettingsPage = () => {
               <Input
                 value={staleConfig.fallback_text?.mfy || ''}
                 onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, mfy: e.target.value}})}
-                className="bg-zinc-800 border-zinc-300 text-white mt-1"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
                 placeholder="e.g. altijd dichtbij"
                 data-testid="stale-fallback-mfy"
               />
@@ -750,7 +750,7 @@ const RDSSettingsPage = () => {
               <Input
                 value={staleConfig.fallback_text?.grk || ''}
                 onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, grk: e.target.value}})}
-                className="bg-zinc-800 border-zinc-300 text-white mt-1"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
                 placeholder="e.g. the feelgood station"
                 data-testid="stale-fallback-grk"
               />
@@ -763,7 +763,7 @@ const RDSSettingsPage = () => {
       <div className="bg-white border border-zinc-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Music className="w-5 h-5 text-green-400" />
-          <h2 className="text-lg font-semibold text-white">Shoutcast Logs</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">Shoutcast Logs</h2>
           <span className="text-xs text-zinc-500 ml-2">Last 50 (every 10 sec)</span>
         </div>
 

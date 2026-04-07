@@ -357,7 +357,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
               <ListOrdered className="w-5 h-5 text-violet-500" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Rundown</h2>
+              <h2 className="text-lg font-semibold text-zinc-900">Rundown</h2>
               <p className="text-sm text-zinc-500">
                 {items.length} items • {totalDuration} total
                 {hasEstimated && <span className="text-violet-400 ml-1">(incl. estimates)</span>}
@@ -404,7 +404,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
             <Users className="w-3.5 h-3.5 text-zinc-500" />
             <div className="flex -space-x-1.5">
               {members.slice(0, 8).map(m => (
-                <div key={m.id} title={m.name} className="w-6 h-6 rounded-full border-2 border-[#18181b] bg-zinc-700 flex items-center justify-center text-[9px] font-bold text-white overflow-hidden">
+                <div key={m.id} title={m.name} className="w-6 h-6 rounded-full border-2 border-[#18181b] bg-zinc-700 flex items-center justify-center text-[9px] font-bold text-zinc-900 overflow-hidden">
                   {getAvatarUrl(m) ? <img src={getAvatarUrl(m)} alt="" className="w-full h-full object-cover" /> : m.name?.charAt(0).toUpperCase()}
                 </div>
               ))}
@@ -539,11 +539,11 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
       <Dialog open={showMemberDialog} onOpenChange={setShowMemberDialog}>
         <DialogContent className="bg-white border-zinc-200 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Rundown Members</DialogTitle>
+            <DialogTitle className="text-zinc-900">Rundown Members</DialogTitle>
             <DialogDescription className="text-zinc-400">Select team members who participate in this rundown</DialogDescription>
           </DialogHeader>
           <Input value={memberSearch} onChange={e => setMemberSearch(e.target.value)} placeholder="Search members..."
-            className="bg-zinc-800 border-zinc-300 text-white text-sm h-8 mb-2" />
+            className="bg-zinc-50 border-zinc-200 text-zinc-900 text-sm h-8 mb-2" />
           <div className="max-h-64 overflow-y-auto space-y-1">
             {siteUsers.filter(u => !memberSearch || u.name?.toLowerCase().includes(memberSearch.toLowerCase()) || u.email?.toLowerCase().includes(memberSearch.toLowerCase())).map(u => {
               const isMember = members.some(m => m.id === u.id);
@@ -551,11 +551,11 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
               return (
                 <div key={u.id} onClick={() => toggleMember(u.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isMember ? 'bg-violet-500/10 border border-violet-500/30' : 'hover:bg-zinc-800 border border-transparent'}`}>
-                  <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+                  <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-900 overflow-hidden">
                     {getAvatarUrl(u) ? <img src={getAvatarUrl(u)} alt="" className="w-full h-full object-cover" /> : u.name?.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white truncate">{u.name}</p>
+                    <p className="text-sm text-zinc-700 truncate">{u.name}</p>
                     <p className="text-[10px] text-zinc-500 truncate">{u.email}</p>
                   </div>
                   {isPresenter && <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">Presenter</span>}

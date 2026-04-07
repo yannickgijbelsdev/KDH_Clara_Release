@@ -59,7 +59,7 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white">Task Boards</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">Task Boards</h1>
           <p className="text-sm text-zinc-400 mt-1">Manage your projects with Kanban boards</p>
         </div>
         <Button onClick={() => setShowCreate(true)} className="bg-orange-500 hover:bg-orange-600 text-white" data-testid="create-board-btn">
@@ -111,12 +111,12 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Create Board</DialogTitle>
+            <DialogTitle className="text-zinc-900">Create Board</DialogTitle>
             <DialogDescription className="text-zinc-400">Add a new Kanban board to organize your tasks.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-2">
-            <Input placeholder="Board name" value={name} onChange={e => setName(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white" data-testid="board-name-input" autoFocus />
-            <Textarea placeholder="Description (optional)" value={desc} onChange={e => setDesc(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white" rows={2} />
+            <Input placeholder="Board name" value={name} onChange={e => setName(e.target.value)} className="bg-zinc-50 border-zinc-200 text-zinc-900" data-testid="board-name-input" autoFocus />
+            <Textarea placeholder="Description (optional)" value={desc} onChange={e => setDesc(e.target.value)} className="bg-zinc-50 border-zinc-200 text-zinc-900" rows={2} />
             <div>
               <label className="text-sm text-zinc-400 mb-2 block">Color</label>
               <div className="flex gap-2">
@@ -250,7 +250,7 @@ function DroppableColumn({ column, tasks, onAddTask, onTaskClick, onEditColumn, 
         {addingTask ? (
           <div className="space-y-2">
             <Input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Task title..." autoFocus
-              className="bg-zinc-800 border-zinc-300 text-white text-sm h-8"
+              className="bg-zinc-50 border-zinc-200 text-zinc-900 text-sm h-8"
               onKeyDown={e => { if (e.key === 'Enter') handleAddTask(); if (e.key === 'Escape') setAddingTask(false); }}
               data-testid={`add-task-input-${column.id}`}
             />
@@ -349,12 +349,12 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-zinc-900 border-zinc-300 max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white sr-only">Edit Task</DialogTitle>
+          <DialogTitle className="text-zinc-900 sr-only">Edit Task</DialogTitle>
           <DialogDescription className="sr-only">Edit task details, checklist, labels, and attachments.</DialogDescription>
         </DialogHeader>
         <div className="space-y-5 pt-2">
           {/* Title */}
-          <Input value={title} onChange={e => setTitle(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white text-lg font-semibold h-11" data-testid="task-title-input" />
+          <Input value={title} onChange={e => setTitle(e.target.value)} className="bg-zinc-50 border-zinc-200 text-zinc-900 text-lg font-semibold h-11" data-testid="task-title-input" />
 
           {/* Priority & Deadline row */}
           <div className="flex gap-3 flex-wrap">
@@ -368,7 +368,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
             </div>
             <div className="flex-1 min-w-[140px]">
               <label className="text-xs text-zinc-400 mb-1 block">Deadline</label>
-              <Input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white text-sm" data-testid="task-deadline-input" />
+              <Input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="bg-zinc-50 border-zinc-200 text-zinc-900 text-sm" data-testid="task-deadline-input" />
             </div>
             <div className="flex-1 min-w-[140px]">
               <label className="text-xs text-zinc-400 mb-1 block">Assignee</label>
@@ -382,7 +382,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
           {/* Description */}
           <div>
             <label className="text-xs text-zinc-400 mb-1 block">Description</label>
-            <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Add a description..." className="bg-zinc-800 border-zinc-300 text-white text-sm" data-testid="task-description-input" />
+            <Textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Add a description..." className="bg-zinc-50 border-zinc-200 text-zinc-900 text-sm" data-testid="task-description-input" />
           </div>
 
           {/* Labels */}
@@ -397,7 +397,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
               ))}
             </div>
             <div className="flex gap-1">
-              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Add label..." className="bg-zinc-800 border-zinc-300 text-white text-xs h-7 flex-1" onKeyDown={e => e.key === 'Enter' && addLabel()} />
+              <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Add label..." className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs h-7 flex-1" onKeyDown={e => e.key === 'Enter' && addLabel()} />
               <Button size="sm" variant="outline" onClick={addLabel} className="h-7 text-xs border-zinc-300">Add</Button>
             </div>
           </div>
@@ -423,7 +423,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
               ))}
             </div>
             <div className="flex gap-1">
-              <Input value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)} placeholder="Add item..." className="bg-zinc-800 border-zinc-300 text-white text-xs h-7 flex-1" onKeyDown={e => e.key === 'Enter' && addCheckItem()} />
+              <Input value={newCheckItem} onChange={e => setNewCheckItem(e.target.value)} placeholder="Add item..." className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs h-7 flex-1" onKeyDown={e => e.key === 'Enter' && addCheckItem()} />
               <Button size="sm" variant="outline" onClick={addCheckItem} className="h-7 text-xs border-zinc-300">Add</Button>
             </div>
           </div>
@@ -472,8 +472,8 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
               ))}
             </div>
             <div className="flex gap-1">
-              <Input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Write a comment..." className="bg-zinc-800 border-zinc-300 text-white text-xs h-8 flex-1" onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
-              <Button size="sm" onClick={handleAddComment} className="bg-zinc-200 hover:bg-zinc-200 text-white h-8 text-xs">Post</Button>
+              <Input value={commentText} onChange={e => setCommentText(e.target.value)} placeholder="Write a comment..." className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs h-8 flex-1" onKeyDown={e => e.key === 'Enter' && handleAddComment()} />
+              <Button size="sm" onClick={handleAddComment} className="bg-zinc-200 hover:bg-zinc-200 text-zinc-700 h-8 text-xs">Post</Button>
             </div>
           </div>
 
@@ -702,13 +702,13 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           <ArrowLeft className="w-4 h-4" />
         </Button>
         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: board.color }} />
-        <h2 className="text-lg font-bold text-white">{board.name}</h2>
+        <h2 className="text-lg font-bold text-zinc-900">{board.name}</h2>
         <span className="text-xs text-zinc-500">{tasks.length} tasks</span>
 
         {/* Member avatars */}
         <div className="flex items-center ml-4 -space-x-2" data-testid="board-members-avatars">
           {boardMembers.slice(0, 6).map(member => (
-            <div key={member.id} title={member.name} className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-white overflow-hidden">
+            <div key={member.id} title={member.name} className="w-7 h-7 rounded-full border-2 border-zinc-900 bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-900 overflow-hidden">
               {getAvatarUrl(member) ? (
                 <img src={getAvatarUrl(member)} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -728,14 +728,14 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           <div className="flex bg-zinc-50 rounded-lg p-0.5" data-testid="view-toggle">
             <button
               onClick={() => setViewMode('kanban')}
-              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-600'}`}
               data-testid="kanban-view-btn"
             >
               <Columns3 className="w-3.5 h-3.5" /> Kanban
             </button>
             <button
               onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
+              className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-600'}`}
               data-testid="calendar-view-btn"
             >
               <CalendarDays className="w-3.5 h-3.5" /> Calendar
@@ -758,7 +758,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
                   return (
                     <div key={u.id} onClick={() => toggleBoardMember(u.id)}
                       className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${isMember ? 'bg-orange-500/10' : 'hover:bg-zinc-100'}`}>
-                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-white">
+                      <div className="w-6 h-6 rounded-full bg-zinc-200 flex items-center justify-center text-[10px] font-bold text-zinc-900">
                         {u.name?.charAt(0).toUpperCase() || '?'}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -810,7 +810,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           <DragOverlay>
             {activeTask ? (
               <div className="bg-zinc-50 rounded-lg border border-orange-500/50 p-3 shadow-xl w-72 opacity-90">
-                <p className="text-sm text-white font-medium">{activeTask.title}</p>
+                <p className="text-sm text-zinc-700 font-medium">{activeTask.title}</p>
               </div>
             ) : null}
           </DragOverlay>
@@ -836,11 +836,11 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
       <Dialog open={showAddCol} onOpenChange={setShowAddCol}>
         <DialogContent className="bg-zinc-900 border-zinc-300 max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">Add Column</DialogTitle>
+            <DialogTitle className="text-zinc-900">Add Column</DialogTitle>
             <DialogDescription className="text-zinc-400">Create a new column for this board.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            <Input value={newColName} onChange={e => setNewColName(e.target.value)} placeholder="Column name" className="bg-zinc-800 border-zinc-300 text-white" autoFocus onKeyDown={e => e.key === 'Enter' && handleAddColumn()} data-testid="new-column-name-input" />
+            <Input value={newColName} onChange={e => setNewColName(e.target.value)} placeholder="Column name" className="bg-zinc-50 border-zinc-200 text-zinc-900" autoFocus onKeyDown={e => e.key === 'Enter' && handleAddColumn()} data-testid="new-column-name-input" />
             <Button onClick={handleAddColumn} className="w-full bg-orange-500 hover:bg-orange-600 text-white" data-testid="confirm-add-column">Add Column</Button>
           </div>
         </DialogContent>
@@ -850,11 +850,11 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
       <Dialog open={!!editCol} onOpenChange={() => setEditCol(null)}>
         <DialogContent className="bg-zinc-900 border-zinc-300 max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">Rename Column</DialogTitle>
+            <DialogTitle className="text-zinc-900">Rename Column</DialogTitle>
             <DialogDescription className="text-zinc-400">Change the column name.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            <Input value={editColName} onChange={e => setEditColName(e.target.value)} className="bg-zinc-800 border-zinc-300 text-white" autoFocus onKeyDown={e => e.key === 'Enter' && handleEditColumn()} />
+            <Input value={editColName} onChange={e => setEditColName(e.target.value)} className="bg-zinc-50 border-zinc-200 text-zinc-900" autoFocus onKeyDown={e => e.key === 'Enter' && handleEditColumn()} />
             <Button onClick={handleEditColumn} className="w-full bg-orange-500 hover:bg-orange-600 text-white">Save</Button>
           </div>
         </DialogContent>

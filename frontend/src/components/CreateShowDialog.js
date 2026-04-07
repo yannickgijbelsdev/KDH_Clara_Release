@@ -290,7 +290,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                               autoFocus
                             />
                             <Button type="button" onClick={handleCreateNewTitle} disabled={creatingTitle}
-                              className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl">
+                              className="bg-zinc-900 hover:bg-zinc-900 text-white rounded-xl">
                               {creatingTitle ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Add'}
                             </Button>
                           </div>
@@ -538,7 +538,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
           </Button>
           <Button onClick={handleNext} disabled={!canNext() || loading}
             data-testid="show-wizard-next-btn"
-            className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+            className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full">
             {loading ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</>
             ) : wizardStep === 2 ? (

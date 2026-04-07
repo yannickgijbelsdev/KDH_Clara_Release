@@ -202,7 +202,7 @@ const ContentLibraryPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2">Content Library</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Content Library</h1>
           <p className="text-sm sm:text-base text-zinc-400">
             {loading ? 'Loading...' : (
               <>
@@ -245,7 +245,7 @@ const ContentLibraryPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search content..."
-            className="pl-10 bg-zinc-100 border-zinc-200 text-white placeholder:text-zinc-500"
+            className="pl-10 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
           />
         </div>
 
@@ -263,25 +263,25 @@ const ContentLibraryPage = () => {
           <DropdownMenuContent className="bg-white border-zinc-200">
             <DropdownMenuItem
               onClick={() => setTypeFilter('')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               All Types
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTypeFilter('text')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               <FileText className="w-4 h-4 mr-2" /> Text
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTypeFilter('link')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               <Link className="w-4 h-4 mr-2" /> Link
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setTypeFilter('reference')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               <BookOpen className="w-4 h-4 mr-2" /> Reference
             </DropdownMenuItem>
@@ -301,19 +301,19 @@ const ContentLibraryPage = () => {
           <DropdownMenuContent className="bg-white border-zinc-200">
             <DropdownMenuItem
               onClick={() => setStatusFilter('')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               All Status
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('draft')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               Draft
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => setStatusFilter('ready')}
-              className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+              className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
             >
               Ready
             </DropdownMenuItem>
@@ -336,7 +336,7 @@ const ContentLibraryPage = () => {
             <DropdownMenuContent className="bg-white border-zinc-200">
               <DropdownMenuItem
                 onClick={() => setSourceFilter('')}
-                className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
               >
                 All Sources
               </DropdownMenuItem>
@@ -344,7 +344,7 @@ const ContentLibraryPage = () => {
                 <DropdownMenuItem
                   key={source}
                   onClick={() => setSourceFilter(source)}
-                  className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                  className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                 >
                   {source}
                 </DropdownMenuItem>
@@ -369,7 +369,7 @@ const ContentLibraryPage = () => {
             <DropdownMenuContent className="bg-white border-zinc-200">
               <DropdownMenuItem
                 onClick={() => setCategoryFilter('')}
-                className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
               >
                 All Categories
               </DropdownMenuItem>
@@ -377,7 +377,7 @@ const ContentLibraryPage = () => {
                 <DropdownMenuItem
                   key={cat.id}
                   onClick={() => setCategoryFilter(cat.id)}
-                  className="text-zinc-600 focus:text-white focus:bg-zinc-800"
+                  className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
                 >
                   {cat.name}
                 </DropdownMenuItem>
@@ -396,7 +396,7 @@ const ContentLibraryPage = () => {
               setSourceFilter('');
               setCategoryFilter('');
             }}
-            className="text-zinc-400 hover:text-white"
+            className="text-zinc-400 hover:text-zinc-700"
           >
             Clear filters
           </Button>
@@ -421,7 +421,7 @@ const ContentLibraryPage = () => {
           <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <FileText className="w-8 h-8 text-zinc-500" />
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">
+          <h3 className="text-lg font-semibold text-zinc-900 mb-2">
             {allContent.length === 0 ? 'No content yet' : 'No matching content'}
           </h3>
           <p className="text-zinc-400 mb-6">
@@ -473,7 +473,7 @@ const ContentLibraryPage = () => {
                     )}
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-lg font-semibold text-white group-hover:text-rose-400 transition-colors">
+                        <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-rose-400 transition-colors">
                           {item.title}
                         </h3>
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[item.status]}`}>

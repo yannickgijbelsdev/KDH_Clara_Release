@@ -509,13 +509,13 @@ function EndpointsTab({ token, mainSiteId }) {
                   className="flex items-center gap-3 flex-1 cursor-pointer"
                   onClick={() => setExpandedGroup(isExpanded ? null : group.id)}
                 >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isPublic ? 'bg-green-500/10' : 'bg-zinc-800'}`}>
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isPublic ? 'bg-green-500/10' : 'bg-zinc-100'}`}>
                     {isPublic ? <Eye className="w-4 h-4 text-green-400" /> : <EyeOff className="w-4 h-4 text-zinc-500" />}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{group.label}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${isPublic ? 'bg-green-500/10 text-green-400' : 'bg-zinc-800 text-zinc-500'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${isPublic ? 'bg-green-500/10 text-green-400' : 'bg-zinc-100 text-zinc-500'}`}>
                         {isPublic ? 'public' : 'private'}
                       </span>
                       {conn && conn.total_requests > 0 && (

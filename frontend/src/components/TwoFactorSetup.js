@@ -145,7 +145,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
             </div>
           )}
           <div>
-            <h3 className="font-medium text-white">Two-factor authentication</h3>
+            <h3 className="font-medium text-zinc-900">Two-factor authentication</h3>
             <p className="text-sm text-zinc-400">
               {status.enabled 
                 ? `Active - ${status.backup_codes_remaining} backup codes remaining`
@@ -228,7 +228,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
               </p>
               <div className="bg-zinc-100 rounded-lg p-3">
                 <p className="text-xs text-zinc-500 mb-1">Or enter this code manually:</p>
-                <code className="text-sm text-white font-mono break-all">{setupData.secret}</code>
+                <code className="text-sm text-zinc-900 font-mono break-all">{setupData.secret}</code>
               </div>
               <Button onClick={() => setSetupStep(2)} className="w-full">
                 Volgende

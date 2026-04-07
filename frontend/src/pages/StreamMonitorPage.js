@@ -396,7 +396,7 @@ const StreamMonitorPage = () => {
           <Music className="w-6 h-6 text-green-500" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-white">Stream Monitor</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">Stream Monitor</h1>
           <p className="text-sm text-zinc-500">Listen to and monitor the radio streams</p>
         </div>
       </div>

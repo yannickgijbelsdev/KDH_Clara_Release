@@ -255,7 +255,7 @@ const WordPressSettingsPage = () => {
         <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
           <ShieldAlert className="w-8 h-8 text-red-400" />
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Geen toegang</h2>
+        <h2 className="text-xl font-bold text-zinc-900 mb-2">Geen toegang</h2>
         <p className="text-zinc-400 max-w-md">
           Je hebt geen beheerdersrechten om WordPress-instellingen te bekijken of aan te passen.
           Neem contact op met een beheerder als je denkt dat dit een fout is.
@@ -269,7 +269,7 @@ const WordPressSettingsPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-black text-white mb-2">WordPress Sites</h1>
+          <h1 className="text-3xl font-black text-zinc-900 mb-2">WordPress Sites</h1>
           <p className="text-zinc-400">Connect multiple WordPress sites to publish content</p>
         </div>
         <Button
@@ -308,7 +308,7 @@ const WordPressSettingsPage = () => {
           <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Globe className="w-8 h-8 text-zinc-500" />
           </div>
-          <h3 className="text-lg font-semibold text-white mb-2">No WordPress sites connected</h3>
+          <h3 className="text-lg font-semibold text-zinc-900 mb-2">No WordPress sites connected</h3>
           <p className="text-zinc-400 mb-6">Add your first WordPress site to start publishing content</p>
           <Button
             onClick={openAddDialog}
@@ -330,19 +330,19 @@ const WordPressSettingsPage = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
-                    <div className={`p-2.5 rounded-lg ${site.is_active ? 'bg-violet-500/20' : 'bg-zinc-800'}`}>
+                    <div className={`p-2.5 rounded-lg ${site.is_active ? 'bg-violet-500/20' : 'bg-zinc-100'}`}>
                       <Globe className={`w-5 h-5 ${site.is_active ? 'text-violet-500' : 'text-zinc-500'}`} />
                     </div>
                     <div>
                       <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-lg font-semibold text-white">{site.name}</h3>
+                        <h3 className="text-lg font-semibold text-zinc-900">{site.name}</h3>
                         {site.is_active ? (
                           <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">
                             <Power className="w-3 h-3" />
                             Active
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-500">
+                          <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-zinc-100 text-zinc-500">
                             <PowerOff className="w-3 h-3" />
                             Inactive
                           </span>
@@ -454,7 +454,7 @@ const WordPressSettingsPage = () => {
 
       {/* Add/Edit Site Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="bg-white border-zinc-200 text-white sm:max-w-[550px]">
+        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[550px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {editingSite ? 'Edit WordPress Site' : 'Add WordPress Site'}
@@ -475,7 +475,7 @@ const WordPressSettingsPage = () => {
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Station A Website"
                 required
-                className="bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
               />
             </div>
 
@@ -490,7 +490,7 @@ const WordPressSettingsPage = () => {
                   onChange={(e) => setFormData({ ...formData, wp_base_url: e.target.value })}
                   placeholder="https://your-site.com"
                   required
-                  className="pl-10 bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                  className="pl-10 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
                 />
               </div>
             </div>
@@ -505,7 +505,7 @@ const WordPressSettingsPage = () => {
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   placeholder="admin"
                   required
-                  className="pl-10 bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                  className="pl-10 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
                 />
               </div>
             </div>
@@ -521,7 +521,7 @@ const WordPressSettingsPage = () => {
                   onChange={(e) => setFormData({ ...formData, app_password: e.target.value })}
                   placeholder={editingSite ? '••••••••••••••••' : 'xxxx xxxx xxxx xxxx xxxx xxxx'}
                   required={!editingSite}
-                  className="pl-10 bg-zinc-100 border-zinc-300 text-white placeholder:text-zinc-500"
+                  className="pl-10 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400"
                 />
               </div>
               {editingSite && (
@@ -536,12 +536,12 @@ const WordPressSettingsPage = () => {
                   value={formData.default_post_type}
                   onValueChange={(value) => setFormData({ ...formData, default_post_type: value })}
                 >
-                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
+                  <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-zinc-200">
-                    <SelectItem value="post" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Post</SelectItem>
-                    <SelectItem value="page" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Page</SelectItem>
+                    <SelectItem value="post" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Post</SelectItem>
+                    <SelectItem value="page" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Page</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -552,12 +552,12 @@ const WordPressSettingsPage = () => {
                   value={formData.default_publish_status}
                   onValueChange={(value) => setFormData({ ...formData, default_publish_status: value })}
                 >
-                  <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
+                  <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-zinc-200">
-                    <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                    <SelectItem value="publish" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Published</SelectItem>
+                    <SelectItem value="draft" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Draft</SelectItem>
+                    <SelectItem value="publish" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Published</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -602,7 +602,7 @@ const WordPressSettingsPage = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Remove WordPress Site</AlertDialogTitle>
+            <AlertDialogTitle className="text-zinc-900">Remove WordPress Site</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               Are you sure you want to remove this WordPress site? All publish history for this site will be lost.
             </AlertDialogDescription>

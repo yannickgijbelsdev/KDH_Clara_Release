@@ -60,7 +60,7 @@ const PersonalSettingsPage = () => {
     <div data-testid="personal-settings-page">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-black text-white mb-1 sm:mb-2 flex items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2 flex items-center gap-3">
           <Settings className="w-8 h-8 text-orange-400" />
           Personal Settings
         </h1>
@@ -71,7 +71,7 @@ const PersonalSettingsPage = () => {
 
       {/* Profile Section */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
           <User className="w-5 h-5 text-orange-400" />
           Profile
         </h2>
@@ -81,7 +81,7 @@ const PersonalSettingsPage = () => {
             {user?.name?.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-lg font-semibold text-white">{user?.name}</p>
+            <p className="text-lg font-semibold text-zinc-900">{user?.name}</p>
             <p className="text-zinc-400">{user?.email}</p>
             <p className="text-sm text-orange-400 capitalize">{user?.role}</p>
           </div>
@@ -90,7 +90,7 @@ const PersonalSettingsPage = () => {
 
       {/* Security Section */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
           <Shield className="w-5 h-5 text-orange-400" />
           Beveiliging
         </h2>
@@ -100,7 +100,7 @@ const PersonalSettingsPage = () => {
 
       {/* Menu Display Section */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
           <LayoutGrid className="w-5 h-5 text-orange-400" />
           Navigation Display
         </h2>
@@ -129,7 +129,7 @@ const PersonalSettingsPage = () => {
               <div className={`flex-1 ${preferences.grouped_menu ? 'opacity-100' : 'opacity-40'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <LayoutGrid className="w-4 h-4 text-orange-400" />
-                  <span className="text-sm text-white font-medium">Grouped</span>
+                  <span className="text-sm text-zinc-700 font-medium">Grouped</span>
                   {preferences.grouped_menu && <Check className="w-4 h-4 text-green-500" />}
                 </div>
                 <div className="space-y-2 text-xs">
@@ -146,7 +146,7 @@ const PersonalSettingsPage = () => {
               <div className={`flex-1 ${!preferences.grouped_menu ? 'opacity-100' : 'opacity-40'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <List className="w-4 h-4 text-orange-400" />
-                  <span className="text-sm text-white font-medium">Flat List</span>
+                  <span className="text-sm text-zinc-700 font-medium">Flat List</span>
                   {!preferences.grouped_menu && <Check className="w-4 h-4 text-green-500" />}
                 </div>
                 <div className="space-y-1 text-xs">
@@ -164,7 +164,7 @@ const PersonalSettingsPage = () => {
 
       {/* App Install Prompt */}
       <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
           <Smartphone className="w-5 h-5 text-orange-400" />
           Install App Prompt
         </h2>

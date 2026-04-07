@@ -427,16 +427,16 @@ const DashboardLayout = () => {
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
               <div className="p-2 bg-orange-500 rounded-lg">
-                <span className="text-white font-black text-sm">C</span>
+                <span className="text-zinc-700 font-black text-sm">C</span>
               </div>
-              <BrandLogo className="text-lg font-bold text-white" />
+              <BrandLogo className="text-lg font-bold text-zinc-900" />
             </div>
             <Button
               variant="ghost"
               size="icon"
               data-testid="mobile-menu-btn"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-zinc-400 hover:text-white"
+              className="text-zinc-400 hover:text-zinc-700"
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </Button>
@@ -467,7 +467,7 @@ const DashboardLayout = () => {
                 {isInSiteContext && (
                   <NavLink
                     to={sitesBasePath}
-                    className="flex items-center gap-2 px-3 py-2 text-zinc-400 hover:text-white transition text-sm"
+                    className="flex items-center gap-2 px-3 py-2 text-zinc-400 hover:text-zinc-700 transition text-sm"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Back to Sites</span>
@@ -524,7 +524,7 @@ const DashboardLayout = () => {
                                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 text-left ${
                                   isActive
                                     ? 'bg-orange-500/20 text-orange-400'
-                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                    : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'
                                 }`}
                               >
                                 <Icon className="w-4 h-4" />
@@ -556,7 +556,7 @@ const DashboardLayout = () => {
                       onOpenChange={() => toggleGroup(group.id)}
                     >
                       <CollapsibleTrigger className="w-full">
-                        <div className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${groupActive ? 'text-orange-400' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}>
+                        <div className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${groupActive ? 'text-orange-400' : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'}`}>
                           <div className="flex items-center gap-2">
                             <GroupIcon className="w-4 h-4" />
                             <span className="text-sm font-medium">{group.label}</span>
@@ -584,7 +584,7 @@ const DashboardLayout = () => {
                                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                                   isActive
                                     ? 'bg-orange-500/20 text-orange-400'
-                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                    : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'
                                 }`}
                               >
                                 <Icon className="w-4 h-4" />
@@ -718,7 +718,7 @@ const DashboardLayout = () => {
                   )}
                   {useGroupedMenu && (
                     <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                      <p className="text-sm font-medium text-zinc-900 truncate">{user?.name}</p>
                       <p className="text-xs text-zinc-500 truncate">{displayRoleName}</p>
                     </div>
                   )}
@@ -738,7 +738,7 @@ const DashboardLayout = () => {
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-medium text-white">{user?.name}</p>
+                    <p className="text-sm font-medium text-zinc-900">{user?.name}</p>
                     <p className="text-xs text-zinc-500">{user?.email}</p>
                   </div>
                 </div>
@@ -813,15 +813,15 @@ const DashboardLayout = () => {
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
                 <div className="p-2 bg-orange-500 rounded-lg">
-                  <span className="text-white font-black text-sm">C</span>
+                  <span className="text-zinc-700 font-black text-sm">C</span>
                 </div>
-                <BrandLogo className="text-lg font-bold text-white" />
+                <BrandLogo className="text-lg font-bold text-zinc-900" />
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={closeSidebar}
-                className="text-zinc-400 hover:text-white"
+                className="text-zinc-400 hover:text-zinc-700"
               >
                 <X className="w-5 h-5" />
               </Button>
@@ -863,7 +863,7 @@ const DashboardLayout = () => {
                                   `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                                     isActive
                                       ? 'bg-orange-500/20 text-orange-500'
-                                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                      : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'
                                   }`
                                 }
                               >
@@ -899,7 +899,7 @@ const DashboardLayout = () => {
                           `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                             isActive
                               ? 'bg-orange-500/20 text-orange-500'
-                              : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                              : 'text-zinc-400 hover:text-zinc-700 hover:bg-white/5'
                           }`
                         }
                       >
@@ -932,7 +932,7 @@ const DashboardLayout = () => {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{user?.name}</p>
+                  <p className="text-sm font-medium text-zinc-900 truncate">{user?.name}</p>
                   <p className="text-xs text-zinc-500 truncate">{user?.email}</p>
                 </div>
               </div>
@@ -956,13 +956,13 @@ const DashboardLayout = () => {
               <div className="flex items-center justify-between">
                 <div>
                   {isInSiteContext && currentSite ? (
-                    <p className="text-sm font-medium text-white">{currentSite.name}</p>
+                    <p className="text-sm font-medium text-zinc-900">{currentSite.name}</p>
                   ) : user?.team_name && (
-                    <p className="text-sm font-medium text-white">{user.team_name}</p>
+                    <p className="text-sm font-medium text-zinc-900">{user.team_name}</p>
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-sm font-medium text-zinc-900">{user?.name}</p>
                   <p className="text-xs text-zinc-500 flex items-center gap-1 justify-end">
                     <RoleIcon className="w-3 h-3" />
                     {displayRoleName}

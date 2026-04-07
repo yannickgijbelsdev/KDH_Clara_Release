@@ -21,7 +21,7 @@ function StepIndicator({ steps, current }) {
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
             i < current ? 'bg-emerald-500/20 text-emerald-400' :
             i === current ? 'bg-[#7d2ae8]/20 text-[#a855f7] ring-1 ring-[#7d2ae8]/40' :
-            'bg-zinc-800 text-zinc-500'
+            'bg-zinc-100 text-zinc-500'
           }`}>
             {i < current ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
             <span className="hidden sm:inline">{s}</span>
@@ -287,7 +287,7 @@ const CanvaDirectorPage = () => {
             <Palette className="w-5 h-5 text-[#7d2ae8]" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Canva Director</h1>
+            <h1 className="text-xl font-bold text-zinc-900">Canva Director</h1>
             <p className="text-sm text-zinc-500">Design, create and export directly from Canva</p>
           </div>
         </div>
@@ -322,7 +322,7 @@ const CanvaDirectorPage = () => {
       <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : config.configured ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config.configured ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config.configured ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-100'}`}>
               {config.configured ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-[#7d2ae8]" />}
             </div>
             <div>
@@ -367,7 +367,7 @@ const CanvaDirectorPage = () => {
       <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : (config.configured && config.redirect_uri) ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${(config.configured && config.redirect_uri) ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${(config.configured && config.redirect_uri) ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-100'}`}>
               {(config.configured && config.redirect_uri) ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Link2 className="w-4 h-4 text-[#7d2ae8]" />}
             </div>
             <div>
@@ -399,7 +399,7 @@ const CanvaDirectorPage = () => {
                   return (
                     <label key={site.id} className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isLinked ? 'bg-[#7d2ae8]/15 border border-[#7d2ae8]/30' : 'bg-zinc-100/70 border border-zinc-200 hover:border-zinc-300'}`}>
                       <input type="checkbox" checked={isLinked} onChange={() => setConfigForm(p => ({ ...p, linked_main_site_ids: isLinked ? p.linked_main_site_ids.filter(id => id !== site.id) : [...p.linked_main_site_ids, site.id] }))} className="accent-[#7d2ae8] w-4 h-4" />
-                      <span className="text-sm text-white">{site.name}</span>
+                      <span className="text-sm text-zinc-700">{site.name}</span>
                     </label>
                   );
                 })}
@@ -416,7 +416,7 @@ const CanvaDirectorPage = () => {
       <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 2 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : authStatus.connected ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${authStatus.connected ? 'bg-emerald-500/20' : setupStep === 2 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${authStatus.connected ? 'bg-emerald-500/20' : setupStep === 2 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-100'}`}>
               {authStatus.connected ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Palette className="w-4 h-4 text-[#7d2ae8]" />}
             </div>
             <div>
@@ -447,7 +447,7 @@ const CanvaDirectorPage = () => {
       <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 3 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${setupStep === 3 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-800'}`}>
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${setupStep === 3 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-100'}`}>
               {setupStep === 3 ? <Palette className="w-4 h-4 text-[#7d2ae8]" /> : <Image className="w-4 h-4 text-zinc-500" />}
             </div>
             <div>
@@ -457,8 +457,8 @@ const CanvaDirectorPage = () => {
           </div>
           {setupStep === 3 && (
             <div className="flex gap-1 bg-zinc-50 rounded-lg p-0.5" data-testid="canva-tabs">
-              <button onClick={() => setActiveTab('designs')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'designs' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`} data-testid="canva-tab-designs">Designs</button>
-              <button onClick={() => setActiveTab('activity')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'activity' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`} data-testid="canva-tab-activity">Activity</button>
+              <button onClick={() => setActiveTab('designs')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'designs' ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-600'}`} data-testid="canva-tab-designs">Designs</button>
+              <button onClick={() => setActiveTab('activity')} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeTab === 'activity' ? 'bg-zinc-200 text-zinc-700' : 'text-zinc-400 hover:text-zinc-600'}`} data-testid="canva-tab-activity">Activity</button>
             </div>
           )}
         </div>
@@ -528,7 +528,7 @@ const CanvaDirectorPage = () => {
                             </div>
                           </div>
                           <div className="p-3">
-                            <p className="text-sm font-medium text-white truncate">{d.title || 'Untitled'}</p>
+                            <p className="text-sm font-medium text-zinc-900 truncate">{d.title || 'Untitled'}</p>
                             <p className="text-xs text-zinc-500 mt-1">{d.created_at ? new Date(d.created_at * 1000).toLocaleDateString('nl-BE') : ''}</p>
                           </div>
                         </div>
@@ -553,7 +553,7 @@ const CanvaDirectorPage = () => {
                         {act.action === 'create_design' ? <Plus className="w-4 h-4 text-emerald-400" /> : <Download className="w-4 h-4 text-blue-400" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white"><span className="font-medium">{act.user_name}</span> {act.action === 'create_design' ? 'created' : 'exported'} <span className="text-zinc-400">{act.design_title || act.design_id}</span></p>
+                        <p className="text-sm text-zinc-700"><span className="font-medium">{act.user_name}</span> {act.action === 'create_design' ? 'created' : 'exported'} <span className="text-zinc-400">{act.design_title || act.design_id}</span></p>
                         <p className="text-xs text-zinc-500">{new Date(act.created_at).toLocaleString('nl-BE')}</p>
                       </div>
                     </div>

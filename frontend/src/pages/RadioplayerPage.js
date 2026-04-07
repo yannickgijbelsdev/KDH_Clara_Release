@@ -21,7 +21,7 @@ function StepIndicator({ steps, current }) {
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
             i < current ? 'bg-emerald-500/20 text-emerald-400' :
             i === current ? 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40' :
-            'bg-zinc-800 text-zinc-500'
+            'bg-zinc-100 text-zinc-500'
           }`}>
             {i < current ? <Check className="w-3 h-3" /> : <span className="w-3 text-center">{i + 1}</span>}
             <span className="hidden sm:inline">{s}</span>
@@ -143,7 +143,7 @@ const RadioplayerPage = () => {
               <RadioplayerIcon size={24} className="text-orange-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white" data-testid="radioplayer-title">Radioplayer Integration</h1>
+              <h1 className="text-2xl font-bold text-zinc-900" data-testid="radioplayer-title">Radioplayer Integration</h1>
               <div className="flex items-center gap-3">
                 <p className="text-sm text-zinc-400">Push now playing and schedule data to radioplayer.org</p>
                 {config?.enabled && (
@@ -184,7 +184,7 @@ const RadioplayerPage = () => {
         <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-orange-500/30 ring-1 ring-orange-500/20' : hasCredentials ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasCredentials ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasCredentials ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-orange-500/20' : 'bg-zinc-100'}`}>
                 {hasCredentials ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-orange-400" />}
               </div>
               <div>
@@ -210,7 +210,7 @@ const RadioplayerPage = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={config?.api_key || ''}
                     onChange={e => setConfig({...config, api_key: e.target.value})}
-                    className="bg-zinc-800 border-zinc-300 text-white font-mono pr-10"
+                    className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono pr-10"
                     placeholder="515907f3-a3a9-4500-bbde-..."
                     data-testid="rp-api-key-input"
                   />
@@ -227,11 +227,11 @@ const RadioplayerPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-zinc-400 block mb-1">Username</label>
-                  <Input value={config?.username || ''} onChange={e => setConfig({...config, username: e.target.value})} className="bg-zinc-800 border-zinc-300 text-white" placeholder="email@station.fm" data-testid="rp-username-input" />
+                  <Input value={config?.username || ''} onChange={e => setConfig({...config, username: e.target.value})} className="bg-zinc-50 border-zinc-200 text-zinc-900" placeholder="email@station.fm" data-testid="rp-username-input" />
                 </div>
                 <div>
                   <label className="text-xs text-zinc-400 block mb-1">Password</label>
-                  <Input type="password" value={config?.password || ''} onChange={e => setConfig({...config, password: e.target.value})} className="bg-zinc-800 border-zinc-300 text-white" placeholder="••••••••" data-testid="rp-password-input" />
+                  <Input type="password" value={config?.password || ''} onChange={e => setConfig({...config, password: e.target.value})} className="bg-zinc-50 border-zinc-200 text-zinc-900" placeholder="••••••••" data-testid="rp-password-input" />
                 </div>
               </div>
               <Button onClick={handleSave} disabled={saving} className="bg-orange-600 hover:bg-orange-700 text-white" data-testid="rp-save-creds-btn">
@@ -245,7 +245,7 @@ const RadioplayerPage = () => {
         <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-orange-500/30 ring-1 ring-orange-500/20' : hasStation ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasStation ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${hasStation ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-orange-500/20' : 'bg-zinc-100'}`}>
                 {hasStation ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Radio className="w-4 h-4 text-orange-400" />}
               </div>
               <div>
@@ -266,23 +266,23 @@ const RadioplayerPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-zinc-400 block mb-1">RPUID (Station ID)</label>
-                  <Input value={config?.rpid || ''} onChange={e => setConfig({...config, rpid: e.target.value})} className="bg-zinc-800 border-zinc-300 text-white font-mono" placeholder="0566028" data-testid="rp-rpid-input" />
+                  <Input value={config?.rpid || ''} onChange={e => setConfig({...config, rpid: e.target.value})} className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono" placeholder="0566028" data-testid="rp-rpid-input" />
                   <p className="text-[10px] text-zinc-600 mt-1">Your unique Radioplayer station identifier</p>
                 </div>
                 <div>
                   <label className="text-xs text-zinc-400 block mb-1">Station Name</label>
-                  <Input value={config?.station_name || ''} onChange={e => setConfig({...config, station_name: e.target.value})} className="bg-zinc-800 border-zinc-300 text-white" placeholder="Radio GRK" data-testid="rp-station-name-input" />
+                  <Input value={config?.station_name || ''} onChange={e => setConfig({...config, station_name: e.target.value})} className="bg-zinc-50 border-zinc-200 text-zinc-900" placeholder="Radio GRK" data-testid="rp-station-name-input" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs text-zinc-400 block mb-1">Country Code</label>
-                  <Input value={config?.country_code || '056'} onChange={e => setConfig({...config, country_code: e.target.value})} className="bg-zinc-800 border-zinc-300 text-white font-mono" placeholder="056" data-testid="rp-country-input" />
+                  <Input value={config?.country_code || '056'} onChange={e => setConfig({...config, country_code: e.target.value})} className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono" placeholder="056" data-testid="rp-country-input" />
                   <p className="text-[10px] text-zinc-600 mt-1">ISO 3166-1 numeric (e.g. 056 = Belgium)</p>
                 </div>
                 <div>
                   <label className="text-xs text-zinc-400 block mb-1">Ingest Base URL</label>
-                  <Input value={config?.ingest_base_url || 'https://core-ingest.radioplayer.cloud'} onChange={e => setConfig({...config, ingest_base_url: e.target.value})} className="bg-zinc-800 border-zinc-300 text-white font-mono text-sm" data-testid="rp-url-input" />
+                  <Input value={config?.ingest_base_url || 'https://core-ingest.radioplayer.cloud'} onChange={e => setConfig({...config, ingest_base_url: e.target.value})} className="bg-zinc-50 border-zinc-200 text-zinc-900 font-mono text-sm" data-testid="rp-url-input" />
                 </div>
               </div>
               <Button onClick={handleSave} disabled={saving} className="bg-orange-600 hover:bg-orange-700 text-white" data-testid="rp-save-station-btn">
@@ -296,7 +296,7 @@ const RadioplayerPage = () => {
         <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 2 || editStep === 2) ? 'border-orange-500/30 ring-1 ring-orange-500/20' : config?.enabled ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 2 ? null : 2)}>
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config?.enabled ? 'bg-emerald-500/20' : (setupStep === 2 || editStep === 2) ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config?.enabled ? 'bg-emerald-500/20' : (setupStep === 2 || editStep === 2) ? 'bg-orange-500/20' : 'bg-zinc-100'}`}>
                 {config?.enabled ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Settings className="w-4 h-4 text-orange-400" />}
               </div>
               <div>
@@ -316,7 +316,7 @@ const RadioplayerPage = () => {
               </div>
               <div className="flex items-center justify-between p-3 bg-zinc-100/70 rounded-lg">
                 <div>
-                  <p className="text-white text-sm font-medium">Enable Radioplayer Integration</p>
+                  <p className="text-zinc-700 text-sm font-medium">Enable Radioplayer Integration</p>
                   <p className="text-xs text-zinc-500">Push data automatically to Radioplayer</p>
                 </div>
                 <button
@@ -370,7 +370,7 @@ const RadioplayerPage = () => {
         <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 3 ? 'border-orange-500/30 ring-1 ring-orange-500/20' : 'border-zinc-200'}`}>
           <div className="flex items-center justify-between p-5">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${pushLog.length > 0 ? 'bg-emerald-500/20' : setupStep === 3 ? 'bg-orange-500/20' : 'bg-zinc-800'}`}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${pushLog.length > 0 ? 'bg-emerald-500/20' : setupStep === 3 ? 'bg-orange-500/20' : 'bg-zinc-100'}`}>
                 {pushLog.length > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Send className="w-4 h-4 text-orange-400" />}
               </div>
               <div>
@@ -408,7 +408,7 @@ const RadioplayerPage = () => {
                         {entry.type === 'now_playing' ? <Music className="w-4 h-4 text-blue-400" /> : <Calendar className="w-4 h-4 text-purple-400" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate">{entry.detail}</p>
+                        <p className="text-sm text-zinc-700 truncate">{entry.detail}</p>
                         <p className="text-xs text-zinc-500">{entry.type === 'now_playing' ? 'Now Playing' : 'Schedule'}{entry.response_code ? ` · HTTP ${entry.response_code}` : ''}</p>
                       </div>
                       <div className="text-xs text-zinc-600 flex-shrink-0 whitespace-nowrap">

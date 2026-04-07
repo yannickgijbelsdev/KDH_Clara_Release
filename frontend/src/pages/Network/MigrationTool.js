@@ -120,7 +120,7 @@ export default function MigrationTool() {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-zinc-900 flex items-center gap-2">
               <Database className="w-5 h-5 text-orange-500" />
               Multisite Migration Tool
             </DialogTitle>
@@ -143,7 +143,7 @@ export default function MigrationTool() {
                 
                 <div className="grid grid-cols-3 gap-4 text-center mb-4">
                   <div className="bg-zinc-900 rounded p-3">
-                    <div className="text-2xl font-bold text-white">{status.total_documents}</div>
+                    <div className="text-2xl font-bold text-zinc-900">{status.total_documents}</div>
                     <div className="text-xs text-zinc-400">Total Documents</div>
                   </div>
                   <div className="bg-zinc-900 rounded p-3">
@@ -290,15 +290,15 @@ export default function MigrationTool() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-zinc-400">Main Site</span>
-                      <span className="text-white">{migrationResult.main_site_name} (/{migrationResult.main_site_slug})</span>
+                      <span className="text-zinc-700">{migrationResult.main_site_name} (/{migrationResult.main_site_slug})</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-zinc-400">Users Linked</span>
-                      <span className="text-white">{migrationResult.stats?.users_linked || 0}</span>
+                      <span className="text-zinc-700">{migrationResult.stats?.users_linked || 0}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-zinc-400">Main Site Created</span>
-                      <span className="text-white">{migrationResult.stats?.main_site_created ? 'Yes' : 'No (already existed)'}</span>
+                      <span className="text-zinc-700">{migrationResult.stats?.main_site_created ? 'Yes' : 'No (already existed)'}</span>
                     </div>
                   </div>
 

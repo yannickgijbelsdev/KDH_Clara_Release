@@ -145,7 +145,7 @@ function CallsTab({ token }) {
   if (loading) return <Spinner />;
 
   const activeInvites = invites.filter(i => i.status !== 'ended');
-  const statusColor = { pending: 'bg-amber-500/10 text-amber-400', active: 'bg-green-500/10 text-green-400', ended: 'bg-zinc-800 text-zinc-500' };
+  const statusColor = { pending: 'bg-amber-500/10 text-amber-400', active: 'bg-green-500/10 text-green-400', ended: 'bg-zinc-100 text-zinc-500' };
 
   return (
     <div className="space-y-6" data-testid="calls-tab">

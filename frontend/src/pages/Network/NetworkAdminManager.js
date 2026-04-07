@@ -162,7 +162,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
         <div className="flex items-center gap-3">
           <Lock className="w-4 h-4 text-amber-400" />
           <div>
-            <p className="text-sm font-medium text-white">Read Only</p>
+            <p className="text-sm font-medium text-zinc-900">Read Only</p>
             <p className="text-xs text-zinc-500">Can view everything but cannot make changes</p>
           </div>
         </div>
@@ -181,7 +181,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
               <div className="flex items-center gap-3">
                 <Icon className="w-4 h-4 text-zinc-400" />
                 <div>
-                  <p className="text-sm font-medium text-white">{cat.label}</p>
+                  <p className="text-sm font-medium text-zinc-900">{cat.label}</p>
                   <p className="text-xs text-zinc-500">{cat.description}</p>
                 </div>
               </div>
@@ -217,7 +217,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white">{admin.name}</span>
+                      <span className="text-sm font-medium text-zinc-900">{admin.name}</span>
                       {admin.is_primary_network_admin && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/20">
                           Primary
@@ -275,7 +275,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
               <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                 <p className="text-sm text-emerald-400 mb-2">Temporary password:</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-2 bg-zinc-100 rounded text-white font-mono text-sm">{tempPassword}</code>
+                  <code className="flex-1 p-2 bg-zinc-100 rounded text-zinc-900 font-mono text-sm">{tempPassword}</code>
                   <Button size="icon" variant="ghost" onClick={() => { navigator.clipboard.writeText(tempPassword); toast.success('Copied!'); }}>
                     <Copy className="w-4 h-4" />
                   </Button>

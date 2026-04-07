@@ -57,11 +57,11 @@ export default function XmlUpload() {
   return (
     <div className="space-y-6 max-w-2xl" data-testid="xml-upload-page">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1.5 rounded hover:bg-zinc-100 text-zinc-400 hover:text-white">
+        <button onClick={() => navigate(-1)} className="p-1.5 rounded hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-white">Upload XML</h1>
+          <h1 className="text-2xl font-bold text-zinc-900">Upload XML</h1>
           <p className="text-sm text-zinc-400 mt-0.5">Upload an XML file for processing</p>
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function XmlUpload() {
             </div>
           )}
           <div>
-            <p className="text-white font-medium">
+            <p className="text-zinc-700 font-medium">
               {uploading ? 'Uploading...' : isDragging ? 'Drop XML file here' : 'Drag & drop XML file here'}
             </p>
             <p className="text-xs text-zinc-500 mt-1">

@@ -271,7 +271,7 @@ export default function LicenseManager() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
               activeTab === tab.id
-                ? 'bg-zinc-800 text-white border-b-2 border-orange-500'
+                ? 'bg-zinc-900 text-white border-b-2 border-orange-500'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
@@ -418,7 +418,7 @@ export default function LicenseManager() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-white font-medium">{req.site_name}</span>
+                            <span className="text-zinc-700 font-medium">{req.site_name}</span>
                             <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[req.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
                               {SITE_TYPE_LABELS[req.site_type] || req.site_type}
                             </span>
