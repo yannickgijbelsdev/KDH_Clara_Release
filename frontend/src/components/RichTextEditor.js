@@ -282,8 +282,8 @@ const RichTextEditor = ({
             img { max-width: 100%; height: auto; border-radius: 4px; }
             hr { border: none; border-top: 1px solid #3f3f46; margin: 1.5em 0; }
           `,
-          skin: 'oxide-dark',
-          content_css: 'dark',
+          skin: 'oxide',
+          content_css: 'default',
           branding: false,
           promotion: false,
           resize: true,
