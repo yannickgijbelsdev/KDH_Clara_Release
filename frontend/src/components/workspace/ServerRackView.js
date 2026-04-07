@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -195,6 +195,8 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
    ════════════════════════════════════════════════════ */
 export default function ServerRackView({ sites, onCreateSite, onEditSite, onDeleteSite, environments, selectedEnvId, user }) {
   const [selectedRack, setSelectedRack] = useState(null);
+  const sceneRef = useRef(null);
+  const [sceneScale, setSceneScale] = useState(1);
 
   const envName = environments?.find(e => e.id === selectedEnvId)?.name || 'Production';
 
@@ -206,6 +208,26 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
     if (result.length === 0) result.push([]);
     return result;
   }, [sites]);
+
+  // Dynamically scale racks to fit the available space
+  const computeScale = useCallback(() => {
+    if (!sceneRef.current) return;
+    const containerH = sceneRef.current.clientHeight;
+    const containerW = sceneRef.current.clientWidth;
+    // Base rack height ~420px (top + 5 blades + bottom), base rack width = 280px + gaps
+    const baseRackH = 440;
+    const rackCount = racks.length;
+    const baseSceneW = rackCount * 280 + (rackCount - 1) * 32 + 80;
+    const scaleH = containerH / (baseRackH + 80);
+    const scaleW = containerW / (baseSceneW + 100);
+    setSceneScale(Math.max(Math.min(scaleH, scaleW, 2.2), 0.45));
+  }, [racks.length]);
+
+  useEffect(() => {
+    computeScale();
+    window.addEventListener('resize', computeScale);
+    return () => window.removeEventListener('resize', computeScale);
+  }, [computeScale]);
 
   const totalUsers = sites.reduce((sum, s) => sum + (s.user_count || 0), 0);
   const selectedRackSites = selectedRack !== null ? (racks[selectedRack] || []) : [];
@@ -269,13 +291,13 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
         </div>
 
         {/* ── Center: THE RACK SCENE ── */}
-        <div className="flex-1 flex items-end justify-center relative pb-6">
+        <div ref={sceneRef} className="flex-1 flex items-center justify-center relative">
 
           {/* Floor shadow / platform */}
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-[85%] max-w-[1000px] h-3 rounded-full bg-black/[0.06] blur-sm" />
+          <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 h-3 rounded-full bg-black/[0.06] blur-sm" style={{ width: `${Math.min(85, racks.length * 20 + 20)}%`, maxWidth: 1000 }} />
 
-          {/* Racks */}
-          <div className="flex items-end gap-5 sm:gap-8 relative z-10">
+          {/* Racks - scaled to fit */}
+          <div className="flex items-end gap-5 sm:gap-8 relative z-10 origin-center transition-transform duration-300 ease-out" style={{ transform: `scale(${sceneScale})` }}>
             {racks.map((rackSites, i) => (
               <ServerRack3D
                 key={i}
