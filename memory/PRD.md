@@ -13,6 +13,13 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## What's Been Implemented
 
+### April 7, 2026 - Backup Management Page Redesign (Isometric)
+- [x] **Redesigned to match Server Rack view**: Isometric 3D room cards per site instead of list-based UI
+- [x] **Environment grouping**: Sites grouped by environment (Production, Staging, etc.) with labels
+- [x] **Click-to-open detail panel**: Clicking a card opens a slide-in panel showing all backups for that site
+- [x] **Full backup operations in panel**: Create backup, restore, delete, clone, search
+- [x] **Canvas-style layout**: Dot pattern background, floating top/bottom panels, auto-scaling cards
+
 ### April 7, 2026 - Global Error Handling & Clara Assistant Integration
 - [x] **Eliminated all native browser `alert()` popups** from the entire frontend codebase
 - [x] **Upgraded `claraToast.js`**: Global `openClara` storage + `init()` method + monkey-patches sonner `toast.error` to auto-add Clara Assistent button
