@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="1" tests="13" time="69.112" timestamp="2026-04-07T09:34:22.154727+00:00" hostname="agent-env-89837f4b-0050-4f7e-9f48-7ba475bd6242"><testcase classname="backend.tests.test_redesign_features.TestAuthentication" name="test_system_admin_login" time="0.358" /><testcase classname="backend.tests.test_redesign_features.TestAuthentication" name="test_network_admin_login" time="0.327"><failure message="AssertionError: Login failed: {&quot;detail&quot;:&quot;Invalid credentials&quot;}&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">backend/tests/test_redesign_features.py:45: in test_network_admin_login
+    assert response.status_code == 200, f"Login failed: {response.text}"
+E   AssertionError: Login failed: {"detail":"Invalid credentials"}
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_redesign_features.TestGlobalSearch" name="test_search_requires_auth" time="60.095"><failure message="AssertionError: Search should require auth&#10;assert 502 == 401&#10; +  where 502 = &lt;Response [502]&gt;.status_code">backend/tests/test_redesign_features.py:60: in test_search_requires_auth
+    assert response.status_code == 401, "Search should require auth"
+E   AssertionError: Search should require auth
+E   assert 502 == 401
+E    +  where 502 = &lt;Response [502]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_redesign_features.TestGlobalSearch" name="test_search_with_short_query" time="7.093" /><testcase classname="backend.tests.test_redesign_features.TestGlobalSearch" name="test_search_with_valid_query" time="0.133" /><testcase classname="backend.tests.test_redesign_features.TestGlobalSearch" name="test_search_with_main_site_header" time="0.239" /><testcase classname="backend.tests.test_redesign_features.TestMenuCounts" name="test_menu_counts_requires_auth" time="0.092"><failure message="AssertionError: Menu counts should require auth&#10;assert 403 == 401&#10; +  where 403 = &lt;Response [403]&gt;.status_code">backend/tests/test_redesign_features.py:151: in test_menu_counts_requires_auth
+    assert response.status_code == 401, "Menu counts should require auth"
+E   AssertionError: Menu counts should require auth
+E   assert 403 == 401
+E    +  where 403 = &lt;Response [403]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_redesign_features.TestMenuCounts" name="test_menu_counts_for_system_admin" time="0.122" /><testcase classname="backend.tests.test_redesign_features.TestMenuCounts" name="test_menu_counts_for_network_admin" time="0.000"><skipped type="pytest.skip" message="No token available">/app/backend/tests/test_redesign_features.py:183: No token available</skipped></testcase><testcase classname="backend.tests.test_redesign_features.TestApiExplorer" name="test_api_endpoints_requires_auth" time="0.112"><failure message="AssertionError: API endpoints should require auth&#10;assert 403 == 401&#10; +  where 403 = &lt;Response [403]&gt;.status_code">backend/tests/test_redesign_features.py:207: in test_api_endpoints_requires_auth
+    assert response.status_code == 401, "API endpoints should require auth"
+E   AssertionError: API endpoints should require auth
+E   assert 403 == 401
+E    +  where 403 = &lt;Response [403]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_redesign_features.TestApiExplorer" name="test_api_endpoints_returns_data" time="0.115" /><testcase classname="backend.tests.test_redesign_features.TestBackupEndpoints" name="test_backups_requires_auth" time="0.095"><failure message="AssertionError: Backups should require auth&#10;assert 403 == 401&#10; +  where 403 = &lt;Response [403]&gt;.status_code">backend/tests/test_redesign_features.py:249: in test_backups_requires_auth
+    assert response.status_code == 401, "Backups should require auth"
+E   AssertionError: Backups should require auth
+E   assert 403 == 401
+E    +  where 403 = &lt;Response [403]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_redesign_features.TestBackupEndpoints" name="test_backups_list_for_main_site" time="0.233" /></testsuite></testsuites>

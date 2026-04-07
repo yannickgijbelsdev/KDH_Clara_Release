@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import {
   ArrowLeft, Download, Upload, RefreshCw, Trash2, Copy, Clock,
   CheckCircle, XCircle, Loader2, HardDrive, Shield, AlertTriangle,
-  Database, FolderArchive, RotateCcw, Server,
+  Database, FolderArchive, RotateCcw, Server, Search,
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -32,22 +32,22 @@ function timeAgo(iso) {
   if (!iso) return '';
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 60) return `${mins}m geleden`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
+  if (hrs < 24) return `${hrs}u geleden`;
+  return `${Math.floor(hrs / 24)}d geleden`;
 }
 
 const STATUS_CONFIG = {
-  completed: { icon: CheckCircle, color: 'text-green-400', bg: 'bg-green-500/10', label: 'Completed' },
-  failed: { icon: XCircle, color: 'text-red-400', bg: 'bg-red-500/10', label: 'Failed' },
-  in_progress: { icon: Loader2, color: 'text-amber-400', bg: 'bg-amber-500/10', label: 'In Progress', spin: true },
+  completed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Completed' },
+  failed: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', label: 'Failed' },
+  in_progress: { icon: Loader2, color: 'text-amber-500', bg: 'bg-amber-50', label: 'In Progress', spin: true },
 };
 
 const TYPE_LABELS = {
-  manual: 'Manual',
-  automatic: 'Automatic',
-  'pre-restore': 'Pre-Restore Safety',
+  manual: 'Handmatig',
+  automatic: 'Automatisch',
+  'pre-restore': 'Veiligheidsback-up',
 };
 
 export default function BackupManagementPage() {
@@ -66,6 +66,7 @@ export default function BackupManagementPage() {
   const [showCloneDialog, setShowCloneDialog] = useState(false);
   const [showRestoreConfirm, setShowRestoreConfirm] = useState(null);
   const [deletingClone, setDeletingClone] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -101,19 +102,15 @@ export default function BackupManagementPage() {
   const createBackup = async () => {
     setCreating(true);
     try {
-      const res = await fetch(`${API}/api/backups/${selectedSite.id}`, {
-        method: 'POST', headers,
-      });
+      const res = await fetch(`${API}/api/backups/${selectedSite.id}`, { method: 'POST', headers });
       const data = await res.json();
       if (data.status === 'completed') {
-        toast.success(`Backup created: ${data.document_count} documents`);
+        toast.success(`Backup aangemaakt: ${data.document_count} documenten`);
       } else {
-        toast.error(`Backup failed: ${data.error_message || 'Unknown error'}`);
+        toast.error(`Backup mislukt: ${data.error_message || 'Onbekende fout'}`);
       }
       fetchBackups();
-    } catch (err) {
-      toast.error('Backup creation failed');
-    }
+    } catch { toast.error('Backup maken mislukt'); }
     setCreating(false);
   };
 
@@ -122,30 +119,25 @@ export default function BackupManagementPage() {
     setShowRestoreConfirm(null);
     try {
       const res = await fetch(`${API}/api/backups/${selectedSite.id}/restore`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ backup_id: backupId }),
+        method: 'POST', headers, body: JSON.stringify({ backup_id: backupId }),
       });
       const data = await res.json();
       if (data.status === 'completed') {
-        toast.success('Restore completed! Safety backup was created automatically.');
+        toast.success('Herstel voltooid! Veiligheidsback-up is automatisch aangemaakt.');
       } else {
-        toast.error(`Restore failed: ${data.detail || 'Unknown error'}`);
+        toast.error(`Herstel mislukt: ${data.detail || 'Onbekende fout'}`);
       }
       fetchBackups();
-    } catch (err) {
-      toast.error('Restore failed');
-    }
+    } catch { toast.error('Herstel mislukt'); }
     setRestoring(null);
   };
 
   const deleteBackup = async (backupId) => {
     try {
-      await fetch(`${API}/api/backups/single/${backupId}`, {
-        method: 'DELETE', headers,
-      });
-      toast.success('Backup deleted');
+      await fetch(`${API}/api/backups/single/${backupId}`, { method: 'DELETE', headers });
+      toast.success('Backup verwijderd');
       fetchBackups();
-    } catch { toast.error('Delete failed'); }
+    } catch { toast.error('Verwijderen mislukt'); }
   };
 
   const cloneSite = async () => {
@@ -154,44 +146,41 @@ export default function BackupManagementPage() {
     setShowCloneDialog(false);
     try {
       const res = await fetch(`${API}/api/backups/${selectedSite.id}/clone`, {
-        method: 'POST', headers,
-        body: JSON.stringify({ clone_name: cloneName.trim() }),
+        method: 'POST', headers, body: JSON.stringify({ clone_name: cloneName.trim() }),
       });
       const data = await res.json();
       if (data.status === 'completed') {
-        toast.success(`Clone "${cloneName}" created with ${data.document_count} documents`);
+        toast.success(`Clone "${cloneName}" aangemaakt met ${data.document_count} documenten`);
         setCloneName('');
         fetchBackups();
         fetchMainSites();
       } else {
-        toast.error(`Clone failed: ${data.detail || 'Unknown error'}`);
+        toast.error(`Clone mislukt: ${data.detail || 'Onbekende fout'}`);
       }
-    } catch { toast.error('Clone failed'); }
+    } catch { toast.error('Clone mislukt'); }
     setCloning(false);
   };
 
   const removeClone = async (cloneId) => {
     setDeletingClone(cloneId);
     try {
-      const res = await fetch(`${API}/api/backups/clone/${cloneId}`, {
-        method: 'DELETE', headers,
-      });
+      const res = await fetch(`${API}/api/backups/clone/${cloneId}`, { method: 'DELETE', headers });
       const data = await res.json();
       if (data.status === 'completed') {
-        toast.success(`Clone deleted (${data.documents_deleted} documents removed)`);
+        toast.success(`Clone verwijderd (${data.documents_deleted} documenten gewist)`);
         fetchBackups();
         fetchMainSites();
       } else {
-        toast.error(`Delete failed: ${data.detail || 'Unknown error'}`);
+        toast.error(`Verwijderen mislukt: ${data.detail || 'Onbekende fout'}`);
       }
-    } catch { toast.error('Delete failed'); }
+    } catch { toast.error('Verwijderen mislukt'); }
     setDeletingClone(null);
   };
 
   if (!user?.is_network_admin) {
     return (
-      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center text-zinc-400">
-        Network admin access required
+      <div className="min-h-screen bg-[#f5f5f7] flex items-center justify-center text-zinc-400">
+        Network admin toegang vereist
       </div>
     );
   }
@@ -201,83 +190,81 @@ export default function BackupManagementPage() {
   const failedCount = backups.filter(b => b.status === 'failed').length;
   const totalSize = completedBackups.reduce((sum, b) => sum + (b.size_bytes || 0), 0);
 
+  const filteredBackups = searchQuery
+    ? backups.filter(b =>
+        (TYPE_LABELS[b.type] || b.type || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        formatDate(b.created_at).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (b.collections_backed_up || []).some(c => c.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : backups;
+
   return (
-    <div className="min-h-screen bg-[#F0F0F2] text-zinc-900">
+    <div className="min-h-screen bg-[#f5f5f7]">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#F0F0F2]/80 backdrop-blur-xl border-b border-zinc-200">
-        <div className="flex items-center justify-between px-6 py-3">
+      <header className="sticky top-0 z-50 bg-white/60 backdrop-blur-2xl border-b border-black/[0.06] shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')} data-testid="backup-back-btn">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/network')} className="rounded-xl text-zinc-400 hover:text-zinc-900" data-testid="backup-back-btn">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-lg font-bold" data-testid="backup-title">Backups & Clones</h1>
-              <p className="text-xs text-zinc-500">Manage site backups, restore versions, and clone sites</p>
+              <h1 className="text-lg font-bold text-zinc-900" data-testid="backup-title">Backups & Clones</h1>
+              <p className="text-xs text-zinc-400">Beheer site back-ups, herstel versies en kloon sites</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button
               onClick={() => { setCloneName(`[TEST] ${selectedSite?.name || ''}`); setShowCloneDialog(true); }}
               variant="outline"
-              className="gap-2"
+              className="gap-2 rounded-xl border-black/10 text-zinc-600 hover:bg-black/5"
               disabled={!selectedSite}
               data-testid="clone-site-btn"
             >
               <Copy className="w-4 h-4" />
-              Clone Site
+              <span className="hidden sm:inline">Clone Site</span>
             </Button>
             <Button
               onClick={createBackup}
               disabled={creating || !selectedSite}
-              className="gap-2 bg-orange-600 hover:bg-orange-700"
+              className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl"
               data-testid="create-backup-btn"
             >
               {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <HardDrive className="w-4 h-4" />}
-              Create Backup
+              <span className="hidden sm:inline">Nieuwe Backup</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="pt-20 pb-12 px-6 max-w-7xl mx-auto">
-        {/* Site Selector */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2" data-testid="site-selector">
+      <main className="max-w-7xl mx-auto px-6 py-6">
+        {/* Site Selector Pills */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide" data-testid="site-selector">
           {mainSites.map(site => (
             <button
               key={site.id}
               onClick={() => setSelectedSite(site)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-2 ${
                 selectedSite?.id === site.id
-                  ? 'bg-orange-600 text-zinc-900'
-                  : 'bg-zinc-50 text-zinc-500 hover:bg-white border border-zinc-200'
+                  ? 'bg-zinc-900 text-white shadow-md'
+                  : 'bg-white text-zinc-500 hover:text-zinc-700 hover:bg-white/80 border border-black/[0.06]'
               }`}
               data-testid={`site-tab-${site.slug || site.id}`}
             >
               {site.name}
-              {site.site_type === 'server' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">Virtual Datacenter</span>}
-              {site.site_type === 'technical' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium">Data Connection</span>}
-              {site.site_type === 'task_scheduler' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-500/20 text-violet-400 border border-violet-500/30 font-medium">Tasks</span>}
-              {site.site_type === 'external_host' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-medium">External Host</span>}
+              {site.site_type === 'server' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 font-medium">Datacenter</span>}
+              {site.site_type === 'technical' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-medium">Data</span>}
+              {site.site_type === 'task_scheduler' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-600 font-medium">Tasks</span>}
+              {site.site_type === 'external_host' && <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-cyan-100 text-cyan-600 font-medium">Extern</span>}
             </button>
           ))}
         </div>
 
         {/* Status Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8" data-testid="backup-status-cards">
-          <StatusCard icon={Database} label="Total Backups" value={backups.length} color="text-blue-400" />
-          <StatusCard
-            icon={CheckCircle}
-            label="Last Backup"
-            value={lastBackup ? timeAgo(lastBackup.created_at) : 'Never'}
-            color="text-green-400"
-          />
-          <StatusCard
-            icon={failedCount > 0 ? AlertTriangle : Shield}
-            label="Failed"
-            value={failedCount}
-            color={failedCount > 0 ? 'text-red-400' : 'text-green-400'}
-          />
-          <StatusCard icon={HardDrive} label="Storage Used" value={formatBytes(totalSize)} color="text-amber-400" />
+          <StatusCard icon={Database} label="Totaal Back-ups" value={backups.length} color="text-blue-500" bg="bg-blue-50" />
+          <StatusCard icon={CheckCircle} label="Laatste Backup" value={lastBackup ? timeAgo(lastBackup.created_at) : 'Nooit'} color="text-emerald-500" bg="bg-emerald-50" />
+          <StatusCard icon={failedCount > 0 ? AlertTriangle : Shield} label="Mislukt" value={failedCount} color={failedCount > 0 ? 'text-red-500' : 'text-emerald-500'} bg={failedCount > 0 ? 'bg-red-50' : 'bg-emerald-50'} />
+          <StatusCard icon={HardDrive} label="Opslag Gebruikt" value={formatBytes(totalSize)} color="text-amber-500" bg="bg-amber-50" />
         </div>
 
         {/* Clones Section */}
@@ -285,19 +272,19 @@ export default function BackupManagementPage() {
           <div className="mb-8" data-testid="clones-section">
             <h2 className="text-sm font-semibold text-zinc-400 mb-3 flex items-center gap-2">
               <Copy className="w-4 h-4" />
-              Active Clones
+              Actieve Clones
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {clones.map(clone => (
-                <div key={clone.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4 flex items-center justify-between">
+                <div key={clone.id} className="bg-white rounded-2xl border border-black/[0.06] p-4 flex items-center justify-between shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
                   <div>
-                    <p className="font-medium text-sm">{clone.name}</p>
-                    <p className="text-xs text-zinc-500">{formatDate(clone.created_at)}</p>
+                    <p className="font-medium text-sm text-zinc-900">{clone.name}</p>
+                    <p className="text-xs text-zinc-400">{formatDate(clone.created_at)}</p>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                    className="text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
                     onClick={() => removeClone(clone.id)}
                     disabled={deletingClone === clone.id}
                     data-testid={`delete-clone-${clone.id}`}
@@ -312,89 +299,93 @@ export default function BackupManagementPage() {
 
         {/* Backup List */}
         <div data-testid="backup-list">
-          <h2 className="text-sm font-semibold text-zinc-400 mb-3 flex items-center gap-2">
-            <FolderArchive className="w-4 h-4" />
-            Backup History
-            <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded-full">{backups.length}</span>
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
+              <FolderArchive className="w-4 h-4" />
+              Backup Geschiedenis
+              <span className="text-[11px] bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full font-medium">{backups.length}</span>
+            </h2>
+            <div className="relative w-56">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Zoek backups..."
+                className="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-black/[0.06] rounded-xl text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
+                data-testid="backup-search"
+              />
+            </div>
+          </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
+              <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
             </div>
-          ) : backups.length === 0 ? (
-            <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-12 text-center">
-              <Database className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
-              <p className="text-zinc-500 text-sm">No backups yet</p>
-              <p className="text-zinc-600 text-xs mt-1">Create your first backup or wait for the daily automatic backup</p>
+          ) : filteredBackups.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-black/[0.06] p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+              <Database className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+              <p className="text-zinc-500 text-sm font-medium">Geen backups gevonden</p>
+              <p className="text-zinc-400 text-xs mt-1">Maak je eerste backup of wacht op de dagelijkse automatische backup</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {backups.map(backup => {
+              {filteredBackups.map(backup => {
                 const cfg = STATUS_CONFIG[backup.status] || STATUS_CONFIG.completed;
                 const StatusIcon = cfg.icon;
                 return (
                   <div
                     key={backup.id}
-                    className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4 hover:border-zinc-300 transition-colors"
+                    className="bg-white rounded-2xl border border-black/[0.06] p-4 hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)] transition-shadow duration-200"
                     data-testid={`backup-row-${backup.id}`}
                   >
                     <div className="flex items-center gap-4">
-                      {/* Status */}
-                      <div className={`w-10 h-10 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
+                      <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
                         <StatusIcon className={`w-5 h-5 ${cfg.color} ${cfg.spin ? 'animate-spin' : ''}`} />
                       </div>
-
-                      {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            backup.type === 'automatic' ? 'bg-blue-500/10 text-blue-400' :
-                            backup.type === 'pre-restore' ? 'bg-purple-500/10 text-purple-400' :
-                            'bg-zinc-200 text-zinc-600'
+                            backup.type === 'automatic' ? 'bg-blue-50 text-blue-600' :
+                            backup.type === 'pre-restore' ? 'bg-purple-50 text-purple-600' :
+                            'bg-zinc-100 text-zinc-600'
                           }`}>
                             {TYPE_LABELS[backup.type] || backup.type}
                           </span>
-                          <span className="text-xs text-zinc-500">{formatDate(backup.created_at)}</span>
+                          <span className="text-xs text-zinc-400">{formatDate(backup.created_at)}</span>
                         </div>
-                        <div className="flex items-center gap-4 mt-1 text-xs text-zinc-500">
-                          <span>{backup.document_count || 0} documents</span>
+                        <div className="flex items-center gap-4 mt-1 text-xs text-zinc-400">
+                          <span>{backup.document_count || 0} documenten</span>
                           <span>{formatBytes(backup.size_bytes)}</span>
                           {backup.error_message && (
                             <span className="text-red-400 truncate max-w-xs">{backup.error_message}</span>
                           )}
                           {backup.collections_backed_up?.length > 0 && (
-                            <span className="text-zinc-600 truncate max-w-md">
+                            <span className="text-zinc-400 truncate max-w-md">
                               {backup.collections_backed_up.slice(0, 4).join(', ')}
                               {backup.collections_backed_up.length > 4 && ` +${backup.collections_backed_up.length - 4}`}
                             </span>
                           )}
                         </div>
                       </div>
-
-                      {/* Actions */}
                       <div className="flex items-center gap-1 flex-shrink-0">
                         {backup.status === 'completed' && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="gap-1.5 text-xs text-zinc-400 hover:text-green-400"
+                            className="gap-1.5 text-xs text-zinc-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl"
                             onClick={() => setShowRestoreConfirm(backup.id)}
                             disabled={restoring === backup.id}
                             data-testid={`restore-btn-${backup.id}`}
                           >
-                            {restoring === backup.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <RotateCcw className="w-3.5 h-3.5" />
-                            )}
-                            Restore
+                            {restoring === backup.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                            Herstel
                           </Button>
                         )}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-zinc-600 hover:text-red-400"
+                          className="text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-xl"
                           onClick={() => deleteBackup(backup.id)}
                           data-testid={`delete-backup-${backup.id}`}
                         >
@@ -412,34 +403,34 @@ export default function BackupManagementPage() {
 
       {/* Restore Confirmation Dialog */}
       {showRestoreConfirm && (
-        <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4" data-testid="restore-confirm-dialog">
-          <div className="bg-white/80 backdrop-blur border border-zinc-200 rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" data-testid="restore-confirm-dialog">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-black/[0.06]">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-amber-400" />
+              <div className="w-11 h-11 rounded-2xl bg-amber-50 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
               </div>
               <div>
-                <h3 className="font-semibold">Restore Backup?</h3>
-                <p className="text-xs text-zinc-500">This will overwrite current data</p>
+                <h3 className="font-semibold text-zinc-900">Backup herstellen?</h3>
+                <p className="text-xs text-zinc-400">Dit overschrijft de huidige gegevens</p>
               </div>
             </div>
-            <p className="text-sm text-zinc-400 mb-1">
-              A safety backup of the current state will be created automatically before restoring.
+            <p className="text-sm text-zinc-500 mb-1">
+              Er wordt automatisch een veiligheidsback-up gemaakt van de huidige status.
             </p>
-            <p className="text-xs text-zinc-500 mb-6">
-              You can always revert using the safety backup if something goes wrong.
+            <p className="text-xs text-zinc-400 mb-6">
+              Je kunt altijd terugkeren met de veiligheidsback-up als er iets misgaat.
             </p>
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowRestoreConfirm(null)} data-testid="restore-cancel-btn">
-                Cancel
+              <Button variant="outline" onClick={() => setShowRestoreConfirm(null)} className="rounded-xl border-black/10" data-testid="restore-cancel-btn">
+                Annuleren
               </Button>
               <Button
-                className="bg-amber-600 hover:bg-amber-700 gap-2"
+                className="bg-amber-500 hover:bg-amber-600 text-white gap-2 rounded-xl"
                 onClick={() => restoreBackup(showRestoreConfirm)}
                 data-testid="restore-confirm-btn"
               >
                 <RotateCcw className="w-4 h-4" />
-                Restore
+                Herstellen
               </Button>
             </div>
           </div>
@@ -448,42 +439,42 @@ export default function BackupManagementPage() {
 
       {/* Clone Dialog */}
       {showCloneDialog && (
-        <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4" data-testid="clone-dialog">
-          <div className="bg-white/80 backdrop-blur border border-zinc-200 rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" data-testid="clone-dialog">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-black/[0.06]">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <Copy className="w-5 h-5 text-blue-400" />
+              <div className="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center">
+                <Copy className="w-5 h-5 text-blue-500" />
               </div>
               <div>
-                <h3 className="font-semibold">Clone Site</h3>
-                <p className="text-xs text-zinc-500">Create a test copy of {selectedSite?.name}</p>
+                <h3 className="font-semibold text-zinc-900">Site Klonen</h3>
+                <p className="text-xs text-zinc-400">Maak een testkopie van {selectedSite?.name}</p>
               </div>
             </div>
-            <label className="block text-xs text-zinc-500 mb-1.5">Clone Name</label>
+            <label className="block text-xs text-zinc-500 mb-1.5 font-medium">Clone Naam</label>
             <input
               type="text"
               value={cloneName}
               onChange={e => setCloneName(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-sm text-zinc-900 mb-4 focus:outline-none focus:border-orange-500"
-              placeholder="e.g. [TEST] Radiogroep MFY/GRK"
+              className="w-full bg-zinc-50 border border-black/[0.08] rounded-xl px-3 py-2.5 text-sm text-zinc-900 mb-4 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 placeholder:text-zinc-300"
+              placeholder="bijv. [TEST] Radiogroep MFY/GRK"
               data-testid="clone-name-input"
             />
-            <p className="text-xs text-zinc-500 mb-4">
-              The clone will include all content, shows, WordPress config, and settings.
-              Child sites will be prefixed with [CLONE].
+            <p className="text-xs text-zinc-400 mb-4">
+              De clone bevat alle content, shows, WordPress configuratie en instellingen.
+              Subsites worden voorafgegaan door [CLONE].
             </p>
             <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowCloneDialog(false)} data-testid="clone-cancel-btn">
-                Cancel
+              <Button variant="outline" onClick={() => setShowCloneDialog(false)} className="rounded-xl border-black/10" data-testid="clone-cancel-btn">
+                Annuleren
               </Button>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 gap-2"
+                className="bg-zinc-900 hover:bg-zinc-800 text-white gap-2 rounded-xl"
                 onClick={cloneSite}
                 disabled={!cloneName.trim() || cloning}
                 data-testid="clone-confirm-btn"
               >
                 {cloning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
-                Create Clone
+                Clone Aanmaken
               </Button>
             </div>
           </div>
@@ -493,14 +484,16 @@ export default function BackupManagementPage() {
   );
 }
 
-function StatusCard({ icon: Icon, label, value, color }) {
+function StatusCard({ icon: Icon, label, value, color, bg }) {
   return (
-    <div className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 p-4" data-testid={`status-${label.toLowerCase().replace(/\s/g,'-')}`}>
+    <div className="bg-white rounded-2xl border border-black/[0.06] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)]" data-testid={`status-${label.toLowerCase().replace(/\s/g,'-')}`}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon className={`w-4 h-4 ${color}`} />
-        <span className="text-xs text-zinc-500">{label}</span>
+        <div className={`w-8 h-8 rounded-xl ${bg || 'bg-zinc-50'} flex items-center justify-center`}>
+          <Icon className={`w-4 h-4 ${color}`} />
+        </div>
       </div>
-      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-2xl font-bold text-zinc-900">{value}</p>
+      <p className="text-xs text-zinc-400 mt-0.5">{label}</p>
     </div>
   );
 }

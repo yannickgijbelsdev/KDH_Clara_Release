@@ -288,6 +288,72 @@ async def get_menu_counts(request: Request, current_user: dict = Depends(get_cur
     return counts
 
 
+
+# ============== GLOBAL SEARCH ==============
+
+@api_router.get("/search")
+async def global_search(request: Request, q: str = "", current_user: dict = Depends(get_current_user)):
+    """Search across content, shows, and media within the current main site."""
+    main_site_id = request.headers.get('X-Main-Site-ID')
+    team_id = current_user.get('team_id')
+    
+    if not q or len(q.strip()) < 2:
+        return {"results": [], "query": q}
+    
+    query_str = q.strip()
+    regex_filter = {"$regex": query_str, "$options": "i"}
+    
+    # Build base filter
+    if main_site_id:
+        base_filter = {"main_site_id": main_site_id}
+    else:
+        base_filter = {"team_id": team_id}
+    
+    results = []
+    
+    # Search content items
+    content_items = await db.content_items.find(
+        {**base_filter, "deleted_at": {"$exists": False}, "$or": [
+            {"title": regex_filter}, {"body": regex_filter}, {"excerpt": regex_filter}
+        ]},
+        {"_id": 0, "id": 1, "title": 1, "type": 1, "status": 1, "updated_at": 1}
+    ).sort("updated_at", -1).limit(5).to_list(5)
+    
+    for item in content_items:
+        results.append({"type": "content", "id": item["id"], "title": item.get("title", "Untitled"), 
+                        "subtitle": f"{item.get('type', 'text')} - {item.get('status', 'draft')}", "updated_at": item.get("updated_at")})
+    
+    # Search shows
+    shows = await db.shows.find(
+        {**base_filter, "deleted_at": {"$exists": False}, "$or": [
+            {"title": regex_filter}, {"description": regex_filter}
+        ]},
+        {"_id": 0, "id": 1, "title": 1, "show_type": 1, "updated_at": 1}
+    ).sort("updated_at", -1).limit(5).to_list(5)
+    
+    for show in shows:
+        results.append({"type": "show", "id": show["id"], "title": show.get("title", "Untitled"),
+                        "subtitle": show.get("show_type", "show"), "updated_at": show.get("updated_at")})
+    
+    # Search media items
+    media = await db.media_items.find(
+        {**base_filter, "deleted_at": {"$exists": False}, "$or": [
+            {"name": regex_filter}, {"original_name": regex_filter}, {"description": regex_filter}
+        ]},
+        {"_id": 0, "id": 1, "name": 1, "original_name": 1, "mime_type": 1, "updated_at": 1}
+    ).sort("updated_at", -1).limit(5).to_list(5)
+    
+    for m in media:
+        results.append({"type": "media", "id": m["id"], "title": m.get("name") or m.get("original_name", "Untitled"),
+                        "subtitle": m.get("mime_type", "file"), "updated_at": m.get("updated_at")})
+    
+    # Sort all results by updated_at desc
+    results.sort(key=lambda x: x.get("updated_at") or "", reverse=True)
+    
+    return {"results": results[:15], "query": query_str}
+
+
+
 @api_router.post("/chat/mark-read")
 async def mark_chat_read(current_user: dict = Depends(get_current_user)):
     """Mark chat as read for current user."""

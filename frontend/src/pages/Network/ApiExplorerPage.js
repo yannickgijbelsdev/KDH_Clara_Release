@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
 import { toast } from 'sonner';
 import {
   Shield, Users, Building, Calendar, FileText, Image, Radio,
@@ -13,38 +12,21 @@ import { useNavigate } from 'react-router-dom';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Icon mapping
 const iconMap = {
-  'shield': Shield,
-  'users': Users,
-  'building': Building,
-  'calendar': Calendar,
-  'file-text': FileText,
-  'image': Image,
-  'radio': Radio,
-  'settings': Settings,
-  'globe': Globe,
-  'globe-2': Globe2,
-  'message-circle': MessageCircle,
-  'rss': Rss,
-  'layers': Layers,
-  'folder': Folder,
-  'list': List,
-  'volume-2': Volume2,
-  'external-link': ExternalLink,
-  'refresh-cw': RefreshCw,
-  'database': Database,
-  'code': Code,
+  'shield': Shield, 'users': Users, 'building': Building, 'calendar': Calendar,
+  'file-text': FileText, 'image': Image, 'radio': Radio, 'settings': Settings,
+  'globe': Globe, 'globe-2': Globe2, 'message-circle': MessageCircle, 'rss': Rss,
+  'layers': Layers, 'folder': Folder, 'list': List, 'volume-2': Volume2,
+  'external-link': ExternalLink, 'refresh-cw': RefreshCw, 'database': Database, 'code': Code,
 };
 
-// Method badge colors
 const methodColors = {
-  'GET': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  'POST': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  'PUT': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  'PATCH': 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-  'DELETE': 'bg-red-500/20 text-red-400 border-red-500/30',
-  'WEBSOCKET': 'bg-violet-500/20 text-violet-400 border-violet-500/30',
+  'GET': 'bg-emerald-50 text-emerald-600 border-emerald-200',
+  'POST': 'bg-blue-50 text-blue-600 border-blue-200',
+  'PUT': 'bg-amber-50 text-amber-600 border-amber-200',
+  'PATCH': 'bg-orange-50 text-orange-600 border-orange-200',
+  'DELETE': 'bg-red-50 text-red-600 border-red-200',
+  'WEBSOCKET': 'bg-violet-50 text-violet-600 border-violet-200',
 };
 
 const ApiExplorerPage = () => {
@@ -57,9 +39,7 @@ const ApiExplorerPage = () => {
   const [copiedPath, setCopiedPath] = useState(null);
   const [methodFilter, setMethodFilter] = useState('all');
 
-  useEffect(() => {
-    fetchEndpoints();
-  }, []);
+  useEffect(() => { fetchEndpoints(); }, []);
 
   const fetchEndpoints = async () => {
     setLoading(true);
@@ -70,38 +50,24 @@ const ApiExplorerPage = () => {
       if (!response.ok) throw new Error('Failed to fetch');
       const result = await response.json();
       setData(result);
-      
-      // Expand all categories by default
       const expanded = {};
-      Object.keys(result.categories || {}).forEach(cat => {
-        expanded[cat] = true;
-      });
+      Object.keys(result.categories || {}).forEach(cat => { expanded[cat] = true; });
       setExpandedCategories(expanded);
-    } catch (error) {
-      toast.error('Kon API endpoints niet laden');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Kon API endpoints niet laden'); }
+    finally { setLoading(false); }
   };
 
   const toggleCategory = (category) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [category]: !prev[category]
-    }));
+    setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }));
   };
 
   const expandAll = () => {
     const expanded = {};
-    Object.keys(data?.categories || {}).forEach(cat => {
-      expanded[cat] = true;
-    });
+    Object.keys(data?.categories || {}).forEach(cat => { expanded[cat] = true; });
     setExpandedCategories(expanded);
   };
 
-  const collapseAll = () => {
-    setExpandedCategories({});
-  };
+  const collapseAll = () => setExpandedCategories({});
 
   const copyPath = (path) => {
     navigator.clipboard.writeText(path);
@@ -109,44 +75,32 @@ const ApiExplorerPage = () => {
     setTimeout(() => setCopiedPath(null), 2000);
   };
 
-  // Filter endpoints based on search and method filter
   const getFilteredCategories = () => {
     if (!data?.categories) return {};
-    
     const filtered = {};
     const query = searchQuery.toLowerCase();
-    
     Object.entries(data.categories).forEach(([catName, catData]) => {
       const filteredEndpoints = catData.endpoints.filter(endpoint => {
-        const matchesSearch = !query || 
+        const matchesSearch = !query ||
           endpoint.path.toLowerCase().includes(query) ||
           endpoint.description.toLowerCase().includes(query) ||
           endpoint.method.toLowerCase().includes(query);
-        
         const matchesMethod = methodFilter === 'all' || endpoint.method === methodFilter;
-        
         return matchesSearch && matchesMethod;
       });
-      
       if (filteredEndpoints.length > 0) {
-        filtered[catName] = {
-          ...catData,
-          endpoints: filteredEndpoints
-        };
+        filtered[catName] = { ...catData, endpoints: filteredEndpoints };
       }
     });
-    
     return filtered;
   };
 
   const filteredCategories = getFilteredCategories();
-  const totalFiltered = Object.values(filteredCategories).reduce(
-    (sum, cat) => sum + cat.endpoints.length, 0
-  );
+  const totalFiltered = Object.values(filteredCategories).reduce((sum, cat) => sum + cat.endpoints.length, 0);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f5f5f7] flex items-center justify-center">
         <div className="flex items-center gap-3 text-zinc-400">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span>API endpoints laden...</span>
@@ -156,157 +110,131 @@ const ApiExplorerPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F0F0F2]">
+    <div className="min-h-screen bg-[#f5f5f7]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#F0F0F2]/95 backdrop-blur border-b border-zinc-200">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/clara-global')}
-                className="gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Terug
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Code className="w-5 h-5 text-orange-500" />
-                  API Explorer
-                </h1>
-                <p className="text-sm text-zinc-400">
-                  {data?.total_endpoints || 0} endpoints in {data?.total_categories || 0} categorieën
-                </p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={fetchEndpoints} className="gap-2">
-              <RefreshCw className="w-4 h-4" />
-              Vernieuwen
+      <header className="sticky top-0 z-50 bg-white/60 backdrop-blur-2xl border-b border-black/[0.06] shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/network')} className="rounded-xl text-zinc-400 hover:text-zinc-900">
+              <ArrowLeft className="w-5 h-5" />
             </Button>
+            <div>
+              <h1 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                <Code className="w-5 h-5 text-orange-500" />
+                API Explorer
+              </h1>
+              <p className="text-xs text-zinc-400">
+                {data?.total_endpoints || 0} endpoints in {data?.total_categories || 0} categorieën
+              </p>
+            </div>
           </div>
+          <Button variant="outline" onClick={fetchEndpoints} className="gap-2 rounded-xl border-black/10 text-zinc-600">
+            <RefreshCw className="w-4 h-4" />
+            <span className="hidden sm:inline">Vernieuwen</span>
+          </Button>
         </div>
       </header>
 
       {/* Filters */}
-      <div className="sticky top-[73px] z-40 bg-[#F0F0F2]/95 backdrop-blur border-b border-zinc-200">
+      <div className="sticky top-16 z-40 bg-white/50 backdrop-blur-xl border-b border-black/[0.04]">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-              <Input
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
+              <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Zoek endpoints..."
-                className="pl-10 bg-white border-zinc-200"
+                className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-black/[0.06] rounded-xl text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
+                data-testid="endpoint-search"
               />
             </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-zinc-400">Filter:</span>
+            <div className="flex items-center gap-1.5">
               {['all', 'GET', 'POST', 'PUT', 'DELETE'].map(method => (
-                <Button
+                <button
                   key={method}
-                  variant={methodFilter === method ? 'default' : 'outline'}
-                  size="sm"
                   onClick={() => setMethodFilter(method)}
-                  className={methodFilter === method ? '' : 'text-zinc-400'}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                    methodFilter === method
+                      ? 'bg-zinc-900 text-white shadow-sm'
+                      : 'bg-white text-zinc-400 hover:text-zinc-600 border border-black/[0.06]'
+                  }`}
+                  data-testid={`filter-${method.toLowerCase()}`}
                 >
                   {method === 'all' ? 'Alle' : method}
-                </Button>
+                </button>
               ))}
             </div>
-            
-            <div className="flex items-center gap-2 border-l border-zinc-200 pl-4">
-              <Button variant="ghost" size="sm" onClick={expandAll}>
-                Alles uitklappen
+            <div className="flex items-center gap-1 border-l border-black/[0.06] pl-3">
+              <Button variant="ghost" size="sm" onClick={expandAll} className="text-xs text-zinc-400 hover:text-zinc-700 rounded-lg">
+                Uitklappen
               </Button>
-              <Button variant="ghost" size="sm" onClick={collapseAll}>
-                Alles inklappen
+              <Button variant="ghost" size="sm" onClick={collapseAll} className="text-xs text-zinc-400 hover:text-zinc-700 rounded-lg">
+                Inklappen
               </Button>
             </div>
           </div>
-          
           {searchQuery && (
-            <p className="text-sm text-zinc-500 mt-2">
-              {totalFiltered} resultaten gevonden
-            </p>
+            <p className="text-xs text-zinc-400 mt-2">{totalFiltered} resultaten gevonden</p>
           )}
         </div>
       </div>
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-6 py-6">
-        <div className="space-y-4">
+        <div className="space-y-3">
           {Object.entries(filteredCategories).map(([categoryName, categoryData]) => {
             const IconComponent = iconMap[categoryData.icon] || Code;
             const isExpanded = expandedCategories[categoryName];
-            
             return (
-              <div key={categoryName} className="bg-white/60 border border-zinc-200 rounded-xl overflow-hidden">
-                {/* Category Header */}
+              <div key={categoryName} className="bg-white rounded-2xl border border-black/[0.06] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]" data-testid={`category-${categoryName}`}>
                 <button
                   onClick={() => toggleCategory(categoryName)}
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-100/70 transition-colors"
+                  className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-zinc-50/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-500/10 rounded-lg">
-                      <IconComponent className="w-5 h-5 text-orange-500" />
+                    <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
+                      <IconComponent className="w-4.5 h-4.5 text-orange-500" />
                     </div>
                     <div className="text-left">
-                      <h2 className="font-semibold text-white">{categoryName}</h2>
-                      <p className="text-sm text-zinc-400">{categoryData.description}</p>
+                      <h2 className="font-semibold text-zinc-900 text-sm">{categoryName}</h2>
+                      <p className="text-xs text-zinc-400">{categoryData.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">
-                      {categoryData.endpoints.length} endpoints
+                    <span className="text-[11px] bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full font-medium">
+                      {categoryData.endpoints.length}
                     </span>
-                    {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-zinc-400" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5 text-zinc-400" />
-                    )}
+                    {isExpanded ? <ChevronDown className="w-4 h-4 text-zinc-300" /> : <ChevronRight className="w-4 h-4 text-zinc-300" />}
                   </div>
                 </button>
-                
-                {/* Endpoints List */}
                 {isExpanded && (
-                  <div className="border-t border-zinc-200">
+                  <div className="border-t border-black/[0.04]">
                     {categoryData.endpoints.map((endpoint, idx) => (
                       <div
                         key={`${endpoint.method}-${endpoint.path}-${idx}`}
-                        className="px-4 py-3 flex items-center gap-4 hover:bg-zinc-100/30 transition-colors border-b border-zinc-200/50 last:border-b-0"
+                        className="px-5 py-3 flex items-center gap-4 hover:bg-zinc-50/50 transition-colors border-b border-black/[0.03] last:border-b-0"
                       >
-                        {/* Method Badge */}
-                        <span className={`px-2 py-1 text-xs font-bold rounded border min-w-[70px] text-center ${methodColors[endpoint.method] || 'bg-zinc-800 text-zinc-400'}`}>
+                        <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border min-w-[62px] text-center ${methodColors[endpoint.method] || 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}>
                           {endpoint.method}
                         </span>
-                        
-                        {/* Path */}
-                        <code className="font-mono text-sm text-white flex-1 truncate">
+                        <code className="font-mono text-sm text-zinc-700 flex-1 truncate">
                           {endpoint.path}
                         </code>
-                        
-                        {/* Description */}
-                        <span className="text-sm text-zinc-400 max-w-md truncate hidden lg:block">
+                        <span className="text-xs text-zinc-400 max-w-md truncate hidden lg:block">
                           {endpoint.description || '-'}
                         </span>
-                        
-                        {/* Copy Button */}
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <button
                           onClick={() => copyPath(endpoint.path)}
-                          className="shrink-0"
+                          className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors shrink-0"
+                          data-testid={`copy-${endpoint.path}`}
                         >
                           {copiedPath === endpoint.path ? (
-                            <Check className="w-4 h-4 text-emerald-500" />
+                            <Check className="w-3.5 h-3.5 text-emerald-500" />
                           ) : (
-                            <Copy className="w-4 h-4 text-zinc-500" />
+                            <Copy className="w-3.5 h-3.5 text-zinc-300" />
                           )}
-                        </Button>
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -315,11 +243,14 @@ const ApiExplorerPage = () => {
             );
           })}
         </div>
-        
+
         {Object.keys(filteredCategories).length === 0 && (
-          <div className="text-center py-12 text-zinc-500">
-            <Code className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Geen endpoints gevonden</p>
+          <div className="text-center py-16">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-100 flex items-center justify-center mx-auto mb-4">
+              <Code className="w-7 h-7 text-zinc-300" />
+            </div>
+            <p className="text-zinc-400 font-medium">Geen endpoints gevonden</p>
+            <p className="text-zinc-300 text-sm mt-1">Pas je zoekopdracht of filter aan</p>
           </div>
         )}
       </main>

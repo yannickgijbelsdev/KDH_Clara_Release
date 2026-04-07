@@ -17,7 +17,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -233,6 +233,10 @@ const MainSiteDashboardContent = () => {
   const [myMainSites, setMyMainSites] = useState([]);
   const [licenseInfo, setLicenseInfo] = useState(null);
   const [licenseLoading, setLicenseLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   
   // Get user's menu preference (grouped or flat)
   const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
@@ -267,6 +271,26 @@ const MainSiteDashboardContent = () => {
       console.error('Failed to fetch menu counts:', error);
     }
   }, []);
+
+  // Search within current main site
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const response = await axios.get(`${API}/search`, { params: { q: searchQuery } });
+        setSearchResults(response.data.results || []);
+      } catch { setSearchResults([]); }
+      setSearchLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Close search on route change
+  useEffect(() => { setSearchOpen(false); setSearchQuery(''); }, [location.pathname]);
 
   // Fetch sites for navigation
   const fetchSites = useCallback(async () => {
@@ -1101,7 +1125,53 @@ const MainSiteDashboardContent = () => {
               </DropdownMenu>
             )}
           </div>
-          <div className="flex items-center gap-3 flex-shrink-0 ml-auto lg:ml-0">
+          {/* Search Bar */}
+          <div className="relative flex-shrink-0 ml-auto lg:ml-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+                onFocus={() => setSearchOpen(true)}
+                placeholder="Zoeken..."
+                className="w-44 lg:w-56 pl-9 pr-3 py-2 text-sm bg-white/40 backdrop-blur-xl border border-white/40 rounded-full text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:bg-white/60 transition-all"
+                data-testid="global-search-input"
+              />
+              {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 animate-spin" />}
+            </div>
+            {searchOpen && searchQuery.length >= 2 && (
+              <div className="absolute top-full mt-2 right-0 w-80 bg-white/90 backdrop-blur-2xl border border-black/[0.06] rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden z-[100]" data-testid="search-results-dropdown">
+                {searchResults.length === 0 && !searchLoading && (
+                  <div className="px-4 py-6 text-center text-sm text-zinc-400">Geen resultaten gevonden</div>
+                )}
+                {searchResults.map((result, idx) => {
+                  const typeIcon = result.type === 'content' ? FileText : result.type === 'show' ? Radio : Image;
+                  const TypeIcon = typeIcon;
+                  const typeLabel = result.type === 'content' ? 'Content' : result.type === 'show' ? 'Show' : 'Media';
+                  const route = result.type === 'content' ? `/${mainSiteSlug}/content/${result.id}` : result.type === 'show' ? `/${mainSiteSlug}/shows` : `/${mainSiteSlug}/media`;
+                  return (
+                    <button
+                      key={`${result.type}-${result.id}-${idx}`}
+                      onClick={() => { navigate(route); setSearchOpen(false); setSearchQuery(''); }}
+                      className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-zinc-50 transition-colors text-left border-b border-black/[0.03] last:border-b-0"
+                      data-testid={`search-result-${result.id}`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                        <TypeIcon className="w-3.5 h-3.5 text-zinc-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-zinc-800 truncate">{result.title}</p>
+                        <p className="text-[11px] text-zinc-400 truncate">{typeLabel} - {result.subtitle}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {searchOpen && <div className="fixed inset-0 z-[99]" onClick={() => setSearchOpen(false)} />}
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2.5 hover:bg-black/[0.03] rounded-xl px-2 py-1.5 transition-colors" data-testid="user-menu-trigger">
