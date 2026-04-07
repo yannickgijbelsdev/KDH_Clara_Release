@@ -232,28 +232,15 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
 
                   <div className="space-y-5">
                     {formData.type === 'audio' ? (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label className="text-zinc-700 font-medium">Audio URL (optional)</Label>
-                          <Input
-                            data-testid="content-audio-url"
-                            type="url"
-                            value={formData.external_url}
-                            onChange={(e) => setFormData({ ...formData, external_url: e.target.value })}
-                            placeholder="https://example.com/audio.mp3"
-                            className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-zinc-700 font-medium">Description (optional)</Label>
-                          <RichTextEditor
-                            id="create-content-body"
-                            value={formData.body}
-                            onChange={(content) => setFormData({ ...formData, body: content })}
-                            placeholder="Add a description for this audio content..."
-                            height={200}
-                          />
-                        </div>
+                      <div className="space-y-2">
+                        <Label className="text-zinc-700 font-medium">Description (optional)</Label>
+                        <RichTextEditor
+                          id="create-content-body"
+                          value={formData.body}
+                          onChange={(content) => setFormData({ ...formData, body: content })}
+                          placeholder="Add a description for this audio content..."
+                          height={300}
+                        />
                       </div>
                     ) : (
                       <div className="space-y-2">

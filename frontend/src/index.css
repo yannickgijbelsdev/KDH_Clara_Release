@@ -327,3 +327,87 @@ h1, h2, h3, h4, h5, h6 {
 [data-testid="main-content-panel"] .text-emerald-400 {
   /* keep original */
 }
+
+/* TinyMCE Dialog Light Theme Override */
+.tox-dialog-wrap .tox-dialog {
+  background-color: #ffffff !important;
+  border: 1px solid #e4e4e7 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.12) !important;
+}
+.tox-dialog-wrap .tox-dialog__header {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #f4f4f5 !important;
+  padding: 16px 20px !important;
+}
+.tox-dialog-wrap .tox-dialog__title {
+  color: #18181b !important;
+  font-weight: 600 !important;
+}
+.tox-dialog-wrap .tox-dialog__body {
+  background-color: #ffffff !important;
+}
+.tox-dialog-wrap .tox-dialog__body-content {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+}
+.tox-dialog-wrap .tox-dialog__footer {
+  background-color: #ffffff !important;
+  border-top: 1px solid #f4f4f5 !important;
+  padding: 12px 20px !important;
+}
+.tox-dialog-wrap .tox-label,
+.tox-dialog-wrap .tox-toolbar-label {
+  color: #52525b !important;
+}
+.tox-dialog-wrap .tox-textfield,
+.tox-dialog-wrap .tox-textarea,
+.tox-dialog-wrap .tox-selectfield select {
+  background-color: #fafafa !important;
+  border: 1px solid #e4e4e7 !important;
+  border-radius: 8px !important;
+  color: #18181b !important;
+}
+.tox-dialog-wrap .tox-textfield:focus,
+.tox-dialog-wrap .tox-textarea:focus {
+  border-color: #a1a1aa !important;
+  box-shadow: 0 0 0 2px rgba(161,161,170,0.2) !important;
+}
+.tox-dialog-wrap .tox-button:not(.tox-button--secondary) {
+  background-color: #18181b !important;
+  border-color: #18181b !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+}
+.tox-dialog-wrap .tox-button--secondary {
+  background-color: #f4f4f5 !important;
+  border-color: #e4e4e7 !important;
+  color: #52525b !important;
+  border-radius: 8px !important;
+}
+.tox-dialog-wrap .tox-button--icon {
+  background-color: transparent !important;
+  border: none !important;
+  color: #71717a !important;
+}
+.tox-dialog-wrap .tox-button--icon:hover {
+  background-color: #f4f4f5 !important;
+  color: #18181b !important;
+}
+.tox-dialog-wrap .tox-dialog__body-nav-item {
+  color: #71717a !important;
+}
+.tox-dialog-wrap .tox-dialog__body-nav-item--active {
+  color: #18181b !important;
+  border-bottom-color: #18181b !important;
+}
+.tox-dialog-wrap .tox-checkbox__icons {
+  color: #71717a !important;
+}
+.tox-dialog-wrap .tox-form__group {
+  color: #18181b !important;
+}
+.tox .tox-dialog-wrap__backdrop {
+  background-color: rgba(0,0,0,0.3) !important;
+}
+
