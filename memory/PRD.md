@@ -12,38 +12,30 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## What's Been Implemented
 
-### April 7, 2026 - Avatar Dropdown Cleanup & Approval Badge Fix
-- [x] Removed site-list from avatar/profile dropdown in `MainSiteDashboardLayout.js` (sites already visible in topbar site-switcher)
-- [x] Fixed `is_admin` check in `/api/menu/counts` to include `is_network_admin`, `is_system_admin`, and `news_admin` roles for approval badge
-- [x] Removed unnecessary `status: "ready"` filter from approval count query
+### April 7, 2026 - Backup/Explorer Redesign + Global Search
+- [x] **BackupManagementPage.js** - Full light-theme redesign: glassmorphism header, pill site selector, solid white status cards, Dutch labels, backup search filter
+- [x] **ApiExplorerPage.js** - Full light-theme redesign: glassmorphism header, method filter pills, solid white category cards, Dutch labels
+- [x] **Global Search Bar** - Added to main site dashboard topbar with debounced search across content, shows, and media
+- [x] **Backend /api/search endpoint** - Searches content_items, shows, and media_items within current main site context
+- [x] **Avatar dropdown cleanup** - Removed PRODUCTION site list (already in topbar site-switcher)
+- [x] **Content Approval badge fix** - Extended is_admin check to include is_network_admin, is_system_admin, and news_admin roles
 
 ### April 7, 2026 - Glassmorphism + Animated Pill Navigation
 - [x] Animated sliding pill indicator using framer-motion `layoutId` (spring animation between tabs)
-- [x] Full glassmorphism treatment: `bg-white/50 backdrop-blur-lg border-white/60` on all panels, cards, dialogs
-- [x] Network Dashboard: topbar, pill nav, cards, dialogs all glassy
-- [x] Main Site Dashboard: floating panels, CanvasPanel, dropdowns all glassy
-- [x] All wizard dialogs: `bg-white/80 backdrop-blur-2xl` with soft shadows
-- [x] Batch-updated 20+ page files: ContentLibrary, ShowManagement, TeamSettings, MediaLibrary, RDS, Calendar, etc.
+- [x] Glassmorphism on navigation elements only, solid white for content panels
 - [x] Counter badges added to pill navigation (Content Library, Media Library, Trash, Content Approval)
 - [x] TinyMCE switched to light mode `oxide` skin
 
 ### April 6, 2026 - Multi-Step Wizard Refactor (All Dialogs)
-- [x] **CreateShowDialog.js** - Converted to 3-step wizard (Show Info, Schedule, Team & Status)
-- [x] **CreateContentDialog.js** - Converted to 3-step wizard (Type & Title, Content, Settings)
-- [x] **RundownItemDialog.js** - Converted to 2-step wizard (Item Info, Details)
-- [x] **CreateEnvironmentWizard.js** - Updated deploy step to match MainSiteWizard
-- [x] **TeamSettingsPage.js** - All dialogs converted to wizard layout
-- [x] **ShowManagementPage.js** - Show Title and Studio dialogs converted to wizard layout
+- [x] CreateShowDialog, CreateContentDialog, RundownItemDialog - Wizard refactors
+- [x] CreateEnvironmentWizard, TeamSettingsPage, ShowManagementPage - Wizard layouts
 
 ### April 5, 2026 - Login Wizard Redesign & UI Fixes
-- [x] **LoginWizard rewritten** with circle loader -> checkmark animation
-- [x] **Production environment dropdown** made visible
-- [x] **SetupWizard** converted to light theme
-- [x] **WizardStepIndicator.js** - Shared step component created
-- [x] **CreateMainSiteWizard.js** - Reference wizard with deploy animation
-- [x] **CreateEnvironmentWizard.js** - Multi-step env creator with max_racks
-- [x] **Dashboard Canvas** - Floating panels, live time/date, full-page backgrounds
-- [x] **Dark mode removal** - All dark mode remnants removed
+- [x] LoginWizard rewritten with circle loader -> checkmark animation
+- [x] WizardStepIndicator.js shared component
+- [x] CreateMainSiteWizard.js, CreateEnvironmentWizard.js
+- [x] Dashboard Canvas with floating panels
+- [x] Dark mode removal complete
 
 ## Prioritized Backlog
 
@@ -64,4 +56,4 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## Test Credentials
 - System Administrator: admkoodh@koodh.com / KYLovie13monx
-- Network Admin: yannick.gijbels@koodh.com / test
+- Network Admin: yannick.gijbels@koodh.com / test (may need password reset)
