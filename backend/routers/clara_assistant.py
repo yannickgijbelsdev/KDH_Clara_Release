@@ -34,9 +34,9 @@ Rules:
 - Write in an engaging, professional tone appropriate for radio/media industry.
 """
 
-ERROR_SYSTEM_PROMPT = """You are Clara, a helpful technical assistant for a radio station management platform called Clara.
+ERROR_SYSTEM_PROMPT = """You are Clara, a friendly assistant for a radio station management platform called Clara.
 
-Your role is to help users understand and resolve error messages they encounter while using the platform. The platform includes:
+Your role is to help non-technical users resolve errors. The platform includes:
 - WordPress publishing (content management)
 - RDS (Radio Data System) configuration
 - Stream monitoring (Shoutcast/Icecast)
@@ -47,10 +47,24 @@ Your role is to help users understand and resolve error messages they encounter 
 
 Rules:
 - Auto-detect the language of the user's input and ALWAYS respond in that same language.
-- Be concise and practical. Give step-by-step solutions.
-- If you recognize a common error pattern, explain the root cause first, then the fix.
-- Always suggest checking the Logs page if the error is unclear.
-- Be friendly and encouraging - errors happen to everyone.
+- Keep it SIMPLE. The user is NOT a developer.
+- Give exactly 3 clear steps they can try, numbered 1-3. Each step should be ONE action.
+- Start with the easiest fix first (e.g. refresh page, check connection).
+- Use short sentences. No technical jargon.
+- If you don't know the exact fix, give general troubleshooting steps.
+- Be warm and encouraging - errors happen to everyone.
+- End with: "Heeft geen van deze stappen geholpen? Klik dan op 'Contact Support' hieronder." (or equivalent in detected language)
+
+Format your response EXACTLY like this:
+**What happened:** [1 sentence explaining the problem in plain language]
+
+**Try these steps:**
+
+1. **[Step title]** - [Clear instruction in 1-2 sentences]
+
+2. **[Step title]** - [Clear instruction in 1-2 sentences]
+
+3. **[Step title]** - [Clear instruction in 1-2 sentences]
 """
 
 
@@ -70,6 +84,14 @@ class SEOImproveRequest(BaseModel):
 class ErrorHelpRequest(BaseModel):
     error_message: str
     context: Optional[str] = ""  # e.g. "WordPress publishing", "RDS settings"
+
+
+class SupportTicketRequest(BaseModel):
+    subject: str
+    description: str
+    error_message: Optional[str] = ""
+    steps_tried: Optional[str] = ""
+    page_url: Optional[str] = ""
 
 
 class ChatRequest(BaseModel):
@@ -278,15 +300,12 @@ async def error_help(req: ErrorHelpRequest, current_user: dict = Depends(get_cur
     session_id = f"err-{uuid.uuid4().hex[:12]}"
     chat = _get_chat(session_id, "error")
 
-    prompt = f"""I encountered this error in the platform:
+    prompt = f"""The user encountered this error:
 
-Error message: {req.error_message}
-Context: {req.context or 'General platform usage'}
+Error: {req.error_message}
+Where: {req.context or 'General platform usage'}
 
-Please help me understand:
-1. What went wrong (root cause)
-2. Step-by-step how to fix it
-3. How to prevent it in the future"""
+Give them 3 simple steps to try. Remember: they are NOT a developer."""
 
     msg = UserMessage(text=prompt)
     response = await chat.send_message(msg)
@@ -295,3 +314,22 @@ Please help me understand:
         "explanation": response,
         "session_id": session_id,
     }
+
+
+@clara_router.post("/support-ticket")
+async def submit_support_ticket(req: SupportTicketRequest, current_user: dict = Depends(get_current_user)):
+    """Submit a support ticket when AI steps didn't resolve the issue."""
+    ticket = {
+        "user_id": str(current_user.get("id") or current_user.get("_id", "")),
+        "user_name": current_user.get("name", ""),
+        "user_email": current_user.get("email", ""),
+        "subject": req.subject,
+        "description": req.description,
+        "error_message": req.error_message,
+        "steps_tried": req.steps_tried,
+        "page_url": req.page_url,
+        "status": "open",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    result = await db.support_tickets.insert_one(ticket)
+    return {"ticket_id": str(result.inserted_id), "status": "submitted"}

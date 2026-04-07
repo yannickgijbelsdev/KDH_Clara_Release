@@ -736,6 +736,16 @@ const ContentDetailPage = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => openClara('seo')}
+                className="gap-2 bg-transparent border-orange-200 text-orange-600 hover:bg-orange-50"
+                data-testid="clara-seo-btn"
+              >
+                <Sparkles className="w-4 h-4" />
+                Clara AI
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   setIsEditing(false);
                   setEditData({ ...content });
