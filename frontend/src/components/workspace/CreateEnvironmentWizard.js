@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import WizardStepIndicator from './WizardStepIndicator';
+import ClaraErrorButton from '../ClaraErrorButton';
+import { claraToast } from '../../utils/claraToast';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DEFAULT_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -23,6 +25,7 @@ const DeployStep = ({ label, status, delay }) => (
     animate={{ opacity: 1, x: 0 }}
     transition={{ delay, duration: 0.4 }}
     className="flex items-center gap-4 py-3"
+    data-testid={`deploy-step-${status}`}
   >
     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
       {status === 'done' ? (
@@ -32,6 +35,14 @@ const DeployStep = ({ label, status, delay }) => (
         >
           <Check className="w-5 h-5 text-white" />
         </motion.div>
+      ) : status === 'failed' ? (
+        <motion.div
+          initial={{ scale: 0 }} animate={{ scale: 1 }}
+          className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center"
+          data-testid="deploy-step-failed-icon"
+        >
+          <X className="w-5 h-5 text-white" />
+        </motion.div>
       ) : status === 'loading' ? (
         <div className="w-10 h-10 rounded-full border-[3px] border-zinc-200 border-t-zinc-900 animate-spin" />
       ) : (
@@ -39,7 +50,7 @@ const DeployStep = ({ label, status, delay }) => (
       )}
     </div>
     <span className={`text-sm font-medium transition-colors ${
-      status === 'done' ? 'text-emerald-700' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
+      status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-red-600' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
     }`}>{label}</span>
   </motion.div>
 );
@@ -210,7 +221,7 @@ function StepAdmin({ adminId, onAdminChange, users, token }) {
 /* ════════════════════════════════════════
    Step 3: Deploy Animation
    ════════════════════════════════════════ */
-function StepDeploying({ envName, color, maxRacks, deployStatus }) {
+function StepDeploying({ envName, color, maxRacks, deployStatus, deployError }) {
   const scrollRef = useRef(null);
 
   const deploySteps = [
@@ -244,20 +255,26 @@ function StepDeploying({ envName, color, maxRacks, deployStatus }) {
       </div>
 
       <h2 className="text-xl font-bold text-zinc-900 mb-1">
-        {allDone ? 'Environment is ready!' : 'Clara is deploying your environment'}
+        {deployError ? 'Deployment failed' : allDone ? 'Environment is ready!' : 'Clara is deploying your environment'}
       </h2>
       <p className="text-sm text-zinc-500 mb-6">
-        {allDone ? 'Your environment is live and ready to use.' : 'This will only take a moment...'}
+        {deployError ? 'Something went wrong during deployment.' : allDone ? 'Your environment is live and ready to use.' : 'This will only take a moment...'}
       </p>
 
       <div ref={scrollRef} className="text-left max-h-[280px] overflow-y-auto px-2">
         {deploySteps.map((step, i) => {
           const isActive = deployStatus === i;
+          let stepStatus;
+          if (deployError) {
+            stepStatus = deployStatus > i ? 'done' : deployStatus === i ? 'failed' : 'pending';
+          } else {
+            stepStatus = allDone ? 'done' : isActive ? 'loading' : deployStatus > i ? 'done' : 'pending';
+          }
           return (
             <div key={step.id} data-active={isActive ? 'true' : undefined}>
               <DeployStep
-                label={step.label}
-                status={allDone ? 'done' : isActive ? 'loading' : deployStatus > i ? 'done' : 'pending'}
+                label={deployError && deployStatus === i ? deployError : step.label}
+                status={stepStatus}
                 delay={i * 0.1}
               />
             </div>
@@ -265,7 +282,23 @@ function StepDeploying({ envName, color, maxRacks, deployStatus }) {
         })}
       </div>
 
-      {allDone && (
+      {deployError && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="mt-6 p-4 bg-red-50 rounded-xl border border-red-200"
+          data-testid="deploy-error-banner"
+        >
+          <div className="flex items-center justify-center gap-2 text-red-600 font-semibold text-sm mb-2">
+            <X className="w-4 h-4" />
+            {deployError}
+          </div>
+          <div className="flex justify-center">
+            <ClaraErrorButton errorMessage={deployError} errorContext="Environment deployment" />
+          </div>
+        </motion.div>
+      )}
+
+      {!deployError && allDone && (
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="mt-6 p-4 bg-emerald-50 rounded-xl border border-emerald-200"
@@ -296,6 +329,7 @@ export default function CreateEnvironmentWizard({ open, onClose, onCreated, toke
   const [deploying, setDeploying] = useState(false);
   const [deployStatus, setDeployStatus] = useState(0);
   const [deployDone, setDeployDone] = useState(false);
+  const [deployError, setDeployError] = useState(null);
 
   const totalDeploySteps = 5; // 6 steps, 0-indexed last = 5
 
@@ -310,9 +344,9 @@ export default function CreateEnvironmentWizard({ open, onClose, onCreated, toke
   useEffect(() => { if (open) fetchUsers(); }, [open, fetchUsers]);
 
   const handleClose = () => {
-    if (deploying && !deployDone) return;
+    if (deploying && !deployDone && !deployError) return;
     setStep(0); setName(''); setSlug(''); setDescription(''); setColor('#3b82f6'); setMaxRacks(5); setAdminId('');
-    setDeploying(false); setDeployStatus(0); setDeployDone(false);
+    setDeploying(false); setDeployStatus(0); setDeployDone(false); setDeployError(null);
     onClose();
   };
 
@@ -365,14 +399,14 @@ export default function CreateEnvironmentWizard({ open, onClose, onCreated, toke
         setTimeout(() => { onCreated?.(); handleClose(); }, 2000);
       } else {
         const err = await res.json().catch(() => ({}));
-        toast.error(err.detail || 'Failed to create environment');
-        setDeploying(false);
-        setStep(0);
+        const errorMsg = err.detail || 'Failed to create environment';
+        setDeployError(errorMsg);
+        claraToast.error(errorMsg, null, 'Environment deployment');
       }
     } catch {
-      toast.error('Network error');
-      setDeploying(false);
-      setStep(0);
+      const errorMsg = 'Network error — could not reach server';
+      setDeployError(errorMsg);
+      claraToast.error(errorMsg, null, 'Environment deployment');
     }
   };
 
@@ -384,6 +418,11 @@ export default function CreateEnvironmentWizard({ open, onClose, onCreated, toke
           <WizardStepIndicator currentStep={step} steps={ENV_STEPS} />
           {!deploying && (
             <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          )}
+          {deployError && (
+            <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors" data-testid="env-wizard-close-on-error">
               <X className="w-4 h-4 text-zinc-400" />
             </button>
           )}
@@ -402,7 +441,7 @@ export default function CreateEnvironmentWizard({ open, onClose, onCreated, toke
               {step === 0 && <StepGeneral name={name} slug={slug} description={description} onNameChange={setName} onSlugChange={setSlug} onDescChange={setDescription} />}
               {step === 1 && <StepSettings color={color} maxRacks={maxRacks} onColorChange={setColor} onMaxRacksChange={setMaxRacks} />}
               {step === 2 && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
-              {step === 3 && <StepDeploying envName={name} color={color} maxRacks={maxRacks} deployStatus={deployStatus} />}
+              {step === 3 && <StepDeploying envName={name} color={color} maxRacks={maxRacks} deployStatus={deployStatus} deployError={deployError} />}
             </motion.div>
           </AnimatePresence>
         </div>

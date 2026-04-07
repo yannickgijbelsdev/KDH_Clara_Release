@@ -12,7 +12,7 @@ import DevToolsInspector from './DevTools/DevToolsInspector';
 import HelpButton from './Tickets/HelpButton';
 import ClaraCLI from './ClaraCLI';
 import ClaraAssistant from './ClaraAssistant';
-import { ClaraAssistantProvider } from '../context/ClaraAssistantContext';
+// ClaraAssistantProvider is now at the App root level
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
@@ -1300,9 +1300,7 @@ const MainSiteDashboardContent = () => {
 // Wrapper that provides PermissionsProvider context
 const MainSiteDashboardLayout = () => (
   <PermissionsProvider>
-    <ClaraAssistantProvider>
-      <MainSiteDashboardContent />
-    </ClaraAssistantProvider>
+    <MainSiteDashboardContent />
   </PermissionsProvider>
 );
 

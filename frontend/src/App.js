@@ -314,6 +314,8 @@ const MainSiteIndex = () => {
 };
 
 import { BrandingProvider } from './context/BrandingContext';
+import { ClaraAssistantProvider } from './context/ClaraAssistantContext';
+import ClaraToastInit from './components/ClaraToastInit';
 
 function App() {
   return (
@@ -321,8 +323,10 @@ function App() {
       <AuthProvider>
         <TopLoaderProvider>
         <BrandingProvider>
+          <ClaraAssistantProvider>
           <JourneyProvider>
             <CallProvider>
+              <ClaraToastInit />
               <TwoFactorEnforcementWrapper />
               <ForcePasswordChangeModal />
               <LoginWizardWrapper />
@@ -333,6 +337,7 @@ function App() {
               <Toaster position="bottom-right" richColors />
             </CallProvider>
           </JourneyProvider>
+          </ClaraAssistantProvider>
         </BrandingProvider>
         </TopLoaderProvider>
       </AuthProvider>

@@ -11,6 +11,8 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 
 import WizardStepIndicator from './WizardStepIndicator';
+import ClaraErrorButton from '../ClaraErrorButton';
+import { claraToast } from '../../utils/claraToast';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -227,6 +229,7 @@ const DeployStep = ({ label, status, delay }) => (
     animate={{ opacity: 1, x: 0 }}
     transition={{ delay, duration: 0.4 }}
     className="flex items-center gap-4 py-3"
+    data-testid={`deploy-step-${status}`}
   >
     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
       {status === 'done' ? (
@@ -236,6 +239,14 @@ const DeployStep = ({ label, status, delay }) => (
         >
           <Check className="w-5 h-5 text-white" />
         </motion.div>
+      ) : status === 'failed' ? (
+        <motion.div
+          initial={{ scale: 0 }} animate={{ scale: 1 }}
+          className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center"
+          data-testid="deploy-step-failed-icon"
+        >
+          <X className="w-5 h-5 text-white" />
+        </motion.div>
       ) : status === 'loading' ? (
         <div className="w-10 h-10 rounded-full border-[3px] border-zinc-200 border-t-zinc-900 animate-spin" />
       ) : (
@@ -243,12 +254,12 @@ const DeployStep = ({ label, status, delay }) => (
       )}
     </div>
     <span className={`text-sm font-medium transition-colors ${
-      status === 'done' ? 'text-emerald-700' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
+      status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-red-600' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
     }`}>{label}</span>
   </motion.div>
 );
 
-const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus }) => {
+const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus, deployError }) => {
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const bgImg = SITE_TYPE_BACKGROUNDS[siteType];
   const scrollRef = useRef(null);
@@ -285,17 +296,27 @@ const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus 
         </div>
       </div>
 
-      <h2 className="text-xl font-bold text-zinc-900 mb-1">Clara is deploying your server</h2>
-      <p className="text-sm text-zinc-500 mb-6">This will only take a moment...</p>
+      <h2 className="text-xl font-bold text-zinc-900 mb-1">
+        {deployError ? 'Deployment failed' : 'Clara is deploying your server'}
+      </h2>
+      <p className="text-sm text-zinc-500 mb-6">
+        {deployError ? 'Something went wrong during deployment.' : 'This will only take a moment...'}
+      </p>
 
       <div ref={scrollRef} className="text-left max-h-[280px] overflow-y-auto px-2">
         {deploySteps.map((step, i) => {
           const isActive = deployStatus === i;
+          let stepStatus;
+          if (deployError) {
+            stepStatus = deployStatus > i ? 'done' : deployStatus === i ? 'failed' : 'pending';
+          } else {
+            stepStatus = deployStatus >= deploySteps.length ? 'done' : isActive ? 'loading' : deployStatus > i ? 'done' : 'pending';
+          }
           return (
             <div key={step.id} data-active={isActive ? 'true' : undefined}>
               <DeployStep
-                label={step.label}
-                status={deployStatus >= deploySteps.length ? 'done' : isActive ? 'loading' : deployStatus > i ? 'done' : 'pending'}
+                label={deployError && deployStatus === i ? deployError : step.label}
+                status={stepStatus}
                 delay={i * 0.1}
               />
             </div>
@@ -303,7 +324,23 @@ const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus 
         })}
       </div>
 
-      {deployStatus >= deploySteps.length && (
+      {deployError && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="mt-6 p-4 bg-red-50 rounded-xl border border-red-200"
+          data-testid="deploy-error-banner"
+        >
+          <div className="flex items-center justify-center gap-2 text-red-600 font-semibold text-sm mb-2">
+            <X className="w-4 h-4" />
+            {deployError}
+          </div>
+          <div className="flex justify-center">
+            <ClaraErrorButton errorMessage={deployError} errorContext="Server deployment" />
+          </div>
+        </motion.div>
+      )}
+
+      {!deployError && deployStatus >= deploySteps.length && (
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="mt-6 p-4 bg-emerald-50 rounded-xl border border-emerald-200"
@@ -332,6 +369,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   const [deployStatus, setDeployStatus] = useState(0);
   const [deploying, setDeploying] = useState(false);
   const [deployDone, setDeployDone] = useState(false);
+  const [deployError, setDeployError] = useState(null);
 
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const features = typeConfig?.features || [];
@@ -409,19 +447,21 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
         setTimeout(() => { onCreated?.(); handleClose(); }, 2000);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(err.detail || 'Failed to create site');
-        setDeploying(false);
+        const errorMsg = err.detail || 'Failed to create site';
+        setDeployError(errorMsg);
+        claraToast.error(errorMsg, null, 'Server deployment');
       }
     } catch (e) {
-      alert('Network error');
-      setDeploying(false);
+      const errorMsg = 'Network error — could not reach server';
+      setDeployError(errorMsg);
+      claraToast.error(errorMsg, null, 'Server deployment');
     }
   };
 
   const handleClose = () => {
     setStep(0); setSiteType('radio'); setName(''); setSlug('');
     setAdminId(''); setRequire2FA(false); setDeployStatus(0);
-    setDeploying(false); setDeployDone(false);
+    setDeploying(false); setDeployDone(false); setDeployError(null);
     onClose();
   };
 
@@ -449,6 +489,11 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               <X className="w-4 h-4 text-zinc-400" />
             </button>
           )}
+          {deployError && (
+            <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors" data-testid="wizard-close-on-error">
+              <X className="w-4 h-4 text-zinc-400" />
+            </button>
+          )}
         </div>
 
         {/* Content - scrollable when needed */}
@@ -465,7 +510,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               {step === 1 && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
               {step === 2 && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
               {step === 3 && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} siteType={siteType} />}
-              {step === 4 && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} />}
+              {step === 4 && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}
             </motion.div>
           </AnimatePresence>
         </div>
