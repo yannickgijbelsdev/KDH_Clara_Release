@@ -52,12 +52,12 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 /* Site-type background images (same as CreateMainSiteWizard) */
 const SITE_TYPE_BACKGROUNDS = {
-  radio: '/images/env_radio.jpg',
-  server: '/images/env_server.jpg',
-  external_host: '/images/env_external_host.jpg',
-  task_scheduler: '/images/env_task_scheduler.jpg',
-  technical: '/images/env_technical.jpg',
-  wp_security: '/images/env_wp_security.jpg',
+  radio: '/images/env_radio.png',
+  server: '/images/env_server.png',
+  external_host: '/images/env_external_host.png',
+  task_scheduler: '/images/env_task_scheduler.png',
+  technical: '/images/env_technical.png',
+  wp_security: '/images/env_wp_security.png',
 };
 
 const roleIcons = {

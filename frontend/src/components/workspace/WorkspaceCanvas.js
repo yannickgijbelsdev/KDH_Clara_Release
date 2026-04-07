@@ -18,18 +18,14 @@ export const WorkspaceCanvas = ({ children, className, backgroundImage }) => {
         }}
       />
 
-      {/* Layer 2: Background image (soft blurred watermark) */}
+      {/* Layer 2: Background image (clean transparent room) */}
       {bgUrl && (
-        <div
-          className="absolute inset-0 pointer-events-none overflow-hidden"
-        >
-          <div
-            className="w-full h-full bg-contain bg-center bg-no-repeat opacity-[0.15]"
-            style={{
-              backgroundImage: `url(${bgUrl})`,
-              filter: 'blur(20px)',
-              transform: 'scale(1.08)',
-            }}
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
+          <img
+            src={bgUrl}
+            alt=""
+            className="max-w-[65%] max-h-[75%] object-contain opacity-[0.18] select-none"
+            draggable={false}
           />
         </div>
       )}
