@@ -5,7 +5,7 @@ from typing import Optional, List, Literal
 
 class ContentItemCreate(BaseModel):
     title: str
-    type: Literal["text", "link", "reference"] = "text"
+    type: Literal["text", "audio", "link", "reference"] = "text"
     body: Optional[str] = ""
     excerpt: Optional[str] = ""
     external_url: Optional[str] = ""
@@ -15,7 +15,7 @@ class ContentItemCreate(BaseModel):
 
 class ContentItemUpdate(BaseModel):
     title: Optional[str] = None
-    type: Optional[Literal["text", "link", "reference"]] = None
+    type: Optional[Literal["text", "audio", "link", "reference"]] = None
     body: Optional[str] = None
     excerpt: Optional[str] = None
     external_url: Optional[str] = None
