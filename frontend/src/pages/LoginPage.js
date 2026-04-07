@@ -161,7 +161,7 @@ const LoginPage = () => {
             <img
               src={ROOMS_IMG}
               alt="Clara Platform — Radio & Data Intelligence"
-              className="w-full max-w-[640px] xl:max-w-[720px] object-contain select-none"
+              className="w-full max-w-[800px] xl:max-w-[900px] 2xl:max-w-[1000px] object-contain select-none"
               draggable={false}
               data-testid="login-hero-rooms"
             />
