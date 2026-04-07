@@ -19,8 +19,8 @@ const SITE_TYPE_CONFIG = {
 const SERVERS_PER_RACK = 5;
 
 /* ════════════════════════════════════════════════════
-   CSS-DRAWN 3D SERVER RACK
-   Each rack is a tall cabinet rendered entirely with CSS.
+   ISOMETRIC 3D SERVER RACK (Clara style)
+   Each rack is an isometric room card
    ════════════════════════════════════════════════════ */
 const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
   const cfg0 = sites[0] ? (SITE_TYPE_CONFIG[sites[0].site_type] || SITE_TYPE_CONFIG.radio) : null;
@@ -29,163 +29,106 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
   return (
     <motion.div
       data-testid={`rack-visual-${rackIndex}`}
-      initial={{ opacity: 0, y: 40 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: rackIndex * 0.12 + 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ delay: rackIndex * 0.1 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className="cursor-pointer group relative flex-shrink-0"
-      style={{ perspective: '600px' }}
+      style={{ width: 260 }}
     >
-      {/* Selection glow on the floor */}
-      {isSelected && (
-        <motion.div
-          layoutId="floor-glow"
-          className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[130%] h-6 rounded-full"
-          style={{ background: `radial-gradient(ellipse, ${accentColor}40, transparent)`, filter: 'blur(6px)' }}
-        />
-      )}
-
-      {/* The 3D rack cabinet */}
+      {/* Card */}
       <div
-        className={`relative transition-transform duration-300 ${isSelected ? 'scale-105' : 'group-hover:scale-[1.03]'}`}
-        style={{ transformStyle: 'preserve-3d', width: 280 }}
+        className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
+          isSelected
+            ? 'border-orange-300 shadow-[0_8px_40px_rgba(249,115,22,0.15)] scale-[1.03]'
+            : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
+        }`}
+        style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
       >
-        {/* ── Rack top ── */}
-        <div
-          className="h-4 rounded-t-md relative z-10"
-          style={{
-            background: isSelected
-              ? `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)`
-              : 'linear-gradient(135deg, #52525b, #3f3f46)',
-            boxShadow: isSelected ? `0 -4px 20px ${accentColor}40` : 'none',
-          }}
-        >
-          {/* Ventilation grille */}
-          <div className="flex justify-center gap-[2px] pt-1">
-            {Array.from({ length: 14 }).map((_, i) => (
-              <div key={i} className="w-[4px] h-[2px] rounded-full bg-black/20" />
-            ))}
+        {/* Room image area */}
+        <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+          <img
+            src="/images/env_server.jpg"
+            alt=""
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            style={{
+              WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)',
+              maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)',
+            }}
+          />
+          {/* Rack number badge */}
+          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+            <span className="text-[10px] font-bold text-zinc-500 tracking-wider">RACK {String(rackIndex + 1).padStart(2, '0')}</span>
+          </div>
+          {/* Status indicator */}
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-1 border border-black/[0.06] shadow-sm">
+            <div className="w-2 h-2 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 6px rgba(34,197,94,0.5)' }} />
+            <span className="text-[10px] font-semibold text-emerald-600">Online</span>
           </div>
         </div>
 
-        {/* ── Rack body ── */}
-        <div
-          className="rounded-b-md overflow-hidden relative"
-          style={{
-            background: 'linear-gradient(180deg, #1a1a1e 0%, #111113 100%)',
-            boxShadow: isSelected
-              ? `0 12px 40px ${accentColor}25, inset 0 1px 0 rgba(255,255,255,0.06)`
-              : '0 8px 30px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)',
-            border: isSelected ? `1px solid ${accentColor}50` : '1px solid rgba(255,255,255,0.06)',
-          }}
-        >
-          {/* Rack rails (left + right) */}
-          <div className="absolute left-0 top-0 bottom-0 w-[8px] bg-gradient-to-b from-zinc-600/30 to-zinc-700/20 border-r border-white/[0.03]" />
-          <div className="absolute right-0 top-0 bottom-0 w-[8px] bg-gradient-to-b from-zinc-600/30 to-zinc-700/20 border-l border-white/[0.03]" />
+        {/* Server list */}
+        <div className="px-3 py-2.5 space-y-[5px]">
+          {Array.from({ length: SERVERS_PER_RACK }).map((_, i) => {
+            const site = sites[i];
+            const cfg = site ? (SITE_TYPE_CONFIG[site.site_type] || SITE_TYPE_CONFIG.radio) : null;
+            const Icon = site ? (site.cloned_from ? Layers : cfg.icon) : null;
 
-          {/* Server blades */}
-          <div className="px-[14px] py-3 space-y-[6px]">
-            {Array.from({ length: SERVERS_PER_RACK }).map((_, i) => {
-              const site = sites[i];
-              const cfg = site ? (SITE_TYPE_CONFIG[site.site_type] || SITE_TYPE_CONFIG.radio) : null;
-              const Icon = site ? (site.cloned_from ? Layers : cfg.icon) : null;
-
-              if (!site) {
-                // Empty slot
-                return (
-                  <div key={i} className="relative h-[60px] rounded-[3px] border border-dashed border-white/[0.04] bg-white/[0.01] flex items-center justify-center">
-                    <span className="text-[9px] text-zinc-700 tracking-wide">EMPTY SLOT</span>
-                  </div>
-                );
-              }
-
+            if (!site) {
               return (
-                <div
-                  key={i}
-                  className="relative h-[60px] rounded-[4px] flex items-center gap-2.5 px-3 transition-all duration-200 group/blade"
-                  style={{
-                    background: `linear-gradient(90deg, ${cfg.color}18 0%, ${cfg.color}06 60%, transparent 100%)`,
-                    border: `1px solid ${cfg.color}25`,
-                    boxShadow: isSelected ? `inset 0 0 12px ${cfg.color}10` : 'none',
-                  }}
-                >
-                  {/* Status LED */}
-                  <div className="flex flex-col gap-[2px] flex-shrink-0">
-                    <div
-                      className="w-[6px] h-[6px] rounded-full"
-                      style={{ backgroundColor: cfg.color, boxShadow: `0 0 6px ${cfg.color}` }}
-                    />
-                    <div
-                      className="w-[6px] h-[6px] rounded-full bg-emerald-500"
-                      style={{ boxShadow: '0 0 4px #22c55e80' }}
-                    />
-                  </div>
-
-                  {/* Icon */}
-                  <div
-                    className="w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: `${cfg.color}20` }}
-                  >
-                    <Icon className="w-5 h-5" style={{ color: cfg.color }} />
-                  </div>
-
-                  {/* Name */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-zinc-600 truncate leading-tight">{site.name}</div>
-                    <div className="text-[10px] text-zinc-600 truncate">/{site.slug}</div>
-                  </div>
-
-                  {/* Activity indicator */}
-                  <div className="flex gap-[2px] flex-shrink-0">
-                    {[0.3, 0.6, 1, 0.7, 0.4].map((h, j) => (
-                      <motion.div
-                        key={j}
-                        animate={{ height: [h * 8, h * 14, h * 8] }}
-                        transition={{ duration: 1.5 + j * 0.3, repeat: Infinity, ease: 'easeInOut' }}
-                        className="w-[2px] rounded-full"
-                        style={{ backgroundColor: `${cfg.color}60` }}
-                      />
-                    ))}
-                  </div>
+                <div key={i} className="h-[36px] rounded-lg border border-dashed border-black/[0.06] bg-black/[0.01] flex items-center justify-center">
+                  <span className="text-[9px] text-zinc-300 tracking-wide font-medium">EMPTY SLOT</span>
                 </div>
               );
-            })}
-          </div>
+            }
 
-          {/* Bottom panel — power + indicators */}
-          <div className="px-3 py-2 border-t border-white/[0.04] flex items-center justify-between">
-            <div className="flex gap-[4px]">
-              {Array.from({ length: SERVERS_PER_RACK }).map((_, i) => (
+            return (
+              <div
+                key={i}
+                className="h-[36px] rounded-lg flex items-center gap-2 px-2.5 transition-all duration-150"
+                style={{
+                  background: `linear-gradient(90deg, ${cfg.color}08 0%, transparent 100%)`,
+                  border: `1px solid ${cfg.color}15`,
+                }}
+              >
                 <div
-                  key={i}
-                  className="w-[6px] h-[6px] rounded-full"
-                  style={{
-                    backgroundColor: i < sites.length ? '#22c55e' : '#27272a',
-                    boxShadow: i < sites.length ? '0 0 6px #22c55e80' : 'none',
-                  }}
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: cfg.color, boxShadow: `0 0 4px ${cfg.color}60` }}
                 />
-              ))}
-            </div>
-            <div className="text-[8px] text-zinc-600 font-mono tracking-wider">
-              RACK-{String(rackIndex + 1).padStart(2, '0')}
-            </div>
+                <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: cfg.color }} />
+                <span className="text-[11px] font-semibold text-zinc-700 truncate flex-1">{site.name}</span>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold flex-shrink-0" style={{ backgroundColor: `${cfg.color}10`, color: cfg.color }}>{cfg.label}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom bar */}
+        <div className="px-3 py-2 border-t border-black/[0.04] flex items-center justify-between">
+          <div className="flex gap-1">
+            {Array.from({ length: SERVERS_PER_RACK }).map((_, i) => (
+              <div
+                key={i}
+                className="w-[5px] h-[5px] rounded-full transition-colors"
+                style={{
+                  backgroundColor: i < sites.length ? '#22c55e' : '#e4e4e7',
+                  boxShadow: i < sites.length ? '0 0 4px #22c55e60' : 'none',
+                }}
+              />
+            ))}
           </div>
-        </div>
-
-        {/* ── Rack feet ── */}
-        <div className="flex justify-between px-2 -mt-[1px]">
-          <div className="w-3 h-2 bg-zinc-700 rounded-b-sm" />
-          <div className="w-3 h-2 bg-zinc-700 rounded-b-sm" />
+          <span className="text-[10px] text-zinc-400 font-medium">{sites.length}/{SERVERS_PER_RACK} servers</span>
         </div>
       </div>
 
-      {/* Rack label */}
-      <div className="mt-3 text-center">
-        <div className={`text-xs font-bold transition-colors ${isSelected ? 'text-orange-600' : 'text-zinc-500 group-hover:text-zinc-700'}`}>
-          Rack {String(rackIndex + 1).padStart(2, '0')}
-        </div>
-        <div className="text-[10px] text-zinc-400">{sites.length}/{SERVERS_PER_RACK} servers</div>
-      </div>
+      {/* Selection indicator */}
+      {isSelected && (
+        <motion.div
+          layoutId="rack-select-bar"
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-orange-500"
+          style={{ boxShadow: '0 0 12px rgba(249,115,22,0.5)' }}
+        />
+      )}
     </motion.div>
   );
 };
@@ -215,11 +158,11 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
     const containerH = sceneRef.current.clientHeight;
     const containerW = sceneRef.current.clientWidth;
     // Base rack height ~420px (top + 5 blades + bottom), base rack width = 280px + gaps
-    const baseRackH = 440;
+    const baseRackH = 480;
     const rackCount = racks.length;
-    const baseSceneW = rackCount * 280 + (rackCount - 1) * 32 + 80;
-    const scaleH = containerH / (baseRackH + 80);
-    const scaleW = containerW / (baseSceneW + 100);
+    const baseSceneW = rackCount * 260 + (rackCount - 1) * 24 + 60;
+    const scaleH = containerH / (baseRackH + 60);
+    const scaleW = containerW / (baseSceneW + 80);
     setSceneScale(Math.max(Math.min(scaleH, scaleW, 2.2), 0.45));
   }, [racks.length]);
 
@@ -240,18 +183,10 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#F0F0F2]" data-testid="server-rack-view">
-      {/* Subtle grid floor */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: `
-          linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: '40px 40px',
-      }} />
-
-      {/* Floor gradient */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'linear-gradient(180deg, #F0F0F2 0%, #e8e8ec 60%, #dddde2 100%)',
+      {/* Subtle dot pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{
+        backgroundImage: 'radial-gradient(circle, #999 0.5px, transparent 0.5px)',
+        backgroundSize: '24px 24px',
       }} />
 
       <div className="absolute inset-0 z-10 flex flex-col p-4 sm:p-5">
@@ -293,11 +228,8 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
         {/* ── Center: THE RACK SCENE ── */}
         <div ref={sceneRef} className="flex-1 flex items-center justify-center relative">
 
-          {/* Floor shadow / platform */}
-          <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 h-3 rounded-full bg-black/[0.06] blur-sm" style={{ width: `${Math.min(85, racks.length * 20 + 20)}%`, maxWidth: 1000 }} />
-
           {/* Racks - scaled to fit */}
-          <div className="flex items-end gap-5 sm:gap-8 relative z-10 origin-center transition-transform duration-300 ease-out" style={{ transform: `scale(${sceneScale})` }}>
+          <div className="flex items-start gap-4 sm:gap-6 relative z-10 origin-center transition-transform duration-300 ease-out" style={{ transform: `scale(${sceneScale})` }}>
             {racks.map((rackSites, i) => (
               <ServerRack3D
                 key={i}
