@@ -277,6 +277,13 @@ async def get_menu_counts(request: Request, current_user: dict = Depends(get_cur
         else:
             logs_count = await db.audit_logs.count_documents(log_filter)
         counts["logs"] = logs_count
+
+    # Media Library - total media items
+    media_count = await db.media_items.count_documents({
+        **content_filter,
+        "deleted_at": {"$exists": False}
+    })
+    counts["media"] = media_count
     
     return counts
 

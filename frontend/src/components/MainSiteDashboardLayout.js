@@ -410,6 +410,7 @@ const MainSiteDashboardContent = () => {
   // Get badge count for a route
   const getBadgeCount = (route) => {
     if (route === 'content' || route === 'content_library') return menuCounts.content || 0;
+    if (route === 'media' || route === 'media_library') return menuCounts.media || 0;
     if (route === 'trash') return menuCounts.trash || 0;
     if (route === 'chat' || route === 'team_chat') return menuCounts.chat || 0;
     if (route === 'approvals' || route === 'content_approval') return menuCounts.approvals || menuCounts.pending_approvals || 0;
@@ -1048,15 +1049,45 @@ const MainSiteDashboardContent = () => {
           <div className="hidden lg:flex items-center gap-0.5 mx-auto bg-zinc-100/80 rounded-full p-1" data-testid="pill-nav">
             {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, 4).map(i => ({ label: i.label, to: i.to }))].map(tab => {
               const isTabActive = tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/'));
-              return (<NavLink key={tab.to} to={tab.to} end={tab.to === `/${mainSiteSlug}`} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isTabActive ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-800 hover:bg-white/60'}`} data-testid={`pill-${tab.label.toLowerCase()}`}>{tab.label}</NavLink>);
+              const pathSegment = tab.to.split('/').pop();
+              const pillBadge = getBadgeCount(pathSegment);
+              return (
+                <NavLink key={tab.to} to={tab.to} end={tab.to === `/${mainSiteSlug}`}
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${isTabActive ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-800 hover:bg-white/60'}`}
+                  data-testid={`pill-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {tab.label}
+                  {pillBadge > 0 && (
+                    <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold rounded-full ${
+                      isTabActive ? 'bg-white/20 text-white' : 'bg-zinc-900/10 text-zinc-600'
+                    }`} data-testid={`pill-badge-${pathSegment}`}>
+                      {pillBadge > 99 ? '99+' : pillBadge}
+                    </span>
+                  )}
+                </NavLink>
+              );
             })}
             {flatNavItems.length > 4 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
+                  <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors flex items-center">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
-                  {flatNavItems.slice(4).map(item => { const Icon = item.icon; return (<DropdownMenuItem key={item.to} onClick={() => navigate(item.to)} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer"><Icon className="w-4 h-4 mr-2" />{item.label}</DropdownMenuItem>); })}
+                  {flatNavItems.slice(4).map(item => {
+                    const Icon = item.icon;
+                    const dropBadge = getBadgeCount(item.to.split('/').pop());
+                    return (
+                      <DropdownMenuItem key={item.to} onClick={() => navigate(item.to)} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer">
+                        <Icon className="w-4 h-4 mr-2" />
+                        <span className="flex-1">{item.label}</span>
+                        {dropBadge > 0 && (
+                          <span className="ml-2 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-semibold rounded-full bg-zinc-900/10 text-zinc-600">
+                            {dropBadge > 99 ? '99+' : dropBadge}
+                          </span>
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}

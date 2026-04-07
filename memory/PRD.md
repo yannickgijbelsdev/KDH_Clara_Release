@@ -12,6 +12,13 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## What's Been Implemented
 
+### April 7, 2026 - Counter Badges in Pill Navigation
+- [x] Added counter badges to the horizontal pill-tab navigation for: Content Library, Media Library, Trash, Content Approval
+- [x] Backend: Added `media` count to `/api/menu/counts` endpoint
+- [x] Frontend: Pill tabs show small rounded badges (inverted when active tab)
+- [x] Frontend: "More" dropdown also shows badges for overflow items
+- [x] TinyMCE RichTextEditor switched from `oxide-dark` to `oxide` (light mode skin)
+
 ### April 6, 2026 - Multi-Step Wizard Refactor (All Dialogs)
 - [x] **CreateShowDialog.js** - Converted to 3-step wizard (Show Info, Schedule, Team & Status)
 - [x] **CreateContentDialog.js** - Converted to 3-step wizard (Type & Title, Content, Settings)
