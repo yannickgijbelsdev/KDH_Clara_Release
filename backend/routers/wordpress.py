@@ -258,7 +258,7 @@ async def test_wordpress_site(
                     else:
                         return WordPressConnectionTestResponse(
                             success=False,
-                            message=f"Invalid JSON response from WordPress",
+                            message="Invalid JSON response from WordPress",
                             error=f"Parse error: {str(json_error)}. Response: {response_preview[:200]}"
                         )
                 
@@ -589,8 +589,6 @@ async def import_wordpress_posts(
                 excerpt = html_module.unescape(excerpt_raw).replace('<p>', '').replace('</p>', '').strip()
                 
                 wp_date = post.get('date', '')
-                wp_date_gmt = post.get('date_gmt', '')
-                wp_modified = post.get('modified_gmt', '')
                 wp_status_str = post.get('status', 'publish')
                 wp_link = post.get('link', '')
                 wp_categories_ids = post.get('categories', [])
@@ -607,9 +605,6 @@ async def import_wordpress_posts(
                 category_name = ''
                 if wp_categories_ids:
                     category_name = wp_categories.get(wp_categories_ids[0], '')
-                
-                # Map WP status to Clara status
-                clara_status = 'published' if wp_status_str == 'publish' else 'scheduled'
                 
                 # Check if already imported (by wp_post_id + site_id)
                 existing_record = await db.content_item_publishes.find_one({

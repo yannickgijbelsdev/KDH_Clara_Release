@@ -13,6 +13,19 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## What's Been Implemented
 
+### April 7, 2026 - Global Error Handling & Clara Assistant Integration
+- [x] **Eliminated all native browser `alert()` popups** from the entire frontend codebase
+- [x] **Upgraded `claraToast.js`**: Global `openClara` storage + `init()` method + monkey-patches sonner `toast.error` to auto-add Clara Assistent button
+- [x] **`ClaraToastInit` component**: Initializes Clara toast at app root (renders null)
+- [x] **Moved `ClaraAssistantProvider` to App.js root**: All components now have access to Clara context (was previously limited to MainSiteDashboardLayout)
+- [x] **Wizard deploy failure UI**: Both `CreateMainSiteWizard` and `CreateEnvironmentWizard` show red cross indicators on failed deploy steps with inline `ClaraErrorButton`
+- [x] **All ~50+ `toast.error()` calls** across the codebase now automatically include "Clara Assistent" action button via sonner monkey-patch
+
+### April 7, 2026 - Python Linting Cleanup
+- [x] Removed unused variables: `wp_date_gmt`, `wp_modified`, `clara_status` from `wordpress.py`
+- [x] Removed unused import `current_time_brussels` from `rds_builder_scheduler.py`
+- [x] Fixed f-string without placeholders in `wordpress.py`
+
 ### April 7, 2026 - Login Page Redesign (Floating Isometric Rooms)
 - [x] **Custom AI-generated isometric rooms** (radio studio + data analytics office) in Clara's signature style
 - [x] **Transparent background**: Programmatic background removal (Python/PIL) for seamless floating effect
@@ -46,7 +59,7 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [ ] WordPress Plugin Integration (clara-radio-schedule)
 
 ### P2 - Medium Priority
-- [ ] Python linting cleanup (unused variables)
+- [x] Python linting cleanup (unused variables) — DONE
 - [ ] Payment Gateway (Stripe/Mollie)
 - [ ] Stream Monitor VU Meters
 - [ ] Refactoring: NetworkDashboard.js decomposition

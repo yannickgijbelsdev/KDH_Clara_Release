@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 import uuid
 
 from services.timezone_utils import (
-    BRUSSELS_TZ, now_brussels, today_brussels, current_time_brussels,
+    BRUSSELS_TZ, now_brussels, today_brussels,
     yesterday_brussels, is_time_between
 )
 
