@@ -192,7 +192,8 @@ async def get_menu_counts(request: Request, current_user: dict = Depends(get_cur
     """Get counts for menu badges, filtered by main site if specified."""
     team_id = current_user.get('team_id')
     user_id = current_user.get('id')
-    is_admin = current_user.get('role') == 'admin'
+    is_admin = current_user.get('role') == 'admin' or current_user.get('is_network_admin') or current_user.get('is_system_admin')
+    can_approve = is_admin or current_user.get('role') == 'news_admin'
     main_site_id = request.headers.get('X-Main-Site-ID')
     
     counts = {}
@@ -218,11 +219,10 @@ async def get_menu_counts(request: Request, current_user: dict = Depends(get_cur
         })
         counts["trash"] = trash_count
     
-    # Content Approval - pending approvals (admin only)
-    if is_admin:
+    # Content Approval - pending approvals (admin or news_admin)
+    if can_approve:
         approval_count = await db.content_items.count_documents({
             **content_filter,
-            "status": "ready",
             "approval_status": "pending",
             "deleted_at": {"$exists": False}
         })

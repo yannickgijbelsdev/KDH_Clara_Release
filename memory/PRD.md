@@ -12,6 +12,11 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## What's Been Implemented
 
+### April 7, 2026 - Avatar Dropdown Cleanup & Approval Badge Fix
+- [x] Removed site-list from avatar/profile dropdown in `MainSiteDashboardLayout.js` (sites already visible in topbar site-switcher)
+- [x] Fixed `is_admin` check in `/api/menu/counts` to include `is_network_admin`, `is_system_admin`, and `news_admin` roles for approval badge
+- [x] Removed unnecessary `status: "ready"` filter from approval count query
+
 ### April 7, 2026 - Glassmorphism + Animated Pill Navigation
 - [x] Animated sliding pill indicator using framer-motion `layoutId` (spring animation between tabs)
 - [x] Full glassmorphism treatment: `bg-white/50 backdrop-blur-lg border-white/60` on all panels, cards, dialogs
@@ -26,21 +31,19 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] **CreateShowDialog.js** - Converted to 3-step wizard (Show Info, Schedule, Team & Status)
 - [x] **CreateContentDialog.js** - Converted to 3-step wizard (Type & Title, Content, Settings)
 - [x] **RundownItemDialog.js** - Converted to 2-step wizard (Item Info, Details)
-- [x] **CreateEnvironmentWizard.js** - Updated deploy step to match MainSiteWizard (hero background image, large green checkmark circles)
-- [x] **TeamSettingsPage.js** - All dialogs (Invite User, Add Existing User, Edit User, Reset Password, Temp Password) converted to wizard layout
+- [x] **CreateEnvironmentWizard.js** - Updated deploy step to match MainSiteWizard
+- [x] **TeamSettingsPage.js** - All dialogs converted to wizard layout
 - [x] **ShowManagementPage.js** - Show Title and Studio dialogs converted to wizard layout
-- All dialogs now use: WizardStepIndicator, white bg, rounded-[24px], px-8 padding, border-t footer with Back/Continue buttons
 
 ### April 5, 2026 - Login Wizard Redesign & UI Fixes
 - [x] **LoginWizard rewritten** with circle loader -> checkmark animation
 - [x] **Production environment dropdown** made visible
 - [x] **SetupWizard** converted to light theme
-- [x] **LoginWizard** converted to light theme with wider layout
 - [x] **WizardStepIndicator.js** - Shared step component created
 - [x] **CreateMainSiteWizard.js** - Reference wizard with deploy animation
 - [x] **CreateEnvironmentWizard.js** - Multi-step env creator with max_racks
 - [x] **Dashboard Canvas** - Floating panels, live time/date, full-page backgrounds
-- [x] **Dark mode removal** - All dark mode remnants removed from sub-components
+- [x] **Dark mode removal** - All dark mode remnants removed
 
 ## Prioritized Backlog
 
@@ -57,7 +60,7 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [ ] Stream Monitor VU Meters
 - [ ] Refactoring: NetworkDashboard.js decomposition (1500+ lines)
 - [ ] Cleanup obsolete ProRadio sync code
-- [ ] Accessibility: Add VisuallyHidden DialogTitle to wizard dialogs for screen reader compliance
+- [ ] Accessibility: Add VisuallyHidden DialogTitle to wizard dialogs
 
 ## Test Credentials
 - System Administrator: admkoodh@koodh.com / KYLovie13monx

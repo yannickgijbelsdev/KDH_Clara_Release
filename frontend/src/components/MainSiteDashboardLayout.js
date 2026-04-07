@@ -1133,31 +1133,6 @@ const MainSiteDashboardContent = () => {
                   </div>
                 </div>
                 <DropdownMenuSeparator className="bg-black/[0.06]" />
-                {myMainSites.length > 0 && (
-                  <>
-                    {(() => {
-                      const envGroups = {};
-                      myMainSites.forEach(site => { const envId = site.environment_id || 'default'; if (!envGroups[envId]) { envGroups[envId] = { name: site.environment_name || 'Production', color: site.environment_color, sites: [] }; } envGroups[envId].sites.push(site); });
-                      const currentEnvId = mainSite?.environment_id;
-                      const sortedEnvIds = Object.keys(envGroups).sort((a, b) => { if (a === currentEnvId) return -1; if (b === currentEnvId) return 1; return (envGroups[a].name || '').localeCompare(envGroups[b].name || ''); });
-                      return sortedEnvIds.map(envId => (
-                        <div key={envId}>
-                          <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: envGroups[envId].color || '#71717a' }}>
-                            {envId === currentEnvId && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#f97316' }} />}
-                            {envGroups[envId].name}
-                          </div>
-                          {envGroups[envId].sites.map(site => (
-                            <DropdownMenuItem key={site.id} onClick={() => navigate(`/${site.slug}`)} className={`text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer ${site.slug === mainSiteSlug ? 'bg-orange-50 text-orange-600' : ''}`}>
-                              <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
-                              <span className="truncate">{site.name}</span>
-                            </DropdownMenuItem>
-                          ))}
-                        </div>
-                      ));
-                    })()}
-                    <DropdownMenuSeparator className="bg-black/[0.06]" />
-                  </>
-                )}
                 {user?.is_network_admin && (
                   <>
                     <DropdownMenuItem onClick={() => navigate('/network')} className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer">
