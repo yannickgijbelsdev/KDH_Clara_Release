@@ -65,6 +65,14 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] ServerRackView responsive scaling
 - [x] Avatar dropdown cleanup, Content Approval badge fix
 
+### April 7, 2026 - Clara Assistent Redesign & Universal Layout
+- [x] **Clara Assistent → Centered overlay**: Herschreven van side-panel naar centered popup met backdrop blur
+- [x] **Messenger layout**: Chat bubbles, user/assistant berichten, copy/insert knoppen
+- [x] **Error-help vereenvoudigd**: Backend prompt geeft nu 3 eenvoudige stappen i.p.v. technische uitleg
+- [x] **Support formulier**: Na mislukte stappen kan gebruiker direct een support ticket aanmaken via Clara
+- [x] **Clara AI knop in content editor**: Nieuwe "Clara AI" knop naast Save voor SEO schrijfhulp
+- [x] **Support ticket endpoint**: POST /api/clara-assistant/support-ticket (met bugfix voor user_id)
+
 ### April 7, 2026 - Universal Layout & Dashboard Fix
 - [x] **NetworkHeader universeel gemaakt**: NetworkDashboard gebruikt nu het herbruikbare NetworkHeader component (i.p.v. 160 regels inline header)
 - [x] **Dashboard voor elk site-type**: technical, task_scheduler en server sites tonen nu een dashboard i.p.v. direct redirecten
