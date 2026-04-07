@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
+import { motion } from 'framer-motion';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import { isImageFile, isOversized } from '../utils/imageResize';
 import {
@@ -106,6 +107,9 @@ const ContentDetailPage = () => {
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [publishStep, setPublishStep] = useState('configure'); // 'configure' | 'deploying'
+  const [deployStatus, setDeployStatus] = useState(0);
+  const [deployDone, setDeployDone] = useState(false);
   // Multi-site publish state
   const [selectedSites, setSelectedSites] = useState({});
   const [publishSettings, setPublishSettings] = useState({});
@@ -275,6 +279,9 @@ const ContentDetailPage = () => {
       }));
     });
     setSelectedSites(preSelected);
+    setPublishStep('configure');
+    setDeployStatus(0);
+    setDeployDone(false);
     setPublishDialogOpen(true);
   };
 
@@ -380,13 +387,9 @@ const ContentDetailPage = () => {
           post_type: settings.post_type || 'post',
           wp_status: settings.wp_status || 'draft',
         };
-        
-        // Add scheduled date if scheduling
         if (settings.wp_status === 'future' && settings.scheduled_date) {
-          // Convert local datetime to ISO format
           target.scheduled_date = new Date(settings.scheduled_date).toISOString();
         }
-        
         return target;
       });
 
@@ -395,42 +398,50 @@ const ContentDetailPage = () => {
       return;
     }
 
-    // Validate scheduled posts have dates
     const scheduledWithoutDate = targets.filter(t => t.wp_status === 'future' && !t.scheduled_date);
     if (scheduledWithoutDate.length > 0) {
       toast.error('Please select a date and time for scheduled posts');
       return;
     }
 
+    // Switch to deploy animation
+    setPublishStep('deploying');
+    setDeployStatus(0);
+    setDeployDone(false);
+
+    const targetSiteNames = targets.map(t => wpSites.find(s => s.id === t.site_id)?.name || 'WordPress').join(', ');
+
+    // Animate deploy steps
+    await new Promise(r => setTimeout(r, 1000));
+    setDeployStatus(1);
+    await new Promise(r => setTimeout(r, 1500));
+    setDeployStatus(2);
+
+    // Actually publish
     setPublishing(true);
     try {
       const response = await axios.post(`${API}/content/${contentId}/publish`, { targets });
       
-      // Show results
       const successCount = response.data.results.filter(r => r.success).length;
       const failCount = response.data.results.filter(r => !r.success).length;
-      const scheduledCount = response.data.results.filter(r => r.success && r.scheduled_date).length;
-      
+
+      await new Promise(r => setTimeout(r, 1200));
+      setDeployStatus(3);
+      await new Promise(r => setTimeout(r, 800));
+      setDeployDone(true);
+
       if (successCount > 0 && failCount === 0) {
-        if (scheduledCount > 0) {
-          toast.success(`Scheduled ${scheduledCount} post(s), published ${successCount - scheduledCount} successfully!`);
-        } else {
-          toast.success(`Published to ${successCount} site(s) successfully!`);
-        }
+        toast.success(`Published to ${successCount} site(s) successfully!`);
       } else if (successCount > 0 && failCount > 0) {
         const failedSites = response.data.results.filter(r => !r.success);
-        toast.warning(`Published to ${successCount} site(s), ${failCount} failed: ${failedSites.map(f => `${f.site_name}: ${f.message}`).join('; ')}`);
+        toast.warning(`Published to ${successCount}, ${failCount} failed: ${failedSites.map(f => `${f.site_name}: ${f.message}`).join('; ')}`);
       } else {
         const failedSites = response.data.results.filter(r => !r.success);
-        const errorDetails = failedSites.map(f => `${f.site_name}: ${f.message}`).join('\n');
-        toast.error(`Failed to publish: ${errorDetails}`);
+        toast.error(`Failed: ${failedSites.map(f => `${f.site_name}: ${f.message}`).join('\n')}`);
       }
       
-      // Refresh content to get updated publish statuses
       await fetchContent();
-      setPublishDialogOpen(false);
 
-      // Check if Canva Director is available for social media posts
       if (successCount > 0) {
         try {
           const mainSiteRes = await axios.get(`${API}/main-sites`);
@@ -445,9 +456,11 @@ const ContentDetailPage = () => {
               });
             }
           }
-        } catch { /* Canva not available, no popup */ }
+        } catch { /* Canva not available */ }
       }
     } catch (error) {
+      setDeployStatus(3);
+      setDeployDone(true);
       const detail = error?.response?.data?.detail || error?.response?.data?.message || error?.message || 'Unknown error';
       toast.error(`WordPress publish failed: ${detail}`);
     } finally {
@@ -521,24 +534,20 @@ const ContentDetailPage = () => {
           </div>
         </div>
         
-        {/* WordPress Publish Button - Only show when status is "ready" */}
-        {isEditor && wpSites.length > 0 && content.status === 'ready' && (
+        {/* WordPress Publish Button */}
+        {isEditor && wpSites.length > 0 && (
           <div className="flex flex-col items-end gap-1">
             <Button
               data-testid="publish-wp-btn"
               onClick={() => !isPublishBlocked && openPublishDialog()}
               disabled={isPublishBlocked}
-              className={`gap-2 ${
-                isPublishBlocked 
-                  ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed opacity-60' 
-                  : 'bg-violet-500 hover:bg-violet-600 text-white'
-              }`}
+              className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-full px-5"
             >
               <Upload className="w-4 h-4" />
               {hasPublishedSites ? 'Sync to WordPress' : 'Publish to WordPress'}
             </Button>
             {isPublishBlocked && (
-              <span className="text-xs text-yellow-400">
+              <span className="text-xs text-amber-500">
                 Requires admin approval
               </span>
             )}
@@ -1051,246 +1060,234 @@ const ContentDetailPage = () => {
         </div>
       )}
 
-      {/* Multi-site Publish Dialog with Featured Images */}
-      <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
-        <DialogContent className="bg-white border-zinc-200 text-white sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              Publish to WordPress
-            </DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Select target sites and optionally add featured images for each.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 mt-4">
-            {wpSites.length === 0 ? (
-              <div className="text-center py-8">
-                <Globe className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-                <p className="text-zinc-400">No WordPress sites configured.</p>
-                <p className="text-sm text-zinc-500">Ask an admin to add a WordPress site.</p>
-              </div>
-            ) : (
-              wpSites.map((site) => {
-                const publishStatus = getPublishStatusForSite(site.id);
-                const isSelected = selectedSites[site.id];
-                const settings = publishSettings[site.id] || {};
-                const image = featuredImages[site.id];
-                const isUploading = uploadingSiteId === site.id;
-                
-                return (
-                  <div
-                    key={site.id}
-                    className={`p-4 rounded-xl border transition-colors ${
-                      isSelected 
-                        ? 'border-violet-500/50 bg-violet-500/5' 
-                        : 'border-zinc-200 bg-zinc-100'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        id={`site-${site.id}`}
-                        checked={isSelected}
-                        onCheckedChange={() => toggleSiteSelection(site.id)}
-                        className="mt-1 border-zinc-600 data-[state=checked]:bg-violet-500 data-[state=checked]:border-violet-500"
-                      />
-                      <div className="flex-1">
-                        <label 
-                          htmlFor={`site-${site.id}`}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <span className="font-medium text-white">{site.name}</span>
-                          {publishStatus?.sync_status === 'synced' && (
-                            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400">
-                              <Check className="w-3 h-3" />
-                              Published
-                            </span>
-                          )}
-                          {publishStatus?.sync_status === 'failed' && (
-                            <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-orange-500/20 text-rose-400 cursor-help" title={publishStatus?.sync_error_message || 'Unknown error'}>
-                              <AlertCircle className="w-3 h-3" />
-                              Failed
-                            </span>
-                          )}
-                        </label>
-                        <p className="text-sm text-zinc-500 mt-0.5">{site.wp_base_url}</p>
-                        
-                        {isSelected && (
-                          <div className="mt-4 space-y-4">
-                            {/* Post Settings */}
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <Label className="text-xs text-zinc-400">Post Type</Label>
-                                <Select
-                                  value={settings.post_type || 'post'}
-                                  onValueChange={(value) => updateSiteSettings(site.id, 'post_type', value)}
-                                  disabled={!!publishStatus?.wp_post_id}
-                                >
-                                  <SelectTrigger className="h-9 bg-zinc-100 border-zinc-300 text-white mt-1">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-white border-zinc-200">
-                                    <SelectItem value="post" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Post</SelectItem>
-                                    <SelectItem value="page" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Page</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <Label className="text-xs text-zinc-400">Status</Label>
-                                <Select
-                                  value={settings.wp_status || 'draft'}
-                                  onValueChange={(value) => {
-                                    updateSiteSettings(site.id, 'wp_status', value);
-                                    // Clear scheduled date if not scheduling
-                                    if (value !== 'future') {
-                                      updateSiteSettings(site.id, 'scheduled_date', null);
-                                    }
-                                  }}
-                                >
-                                  <SelectTrigger className="h-9 bg-zinc-100 border-zinc-300 text-white mt-1">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-white border-zinc-200">
-                                    <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
-                                    <SelectItem value="publish" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Published</SelectItem>
-                                    <SelectItem value="future" className="text-zinc-600 focus:text-white focus:bg-zinc-800">
-                                      <div className="flex items-center gap-2">
-                                        <Calendar className="w-3 h-3" />
-                                        Schedule
-                                      </div>
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-
-                            {/* Scheduled Date Picker */}
-                            {settings.wp_status === 'future' && (
-                              <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
-                                <Label className="text-xs text-orange-400 mb-2 block flex items-center gap-2">
-                                  <Calendar className="w-3 h-3" />
-                                  Schedule Publication
-                                </Label>
-                                <Input
-                                  type="datetime-local"
-                                  value={settings.scheduled_date || ''}
-                                  onChange={(e) => updateSiteSettings(site.id, 'scheduled_date', e.target.value)}
-                                  min={new Date().toISOString().slice(0, 16)}
-                                  className="bg-zinc-100 border-zinc-300 text-white h-9"
-                                />
-                                <p className="text-xs text-zinc-500 mt-2">
-                                  Post will be automatically published at the scheduled time
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Featured Image Section */}
-                            <div className="border-t border-zinc-300 pt-4">
-                              <Label className="text-xs text-zinc-400 mb-2 block">Featured Image (Optional)</Label>
-                              
-                              {image ? (
-                                <div className="flex items-start gap-3">
-                                  <div className="w-24 h-24 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
-                                    <img
-                                      src={getImageUrl(image)}
-                                      alt="Featured"
-                                      className="w-full h-full object-cover"
-                                    />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-zinc-600 truncate max-w-[200px]" title={image.file_name}>
-                                      {image.file_name}
-                                    </p>
-                                    <p className="text-xs text-zinc-500">
-                                      {(image.size / 1024).toFixed(1)} KB
-                                      {image.wp_media_id && (
-                                        <span className="text-green-400 ml-2">• Synced to WP</span>
-                                      )}
-                                    </p>
-                                    <div className="flex gap-2 mt-2">
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => fileInputRefs.current[site.id]?.click()}
-                                        className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs h-7"
-                                      >
-                                        Replace
-                                      </Button>
-                                      <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleRemoveImage(site.id)}
-                                        className="bg-transparent border-zinc-300 text-rose-400 hover:bg-orange-500/10 text-xs h-7"
-                                      >
-                                        Remove
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div
-                                  onClick={() => fileInputRefs.current[site.id]?.click()}
-                                  className="border-2 border-dashed border-zinc-300 rounded-lg p-4 text-center cursor-pointer hover:border-violet-500/50 hover:bg-violet-500/5 transition-colors"
-                                >
-                                  {isUploading ? (
-                                    <div className="flex flex-col items-center">
-                                      <Loader2 className="w-6 h-6 text-violet-400 animate-spin mb-2" />
-                                      <p className="text-sm text-zinc-400">Uploading...</p>
-                                    </div>
-                                  ) : (
-                                    <div className="flex flex-col items-center">
-                                      <Image className="w-6 h-6 text-zinc-500 mb-2" />
-                                      <p className="text-sm text-zinc-400">Click to upload featured image</p>
-                                      <p className="text-xs text-zinc-500 mt-1">JPEG, PNG, GIF, WebP • Max 5MB</p>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                              
-                              <input
-                                ref={el => fileInputRefs.current[site.id] = el}
-                                type="file"
-                                accept="image/jpeg,image/png,image/gif,image/webp"
-                                className="hidden"
-                                onChange={(e) => handleImageSelect(site.id, e.target.files[0])}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+      {/* Multi-site Publish Dialog - Wizard with Deploy Animation */}
+      <Dialog open={publishDialogOpen} onOpenChange={(v) => { if (!publishing) setPublishDialogOpen(v); }}>
+        <DialogContent hideClose className="bg-white border-zinc-200 max-w-[700px] max-h-[85vh] overflow-hidden p-0 rounded-[24px] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+            <h2 className="text-lg font-bold text-zinc-900">Publish to WordPress</h2>
+            {!publishing && (
+              <button onClick={() => setPublishDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+                <X className="w-4 h-4 text-zinc-400" />
+              </button>
             )}
           </div>
 
-          <div className="flex gap-3 pt-4 border-t border-zinc-200 mt-4">
-            <Button
-              variant="outline"
-              onClick={() => setPublishDialogOpen(false)}
-              className="flex-1 bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100"
-            >
-              Cancel
-            </Button>
-            <Button
-              data-testid="confirm-publish-btn"
-              onClick={handlePublish}
-              disabled={publishing || Object.values(selectedSites).filter(Boolean).length === 0}
-              className="flex-1 bg-violet-500 hover:bg-violet-600 text-white"
-            >
-              {publishing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Publishing...
-                </>
-              ) : (
-                `Publish to ${Object.values(selectedSites).filter(Boolean).length} Site(s)`
+          {publishStep === 'configure' ? (
+            <>
+              <div className="px-8 pt-4 pb-2 overflow-y-auto flex-1 min-h-0">
+                <p className="text-sm text-zinc-500 mb-6">Select target sites and optionally add featured images.</p>
+
+                <div className="space-y-4">
+                  {wpSites.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Globe className="w-12 h-12 text-zinc-300 mx-auto mb-3" />
+                      <p className="text-zinc-500">No WordPress sites configured.</p>
+                      <p className="text-sm text-zinc-400">Ask an admin to add a WordPress site.</p>
+                    </div>
+                  ) : (
+                    wpSites.map((site) => {
+                      const publishStatus = getPublishStatusForSite(site.id);
+                      const isSelected = selectedSites[site.id];
+                      const settings = publishSettings[site.id] || {};
+                      const image = featuredImages[site.id];
+                      const isUploading = uploadingSiteId === site.id;
+                      
+                      return (
+                        <div key={site.id}
+                          className={`p-4 rounded-xl border-2 transition-all ${
+                            isSelected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-300'
+                          }`}>
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              id={`site-${site.id}`}
+                              checked={isSelected}
+                              onCheckedChange={() => toggleSiteSelection(site.id)}
+                              className="mt-1 border-zinc-300 data-[state=checked]:bg-zinc-900 data-[state=checked]:border-zinc-900"
+                            />
+                            <div className="flex-1">
+                              <label htmlFor={`site-${site.id}`} className="flex items-center gap-2 cursor-pointer">
+                                <span className="font-medium text-zinc-900">{site.name}</span>
+                                {publishStatus?.sync_status === 'synced' && (
+                                  <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                                    <Check className="w-3 h-3" /> Published
+                                  </span>
+                                )}
+                                {publishStatus?.sync_status === 'failed' && (
+                                  <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-600" title={publishStatus?.sync_error_message}>
+                                    <AlertCircle className="w-3 h-3" /> Failed
+                                  </span>
+                                )}
+                              </label>
+                              <p className="text-sm text-zinc-400 mt-0.5">{site.wp_base_url}</p>
+                              
+                              {isSelected && (
+                                <div className="mt-4 space-y-4">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <Label className="text-xs text-zinc-500">Post Type</Label>
+                                      <Select value={settings.post_type || 'post'}
+                                        onValueChange={(value) => updateSiteSettings(site.id, 'post_type', value)}
+                                        disabled={!!publishStatus?.wp_post_id}>
+                                        <SelectTrigger className="h-9 bg-zinc-50 border-zinc-200 text-zinc-900 mt-1 rounded-xl">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white border-zinc-200">
+                                          <SelectItem value="post">Post</SelectItem>
+                                          <SelectItem value="page">Page</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs text-zinc-500">Status</Label>
+                                      <Select value={settings.wp_status || 'draft'}
+                                        onValueChange={(value) => {
+                                          updateSiteSettings(site.id, 'wp_status', value);
+                                          if (value !== 'future') updateSiteSettings(site.id, 'scheduled_date', null);
+                                        }}>
+                                        <SelectTrigger className="h-9 bg-zinc-50 border-zinc-200 text-zinc-900 mt-1 rounded-xl">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-white border-zinc-200">
+                                          <SelectItem value="draft">Draft</SelectItem>
+                                          <SelectItem value="publish">Published</SelectItem>
+                                          <SelectItem value="future">Schedule</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+
+                                  {settings.wp_status === 'future' && (
+                                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+                                      <Label className="text-xs text-amber-700 mb-2 block flex items-center gap-2">
+                                        <Calendar className="w-3 h-3" /> Schedule Publication
+                                      </Label>
+                                      <Input type="datetime-local" value={settings.scheduled_date || ''}
+                                        onChange={(e) => updateSiteSettings(site.id, 'scheduled_date', e.target.value)}
+                                        min={new Date().toISOString().slice(0, 16)}
+                                        className="bg-white border-amber-200 text-zinc-900 h-9 rounded-xl" />
+                                    </div>
+                                  )}
+
+                                  <div className="border-t border-zinc-100 pt-4">
+                                    <Label className="text-xs text-zinc-500 mb-2 block">Featured Image (Optional)</Label>
+                                    {image ? (
+                                      <div className="flex items-start gap-3">
+                                        <div className="w-24 h-24 rounded-lg overflow-hidden bg-zinc-100 flex-shrink-0">
+                                          <img src={getImageUrl(image)} alt="Featured" className="w-full h-full object-cover" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm text-zinc-700 truncate max-w-[200px]">{image.file_name}</p>
+                                          <p className="text-xs text-zinc-400">{(image.size / 1024).toFixed(1)} KB</p>
+                                          <div className="flex gap-2 mt-2">
+                                            <Button type="button" variant="outline" size="sm"
+                                              onClick={() => fileInputRefs.current[site.id]?.click()}
+                                              className="border-zinc-200 text-zinc-600 hover:bg-zinc-50 text-xs h-7 rounded-lg">Replace</Button>
+                                            <Button type="button" variant="outline" size="sm"
+                                              onClick={() => handleRemoveImage(site.id)}
+                                              className="border-zinc-200 text-red-500 hover:bg-red-50 text-xs h-7 rounded-lg">Remove</Button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div onClick={() => fileInputRefs.current[site.id]?.click()}
+                                        className="border-2 border-dashed border-zinc-200 rounded-xl p-4 text-center cursor-pointer hover:border-zinc-400 hover:bg-zinc-50 transition-colors">
+                                        {isUploading ? (
+                                          <div className="flex flex-col items-center">
+                                            <Loader2 className="w-6 h-6 text-zinc-400 animate-spin mb-2" />
+                                            <p className="text-sm text-zinc-500">Uploading...</p>
+                                          </div>
+                                        ) : (
+                                          <div className="flex flex-col items-center">
+                                            <Image className="w-6 h-6 text-zinc-400 mb-2" />
+                                            <p className="text-sm text-zinc-500">Click to upload featured image</p>
+                                            <p className="text-xs text-zinc-400 mt-1">JPEG, PNG, GIF, WebP</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                    <input ref={el => fileInputRefs.current[site.id] = el} type="file"
+                                      accept="image/jpeg,image/png,image/gif,image/webp" className="hidden"
+                                      onChange={(e) => handleImageSelect(site.id, e.target.files[0])} />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
+                <Button variant="ghost" onClick={() => setPublishDialogOpen(false)} className="text-zinc-500">Cancel</Button>
+                <Button data-testid="confirm-publish-btn" onClick={handlePublish}
+                  disabled={Object.values(selectedSites).filter(Boolean).length === 0}
+                  className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 rounded-full">
+                  <Upload className="w-4 h-4" />
+                  Publish to {Object.values(selectedSites).filter(Boolean).length} Site(s)
+                </Button>
+              </div>
+            </>
+          ) : (
+            /* Deploy Animation Step */
+            <div className="px-8 pt-4 pb-8 flex-1">
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-bold text-zinc-900 mb-1">
+                  {deployDone ? 'Published!' : 'Clara is publishing your content'}
+                </h2>
+                <p className="text-sm text-zinc-500">
+                  {deployDone ? 'Your content is now live on WordPress.' : 'This will only take a moment...'}
+                </p>
+              </div>
+
+              <div className="max-w-md mx-auto space-y-1">
+                {[
+                  { label: 'Preparing your content...' },
+                  { label: 'Starting the Clara API endpoint to communicate with your WordPress website...' },
+                  { label: `Publishing to ${wpSites.filter(s => selectedSites[s.id]).map(s => s.name).join(', ') || 'WordPress'}...` },
+                  { label: 'Finalizing and syncing metadata...' },
+                ].map((step, i) => {
+                  const status = deployDone ? 'done' : deployStatus > i ? 'done' : deployStatus === i ? 'loading' : 'pending';
+                  return (
+                    <motion.div key={i}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.15, duration: 0.4 }}
+                      className="flex items-center gap-4 py-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                        {status === 'done' ? (
+                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
+                            className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+                            <Check className="w-5 h-5 text-white" />
+                          </motion.div>
+                        ) : status === 'loading' ? (
+                          <div className="w-10 h-10 rounded-full border-[3px] border-zinc-200 border-t-zinc-900 animate-spin" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full border-2 border-zinc-200" />
+                        )}
+                      </div>
+                      <span className={`text-sm font-medium transition-colors ${
+                        status === 'done' ? 'text-emerald-700' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
+                      }`}>{step.label}</span>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {deployDone && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  className="mt-8 flex justify-center">
+                  <Button onClick={() => setPublishDialogOpen(false)}
+                    className="bg-zinc-900 hover:bg-zinc-800 text-white px-8 rounded-full">
+                    Done
+                  </Button>
+                </motion.div>
               )}
-            </Button>
-          </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

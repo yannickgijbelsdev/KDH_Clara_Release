@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  FileText, Link, BookOpen, Loader2, Folder,
+  FileText, Mic, Loader2, Folder,
   ChevronLeft, ChevronRight, X, Zap
 } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
@@ -19,9 +19,8 @@ import WizardStepIndicator from './workspace/WizardStepIndicator';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const contentTypes = [
-  { value: 'text', label: 'Text', icon: FileText, description: 'Rich text content' },
-  { value: 'link', label: 'Link', icon: Link, description: 'External URL reference' },
-  { value: 'reference', label: 'Reference', icon: BookOpen, description: 'Reference material' },
+  { value: 'text', label: 'Text', icon: FileText, description: 'Rich text article' },
+  { value: 'audio', label: 'Audio', icon: Mic, description: 'Audio content / podcast' },
 ];
 
 const CONTENT_STEPS = ['Type & Title', 'Content', 'Settings'];
@@ -228,21 +227,33 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                 <div>
                   <h2 className="text-2xl font-bold text-zinc-900 mb-1">Content</h2>
                   <p className="text-sm text-zinc-500 mb-6">
-                    {formData.type === 'link' ? 'Enter the external URL.' : 'Write the content body.'}
+                    {formData.type === 'audio' ? 'Add audio details or a URL to the audio file.' : 'Write the content body.'}
                   </p>
 
                   <div className="space-y-5">
-                    {formData.type === 'link' ? (
-                      <div className="space-y-2">
-                        <Label className="text-zinc-700 font-medium">External URL</Label>
-                        <Input
-                          data-testid="content-url-input"
-                          type="url"
-                          value={formData.external_url}
-                          onChange={(e) => setFormData({ ...formData, external_url: e.target.value })}
-                          placeholder="https://example.com"
-                          className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
-                        />
+                    {formData.type === 'audio' ? (
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label className="text-zinc-700 font-medium">Audio URL (optional)</Label>
+                          <Input
+                            data-testid="content-audio-url"
+                            type="url"
+                            value={formData.external_url}
+                            onChange={(e) => setFormData({ ...formData, external_url: e.target.value })}
+                            placeholder="https://example.com/audio.mp3"
+                            className="h-12 bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-400 rounded-xl"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-zinc-700 font-medium">Description (optional)</Label>
+                          <RichTextEditor
+                            id="create-content-body"
+                            value={formData.body}
+                            onChange={(content) => setFormData({ ...formData, body: content })}
+                            placeholder="Add a description for this audio content..."
+                            height={200}
+                          />
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-2">

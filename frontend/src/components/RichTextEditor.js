@@ -264,23 +264,23 @@ const RichTextEditor = ({
             body { 
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
               font-size: 14px;
-              color: #e4e4e7;
-              background-color: #27272a;
+              color: #18181b;
+              background-color: #ffffff;
               padding: 12px;
               line-height: 1.6;
             }
             p { margin: 0 0 1em 0; }
-            a { color: #f97316; text-decoration: underline; cursor: pointer; }
-            a:hover { color: #fb923c; }
-            h1, h2, h3, h4, h5, h6 { color: #ffffff; margin-top: 1.5em; margin-bottom: 0.5em; }
-            pre { background-color: #18181b; padding: 1em; border-radius: 6px; overflow-x: auto; }
-            code { background-color: #18181b; padding: 0.2em 0.4em; border-radius: 3px; font-size: 0.9em; }
-            blockquote { border-left: 3px solid #f97316; margin-left: 0; padding-left: 1em; color: #a1a1aa; }
+            a { color: #2563eb; text-decoration: underline; cursor: pointer; }
+            a:hover { color: #3b82f6; }
+            h1, h2, h3, h4, h5, h6 { color: #09090b; margin-top: 1.5em; margin-bottom: 0.5em; }
+            pre { background-color: #f4f4f5; padding: 1em; border-radius: 6px; overflow-x: auto; }
+            code { background-color: #f4f4f5; padding: 0.2em 0.4em; border-radius: 3px; font-size: 0.9em; }
+            blockquote { border-left: 3px solid #2563eb; margin-left: 0; padding-left: 1em; color: #71717a; }
             table { border-collapse: collapse; width: 100%; }
-            table td, table th { border: 1px solid #3f3f46; padding: 8px; }
-            table th { background-color: #18181b; }
+            table td, table th { border: 1px solid #e4e4e7; padding: 8px; }
+            table th { background-color: #f4f4f5; }
             img { max-width: 100%; height: auto; border-radius: 4px; }
-            hr { border: none; border-top: 1px solid #3f3f46; margin: 1.5em 0; }
+            hr { border: none; border-top: 1px solid #e4e4e7; margin: 1.5em 0; }
           `,
           skin: 'oxide',
           content_css: 'default',
@@ -296,7 +296,7 @@ const RichTextEditor = ({
               const container = editor.getContainer();
               if (container) {
                 container.style.borderRadius = '8px';
-                container.style.border = '1px solid #3f3f46';
+                container.style.border = '1px solid #e4e4e7';
                 container.style.overflow = 'hidden';
               }
             });
