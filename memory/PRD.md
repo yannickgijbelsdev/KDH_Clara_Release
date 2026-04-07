@@ -18,7 +18,8 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] **Environment grouping**: Sites grouped by environment (Production, Staging, etc.) with labels
 - [x] **Click-to-open detail panel**: Clicking a card opens a slide-in panel showing all backups for that site
 - [x] **Full backup operations in panel**: Create backup, restore, delete, clone, search
-- [x] **Canvas-style layout**: Dot pattern background, floating top/bottom panels, auto-scaling cards
+- [x] **Responsive CSS Grid**: Uses `auto-fill, minmax(210px, 1fr)` — scales properly on any screen size
+- [x] **All UI text in English**: Translated from Dutch to English
 
 ### April 7, 2026 - Global Error Handling & Clara Assistant Integration
 - [x] **Eliminated all native browser `alert()` popups** from the entire frontend codebase

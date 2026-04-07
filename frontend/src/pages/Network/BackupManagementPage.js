@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +25,7 @@ function formatBytes(bytes) {
 function formatDate(iso) {
   if (!iso) return '-';
   const d = new Date(iso);
-  return d.toLocaleDateString('nl-BE', {
+  return d.toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
@@ -35,10 +35,10 @@ function timeAgo(iso) {
   if (!iso) return '';
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m geleden`;
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}u geleden`;
-  return `${Math.floor(hrs / 24)}d geleden`;
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 }
 
 /* ── Config ── */
@@ -52,15 +52,15 @@ const SITE_TYPE_CONFIG = {
 };
 
 const STATUS_CONFIG = {
-  completed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Voltooid' },
-  failed: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', label: 'Mislukt' },
-  in_progress: { icon: Loader2, color: 'text-amber-500', bg: 'bg-amber-50', label: 'Bezig', spin: true },
+  completed: { icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Completed' },
+  failed: { icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', label: 'Failed' },
+  in_progress: { icon: Loader2, color: 'text-amber-500', bg: 'bg-amber-50', label: 'In Progress', spin: true },
 };
 
 const TYPE_LABELS = {
-  manual: 'Handmatig',
-  automatic: 'Automatisch',
-  'pre-restore': 'Veiligheidsback-up',
+  manual: 'Manual',
+  automatic: 'Automatic',
+  'pre-restore': 'Safety Backup',
 };
 
 
@@ -78,8 +78,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
-      className="cursor-pointer group relative"
-      style={{ width: 240 }}
+      className="cursor-pointer group relative w-full"
     >
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
@@ -121,7 +120,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
           <div className="flex items-center gap-2 mt-2">
             <div className="flex items-center gap-1 text-[10px] text-zinc-400">
               <Clock className="w-3 h-3" />
-              <span>{lastBackupTime || 'Geen backups'}</span>
+              <span>{lastBackupTime || 'No backups'}</span>
             </div>
           </div>
         </div>
@@ -220,7 +219,7 @@ const BackupDetailPanel = ({
             data-testid="panel-create-backup-btn"
           >
             {creating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HardDrive className="w-3.5 h-3.5" />}
-            Nieuwe Backup
+            New Backup
           </Button>
           <Button
             onClick={() => { setCloneName(`[TEST] ${site.name}`); setShowCloneDialog(true); }}
@@ -239,7 +238,7 @@ const BackupDetailPanel = ({
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Zoek..."
+              placeholder="Search..."
               className="w-full pl-7 pr-2 py-1.5 text-xs bg-zinc-50 border border-black/[0.06] rounded-lg text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-900/10"
               data-testid="backup-panel-search"
             />
@@ -250,7 +249,7 @@ const BackupDetailPanel = ({
         {clones.length > 0 && (
           <div className="px-4 pt-3 pb-1 flex-shrink-0">
             <p className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold mb-2 flex items-center gap-1.5">
-              <Copy className="w-3 h-3" /> Actieve Clones
+              <Copy className="w-3 h-3" /> Active Clones
             </p>
             <div className="space-y-1 mb-2">
               {clones.map(clone => (
@@ -282,7 +281,7 @@ const BackupDetailPanel = ({
           ) : filteredBackups.length === 0 ? (
             <div className="text-center py-10">
               <Database className="w-8 h-8 text-zinc-300 mx-auto mb-2" />
-              <p className="text-xs text-zinc-400">Geen backups gevonden</p>
+              <p className="text-xs text-zinc-400">No backups found</p>
             </div>
           ) : (
             filteredBackups.map(backup => {
@@ -321,7 +320,7 @@ const BackupDetailPanel = ({
                           onClick={() => setShowRestoreConfirm(backup.id)}
                           disabled={restoring === backup.id}
                           className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-emerald-50 text-zinc-400 hover:text-emerald-600 transition-colors"
-                          title="Herstellen"
+                          title="Restore"
                           data-testid={`restore-btn-${backup.id}`}
                         >
                           {restoring === backup.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
@@ -330,7 +329,7 @@ const BackupDetailPanel = ({
                       <button
                         onClick={() => onDeleteBackup(backup.id)}
                         className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-50 text-zinc-300 hover:text-red-500 transition-colors"
-                        title="Verwijderen"
+                        title="Delete"
                         data-testid={`delete-backup-${backup.id}`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -350,11 +349,11 @@ const BackupDetailPanel = ({
               <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
                 <AlertTriangle className="w-6 h-6 text-amber-500" />
               </div>
-              <h3 className="font-semibold text-zinc-900 mb-1">Backup herstellen?</h3>
-              <p className="text-xs text-zinc-400 mb-4">Dit overschrijft de huidige gegevens. Er wordt automatisch een veiligheidsback-up gemaakt.</p>
+              <h3 className="font-semibold text-zinc-900 mb-1">Restore backup?</h3>
+              <p className="text-xs text-zinc-400 mb-4">This will overwrite current data. A safety backup will be created automatically.</p>
               <div className="flex gap-2 justify-center">
                 <Button variant="outline" size="sm" onClick={() => setShowRestoreConfirm(null)} className="rounded-xl border-black/10" data-testid="restore-cancel-btn">
-                  Annuleren
+                  Cancel
                 </Button>
                 <Button
                   size="sm"
@@ -362,7 +361,7 @@ const BackupDetailPanel = ({
                   onClick={() => { onRestore(showRestoreConfirm); setShowRestoreConfirm(null); }}
                   data-testid="restore-confirm-btn"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" /> Herstellen
+                  <RotateCcw className="w-3.5 h-3.5" /> Restore
                 </Button>
               </div>
             </div>
@@ -378,8 +377,8 @@ const BackupDetailPanel = ({
                   <Copy className="w-5 h-5 text-blue-500" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-zinc-900 text-sm">Site Klonen</h3>
-                  <p className="text-[10px] text-zinc-400">Testkopie van {site.name}</p>
+                  <h3 className="font-semibold text-zinc-900 text-sm">Clone Site</h3>
+                  <p className="text-[10px] text-zinc-400">Test copy of {site.name}</p>
                 </div>
               </div>
               <input
@@ -387,12 +386,12 @@ const BackupDetailPanel = ({
                 value={cloneName}
                 onChange={e => setCloneName(e.target.value)}
                 className="w-full bg-zinc-50 border border-black/[0.08] rounded-xl px-3 py-2.5 text-sm text-zinc-900 mb-3 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 placeholder:text-zinc-300"
-                placeholder="Clone naam..."
+                placeholder="Clone name..."
                 data-testid="clone-name-input"
               />
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" size="sm" onClick={() => setShowCloneDialog(false)} className="rounded-xl border-black/10" data-testid="clone-cancel-btn">
-                  Annuleren
+                  Cancel
                 </Button>
                 <Button
                   size="sm"
@@ -433,9 +432,6 @@ export default function BackupManagementPage() {
   const [deletingClone, setDeletingClone] = useState(null);
   // Track per-site backup counts for cards
   const [siteBackupCounts, setSiteBackupCounts] = useState({});
-
-  const sceneRef = useRef(null);
-  const [sceneScale, setSceneScale] = useState(1);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -501,13 +497,13 @@ export default function BackupManagementPage() {
       const res = await fetch(`${API}/api/backups/${selectedSite.id}`, { method: 'POST', headers });
       const data = await res.json();
       if (data.status === 'completed') {
-        toast.success(`Backup aangemaakt: ${data.document_count} documenten`);
+        toast.success(`Backup created: ${data.document_count} documents`);
       } else {
-        toast.error(`Backup mislukt: ${data.error_message || 'Onbekende fout'}`);
+        toast.error(`Backup failed: ${data.error_message || 'Unknown error'}`);
       }
       fetchBackups();
       fetchSiteBackupCounts();
-    } catch { toast.error('Backup maken mislukt'); }
+    } catch { toast.error('Failed to create backup'); }
     setCreating(false);
   };
 
@@ -519,22 +515,22 @@ export default function BackupManagementPage() {
       });
       const data = await res.json();
       if (data.status === 'completed') {
-        toast.success('Herstel voltooid!');
+        toast.success('Restore completed!');
       } else {
-        toast.error(`Herstel mislukt: ${data.detail || 'Onbekende fout'}`);
+        toast.error(`Restore failed: ${data.detail || 'Unknown error'}`);
       }
       fetchBackups();
-    } catch { toast.error('Herstel mislukt'); }
+    } catch { toast.error('Restore failed'); }
     setRestoring(null);
   };
 
   const deleteBackup = async (backupId) => {
     try {
       await fetch(`${API}/api/backups/single/${backupId}`, { method: 'DELETE', headers });
-      toast.success('Backup verwijderd');
+      toast.success('Backup deleted');
       fetchBackups();
       fetchSiteBackupCounts();
-    } catch { toast.error('Verwijderen mislukt'); }
+    } catch { toast.error('Failed to delete'); }
   };
 
   const cloneSite = async (cloneName) => {
@@ -545,13 +541,13 @@ export default function BackupManagementPage() {
       });
       const data = await res.json();
       if (data.status === 'completed') {
-        toast.success(`Clone "${cloneName}" aangemaakt`);
+        toast.success(`Clone "${cloneName}" created`);
         fetchBackups();
         fetchMainSites();
       } else {
-        toast.error(`Clone mislukt: ${data.detail || 'Onbekende fout'}`);
+        toast.error(`Clone failed: ${data.detail || 'Unknown error'}`);
       }
-    } catch { toast.error('Clone mislukt'); }
+    } catch { toast.error('Clone failed'); }
     setCloning(false);
   };
 
@@ -561,13 +557,13 @@ export default function BackupManagementPage() {
       const res = await fetch(`${API}/api/backups/clone/${cloneId}`, { method: 'DELETE', headers });
       const data = await res.json();
       if (data.status === 'completed') {
-        toast.success('Clone verwijderd');
+        toast.success('Clone removed');
         fetchBackups();
         fetchMainSites();
       } else {
-        toast.error('Verwijderen mislukt');
+        toast.error('Failed to remove clone');
       }
-    } catch { toast.error('Verwijderen mislukt'); }
+    } catch { toast.error('Failed to remove clone'); }
     setDeletingClone(null);
   };
 
@@ -582,34 +578,12 @@ export default function BackupManagementPage() {
     return groups;
   }, [mainSites]);
 
-  // Scale cards to fit
-  const computeScale = useCallback(() => {
-    if (!sceneRef.current) return;
-    const containerW = sceneRef.current.clientWidth;
-    const containerH = sceneRef.current.clientHeight;
-    const cardW = 240;
-    const gap = 24;
-    const totalCards = mainSites.length || 1;
-    const cardsPerRow = Math.ceil(Math.sqrt(totalCards));
-    const baseSceneW = cardsPerRow * cardW + (cardsPerRow - 1) * gap + 60;
-    const baseSceneH = Math.ceil(totalCards / cardsPerRow) * 300 + 60;
-    const scaleW = containerW / (baseSceneW + (selectedSite ? 460 : 80));
-    const scaleH = containerH / (baseSceneH + 40);
-    setSceneScale(Math.max(Math.min(scaleH, scaleW, 1.8), 0.5));
-  }, [mainSites.length, selectedSite]);
-
-  useEffect(() => {
-    computeScale();
-    window.addEventListener('resize', computeScale);
-    return () => window.removeEventListener('resize', computeScale);
-  }, [computeScale]);
-
   const totalBackups = Object.values(siteBackupCounts).reduce((sum, s) => sum + (s.count || 0), 0);
 
   if (!user?.is_network_admin) {
     return (
       <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center text-zinc-400">
-        Network admin toegang vereist
+        Network admin access required
       </div>
     );
   }
@@ -636,7 +610,7 @@ export default function BackupManagementPage() {
             </button>
             <div>
               <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Backups & Clones</div>
-              <div className="text-sm font-semibold text-zinc-700">Beheer site back-ups</div>
+              <div className="text-sm font-semibold text-zinc-700">Manage site backups</div>
             </div>
             <div className="w-px h-8 bg-black/[0.06] mx-1" />
             <div className="text-3xl font-bold text-zinc-900">{mainSites.length}</div>
@@ -662,44 +636,48 @@ export default function BackupManagementPage() {
           </motion.div>
         </div>
 
-        {/* ── Center: Card scene ── */}
-        <div ref={sceneRef} className="flex-1 flex items-center justify-center relative overflow-hidden">
-          <div
-            className="flex flex-wrap items-start justify-center gap-5 relative z-10 origin-center transition-transform duration-300 ease-out"
-            style={{ transform: `scale(${sceneScale})`, maxWidth: selectedSite ? 'calc(100% - 460px)' : '100%' }}
-          >
-            {Object.entries(sitesByEnv).map(([envId, envSites]) => {
-              const env = environments.find(e => e.id === envId);
-              return (
-                <div key={envId} className="flex flex-col items-center gap-3">
-                  {/* Environment label */}
-                  {(Object.keys(sitesByEnv).length > 1 || env) && (
-                    <div className="bg-white/70 backdrop-blur-xl rounded-full px-4 py-1.5 border border-black/[0.05] shadow-sm mb-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: env?.color || '#71717a' }} />
-                        <span className="text-[11px] font-semibold text-zinc-600">{env?.name || 'Production'}</span>
+        {/* ── Center: Card grid ── */}
+        <div className="flex-1 flex relative overflow-hidden gap-4">
+          {/* Scrollable card area */}
+          <div className={`flex-1 overflow-y-auto pr-1 transition-all duration-300 ${selectedSite ? 'mr-[430px]' : ''}`}>
+            <div className="space-y-6 pb-4">
+              {Object.entries(sitesByEnv).map(([envId, envSites]) => {
+                const env = environments.find(e => e.id === envId);
+                return (
+                  <div key={envId}>
+                    {/* Environment label */}
+                    {(Object.keys(sitesByEnv).length > 1 || env) && (
+                      <div className="flex items-center gap-3 mb-3 ml-1">
+                        <div className="bg-white/70 backdrop-blur-xl rounded-full px-4 py-1.5 border border-black/[0.05] shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: env?.color || '#71717a' }} />
+                            <span className="text-[11px] font-semibold text-zinc-600">{env?.name || 'Production'}</span>
+                            <span className="text-[10px] text-zinc-400">({envSites.length})</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 h-px bg-black/[0.04]" />
                       </div>
+                    )}
+                    <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
+                      {envSites.map((site, i) => {
+                        const sbc = siteBackupCounts[site.id] || { count: 0, lastBackup: null };
+                        return (
+                          <BackupSiteCard
+                            key={site.id}
+                            site={site}
+                            index={i}
+                            isSelected={selectedSite?.id === site.id}
+                            onClick={() => setSelectedSite(selectedSite?.id === site.id ? null : site)}
+                            backupCount={sbc.count}
+                            lastBackupTime={sbc.lastBackup ? timeAgo(sbc.lastBackup) : null}
+                          />
+                        );
+                      })}
                     </div>
-                  )}
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {envSites.map((site, i) => {
-                      const sbc = siteBackupCounts[site.id] || { count: 0, lastBackup: null };
-                      return (
-                        <BackupSiteCard
-                          key={site.id}
-                          site={site}
-                          index={i}
-                          isSelected={selectedSite?.id === site.id}
-                          onClick={() => setSelectedSite(selectedSite?.id === site.id ? null : site)}
-                          backupCount={sbc.count}
-                          lastBackupTime={sbc.lastBackup ? timeAgo(sbc.lastBackup) : null}
-                        />
-                      );
-                    })}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
           {/* ── Backup detail panel ── */}
@@ -732,7 +710,7 @@ export default function BackupManagementPage() {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.5 }}
               className="text-xs text-zinc-400 bg-white/60 backdrop-blur-xl rounded-full px-4 py-2 border border-black/[0.05]"
             >
-              Klik op een site om de backups te bekijken
+              Click a site to view its backups
             </motion.div>
           )}
           <div className="flex-1" />
@@ -742,7 +720,7 @@ export default function BackupManagementPage() {
             data-testid="panel-backup-status"
           >
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.5)' }} />
-            <span className="text-sm font-medium text-zinc-700">Backup systeem actief</span>
+            <span className="text-sm font-medium text-zinc-700">Backup system active</span>
             <div className="w-px h-5 bg-black/[0.06]" />
             <HardDrive className="w-4 h-4 text-blue-500" />
             <span className="text-sm font-bold text-zinc-900">{mainSites.length} sites</span>
