@@ -65,6 +65,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../context/PermissionsContext';
 import RichTextEditor from '../components/RichTextEditor';
+import { useClaraAssistant } from '../context/ClaraAssistantContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -96,6 +97,7 @@ const ContentDetailPage = () => {
   const navigate = useNavigate();
   const { isEditor: legacyIsEditor, isAdmin } = useAuth();
   const { canEdit, canDelete, canCreate } = usePermissions();
+  const { registerEditor, unregisterEditor } = useClaraAssistant();
   const isEditor = canEdit('content_library') || canCreate('content_library') || legacyIsEditor;
   const [content, setContent] = useState(null);
   const [wpSites, setWpSites] = useState([]);
@@ -133,6 +135,20 @@ const ContentDetailPage = () => {
   
   // Helper for context-aware navigation - uses URL param directly
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
+
+
+  // Register editor content with Clara Assistant context
+  useEffect(() => {
+    if (isEditing && editData) {
+      registerEditor(
+        editData.body,
+        editData.title,
+        (newContent) => setEditData(prev => ({ ...prev, body: newContent })),
+        (newTitle) => setEditData(prev => ({ ...prev, title: newTitle }))
+      );
+    }
+    return () => unregisterEditor();
+  }, [isEditing, editData?.body, editData?.title]);
 
   useEffect(() => {
     fetchContent();

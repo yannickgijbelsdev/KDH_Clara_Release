@@ -11,6 +11,8 @@ import DevToolsPanel from './DevTools/DevToolsPanel';
 import DevToolsInspector from './DevTools/DevToolsInspector';
 import HelpButton from './Tickets/HelpButton';
 import ClaraCLI from './ClaraCLI';
+import ClaraAssistant from './ClaraAssistant';
+import { ClaraAssistantProvider } from '../context/ClaraAssistantContext';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
@@ -1290,6 +1292,7 @@ const MainSiteDashboardContent = () => {
     {isClone && <DevToolsInspector />}
     {mainSite?.site_type !== 'technical' && <HelpButton />}
     {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && <ClaraCLI />}
+    <ClaraAssistant />
     </DevToolsProvider>
   );
 };
@@ -1297,7 +1300,9 @@ const MainSiteDashboardContent = () => {
 // Wrapper that provides PermissionsProvider context
 const MainSiteDashboardLayout = () => (
   <PermissionsProvider>
-    <MainSiteDashboardContent />
+    <ClaraAssistantProvider>
+      <MainSiteDashboardContent />
+    </ClaraAssistantProvider>
   </PermissionsProvider>
 );
 

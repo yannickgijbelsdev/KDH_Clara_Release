@@ -1,0 +1,297 @@
+"""Clara AI Assistant - SEO writing help and error troubleshooting."""
+import os
+import uuid
+from datetime import datetime, timezone
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from typing import Optional, List
+from dotenv import load_dotenv
+
+load_dotenv()
+
+from services.auth import get_current_user
+from database import db
+
+from emergentintegrations.llm.chat import LlmChat, UserMessage
+
+clara_router = APIRouter(prefix="/clara-assistant", tags=["Clara Assistant"])
+
+EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
+
+SEO_SYSTEM_PROMPT = """You are Clara, an expert SEO content writer and assistant for a radio station management platform. 
+
+Your capabilities:
+1. Generate SEO-optimized articles with proper heading structure (H1, H2, H3), meta descriptions, keyword placement, and readability.
+2. Improve existing content for better SEO: optimize headings, add internal linking suggestions, improve keyword density, and enhance readability.
+3. Provide SEO scores and actionable suggestions.
+
+Rules:
+- Auto-detect the language of the user's input and ALWAYS respond in that same language.
+- Use proper HTML formatting for articles (h2, h3, p, ul, li, strong, em tags). Never use h1 (that's the title).
+- Keep paragraphs short (2-3 sentences max) for web readability.
+- Include a suggested meta description (max 155 characters) at the end.
+- Focus keywords should appear in the first paragraph, at least one H2, and naturally throughout.
+- Write in an engaging, professional tone appropriate for radio/media industry.
+"""
+
+ERROR_SYSTEM_PROMPT = """You are Clara, a helpful technical assistant for a radio station management platform called Clara.
+
+Your role is to help users understand and resolve error messages they encounter while using the platform. The platform includes:
+- WordPress publishing (content management)
+- RDS (Radio Data System) configuration
+- Stream monitoring (Shoutcast/Icecast)
+- Cloudflare WAF/DNS management
+- ZeroTier networking
+- Backup management
+- User/team management
+
+Rules:
+- Auto-detect the language of the user's input and ALWAYS respond in that same language.
+- Be concise and practical. Give step-by-step solutions.
+- If you recognize a common error pattern, explain the root cause first, then the fix.
+- Always suggest checking the Logs page if the error is unclear.
+- Be friendly and encouraging - errors happen to everyone.
+"""
+
+
+class SEOGenerateRequest(BaseModel):
+    topic: str
+    keywords: Optional[str] = ""
+    tone: Optional[str] = "professional"
+    length: Optional[str] = "medium"  # short/medium/long
+
+
+class SEOImproveRequest(BaseModel):
+    content: str
+    title: Optional[str] = ""
+    keywords: Optional[str] = ""
+
+
+class ErrorHelpRequest(BaseModel):
+    error_message: str
+    context: Optional[str] = ""  # e.g. "WordPress publishing", "RDS settings"
+
+
+class ChatRequest(BaseModel):
+    message: str
+    session_id: Optional[str] = None
+    mode: str = "seo"  # "seo" or "error"
+    content_context: Optional[str] = ""  # current editor content for context
+
+
+def _get_chat(session_id: str, mode: str) -> LlmChat:
+    system_msg = SEO_SYSTEM_PROMPT if mode == "seo" else ERROR_SYSTEM_PROMPT
+    chat = LlmChat(
+        api_key=EMERGENT_KEY,
+        session_id=session_id,
+        system_message=system_msg,
+    )
+    chat.with_model("openai", "gpt-5.2")
+    return chat
+
+
+@clara_router.post("/seo/generate")
+async def seo_generate(req: SEOGenerateRequest, current_user: dict = Depends(get_current_user)):
+    """Generate a full SEO-optimized article from a topic."""
+    if not EMERGENT_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    session_id = f"seo-gen-{uuid.uuid4().hex[:12]}"
+    chat = _get_chat(session_id, "seo")
+
+    length_guide = {"short": "400-600 words", "medium": "800-1200 words", "long": "1500-2000 words"}.get(req.length, "800-1200 words")
+
+    prompt = f"""Write a complete SEO-optimized article about: {req.topic}
+
+Target keywords: {req.keywords or req.topic}
+Tone: {req.tone}
+Target length: {length_guide}
+
+Please provide:
+1. A compelling SEO title (as plain text on the first line, prefixed with "TITLE: ")
+2. The full article in HTML format (h2, h3, p, ul, li, strong, em)
+3. End with "META: " followed by a meta description (max 155 chars)"""
+
+    msg = UserMessage(text=prompt)
+    response = await chat.send_message(msg)
+
+    # Parse title and meta from response
+    lines = response.strip().split('\n')
+    title = ""
+    meta = ""
+    body_lines = []
+
+    for line in lines:
+        if line.strip().startswith("TITLE:"):
+            title = line.replace("TITLE:", "").strip()
+        elif line.strip().startswith("META:"):
+            meta = line.replace("META:", "").strip()
+        else:
+            body_lines.append(line)
+
+    body = '\n'.join(body_lines).strip()
+
+    # Store in DB
+    await db.clara_assistant_history.insert_one({
+        "id": session_id,
+        "user_id": current_user.get("id"),
+        "type": "seo_generate",
+        "topic": req.topic,
+        "keywords": req.keywords,
+        "response_title": title,
+        "response_meta": meta,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    return {
+        "title": title,
+        "body": body,
+        "meta_description": meta,
+        "session_id": session_id,
+    }
+
+
+@clara_router.post("/seo/improve")
+async def seo_improve(req: SEOImproveRequest, current_user: dict = Depends(get_current_user)):
+    """Analyze and improve existing content for SEO."""
+    if not EMERGENT_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    session_id = f"seo-imp-{uuid.uuid4().hex[:12]}"
+    chat = _get_chat(session_id, "seo")
+
+    prompt = f"""Analyze this content and provide SEO improvements:
+
+Title: {req.title or '(no title)'}
+Target keywords: {req.keywords or '(none specified)'}
+
+Content:
+{req.content[:5000]}
+
+Please provide:
+1. An SEO score (0-100) with brief explanation
+2. A list of specific improvements (as bullet points)
+3. An improved version of the content in HTML format
+4. A suggested meta description (max 155 chars)
+
+Format your response as:
+SCORE: [number]/100
+ANALYSIS:
+[bullet points of what to improve]
+
+IMPROVED:
+[the improved HTML content]
+
+META: [meta description]"""
+
+    msg = UserMessage(text=prompt)
+    response = await chat.send_message(msg)
+
+    # Parse response
+    score = ""
+    analysis = ""
+    improved = ""
+    meta = ""
+    
+    sections = response.split("IMPROVED:")
+    if len(sections) >= 2:
+        header = sections[0]
+        rest = sections[1]
+        
+        # Extract score
+        for line in header.split('\n'):
+            if line.strip().startswith("SCORE:"):
+                score = line.replace("SCORE:", "").strip()
+            elif "ANALYSIS:" in line:
+                continue
+            elif line.strip():
+                analysis += line + "\n"
+        
+        # Extract improved content and meta
+        meta_parts = rest.split("META:")
+        improved = meta_parts[0].strip()
+        if len(meta_parts) > 1:
+            meta = meta_parts[1].strip()
+    else:
+        improved = response
+
+    return {
+        "score": score,
+        "analysis": analysis.strip(),
+        "improved_content": improved,
+        "meta_description": meta,
+        "session_id": session_id,
+    }
+
+
+@clara_router.post("/chat")
+async def clara_chat(req: ChatRequest, current_user: dict = Depends(get_current_user)):
+    """General chat with Clara - supports both SEO and error help modes."""
+    if not EMERGENT_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    session_id = req.session_id or f"chat-{uuid.uuid4().hex[:12]}"
+
+    # Get previous messages for this session
+    history = await db.clara_assistant_messages.find(
+        {"session_id": session_id},
+        {"_id": 0}
+    ).sort("created_at", 1).limit(20).to_list(20)
+
+    # Build chat with history context
+    chat = _get_chat(session_id, req.mode)
+
+    # If content context is provided, add it as context
+    context_prefix = ""
+    if req.content_context:
+        context_prefix = f"[Current editor content for context: {req.content_context[:3000]}]\n\n"
+
+    # Rebuild conversation history
+    for msg in history:
+        if msg.get("role") == "user":
+            chat_msg = UserMessage(text=msg["text"])
+            await chat.send_message(chat_msg)
+
+    # Send new message
+    user_msg = UserMessage(text=context_prefix + req.message)
+    response = await chat.send_message(user_msg)
+
+    # Store messages
+    now = datetime.now(timezone.utc).isoformat()
+    await db.clara_assistant_messages.insert_many([
+        {"session_id": session_id, "role": "user", "text": req.message, "mode": req.mode, "user_id": current_user.get("id"), "created_at": now},
+        {"session_id": session_id, "role": "assistant", "text": response, "mode": req.mode, "created_at": now},
+    ])
+
+    return {
+        "response": response,
+        "session_id": session_id,
+    }
+
+
+@clara_router.post("/error-help")
+async def error_help(req: ErrorHelpRequest, current_user: dict = Depends(get_current_user)):
+    """Get help understanding and resolving an error."""
+    if not EMERGENT_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    session_id = f"err-{uuid.uuid4().hex[:12]}"
+    chat = _get_chat(session_id, "error")
+
+    prompt = f"""I encountered this error in the platform:
+
+Error message: {req.error_message}
+Context: {req.context or 'General platform usage'}
+
+Please help me understand:
+1. What went wrong (root cause)
+2. Step-by-step how to fix it
+3. How to prevent it in the future"""
+
+    msg = UserMessage(text=prompt)
+    response = await chat.send_message(msg)
+
+    return {
+        "explanation": response,
+        "session_id": session_id,
+    }
