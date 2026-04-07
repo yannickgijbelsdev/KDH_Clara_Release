@@ -256,7 +256,7 @@ export default function TaskCalendarView({ tasks, columns, onTaskClick }) {
           </div>
 
           {/* View toggle */}
-          <div className="flex bg-zinc-100 rounded-lg p-0.5" data-testid="cal-view-toggle">
+          <div className="flex bg-white/40 backdrop-blur-sm rounded-lg p-0.5" data-testid="cal-view-toggle">
             <button
               onClick={() => setViewMode('month')}
               className={`px-3 py-1 text-xs rounded-md transition-colors ${viewMode === 'month' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}

@@ -219,10 +219,10 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                 {logoUrl ? (
                   <img src={logoSrc} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-zinc-200" />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-400 text-xs">No logo</div>
+                  <div className="w-16 h-16 rounded-xl bg-white/50 backdrop-blur-lg border border-white/60 flex items-center justify-center text-zinc-400 text-xs">No logo</div>
                 )}
                 <div className="flex flex-col gap-1.5">
-                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 rounded-xl text-sm text-zinc-700 font-medium transition-colors">
+                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-zinc-50 hover:bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl text-sm text-zinc-700 font-medium transition-colors">
                     <Upload className="w-4 h-4" /> Upload logo
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleLogoUpload(e.target.files[0])} />
                   </label>

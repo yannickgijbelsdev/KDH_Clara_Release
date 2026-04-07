@@ -535,7 +535,7 @@ const ShowDetailPage = () => {
       </div>
 
       {/* Show Details Section */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-8">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Show Details</h2>
           {!isEditing ? (
@@ -665,7 +665,7 @@ const ShowDetailPage = () => {
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                  <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
                     <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
                     <SelectItem value="scheduled" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Scheduled</SelectItem>
                     <SelectItem value="completed" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Completed</SelectItem>
@@ -775,7 +775,7 @@ const ShowDetailPage = () => {
 
       {/* Show Settings Section - Recurrence Only */}
       {!show.is_recurring && !show.parent_show_id && isEditor && (
-        <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-8">
+        <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Settings className="w-5 h-5 text-orange-400" />
@@ -804,7 +804,7 @@ const ShowDetailPage = () => {
 
       {/* Recurrence Settings Section - Only for recurring shows */}
       {show.is_recurring && (
-        <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-8">
+        <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
@@ -895,7 +895,7 @@ const ShowDetailPage = () => {
                   <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                  <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
                     <SelectItem value="1" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
                     <SelectItem value="2" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
                     <SelectItem value="3" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>
@@ -1048,7 +1048,7 @@ const ShowDetailPage = () => {
 
       {/* Delete Confirmation Dialog (Non-recurring) */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
+        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Show</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -1072,7 +1072,7 @@ const ShowDetailPage = () => {
 
       {/* Recurring Show - Edit Dialog */}
       <AlertDialog open={recurringEditDialogOpen} onOpenChange={setRecurringEditDialogOpen}>
-        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
+        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
@@ -1107,7 +1107,7 @@ const ShowDetailPage = () => {
 
       {/* Recurring Show - Delete Dialog */}
       <AlertDialog open={recurringDeleteDialogOpen} onOpenChange={setRecurringDeleteDialogOpen}>
-        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
+        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
@@ -1140,7 +1140,7 @@ const ShowDetailPage = () => {
 
       {/* Stop Recurrence Dialog */}
       <AlertDialog open={stopRecurrenceDialogOpen} onOpenChange={setStopRecurrenceDialogOpen}>
-        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
+        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <CalendarOff className="w-5 h-5 text-orange-400" />
@@ -1201,7 +1201,7 @@ const ShowDetailPage = () => {
 
       {/* Enable Recurrence Dialog */}
       <AlertDialog open={enableRecurrenceDialogOpen} onOpenChange={setEnableRecurrenceDialogOpen}>
-        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
+        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Repeat className="w-5 h-5 text-violet-400" />
@@ -1222,7 +1222,7 @@ const ShowDetailPage = () => {
                 <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-100 border-zinc-200">
+                <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
                   <SelectItem value="1" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every week</SelectItem>
                   <SelectItem value="2" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 2 weeks</SelectItem>
                   <SelectItem value="3" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Every 3 weeks</SelectItem>

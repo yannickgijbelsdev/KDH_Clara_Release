@@ -234,7 +234,7 @@ export default function PublicCallPage() {
               {invite?.host_name ? `${invite.host_name} wants to talk to you` : 'You have been invited to join a call'}
             </p>
             {invite?.label && (
-              <p className="text-xs text-zinc-500 mt-2 bg-zinc-100 rounded-lg px-3 py-1.5 inline-block">{invite.label}</p>
+              <p className="text-xs text-zinc-500 mt-2 bg-white/40 backdrop-blur-sm rounded-lg px-3 py-1.5 inline-block">{invite.label}</p>
             )}
           </div>
 

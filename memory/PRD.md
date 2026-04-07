@@ -12,12 +12,15 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## What's Been Implemented
 
-### April 7, 2026 - Counter Badges in Pill Navigation
-- [x] Added counter badges to the horizontal pill-tab navigation for: Content Library, Media Library, Trash, Content Approval
-- [x] Backend: Added `media` count to `/api/menu/counts` endpoint
-- [x] Frontend: Pill tabs show small rounded badges (inverted when active tab)
-- [x] Frontend: "More" dropdown also shows badges for overflow items
-- [x] TinyMCE RichTextEditor switched from `oxide-dark` to `oxide` (light mode skin)
+### April 7, 2026 - Glassmorphism + Animated Pill Navigation
+- [x] Animated sliding pill indicator using framer-motion `layoutId` (spring animation between tabs)
+- [x] Full glassmorphism treatment: `bg-white/50 backdrop-blur-lg border-white/60` on all panels, cards, dialogs
+- [x] Network Dashboard: topbar, pill nav, cards, dialogs all glassy
+- [x] Main Site Dashboard: floating panels, CanvasPanel, dropdowns all glassy
+- [x] All wizard dialogs: `bg-white/80 backdrop-blur-2xl` with soft shadows
+- [x] Batch-updated 20+ page files: ContentLibrary, ShowManagement, TeamSettings, MediaLibrary, RDS, Calendar, etc.
+- [x] Counter badges added to pill navigation (Content Library, Media Library, Trash, Content Approval)
+- [x] TinyMCE switched to light mode `oxide` skin
 
 ### April 6, 2026 - Multi-Step Wizard Refactor (All Dialogs)
 - [x] **CreateShowDialog.js** - Converted to 3-step wizard (Show Info, Schedule, Team & Status)

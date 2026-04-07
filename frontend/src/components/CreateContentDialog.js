@@ -129,7 +129,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <DialogContent
         hideClose
-        className="bg-white border-zinc-200 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col"
+        className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]"
         data-testid="create-content-wizard"
         onInteractOutside={preventTinyMCEClose}
         onPointerDownOutside={preventTinyMCEClose}
@@ -206,7 +206,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                         <SelectTrigger data-testid="content-category-select" className="bg-zinc-50 border-zinc-200 text-zinc-900 h-12 rounded-xl">
                           <SelectValue placeholder="Select category..." />
                         </SelectTrigger>
-                        <SelectContent className="bg-white border-zinc-200">
+                        <SelectContent className="bg-white/50 backdrop-blur-lg border-white/60">
                           <SelectItem value="none" className="text-zinc-500">No category</SelectItem>
                           {categories.map((cat) => (
                             <SelectItem key={cat.id} value={cat.id} className="text-zinc-700 focus:text-zinc-900 focus:bg-zinc-50">

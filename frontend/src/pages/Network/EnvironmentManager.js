@@ -188,7 +188,7 @@ export default function EnvironmentManager() {
       {/* Environment Cards */}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {environments.map(env => (
-          <Card key={env.id} className="bg-white border-zinc-200 overflow-hidden" data-testid={`env-card-${env.slug}`}>
+          <Card key={env.id} className="bg-white/50 backdrop-blur-lg border-white/60 overflow-hidden" data-testid={`env-card-${env.slug}`}>
             <div className="h-1" style={{ backgroundColor: env.color || '#3b82f6' }} />
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -273,7 +273,7 @@ export default function EnvironmentManager() {
 
       {/* Edit Dialog (simpler - no deploy animation needed) */}
       <Dialog open={envDialog} onOpenChange={setEnvDialog}>
-        <DialogContent className="bg-white border-zinc-200 max-w-md">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md">
           <DialogHeader><DialogTitle className="text-zinc-900">Edit Environment</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -312,7 +312,7 @@ export default function EnvironmentManager() {
 
       {/* Admin Dialog */}
       <Dialog open={adminDialog.open} onOpenChange={open => !open && setAdminDialog(prev => ({ ...prev, open: false }))}>
-        <DialogContent className="bg-white border-zinc-200 max-w-md">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md">
           <DialogHeader><DialogTitle className="text-zinc-900">Admins - {adminDialog.envName}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             {envAdmins.map(a => (
@@ -347,7 +347,7 @@ export default function EnvironmentManager() {
 
       {/* Copy Site Dialog */}
       <Dialog open={copyDialog.open} onOpenChange={open => !open && setCopyDialog(prev => ({ ...prev, open: false }))}>
-        <DialogContent className="bg-white border-zinc-200 max-w-md">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md">
           <DialogHeader><DialogTitle className="text-zinc-900">Copy Site to {copyDialog.envName}</DialogTitle></DialogHeader>
           <p className="text-sm text-zinc-500">Select a site to copy its structure (features, roles). Data will not be copied.</p>
           <select className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-800"
@@ -366,7 +366,7 @@ export default function EnvironmentManager() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialog.open} onOpenChange={open => !open && setDeleteDialog(prev => ({ ...prev, open: false }))}>
-        <AlertDialogContent className="bg-white border-zinc-200">
+        <AlertDialogContent className="bg-white/50 backdrop-blur-lg border-white/60">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Delete Environment?</AlertDialogTitle>
             <AlertDialogDescription>

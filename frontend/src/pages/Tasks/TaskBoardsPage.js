@@ -459,7 +459,7 @@ function TaskDetailModal({ task, open, onClose, onUpdate, onDelete, onAddComment
             <label className="text-xs text-zinc-400 mb-1.5 block flex items-center gap-1"><MessageSquare className="w-3 h-3" /> Comments ({(task.comments || []).length})</label>
             <div className="space-y-2 mb-2 max-h-40 overflow-y-auto">
               {(task.comments || []).map(c => (
-                <div key={c.id} className="bg-zinc-100 rounded px-3 py-2 group">
+                <div key={c.id} className="bg-white/40 backdrop-blur-sm rounded px-3 py-2 group">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-zinc-600">{c.author_name}</span>
                     <div className="flex items-center gap-2">
@@ -725,7 +725,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
 
         <div className="ml-auto flex items-center gap-2">
           {/* View toggle */}
-          <div className="flex bg-zinc-100 rounded-lg p-0.5" data-testid="view-toggle">
+          <div className="flex bg-white/40 backdrop-blur-sm rounded-lg p-0.5" data-testid="view-toggle">
             <button
               onClick={() => setViewMode('kanban')}
               className={`flex items-center gap-1 px-2.5 py-1 text-xs rounded-md transition-colors ${viewMode === 'kanban' ? 'bg-zinc-200 text-white' : 'text-zinc-400 hover:text-zinc-600'}`}
@@ -809,7 +809,7 @@ function KanbanBoardView({ boardId, onBack, mainSiteId, headers }) {
           </div>
           <DragOverlay>
             {activeTask ? (
-              <div className="bg-zinc-100 rounded-lg border border-orange-500/50 p-3 shadow-xl w-72 opacity-90">
+              <div className="bg-white/40 backdrop-blur-sm rounded-lg border border-orange-500/50 p-3 shadow-xl w-72 opacity-90">
                 <p className="text-sm text-white font-medium">{activeTask.title}</p>
               </div>
             ) : null}

@@ -342,7 +342,7 @@ export default function LicenseManager() {
 
           {/* Assigned sites */}
           {assignedSites.length > 0 && (
-            <Card className="bg-white border-zinc-200">
+            <Card className="bg-white/50 backdrop-blur-lg border-white/60">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-green-400 flex items-center gap-2">
                   <Shield className="w-4 h-4" />
@@ -398,7 +398,7 @@ export default function LicenseManager() {
           </p>
 
           {licenseRequests.length === 0 ? (
-            <Card className="bg-white border-zinc-200">
+            <Card className="bg-white/50 backdrop-blur-lg border-white/60">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="w-12 h-12 text-zinc-600 mb-3" />
                 <p className="text-zinc-400 text-sm">No license requests yet</p>
@@ -413,7 +413,7 @@ export default function LicenseManager() {
                 const statusColor = isPending ? 'bg-amber-500/15 text-amber-400 border-amber-500/25' : isApproved ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : 'bg-red-500/15 text-red-400 border-red-500/25';
                 const StatusIcon = isPending ? Clock : isApproved ? CheckCircle : XCircle;
                 return (
-                  <Card key={req.id} className="bg-white border-zinc-200" data-testid={`license-request-${req.id}`}>
+                  <Card key={req.id} className="bg-white/50 backdrop-blur-lg border-white/60" data-testid={`license-request-${req.id}`}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -486,7 +486,7 @@ export default function LicenseManager() {
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {packages.map(pkg => (
-              <Card key={pkg.id} className="bg-white border-zinc-200" data-testid={`package-card-${pkg.slug}`}>
+              <Card key={pkg.id} className="bg-white/50 backdrop-blur-lg border-white/60" data-testid={`package-card-${pkg.slug}`}>
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base text-zinc-100 flex items-center gap-2">
@@ -513,13 +513,13 @@ export default function LicenseManager() {
                   <div className="space-y-3">
                     {/* Pricing */}
                     <div className="flex gap-3">
-                      <div className="bg-zinc-100 rounded px-2 py-1 text-center flex-1">
+                      <div className="bg-white/40 backdrop-blur-sm rounded px-2 py-1 text-center flex-1">
                         <p className="text-[10px] text-zinc-500 uppercase">Monthly</p>
                         <p className="text-sm font-semibold text-zinc-200">
                           {pkg.monthly_price > 0 ? `${pkg.currency} ${pkg.monthly_price.toFixed(2)}` : 'Free'}
                         </p>
                       </div>
-                      <div className="bg-zinc-100 rounded px-2 py-1 text-center flex-1">
+                      <div className="bg-white/40 backdrop-blur-sm rounded px-2 py-1 text-center flex-1">
                         <p className="text-[10px] text-zinc-500 uppercase">Yearly</p>
                         <p className="text-sm font-semibold text-zinc-200">
                           {pkg.yearly_price > 0 ? `${pkg.currency} ${pkg.yearly_price.toFixed(2)}` : 'Free'}

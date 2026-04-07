@@ -157,7 +157,7 @@ const AudioFileUpload = ({ label, filename, onUpload, onDelete, isUploading }) =
     <div className="space-y-2">
       <Label className="text-sm text-zinc-600">{label}</Label>
       {filename ? (
-        <div className="flex items-center gap-2 p-2 bg-zinc-100 rounded-lg border border-zinc-300">
+        <div className="flex items-center gap-2 p-2 bg-white/40 backdrop-blur-sm rounded-lg border border-zinc-300">
           <Music className="w-4 h-4 text-green-400" />
           <span className="text-sm text-zinc-600 flex-1 truncate">{filename}</span>
           <Button
@@ -327,7 +327,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-100 border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-zinc-900 flex items-center gap-2">
             <Volume2 className="w-5 h-5 text-orange-400" />
@@ -494,7 +494,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
           </div>
 
           {/* Enable Switch */}
-          <div className="flex items-center justify-between p-3 bg-zinc-100 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-white/40 backdrop-blur-sm rounded-lg">
             <div>
               <Label className="text-zinc-600">Enable Trigger</Label>
               <p className="text-xs text-zinc-500">When enabled, the system will listen for this sound</p>
@@ -781,7 +781,7 @@ const AudioTriggersPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, triggerId: null, triggerName: '' })}>
-        <AlertDialogContent className="bg-white border-zinc-200">
+        <AlertDialogContent className="bg-white/50 backdrop-blur-lg border-white/60">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Audio Trigger</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">

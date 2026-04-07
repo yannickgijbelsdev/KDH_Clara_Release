@@ -52,9 +52,9 @@ export const CanvasPanel = ({
       transition={{ duration: 0.4, delay, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         'absolute z-10',
-        'bg-white/75 backdrop-blur-2xl',
-        'border border-black/[0.06]',
-        'shadow-[0_8px_40px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)]',
+        'bg-white/60 backdrop-blur-2xl',
+        'border border-white/60',
+        'shadow-[0_8px_40px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.03)]',
         'rounded-[20px] flex flex-col',
         posClass,
         widthClass,

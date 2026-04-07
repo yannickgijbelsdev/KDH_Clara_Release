@@ -349,7 +349,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
   const timestamps = calculateTimestamps(items, showStartTime);
 
   return (
-    <div data-testid="rundown-editor" className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
+    <div data-testid="rundown-editor" className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
       <div className="sticky top-0 z-10 bg-zinc-100 pb-4 -mx-6 px-6 pt-0 border-b border-zinc-200/50 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -537,7 +537,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
 
       {/* Member Picker Dialog */}
       <Dialog open={showMemberDialog} onOpenChange={setShowMemberDialog}>
-        <DialogContent className="bg-white border-zinc-200 max-w-md">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Rundown Members</DialogTitle>
             <DialogDescription className="text-zinc-400">Select team members who participate in this rundown</DialogDescription>

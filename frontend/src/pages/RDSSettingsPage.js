@@ -242,7 +242,7 @@ const RDSSettingsPage = () => {
       </div>
 
       {/* Settings Section */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Settings className="w-5 h-5 text-orange-400" />
@@ -339,7 +339,7 @@ const RDSSettingsPage = () => {
       </div>
 
       {/* API Endpoints Section */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <ExternalLink className="w-5 h-5 text-violet-400" />
           <h2 className="text-lg font-semibold text-white">API Endpoints</h2>
@@ -368,7 +368,7 @@ const RDSSettingsPage = () => {
                 {stationEndpoints.map((endpoint, index) => (
                   <div
                     key={index}
-                    className={`bg-zinc-100 rounded-lg p-3 border ${
+                    className={`bg-white/40 backdrop-blur-sm rounded-lg p-3 border ${
                       stationColor === 'orange' ? 'border-orange-500/30' : 
                       stationColor === 'violet' ? 'border-violet-500/30' : 'border-zinc-200'
                     }`}
@@ -411,7 +411,7 @@ const RDSSettingsPage = () => {
       </div>
 
       {/* Cache Logs Section */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-5 h-5 text-zinc-400" />
           <h2 className="text-lg font-semibold text-white">Cache Logs</h2>
@@ -428,7 +428,7 @@ const RDSSettingsPage = () => {
             {logs.map((log) => (
               <div
                 key={log.id}
-                className="flex items-start gap-3 p-3 bg-zinc-100 rounded-lg"
+                className="flex items-start gap-3 p-3 bg-white/40 backdrop-blur-sm rounded-lg"
               >
                 {getStatusIcon(log.status)}
                 <div className="flex-1 min-w-0">
@@ -452,7 +452,7 @@ const RDSSettingsPage = () => {
       </div>
 
       {/* Shoutcast Filters Section */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-6">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-orange-400" />
           <h2 className="text-lg font-semibold text-white">Now Playing Filters</h2>
@@ -503,7 +503,7 @@ const RDSSettingsPage = () => {
           {editingFilters === 'mfy' ? (
             <div className="space-y-2">
               {mfyFilters.map((filter, idx) => (
-                <div key={idx} className="flex flex-col gap-2 bg-zinc-100 rounded-lg p-2">
+                <div key={idx} className="flex flex-col gap-2 bg-white/40 backdrop-blur-sm rounded-lg p-2">
                   <div className="flex gap-2 items-center">
                     <Input
                       value={filter.match}
@@ -613,7 +613,7 @@ const RDSSettingsPage = () => {
           {editingFilters === 'grk' ? (
             <div className="space-y-2">
               {grkFilters.map((filter, idx) => (
-                <div key={idx} className="flex flex-col gap-2 bg-zinc-100 rounded-lg p-2">
+                <div key={idx} className="flex flex-col gap-2 bg-white/40 backdrop-blur-sm rounded-lg p-2">
                   <div className="flex gap-2 items-center">
                     <Input
                       value={filter.match}
@@ -684,7 +684,7 @@ const RDSSettingsPage = () => {
 
       {/* Stale Now Playing Config */}
       {staleConfig && (
-        <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
+        <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-amber-400" />
@@ -760,7 +760,7 @@ const RDSSettingsPage = () => {
       )}
 
       {/* Shoutcast Logs Section */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Music className="w-5 h-5 text-green-400" />
           <h2 className="text-lg font-semibold text-white">Shoutcast Logs</h2>

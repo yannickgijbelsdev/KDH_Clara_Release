@@ -304,7 +304,7 @@ const WordPressSettingsPage = () => {
 
       {/* Sites List */}
       {sites.length === 0 ? (
-        <div className="text-center py-16 bg-zinc-100 border border-zinc-200 rounded-xl">
+        <div className="text-center py-16 bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl">
           <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Globe className="w-8 h-8 text-zinc-500" />
           </div>
@@ -326,7 +326,7 @@ const WordPressSettingsPage = () => {
               <div
                 key={site.id}
                 data-testid={`wp-site-${site.id}`}
-                className="bg-zinc-100 border border-zinc-200 rounded-xl p-6"
+                className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -454,7 +454,7 @@ const WordPressSettingsPage = () => {
 
       {/* Add/Edit Site Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[550px]">
+        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] text-white sm:max-w-[550px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {editingSite ? 'Edit WordPress Site' : 'Add WordPress Site'}
@@ -539,7 +539,7 @@ const WordPressSettingsPage = () => {
                   <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                  <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
                     <SelectItem value="post" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Post</SelectItem>
                     <SelectItem value="page" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Page</SelectItem>
                   </SelectContent>
@@ -555,7 +555,7 @@ const WordPressSettingsPage = () => {
                   <SelectTrigger className="bg-zinc-100 border-zinc-300 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-zinc-100 border-zinc-200">
+                  <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
                     <SelectItem value="draft" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Draft</SelectItem>
                     <SelectItem value="publish" className="text-zinc-600 focus:text-white focus:bg-zinc-800">Published</SelectItem>
                   </SelectContent>
@@ -600,7 +600,7 @@ const WordPressSettingsPage = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
+        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Remove WordPress Site</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">

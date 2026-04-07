@@ -201,7 +201,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
 
       {/* Setup Dialog */}
       <Dialog open={setupDialogOpen} onOpenChange={setSetupDialogOpen}>
-        <DialogContent className="bg-white border-zinc-200 max-w-md">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-emerald-500" />
@@ -309,7 +309,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
 
       {/* Disable Dialog */}
       <Dialog open={disableDialogOpen} onOpenChange={setDisableDialogOpen}>
-        <DialogContent className="bg-white border-zinc-200 max-w-md">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
               <ShieldOff className="w-5 h-5" />
@@ -356,7 +356,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
 
       {/* Backup Codes Dialog */}
       <Dialog open={backupCodesDialogOpen} onOpenChange={setBackupCodesDialogOpen}>
-        <DialogContent className="bg-white border-zinc-200 max-w-md">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <KeyRound className="w-5 h-5 text-orange-500" />

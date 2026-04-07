@@ -30,7 +30,7 @@ const Panel = ({ children, className = '', delay = 0, testId }) => (
     initial={{ opacity: 0, y: 12, scale: 0.97 }}
     animate={{ opacity: 1, y: 0, scale: 1 }}
     transition={{ duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] }}
-    className={`bg-white/80 backdrop-blur-2xl rounded-[20px] border border-black/[0.05] shadow-[0_8px_40px_rgba(0,0,0,0.08)] ${className}`}
+    className={`bg-white/55 backdrop-blur-2xl rounded-[20px] border border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.06)] ${className}`}
   >
     {children}
   </motion.div>

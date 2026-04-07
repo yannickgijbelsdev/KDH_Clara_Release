@@ -242,7 +242,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
-      <DialogContent hideClose className="bg-white border-zinc-200 max-w-2xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="create-show-wizard">
+      <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-2xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="create-show-wizard">
         {/* Header with step indicator */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
           <WizardStepIndicator currentStep={wizardStep} steps={SHOW_STEPS} />
@@ -302,7 +302,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                           <SelectTrigger data-testid="show-title-select" className="bg-zinc-50 border-zinc-200 text-zinc-900 h-12 rounded-xl">
                             <SelectValue placeholder="Select a show title..." />
                           </SelectTrigger>
-                          <SelectContent className="bg-white border-zinc-200">
+                          <SelectContent className="bg-white/50 backdrop-blur-lg border-white/60">
                             {showTitles.map((title) => (
                               <SelectItem key={title.id} value={title.id} className="text-zinc-700 focus:text-zinc-900 focus:bg-zinc-50">
                                 {title.name}
@@ -342,7 +342,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                           <SelectTrigger data-testid="show-studio-select" className="bg-zinc-50 border-zinc-200 text-zinc-900 h-12 rounded-xl">
                             <SelectValue placeholder="Select a studio..." />
                           </SelectTrigger>
-                          <SelectContent className="bg-white border-zinc-200">
+                          <SelectContent className="bg-white/50 backdrop-blur-lg border-white/60">
                             {studios.map((studio) => (
                               <SelectItem key={studio.id} value={studio.id} className="text-zinc-700 focus:text-zinc-900 focus:bg-zinc-50">
                                 {studio.name}
@@ -403,7 +403,7 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                         <SelectTrigger data-testid="show-recurrence-select" className="bg-zinc-50 border-zinc-200 text-zinc-900 h-12 rounded-xl">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-white border-zinc-200">
+                        <SelectContent className="bg-white/50 backdrop-blur-lg border-white/60">
                           {recurrenceOptions.map((option) => (
                             <SelectItem key={option.value} value={option.value} className="text-zinc-700 focus:text-zinc-900 focus:bg-zinc-50">
                               {option.label}

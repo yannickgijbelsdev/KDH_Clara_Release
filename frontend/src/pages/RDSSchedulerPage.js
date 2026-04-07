@@ -497,7 +497,7 @@ const RDSSchedulerPage = () => {
       </div>
 
       {/* Station Selector & Month Navigation */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-4 sm:p-6 mb-6">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-4 sm:p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-4">
             <h2 className="text-lg sm:text-xl font-bold text-white">
@@ -632,7 +632,7 @@ const RDSSchedulerPage = () => {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-white border-zinc-200">
+        <AlertDialogContent className="bg-white/50 backdrop-blur-lg border-white/60">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Scheduled Text</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">

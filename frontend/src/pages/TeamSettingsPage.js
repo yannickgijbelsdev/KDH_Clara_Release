@@ -445,7 +445,7 @@ const TeamSettingsPage = () => {
       </div>
 
       {/* Team Info */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 mb-8">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 mb-8">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-500/20 rounded-lg">
@@ -466,7 +466,7 @@ const TeamSettingsPage = () => {
       </div>
 
       {/* Users Section */}
-      <div className="bg-zinc-100 border border-zinc-200 rounded-xl p-6">
+      <div className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-violet-500/20 rounded-lg">
@@ -513,7 +513,7 @@ const TeamSettingsPage = () => {
               <div
                 key={member.id}
                 data-testid={`user-row-${member.id}`}
-                className="flex items-center justify-between p-4 bg-zinc-100 rounded-lg"
+                className="flex items-center justify-between p-4 bg-white/40 backdrop-blur-sm rounded-lg"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center overflow-hidden">
@@ -564,7 +564,7 @@ const TeamSettingsPage = () => {
                             <Edit2 className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-zinc-100 border-zinc-200">
+                        <DropdownMenuContent align="end" className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
                           <DropdownMenuItem
                             onClick={() => openEditUser(member)}
                             className="text-zinc-600"
@@ -607,13 +607,13 @@ const TeamSettingsPage = () => {
                         value={member.role}
                         onValueChange={(value) => handleUpdateRole(member.id, value)}
                       >
-                        <SelectTrigger className="w-40 bg-zinc-100 border-zinc-300 text-zinc-600">
+                        <SelectTrigger className="w-40 bg-white/40 backdrop-blur-sm border-white/60 text-zinc-600">
                           <div className="flex items-center gap-2">
                             <RoleIcon className="w-4 h-4" />
                             <span>{getRoleLabel(member.role)}</span>
                           </div>
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-100 border-zinc-200">
+                        <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
                           {/* Show current role if not in available roles (legacy) */}
                           {!availableRoles.find(r => r.slug === member.role) && (
                             <SelectItem value={member.role} className="text-zinc-500 focus:text-white focus:bg-zinc-800">
@@ -647,7 +647,7 @@ const TeamSettingsPage = () => {
                             <Edit2 className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-zinc-100 border-zinc-200">
+                        <DropdownMenuContent align="end" className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
                           <DropdownMenuItem
                             onClick={() => openEditUser(member)}
                             className="text-zinc-600"
@@ -721,7 +721,7 @@ const TeamSettingsPage = () => {
 
       {/* Invite User Dialog */}
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="invite-user-wizard">
+        <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="invite-user-wizard">
           {/* Header */}
           <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
             <WizardStepIndicator currentStep={0} steps={['User Info', 'Role']} />
@@ -808,7 +808,7 @@ const TeamSettingsPage = () => {
 
       {/* Add Existing User Dialog */}
       <Dialog open={addExistingUserDialogOpen} onOpenChange={setAddExistingUserDialogOpen}>
-        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="add-existing-user-wizard">
+        <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="add-existing-user-wizard">
           {/* Header */}
           <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
             <WizardStepIndicator currentStep={selectedExistingUser ? 1 : 0} steps={['Search', 'Role & Confirm']} />
@@ -916,7 +916,7 @@ const TeamSettingsPage = () => {
 
       {/* Temporary Password Dialog */}
       <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-        <DialogContent hideClose className="bg-white border-zinc-200 max-w-md max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="temp-password-dialog">
+        <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-md max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="temp-password-dialog">
           <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
             <h2 className="text-lg font-bold text-zinc-900">User Invited!</h2>
             <button onClick={() => { setPasswordDialogOpen(false); setTempPassword(''); }}
@@ -948,7 +948,7 @@ const TeamSettingsPage = () => {
 
       {/* Delete User Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-white border-zinc-200 rounded-[24px]">
+      <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 rounded-[24px] shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Remove User</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-500">
@@ -971,7 +971,7 @@ const TeamSettingsPage = () => {
 
       {/* Edit User Dialog */}
       <Dialog open={editUserDialogOpen} onOpenChange={setEditUserDialogOpen}>
-        <DialogContent hideClose className="bg-white border-zinc-200 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="edit-user-wizard">
+        <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="edit-user-wizard">
           <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
             <WizardStepIndicator currentStep={0} steps={['Profile Info']} />
             <button onClick={() => setEditUserDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
@@ -1027,7 +1027,7 @@ const TeamSettingsPage = () => {
 
       {/* Reset Password Dialog */}
       <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
-        <DialogContent hideClose className="bg-white border-zinc-200 max-w-md max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col" data-testid="reset-password-wizard">
+        <DialogContent hideClose className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-md max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="reset-password-wizard">
           <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
             <WizardStepIndicator currentStep={0} steps={['New Password']} />
             <button onClick={() => setResetPasswordDialogOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">

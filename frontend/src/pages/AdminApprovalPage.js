@@ -279,7 +279,7 @@ const AdminApprovalPage = () => {
                statusFilter === 'approved' ? 'Approved' : 'Rejected'}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="bg-zinc-100 border-zinc-200">
+          <DropdownMenuContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
             <DropdownMenuItem
               onClick={() => setStatusFilter('all')}
               className="text-zinc-600 focus:text-white focus:bg-zinc-800"
@@ -317,7 +317,7 @@ const AdminApprovalPage = () => {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="bg-zinc-100 border border-zinc-200 rounded-xl p-6 animate-pulse"
+              className="bg-white/50 backdrop-blur-lg border border-white/60 rounded-xl p-6 animate-pulse"
             >
               <div className="h-6 bg-zinc-100 rounded w-1/3 mb-3" />
               <div className="h-4 bg-zinc-100 rounded w-2/3" />
@@ -370,7 +370,7 @@ const AdminApprovalPage = () => {
                         />
                       </div>
                     ) : (
-                      <div className="p-3 bg-zinc-100 rounded-lg">
+                      <div className="p-3 bg-white/40 backdrop-blur-sm rounded-lg">
                         <TypeIcon className="w-6 h-6 text-zinc-400" />
                       </div>
                     )}
@@ -496,7 +496,7 @@ const AdminApprovalPage = () => {
 
       {/* Approval Dialog */}
       <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
-        <DialogContent className="bg-white border-zinc-200 text-zinc-900 sm:max-w-[500px]">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 text-zinc-900 sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               {approvalAction === 'approved' && (

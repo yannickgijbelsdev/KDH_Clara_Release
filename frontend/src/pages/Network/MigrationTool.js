@@ -100,7 +100,7 @@ export default function MigrationTool() {
 
   return (
     <>
-      <Card className="bg-white border-zinc-200">
+      <Card className="bg-white/50 backdrop-blur-lg border-white/60">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
             <Database className="w-5 h-5 text-orange-500" />
@@ -118,7 +118,7 @@ export default function MigrationTool() {
       </Card>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Database className="w-5 h-5 text-orange-500" />
@@ -138,7 +138,7 @@ export default function MigrationTool() {
           {status && !migrationResult && (
             <div className="space-y-4">
               {/* Current Status */}
-              <div className="bg-zinc-100 rounded-lg p-4">
+              <div className="bg-white/40 backdrop-blur-sm rounded-lg p-4">
                 <h3 className="text-white font-medium mb-3">Current Status</h3>
                 
                 <div className="grid grid-cols-3 gap-4 text-center mb-4">
@@ -171,7 +171,7 @@ export default function MigrationTool() {
 
               {/* Collections to migrate */}
               {Object.keys(status.collections || {}).length > 0 && (
-                <div className="bg-zinc-100 rounded-lg p-4">
+                <div className="bg-white/40 backdrop-blur-sm rounded-lg p-4">
                   <h3 className="text-white font-medium mb-3">Collections</h3>
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {Object.entries(status.collections).map(([name, data]) => (
@@ -188,7 +188,7 @@ export default function MigrationTool() {
 
               {/* Migration Settings */}
               {needsMigration && (
-                <div className="bg-zinc-100 rounded-lg p-4">
+                <div className="bg-white/40 backdrop-blur-sm rounded-lg p-4">
                   <h3 className="text-white font-medium mb-3">Migration Settings</h3>
                   
                   {/* Auto-detected info banner */}
@@ -284,7 +284,7 @@ export default function MigrationTool() {
               </div>
 
               {migrationResult.success && (
-                <div className="bg-zinc-100 rounded-lg p-4">
+                <div className="bg-white/40 backdrop-blur-sm rounded-lg p-4">
                   <h3 className="text-white font-medium mb-3">Results</h3>
                   
                   <div className="space-y-2 text-sm">

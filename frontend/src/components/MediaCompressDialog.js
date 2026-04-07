@@ -81,7 +81,7 @@ const MediaCompressDialog = ({ file, open, onClose, onCompressed, onSkip }) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-white border-zinc-200 max-w-md" data-testid="media-compress-dialog">
+      <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-md" data-testid="media-compress-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-400" />

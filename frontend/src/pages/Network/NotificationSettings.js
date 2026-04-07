@@ -676,7 +676,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
   // Dialog mode
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-white border-zinc-200 max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="notification-settings">
+      <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="notification-settings">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Bell className="w-5 h-5 text-orange-400" />

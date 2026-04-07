@@ -271,7 +271,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
   };
 
   return (
-    <div className="bg-zinc-100 rounded-lg p-4 border border-zinc-300">
+    <div className="bg-white/40 backdrop-blur-sm rounded-lg p-4 border border-zinc-300">
       <div className="flex items-center gap-3">
         {/* Drag handle / Move buttons */}
         <div className="flex flex-col gap-1">
@@ -301,7 +301,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
         </div>
 
         {/* Type icon */}
-        <div className="p-2 bg-zinc-100 rounded-lg">
+        <div className="p-2 bg-white/40 backdrop-blur-sm rounded-lg">
           <TypeIcon className="w-4 h-4 text-zinc-400" />
         </div>
 
@@ -564,7 +564,7 @@ const StationBuilder = ({ station, stationName, color }) => {
       </div>
 
       {/* Output URL */}
-      <div className="bg-zinc-100 rounded-lg p-3 mb-6">
+      <div className="bg-white/40 backdrop-blur-sm rounded-lg p-3 mb-6">
         <Label className="text-zinc-400 text-xs mb-1 block">MagicRDS URL:</Label>
         <code className={`text-sm ${colors.text} break-all`}>
           https://clara.koodh.com/api/rds-builder/output/{station}.txt

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTopLoader } from '../../components/TopLoader';
 import SetupWizard from '../../components/SetupWizard';
@@ -107,7 +108,7 @@ function DebugContent({ data }) {
   };
 
   const Section = ({ id, title, icon: Icon, color, count, children }) => (
-    <div className="bg-zinc-100/50 rounded-lg overflow-hidden">
+    <div className="bg-white/30 backdrop-blur-sm rounded-lg overflow-hidden">
       <button
         onClick={() => toggle(id)}
         className="w-full flex items-center gap-3 p-3 hover:bg-zinc-100/80 transition"
@@ -124,7 +125,7 @@ function DebugContent({ data }) {
   return (
     <div className="space-y-3">
       {/* Header info */}
-      <div className="flex items-center gap-4 p-3 bg-zinc-100/30 rounded-lg text-xs text-zinc-400">
+      <div className="flex items-center gap-4 p-3 bg-white/20 backdrop-blur-sm rounded-lg text-xs text-zinc-400">
         <span><Clock className="w-3 h-3 inline mr-1" />{data.brussels_time}</span>
         <span>Team IDs: {data.team_ids_resolved?.length || 0}</span>
         <span>Sites: {data.child_sites?.length || 0}</span>
@@ -192,7 +193,7 @@ function DebugContent({ data }) {
         {data.active_rundowns?.length > 0 ? (
           <div className="space-y-1">
             {data.active_rundowns.map((r, i) => (
-              <div key={i} className="text-xs p-2 bg-zinc-100/50 rounded">
+              <div key={i} className="text-xs p-2 bg-white/30 backdrop-blur-sm rounded">
                 <span className="text-zinc-800">{r.show_title}</span>
                 <span className="text-zinc-500 ml-2">{r.show_start_time}–{r.show_end_time}</span>
                 <span className="text-zinc-600 ml-2">{r.rds_station}</span>
@@ -289,9 +290,9 @@ function UserAccessSection({ token, API }) {
       </div>
       <div className="space-y-6">
         <div className="grid grid-cols-3 gap-4">
-          <Card className="bg-white border-zinc-200"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_users}</div><div className="text-xs text-zinc-400">Total Users</div></CardContent></Card>
-          <Card className="bg-white border-zinc-200"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_main_sites}</div><div className="text-xs text-zinc-400">Main Sites</div></CardContent></Card>
-          <Card className="bg-white border-zinc-200"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_access_records}</div><div className="text-xs text-zinc-400">Access Records</div></CardContent></Card>
+          <Card className="bg-white/50 backdrop-blur-lg border-white/60"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_users}</div><div className="text-xs text-zinc-400">Total Users</div></CardContent></Card>
+          <Card className="bg-white/50 backdrop-blur-lg border-white/60"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_main_sites}</div><div className="text-xs text-zinc-400">Main Sites</div></CardContent></Card>
+          <Card className="bg-white/50 backdrop-blur-lg border-white/60"><CardContent className="p-4"><div className="text-2xl font-bold text-zinc-900">{data.total_access_records}</div><div className="text-xs text-zinc-400">Access Records</div></CardContent></Card>
         </div>
         {data.users_without_site_access?.length > 0 && (
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
@@ -301,7 +302,7 @@ function UserAccessSection({ token, API }) {
             </h3>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {data.users_without_site_access.map((u, idx) => (
-                <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-100/50 rounded p-2">
+                <div key={idx} className="flex items-center gap-3 text-sm bg-white/30 backdrop-blur-sm rounded p-2">
                   <span className="text-zinc-800 font-medium">{u.user_name}</span>
                   <span className="text-zinc-500">{u.user_email}</span>
                   <span className="text-xs bg-zinc-200 px-2 py-0.5 rounded">{u.user_global_role}</span>
@@ -314,7 +315,7 @@ function UserAccessSection({ token, API }) {
           <h3 className="text-zinc-800 font-semibold mb-3">Access per Main Site</h3>
           <div className="space-y-4">
             {Object.entries(data.access_by_site || {}).map(([siteName, users]) => (
-              <Card key={siteName} className="bg-white border-zinc-200">
+              <Card key={siteName} className="bg-white/50 backdrop-blur-lg border-white/60">
                 <CardContent className="p-4">
                   <h4 className="text-zinc-800 font-medium mb-3 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-blue-400" />
@@ -325,7 +326,7 @@ function UserAccessSection({ token, API }) {
                     {users.map((access, idx) => {
                       const RIcon = roleIcons[access.site_role] || Eye;
                       return (
-                        <div key={idx} className="flex items-center gap-3 text-sm bg-zinc-100/30 rounded p-2">
+                        <div key={idx} className="flex items-center gap-3 text-sm bg-white/20 backdrop-blur-sm rounded p-2">
                           <RIcon className="w-4 h-4 text-zinc-400" />
                           <span className="text-white font-medium min-w-[150px]">{access.user_name}</span>
                           <span className="text-zinc-500 min-w-[200px]">{access.user_email}</span>
@@ -780,13 +781,13 @@ export default function NetworkDashboard() {
     <div className="h-screen flex flex-col overflow-hidden bg-[#F0F0F2]" style={{ height: '100dvh' }}>
 
         {/* ─── Horizontal Top Navigation ─── */}
-        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-white/60 backdrop-blur-2xl border-b border-black/[0.06] z-50 overflow-x-hidden" data-testid="workspace-topbar">
+        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-white/50 backdrop-blur-2xl border-b border-white/60 shadow-[0_1px_12px_rgba(0,0,0,0.04)] z-50 overflow-x-hidden" data-testid="workspace-topbar">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors">
             <Menu className="w-5 h-5" />
           </button>
 
           {/* Logo pill */}
-          <Link to="/network" className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-100 transition-colors flex-shrink-0" data-testid="logo-pill">
+          <Link to="/network" className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0" data-testid="logo-pill">
             <Network className="w-4 h-4" />
             <span className="hidden sm:inline">Clara</span>
           </Link>
@@ -795,7 +796,7 @@ export default function NetworkDashboard() {
           {environments.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-zinc-300 bg-zinc-100 text-zinc-700 rounded-full hover:bg-zinc-200 shadow-sm" data-testid="env-switcher">
+                <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 border-white/60 bg-white/40 backdrop-blur-lg text-zinc-700 rounded-full hover:bg-white/60 shadow-sm" data-testid="env-switcher">
                   <Server className="w-3 h-3" />
                   <span className="hidden md:inline">{environments.find(e => e.id === selectedEnvId)?.name || 'Environment'}</span>
                   <ChevronDown className="w-3 h-3 opacity-50" />
@@ -814,11 +815,19 @@ export default function NetworkDashboard() {
           )}
 
           {/* Pill Tabs */}
-          <div className="hidden lg:flex items-center gap-0.5 mx-auto bg-zinc-100/80 rounded-full p-1" data-testid="pill-nav">
+          <div className="hidden lg:flex items-center gap-0.5 mx-auto bg-white/30 backdrop-blur-xl rounded-full p-1 border border-white/50 shadow-[0_2px_20px_rgba(0,0,0,0.04)]" data-testid="pill-nav">
             {flatNavItems.filter(i => !i.link).slice(0, 5).map(tab => {
               const isTabActive = activeSection === tab.id;
               return (
-                <button key={tab.id} onClick={() => setActiveSection(tab.id)} className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${isTabActive ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-800 hover:bg-white/60'}`} data-testid={`pill-${tab.id}`}>
+                <button key={tab.id} onClick={() => setActiveSection(tab.id)} className={`relative px-5 py-2 rounded-full text-sm font-medium transition-colors duration-200 z-[1] ${isTabActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-800'}`} data-testid={`pill-${tab.id}`}>
+                  {isTabActive && (
+                    <motion.div
+                      layoutId="network-pill-active"
+                      className="absolute inset-0 bg-zinc-900/85 backdrop-blur-sm rounded-full shadow-lg"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      style={{ zIndex: -1 }}
+                    />
+                  )}
                   {tab.label}
                 </button>
               );
@@ -828,7 +837,7 @@ export default function NetworkDashboard() {
                 <DropdownMenuTrigger asChild>
                   <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="bg-white/90 backdrop-blur-2xl border-black/10 shadow-xl">
+                <DropdownMenuContent align="center" className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
                   {flatNavItems.filter(i => !i.link).slice(5).map(item => {
                     const Icon = item.icon;
                     return (
@@ -1079,7 +1088,7 @@ export default function NetworkDashboard() {
                   </span>
                 )}
               </div>
-              <Card className="bg-white border-zinc-200 max-w-lg">
+              <Card className="bg-white/50 backdrop-blur-lg border-white/60 max-w-lg">
                 <CardContent className="p-6">
                   <TwoFactorSetup user={user} onUpdate={refreshUser} />
                 </CardContent>
@@ -1106,7 +1115,7 @@ export default function NetworkDashboard() {
                     </button>
                   </div>
 
-                  <Card className="bg-white border-zinc-200 max-w-lg" data-testid="zt-guard-config">
+                  <Card className="bg-white/50 backdrop-blur-lg border-white/60 max-w-lg" data-testid="zt-guard-config">
                     <CardContent className="p-5 space-y-4">
                       {ztGuard.enabled && (
                         <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-500/10 px-3 py-2 rounded-lg border border-blue-500/20">
@@ -1191,7 +1200,7 @@ export default function NetworkDashboard() {
           setFormData({ name: '', slug: '', enabled_features: [], site_type: 'radio' });
         }
       }}>
-        <DialogContent className="bg-white border-zinc-200 max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-lg max-h-[90vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <DialogHeader>
             <DialogTitle>Create Main Site</DialogTitle>
           </DialogHeader>
@@ -1292,7 +1301,7 @@ export default function NetworkDashboard() {
               {createStep === 2 && (
                 <div className="space-y-4">
                   {(() => { const pkg = PACKAGES.find(p => p.type === formData.site_type); return (
-                    <div className="bg-zinc-100/50 rounded-lg p-4 border border-zinc-300 space-y-3">
+                    <div className="bg-white/30 backdrop-blur-sm rounded-lg p-4 border border-zinc-300 space-y-3">
                       <div className="flex items-center gap-3">
                         {pkg && <pkg.icon className={`w-6 h-6 ${PACKAGE_ICON_COLORS[pkg.color]}`} />}
                         <div>
@@ -1327,7 +1336,7 @@ export default function NetworkDashboard() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, siteId: null, siteName: '' })}>
-        <AlertDialogContent className="bg-white border-zinc-200">
+        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Delete Main Site</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
@@ -1350,7 +1359,7 @@ export default function NetworkDashboard() {
 
       {/* Health Check Panel */}
       <Dialog open={healthCheck.open} onOpenChange={(open) => !open && setHealthCheck({ open: false, siteId: null, siteName: '', loading: false, result: null, history: [] })}>
-        <DialogContent className="bg-white border-zinc-200 max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60 max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Activity className="w-5 h-5 text-orange-500" />
@@ -1389,7 +1398,7 @@ export default function NetworkDashboard() {
               {/* Individual Checks */}
               <div className="space-y-2">
                 {healthCheck.result.checks?.map((check, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-zinc-100/50 rounded-lg">
+                  <div key={i} className="flex items-center gap-3 p-3 bg-white/30 backdrop-blur-sm rounded-lg">
                     {check.status === 'ok' ? (
                       <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                     ) : check.status === 'error' ? (
@@ -1411,7 +1420,7 @@ export default function NetworkDashboard() {
               </div>
 
               {/* Team IDs resolved */}
-              <div className="text-xs text-zinc-500 p-2 bg-zinc-100/30 rounded">
+              <div className="text-xs text-zinc-500 p-2 bg-white/20 backdrop-blur-sm rounded">
                 Team IDs searched: {healthCheck.result.team_ids_resolved?.length || 0}
               </div>
 
@@ -1444,7 +1453,7 @@ export default function NetworkDashboard() {
 
       {/* Debug Panel */}
       <Dialog open={debugPanel.open} onOpenChange={(open) => !open && setDebugPanel({ open: false, siteId: null, siteName: '', loading: false, data: null })}>
-        <DialogContent className="bg-white border-zinc-200 max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 max-w-4xl max-h-[90vh] overflow-y-auto shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <DialogTitle className="flex items-center gap-2">

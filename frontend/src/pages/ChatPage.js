@@ -873,7 +873,7 @@ const ChatPage = () => {
                           <Settings className="w-5 h-5 text-zinc-400" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-zinc-100 border-zinc-200">
+                      <DropdownMenuContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
                         <DropdownMenuItem 
                           onClick={() => setShowManageDialog(true)}
                           className="text-zinc-600 focus:text-white focus:bg-zinc-800"
@@ -1081,7 +1081,7 @@ const ChatPage = () => {
 
       {/* New Chat Dialog */}
       <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Plus className="w-5 h-5 text-orange-500" />
@@ -1218,7 +1218,7 @@ const ChatPage = () => {
 
       {/* Manage Members Dialog */}
       <Dialog open={showManageDialog} onOpenChange={setShowManageDialog}>
-        <DialogContent className="bg-zinc-100 border-zinc-200 text-white sm:max-w-[500px]">
+        <DialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)] text-white sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-violet-500" />
@@ -1261,7 +1261,7 @@ const ChatPage = () => {
                               <SelectTrigger className="w-24 h-8 bg-zinc-800 border-zinc-300 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-zinc-100 border-zinc-200">
+                              <SelectContent className="bg-white/80 backdrop-blur-2xl border-white/60">
                                 <SelectItem value="member" className="text-zinc-600">Member</SelectItem>
                                 <SelectItem value="admin" className="text-zinc-600">Admin</SelectItem>
                                 {getUserRole() === 'owner' && (
@@ -1318,7 +1318,7 @@ const ChatPage = () => {
 
       {/* Delete Group/Chat Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-zinc-100 border-zinc-200">
+        <AlertDialogContent className="bg-white/80 backdrop-blur-2xl border-white/60 shadow-[0_8px_40px_rgba(0,0,0,0.1)]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-500" />

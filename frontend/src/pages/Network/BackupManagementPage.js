@@ -249,7 +249,7 @@ export default function BackupManagementPage() {
               className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${
                 selectedSite?.id === site.id
                   ? 'bg-orange-600 text-zinc-900'
-                  : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 border border-zinc-200'
+                  : 'bg-zinc-50 text-zinc-500 hover:bg-white/50 backdrop-blur-lg border border-white/60'
               }`}
               data-testid={`site-tab-${site.slug || site.id}`}
             >

@@ -250,7 +250,7 @@ export default function SitesListPage() {
 
       {/* Create Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="bg-white border-zinc-200">
+        <DialogContent className="bg-white/50 backdrop-blur-lg border-white/60">
           <DialogHeader>
             <DialogTitle>Create new site</DialogTitle>
           </DialogHeader>
@@ -302,7 +302,7 @@ export default function SitesListPage() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, siteId: null, siteName: '' })}>
-        <AlertDialogContent className="bg-white border-zinc-200">
+        <AlertDialogContent className="bg-white/50 backdrop-blur-lg border-white/60">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Site verwijderen</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
