@@ -343,9 +343,8 @@ const ApiExplorerPage = () => {
         </div>
 
         {/* ── Center: Card area ── */}
-        <div className="flex-1 flex relative overflow-hidden gap-4">
-          <div className={`flex-1 overflow-y-auto pr-1 transition-all duration-300 ${selectedCategory ? 'mr-[490px]' : ''}`}>
-            <div className="flex flex-wrap gap-4 pb-4">
+        <div className="flex-1 flex justify-center relative overflow-y-auto overflow-x-hidden">
+          <div className={`flex flex-wrap justify-center gap-4 sm:gap-6 py-4 content-start transition-all duration-300 ${selectedCategory ? 'mr-[500px]' : ''}`}>
               {categoryEntries.map(([catName, catData], i) => (
                 <CategoryCard
                   key={catName}
@@ -357,7 +356,6 @@ const ApiExplorerPage = () => {
                   onClick={() => setSelectedCategory(selectedCategory === catName ? null : catName)}
                 />
               ))}
-            </div>
           </div>
 
           {/* Detail panel */}

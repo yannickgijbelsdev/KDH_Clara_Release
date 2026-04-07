@@ -636,29 +636,25 @@ export default function BackupManagementPage() {
           </motion.div>
         </div>
 
-        {/* ── Center: Card grid ── */}
-        <div className="flex-1 flex relative overflow-hidden gap-4">
-          {/* Scrollable card area */}
-          <div className={`flex-1 overflow-y-auto pr-1 transition-all duration-300 ${selectedSite ? 'mr-[430px]' : ''}`}>
-            <div className="space-y-6 pb-4">
+        {/* ── Center: Card scene ── */}
+        <div className="flex-1 flex justify-center relative overflow-y-auto overflow-x-hidden">
+          {/* Centered card area — shifts left when panel is open */}
+          <div className={`flex flex-col items-center gap-8 py-4 transition-all duration-300 ${selectedSite ? 'mr-[440px]' : ''}`}>
               {Object.entries(sitesByEnv).map(([envId, envSites]) => {
                 const env = environments.find(e => e.id === envId);
                 return (
-                  <div key={envId}>
+                  <div key={envId} className="flex flex-col items-center">
                     {/* Environment label */}
                     {(Object.keys(sitesByEnv).length > 1 || env) && (
-                      <div className="flex items-center gap-3 mb-3 ml-1">
-                        <div className="bg-white/70 backdrop-blur-xl rounded-full px-4 py-1.5 border border-black/[0.05] shadow-sm">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: env?.color || '#71717a' }} />
-                            <span className="text-[11px] font-semibold text-zinc-600">{env?.name || 'Production'}</span>
-                            <span className="text-[10px] text-zinc-400">({envSites.length})</span>
-                          </div>
+                      <div className="bg-white/70 backdrop-blur-xl rounded-full px-4 py-1.5 border border-black/[0.05] shadow-sm mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: env?.color || '#71717a' }} />
+                          <span className="text-[11px] font-semibold text-zinc-600">{env?.name || 'Production'}</span>
+                          <span className="text-[10px] text-zinc-400">({envSites.length})</span>
                         </div>
-                        <div className="flex-1 h-px bg-black/[0.04]" />
                       </div>
                     )}
-                    <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
+                    <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
                       {envSites.map((site, i) => {
                         const sbc = siteBackupCounts[site.id] || { count: 0, lastBackup: null };
                         return (
@@ -678,7 +674,6 @@ export default function BackupManagementPage() {
                 );
               })}
             </div>
-          </div>
 
           {/* ── Backup detail panel ── */}
           <AnimatePresence>
