@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { motion } from 'framer-motion';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -287,105 +288,157 @@ export default function LicenseManager() {
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <StatCard label="Total Sites" value={overview.length} icon={Globe} color="text-blue-400" />
-            <StatCard label="Licensed" value={assignedSites.length} icon={Check} color="text-green-400" />
-            <StatCard label="No License" value={unassignedSites.filter(s => !s.is_demo).length} icon={AlertTriangle} color="text-red-400" />
-            <StatCard label="Demo" value={overview.filter(s => s.is_demo).length} icon={Globe} color="text-amber-400" />
-            <StatCard label="Lifetime" value={assignedSites.filter(s => s.is_lifetime).length} icon={Infinity} color="text-purple-400" />
-          </div>
-
-          {/* Unassigned sites warning */}
-          {unassignedSites.length > 0 && (
-            <Card className="bg-red-50 border-red-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-red-400 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Sites Without License ({unassignedSites.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {unassignedSites.map(site => (
-                  <div key={site.site_id} className="flex items-center justify-between bg-white/60 rounded-lg px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
-                        {SITE_TYPE_LABELS[site.site_type] || site.site_type}
-                      </span>
-                      <span className="text-sm text-zinc-700">{site.site_name}</span>
-                      {site.is_demo && (
-                        <span className="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Demo</span>
-                      )}
+          {/* Stats as 260px cards */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            {[
+              { label: 'Total Sites', value: overview.length, icon: Globe, color: '#3b82f6' },
+              { label: 'Licensed', value: assignedSites.length, icon: Check, color: '#22c55e' },
+              { label: 'No License', value: unassignedSites.filter(s => !s.is_demo).length, icon: AlertTriangle, color: '#ef4444' },
+              { label: 'Demo', value: overview.filter(s => s.is_demo).length, icon: Globe, color: '#f59e0b' },
+              { label: 'Lifetime', value: assignedSites.filter(s => s.is_lifetime).length, icon: Infinity, color: '#a855f7' },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="w-[260px] flex-shrink-0"
+              >
+                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                  <div className="relative h-[100px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${stat.color}15, ${stat.color}08)` }}>
+                    <stat.icon className="w-10 h-10" style={{ color: `${stat.color}40` }} />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                      <span className="text-[10px] font-bold tracking-wider" style={{ color: stat.color }}>{stat.label.toUpperCase()}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleDemo(site.site_id, site.is_demo)}
-                        className={`h-7 px-2 text-xs rounded border transition-colors ${
-                          site.is_demo
-                            ? 'bg-amber-600/20 border-amber-600/40 text-amber-400 hover:bg-amber-600/30'
-                            : 'bg-zinc-100 border-zinc-300 text-zinc-400 hover:bg-zinc-200'
-                        }`}
-                        data-testid={`toggle-demo-${site.site_slug}`}
-                      >
-                        {site.is_demo ? 'Demo On' : 'Demo Off'}
-                      </button>
-                      <Button size="sm" variant="outline" onClick={() => openAssign(site.site_id)} className="h-7 text-xs" data-testid={`assign-license-${site.site_slug}`}>
-                        <CreditCard className="w-3 h-3 mr-1" />
-                        Assign License
-                      </Button>
+                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-3 py-1 border border-black/[0.06]">
+                      <span className="text-xl font-bold text-zinc-800">{stat.value}</span>
                     </div>
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                  <div className="h-1" style={{ background: `linear-gradient(90deg, ${stat.color}, ${stat.color}60)` }} />
+                </div>
+              </motion.div>
+            ))}
+          </div>
 
-          {/* Assigned sites */}
-          {assignedSites.length > 0 && (
-            <Card className="bg-white border-zinc-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-green-400 flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Licensed Sites ({assignedSites.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {assignedSites.map(site => (
-                    <div key={site.site_id} className="flex items-center justify-between bg-zinc-100/70 rounded-lg px-3 py-2">
-                      <div className="flex items-center gap-3">
-                        <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
-                          {SITE_TYPE_LABELS[site.site_type] || site.site_type}
-                        </span>
-                        <span className="text-sm text-zinc-700">{site.site_name}</span>
-                        <span className="px-2 py-0.5 rounded text-xs bg-green-500/20 text-green-400">
-                          {site.license_package}
-                        </span>
-                        {site.is_demo && (
-                          <span className="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Demo</span>
-                        )}
-                        {site.is_lifetime && (
-                          <span className="px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-400 flex items-center gap-1">
-                            <Infinity className="w-3 h-3" /> Lifetime
+          {/* Unassigned sites as 260px cards */}
+          {unassignedSites.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <AlertTriangle className="w-4 h-4 text-red-400" />
+                <span className="text-sm font-medium text-red-500">Sites Without License ({unassignedSites.length})</span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                {unassignedSites.map((site, i) => (
+                  <motion.div
+                    key={site.site_id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-[260px] flex-shrink-0"
+                  >
+                    <div className="rounded-2xl overflow-hidden border border-red-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #fef2f2 100%)' }}>
+                      <div className="relative h-[140px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #ef444415, #ef444408)' }}>
+                        <AlertTriangle className="w-16 h-16 text-red-200" />
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                          <span className={`text-[10px] font-bold tracking-wider ${SITE_TYPE_COLORS[site.site_type] ? '' : 'text-zinc-500'}`}>
+                            {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
                           </span>
-                        )}
-                        {!site.is_lifetime && (
-                          <span className="text-xs text-zinc-500 capitalize">{site.billing_cycle}</span>
+                        </div>
+                        {site.is_demo && (
+                          <div className="absolute top-3 right-3 bg-amber-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-amber-300/30">
+                            <span className="text-[10px] font-bold tracking-wider text-amber-600">DEMO</span>
+                          </div>
                         )}
                       </div>
-                      <Button
-                        size="sm" variant="ghost"
-                        onClick={() => setDeleteDialog({ open: true, type: 'assignment', id: site.assignment_id, name: site.site_name })}
-                        className="h-7 text-xs text-red-400 hover:text-red-300"
-                        data-testid={`remove-license-${site.site_slug}`}
-                      >
-                        <X className="w-3 h-3 mr-1" /> Remove
-                      </Button>
+                      <div className="px-3.5 py-3">
+                        <h3 className="text-sm font-bold text-zinc-800 truncate">{site.site_name}</h3>
+                        <p className="text-[11px] text-red-400 mt-0.5">No license assigned</p>
+                        <div className="flex gap-1.5 mt-2">
+                          <button
+                            onClick={() => toggleDemo(site.site_id, site.is_demo)}
+                            className={`flex-1 h-7 text-[10px] font-medium rounded-lg border transition-colors ${
+                              site.is_demo
+                                ? 'bg-amber-500/15 border-amber-400/40 text-amber-600'
+                                : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:bg-zinc-100'
+                            }`}
+                            data-testid={`toggle-demo-${site.site_slug}`}
+                          >
+                            {site.is_demo ? 'Demo On' : 'Demo Off'}
+                          </button>
+                          <Button size="sm" onClick={() => openAssign(site.site_id)} className="flex-1 h-7 text-[10px] rounded-lg" data-testid={`assign-license-${site.site_slug}`}>
+                            <CreditCard className="w-3 h-3 mr-1" /> Assign
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="h-1" style={{ background: 'linear-gradient(90deg, #ef4444, #ef444460)' }} />
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Assigned sites as 260px cards */}
+          {assignedSites.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <Shield className="w-4 h-4 text-emerald-500" />
+                <span className="text-sm font-medium text-emerald-600">Licensed Sites ({assignedSites.length})</span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                {assignedSites.map((site, i) => (
+                  <motion.div
+                    key={site.site_id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-[260px] flex-shrink-0"
+                  >
+                    <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f0fdf4 100%)' }}>
+                      <div className="relative h-[140px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #22c55e15, #22c55e08)' }}>
+                        <Shield className="w-16 h-16 text-emerald-200" />
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                          <span className="text-[10px] font-bold tracking-wider text-emerald-600">
+                            {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="absolute top-3 right-3 bg-emerald-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-emerald-300/30">
+                          <span className="text-[10px] font-bold tracking-wider text-emerald-600">{site.license_package}</span>
+                        </div>
+                        {site.is_lifetime && (
+                          <div className="absolute bottom-3 right-3 bg-purple-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-purple-300/30 flex items-center gap-1">
+                            <Infinity className="w-3 h-3 text-purple-600" />
+                            <span className="text-[10px] font-bold text-purple-600">LIFETIME</span>
+                          </div>
+                        )}
+                        {site.is_demo && (
+                          <div className="absolute bottom-3 left-3 bg-amber-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-amber-300/30">
+                            <span className="text-[10px] font-bold tracking-wider text-amber-600">DEMO</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="px-3.5 py-3">
+                        <h3 className="text-sm font-bold text-zinc-800 truncate">{site.site_name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          {!site.is_lifetime && (
+                            <span className="text-[11px] text-zinc-400 capitalize">{site.billing_cycle}</span>
+                          )}
+                        </div>
+                        <Button
+                          size="sm" variant="ghost"
+                          onClick={() => setDeleteDialog({ open: true, type: 'assignment', id: site.assignment_id, name: site.site_name })}
+                          className="w-full h-7 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-50 mt-2 rounded-lg"
+                          data-testid={`remove-license-${site.site_slug}`}
+                        >
+                          <X className="w-3 h-3 mr-1" /> Remove License
+                        </Button>
+                      </div>
+                      <div className="h-1" style={{ background: 'linear-gradient(90deg, #22c55e, #22c55e60)' }} />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -398,73 +451,79 @@ export default function LicenseManager() {
           </p>
 
           {licenseRequests.length === 0 ? (
-            <Card className="bg-white border-zinc-200">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <FileText className="w-12 h-12 text-zinc-600 mb-3" />
-                <p className="text-zinc-400 text-sm">No license requests yet</p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center justify-center py-16">
+              <FileText className="w-12 h-12 text-zinc-300 mb-3" />
+              <p className="text-zinc-400 text-sm">No license requests yet</p>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {licenseRequests.map(req => {
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+              {licenseRequests.map((req, i) => {
                 const isPending = req.status === 'pending';
                 const isApproved = req.status === 'approved';
-                const isDenied = req.status === 'denied';
-                const statusColor = isPending ? 'bg-amber-500/15 text-amber-400 border-amber-500/25' : isApproved ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : 'bg-red-500/15 text-red-400 border-red-500/25';
+                const color = isPending ? '#f59e0b' : isApproved ? '#22c55e' : '#ef4444';
                 const StatusIcon = isPending ? Clock : isApproved ? CheckCircle : XCircle;
                 return (
-                  <Card key={req.id} className="bg-white border-zinc-200" data-testid={`license-request-${req.id}`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-zinc-700 font-medium">{req.site_name}</span>
-                            <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[req.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
-                              {SITE_TYPE_LABELS[req.site_type] || req.site_type}
-                            </span>
-                            <span className={`px-2 py-0.5 rounded text-xs border ${statusColor}`}>
-                              <StatusIcon className="w-3 h-3 inline mr-1" />
-                              {req.status}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-zinc-400">
-                            <div><span className="text-zinc-600">Slug:</span> <span className="text-zinc-600 font-mono">/{req.site_slug}</span></div>
-                            <div><span className="text-zinc-600">Environment:</span> <span className="text-zinc-600">{req.environment_name}</span></div>
-                            <div><span className="text-zinc-600">Requested by:</span> <span className="text-zinc-600">{req.requester_name}</span></div>
-                            <div><span className="text-zinc-600">Date:</span> <span className="text-zinc-600">{new Date(req.created_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span></div>
-                          </div>
-                          {req.reviewed_by && (
-                            <p className="text-xs text-zinc-500 mt-2">
-                              Reviewed by {req.reviewed_by} on {new Date(req.reviewed_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                            </p>
-                          )}
+                  <motion.div
+                    key={req.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-[260px] flex-shrink-0"
+                    data-testid={`license-request-${req.id}`}
+                  >
+                    <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                      <div className="relative h-[140px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${color}15, ${color}08)` }}>
+                        <StatusIcon className="w-16 h-16" style={{ color: `${color}30` }} />
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                          <span className="text-[10px] font-bold tracking-wider" style={{ color }}>{req.status.toUpperCase()}</span>
                         </div>
+                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                          <span className="text-[10px] font-bold tracking-wider text-zinc-500">
+                            {(SITE_TYPE_LABELS[req.site_type] || req.site_type).toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="px-3.5 py-3">
+                        <h3 className="text-sm font-bold text-zinc-800 truncate">{req.site_name}</h3>
+                        <p className="text-[11px] text-zinc-400 font-mono truncate">/{req.site_slug}</p>
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-1 mt-2">
+                          <span className="text-[10px] text-zinc-400">Environment</span>
+                          <span className="text-[10px] text-zinc-600 truncate">{req.environment_name}</span>
+                          <span className="text-[10px] text-zinc-400">Requested by</span>
+                          <span className="text-[10px] text-zinc-600 truncate">{req.requester_name}</span>
+                          <span className="text-[10px] text-zinc-400">Date</span>
+                          <span className="text-[10px] text-zinc-600">{new Date(req.created_at).toLocaleDateString('nl-BE', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                        </div>
+                        {req.reviewed_by && (
+                          <p className="text-[10px] text-zinc-400 mt-2 border-t border-zinc-100 pt-1.5">
+                            Reviewed by {req.reviewed_by}
+                          </p>
+                        )}
                         {isPending && (
-                          <div className="flex gap-2 flex-shrink-0">
+                          <div className="flex gap-1.5 mt-2">
                             <Button
                               size="sm"
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+                              className="flex-1 h-7 text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
                               onClick={() => handleRequestAction(req.id, 'approved')}
                               data-testid={`approve-request-${req.id}`}
                             >
-                              <Check className="w-3.5 h-3.5" />
-                              Approve
+                              <Check className="w-3 h-3 mr-1" /> Approve
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-red-800 text-red-400 hover:bg-red-950 gap-1.5"
+                              className="flex-1 h-7 text-[10px] border-red-300 text-red-500 hover:bg-red-50 rounded-lg"
                               onClick={() => handleRequestAction(req.id, 'denied')}
                               data-testid={`deny-request-${req.id}`}
                             >
-                              <X className="w-3.5 h-3.5" />
-                              Deny
+                              <X className="w-3 h-3 mr-1" /> Deny
                             </Button>
                           </div>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div className="h-1" style={{ background: `linear-gradient(90deg, ${color}, ${color}60)` }} />
+                    </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -484,66 +543,83 @@ export default function LicenseManager() {
             </Button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {packages.map(pkg => (
-              <Card key={pkg.id} className="bg-white border-zinc-200" data-testid={`package-card-${pkg.slug}`}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base text-zinc-100 flex items-center gap-2">
-                      <Package className="w-4 h-4 text-orange-400" />
-                      {pkg.name}
-                      {pkg.is_default && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-200 text-zinc-400">Default</span>
-                      )}
-                    </CardTitle>
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="ghost" onClick={() => openEditPkg(pkg)} className="h-7 w-7 p-0" data-testid={`edit-pkg-${pkg.slug}`}>
-                        <Edit className="w-3.5 h-3.5" />
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            {packages.map((pkg, i) => (
+              <motion.div
+                key={pkg.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="w-[260px] flex-shrink-0"
+                data-testid={`package-card-${pkg.slug}`}
+              >
+                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-shadow" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                  <div className="relative h-[140px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f9731615, #f9731608)' }}>
+                    <Package className="w-16 h-16 text-orange-200" />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                      <span className="text-[10px] font-bold tracking-wider text-orange-600">PACKAGE</span>
+                    </div>
+                    {pkg.is_default && (
+                      <div className="absolute top-3 right-3 bg-zinc-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-zinc-300/30">
+                        <span className="text-[10px] font-bold tracking-wider text-zinc-500">DEFAULT</span>
+                      </div>
+                    )}
+                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                      <span className="text-[10px] font-bold text-zinc-500">{pkg.features?.length || 0} features</span>
+                    </div>
+                  </div>
+                  <div className="px-3.5 py-3">
+                    <h3 className="text-sm font-bold text-zinc-800 truncate">{pkg.name}</h3>
+                    {pkg.description && <p className="text-[11px] text-zinc-400 truncate mt-0.5">{pkg.description}</p>}
+                    {/* Pricing */}
+                    <div className="flex gap-2 mt-2">
+                      <div className="bg-zinc-50 rounded-lg px-2 py-1 text-center flex-1">
+                        <p className="text-[9px] text-zinc-400 uppercase">Monthly</p>
+                        <p className="text-xs font-semibold text-zinc-700">{pkg.monthly_price > 0 ? `${pkg.currency} ${pkg.monthly_price.toFixed(2)}` : 'Free'}</p>
+                      </div>
+                      <div className="bg-zinc-50 rounded-lg px-2 py-1 text-center flex-1">
+                        <p className="text-[9px] text-zinc-400 uppercase">Yearly</p>
+                        <p className="text-xs font-semibold text-zinc-700">{pkg.yearly_price > 0 ? `${pkg.currency} ${pkg.yearly_price.toFixed(2)}` : 'Free'}</p>
+                      </div>
+                    </div>
+                    {/* Feature tags */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {(pkg.features || []).slice(0, 4).map(fId => {
+                        const feat = availableFeatures.find(f => f.id === fId);
+                        return <span key={fId} className="px-1.5 py-0.5 rounded text-[9px] bg-orange-50 text-orange-600 border border-orange-100">{feat?.name || fId}</span>;
+                      })}
+                      {(pkg.features || []).length > 4 && <span className="px-1.5 py-0.5 rounded text-[9px] bg-zinc-100 text-zinc-500">+{pkg.features.length - 4}</span>}
+                    </div>
+                    {/* Actions */}
+                    <div className="flex gap-1.5 mt-2">
+                      <Button size="sm" variant="ghost" onClick={() => openEditPkg(pkg)} className="flex-1 h-7 text-[10px] rounded-lg" data-testid={`edit-pkg-${pkg.slug}`}>
+                        <Edit className="w-3 h-3 mr-1" /> Edit
                       </Button>
                       {!pkg.is_default && (
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'package', id: pkg.id, name: pkg.name })} className="h-7 w-7 p-0 text-red-400 hover:text-red-300" data-testid={`delete-pkg-${pkg.slug}`}>
-                          <Trash2 className="w-3.5 h-3.5" />
+                        <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'package', id: pkg.id, name: pkg.name })} className="h-7 text-[10px] text-red-400 hover:text-red-300 rounded-lg" data-testid={`delete-pkg-${pkg.slug}`}>
+                          <Trash2 className="w-3 h-3" />
                         </Button>
                       )}
                     </div>
                   </div>
-                  {pkg.description && <p className="text-xs text-zinc-500 mt-1">{pkg.description}</p>}
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {/* Pricing */}
-                    <div className="flex gap-3">
-                      <div className="bg-white/40 backdrop-blur-sm rounded px-2 py-1 text-center flex-1">
-                        <p className="text-[10px] text-zinc-500 uppercase">Monthly</p>
-                        <p className="text-sm font-semibold text-zinc-700">
-                          {pkg.monthly_price > 0 ? `${pkg.currency} ${pkg.monthly_price.toFixed(2)}` : 'Free'}
-                        </p>
-                      </div>
-                      <div className="bg-white/40 backdrop-blur-sm rounded px-2 py-1 text-center flex-1">
-                        <p className="text-[10px] text-zinc-500 uppercase">Yearly</p>
-                        <p className="text-sm font-semibold text-zinc-700">
-                          {pkg.yearly_price > 0 ? `${pkg.currency} ${pkg.yearly_price.toFixed(2)}` : 'Free'}
-                        </p>
-                      </div>
-                    </div>
-                    {/* Features */}
-                    <div>
-                      <p className="text-[10px] text-zinc-500 uppercase mb-1">Features ({pkg.features?.length || 0})</p>
-                      <div className="flex flex-wrap gap-1">
-                        {(pkg.features || []).map(fId => {
-                          const feat = availableFeatures.find(f => f.id === fId);
-                          return (
-                            <span key={fId} className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-600">
-                              {feat?.name || fId}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <div className="h-1" style={{ background: 'linear-gradient(90deg, #f97316, #f9731660)' }} />
+                </div>
+              </motion.div>
             ))}
+            {/* Add new package card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: packages.length * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="w-[260px] flex-shrink-0"
+            >
+              <button onClick={openCreatePkg} className="w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-200 hover:border-orange-300 transition-colors h-full min-h-[260px] flex flex-col items-center justify-center gap-3 group" data-testid="create-package-card">
+                <div className="w-12 h-12 rounded-full bg-zinc-100 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
+                  <Plus className="w-6 h-6 text-zinc-400 group-hover:text-orange-500 transition-colors" />
+                </div>
+                <span className="text-sm text-zinc-400 group-hover:text-orange-500 font-medium transition-colors">New Package</span>
+              </button>
+            </motion.div>
           </div>
         </div>
       )}

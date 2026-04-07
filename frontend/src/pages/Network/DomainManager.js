@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { motion } from 'framer-motion';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -431,129 +432,220 @@ export default function DomainManager() {
       {/* ═══════ OVERVIEW ═══════ */}
       {activeTab === 'overview' && overview && (
         <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard label="Configured" value={overview.configured_domains} total={overview.total_sites} icon={Link2} color="text-emerald-400" />
-            <StatCard label="Koodh.com" value={overview.koodh_domains} icon={Globe} color="text-blue-400" />
-            <StatCard label="Custom Domains" value={overview.custom_domains} icon={ExternalLink} color="text-purple-400" />
-            <StatCard label="Verified" value={overview.verified} icon={CheckCircle} color="text-green-400" />
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            {[
+              { label: 'Configured', value: overview.configured_domains, total: overview.total_sites, icon: Link2, color: '#10b981' },
+              { label: 'Koodh.com', value: overview.koodh_domains, icon: Globe, color: '#3b82f6' },
+              { label: 'Custom Domains', value: overview.custom_domains, icon: ExternalLink, color: '#a855f7' },
+              { label: 'Verified', value: overview.verified, icon: CheckCircle, color: '#22c55e' },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="w-[260px] flex-shrink-0"
+              >
+                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                  <div className="relative h-[100px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${stat.color}15, ${stat.color}08)` }}>
+                    <stat.icon className="w-10 h-10" style={{ color: `${stat.color}40` }} />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                      <span className="text-[10px] font-bold tracking-wider" style={{ color: stat.color }}>{stat.label.toUpperCase()}</span>
+                    </div>
+                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-3 py-1 border border-black/[0.06]">
+                      <span className="text-xl font-bold text-zinc-800">{stat.value}</span>
+                      {stat.total != null && <span className="text-xs text-zinc-400 ml-1">/ {stat.total}</span>}
+                    </div>
+                  </div>
+                  <div className="h-1" style={{ background: `linear-gradient(90deg, ${stat.color}, ${stat.color}60)` }} />
+                </div>
+              </motion.div>
+            ))}
           </div>
 
           {overview.unconfigured > 0 && (
-            <Card className="bg-amber-950/20 border-amber-900/40">
-              <CardContent className="p-4 flex items-center gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-amber-300 font-medium">{overview.unconfigured} site{overview.unconfigured !== 1 ? 's' : ''} without domain configuration</p>
-                  <p className="text-xs text-amber-400/70">Go to "Site Domains" to assign domains</p>
-                </div>
-                <Button size="sm" variant="outline" className="ml-auto border-amber-700 text-amber-400 hover:bg-amber-950" onClick={() => setActiveTab('sites')}>Configure</Button>
-              </CardContent>
-            </Card>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm text-amber-700 font-medium">{overview.unconfigured} site{overview.unconfigured !== 1 ? 's' : ''} without domain configuration</p>
+                <p className="text-xs text-amber-500">Go to "Site Domains" to assign domains</p>
+              </div>
+              <Button size="sm" variant="outline" className="ml-auto" onClick={() => setActiveTab('sites')}>Configure</Button>
+            </div>
           )}
 
           {!overview.cloudflare_configured && (
-            <Card className="bg-white border-zinc-200">
-              <CardContent className="p-4 flex items-center gap-3">
-                <Shield className="w-5 h-5 text-zinc-500 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-zinc-600 font-medium">Cloudflare API not configured</p>
-                  <p className="text-xs text-zinc-500">Set up your Cloudflare API Token to manage DNS records automatically</p>
-                </div>
-                <Button size="sm" variant="outline" className="ml-auto" onClick={() => setActiveTab('cloudflare')}>Set up</Button>
-              </CardContent>
-            </Card>
+            <div className="rounded-xl border border-zinc-200 bg-white p-3 flex items-center gap-3">
+              <Shield className="w-5 h-5 text-zinc-400 flex-shrink-0" />
+              <div>
+                <p className="text-sm text-zinc-600 font-medium">Cloudflare API not configured</p>
+                <p className="text-xs text-zinc-400">Set up your Cloudflare API Token to manage DNS records automatically</p>
+              </div>
+              <Button size="sm" variant="outline" className="ml-auto" onClick={() => setActiveTab('cloudflare')}>Set up</Button>
+            </div>
           )}
 
-          <Card className="bg-white border-zinc-200">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-zinc-400 flex items-center gap-2"><ArrowRight className="w-4 h-4" />Active Subdomain Routes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {routes.filter(r => r.is_active).map(route => (
-                  <div key={route.id} className="flex items-center justify-between bg-zinc-100/70 rounded-lg px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <span className={`px-2 py-0.5 rounded text-xs border ${ROUTE_TYPE_COLORS[route.route_type] || 'bg-zinc-200 text-zinc-600 border-zinc-600'}`}>
-                        {ROUTE_TYPE_LABELS[route.route_type] || route.route_type}
-                      </span>
-                      <span className="text-sm font-mono text-zinc-700">{route.subdomain}.{baseDomain}</span>
-                      <ArrowRight className="w-3 h-3 text-zinc-600" />
-                      <span className="text-xs text-zinc-400">{route.target_path}</span>
+          {/* Active Routes as 260px cards */}
+          <div>
+            <div className="flex items-center gap-2 mb-3 px-1">
+              <ArrowRight className="w-4 h-4 text-zinc-400" />
+              <span className="text-sm font-medium text-zinc-600">Active Subdomain Routes</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+              {routes.filter(r => r.is_active).map((route, i) => (
+                <motion.div
+                  key={route.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.06 + 0.3, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  className="w-[260px] flex-shrink-0"
+                >
+                  <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                    <div className="relative h-[100px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6366f115, #6366f108)' }}>
+                      <ArrowRight className="w-10 h-10 text-indigo-200" />
+                      <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                        <span className={`text-[10px] font-bold tracking-wider`}>
+                          {(ROUTE_TYPE_LABELS[route.route_type] || route.route_type).toUpperCase()}
+                        </span>
+                      </div>
                     </div>
-                    <span className="text-xs text-zinc-500">{route.label}</span>
+                    <div className="px-3.5 py-2">
+                      <p className="text-xs font-mono text-zinc-700 font-medium truncate">{route.subdomain}.{baseDomain}</p>
+                      <p className="text-[10px] text-zinc-400 truncate">{route.label} → {route.target_path}</p>
+                    </div>
+                    <div className="h-1" style={{ background: 'linear-gradient(90deg, #6366f1, #6366f160)' }} />
                   </div>
-                ))}
-                {routes.filter(r => r.is_active).length === 0 && <p className="text-sm text-zinc-500 text-center py-4">No active routes</p>}
-              </div>
-            </CardContent>
-          </Card>
+                </motion.div>
+              ))}
+              {routes.filter(r => r.is_active).length === 0 && (
+                <p className="text-sm text-zinc-400 text-center py-4 w-full">No active routes</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
       {/* ═══════ SITE DOMAINS ═══════ */}
       {activeTab === 'sites' && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {configs.length > 0 && (
-            <Card className="bg-white border-zinc-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-emerald-400 flex items-center gap-2"><CheckCircle className="w-4 h-4" />Configured Domains ({configs.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {configs.map(config => {
+            <div>
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <CheckCircle className="w-4 h-4 text-emerald-500" />
+                <span className="text-sm font-medium text-emerald-600">Configured Domains ({configs.length})</span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                {configs.map((config, i) => {
                   const verStatus = STATUS_CONFIGS[config.verification_status] || STATUS_CONFIGS.pending;
                   const VerIcon = verStatus.icon;
+                  const isCustom = config.domain_type === 'custom';
+                  const domainColor = isCustom ? '#a855f7' : '#3b82f6';
                   return (
-                    <div key={config.id} className="bg-zinc-100/70 rounded-lg px-4 py-3" data-testid={`domain-config-${config.main_site_id}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[config.site_type] || 'bg-zinc-200 text-zinc-600'}`}>{SITE_TYPE_LABELS[config.site_type] || config.site_type}</span>
-                          <span className="text-sm text-zinc-700 font-medium">{config.site_name}</span>
+                    <motion.div
+                      key={config.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      className="w-[260px] flex-shrink-0"
+                      data-testid={`domain-config-${config.main_site_id}`}
+                    >
+                      <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-shadow" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                        <div className="relative h-[140px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${domainColor}15, ${domainColor}08)` }}>
+                          {isCustom ? <ExternalLink className="w-16 h-16" style={{ color: `${domainColor}30` }} /> : <Globe className="w-16 h-16" style={{ color: `${domainColor}30` }} />}
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                            <span className="text-[10px] font-bold tracking-wider" style={{ color: domainColor }}>
+                              {isCustom ? 'CUSTOM' : 'KOODH'}
+                            </span>
+                          </div>
+                          <div className={`absolute top-3 right-3 rounded-lg px-2.5 py-1 border backdrop-blur-lg ${
+                            config.verification_status === 'verified' ? 'bg-emerald-100/90 border-emerald-300/30' :
+                            config.verification_status === 'failed' ? 'bg-red-100/90 border-red-300/30' :
+                            'bg-amber-100/90 border-amber-300/30'
+                          }`}>
+                            <div className="flex items-center gap-1">
+                              <VerIcon className={`w-3 h-3 ${
+                                config.verification_status === 'verified' ? 'text-emerald-600' :
+                                config.verification_status === 'failed' ? 'text-red-600' : 'text-amber-600'
+                              }`} />
+                              <span className={`text-[10px] font-bold ${
+                                config.verification_status === 'verified' ? 'text-emerald-600' :
+                                config.verification_status === 'failed' ? 'text-red-600' : 'text-amber-600'
+                              }`}>{verStatus.label}</span>
+                            </div>
+                          </div>
+                          {config.ssl_enabled && (
+                            <div className="absolute bottom-3 right-3 bg-emerald-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-emerald-300/30 flex items-center gap-1">
+                              <Lock className="w-3 h-3 text-emerald-600" />
+                              <span className="text-[10px] font-bold text-emerald-600">SSL</span>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="ghost" onClick={() => openDomainConfig({ id: config.main_site_id, slug: config.site_slug, name: config.site_name })} className="h-7 w-7 p-0"><Edit className="w-3.5 h-3.5" /></Button>
-                          <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'domain', id: config.main_site_id, name: config.site_name })} className="h-7 w-7 p-0 text-red-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></Button>
+                        <div className="px-3.5 py-3">
+                          <h3 className="text-sm font-bold text-zinc-800 truncate">{config.site_name}</h3>
+                          <p className="text-[11px] font-mono text-zinc-400 truncate mt-0.5">{config.full_domain || `${config.subdomain}.${baseDomain}`}</p>
+                          <div className="flex gap-1.5 mt-2">
+                            <Button size="sm" variant="ghost" onClick={() => openDomainConfig({ id: config.main_site_id, slug: config.site_slug, name: config.site_name })} className="flex-1 h-7 text-[10px] rounded-lg">
+                              <Edit className="w-3 h-3 mr-1" /> Edit
+                            </Button>
+                            {isCustom && config.verification_status !== 'verified' && (
+                              <Button size="sm" variant="outline" onClick={() => verifyDomain(config.main_site_id)} disabled={verifying === config.main_site_id} className="h-7 text-[10px] rounded-lg" data-testid={`verify-domain-${config.main_site_id}`}>
+                                {verifying === config.main_site_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'domain', id: config.main_site_id, name: config.site_name })} className="h-7 text-[10px] text-red-400 hover:text-red-500 rounded-lg">
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
                         </div>
+                        <div className="h-1" style={{ background: `linear-gradient(90deg, ${domainColor}, ${domainColor}60)` }} />
                       </div>
-                      <div className="mt-2 flex items-center gap-4 text-xs">
-                        <div className="flex items-center gap-1.5">
-                          {config.domain_type === 'koodh' ? <Globe className="w-3 h-3 text-blue-400" /> : <ExternalLink className="w-3 h-3 text-purple-400" />}
-                          <span className="font-mono text-zinc-600">{config.full_domain || `${config.subdomain}.${baseDomain}`}</span>
-                        </div>
-                        <div className={`flex items-center gap-1 ${verStatus.color}`}><VerIcon className="w-3 h-3" /><span>{verStatus.label}</span></div>
-                        {config.ssl_enabled && <div className="flex items-center gap-1 text-emerald-400"><Lock className="w-3 h-3" /><span>SSL</span></div>}
-                        {config.domain_type === 'custom' && config.verification_status !== 'verified' && (
-                          <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={() => verifyDomain(config.main_site_id)} disabled={verifying === config.main_site_id} data-testid={`verify-domain-${config.main_site_id}`}>
-                            {verifying === config.main_site_id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <RefreshCw className="w-3 h-3 mr-1" />}Verify
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {unconfiguredSites.length > 0 && (
-            <Card className="bg-white border-zinc-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-amber-400 flex items-center gap-2"><AlertTriangle className="w-4 h-4" />Not Configured ({unconfiguredSites.length})</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {unconfiguredSites.map(site => (
-                  <div key={site.id} className="flex items-center justify-between bg-zinc-100/70 rounded-lg px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-200 text-zinc-600'}`}>{SITE_TYPE_LABELS[site.site_type] || site.site_type}</span>
-                      <span className="text-sm text-zinc-700">{site.name}</span>
-                      <span className="text-xs text-zinc-600 font-mono">/{site.slug}</span>
+            <div>
+              <div className="flex items-center gap-2 mb-3 px-1">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-medium text-amber-600">Not Configured ({unconfiguredSites.length})</span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                {unconfiguredSites.map((site, i) => (
+                  <motion.div
+                    key={site.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-[260px] flex-shrink-0"
+                  >
+                    <div className="rounded-2xl overflow-hidden border border-amber-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #fffbeb 100%)' }}>
+                      <div className="relative h-[140px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f59e0b15, #f59e0b08)' }}>
+                        <Link2 className="w-16 h-16 text-amber-200" />
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                          <span className="text-[10px] font-bold tracking-wider text-amber-600">
+                            {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="absolute top-3 right-3 bg-amber-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-amber-300/30">
+                          <span className="text-[10px] font-bold text-amber-600">NO DOMAIN</span>
+                        </div>
+                      </div>
+                      <div className="px-3.5 py-3">
+                        <h3 className="text-sm font-bold text-zinc-800 truncate">{site.name}</h3>
+                        <p className="text-[11px] font-mono text-zinc-400 truncate mt-0.5">/{site.slug}</p>
+                        <Button size="sm" variant="outline" onClick={() => openDomainConfig(site)} className="w-full h-7 text-[10px] mt-2 rounded-lg" data-testid={`configure-domain-${site.slug}`}>
+                          <Link2 className="w-3 h-3 mr-1" /> Set up domain
+                        </Button>
+                      </div>
+                      <div className="h-1" style={{ background: 'linear-gradient(90deg, #f59e0b, #f59e0b60)' }} />
                     </div>
-                    <Button size="sm" variant="outline" onClick={() => openDomainConfig(site)} className="h-7 text-xs" data-testid={`configure-domain-${site.slug}`}>
-                      <Link2 className="w-3 h-3 mr-1" />Set up domain
-                    </Button>
-                  </div>
+                  </motion.div>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -617,56 +709,94 @@ export default function DomainManager() {
             </div>
           )}
 
-          <div className="space-y-3">
-            {routes.map(route => {
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+            {routes.map((route, i) => {
               const dns = getRouteDnsStatus(route);
+              const routeColor = route.is_active ? '#6366f1' : '#71717a';
               return (
-              <Card key={route.id} className={`border-zinc-200 ${route.is_active ? 'bg-white' : 'bg-zinc-50 opacity-60'}`} data-testid={`route-card-${route.subdomain}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${route.is_active ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-mono text-white font-medium">{route.subdomain}.{baseDomain}</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] border ${ROUTE_TYPE_COLORS[route.route_type] || 'bg-zinc-200 text-zinc-600 border-zinc-600'}`}>{ROUTE_TYPE_LABELS[route.route_type] || route.route_type}</span>
-                          {route.is_system && <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-500">System</span>}
-                          {/* DNS status badge */}
-                          {cfConfig?.configured && route.is_active && (
-                            dns.exists ? (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1" data-testid={`dns-ok-${route.subdomain}`}>
-                                <CheckCircle className="w-2.5 h-2.5" /> DNS
-                              </span>
-                            ) : (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center gap-1" data-testid={`dns-missing-${route.subdomain}`}>
-                                <AlertTriangle className="w-2.5 h-2.5" /> No DNS
-                              </span>
-                            )
-                          )}
-                        </div>
-                        <p className="text-xs text-zinc-500 mt-0.5">{route.label}{route.description ? ` — ${route.description}` : ''}</p>
-                      </div>
+              <motion.div
+                key={route.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                className="w-[260px] flex-shrink-0"
+                data-testid={`route-card-${route.subdomain}`}
+              >
+                <div className={`rounded-2xl overflow-hidden border shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-shadow ${route.is_active ? 'border-black/[0.06]' : 'border-zinc-200 opacity-60'}`} style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                  <div className="relative h-[140px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${routeColor}15, ${routeColor}08)` }}>
+                    <ArrowRight className="w-16 h-16" style={{ color: `${routeColor}25` }} />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                      <span className="text-[10px] font-bold tracking-wider" style={{ color: routeColor }}>
+                        {(ROUTE_TYPE_LABELS[route.route_type] || route.route_type).toUpperCase()}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right mr-2">
-                        <div className="flex items-center gap-1 text-xs text-zinc-400"><ArrowRight className="w-3 h-3" /><span className="font-mono">{route.target_path}</span></div>
+                    {route.is_system && (
+                      <div className="absolute top-3 right-3 bg-zinc-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-zinc-300/30">
+                        <span className="text-[10px] font-bold text-zinc-500">SYSTEM</span>
                       </div>
-                      <button onClick={() => toggleRouteActive(route)} className={`relative w-10 h-5 rounded-full transition-colors ${route.is_active ? 'bg-emerald-600' : 'bg-zinc-700'}`} data-testid={`toggle-route-${route.subdomain}`}>
-                        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${route.is_active ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                    )}
+                    {/* DNS status badge */}
+                    {cfConfig?.configured && route.is_active && (
+                      <div className={`absolute bottom-3 right-3 rounded-lg px-2.5 py-1 border backdrop-blur-lg ${
+                        dns.exists ? 'bg-emerald-100/90 border-emerald-300/30' : 'bg-amber-100/90 border-amber-300/30'
+                      }`}>
+                        <div className="flex items-center gap-1">
+                          {dns.exists ? <CheckCircle className="w-3 h-3 text-emerald-600" /> : <AlertTriangle className="w-3 h-3 text-amber-600" />}
+                          <span className={`text-[10px] font-bold ${dns.exists ? 'text-emerald-600' : 'text-amber-600'}`} data-testid={dns.exists ? `dns-ok-${route.subdomain}` : `dns-missing-${route.subdomain}`}>
+                            {dns.exists ? 'DNS OK' : 'No DNS'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {/* Active indicator */}
+                    <div className={`absolute bottom-3 left-3 w-2 h-2 rounded-full ${route.is_active ? 'bg-emerald-400' : 'bg-zinc-400'}`} />
+                  </div>
+                  <div className="px-3.5 py-3">
+                    <h3 className="text-sm font-bold font-mono text-zinc-800 truncate">{route.subdomain}.{baseDomain}</h3>
+                    <p className="text-[11px] text-zinc-400 truncate mt-0.5">{route.label}{route.description ? ` — ${route.description}` : ''}</p>
+                    <div className="flex items-center gap-1 mt-1 text-[11px] text-zinc-400">
+                      <ArrowRight className="w-3 h-3" />
+                      <span className="font-mono truncate">{route.target_path}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <button onClick={() => toggleRouteActive(route)} className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${route.is_active ? 'bg-emerald-500' : 'bg-zinc-300'}`} data-testid={`toggle-route-${route.subdomain}`}>
+                        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${route.is_active ? 'translate-x-4' : 'translate-x-0.5'}`} />
                       </button>
-                      <Button size="sm" variant="ghost" onClick={() => openEditRoute(route)} className="h-7 w-7 p-0" data-testid={`edit-route-${route.subdomain}`}><Edit className="w-3.5 h-3.5" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => openEditRoute(route)} className="flex-1 h-7 text-[10px] rounded-lg" data-testid={`edit-route-${route.subdomain}`}>
+                        <Edit className="w-3 h-3 mr-1" /> Edit
+                      </Button>
                       {!route.is_system && (
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'route', id: route.id, name: `${route.subdomain}.${baseDomain}` })} className="h-7 w-7 p-0 text-red-400 hover:text-red-600" data-testid={`delete-route-${route.subdomain}`}><Trash2 className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'route', id: route.id, name: `${route.subdomain}.${baseDomain}` })} className="h-7 text-[10px] text-red-400 hover:text-red-500 rounded-lg" data-testid={`delete-route-${route.subdomain}`}>
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="h-1" style={{ background: `linear-gradient(90deg, ${routeColor}, ${routeColor}60)` }} />
+                </div>
+              </motion.div>
               );
             })}
+            {/* New Route card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: routes.length * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="w-[260px] flex-shrink-0"
+            >
+              <button onClick={openCreateRoute} className="w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-200 hover:border-indigo-300 transition-colors h-full min-h-[260px] flex flex-col items-center justify-center gap-3 group" data-testid="create-route-card">
+                <div className="w-12 h-12 rounded-full bg-zinc-100 group-hover:bg-indigo-100 flex items-center justify-center transition-colors">
+                  <Plus className="w-6 h-6 text-zinc-400 group-hover:text-indigo-500 transition-colors" />
+                </div>
+                <span className="text-sm text-zinc-400 group-hover:text-indigo-500 font-medium transition-colors">New Route</span>
+              </button>
+            </motion.div>
           </div>
           {routes.length === 0 && (
-            <Card className="bg-white border-zinc-200"><CardContent className="flex flex-col items-center justify-center py-12"><ArrowRight className="w-12 h-12 text-zinc-600 mb-3" /><p className="text-zinc-400 text-sm">No subdomain routes configured yet</p></CardContent></Card>
+            <div className="flex flex-col items-center justify-center py-16">
+              <ArrowRight className="w-12 h-12 text-zinc-300 mb-3" />
+              <p className="text-zinc-400 text-sm">No subdomain routes configured yet</p>
+            </div>
           )}
         </div>
       )}

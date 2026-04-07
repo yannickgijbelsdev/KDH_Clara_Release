@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { motion } from 'framer-motion';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -497,92 +498,106 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
             {loadingRoles ? (
               <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>
             ) : (
-              <div className="space-y-3">
-                {roles.map(role => {
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+                {roles.map((role, i) => {
                   const roleCfg = roleSettings[role.slug] || { categories: [], mode: 'daily' };
                   const isExpanded = selectedRole === role.slug;
                   const activeCount = (roleCfg.categories || []).length;
+                  const roleColor = role.slug === 'admin' ? '#f97316' : role.slug === 'presenter' ? '#3b82f6' : role.slug === 'editor' ? '#8b5cf6' : '#22c55e';
 
                   return (
-                    <Card key={role.slug} className={`bg-zinc-100/70 border-zinc-300 ${isExpanded ? 'border-orange-500/30' : ''}`}>
-                      <button
-                        className="w-full flex items-center justify-between p-4 text-left"
-                        onClick={() => setSelectedRole(isExpanded ? null : role.slug)}
-                        data-testid={`role-notif-${role.slug}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-xs font-bold text-zinc-600">
-                            {role.name?.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <span className="text-sm font-medium text-zinc-900">{role.name}</span>
-                            <span className="text-xs text-zinc-500 ml-2">{activeCount} {activeCount !== 1 ? 'categories' : 'category'}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {activeCount > 0 && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
-                              {roleCfg.mode === 'realtime' ? 'Real-time' : roleCfg.mode === 'both' ? 'Both' : 'Daily'}
-                            </span>
-                          )}
-                          <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                        </div>
-                      </button>
-
-                      {isExpanded && (
-                        <CardContent className="pt-0 pb-4 px-4 space-y-4 border-t border-zinc-300/50">
-                          {/* Mode selector */}
-                          <div className="pt-3">
-                            <Label className="text-xs text-zinc-400 mb-2 block">Notification Type</Label>
-                            <div className="grid grid-cols-3 gap-2">
-                              {MODE_OPTIONS.map(m => (
-                                <button
-                                  key={m.id}
-                                  onClick={() => setRoleMode(role.slug, m.id)}
-                                  className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors ${
-                                    roleCfg.mode === m.id
-                                      ? 'bg-orange-500/10 border-orange-500/30 text-orange-400'
-                                      : 'bg-zinc-50 border-zinc-200 text-zinc-400 hover:border-zinc-300'
-                                  }`}
-                                  data-testid={`role-mode-${role.slug}-${m.id}`}
-                                >
-                                  <m.icon className="w-4 h-4" />
-                                  <span className="text-xs font-medium">{m.label}</span>
-                                  <span className="text-[10px] text-zinc-500">{m.desc}</span>
-                                </button>
-                              ))}
+                    <motion.div
+                      key={role.slug}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      className={`${isExpanded ? 'w-full max-w-lg' : 'w-[260px]'} flex-shrink-0 transition-all duration-300`}
+                    >
+                      <div className={`rounded-2xl overflow-hidden border shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-shadow ${isExpanded ? 'border-orange-200 shadow-[0_8px_32px_rgba(0,0,0,0.10)]' : 'border-black/[0.06] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)]'}`} style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                        {/* Clickable header area */}
+                        <button
+                          className="w-full text-left"
+                          onClick={() => setSelectedRole(isExpanded ? null : role.slug)}
+                          data-testid={`role-notif-${role.slug}`}
+                        >
+                          <div className="relative h-[120px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${roleColor}15, ${roleColor}08)` }}>
+                            <Users className="w-14 h-14" style={{ color: `${roleColor}30` }} />
+                            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                              <span className="text-[10px] font-bold tracking-wider" style={{ color: roleColor }}>{role.name?.toUpperCase()}</span>
                             </div>
+                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                              <span className="text-[10px] font-bold text-zinc-500">{activeCount} cat.</span>
+                            </div>
+                            {activeCount > 0 && (
+                              <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                                <span className="text-[10px] font-bold" style={{ color: roleColor }}>
+                                  {roleCfg.mode === 'realtime' ? 'Real-time' : roleCfg.mode === 'both' ? 'Both' : 'Daily'}
+                                </span>
+                              </div>
+                            )}
+                            <ChevronDown className={`absolute bottom-3 left-3 w-4 h-4 text-zinc-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                           </div>
+                        </button>
 
-                          {/* Category toggles */}
-                          <div>
-                            <Label className="text-xs text-zinc-400 mb-2 block">Categories</Label>
-                            <div className="space-y-1">
-                              {categories.map(cat => {
-                                const Icon = CATEGORY_ICONS[cat.id] || Bell;
-                                const active = (roleCfg.categories || []).includes(cat.id);
-                                return (
-                                  <div key={cat.id} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-zinc-100/70">
-                                    <div className="flex items-center gap-2.5">
-                                      <Icon className={`w-4 h-4 ${active ? 'text-orange-400' : 'text-zinc-500'}`} />
-                                      <div>
-                                        <span className="text-sm text-zinc-700">{cat.name}</span>
-                                        <p className="text-xs text-zinc-500">{cat.description}</p>
+                        {/* Expanded settings */}
+                        {isExpanded && (
+                          <div className="px-4 py-4 space-y-4 border-t border-zinc-100">
+                            {/* Mode selector */}
+                            <div>
+                              <Label className="text-xs text-zinc-400 mb-2 block">Notification Type</Label>
+                              <div className="grid grid-cols-3 gap-2">
+                                {MODE_OPTIONS.map(m => (
+                                  <button
+                                    key={m.id}
+                                    onClick={() => setRoleMode(role.slug, m.id)}
+                                    className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors ${
+                                      roleCfg.mode === m.id
+                                        ? 'bg-orange-500/10 border-orange-500/30 text-orange-500'
+                                        : 'bg-zinc-50 border-zinc-200 text-zinc-400 hover:border-zinc-300'
+                                    }`}
+                                    data-testid={`role-mode-${role.slug}-${m.id}`}
+                                  >
+                                    <m.icon className="w-4 h-4" />
+                                    <span className="text-xs font-medium">{m.label}</span>
+                                    <span className="text-[10px] text-zinc-500">{m.desc}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Category toggles */}
+                            <div>
+                              <Label className="text-xs text-zinc-400 mb-2 block">Categories</Label>
+                              <div className="space-y-1">
+                                {categories.map(cat => {
+                                  const Icon = CATEGORY_ICONS[cat.id] || Bell;
+                                  const active = (roleCfg.categories || []).includes(cat.id);
+                                  return (
+                                    <div key={cat.id} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-zinc-50">
+                                      <div className="flex items-center gap-2.5">
+                                        <Icon className={`w-4 h-4 ${active ? 'text-orange-400' : 'text-zinc-400'}`} />
+                                        <div>
+                                          <span className="text-sm text-zinc-700">{cat.name}</span>
+                                          <p className="text-xs text-zinc-400">{cat.description}</p>
+                                        </div>
                                       </div>
+                                      <Switch
+                                        checked={active}
+                                        onCheckedChange={() => toggleRoleCategory(role.slug, cat.id)}
+                                        data-testid={`role-cat-${role.slug}-${cat.id}`}
+                                      />
                                     </div>
-                                    <Switch
-                                      checked={active}
-                                      onCheckedChange={() => toggleRoleCategory(role.slug, cat.id)}
-                                      data-testid={`role-cat-${role.slug}-${cat.id}`}
-                                    />
-                                  </div>
-                                );
-                              })}
+                                  );
+                                })}
+                              </div>
                             </div>
                           </div>
-                        </CardContent>
-                      )}
-                    </Card>
+                        )}
+
+                        {/* Bottom accent */}
+                        <div className="h-1" style={{ background: `linear-gradient(90deg, ${roleColor}, ${roleColor}60)` }} />
+                      </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -611,54 +626,53 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
             {loadingLog ? (
               <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>
             ) : notifLog.length === 0 ? (
-              <div className="text-center py-8 text-zinc-500 text-sm">No notification events yet</div>
+              <div className="flex flex-col items-center justify-center py-16">
+                <History className="w-12 h-12 text-zinc-300 mb-3" />
+                <p className="text-zinc-400 text-sm">No notification events yet</p>
+              </div>
             ) : (
-              <div className="space-y-1.5 max-h-[400px] overflow-y-auto">
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6 max-h-[500px] overflow-y-auto">
                 {notifLog.map((evt, i) => {
                   const Icon = CATEGORY_ICONS[evt.category] || Bell;
                   const sentCount = (evt.emails_sent || []).length;
                   const failedCount = (evt.emails_failed || []).length;
                   const attemptedCount = (evt.emails_attempted || []).length;
+                  const evtColor = failedCount > 0 ? '#ef4444' : sentCount > 0 ? '#22c55e' : '#71717a';
                   return (
-                    <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-zinc-50/30 hover:bg-zinc-100/70" data-testid={`notif-log-${i}`}>
-                      <Icon className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xs font-medium text-zinc-900 truncate">{evt.event_type}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-400">{evt.category}</span>
-                          {sentCount > 0 && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                              {sentCount} sent
-                            </span>
-                          )}
-                          {failedCount > 0 && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20" data-testid={`notif-log-${i}-failed`}>
-                              {failedCount} failed
-                            </span>
-                          )}
-                          {attemptedCount === 0 && sentCount === 0 && failedCount === 0 && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500">
-                              no recipients
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-zinc-500 truncate mt-0.5">{evt.details}</p>
-                        {(evt.emails_sent?.length > 0 || evt.emails_failed?.length > 0) && (
-                          <div className="mt-1 space-y-0.5">
-                            {evt.emails_sent?.map((em, j) => (
-                              <span key={`s-${j}`} className="text-[10px] text-emerald-500/70 mr-2">{em}</span>
-                            ))}
-                            {evt.emails_failed?.map((em, j) => (
-                              <span key={`f-${j}`} className="text-[10px] text-red-400/70 mr-2 line-through">{em}</span>
-                            ))}
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                      className="w-[260px] flex-shrink-0"
+                      data-testid={`notif-log-${i}`}
+                    >
+                      <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                        <div className="relative h-[80px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${evtColor}15, ${evtColor}08)` }}>
+                          <Icon className="w-8 h-8" style={{ color: `${evtColor}40` }} />
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                            <span className="text-[10px] font-bold tracking-wider text-zinc-500">{evt.category?.toUpperCase()}</span>
                           </div>
-                        )}
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-zinc-600">{new Date(evt.timestamp).toLocaleString()}</span>
-                          {evt.actor_name && <span className="text-[10px] text-zinc-600">by {evt.actor_name}</span>}
+                          <div className="flex items-center gap-1 absolute top-3 right-3">
+                            {sentCount > 0 && (
+                              <span className="bg-emerald-100/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-emerald-300/30 text-[10px] font-bold text-emerald-600">{sentCount} sent</span>
+                            )}
+                            {failedCount > 0 && (
+                              <span className="bg-red-100/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-red-300/30 text-[10px] font-bold text-red-600" data-testid={`notif-log-${i}-failed`}>{failedCount} failed</span>
+                            )}
+                            {attemptedCount === 0 && sentCount === 0 && failedCount === 0 && (
+                              <span className="bg-zinc-100/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-zinc-300/30 text-[10px] text-zinc-500">none</span>
+                            )}
+                          </div>
                         </div>
+                        <div className="px-3.5 py-2">
+                          <p className="text-xs font-medium text-zinc-800 truncate">{evt.event_type}</p>
+                          <p className="text-[10px] text-zinc-400 truncate">{evt.details}</p>
+                          <p className="text-[10px] text-zinc-400 mt-1">{new Date(evt.timestamp).toLocaleString()}</p>
+                        </div>
+                        <div className="h-1" style={{ background: `linear-gradient(90deg, ${evtColor}, ${evtColor}60)` }} />
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
