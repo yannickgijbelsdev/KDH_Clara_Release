@@ -108,49 +108,55 @@ const LoginPage = () => {
     setForgotLoading(false);
   };
 
-  const STUDIO_IMG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/9c133714c33f42124837a555a90289699f0f5190e464c69e21122133740a9121.png';
+  const HERO_BG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/64a09a2a1d1c252e947384eb256e13bcc01e8aa002ae57b5ef12d8cb851fb6c6.png';
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#F0F0F2] px-5 py-10" data-testid="login-page">
-      {/* Subtle dot pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #999 0.5px, transparent 0.5px)',
-          backgroundSize: '24px 24px',
-        }}
-      />
-
-      {/* Central studio image */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div
-          className="w-[70%] max-w-[900px] h-[80%] bg-contain bg-center bg-no-repeat opacity-[0.18]"
-          style={{ backgroundImage: `url(${STUDIO_IMG})` }}
-        />
+    <div className="min-h-screen flex relative overflow-hidden" data-testid="login-page">
+      {/* Full-screen background image */}
+      <div className="absolute inset-0">
+        <img src={HERO_BG} alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" />
       </div>
 
-      {/* Soft radial fade */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse at center, transparent 20%, #F0F0F2 70%)' }}
-      />
+      {/* Left side: branding & tagline */}
+      <div className="hidden lg:flex flex-col justify-between relative z-10 flex-1 p-12 xl:p-16">
+        <div>
+          {logoUrl ? (
+            <img src={logoUrl} alt={platformName} className="h-9 object-contain brightness-0 invert" data-testid="login-logo" />
+          ) : (
+            <span className="text-2xl font-bold text-white tracking-tight" data-testid="login-logo-text">{platformName}</span>
+          )}
+        </div>
+        <div className="max-w-lg">
+          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
+            Data intelligence<br />for media & radio
+          </h1>
+          <p className="text-lg text-white/60 leading-relaxed">
+            Collect, manage, and distribute data across your radio stations, 
+            WordPress sites, and business operations — all from one platform.
+          </p>
+        </div>
+        <div className="flex items-center gap-8 text-sm text-white/40">
+          <span>Radio Management</span>
+          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span>Content Publishing</span>
+          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span>Data Analytics</span>
+        </div>
+      </div>
 
-      {/* Logo */}
-      <div className="relative z-10 mb-8 text-center">
-        {logoUrl ? (
-          <img src={logoUrl} alt={platformName} className="h-10 object-contain mx-auto" data-testid="login-logo" />
-        ) : (
-          <div className="flex items-center justify-center gap-3" data-testid="login-logo-text">
+      {/* Right side: login form */}
+      <div className="relative z-10 w-full lg:w-[480px] xl:w-[520px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white/95 backdrop-blur-3xl lg:rounded-l-[32px] shadow-2xl">
+        {/* Mobile logo */}
+        <div className="lg:hidden mb-10 text-center">
+          {logoUrl ? (
+            <img src={logoUrl} alt={platformName} className="h-9 object-contain mx-auto" />
+          ) : (
             <span className="text-2xl font-bold text-zinc-800 tracking-tight">{platformName}</span>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      {/* Login Card */}
-      <div
-        className="relative z-10 w-full max-w-[420px] bg-white/80 backdrop-blur-2xl border border-black/[0.06] rounded-[20px] shadow-[0_8px_40px_rgba(0,0,0,0.08)] p-8"
-        data-testid="login-card"
-      >
+        <div className="w-full max-w-[380px]">
         {showForgotPassword ? (
           <>
             <button
@@ -335,6 +341,7 @@ const LoginPage = () => {
             </form>
           </>
         )}
+      </div>
       </div>
     </div>
   );
