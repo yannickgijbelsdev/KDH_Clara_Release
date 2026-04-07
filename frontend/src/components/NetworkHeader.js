@@ -125,6 +125,7 @@ export default function NetworkHeader({ activePage = 'network' }) {
           <Network className="w-4 h-4" />
           <span className="hidden sm:inline">Clara</span>
         </Link>
+        <span className="hidden sm:inline text-sm text-zinc-400 font-medium flex-shrink-0" data-testid="enterprise-global-label">Enterprise Global</span>
 
         {/* Environment switcher */}
         {environments.length > 0 && (
