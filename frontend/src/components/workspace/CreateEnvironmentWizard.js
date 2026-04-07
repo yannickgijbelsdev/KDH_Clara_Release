@@ -14,7 +14,7 @@ import WizardStepIndicator from './WizardStepIndicator';
 const API = process.env.REACT_APP_BACKEND_URL;
 const DEFAULT_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
 const ENV_STEPS = ['General', 'Settings', 'Admin', 'Deploying'];
-const ENV_BG_IMAGE = '/images/env_server.png';
+const ENV_BG_IMAGE = '/images/env_server.jpg';
 
 /* ── Deploy Step (matching MainSite wizard style) ── */
 const DeployStep = ({ label, status, delay }) => (

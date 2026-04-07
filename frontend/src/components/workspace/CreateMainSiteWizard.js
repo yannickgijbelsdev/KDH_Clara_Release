@@ -16,12 +16,12 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 /* ── Background images per type ── */
 const SITE_TYPE_BACKGROUNDS = {
-  radio: '/images/env_radio.png',
-  server: '/images/env_server.png',
-  external_host: '/images/env_external_host.png',
-  task_scheduler: '/images/env_task_scheduler.png',
-  technical: '/images/env_technical.png',
-  wp_security: '/images/env_wp_security.png',
+  radio: '/images/env_radio.jpg',
+  server: '/images/env_server.jpg',
+  external_host: '/images/env_external_host.jpg',
+  task_scheduler: '/images/env_task_scheduler.jpg',
+  technical: '/images/env_technical.jpg',
+  wp_security: '/images/env_wp_security.jpg',
 };
 
 const SITE_TYPES = [
@@ -54,7 +54,7 @@ const StepEnvironment = ({ selected, onSelect }) => (
             }`}
           >
             {/* Background preview */}
-            <div className="h-28 relative overflow-hidden bg-zinc-100">
+            <div className="h-28 relative overflow-hidden bg-white">
               <img
                 src={SITE_TYPE_BACKGROUNDS[type.id]}
                 alt=""
