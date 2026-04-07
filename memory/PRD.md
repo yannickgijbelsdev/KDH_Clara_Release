@@ -65,6 +65,12 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] ServerRackView responsive scaling
 - [x] Avatar dropdown cleanup, Content Approval badge fix
 
+### April 7, 2026 - Universal Layout & Dashboard Fix
+- [x] **NetworkHeader universeel gemaakt**: NetworkDashboard gebruikt nu het herbruikbare NetworkHeader component (i.p.v. 160 regels inline header)
+- [x] **Dashboard voor elk site-type**: technical, task_scheduler en server sites tonen nu een dashboard i.p.v. direct redirecten
+- [x] **NetworkHeader props uitgebreid**: Ondersteunt `activeSection`/`onSectionChange` voor tab-switching, en `environments`/`selectedEnvId`/`onEnvChange` voor environment state passthrough
+- [x] **Backups & Explorer**: Behouden NetworkHeader met "Enterprise Global" label
+
 ### April 7, 2026 - NetworkHeader Extraction & Reuse
 - [x] **Extracted reusable `NetworkHeader.js` component** from `NetworkDashboard.js` header section
 - [x] **Applied to `BackupManagementPage.js`**: Replaced static Clara header with full navigation bar
@@ -83,7 +89,9 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [ ] Payment Gateway (Stripe/Mollie)
 - [ ] Stream Monitor VU Meters
 - [x] Refactoring: NetworkHeader extraction (step 1 of NetworkDashboard.js decomposition) — DONE
-- [ ] Refactoring: Replace inline header in NetworkDashboard.js with NetworkHeader component
+- [x] Refactoring: NetworkDashboard.js uses NetworkHeader component — DONE
+- [x] Dashboard for all site types (technical, task_scheduler, server) — DONE
+- [ ] Refactoring: Further decompose remaining NetworkDashboard.js sections
 - [ ] React Hook warnings (ShowsPage.js, TrashPage.js, ZeroTierPage.js)
 
 ## Test Credentials

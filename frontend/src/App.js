@@ -281,35 +281,14 @@ const AppRoutes = () => {
   );
 };
 
-// Component that shows DashboardHome for radio sites, or redirects for special site types
+// Component that shows DashboardHome for ALL site types
 const MainSiteIndex = () => {
-  const { mainSite, mainSiteSlug, loading } = useMainSite();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    if (!loading && mainSite) {
-      // Special site types redirect to their primary page
-      if (mainSite.site_type === 'technical') {
-        navigate(`/${mainSiteSlug}/zerotier`, { replace: true });
-        return;
-      }
-      if (mainSite.site_type === 'task_scheduler') {
-        navigate(`/${mainSiteSlug}/task-boards`, { replace: true });
-        return;
-      }
-      if (mainSite.site_type === 'server') {
-        navigate(`/${mainSiteSlug}/xml-imports`, { replace: true });
-        return;
-      }
-      // Radio/standard sites show DashboardHome (handled by render below)
-    }
-  }, [loading, mainSite, mainSiteSlug, navigate]);
+  const { mainSite, loading } = useMainSite();
   
   if (loading || !mainSite) {
     return <div className="flex items-center justify-center h-full" />;
   }
   
-  // Standard sites: show the canvas dashboard home
   return <DashboardHome />;
 };
 

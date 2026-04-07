@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
 import {
-  Globe, Settings, Crown, Network, Shield, Bell, Paintbrush,
-  Server, ChevronDown, LogOut, Bug, ShieldAlert, UserCog,
-  HardDrive, Code, Menu, X, ExternalLink, Eye, FileCheck,
-  Pencil, Mic,
+  Globe, Crown, Network, Shield, Bell, Paintbrush,
+  Server, ChevronDown, LogOut, ShieldAlert, UserCog,
+  HardDrive, Code, Menu, X,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -34,34 +33,49 @@ const roleLabels = {
 
 /**
  * Reusable Network-level top navigation header.
- * Used on NetworkDashboard, BackupManagementPage, and ApiExplorerPage.
  *
  * Props:
- *  - activePage: 'network' | 'backups' | 'explorer' — highlights the correct nav item
+ *  - activePage: 'network' | 'backups' | 'explorer'
+ *  - activeSection: string (e.g. 'sites', 'admins') — used by NetworkDashboard for tab switching
+ *  - onSectionChange: (sectionId) => void — callback for tab switching within NetworkDashboard
+ *  - environments: array — pre-fetched environments (optional, avoids double-fetch)
+ *  - selectedEnvId / onEnvChange — environment switcher state (optional)
  */
-export default function NetworkHeader({ activePage = 'network' }) {
+export default function NetworkHeader({
+  activePage = 'network',
+  activeSection,
+  onSectionChange,
+  environments: externalEnvs,
+  selectedEnvId: externalEnvId,
+  onEnvChange,
+}) {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
-  const [environments, setEnvironments] = useState([]);
-  const [selectedEnvId, setSelectedEnvId] = useState(null);
+  const [internalEnvs, setInternalEnvs] = useState([]);
+  const [internalEnvId, setInternalEnvId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isSystemAdmin = user?.is_system_admin === true;
 
+  // Use external environments if provided, else fetch internally
+  const environments = externalEnvs || internalEnvs;
+  const selectedEnvId = externalEnvId ?? internalEnvId;
+  const setSelectedEnvId = onEnvChange || setInternalEnvId;
+
   const NAV_ITEMS = [
-    { id: 'sites', icon: Globe, label: 'Sites Overview', path: '/network' },
-    ...(isSystemAdmin ? [{ id: 'admins', icon: Crown, label: 'Network Admins', path: '/network' }] : []),
-    { id: 'environments', icon: Server, label: 'Environments', path: '/network' },
-    ...(isSystemAdmin ? [{ id: 'domains', icon: Globe, label: 'Domain Manager', path: '/network' }] : []),
-    ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'License Manager', path: '/network' }] : []),
+    { id: 'sites', icon: Globe, label: 'Sites Overview' },
+    ...(isSystemAdmin ? [{ id: 'admins', icon: Crown, label: 'Network Admins' }] : []),
+    { id: 'environments', icon: Server, label: 'Environments' },
+    ...(isSystemAdmin ? [{ id: 'domains', icon: Globe, label: 'Domain Manager' }] : []),
+    ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'License Manager' }] : []),
   ];
 
   const OVERFLOW_ITEMS = [
-    ...(isSystemAdmin ? [{ id: 'notifications', icon: Bell, label: 'Notifications', path: '/network' }] : []),
-    ...(isSystemAdmin ? [{ id: 'branding', icon: Paintbrush, label: 'Branding', path: '/network' }] : []),
-    ...(isSystemAdmin ? [{ id: 'audit', icon: ShieldAlert, label: 'Permission Audit', path: '/network' }] : []),
-    ...(isSystemAdmin ? [{ id: 'user-access', icon: UserCog, label: 'User Access', path: '/network' }] : []),
-    { id: 'security', icon: Shield, label: 'Account Security', path: '/network' },
+    ...(isSystemAdmin ? [{ id: 'notifications', icon: Bell, label: 'Notifications' }] : []),
+    ...(isSystemAdmin ? [{ id: 'branding', icon: Paintbrush, label: 'Branding' }] : []),
+    ...(isSystemAdmin ? [{ id: 'audit', icon: ShieldAlert, label: 'Permission Audit' }] : []),
+    ...(isSystemAdmin ? [{ id: 'user-access', icon: UserCog, label: 'User Access' }] : []),
+    { id: 'security', icon: Shield, label: 'Account Security' },
   ];
 
   const LINK_ITEMS = [
@@ -69,31 +83,35 @@ export default function NetworkHeader({ activePage = 'network' }) {
     { id: 'explorer', icon: Code, label: 'API Explorer', path: '/explorer' },
   ];
 
+  // Only fetch environments internally if not provided externally
   useEffect(() => {
-    if (!token) return;
+    if (externalEnvs || !token) return;
     fetch(`${API}/api/environments`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.ok ? r.json() : [])
       .then(data => {
-        setEnvironments(data);
-        if (data.length > 0 && !selectedEnvId) {
+        setInternalEnvs(data);
+        if (data.length > 0 && !internalEnvId) {
           const def = data.find(e => e.is_default) || data[0];
-          setSelectedEnvId(def.id);
+          setInternalEnvId(def.id);
         }
       })
       .catch(() => {});
-  }, [token]);
+  }, [token, externalEnvs]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
   const handleNavClick = (item) => {
-    if (item.path === '/network') {
-      navigate('/network');
+    if (onSectionChange) {
+      onSectionChange(item.id);
     } else {
-      navigate(item.path);
+      navigate('/network');
     }
   };
 
   const isActive = (item) => {
+    // Section-based active state (NetworkDashboard)
+    if (activeSection) return activeSection === item.id;
+    // Page-based active state (standalone pages)
     if (item.id === 'sites' && activePage === 'network') return true;
     if (item.id === 'backups' && activePage === 'backups') return true;
     if (item.id === 'explorer' && activePage === 'explorer') return true;
@@ -204,11 +222,12 @@ export default function NetworkHeader({ activePage = 'network' }) {
               {/* Overflow nav items */}
               {OVERFLOW_ITEMS.map(item => {
                 const Icon = item.icon;
+                const active = isActive(item);
                 return (
                   <DropdownMenuItem
                     key={item.id}
                     onClick={() => handleNavClick(item)}
-                    className="text-zinc-600 focus:text-zinc-900 focus:bg-black/5 cursor-pointer"
+                    className={`cursor-pointer ${active ? 'bg-orange-50 text-orange-600' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
                   >
                     <Icon className="w-4 h-4 mr-2" />{item.label}
                   </DropdownMenuItem>
@@ -304,6 +323,19 @@ export default function NetworkHeader({ activePage = 'network' }) {
           <div className="flex-1 overflow-y-auto">
             <nav className="space-y-1">
               {NAV_ITEMS.map(item => {
+                const Icon = item.icon;
+                const active = isActive(item);
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { handleNavClick(item); setSidebarOpen(false); }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${active ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}
+                  >
+                    <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+              {OVERFLOW_ITEMS.map(item => {
                 const Icon = item.icon;
                 const active = isActive(item);
                 return (
