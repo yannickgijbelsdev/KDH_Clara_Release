@@ -65,6 +65,11 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] ServerRackView responsive scaling
 - [x] Avatar dropdown cleanup, Content Approval badge fix
 
+### April 7, 2026 - Backups/Endpoints Layout Applied to All Network Sections
+- [x] **All 8 NetworkDashboard sections** restyled with glassmorphism top bars (icon + uppercase label + description) + frosted glass content panels
+- [x] Sections updated: Network Admins, Environments, Domain Manager, License Manager, Notifications, Branding, Permission Audit, User Access, Account Security
+- [x] Pattern: `bg-white/80 backdrop-blur-2xl rounded-2xl` top bar + `bg-white/60 backdrop-blur-xl rounded-2xl` scrollable content panel
+
 ### April 7, 2026 - Network Pages Light Theme Migration
 - [x] **DomainManager.js**: 84 dark-mode patronen omgezet naar licht thema (bg-zinc-900→bg-white, text-zinc-200→text-zinc-700, etc.)
 - [x] **LicenseManager.js**: 23 dark-mode patronen gefixed

@@ -828,204 +828,256 @@ export default function NetworkDashboard() {
 
           {/* ═══════════ NETWORK ADMINS ═══════════ */}
           {activeSection === 'admins' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Crown className="w-5 h-5 text-orange-500" />
                 <div>
-                  <h1 className="text-2xl font-bold">Network Admins</h1>
-                  <p className="text-sm text-zinc-400">Manage network administrator access and permissions</p>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Network Admins</div>
+                  <div className="text-sm font-semibold text-zinc-700">Manage network administrator access and permissions</div>
                 </div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <NetworkAdminManager open={true} onClose={() => setActiveSection('sites')} inline />
               </div>
-              <NetworkAdminManager open={true} onClose={() => setActiveSection('sites')} inline />
             </div>
           )}
 
           {/* ═══════════ NOTIFICATIONS ═══════════ */}
           {activeSection === 'notifications' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Bell className="w-5 h-5 text-orange-500" />
                 <div>
-                  <h1 className="text-2xl font-bold">Notifications</h1>
-                  <p className="text-sm text-zinc-400">Configure email notifications per site and role</p>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Notifications</div>
+                  <div className="text-sm font-semibold text-zinc-700">Configure email notifications per site and role</div>
                 </div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <NotificationSettings open={true} onClose={() => setActiveSection('sites')} inline mainSites={mainSites} />
               </div>
-              <NotificationSettings open={true} onClose={() => setActiveSection('sites')} inline mainSites={mainSites} />
             </div>
           )}
 
           {/* ═══════════ BRANDING ═══════════ */}
           {activeSection === 'branding' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Paintbrush className="w-5 h-5 text-orange-500" />
                 <div>
-                  <h1 className="text-2xl font-bold">Branding</h1>
-                  <p className="text-sm text-zinc-400">Customize platform name, logo, favicon, and login page</p>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Branding</div>
+                  <div className="text-sm font-semibold text-zinc-700">Customize platform name, logo, favicon, and login page</div>
                 </div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <BrandingSettings />
               </div>
-              <BrandingSettings />
             </div>
           )}
 
           {/* ═══════════ LICENSE MANAGER ═══════════ */}
           {activeSection === 'licenses' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Shield className="w-5 h-5 text-orange-500" />
                 <div>
-                  <h1 className="text-2xl font-bold">License Manager</h1>
-                  <p className="text-sm text-zinc-400">Manage license packages and site assignments</p>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">License Manager</div>
+                  <div className="text-sm font-semibold text-zinc-700">Manage license packages and site assignments</div>
                 </div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <LicenseManager />
               </div>
-              <LicenseManager />
             </div>
           )}
 
           {/* ═══════════ DOMAIN MANAGER ═══════════ */}
           {activeSection === 'domains' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Globe className="w-5 h-5 text-orange-500" />
                 <div>
-                  <h1 className="text-2xl font-bold">Domain Manager</h1>
-                  <p className="text-sm text-zinc-400">Manage domains, subdomain routing, and Cloudflare integration</p>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Domain Manager</div>
+                  <div className="text-sm font-semibold text-zinc-700">Manage domains, subdomain routing, and Cloudflare integration</div>
                 </div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <DomainManager />
               </div>
-              <DomainManager />
             </div>
           )}
 
           {/* ═══════════ ENVIRONMENTS ═══════════ */}
           {activeSection === 'environments' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Server className="w-5 h-5 text-orange-500" />
                 <div>
-                  <h1 className="text-2xl font-bold">Environments</h1>
-                  <p className="text-sm text-zinc-400">Manage Clara environments, admins, and site assignments</p>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Environments</div>
+                  <div className="text-sm font-semibold text-zinc-700">Manage Clara environments, admins, and site assignments</div>
                 </div>
+                <div className="w-px h-8 bg-black/[0.06] mx-1" />
+                <div className="text-3xl font-bold text-zinc-900">{environments.length}</div>
+                <div className="text-sm text-zinc-500">Environments</div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <EnvironmentManager />
               </div>
-              <EnvironmentManager />
             </div>
           )}
 
 
           {/* ═══════════ PERMISSION AUDIT ═══════════ */}
           {activeSection === 'audit' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <ShieldAlert className="w-5 h-5 text-orange-500" />
                 <div>
-                  <h1 className="text-2xl font-bold">Permission Audit</h1>
-                  <p className="text-sm text-zinc-400">Audit and verify role permissions across all sites</p>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Permission Audit</div>
+                  <div className="text-sm font-semibold text-zinc-700">Audit and verify role permissions across all sites</div>
                 </div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <PermissionAuditPanel token={token} onClose={() => setActiveSection('sites')} inline />
               </div>
-              <PermissionAuditPanel token={token} onClose={() => setActiveSection('sites')} inline />
             </div>
           )}
 
           {/* ═══════════ USER ACCESS DEBUG ═══════════ */}
           {activeSection === 'user-access' && (
-            <UserAccessSection token={token} API={API} openUserAccessPanel={openUserAccessPanel} userAccessPanel={userAccessPanel} mainSites={mainSites} roleIcons={roleIcons} roleLabels={roleLabels} />
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <UserCog className="w-5 h-5 text-orange-500" />
+                <div>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">User Access</div>
+                  <div className="text-sm font-semibold text-zinc-700">Debug and manage user access across all sites</div>
+                </div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <UserAccessSection token={token} API={API} openUserAccessPanel={openUserAccessPanel} userAccessPanel={userAccessPanel} mainSites={mainSites} roleIcons={roleIcons} roleLabels={roleLabels} />
+              </div>
+            </div>
           )}
 
           {/* ═══════════ ACCOUNT SECURITY ═══════════ */}
           {activeSection === 'security' && (
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-2xl font-bold">Account Security</h1>
-                  <p className="text-sm text-zinc-400">Manage your two-factor authentication settings</p>
-                </div>
-                {user?.totp_enabled && (
-                  <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
-                    <CheckCircle className="w-3.5 h-3.5" /> 2FA Active
-                  </span>
-                )}
-              </div>
-              <Card className="bg-white border-zinc-200 max-w-lg">
-                <CardContent className="p-6">
-                  <TwoFactorSetup user={user} onUpdate={refreshUser} />
-                </CardContent>
-              </Card>
-
-              {/* ZeroTier Network Guard - System Admins Only */}
-              {isSystemAdmin && (
-                <div className="mt-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-lg font-semibold flex items-center gap-2">
-                        <Shield className="w-5 h-5 text-blue-400" />
-                        ZeroTier Network Guard
-                      </h2>
-                      <p className="text-sm text-zinc-400 mt-0.5">Require network admins to be connected to a ZeroTier network before login</p>
-                    </div>
-                    <button
-                      data-testid="zt-guard-toggle"
-                      onClick={() => saveZtGuard({ enabled: !ztGuard.enabled })}
-                      disabled={ztGuard.loading || (!ztGuard.network_id && !ztGuard.enabled)}
-                      className={`relative w-12 h-6 rounded-full transition-colors ${ztGuard.enabled ? 'bg-blue-600' : 'bg-zinc-700'} ${(!ztGuard.network_id && !ztGuard.enabled) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                    >
-                      <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${ztGuard.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                    </button>
+            <div className="flex flex-col h-full gap-4">
+              <div className="flex items-start justify-between flex-shrink-0">
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                  className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4">
+                  <Shield className="w-5 h-5 text-orange-500" />
+                  <div>
+                    <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Account Security</div>
+                    <div className="text-sm font-semibold text-zinc-700">Manage your two-factor authentication settings</div>
                   </div>
+                  {user?.totp_enabled && (
+                    <>
+                      <div className="w-px h-8 bg-black/[0.06] mx-1" />
+                      <span className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-200">
+                        <CheckCircle className="w-3.5 h-3.5" /> 2FA Active
+                      </span>
+                    </>
+                  )}
+                </motion.div>
+              </div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <Card className="bg-white border-zinc-200 max-w-lg">
+                  <CardContent className="p-6">
+                    <TwoFactorSetup user={user} onUpdate={refreshUser} />
+                  </CardContent>
+                </Card>
 
-                  <Card className="bg-white border-zinc-200 max-w-lg" data-testid="zt-guard-config">
-                    <CardContent className="p-5 space-y-4">
-                      {ztGuard.enabled && (
-                        <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-500/10 px-3 py-2 rounded-lg border border-blue-500/20">
-                          <Shield className="w-3.5 h-3.5" />
-                          Guard is active. Network admins must be on the ZeroTier network to log in.
+                {/* ZeroTier Network Guard - System Admins Only */}
+                {isSystemAdmin && (
+                  <div className="mt-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h2 className="text-base font-semibold flex items-center gap-2 text-zinc-800">
+                          <Shield className="w-5 h-5 text-blue-500" />
+                          ZeroTier Network Guard
+                        </h2>
+                        <p className="text-sm text-zinc-500 mt-0.5">Require network admins to be connected to a ZeroTier network before login</p>
+                      </div>
+                      <button
+                        data-testid="zt-guard-toggle"
+                        onClick={() => saveZtGuard({ enabled: !ztGuard.enabled })}
+                        disabled={ztGuard.loading || (!ztGuard.network_id && !ztGuard.enabled)}
+                        className={`relative w-12 h-6 rounded-full transition-colors ${ztGuard.enabled ? 'bg-blue-600' : 'bg-zinc-300'} ${(!ztGuard.network_id && !ztGuard.enabled) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform shadow-sm ${ztGuard.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      </button>
+                    </div>
+
+                    <Card className="bg-white border-zinc-200 max-w-lg" data-testid="zt-guard-config">
+                      <CardContent className="p-5 space-y-4">
+                        {ztGuard.enabled && (
+                          <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                            <Shield className="w-3.5 h-3.5" />
+                            Guard is active. Network admins must be on the ZeroTier network to log in.
+                          </div>
+                        )}
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-zinc-500 font-medium">Network ID</label>
+                          <div className="flex gap-2">
+                            <Input
+                              data-testid="zt-guard-network-id"
+                              placeholder="e.g. a8b4c2d6e1f09876"
+                              value={ztGuardForm.network_id}
+                              onChange={(e) => setZtGuardForm(prev => ({ ...prev, network_id: e.target.value }))}
+                              className="bg-zinc-50 border-zinc-200 font-mono text-sm"
+                            />
+                          </div>
+                          {ztGuard.network_name && (
+                            <p className="text-xs text-zinc-500">Network: {ztGuard.network_name}</p>
+                          )}
                         </div>
-                      )}
 
-                      <div className="space-y-1.5">
-                        <label className="text-xs text-zinc-400 font-medium">Network ID</label>
-                        <div className="flex gap-2">
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-zinc-500 font-medium">API Token</label>
                           <Input
-                            data-testid="zt-guard-network-id"
-                            placeholder="e.g. a8b4c2d6e1f09876"
-                            value={ztGuardForm.network_id}
-                            onChange={(e) => setZtGuardForm(prev => ({ ...prev, network_id: e.target.value }))}
+                            data-testid="zt-guard-api-token"
+                            type="password"
+                            placeholder={ztGuard.api_token_masked || "ZeroTier Central API token"}
+                            value={ztGuardForm.api_token}
+                            onChange={(e) => setZtGuardForm(prev => ({ ...prev, api_token: e.target.value }))}
                             className="bg-zinc-50 border-zinc-200 font-mono text-sm"
                           />
+                          {ztGuard.api_token_masked && !ztGuardForm.api_token && (
+                            <p className="text-xs text-zinc-500">Current: {ztGuard.api_token_masked}</p>
+                          )}
                         </div>
-                        {ztGuard.network_name && (
-                          <p className="text-xs text-zinc-500">Network: {ztGuard.network_name}</p>
-                        )}
-                      </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-xs text-zinc-400 font-medium">API Token</label>
-                        <Input
-                          data-testid="zt-guard-api-token"
-                          type="password"
-                          placeholder={ztGuard.api_token_masked || "ZeroTier Central API token"}
-                          value={ztGuardForm.api_token}
-                          onChange={(e) => setZtGuardForm(prev => ({ ...prev, api_token: e.target.value }))}
-                          className="bg-zinc-50 border-zinc-200 font-mono text-sm"
-                        />
-                        {ztGuard.api_token_masked && !ztGuardForm.api_token && (
-                          <p className="text-xs text-zinc-500">Current: {ztGuard.api_token_masked}</p>
-                        )}
-                      </div>
-
-                      <Button
-                        data-testid="zt-guard-save"
-                        onClick={() => {
-                          const updates = {};
-                          if (ztGuardForm.network_id) updates.network_id = ztGuardForm.network_id;
-                          if (ztGuardForm.api_token) updates.api_token = ztGuardForm.api_token;
-                          if (Object.keys(updates).length === 0) {
-                            toast.info('No changes to save');
-                            return;
-                          }
-                          saveZtGuard(updates);
-                        }}
-                        disabled={ztGuard.loading}
-                        variant="outline"
-                        className="w-full bg-zinc-50 border-zinc-200 hover:bg-zinc-200"
-                      >
-                        Save Configuration
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+                        <Button
+                          data-testid="zt-guard-save"
+                          onClick={() => {
+                            const updates = {};
+                            if (ztGuardForm.network_id) updates.network_id = ztGuardForm.network_id;
+                            if (ztGuardForm.api_token) updates.api_token = ztGuardForm.api_token;
+                            if (Object.keys(updates).length === 0) {
+                              toast.info('No changes to save');
+                              return;
+                            }
+                            saveZtGuard(updates);
+                          }}
+                          disabled={ztGuard.loading}
+                          variant="outline"
+                          className="w-full bg-zinc-50 border-zinc-200 hover:bg-zinc-100"
+                        >
+                          Save Configuration
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
