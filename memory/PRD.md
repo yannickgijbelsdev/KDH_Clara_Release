@@ -9,33 +9,44 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - **Database**: MongoDB
 - **Authentication**: JWT-based email/password login with role-based access
 - **UI Theme**: Light/frosted-glass canvas with horizontal pill-tab navigation
+- **AI**: GPT-5.2 via Emergent Universal Key (emergentintegrations library)
 
 ## What's Been Implemented
 
-### April 7, 2026 - Backup/Explorer Redesign + Global Search
-- [x] **BackupManagementPage.js** - Full light-theme redesign: glassmorphism header, pill site selector, solid white status cards, Dutch labels, backup search filter
-- [x] **ApiExplorerPage.js** - Full light-theme redesign: glassmorphism header, method filter pills, solid white category cards, Dutch labels
-- [x] **Global Search Bar** - Added to main site dashboard topbar with debounced search across content, shows, and media
-- [x] **Backend /api/search endpoint** - Searches content_items, shows, and media_items within current main site context
-- [x] **Avatar dropdown cleanup** - Removed PRODUCTION site list (already in topbar site-switcher)
-- [x] **Content Approval badge fix** - Extended is_admin check to include is_network_admin, is_system_admin, and news_admin roles
+### April 7, 2026 - Clara AI Assistant
+- [x] **Backend**: 4 new endpoints in `/api/clara-assistant/`:
+  - `POST /chat` - Conversational AI with SEO and error help modes, session persistence
+  - `POST /seo/generate` - Generate full SEO-optimized articles from topic/keywords
+  - `POST /seo/improve` - Analyze and improve existing content for SEO
+  - `POST /error-help` - Context-aware error troubleshooting
+- [x] **Frontend**: Floating panel component (`ClaraAssistant.js`) with:
+  - Sparkles button bottom-right, slide-in panel
+  - Two modes: SEO Schrijfhulp + Foutmelding Hulp
+  - Quick actions: Article generation form (topic, keywords, length) and content improvement
+  - Chat interface with message history, copy and "insert into editor" buttons
+  - Auto-language detection
+- [x] **Context**: `ClaraAssistantContext.js` bridges editor content with Clara panel
+- [x] **Integration**: ContentDetailPage registers editor content for Clara to read/write
+- [x] **LLM**: GPT-5.2 via Emergent Universal Key, chat history in MongoDB
 
-### April 7, 2026 - Glassmorphism + Animated Pill Navigation
-- [x] Animated sliding pill indicator using framer-motion `layoutId` (spring animation between tabs)
-- [x] Glassmorphism on navigation elements only, solid white for content panels
-- [x] Counter badges added to pill navigation (Content Library, Media Library, Trash, Content Approval)
-- [x] TinyMCE switched to light mode `oxide` skin
+### April 7, 2026 - WordPress Publish Animation Fix
+- [x] Deploy animation now shows real API call results: red X on failure, skipped steps marked
+- [x] Error details box with actual error message
+- [x] Added `deployFailed`, `deployFailStep`, `deployErrorMsg` states
 
-### April 6, 2026 - Multi-Step Wizard Refactor (All Dialogs)
-- [x] CreateShowDialog, CreateContentDialog, RundownItemDialog - Wizard refactors
-- [x] CreateEnvironmentWizard, TeamSettingsPage, ShowManagementPage - Wizard layouts
+### April 7, 2026 - Content Type Fix
+- [x] Added "audio" to `ContentItemCreate` and `ContentItemUpdate` Pydantic models
 
-### April 5, 2026 - Login Wizard Redesign & UI Fixes
-- [x] LoginWizard rewritten with circle loader -> checkmark animation
-- [x] WizardStepIndicator.js shared component
-- [x] CreateMainSiteWizard.js, CreateEnvironmentWizard.js
-- [x] Dashboard Canvas with floating panels
-- [x] Dark mode removal complete
+### April 7, 2026 - Dark Mode Complete Cleanup (52+ files)
+- [x] Three-pass bulk fix: inputs, selects, headings, dialogs, spans all converted to light mode
+- [x] SelectTrigger, DialogContent, DialogTitle all fixed
+
+### April 7, 2026 - Backup/Explorer Redesign + Global Search + Rack Scaling
+- [x] BackupManagementPage and ApiExplorerPage fully redesigned (light theme)
+- [x] Global search bar in topbar with debounced API search
+- [x] ServerRackView responsive scaling (0.45x-2.2x based on viewport)
+- [x] Avatar dropdown site-list removed
+- [x] Content Approval badge fix (expanded is_admin check)
 
 ## Prioritized Backlog
 
@@ -47,13 +58,27 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [ ] WordPress Plugin Integration (clara-radio-schedule)
 
 ### P2 - Medium Priority
-- [ ] Python linting cleanup (unused variables in wordpress.py, rds_builder_scheduler.py)
+- [ ] Python linting cleanup (unused variables)
 - [ ] Payment Gateway (Stripe/Mollie) for License Manager
 - [ ] Stream Monitor VU Meters
-- [ ] Refactoring: NetworkDashboard.js decomposition (1500+ lines)
-- [ ] Cleanup obsolete ProRadio sync code
-- [ ] Accessibility: Add VisuallyHidden DialogTitle to wizard dialogs
+- [ ] Refactoring: NetworkDashboard.js decomposition
+- [ ] Accessibility: DialogTitle for wizard dialogs
+
+## Key API Endpoints
+- `POST /api/clara-assistant/chat` - AI chat (SEO/error modes)
+- `POST /api/clara-assistant/seo/generate` - Generate SEO article
+- `POST /api/clara-assistant/seo/improve` - Improve content SEO
+- `POST /api/clara-assistant/error-help` - Error troubleshooting
+- `GET /api/search` - Global search across content/shows/media
+- `GET /api/menu/counts` - Navigation badge counts
 
 ## Test Credentials
 - System Administrator: admkoodh@koodh.com / KYLovie13monx
-- Network Admin: yannick.gijbels@koodh.com / test (may need password reset)
+- Network Admin: yannick.gijbels@koodh.com / test
+
+## 3rd Party Integrations
+- Cloudflare (WAF/DNS) - User API Key
+- WordPress - Application Password
+- Radioplayer - API Key
+- ZeroTier - Active
+- GPT-5.2 (OpenAI) - Emergent Universal Key
