@@ -65,6 +65,13 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] ServerRackView responsive scaling
 - [x] Avatar dropdown cleanup, Content Approval badge fix
 
+### April 7, 2026 - NetworkHeader Extraction & Reuse
+- [x] **Extracted reusable `NetworkHeader.js` component** from `NetworkDashboard.js` header section
+- [x] **Applied to `BackupManagementPage.js`**: Replaced static Clara header with full navigation bar
+- [x] **Applied to `ApiExplorerPage.js`**: Same full navigation bar with pill tabs, env switcher, user menu
+- [x] **Responsive**: Mobile hamburger menu, desktop pill tabs, environment switcher all functional
+- [x] **Active page highlighting**: Backups/Explorer highlighted in "More" dropdown when on those pages
+
 ## Prioritized Backlog
 
 ### P1 - High Priority
@@ -75,7 +82,8 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] Python linting cleanup (unused variables) — DONE
 - [ ] Payment Gateway (Stripe/Mollie)
 - [ ] Stream Monitor VU Meters
-- [ ] Refactoring: NetworkDashboard.js decomposition
+- [x] Refactoring: NetworkHeader extraction (step 1 of NetworkDashboard.js decomposition) — DONE
+- [ ] Refactoring: Replace inline header in NetworkDashboard.js with NetworkHeader component
 - [ ] React Hook warnings (ShowsPage.js, TrashPage.js, ZeroTierPage.js)
 
 ## Test Credentials

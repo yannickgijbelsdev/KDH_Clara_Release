@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { BrandLogo } from '../../components/BrandLogo';
+import NetworkHeader from '../../components/NetworkHeader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
@@ -309,27 +309,18 @@ const ApiExplorerPage = () => {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#F0F0F2]" data-testid="api-explorer-page">
-      {/* Dot pattern */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{
-        backgroundImage: 'radial-gradient(circle, #999 0.5px, transparent 0.5px)',
-        backgroundSize: '24px 24px',
-      }} />
+    <div className="h-screen flex flex-col overflow-hidden bg-[#F0F0F2]" style={{ height: '100dvh' }} data-testid="api-explorer-page">
+      <NetworkHeader activePage="explorer" />
 
-      <div className="absolute inset-0 z-10 flex flex-col p-4 sm:p-5">
+      {/* Canvas area */}
+      <div className="relative flex-1 overflow-hidden">
+        {/* Dot pattern */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{
+          backgroundImage: 'radial-gradient(circle, #999 0.5px, transparent 0.5px)',
+          backgroundSize: '24px 24px',
+        }} />
 
-        {/* ── Clara Header ── */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-          className="flex items-center gap-3 mb-4 flex-shrink-0"
-          data-testid="clara-header"
-        >
-          <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center shadow-sm">
-            <span className="text-white font-black text-sm">C</span>
-          </div>
-          <BrandLogo className="text-lg font-bold text-zinc-900" />
-          <span className="text-sm text-zinc-400 font-medium">Enterprise Global</span>
-        </motion.div>
+        <div className="absolute inset-0 z-10 flex flex-col p-4 sm:p-5">
 
         {/* ── Top bar ── */}
         <div className="flex items-start justify-between flex-shrink-0 mb-4">
@@ -419,6 +410,7 @@ const ApiExplorerPage = () => {
             <Code className="w-4 h-4 text-orange-500" />
             <span className="text-sm font-bold text-zinc-900">{totalEndpoints} endpoints</span>
           </motion.div>
+        </div>
         </div>
       </div>
     </div>
