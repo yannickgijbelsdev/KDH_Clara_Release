@@ -108,52 +108,53 @@ const LoginPage = () => {
     setForgotLoading(false);
   };
 
-  const HERO_BG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/64a09a2a1d1c252e947384eb256e13bcc01e8aa002ae57b5ef12d8cb851fb6c6.png';
+  const HERO_BG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/2124db205302e55f41d05ab37efb852de7a1e4a38ea53258564a8ca4454efd0a.png';
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden" data-testid="login-page">
-      {/* Full-screen background image */}
-      <div className="absolute inset-0">
-        <img src={HERO_BG} alt="" className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" />
-      </div>
+    <div className="min-h-screen flex relative overflow-hidden bg-[#f8f7f4]" data-testid="login-page">
+      {/* Subtle warm gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#f8f7f4] via-[#f5f0ea] to-[#efe8df]" />
 
-      {/* Left side: branding & tagline */}
+      {/* Left side: branding, hero image & tagline */}
       <div className="hidden lg:flex flex-col justify-between relative z-10 flex-1 p-12 xl:p-16">
         <div>
           {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="h-9 object-contain brightness-0 invert" data-testid="login-logo" />
+            <img src={logoUrl} alt={platformName} className="h-9 object-contain" data-testid="login-logo" />
           ) : (
-            <span className="text-2xl font-bold text-white tracking-tight" data-testid="login-logo-text">{platformName}</span>
+            <span className="text-2xl font-bold text-zinc-800 tracking-tight" data-testid="login-logo-text">{platformName}</span>
           )}
         </div>
-        <div className="max-w-lg">
-          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
-            Data intelligence<br />for media & radio
-          </h1>
-          <p className="text-lg text-white/60 leading-relaxed">
-            Collect, manage, and distribute data across your radio stations, 
-            WordPress sites, and business operations — all from one platform.
-          </p>
+        <div className="flex flex-col items-center flex-1 justify-center -mt-8">
+          <img src={HERO_BG} alt="Clara Platform" className="w-full max-w-[680px] xl:max-w-[780px] object-contain drop-shadow-2xl mix-blend-multiply" />
+          <div className="text-center mt-6 max-w-lg">
+            <h1 className="text-3xl xl:text-4xl font-bold text-zinc-800 leading-tight mb-3">
+              Data intelligence for media & radio
+            </h1>
+            <p className="text-base text-zinc-500 leading-relaxed">
+              Collect, manage, and distribute data across your radio stations, 
+              WordPress sites, and business operations — all from one platform.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-8 text-sm text-white/40">
+        <div className="flex items-center gap-8 text-sm text-zinc-400">
           <span>Radio Management</span>
-          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span className="w-1 h-1 rounded-full bg-zinc-300" />
           <span>Content Publishing</span>
-          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <span className="w-1 h-1 rounded-full bg-zinc-300" />
           <span>Data Analytics</span>
         </div>
       </div>
 
       {/* Right side: login form */}
-      <div className="relative z-10 w-full lg:w-[480px] xl:w-[520px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white/95 backdrop-blur-3xl lg:rounded-l-[32px] shadow-2xl">
-        {/* Mobile logo */}
-        <div className="lg:hidden mb-10 text-center">
+      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white border-l border-zinc-200/60 shadow-sm">
+        {/* Mobile logo & hero */}
+        <div className="lg:hidden mb-8 text-center">
           {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="h-9 object-contain mx-auto" />
+            <img src={logoUrl} alt={platformName} className="h-8 object-contain mx-auto mb-4" />
           ) : (
-            <span className="text-2xl font-bold text-zinc-800 tracking-tight">{platformName}</span>
+            <span className="text-xl font-bold text-zinc-800 tracking-tight">{platformName}</span>
           )}
+          <img src={HERO_BG} alt="Clara Platform" className="w-48 mx-auto mt-2 mb-2 object-contain" />
         </div>
 
         <div className="w-full max-w-[380px]">
