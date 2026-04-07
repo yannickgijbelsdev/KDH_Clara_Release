@@ -27,36 +27,36 @@ Multi-environment SaaS platform for radio station management built with React fr
 └── memory/ (PRD, changelog, credentials)
 ```
 
-## User Personas
-- **System Administrator**: Full platform access, manages all sites and network config
-- **Network Admin**: Manages assigned sites, environments, domains
-- **Site Admin/Presenter/Editor**: Site-level operations
+## Design System — 260px Isometric Card Grid
+All Network pages use a consistent card layout:
+- **Width**: `w-[260px]` with `flex flex-wrap justify-center gap-4 sm:gap-6`
+- **Image area**: `h-[180px]` with isometric 3D illustrations from `/images/env_*.jpg`
+- **Image mask**: `radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)`
+- **Badges**: White glassmorphism (`bg-white/90 backdrop-blur-lg rounded-lg`)
+- **Accent bar**: `h-1` gradient at card bottom matching entity color
+- **Animations**: Framer Motion staggered entrance (delay: i * 0.08, y: 30)
+- **Hover**: `scale-[1.02]` + shadow increase + image `scale-105`
 
-## Key Pages & Features
+### Available isometric images:
+- `/images/env_radio.jpg` — Radio sites
+- `/images/env_server.jpg` — Servers/Datacenters
+- `/images/env_technical.jpg` — Technical/Data connections
+- `/images/env_task_scheduler.jpg` — Task schedulers
+- `/images/env_external_host.jpg` — External hosts
+- `/images/env_wp_security.jpg` — WordPress Security
 
-### Network Dashboard (`NetworkDashboard.js`)
-- **Sites Overview**: Server rack visualization with isometric cards
-- **Network Admins**: User management
-- **Environments**: 260px card grid with CSS gradient headers ✅
-- **Domain Manager**: 260px card grid for stats, domains, routes ✅
-- **License Manager**: 260px card grid for stats, sites, packages, requests ✅
-- **Notifications**: 260px card grid for role settings ✅
-- **Branding**: 260px card grid for platform name, logo, favicon ✅
-- **Backups**: 260px card grid (standalone page) ✅
-- **API Explorer**: 260px card grid (standalone page) ✅
-
-### Clara AI Assistant
-- Centered overlay messenger layout ✅
-- Error troubleshooting with structured steps ✅
-- SEO writing assistance ✅
-
-### PWA Support
-- Install prompt overlay after login ✅
-- Settings toggle in Personal Settings ✅
-
-### RDS Monitor
-- Auto-refresh background polling every 3 minutes ✅
-- Force refresh clears all cached data ✅
+## Key Pages & Features (All using isometric card grid)
+- Sites Overview ✅
+- Environments ✅
+- Domain Manager (Overview, Site Domains, Subdomain Routing, Cloudflare) ✅
+- License Manager (Overview, Packages, Requests) ✅
+- Notifications (Roles, History) ✅
+- Branding (Platform Name, Logo, Favicon) ✅
+- Backups ✅
+- API Explorer ✅
+- Clara AI Assistant (centered overlay messenger) ✅
+- PWA Install Prompt ✅
+- RDS Monitor (auto-refresh every 3 min) ✅
 
 ## 3rd Party Integrations
 - Cloudflare (WAF/DNS) — User API Key required
@@ -64,13 +64,6 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Radioplayer — API Key integrated
 - ZeroTier — Active
 - OpenAI GPT-5.2 — Emergent Universal Key
-
-## Design System
-- **Card Layout**: 260px wide cards with CSS gradient headers, glassmorphism, bottom accent bars
-- **Animations**: Framer Motion for card entrance (staggered opacity+y)
-- **Color Scheme**: White/light backgrounds, orange accent (#f97316), contextual colors per entity
-- **Typography**: Zinc color scale for text hierarchy
-- **Components**: shadcn/ui library
 
 ## Credentials
 - System Admin: admkoodh@koodh.com / KYLovie13monx

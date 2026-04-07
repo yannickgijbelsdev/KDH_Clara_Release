@@ -1,16 +1,20 @@
 # Changelog
 
-## 2026-04-07 — 260px Card Grid Migration (All Network Pages)
-- Fixed `EnvironmentManager.js` — Added missing `motion` import from framer-motion (was causing runtime crash)
-- Converted `BrandingSettings.js` — Full rewrite to 3 cards (Platform Name, Logo, Favicon) in 260px grid
-- Converted `LicenseManager.js` — Overview (stat+site cards), Packages (package cards), Requests (request cards)
-- Converted `DomainManager.js` — Overview (stat+route cards), Site Domains (domain cards), Routing (route cards)
-- Converted `NotificationSettings.js` — Roles tab (role cards with expand/collapse), History tab (event cards)
-- All cards use CSS gradient headers (no AI image generation due to quota), glassmorphism badges, bottom accent bars
-- Testing: 100% pass rate via testing agent (iteration_134.json)
+## 2026-04-07 — Isometric Image Cards (All Network Pages)
+- Upgraded ALL Network pages from CSS gradient card headers to isometric 3D illustration-based headers
+- Cards now use h-[180px] image areas with `/images/env_*.jpg` and radial-gradient vignette masks
+- White glassmorphism badges (bg-white/90 backdrop-blur-lg) throughout
+- Hover effects: scale-[1.02] + shadow increase + image scale-105
+- Pages updated: Environments, Domain Manager (4 tabs), License Manager (3 tabs), Notifications, Branding
+- Fixed EnvironmentManager.js missing `motion` import (runtime crash bug)
+- Testing: 100% pass rate (iteration_135.json)
+
+## 2026-04-07 — 260px Card Grid Migration (Initial CSS Gradient Version)
+- First pass: converted all Network pages to 260px card grids with CSS gradient headers
+- Testing: 100% pass rate (iteration_134.json)
 
 ## Previous Sessions
-- Extracted `NetworkHeader.js` from `NetworkDashboard.js`
+- Extracted NetworkHeader.js from NetworkDashboard.js
 - Fixed routing for technical/task_scheduler/server site types
 - Redesigned Clara Assistant to centered overlay messenger layout
 - Migrated Network tabs from dark to light theme
