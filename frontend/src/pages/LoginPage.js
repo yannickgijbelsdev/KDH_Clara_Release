@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useBranding } from '../context/BrandingContext';
 import { Button } from '../components/ui/button';
@@ -15,6 +15,8 @@ const resolveUrl = (url) => {
   return url.startsWith('/') ? `${API}${url}` : url;
 };
 
+const ROOMS_IMG = '/images/clara_rooms.png';
+
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,11 +29,23 @@ const LoginPage = () => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const rafRef = useRef(null);
   const { login } = useAuth();
   const { branding } = useBranding();
 
   const platformName = branding.platform_name || 'Clara';
   const logoUrl = branding.logo_type === 'image' && branding.logo_url ? resolveUrl(branding.logo_url) : null;
+
+  const handleMouseMove = useCallback((e) => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 2;
+      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      setMousePos({ x, y });
+      rafRef.current = null;
+    });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,14 +122,24 @@ const LoginPage = () => {
     setForgotLoading(false);
   };
 
-  const HERO_BG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/2124db205302e55f41d05ab37efb852de7a1e4a38ea53258564a8ca4454efd0a.png';
+  /* Parallax values */
+  const imgX = mousePos.x * 18;
+  const imgY = mousePos.y * 12;
+  const imgRotateY = mousePos.x * 3;
+  const imgRotateX = -mousePos.y * 2;
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden bg-[#f8f7f4]" data-testid="login-page">
-      {/* Subtle warm gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#f8f7f4] via-[#f5f0ea] to-[#efe8df]" />
+    <div
+      className="min-h-screen flex relative overflow-hidden bg-[#f5f2ed]"
+      onMouseMove={handleMouseMove}
+      data-testid="login-page"
+    >
+      {/* Subtle radial glow */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(ellipse 70% 60% at 35% 50%, rgba(245,200,120,0.10) 0%, transparent 70%)'
+      }} />
 
-      {/* Left side: branding, hero image & tagline */}
+      {/* Left side: floating rooms & tagline */}
       <div className="hidden lg:flex flex-col justify-between relative z-10 flex-1 p-12 xl:p-16">
         <div>
           {logoUrl ? (
@@ -124,18 +148,41 @@ const LoginPage = () => {
             <span className="text-2xl font-bold text-zinc-800 tracking-tight" data-testid="login-logo-text">{platformName}</span>
           )}
         </div>
-        <div className="flex flex-col items-center flex-1 justify-center -mt-8">
-          <img src={HERO_BG} alt="Clara Platform" className="w-full max-w-[680px] xl:max-w-[780px] object-contain drop-shadow-2xl mix-blend-multiply" />
-          <div className="text-center mt-6 max-w-lg">
+
+        {/* Floating rooms with parallax */}
+        <div className="flex flex-col items-center flex-1 justify-center -mt-4" style={{ perspective: '1200px' }}>
+          <div
+            style={{
+              transform: `translate3d(${imgX}px, ${imgY}px, 0) rotateY(${imgRotateY}deg) rotateX(${imgRotateX}deg)`,
+              transition: 'transform 0.15s cubic-bezier(0.25, 0.1, 0.25, 1)',
+              willChange: 'transform',
+            }}
+          >
+            <img
+              src={ROOMS_IMG}
+              alt="Clara Platform — Radio & Data Intelligence"
+              className="w-full max-w-[640px] xl:max-w-[720px] object-contain select-none"
+              draggable={false}
+              data-testid="login-hero-rooms"
+            />
+          </div>
+          <div
+            className="text-center mt-8 max-w-lg"
+            style={{
+              transform: `translate3d(${mousePos.x * 6}px, ${mousePos.y * 4}px, 0)`,
+              transition: 'transform 0.2s ease-out',
+            }}
+          >
             <h1 className="text-3xl xl:text-4xl font-bold text-zinc-800 leading-tight mb-3">
               Data intelligence for media & radio
             </h1>
             <p className="text-base text-zinc-500 leading-relaxed">
-              Collect, manage, and distribute data across your radio stations, 
+              Collect, manage, and distribute data across your radio stations,
               WordPress sites, and business operations — all from one platform.
             </p>
           </div>
         </div>
+
         <div className="flex items-center gap-8 text-sm text-zinc-400">
           <span>Radio Management</span>
           <span className="w-1 h-1 rounded-full bg-zinc-300" />
@@ -146,15 +193,15 @@ const LoginPage = () => {
       </div>
 
       {/* Right side: login form */}
-      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white border-l border-zinc-200/60 shadow-sm">
-        {/* Mobile logo & hero */}
+      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white/80 backdrop-blur-2xl border-l border-zinc-200/40">
+        {/* Mobile logo & rooms */}
         <div className="lg:hidden mb-8 text-center">
           {logoUrl ? (
             <img src={logoUrl} alt={platformName} className="h-8 object-contain mx-auto mb-4" />
           ) : (
             <span className="text-xl font-bold text-zinc-800 tracking-tight">{platformName}</span>
           )}
-          <img src={HERO_BG} alt="Clara Platform" className="w-48 mx-auto mt-2 mb-2 object-contain" />
+          <img src={ROOMS_IMG} alt="Clara Platform" className="w-52 mx-auto mt-2 mb-2 object-contain" />
         </div>
 
         <div className="w-full max-w-[380px]">
@@ -196,7 +243,7 @@ const LoginPage = () => {
                     type="submit"
                     data-testid="forgot-submit-btn"
                     disabled={forgotLoading}
-                    className="w-full h-12 bg-zinc-900 hover:bg-zinc-100 text-white font-semibold rounded-xl shadow-lg"
+                    className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-lg"
                   >
                     {forgotLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Sending...</> : 'Send temporary password'}
                   </Button>
@@ -256,7 +303,7 @@ const LoginPage = () => {
                 type="submit"
                 data-testid="login-submit-btn"
                 disabled={isLoading}
-                className="w-full h-12 bg-zinc-900 hover:bg-zinc-100 text-white font-semibold rounded-xl shadow-lg transition-all duration-200"
+                className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-lg transition-all duration-200"
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
@@ -327,7 +374,7 @@ const LoginPage = () => {
                 type="submit"
                 data-testid="login-2fa-submit-btn"
                 disabled={isLoading || (!useBackupCode && totpCode.length !== 6)}
-                className="w-full h-12 bg-zinc-900 hover:bg-zinc-100 text-white font-semibold rounded-xl shadow-lg transition-all duration-200"
+                className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-lg transition-all duration-200"
               >
                 {isLoading ? 'Verifying...' : 'Verify'}
               </Button>
@@ -342,7 +389,7 @@ const LoginPage = () => {
             </form>
           </>
         )}
-      </div>
+        </div>
       </div>
     </div>
   );
