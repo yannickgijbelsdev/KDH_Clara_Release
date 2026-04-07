@@ -18,26 +18,20 @@ export const WorkspaceCanvas = ({ children, className, backgroundImage }) => {
         }}
       />
 
-      {/* Layer 2: Background image (centered, proportional) */}
+      {/* Layer 2: Background image (soft blurred watermark) */}
       {bgUrl && (
         <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
+          className="absolute inset-0 pointer-events-none overflow-hidden"
         >
           <div
-            className="w-full h-full bg-contain bg-center bg-no-repeat opacity-[0.22]"
-            style={{ backgroundImage: `url(${bgUrl})` }}
+            className="w-full h-full bg-contain bg-center bg-no-repeat opacity-[0.15]"
+            style={{
+              backgroundImage: `url(${bgUrl})`,
+              filter: 'blur(20px)',
+              transform: 'scale(1.08)',
+            }}
           />
         </div>
-      )}
-
-      {/* Layer 3: Soft radial gradient for depth */}
-      {bgUrl && (
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse at center, transparent 15%, #F0F0F2 75%)',
-          }}
-        />
       )}
 
       {/* Layer 4: Interactive content (panels) */}
