@@ -110,6 +110,9 @@ const ContentDetailPage = () => {
   const [publishStep, setPublishStep] = useState('configure'); // 'configure' | 'deploying'
   const [deployStatus, setDeployStatus] = useState(0);
   const [deployDone, setDeployDone] = useState(false);
+  const [deployFailed, setDeployFailed] = useState(false);
+  const [deployFailStep, setDeployFailStep] = useState(-1);
+  const [deployErrorMsg, setDeployErrorMsg] = useState('');
   // Multi-site publish state
   const [selectedSites, setSelectedSites] = useState({});
   const [publishSettings, setPublishSettings] = useState({});
@@ -282,6 +285,9 @@ const ContentDetailPage = () => {
     setPublishStep('configure');
     setDeployStatus(0);
     setDeployDone(false);
+    setDeployFailed(false);
+    setDeployFailStep(-1);
+    setDeployErrorMsg('');
     setPublishDialogOpen(true);
   };
 
@@ -408,16 +414,18 @@ const ContentDetailPage = () => {
     setPublishStep('deploying');
     setDeployStatus(0);
     setDeployDone(false);
+    setDeployFailed(false);
+    setDeployFailStep(-1);
+    setDeployErrorMsg('');
 
     const targetSiteNames = targets.map(t => wpSites.find(s => s.id === t.site_id)?.name || 'WordPress').join(', ');
 
-    // Animate deploy steps
+    // Step 0: Preparing content (local)
     await new Promise(r => setTimeout(r, 1000));
     setDeployStatus(1);
-    await new Promise(r => setTimeout(r, 1500));
-    setDeployStatus(2);
 
-    // Actually publish
+    // Step 1: API endpoint communication - make the actual call here
+    await new Promise(r => setTimeout(r, 800));
     setPublishing(true);
     try {
       const response = await axios.post(`${API}/content/${contentId}/publish`, { targets });
@@ -425,19 +433,31 @@ const ContentDetailPage = () => {
       const successCount = response.data.results.filter(r => r.success).length;
       const failCount = response.data.results.filter(r => !r.success).length;
 
-      await new Promise(r => setTimeout(r, 1200));
-      setDeployStatus(3);
-      await new Promise(r => setTimeout(r, 800));
-      setDeployDone(true);
-
-      if (successCount > 0 && failCount === 0) {
-        toast.success(`Published to ${successCount} site(s) successfully!`);
-      } else if (successCount > 0 && failCount > 0) {
+      if (failCount > 0 && successCount === 0) {
+        // All failed - mark step 1 as failed
         const failedSites = response.data.results.filter(r => !r.success);
-        toast.warning(`Published to ${successCount}, ${failCount} failed: ${failedSites.map(f => `${f.site_name}: ${f.message}`).join('; ')}`);
+        const errorMsg = failedSites.map(f => `${f.site_name}: ${f.message}`).join('; ');
+        setDeployFailed(true);
+        setDeployFailStep(1);
+        setDeployErrorMsg(errorMsg);
+        setDeployDone(true);
+        toast.error(`WordPress publish failed: ${errorMsg}`);
       } else {
-        const failedSites = response.data.results.filter(r => !r.success);
-        toast.error(`Failed: ${failedSites.map(f => `${f.site_name}: ${f.message}`).join('\n')}`);
+        // Step 2: Publishing succeeded (at least partially)
+        setDeployStatus(2);
+        await new Promise(r => setTimeout(r, 1000));
+        
+        // Step 3: Finalizing
+        setDeployStatus(3);
+        await new Promise(r => setTimeout(r, 800));
+        setDeployDone(true);
+
+        if (successCount > 0 && failCount === 0) {
+          toast.success(`Published to ${successCount} site(s) successfully!`);
+        } else {
+          const failedSites = response.data.results.filter(r => !r.success);
+          toast.warning(`Published to ${successCount}, ${failCount} failed: ${failedSites.map(f => `${f.site_name}: ${f.message}`).join('; ')}`);
+        }
       }
       
       await fetchContent();
@@ -459,9 +479,12 @@ const ContentDetailPage = () => {
         } catch { /* Canva not available */ }
       }
     } catch (error) {
-      setDeployStatus(3);
-      setDeployDone(true);
+      // Network error or API unreachable - fail at step 1
       const detail = error?.response?.data?.detail || error?.response?.data?.message || error?.message || 'Unknown error';
+      setDeployFailed(true);
+      setDeployFailStep(1);
+      setDeployErrorMsg(detail);
+      setDeployDone(true);
       toast.error(`WordPress publish failed: ${detail}`);
     } finally {
       setPublishing(false);
@@ -1236,10 +1259,10 @@ const ContentDetailPage = () => {
             <div className="px-8 pt-4 pb-8 flex-1">
               <div className="text-center mb-8">
                 <h2 className="text-xl font-bold text-zinc-900 mb-1">
-                  {deployDone ? 'Published!' : 'Clara is publishing your content'}
+                  {deployFailed ? 'Publishing Failed' : deployDone ? 'Published!' : 'Clara is publishing your content'}
                 </h2>
                 <p className="text-sm text-zinc-500">
-                  {deployDone ? 'Your content is now live on WordPress.' : 'This will only take a moment...'}
+                  {deployFailed ? 'Could not reach the WordPress website.' : deployDone ? 'Your content is now live on WordPress.' : 'This will only take a moment...'}
                 </p>
               </div>
 
@@ -1250,7 +1273,14 @@ const ContentDetailPage = () => {
                   { label: `Publishing to ${wpSites.filter(s => selectedSites[s.id]).map(s => s.name).join(', ') || 'WordPress'}...` },
                   { label: 'Finalizing and syncing metadata...' },
                 ].map((step, i) => {
-                  const status = deployDone ? 'done' : deployStatus > i ? 'done' : deployStatus === i ? 'loading' : 'pending';
+                  let status;
+                  if (deployFailed) {
+                    if (i < deployFailStep) status = 'done';
+                    else if (i === deployFailStep) status = 'failed';
+                    else status = 'skipped';
+                  } else {
+                    status = deployDone ? 'done' : deployStatus > i ? 'done' : deployStatus === i ? 'loading' : 'pending';
+                  }
                   return (
                     <motion.div key={i}
                       initial={{ opacity: 0, x: -20 }}
@@ -1263,6 +1293,15 @@ const ContentDetailPage = () => {
                             className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
                             <Check className="w-5 h-5 text-white" />
                           </motion.div>
+                        ) : status === 'failed' ? (
+                          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
+                            className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                            <X className="w-5 h-5 text-white" />
+                          </motion.div>
+                        ) : status === 'skipped' ? (
+                          <div className="w-10 h-10 rounded-full border-2 border-red-200 bg-red-50 flex items-center justify-center">
+                            <X className="w-4 h-4 text-red-300" />
+                          </div>
                         ) : status === 'loading' ? (
                           <div className="w-10 h-10 rounded-full border-[3px] border-zinc-200 border-t-zinc-900 animate-spin" />
                         ) : (
@@ -1270,19 +1309,27 @@ const ContentDetailPage = () => {
                         )}
                       </div>
                       <span className={`text-sm font-medium transition-colors ${
-                        status === 'done' ? 'text-emerald-700' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
+                        status === 'done' ? 'text-emerald-700' : status === 'failed' ? 'text-red-600' : status === 'skipped' ? 'text-red-300' : status === 'loading' ? 'text-zinc-900' : 'text-zinc-400'
                       }`}>{step.label}</span>
                     </motion.div>
                   );
                 })}
               </div>
 
+              {deployFailed && deployErrorMsg && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  className="mt-6 max-w-md mx-auto bg-red-50 border border-red-200 rounded-xl p-4">
+                  <p className="text-sm text-red-600 font-medium mb-1">Error Details</p>
+                  <p className="text-xs text-red-500">{deployErrorMsg}</p>
+                </motion.div>
+              )}
+
               {deployDone && (
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   className="mt-8 flex justify-center">
                   <Button onClick={() => setPublishDialogOpen(false)}
-                    className="bg-zinc-900 hover:bg-zinc-900 text-white px-8 rounded-full">
-                    Done
+                    className={`${deployFailed ? 'bg-red-500 hover:bg-red-600' : 'bg-zinc-900 hover:bg-zinc-900'} text-white px-8 rounded-full`}>
+                    {deployFailed ? 'Close' : 'Done'}
                   </Button>
                 </motion.div>
               )}
