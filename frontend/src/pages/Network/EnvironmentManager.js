@@ -185,82 +185,112 @@ export default function EnvironmentManager() {
         )}
       </div>
 
-      {/* Environment Cards */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {environments.map(env => (
-          <Card key={env.id} className="bg-white border-zinc-200 overflow-hidden" data-testid={`env-card-${env.slug}`}>
-            <div className="h-1" style={{ backgroundColor: env.color || '#3b82f6' }} />
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base text-zinc-900 flex items-center gap-2">
-                  <Server className="w-4 h-4" style={{ color: env.color }} />
-                  {env.name}
-                  {env.is_default && (
-                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-500">Default</span>
-                  )}
-                </CardTitle>
-                {isSystemAdmin && (
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(env)} className="h-7 w-7 p-0">
-                      <Edit className="w-3.5 h-3.5" />
-                    </Button>
-                    {!env.is_default && (
-                      <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, id: env.id, name: env.name })} className="h-7 w-7 p-0 text-red-400">
-                        <Trash2 className="w-3.5 h-3.5" />
+      {/* Environment Cards — 260px isometric grid */}
+      <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+        {environments.map((env, i) => {
+          const siteCount = env.site_count || 0;
+          const adminCount = env.admin_count || 0;
+          return (
+            <motion.div
+              key={env.id}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="cursor-pointer group relative w-[260px] flex-shrink-0"
+              data-testid={`env-card-${env.slug}`}
+            >
+              <div
+                className="relative rounded-2xl overflow-hidden transition-all duration-300 border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]"
+                style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
+              >
+                {/* Gradient image area */}
+                <div
+                  className="relative h-[140px] overflow-hidden flex items-center justify-center"
+                  style={{ background: `linear-gradient(135deg, ${env.color || '#3b82f6'}15, ${env.color || '#3b82f6'}08)` }}
+                >
+                  <Server className="w-16 h-16 transition-transform duration-500 group-hover:scale-110" style={{ color: `${env.color || '#3b82f6'}40` }} />
+
+                  {/* Type badge */}
+                  <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: env.color || '#3b82f6' }} />
+                      <span className="text-[10px] font-bold tracking-wider" style={{ color: env.color || '#3b82f6' }}>
+                        {env.is_default ? 'DEFAULT' : 'ENV'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Site count badge */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-1 border border-black/[0.06] shadow-sm">
+                    <Globe className="w-3 h-3 text-zinc-500" />
+                    <span className="text-[10px] font-semibold text-zinc-600">{siteCount}</span>
+                  </div>
+
+                  {/* S3 status */}
+                  <div className="absolute bottom-3 right-3">
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium ${env.s3_enabled !== false ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-500 border border-red-200'}`}>
+                      {env.s3_enabled !== false ? <Cloud className="w-2.5 h-2.5" /> : <CloudOff className="w-2.5 h-2.5" />}
+                      {env.s3_enabled !== false ? 'Cloud' : 'No Cloud'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="px-3.5 py-3">
+                  <h3 className="text-sm font-bold text-zinc-800 truncate flex items-center gap-2">
+                    {env.name}
+                  </h3>
+                  {env.description && <p className="text-[11px] text-zinc-400 mt-0.5 truncate">{env.description}</p>}
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-400">
+                      <Users className="w-3 h-3" />
+                      <span>{adminCount} admins</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-zinc-400">
+                      <Server className="w-3 h-3" />
+                      <span>max {env.max_racks || 5} racks</span>
+                    </div>
+                  </div>
+                  {isSystemAdmin && (
+                    <div className="flex gap-1.5 mt-2">
+                      <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px] rounded-lg" onClick={(e) => { e.stopPropagation(); openEdit(env); }}>
+                        <Edit className="w-3 h-3 mr-0.5" /> Edit
                       </Button>
-                    )}
-                  </div>
-                )}
+                      <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px] rounded-lg" onClick={(e) => { e.stopPropagation(); openAdminDialog(env.id, env.name); }}>
+                        <Shield className="w-3 h-3 mr-0.5" /> Admins
+                      </Button>
+                      <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px] rounded-lg" onClick={(e) => { e.stopPropagation(); openCopyDialog(env.id, env.name); }}>
+                        <Copy className="w-3 h-3 mr-0.5" /> Copy
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom accent bar */}
+                <div className="h-1" style={{ background: `linear-gradient(90deg, ${env.color || '#3b82f6'}, ${env.color || '#3b82f6'}60)` }} />
               </div>
-              {env.description && <p className="text-xs text-zinc-500 mt-1">{env.description}</p>}
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 mb-3">
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                  <Globe className="w-3.5 h-3.5" /> {env.site_count || 0} sites
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                  <Users className="w-3.5 h-3.5" /> {env.admin_count || 0} admins
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                  <Server className="w-3.5 h-3.5" /> max {env.max_racks || 5} racks
-                </div>
-                <div className={`flex items-center gap-1.5 text-xs ${env.s3_enabled !== false ? 'text-emerald-500' : 'text-red-400'}`}>
-                  {env.s3_enabled !== false ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}
-                  {env.s3_enabled !== false ? 'Cloud on' : 'Cloud off'}
-                </div>
+            </motion.div>
+          );
+        })}
+
+        {/* New Environment card */}
+        {isSystemAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: environments.length * 0.08 + 0.1, duration: 0.5 }}
+            onClick={openCreate}
+            className="cursor-pointer group w-[260px] flex-shrink-0"
+            data-testid="create-env-btn"
+          >
+            <div className="rounded-2xl border-2 border-dashed border-zinc-200 hover:border-orange-300 h-full min-h-[220px] flex flex-col items-center justify-center gap-3 transition-all duration-300 group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
+              <div className="w-12 h-12 rounded-xl bg-zinc-100 group-hover:bg-orange-50 flex items-center justify-center transition-colors">
+                <Plus className="w-6 h-6 text-zinc-400 group-hover:text-orange-500 transition-colors" />
               </div>
-              {isSystemAdmin && (
-                <div className="flex items-center justify-between mb-3 px-2 py-1.5 rounded-lg bg-zinc-100/70">
-                  <div className="flex items-center gap-2">
-                    {env.s3_enabled !== false
-                      ? <Cloud className="w-4 h-4 text-emerald-400" />
-                      : <CloudOff className="w-4 h-4 text-red-400" />
-                    }
-                    <span className="text-xs text-zinc-600">Cloud Resources</span>
-                  </div>
-                  <button
-                    onClick={() => toggleS3(env.id, env.s3_enabled !== false)}
-                    data-testid={`env-s3-toggle-${env.slug}`}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${env.s3_enabled !== false ? 'bg-emerald-500' : 'bg-zinc-600'}`}
-                  >
-                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${env.s3_enabled !== false ? 'translate-x-4.5' : 'translate-x-0.5'}`} />
-                  </button>
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => openAdminDialog(env.id, env.name)} data-testid={`env-admins-${env.slug}`}>
-                  <Shield className="w-3 h-3 mr-1" /> Admins
-                </Button>
-                {isSystemAdmin && (
-                  <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => openCopyDialog(env.id, env.name)} data-testid={`env-copy-site-${env.slug}`}>
-                    <Copy className="w-3 h-3 mr-1" /> Copy Site
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              <span className="text-sm font-medium text-zinc-400 group-hover:text-zinc-600">New Environment</span>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Create Wizard */}
