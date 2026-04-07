@@ -150,8 +150,9 @@ const LoginPage = () => {
         </div>
 
         {/* Floating rooms with parallax */}
-        <div className="flex flex-col items-center flex-1 justify-center -mt-4" style={{ perspective: '1200px' }}>
+        <div className="flex flex-col items-center flex-1 justify-center" style={{ perspective: '1200px' }}>
           <div
+            className="w-full flex items-center justify-center"
             style={{
               transform: `translate3d(${imgX}px, ${imgY}px, 0) rotateY(${imgRotateY}deg) rotateX(${imgRotateX}deg)`,
               transition: 'transform 0.15s cubic-bezier(0.25, 0.1, 0.25, 1)',
@@ -161,24 +162,24 @@ const LoginPage = () => {
             <img
               src={ROOMS_IMG}
               alt="Clara Platform — Radio & Data Intelligence"
-              className="w-full max-w-[800px] xl:max-w-[900px] 2xl:max-w-[1000px] object-contain select-none"
+              className="w-[90%] max-w-[1100px] object-contain select-none"
               draggable={false}
               data-testid="login-hero-rooms"
             />
           </div>
           <div
-            className="text-center mt-8 max-w-lg"
+            className="text-center mt-4 max-w-lg"
             style={{
               transform: `translate3d(${mousePos.x * 6}px, ${mousePos.y * 4}px, 0)`,
               transition: 'transform 0.2s ease-out',
             }}
           >
-            <h1 className="text-3xl xl:text-4xl font-bold text-zinc-800 leading-tight mb-3">
+            <h1 className="text-2xl xl:text-3xl font-bold text-zinc-800 leading-tight mb-1">
               Data intelligence for media & radio
             </h1>
-            <p className="text-base text-zinc-500 leading-relaxed">
+            <p className="text-sm text-zinc-500 leading-relaxed">
               Collect, manage, and distribute data across your radio stations,
-              WordPress sites, and business operations — all from one platform.
+              WordPress sites, and business operations.
             </p>
           </div>
         </div>

@@ -13,19 +13,21 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 
 ## What's Been Implemented
 
+### April 7, 2026 - Login Page Redesign (Floating Isometric Rooms)
+- [x] **Custom AI-generated isometric rooms** (radio studio + data analytics office) in Clara's signature style
+- [x] **Transparent background**: Programmatic background removal (Python/PIL) for seamless floating effect
+- [x] **Mouse parallax effect**: Rooms and text follow cursor with 3D perspective transforms
+- [x] **Responsive scaling**: Rooms auto-scale from mobile (390px) to large screens (1920px+)
+- [x] **Clean light theme**: Warm beige (#f5f2ed) background, glassmorphism login panel
+
 ### April 7, 2026 - Clara AI Assistant (Integrated)
-- [x] **Content Creation Choice**: Step 2 of CreateContentDialog shows "Write your own content" vs "Write with Clara Assistent"
-- [x] **Error Assistance**: `claraToast.error()` utility adds "Clara Assistent" action button to error toasts
-- [x] **WP Publish Error**: Red error box shows inline "Clara Assistent" button with hover tooltip
-- [x] **Content Editor**: "Clara Assistent" pill button next to editor title for SEO help while editing
-- [x] **ClaraErrorButton**: Reusable inline component for any error context
-- [x] **No floating button**: Clara only appears when needed (errors, content creation)
-- [x] **Backend**: 4 endpoints: `/api/clara-assistant/chat`, `/seo/generate`, `/seo/improve`, `/error-help`
-- [x] **Context**: `ClaraAssistantContext` with `openClara(mode, opts)` for triggering from anywhere
+- [x] Content Creation Choice: Step 2 of CreateContentDialog shows "Write your own" vs "Write with Clara"
+- [x] Error Assistance: `claraToast.error()` utility adds Clara action button to error toasts
+- [x] WP Publish Error: Red error box shows inline Clara button
+- [x] Backend: 4 endpoints: `/api/clara-assistant/chat`, `/seo/generate`, `/seo/improve`, `/error-help`
 
 ### April 7, 2026 - WordPress Publish Animation Fix
 - [x] Deploy animation shows real API results: red X on failure, skipped steps marked
-- [x] Error details box with Clara Assistent help button
 
 ### April 7, 2026 - Content Type Fix + Dark Mode Cleanup
 - [x] Added "audio" to ContentItemCreate/Update Pydantic models
@@ -44,10 +46,11 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [ ] WordPress Plugin Integration (clara-radio-schedule)
 
 ### P2 - Medium Priority
-- [ ] Python linting cleanup
+- [ ] Python linting cleanup (unused variables)
 - [ ] Payment Gateway (Stripe/Mollie)
 - [ ] Stream Monitor VU Meters
 - [ ] Refactoring: NetworkDashboard.js decomposition
+- [ ] React Hook warnings (ShowsPage.js, TrashPage.js, ZeroTierPage.js)
 
 ## Test Credentials
 - System Administrator: admkoodh@koodh.com / KYLovie13monx
