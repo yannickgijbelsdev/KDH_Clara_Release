@@ -18,13 +18,13 @@ export const WorkspaceCanvas = ({ children, className, backgroundImage }) => {
         }}
       />
 
-      {/* Layer 2: Background image (full page cover) */}
+      {/* Layer 2: Background image (centered, proportional) */}
       {bgUrl && (
         <div
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <div
-            className="w-full h-full bg-cover bg-center bg-no-repeat opacity-[0.18]"
+            className="w-full h-full bg-contain bg-center bg-no-repeat opacity-[0.22]"
             style={{ backgroundImage: `url(${bgUrl})` }}
           />
         </div>

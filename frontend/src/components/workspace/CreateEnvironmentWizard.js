@@ -14,7 +14,7 @@ import WizardStepIndicator from './WizardStepIndicator';
 const API = process.env.REACT_APP_BACKEND_URL;
 const DEFAULT_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
 const ENV_STEPS = ['General', 'Settings', 'Admin', 'Deploying'];
-const ENV_BG_IMAGE = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/d4c697409481bd3e0a2010433fc86c64f2e196f4cad3058b6885c32777206577.png';
+const ENV_BG_IMAGE = '/images/env_server.png';
 
 /* ── Deploy Step (matching MainSite wizard style) ── */
 const DeployStep = ({ label, status, delay }) => (

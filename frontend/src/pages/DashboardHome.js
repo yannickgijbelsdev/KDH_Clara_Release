@@ -12,16 +12,13 @@ import { getAvatarUrl } from '../utils/avatar';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-const STUDIO_IMG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/9c133714c33f42124837a555a90289699f0f5190e464c69e21122133740a9121.png';
-const DATACENTER_IMG = 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/890e7b1a8c829f2400a99ab38a6f95cc67ee2cf484d5e0f7284db9d387dccdaa.png';
-
 const SITE_TYPE_THEMES = {
-  radio:          { img: STUDIO_IMG, accent: '#f97316', label: 'Radio Station',    icon: Radio },
-  external_host:  { img: null,       accent: '#06b6d4', label: 'External Host',    icon: ExternalLink },
-  server:         { img: DATACENTER_IMG, accent: '#3b82f6', label: 'Virtual Datacenter', icon: HardDrive },
-  technical:      { img: null,       accent: '#10b981', label: 'Data Connection',  icon: Network },
-  task_scheduler: { img: null,       accent: '#8b5cf6', label: 'Task Manager',     icon: LayoutGrid },
-  wp_security:    { img: null,       accent: '#ef4444', label: 'WP Security',      icon: Shield },
+  radio:          { img: '/images/env_radio.png', accent: '#f97316', label: 'Radio Station',    icon: Radio },
+  external_host:  { img: '/images/env_external_host.png', accent: '#06b6d4', label: 'External Host',    icon: ExternalLink },
+  server:         { img: '/images/env_server.png', accent: '#3b82f6', label: 'Virtual Datacenter', icon: HardDrive },
+  technical:      { img: '/images/env_technical.png', accent: '#10b981', label: 'Data Connection',  icon: Network },
+  task_scheduler: { img: '/images/env_task_scheduler.png', accent: '#8b5cf6', label: 'Task Manager',     icon: LayoutGrid },
+  wp_security:    { img: '/images/env_wp_security.png', accent: '#ef4444', label: 'WP Security',      icon: Shield },
 };
 
 const Panel = ({ children, className = '', delay = 0, testId }) => (

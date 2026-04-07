@@ -52,12 +52,12 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 /* Site-type background images (same as CreateMainSiteWizard) */
 const SITE_TYPE_BACKGROUNDS = {
-  radio: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/9c133714c33f42124837a555a90289699f0f5190e464c69e21122133740a9121.png',
-  server: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/890e7b1a8c829f2400a99ab38a6f95cc67ee2cf484d5e0f7284db9d387dccdaa.png',
-  external_host: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/974c8600aaf4d15df32a2491c01ce966d2d607504c5a0619c1db614cca5ff5ca.png',
-  task_scheduler: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/e6a4902f196cab3b9a12773493effed4474315bc29c5d5c246b50ce146e1d3c7.png',
-  technical: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/878df6d5ae5f3917a4b63ad13a9eba7bf2f1059d7367a0c89e4259434341d8a2.png',
-  wp_security: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/05460f0ccc010b9601746d7bed0df2dc30ee39dfaff61dafed6dee539f1cbe91.png',
+  radio: '/images/env_radio.png',
+  server: '/images/env_server.png',
+  external_host: '/images/env_external_host.png',
+  task_scheduler: '/images/env_task_scheduler.png',
+  technical: '/images/env_technical.png',
+  wp_security: '/images/env_wp_security.png',
 };
 
 const roleIcons = {
