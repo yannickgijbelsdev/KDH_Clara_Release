@@ -14,12 +14,17 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 ## What's Been Implemented
 
 ### April 7, 2026 - Backup Management Page Redesign (Isometric)
-- [x] **Redesigned to match Server Rack view**: Isometric 3D room cards per site instead of list-based UI
+- [x] **Redesigned to match Server Rack view**: Isometric 3D room cards per site (260px fixed width)
 - [x] **Environment grouping**: Sites grouped by environment (Production, Staging, etc.) with labels
 - [x] **Click-to-open detail panel**: Clicking a card opens a slide-in panel showing all backups for that site
 - [x] **Full backup operations in panel**: Create backup, restore, delete, clone, search
-- [x] **Responsive CSS Grid**: Uses `auto-fill, minmax(210px, 1fr)` — scales properly on any screen size
 - [x] **All UI text in English**: Translated from Dutch to English
+
+### April 7, 2026 - API Explorer Page Redesign (Isometric)
+- [x] **Redesigned to match Server Rack view**: 260px isometric category cards replacing list-based layout
+- [x] **Click-to-open detail panel**: Clicking a category opens endpoint list with method badges, search, copy
+- [x] **Canvas-style layout**: Same dot pattern, floating panels, accent bars as other isometric pages
+- [x] **All UI text in English**: Translated from Dutch
 
 ### April 7, 2026 - Global Error Handling & Clara Assistant Integration
 - [x] **Eliminated all native browser `alert()` popups** from the entire frontend codebase

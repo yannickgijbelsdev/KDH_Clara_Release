@@ -78,7 +78,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
-      className="cursor-pointer group relative w-full"
+      className="cursor-pointer group relative w-[260px] flex-shrink-0"
     >
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
@@ -89,7 +89,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
       >
         {/* Room image */}
-        <div className="relative h-[150px] overflow-hidden bg-[#F0F0F2]">
+        <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
           <img
             src={cfg.bg}
             alt=""

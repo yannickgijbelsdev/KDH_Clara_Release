@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import {
   Shield, Users, Building, Calendar, FileText, Image, Radio,
   Settings, Globe, Globe2, MessageCircle, Rss, Layers, Folder,
   List, Volume2, ExternalLink, RefreshCw, Database, Code,
-  Search, ChevronDown, ChevronRight, Copy, Check, Loader2, ArrowLeft
+  Search, ChevronDown, ChevronRight, Copy, Check, Loader2, ArrowLeft,
+  HardDrive, Network, LayoutGrid, X,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -18,6 +20,7 @@ const iconMap = {
   'globe': Globe, 'globe-2': Globe2, 'message-circle': MessageCircle, 'rss': Rss,
   'layers': Layers, 'folder': Folder, 'list': List, 'volume-2': Volume2,
   'external-link': ExternalLink, 'refresh-cw': RefreshCw, 'database': Database, 'code': Code,
+  'hard-drive': HardDrive, 'network': Network, 'layout-grid': LayoutGrid,
 };
 
 const methodColors = {
@@ -29,15 +32,238 @@ const methodColors = {
   'WEBSOCKET': 'bg-violet-50 text-violet-600 border-violet-200',
 };
 
+const CATEGORY_COLORS = [
+  '#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#06b6d4', '#ef4444',
+  '#d946ef', '#f59e0b', '#14b8a6', '#6366f1', '#ec4899', '#84cc16',
+];
+
+const SITE_TYPE_BACKGROUNDS = {
+  radio: '/images/env_radio.jpg',
+  server: '/images/env_server.jpg',
+  external_host: '/images/env_external_host.jpg',
+  task_scheduler: '/images/env_task_scheduler.jpg',
+  technical: '/images/env_technical.jpg',
+  wp_security: '/images/env_wp_security.jpg',
+};
+
+
+/* ═══════════════════════════════════════════════════
+   Category Card (isometric style)
+   ═══════════════════════════════════════════════════ */
+const CategoryCard = ({ category, data, index, isSelected, onClick, color }) => {
+  const IconComponent = iconMap[data.icon] || Code;
+  const bgImage = Object.values(SITE_TYPE_BACKGROUNDS)[index % 6];
+
+  return (
+    <motion.div
+      data-testid={`endpoint-card-${category}`}
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.06 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      onClick={onClick}
+      className="cursor-pointer group relative w-[260px] flex-shrink-0"
+    >
+      <div
+        className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
+          isSelected
+            ? 'border-orange-300 shadow-[0_8px_40px_rgba(249,115,22,0.15)] scale-[1.03]'
+            : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
+        }`}
+        style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
+      >
+        {/* Room image */}
+        <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+          <img
+            src={bgImage}
+            alt=""
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            style={{
+              WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)',
+              maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)',
+            }}
+          />
+          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+            <div className="flex items-center gap-1.5">
+              <IconComponent className="w-3 h-3" style={{ color }} />
+              <span className="text-[10px] font-bold tracking-wider" style={{ color }}>{category.toUpperCase()}</span>
+            </div>
+          </div>
+          <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-1 border border-black/[0.06] shadow-sm">
+            <Code className="w-3 h-3 text-zinc-500" />
+            <span className="text-[10px] font-semibold text-zinc-600">{data.endpoints.length}</span>
+          </div>
+        </div>
+
+        <div className="px-3.5 py-3">
+          <h3 className="text-sm font-bold text-zinc-800 truncate">{category}</h3>
+          <p className="text-[11px] text-zinc-400 mt-0.5 line-clamp-2">{data.description}</p>
+          <div className="flex flex-wrap gap-1 mt-2">
+            {['GET', 'POST', 'PUT', 'DELETE'].map(m => {
+              const count = data.endpoints.filter(e => e.method === m).length;
+              if (!count) return null;
+              return (
+                <span key={m} className={`text-[9px] px-1.5 py-0.5 rounded-md border font-medium ${methodColors[m]}`}>
+                  {m} ({count})
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="h-1" style={{ background: `linear-gradient(90deg, ${color}, ${color}60)` }} />
+      </div>
+
+      {isSelected && (
+        <motion.div
+          layoutId="endpoint-select-bar"
+          className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-orange-500"
+          style={{ boxShadow: '0 0 12px rgba(249,115,22,0.5)' }}
+        />
+      )}
+    </motion.div>
+  );
+};
+
+
+/* ═══════════════════════════════════════════════════
+   Endpoint Detail Panel (right side)
+   ═══════════════════════════════════════════════════ */
+const EndpointDetailPanel = ({ category, data, onClose, color }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [methodFilter, setMethodFilter] = useState('all');
+  const [copiedPath, setCopiedPath] = useState(null);
+
+  const IconComponent = iconMap[data?.icon] || Code;
+
+  const filtered = (data?.endpoints || []).filter(endpoint => {
+    const matchesSearch = !searchQuery ||
+      endpoint.path.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (endpoint.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesMethod = methodFilter === 'all' || endpoint.method === methodFilter;
+    return matchesSearch && matchesMethod;
+  });
+
+  const copyPath = (path) => {
+    navigator.clipboard.writeText(path);
+    setCopiedPath(path);
+    setTimeout(() => setCopiedPath(null), 2000);
+  };
+
+  return (
+    <motion.div
+      key="endpoint-detail"
+      initial={{ opacity: 0, x: 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      className="absolute right-0 top-0 bottom-0 w-[480px] flex items-start pt-2 z-30"
+      data-testid="endpoint-detail-panel"
+    >
+      <div className="bg-white/95 backdrop-blur-2xl rounded-[20px] border border-black/[0.06] shadow-[0_12px_48px_rgba(0,0,0,0.12)] w-full max-h-[96%] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-black/[0.05] flex-shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${color}12` }}>
+              <IconComponent className="w-4.5 h-4.5" style={{ color }} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-zinc-900 truncate">{category}</h3>
+              <span className="text-[11px] text-zinc-400">{data.endpoints.length} endpoints &middot; {data.description}</span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-black/[0.05] transition-colors flex-shrink-0"
+            data-testid="endpoint-panel-close"
+          >
+            <X className="w-4 h-4 text-zinc-400" />
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="px-4 py-3 flex items-center gap-2 border-b border-black/[0.05] flex-shrink-0 flex-wrap">
+          <div className="relative flex-1 min-w-[140px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-300" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search endpoints..."
+              className="w-full pl-7 pr-2 py-1.5 text-xs bg-zinc-50 border border-black/[0.06] rounded-lg text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-1 focus:ring-zinc-900/10"
+              data-testid="endpoint-panel-search"
+            />
+          </div>
+          <div className="flex gap-1">
+            {['all', 'GET', 'POST', 'PUT', 'DELETE'].map(m => (
+              <button
+                key={m}
+                onClick={() => setMethodFilter(m)}
+                className={`px-2 py-1 rounded-md text-[10px] font-medium transition-all ${
+                  methodFilter === m
+                    ? 'bg-zinc-900 text-white'
+                    : 'bg-zinc-50 text-zinc-400 hover:text-zinc-600 border border-black/[0.04]'
+                }`}
+                data-testid={`panel-filter-${m.toLowerCase()}`}
+              >
+                {m === 'all' ? 'All' : m}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Endpoint list */}
+        <div className="flex-1 overflow-y-auto">
+          {filtered.length === 0 ? (
+            <div className="text-center py-10">
+              <Code className="w-8 h-8 text-zinc-300 mx-auto mb-2" />
+              <p className="text-xs text-zinc-400">No endpoints found</p>
+            </div>
+          ) : (
+            filtered.map((endpoint, idx) => (
+              <div
+                key={`${endpoint.method}-${endpoint.path}-${idx}`}
+                className="px-4 py-2.5 flex items-center gap-3 hover:bg-zinc-50/50 transition-colors border-b border-black/[0.03] last:border-b-0"
+                data-testid={`endpoint-row-${endpoint.method}-${idx}`}
+              >
+                <span className={`px-2 py-0.5 text-[9px] font-bold rounded-md border min-w-[52px] text-center ${methodColors[endpoint.method] || 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}>
+                  {endpoint.method}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <code className="font-mono text-xs text-zinc-700 block truncate">{endpoint.path}</code>
+                  {endpoint.description && (
+                    <span className="text-[10px] text-zinc-400 block truncate">{endpoint.description}</span>
+                  )}
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); copyPath(endpoint.path); }}
+                  className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors shrink-0"
+                  data-testid={`copy-endpoint-${idx}`}
+                >
+                  {copiedPath === endpoint.path ? (
+                    <Check className="w-3 h-3 text-emerald-500" />
+                  ) : (
+                    <Copy className="w-3 h-3 text-zinc-300" />
+                  )}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+
+/* ═══════════════════════════════════════════════════
+   MAIN PAGE
+   ═══════════════════════════════════════════════════ */
 const ApiExplorerPage = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState({});
-  const [copiedPath, setCopiedPath] = useState(null);
-  const [methodFilter, setMethodFilter] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => { fetchEndpoints(); }, []);
 
@@ -48,212 +274,129 @@ const ApiExplorerPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch');
-      const result = await response.json();
-      setData(result);
-      const expanded = {};
-      Object.keys(result.categories || {}).forEach(cat => { expanded[cat] = true; });
-      setExpandedCategories(expanded);
-    } catch { toast.error('Kon API endpoints niet laden'); }
+      setData(await response.json());
+    } catch { toast.error('Failed to load API endpoints'); }
     finally { setLoading(false); }
   };
 
-  const toggleCategory = (category) => {
-    setExpandedCategories(prev => ({ ...prev, [category]: !prev[category] }));
-  };
-
-  const expandAll = () => {
-    const expanded = {};
-    Object.keys(data?.categories || {}).forEach(cat => { expanded[cat] = true; });
-    setExpandedCategories(expanded);
-  };
-
-  const collapseAll = () => setExpandedCategories({});
-
-  const copyPath = (path) => {
-    navigator.clipboard.writeText(path);
-    setCopiedPath(path);
-    setTimeout(() => setCopiedPath(null), 2000);
-  };
-
-  const getFilteredCategories = () => {
-    if (!data?.categories) return {};
-    const filtered = {};
-    const query = searchQuery.toLowerCase();
-    Object.entries(data.categories).forEach(([catName, catData]) => {
-      const filteredEndpoints = catData.endpoints.filter(endpoint => {
-        const matchesSearch = !query ||
-          endpoint.path.toLowerCase().includes(query) ||
-          endpoint.description.toLowerCase().includes(query) ||
-          endpoint.method.toLowerCase().includes(query);
-        const matchesMethod = methodFilter === 'all' || endpoint.method === methodFilter;
-        return matchesSearch && matchesMethod;
-      });
-      if (filteredEndpoints.length > 0) {
-        filtered[catName] = { ...catData, endpoints: filteredEndpoints };
-      }
-    });
-    return filtered;
-  };
-
-  const filteredCategories = getFilteredCategories();
-  const totalFiltered = Object.values(filteredCategories).reduce((sum, cat) => sum + cat.endpoints.length, 0);
+  const categories = data?.categories || {};
+  const categoryEntries = Object.entries(categories);
+  const totalEndpoints = Object.values(categories).reduce((sum, cat) => sum + cat.endpoints.length, 0);
+  const selectedData = selectedCategory ? categories[selectedCategory] : null;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] flex items-center justify-center">
+      <div className="h-screen bg-[#F0F0F2] flex items-center justify-center">
         <div className="flex items-center gap-3 text-zinc-400">
           <Loader2 className="w-6 h-6 animate-spin" />
-          <span>API endpoints laden...</span>
+          <span>Loading API endpoints...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7]">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/60 backdrop-blur-2xl border-b border-black/[0.06] shadow-[0_1px_12px_rgba(0,0,0,0.04)]">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/network')} className="rounded-xl text-zinc-400 hover:text-zinc-900">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
-                <Code className="w-5 h-5 text-orange-500" />
-                API Explorer
-              </h1>
-              <p className="text-xs text-zinc-400">
-                {data?.total_endpoints || 0} endpoints in {data?.total_categories || 0} categorieën
-              </p>
-            </div>
-          </div>
-          <Button variant="outline" onClick={fetchEndpoints} className="gap-2 rounded-xl border-black/10 text-zinc-600">
-            <RefreshCw className="w-4 h-4" />
-            <span className="hidden sm:inline">Vernieuwen</span>
-          </Button>
-        </div>
-      </header>
+    <div className="relative w-full h-screen overflow-hidden bg-[#F0F0F2]" data-testid="api-explorer-page">
+      {/* Dot pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{
+        backgroundImage: 'radial-gradient(circle, #999 0.5px, transparent 0.5px)',
+        backgroundSize: '24px 24px',
+      }} />
 
-      {/* Filters */}
-      <div className="sticky top-16 z-40 bg-white/50 backdrop-blur-xl border-b border-black/[0.04]">
-        <div className="max-w-7xl mx-auto px-6 py-3">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300" />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Zoek endpoints..."
-                className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-black/[0.06] rounded-xl text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10"
-                data-testid="endpoint-search"
-              />
+      <div className="absolute inset-0 z-10 flex flex-col p-4 sm:p-5">
+
+        {/* ── Top bar ── */}
+        <div className="flex items-start justify-between flex-shrink-0 mb-4">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4"
+            data-testid="panel-endpoint-header"
+          >
+            <button onClick={() => navigate('/network')} className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/[0.05] transition-colors" data-testid="endpoint-back-btn">
+              <ArrowLeft className="w-4 h-4 text-zinc-400" />
+            </button>
+            <div>
+              <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">API Explorer</div>
+              <div className="text-sm font-semibold text-zinc-700">Browse API endpoints</div>
             </div>
-            <div className="flex items-center gap-1.5">
-              {['all', 'GET', 'POST', 'PUT', 'DELETE'].map(method => (
-                <button
-                  key={method}
-                  onClick={() => setMethodFilter(method)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                    methodFilter === method
-                      ? 'bg-zinc-900 text-white shadow-sm'
-                      : 'bg-white text-zinc-400 hover:text-zinc-600 border border-black/[0.06]'
-                  }`}
-                  data-testid={`filter-${method.toLowerCase()}`}
-                >
-                  {method === 'all' ? 'Alle' : method}
-                </button>
+            <div className="w-px h-8 bg-black/[0.06] mx-1" />
+            <div className="text-3xl font-bold text-zinc-900">{categoryEntries.length}</div>
+            <div className="text-sm text-zinc-500">Categories</div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}
+            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-3"
+            data-testid="panel-endpoint-stats"
+          >
+            <div className="flex items-center gap-2">
+              <Code className="w-4 h-4 text-orange-500" />
+              <span className="text-sm text-zinc-600">Endpoints</span>
+              <span className="text-lg font-bold text-zinc-900">{totalEndpoints}</span>
+            </div>
+            <div className="w-px h-6 bg-black/[0.06]" />
+            <Button variant="outline" onClick={fetchEndpoints} size="sm" className="gap-1.5 rounded-xl border-black/10 text-zinc-600 text-xs" data-testid="refresh-endpoints-btn">
+              <RefreshCw className="w-3.5 h-3.5" />
+              Refresh
+            </Button>
+          </motion.div>
+        </div>
+
+        {/* ── Center: Card area ── */}
+        <div className="flex-1 flex relative overflow-hidden gap-4">
+          <div className={`flex-1 overflow-y-auto pr-1 transition-all duration-300 ${selectedCategory ? 'mr-[490px]' : ''}`}>
+            <div className="flex flex-wrap gap-4 pb-4">
+              {categoryEntries.map(([catName, catData], i) => (
+                <CategoryCard
+                  key={catName}
+                  category={catName}
+                  data={catData}
+                  index={i}
+                  color={CATEGORY_COLORS[i % CATEGORY_COLORS.length]}
+                  isSelected={selectedCategory === catName}
+                  onClick={() => setSelectedCategory(selectedCategory === catName ? null : catName)}
+                />
               ))}
             </div>
-            <div className="flex items-center gap-1 border-l border-black/[0.06] pl-3">
-              <Button variant="ghost" size="sm" onClick={expandAll} className="text-xs text-zinc-400 hover:text-zinc-700 rounded-lg">
-                Uitklappen
-              </Button>
-              <Button variant="ghost" size="sm" onClick={collapseAll} className="text-xs text-zinc-400 hover:text-zinc-700 rounded-lg">
-                Inklappen
-              </Button>
-            </div>
           </div>
-          {searchQuery && (
-            <p className="text-xs text-zinc-400 mt-2">{totalFiltered} resultaten gevonden</p>
+
+          {/* Detail panel */}
+          <AnimatePresence>
+            {selectedCategory && selectedData && (
+              <EndpointDetailPanel
+                category={selectedCategory}
+                data={selectedData}
+                color={CATEGORY_COLORS[categoryEntries.findIndex(([k]) => k === selectedCategory) % CATEGORY_COLORS.length]}
+                onClose={() => setSelectedCategory(null)}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* ── Bottom bar ── */}
+        <div className="flex items-end justify-between flex-shrink-0 mt-2">
+          {!selectedCategory && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.5 }}
+              className="text-xs text-zinc-400 bg-white/60 backdrop-blur-xl rounded-full px-4 py-2 border border-black/[0.05]"
+            >
+              Click a category to browse its endpoints
+            </motion.div>
           )}
+          <div className="flex-1" />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}
+            className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-3.5 flex items-center gap-3"
+            data-testid="panel-endpoint-status"
+          >
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 8px rgba(34,197,94,0.5)' }} />
+            <span className="text-sm font-medium text-zinc-700">API Explorer active</span>
+            <div className="w-px h-5 bg-black/[0.06]" />
+            <Code className="w-4 h-4 text-orange-500" />
+            <span className="text-sm font-bold text-zinc-900">{totalEndpoints} endpoints</span>
+          </motion.div>
         </div>
       </div>
-
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-6">
-        <div className="space-y-3">
-          {Object.entries(filteredCategories).map(([categoryName, categoryData]) => {
-            const IconComponent = iconMap[categoryData.icon] || Code;
-            const isExpanded = expandedCategories[categoryName];
-            return (
-              <div key={categoryName} className="bg-white rounded-2xl border border-black/[0.06] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.04)]" data-testid={`category-${categoryName}`}>
-                <button
-                  onClick={() => toggleCategory(categoryName)}
-                  className="w-full px-5 py-3.5 flex items-center justify-between hover:bg-zinc-50/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
-                      <IconComponent className="w-4.5 h-4.5 text-orange-500" />
-                    </div>
-                    <div className="text-left">
-                      <h2 className="font-semibold text-zinc-900 text-sm">{categoryName}</h2>
-                      <p className="text-xs text-zinc-400">{categoryData.description}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded-full font-medium">
-                      {categoryData.endpoints.length}
-                    </span>
-                    {isExpanded ? <ChevronDown className="w-4 h-4 text-zinc-300" /> : <ChevronRight className="w-4 h-4 text-zinc-300" />}
-                  </div>
-                </button>
-                {isExpanded && (
-                  <div className="border-t border-black/[0.04]">
-                    {categoryData.endpoints.map((endpoint, idx) => (
-                      <div
-                        key={`${endpoint.method}-${endpoint.path}-${idx}`}
-                        className="px-5 py-3 flex items-center gap-4 hover:bg-zinc-50/50 transition-colors border-b border-black/[0.03] last:border-b-0"
-                      >
-                        <span className={`px-2.5 py-1 text-[10px] font-bold rounded-lg border min-w-[62px] text-center ${methodColors[endpoint.method] || 'bg-zinc-50 text-zinc-500 border-zinc-200'}`}>
-                          {endpoint.method}
-                        </span>
-                        <code className="font-mono text-sm text-zinc-700 flex-1 truncate">
-                          {endpoint.path}
-                        </code>
-                        <span className="text-xs text-zinc-400 max-w-md truncate hidden lg:block">
-                          {endpoint.description || '-'}
-                        </span>
-                        <button
-                          onClick={() => copyPath(endpoint.path)}
-                          className="p-1.5 rounded-lg hover:bg-zinc-100 transition-colors shrink-0"
-                          data-testid={`copy-${endpoint.path}`}
-                        >
-                          {copiedPath === endpoint.path ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-500" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5 text-zinc-300" />
-                          )}
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {Object.keys(filteredCategories).length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-100 flex items-center justify-center mx-auto mb-4">
-              <Code className="w-7 h-7 text-zinc-300" />
-            </div>
-            <p className="text-zinc-400 font-medium">Geen endpoints gevonden</p>
-            <p className="text-zinc-300 text-sm mt-1">Pas je zoekopdracht of filter aan</p>
-          </div>
-        )}
-      </main>
     </div>
   );
 };
