@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useBranding } from '../../context/BrandingContext';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Type, Image, Upload, Loader2, Star, Check, Paintbrush
+  Type, Image, Upload, Loader2, Star, Check
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -67,6 +67,7 @@ export default function BrandingSettings() {
       label: 'PLATFORM NAME',
       icon: Type,
       color: '#f97316',
+      img: '/images/env_radio.jpg',
       description: 'Shown in sidebar, login page, and emails',
     },
     {
@@ -74,6 +75,7 @@ export default function BrandingSettings() {
       label: 'LOGO',
       icon: Image,
       color: '#3b82f6',
+      img: '/images/env_technical.jpg',
       description: 'Platform logo for sidebar and headers',
     },
     {
@@ -81,6 +83,7 @@ export default function BrandingSettings() {
       label: 'FAVICON',
       icon: Star,
       color: '#8b5cf6',
+      img: '/images/env_task_scheduler.jpg',
       description: 'Browser tab icon (.ico, .png, .svg)',
     },
   ];
@@ -95,40 +98,46 @@ export default function BrandingSettings() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="w-[260px] flex-shrink-0"
+            className="group w-[260px] flex-shrink-0"
             data-testid={`branding-card-${card.id}`}
           >
             <div
-              className="relative rounded-2xl overflow-hidden transition-all duration-300 border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)]"
+              className="relative rounded-2xl overflow-hidden transition-all duration-300 border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]"
               style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
             >
-              {/* Gradient header */}
-              <div
-                className="relative h-[140px] overflow-hidden flex items-center justify-center"
-                style={{ background: `linear-gradient(135deg, ${card.color}15, ${card.color}08)` }}
-              >
-                <card.icon className="w-16 h-16 transition-transform duration-500" style={{ color: `${card.color}40` }} />
+              {/* Room image */}
+              <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                <img
+                  src={card.img}
+                  alt=""
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  style={{
+                    WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)',
+                    maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)',
+                  }}
+                />
+                {/* Type badge */}
                 <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
                   <div className="flex items-center gap-1.5">
-                    <Paintbrush className="w-3 h-3" style={{ color: card.color }} />
+                    <card.icon className="w-3 h-3" style={{ color: card.color }} />
                     <span className="text-[10px] font-bold tracking-wider" style={{ color: card.color }}>{card.label}</span>
                   </div>
                 </div>
 
-                {/* Preview in header area */}
+                {/* Preview badge */}
                 {card.id === 'name' && (
-                  <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-3 py-1.5 border border-black/[0.06] shadow-sm">
-                    <span className="text-sm font-bold text-zinc-800">{branding.platform_name || 'Clara'}</span>
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                    <span className="text-[10px] font-bold text-zinc-700">{branding.platform_name || 'Clara'}</span>
                   </div>
                 )}
                 {card.id === 'logo' && branding.logo_url && (
-                  <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg p-2 border border-black/[0.06] shadow-sm">
-                    <img src={resolveUrl(branding.logo_url)} alt="Logo" className="h-6 object-contain" data-testid="logo-preview" />
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg p-1.5 border border-black/[0.06] shadow-sm">
+                    <img src={resolveUrl(branding.logo_url)} alt="Logo" className="h-5 object-contain" data-testid="logo-preview" />
                   </div>
                 )}
                 {card.id === 'favicon' && branding.favicon_url && (
-                  <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg p-2 border border-black/[0.06] shadow-sm">
-                    <img src={resolveUrl(branding.favicon_url)} alt="Favicon" className="w-6 h-6 object-contain" data-testid="favicon-preview" />
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg p-1.5 border border-black/[0.06] shadow-sm">
+                    <img src={resolveUrl(branding.favicon_url)} alt="Favicon" className="w-5 h-5 object-contain" data-testid="favicon-preview" />
                   </div>
                 )}
               </div>
@@ -152,9 +161,9 @@ export default function BrandingSettings() {
                       onClick={() => saveBranding({ platform_name: platformName })}
                       disabled={saving || platformName === branding.platform_name}
                       size="sm"
-                      className="w-full h-7 text-[10px] rounded-lg"
+                      className="w-full h-6 text-[10px] rounded-lg"
                     >
-                      {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3 mr-1" /> Save Name</>}
+                      {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3 mr-0.5" /> Save Name</>}
                     </Button>
                     <div className="flex gap-1.5 mt-1">
                       <button
@@ -199,10 +208,10 @@ export default function BrandingSettings() {
                       onClick={() => logoInputRef.current?.click()}
                       size="sm"
                       variant="outline"
-                      className="w-full h-7 text-[10px] rounded-lg"
+                      className="w-full h-6 text-[10px] rounded-lg"
                       disabled={uploading === 'upload-logo'}
                     >
-                      {uploading === 'upload-logo' ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
+                      {uploading === 'upload-logo' ? <Loader2 className="w-3 h-3 animate-spin mr-0.5" /> : <Upload className="w-3 h-3 mr-0.5" />}
                       {branding.logo_url ? 'Replace Logo' : 'Upload Logo'}
                     </Button>
                   </div>
@@ -226,10 +235,10 @@ export default function BrandingSettings() {
                       onClick={() => faviconInputRef.current?.click()}
                       size="sm"
                       variant="outline"
-                      className="w-full h-7 text-[10px] rounded-lg"
+                      className="w-full h-6 text-[10px] rounded-lg"
                       disabled={uploading === 'upload-favicon'}
                     >
-                      {uploading === 'upload-favicon' ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Upload className="w-3 h-3 mr-1" />}
+                      {uploading === 'upload-favicon' ? <Loader2 className="w-3 h-3 animate-spin mr-0.5" /> : <Upload className="w-3 h-3 mr-0.5" />}
                       {branding.favicon_url ? 'Replace Favicon' : 'Upload Favicon'}
                     </Button>
                   </div>

@@ -191,6 +191,8 @@ export default function EnvironmentManager() {
         {environments.map((env, i) => {
           const siteCount = env.site_count || 0;
           const adminCount = env.admin_count || 0;
+          const ENV_IMAGES = ['/images/env_server.jpg', '/images/env_technical.jpg', '/images/env_radio.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg', '/images/env_wp_security.jpg'];
+          const envImg = ENV_IMAGES[i % ENV_IMAGES.length];
           return (
             <motion.div
               key={env.id}
@@ -204,12 +206,17 @@ export default function EnvironmentManager() {
                 className="relative rounded-2xl overflow-hidden transition-all duration-300 border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]"
                 style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
               >
-                {/* Gradient image area */}
-                <div
-                  className="relative h-[140px] overflow-hidden flex items-center justify-center"
-                  style={{ background: `linear-gradient(135deg, ${env.color || '#3b82f6'}15, ${env.color || '#3b82f6'}08)` }}
-                >
-                  <Server className="w-16 h-16 transition-transform duration-500 group-hover:scale-110" style={{ color: `${env.color || '#3b82f6'}40` }} />
+                {/* Room image */}
+                <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                  <img
+                    src={envImg}
+                    alt=""
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    style={{
+                      WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)',
+                      maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)',
+                    }}
+                  />
 
                   {/* Type badge */}
                   <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">

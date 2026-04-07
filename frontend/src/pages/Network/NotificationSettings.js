@@ -504,33 +504,38 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   const isExpanded = selectedRole === role.slug;
                   const activeCount = (roleCfg.categories || []).length;
                   const roleColor = role.slug === 'admin' ? '#f97316' : role.slug === 'presenter' ? '#3b82f6' : role.slug === 'editor' ? '#8b5cf6' : '#22c55e';
+                  const ROLE_IMAGES = ['/images/env_server.jpg', '/images/env_radio.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg'];
+                  const roleImg = ROLE_IMAGES[i % ROLE_IMAGES.length];
 
                   return (
                     <motion.div
                       key={role.slug}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                      className={`${isExpanded ? 'w-full max-w-lg' : 'w-[260px]'} flex-shrink-0 transition-all duration-300`}
+                      transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                      className={`${isExpanded ? 'w-full max-w-lg' : 'w-[260px]'} flex-shrink-0 group transition-all duration-300`}
                     >
-                      <div className={`rounded-2xl overflow-hidden border shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-shadow ${isExpanded ? 'border-orange-200 shadow-[0_8px_32px_rgba(0,0,0,0.10)]' : 'border-black/[0.06] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)]'}`} style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                      <div className={`rounded-2xl overflow-hidden border shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-all duration-300 ${isExpanded ? 'border-orange-200 shadow-[0_8px_32px_rgba(0,0,0,0.10)]' : 'border-black/[0.06] group-hover:scale-[1.02]'}`} style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
                         {/* Clickable header area */}
                         <button
                           className="w-full text-left"
                           onClick={() => setSelectedRole(isExpanded ? null : role.slug)}
                           data-testid={`role-notif-${role.slug}`}
                         >
-                          <div className="relative h-[120px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${roleColor}15, ${roleColor}08)` }}>
-                            <Users className="w-14 h-14" style={{ color: `${roleColor}30` }} />
-                            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                              <span className="text-[10px] font-bold tracking-wider" style={{ color: roleColor }}>{role.name?.toUpperCase()}</span>
+                          <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                            <img src={roleImg} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                              <div className="flex items-center gap-1.5">
+                                <Users className="w-3 h-3" style={{ color: roleColor }} />
+                                <span className="text-[10px] font-bold tracking-wider" style={{ color: roleColor }}>{role.name?.toUpperCase()}</span>
+                              </div>
                             </div>
-                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                            <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
                               <span className="text-[10px] font-bold text-zinc-500">{activeCount} cat.</span>
                             </div>
                             {activeCount > 0 && (
-                              <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                                <span className="text-[10px] font-bold" style={{ color: roleColor }}>
+                              <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm">
+                                <span className="text-[9px] font-bold" style={{ color: roleColor }}>
                                   {roleCfg.mode === 'realtime' ? 'Real-time' : roleCfg.mode === 'both' ? 'Both' : 'Daily'}
                                 </span>
                               </div>
@@ -638,30 +643,34 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   const failedCount = (evt.emails_failed || []).length;
                   const attemptedCount = (evt.emails_attempted || []).length;
                   const evtColor = failedCount > 0 ? '#ef4444' : sentCount > 0 ? '#22c55e' : '#71717a';
+                  const HIST_IMAGES = ['/images/env_radio.jpg', '/images/env_server.jpg', '/images/env_technical.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg', '/images/env_wp_security.jpg'];
                   return (
                     <motion.div
                       key={i}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      className="w-[260px] flex-shrink-0"
+                      transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                      className="group w-[260px] flex-shrink-0"
                       data-testid={`notif-log-${i}`}
                     >
-                      <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
-                        <div className="relative h-[80px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${evtColor}15, ${evtColor}08)` }}>
-                          <Icon className="w-8 h-8" style={{ color: `${evtColor}40` }} />
-                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                            <span className="text-[10px] font-bold tracking-wider text-zinc-500">{evt.category?.toUpperCase()}</span>
+                      <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                        <div className="relative h-[120px] overflow-hidden bg-[#F0F0F2]">
+                          <img src={HIST_IMAGES[i % HIST_IMAGES.length]} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                            <div className="flex items-center gap-1.5">
+                              <Icon className="w-3 h-3" style={{ color: evtColor }} />
+                              <span className="text-[10px] font-bold tracking-wider text-zinc-500">{evt.category?.toUpperCase()}</span>
+                            </div>
                           </div>
                           <div className="flex items-center gap-1 absolute top-3 right-3">
                             {sentCount > 0 && (
-                              <span className="bg-emerald-100/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-emerald-300/30 text-[10px] font-bold text-emerald-600">{sentCount} sent</span>
+                              <span className="bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm text-[9px] font-bold text-emerald-600">{sentCount} sent</span>
                             )}
                             {failedCount > 0 && (
-                              <span className="bg-red-100/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-red-300/30 text-[10px] font-bold text-red-600" data-testid={`notif-log-${i}-failed`}>{failedCount} failed</span>
+                              <span className="bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm text-[9px] font-bold text-red-600" data-testid={`notif-log-${i}-failed`}>{failedCount} failed</span>
                             )}
                             {attemptedCount === 0 && sentCount === 0 && failedCount === 0 && (
-                              <span className="bg-zinc-100/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-zinc-300/30 text-[10px] text-zinc-500">none</span>
+                              <span className="bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm text-[9px] text-zinc-500">none</span>
                             )}
                           </div>
                         </div>

@@ -12,6 +12,9 @@ import {
   Package, Plus, Edit, Trash2, Shield, Globe, Check, X, CreditCard,
   Infinity, AlertTriangle, Loader2, ChevronDown, Clock, CheckCircle, XCircle, FileText
 } from 'lucide-react';
+
+const SITE_TYPE_IMAGES = { radio: '/images/env_radio.jpg', technical: '/images/env_technical.jpg', server: '/images/env_server.jpg', task_scheduler: '/images/env_task_scheduler.jpg', external_host: '/images/env_external_host.jpg', wp_security: '/images/env_wp_security.jpg' };
+const CYCLING_IMAGES = ['/images/env_server.jpg', '/images/env_technical.jpg', '/images/env_radio.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg', '/images/env_wp_security.jpg'];
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -288,31 +291,38 @@ export default function LicenseManager() {
       {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
-          {/* Stats as 260px cards */}
+          {/* Stats as isometric image cards */}
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
             {[
-              { label: 'Total Sites', value: overview.length, icon: Globe, color: '#3b82f6' },
-              { label: 'Licensed', value: assignedSites.length, icon: Check, color: '#22c55e' },
-              { label: 'No License', value: unassignedSites.filter(s => !s.is_demo).length, icon: AlertTriangle, color: '#ef4444' },
-              { label: 'Demo', value: overview.filter(s => s.is_demo).length, icon: Globe, color: '#f59e0b' },
-              { label: 'Lifetime', value: assignedSites.filter(s => s.is_lifetime).length, icon: Infinity, color: '#a855f7' },
+              { label: 'TOTAL SITES', value: overview.length, icon: Globe, color: '#3b82f6', img: '/images/env_server.jpg' },
+              { label: 'LICENSED', value: assignedSites.length, icon: Check, color: '#22c55e', img: '/images/env_radio.jpg' },
+              { label: 'NO LICENSE', value: unassignedSites.filter(s => !s.is_demo).length, icon: AlertTriangle, color: '#ef4444', img: '/images/env_wp_security.jpg' },
+              { label: 'DEMO', value: overview.filter(s => s.is_demo).length, icon: Globe, color: '#f59e0b', img: '/images/env_external_host.jpg' },
+              { label: 'LIFETIME', value: assignedSites.filter(s => s.is_lifetime).length, icon: Infinity, color: '#a855f7', img: '/images/env_task_scheduler.jpg' },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="w-[260px] flex-shrink-0"
+                transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="group w-[260px] flex-shrink-0"
               >
-                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
-                  <div className="relative h-[100px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${stat.color}15, ${stat.color}08)` }}>
-                    <stat.icon className="w-10 h-10" style={{ color: `${stat.color}40` }} />
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                      <span className="text-[10px] font-bold tracking-wider" style={{ color: stat.color }}>{stat.label.toUpperCase()}</span>
+                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                  <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                    <img src={stat.img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                      <div className="flex items-center gap-1.5">
+                        <stat.icon className="w-3 h-3" style={{ color: stat.color }} />
+                        <span className="text-[10px] font-bold tracking-wider" style={{ color: stat.color }}>{stat.label}</span>
+                      </div>
                     </div>
-                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-3 py-1 border border-black/[0.06]">
-                      <span className="text-xl font-bold text-zinc-800">{stat.value}</span>
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-1 border border-black/[0.06] shadow-sm">
+                      <span className="text-sm font-bold text-zinc-700">{stat.value}</span>
                     </div>
+                  </div>
+                  <div className="px-3.5 py-3">
+                    <h3 className="text-sm font-bold text-zinc-800">{stat.label.charAt(0) + stat.label.slice(1).toLowerCase()}</h3>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">{stat.value} site{stat.value !== 1 ? 's' : ''}</p>
                   </div>
                   <div className="h-1" style={{ background: `linear-gradient(90deg, ${stat.color}, ${stat.color}60)` }} />
                 </div>
@@ -328,24 +338,29 @@ export default function LicenseManager() {
                 <span className="text-sm font-medium text-red-500">Sites Without License ({unassignedSites.length})</span>
               </div>
               <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-                {unassignedSites.map((site, i) => (
+                {unassignedSites.map((site, i) => {
+                  const siteImg = SITE_TYPE_IMAGES[site.site_type] || CYCLING_IMAGES[i % CYCLING_IMAGES.length];
+                  return (
                   <motion.div
                     key={site.site_id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="w-[260px] flex-shrink-0"
+                    transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="group w-[260px] flex-shrink-0"
                   >
-                    <div className="rounded-2xl overflow-hidden border border-red-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #fef2f2 100%)' }}>
-                      <div className="relative h-[140px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #ef444415, #ef444408)' }}>
-                        <AlertTriangle className="w-16 h-16 text-red-200" />
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                          <span className={`text-[10px] font-bold tracking-wider ${SITE_TYPE_COLORS[site.site_type] ? '' : 'text-zinc-500'}`}>
-                            {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
-                          </span>
+                    <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                      <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                        <img src={siteImg} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                          <div className="flex items-center gap-1.5">
+                            <AlertTriangle className="w-3 h-3 text-red-500" />
+                            <span className="text-[10px] font-bold tracking-wider text-red-500">
+                              {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
+                            </span>
+                          </div>
                         </div>
                         {site.is_demo && (
-                          <div className="absolute top-3 right-3 bg-amber-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-amber-300/30">
+                          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
                             <span className="text-[10px] font-bold tracking-wider text-amber-600">DEMO</span>
                           </div>
                         )}
@@ -356,7 +371,7 @@ export default function LicenseManager() {
                         <div className="flex gap-1.5 mt-2">
                           <button
                             onClick={() => toggleDemo(site.site_id, site.is_demo)}
-                            className={`flex-1 h-7 text-[10px] font-medium rounded-lg border transition-colors ${
+                            className={`flex-1 h-6 text-[10px] font-medium rounded-lg border transition-colors ${
                               site.is_demo
                                 ? 'bg-amber-500/15 border-amber-400/40 text-amber-600'
                                 : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:bg-zinc-100'
@@ -365,15 +380,16 @@ export default function LicenseManager() {
                           >
                             {site.is_demo ? 'Demo On' : 'Demo Off'}
                           </button>
-                          <Button size="sm" onClick={() => openAssign(site.site_id)} className="flex-1 h-7 text-[10px] rounded-lg" data-testid={`assign-license-${site.site_slug}`}>
-                            <CreditCard className="w-3 h-3 mr-1" /> Assign
+                          <Button size="sm" onClick={() => openAssign(site.site_id)} className="flex-1 h-6 text-[10px] rounded-lg" data-testid={`assign-license-${site.site_slug}`}>
+                            <CreditCard className="w-3 h-3 mr-0.5" /> Assign
                           </Button>
                         </div>
                       </div>
                       <div className="h-1" style={{ background: 'linear-gradient(90deg, #ef4444, #ef444460)' }} />
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -386,57 +402,61 @@ export default function LicenseManager() {
                 <span className="text-sm font-medium text-emerald-600">Licensed Sites ({assignedSites.length})</span>
               </div>
               <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-                {assignedSites.map((site, i) => (
+                {assignedSites.map((site, i) => {
+                  const siteImg = SITE_TYPE_IMAGES[site.site_type] || CYCLING_IMAGES[i % CYCLING_IMAGES.length];
+                  return (
                   <motion.div
                     key={site.site_id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="w-[260px] flex-shrink-0"
+                    transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="group w-[260px] flex-shrink-0"
                   >
-                    <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f0fdf4 100%)' }}>
-                      <div className="relative h-[140px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #22c55e15, #22c55e08)' }}>
-                        <Shield className="w-16 h-16 text-emerald-200" />
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                          <span className="text-[10px] font-bold tracking-wider text-emerald-600">
-                            {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
-                          </span>
+                    <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                      <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                        <img src={siteImg} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                          <div className="flex items-center gap-1.5">
+                            <Shield className="w-3 h-3 text-emerald-500" />
+                            <span className="text-[10px] font-bold tracking-wider text-emerald-600">
+                              {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
+                            </span>
+                          </div>
                         </div>
-                        <div className="absolute top-3 right-3 bg-emerald-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-emerald-300/30">
-                          <span className="text-[10px] font-bold tracking-wider text-emerald-600">{site.license_package}</span>
+                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                          <span className="text-[10px] font-bold text-emerald-600">{site.license_package}</span>
                         </div>
                         {site.is_lifetime && (
-                          <div className="absolute bottom-3 right-3 bg-purple-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-purple-300/30 flex items-center gap-1">
-                            <Infinity className="w-3 h-3 text-purple-600" />
-                            <span className="text-[10px] font-bold text-purple-600">LIFETIME</span>
+                          <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm flex items-center gap-1">
+                            <Infinity className="w-2.5 h-2.5 text-purple-600" />
+                            <span className="text-[9px] font-bold text-purple-600">LIFETIME</span>
                           </div>
                         )}
                         {site.is_demo && (
-                          <div className="absolute bottom-3 left-3 bg-amber-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-amber-300/30">
-                            <span className="text-[10px] font-bold tracking-wider text-amber-600">DEMO</span>
+                          <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm">
+                            <span className="text-[9px] font-bold text-amber-600">DEMO</span>
                           </div>
                         )}
                       </div>
                       <div className="px-3.5 py-3">
                         <h3 className="text-sm font-bold text-zinc-800 truncate">{site.site_name}</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          {!site.is_lifetime && (
-                            <span className="text-[11px] text-zinc-400 capitalize">{site.billing_cycle}</span>
-                          )}
-                        </div>
+                        {!site.is_lifetime && (
+                          <p className="text-[11px] text-zinc-400 mt-0.5 capitalize">{site.billing_cycle}</p>
+                        )}
                         <Button
                           size="sm" variant="ghost"
                           onClick={() => setDeleteDialog({ open: true, type: 'assignment', id: site.assignment_id, name: site.site_name })}
-                          className="w-full h-7 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-50 mt-2 rounded-lg"
+                          className="w-full h-6 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-50 mt-2 rounded-lg"
                           data-testid={`remove-license-${site.site_slug}`}
                         >
-                          <X className="w-3 h-3 mr-1" /> Remove License
+                          <X className="w-3 h-3 mr-0.5" /> Remove License
                         </Button>
                       </div>
                       <div className="h-1" style={{ background: 'linear-gradient(90deg, #22c55e, #22c55e60)' }} />
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -465,19 +485,22 @@ export default function LicenseManager() {
                 return (
                   <motion.div
                     key={req.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="w-[260px] flex-shrink-0"
+                    transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="group w-[260px] flex-shrink-0"
                     data-testid={`license-request-${req.id}`}
                   >
-                    <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
-                      <div className="relative h-[140px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${color}15, ${color}08)` }}>
-                        <StatusIcon className="w-16 h-16" style={{ color: `${color}30` }} />
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                          <span className="text-[10px] font-bold tracking-wider" style={{ color }}>{req.status.toUpperCase()}</span>
+                    <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                      <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                        <img src={SITE_TYPE_IMAGES[req.site_type] || CYCLING_IMAGES[i % CYCLING_IMAGES.length]} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                          <div className="flex items-center gap-1.5">
+                            <StatusIcon className="w-3 h-3" style={{ color }} />
+                            <span className="text-[10px] font-bold tracking-wider" style={{ color }}>{req.status.toUpperCase()}</span>
+                          </div>
                         </div>
-                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
+                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
                           <span className="text-[10px] font-bold tracking-wider text-zinc-500">
                             {(SITE_TYPE_LABELS[req.site_type] || req.site_type).toUpperCase()}
                           </span>
@@ -550,22 +573,25 @@ export default function LicenseManager() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="w-[260px] flex-shrink-0"
+                className="group w-[260px] flex-shrink-0"
                 data-testid={`package-card-${pkg.slug}`}
               >
-                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-shadow" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
-                  <div className="relative h-[140px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f9731615, #f9731608)' }}>
-                    <Package className="w-16 h-16 text-orange-200" />
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                      <span className="text-[10px] font-bold tracking-wider text-orange-600">PACKAGE</span>
+                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                  <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                    <img src={CYCLING_IMAGES[i % CYCLING_IMAGES.length]} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                      <div className="flex items-center gap-1.5">
+                        <Package className="w-3 h-3 text-orange-500" />
+                        <span className="text-[10px] font-bold tracking-wider text-orange-600">PACKAGE</span>
+                      </div>
                     </div>
                     {pkg.is_default && (
-                      <div className="absolute top-3 right-3 bg-zinc-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-zinc-300/30">
+                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
                         <span className="text-[10px] font-bold tracking-wider text-zinc-500">DEFAULT</span>
                       </div>
                     )}
-                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                      <span className="text-[10px] font-bold text-zinc-500">{pkg.features?.length || 0} features</span>
+                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm">
+                      <span className="text-[9px] font-bold text-zinc-500">{pkg.features?.length || 0} features</span>
                     </div>
                   </div>
                   <div className="px-3.5 py-3">

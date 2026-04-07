@@ -96,6 +96,8 @@ const ROUTE_TYPE_COLORS = {
 };
 const SITE_TYPE_COLORS = { radio: 'bg-orange-500/20 text-orange-400', technical: 'bg-emerald-500/20 text-emerald-400', server: 'bg-blue-500/20 text-blue-400', task_scheduler: 'bg-violet-500/20 text-violet-400', external_host: 'bg-cyan-500/20 text-cyan-400' };
 const SITE_TYPE_LABELS = { radio: 'Radio', technical: 'Data Connection', server: 'Virtual Datacenter', task_scheduler: 'Tasks', external_host: 'External Host' };
+const SITE_TYPE_IMAGES = { radio: '/images/env_radio.jpg', technical: '/images/env_technical.jpg', server: '/images/env_server.jpg', task_scheduler: '/images/env_task_scheduler.jpg', external_host: '/images/env_external_host.jpg', wp_security: '/images/env_wp_security.jpg' };
+const CYCLING_IMAGES = ['/images/env_server.jpg', '/images/env_technical.jpg', '/images/env_radio.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg', '/images/env_wp_security.jpg'];
 const STATUS_CONFIGS = {
   verified: { icon: CheckCircle, color: 'text-emerald-400', label: 'Verified' },
   pending: { icon: Clock, color: 'text-amber-400', label: 'Pending' },
@@ -434,28 +436,35 @@ export default function DomainManager() {
         <div className="space-y-6">
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
             {[
-              { label: 'Configured', value: overview.configured_domains, total: overview.total_sites, icon: Link2, color: '#10b981' },
-              { label: 'Koodh.com', value: overview.koodh_domains, icon: Globe, color: '#3b82f6' },
-              { label: 'Custom Domains', value: overview.custom_domains, icon: ExternalLink, color: '#a855f7' },
-              { label: 'Verified', value: overview.verified, icon: CheckCircle, color: '#22c55e' },
+              { label: 'CONFIGURED', value: overview.configured_domains, extra: `/ ${overview.total_sites}`, icon: Link2, color: '#10b981', img: '/images/env_server.jpg' },
+              { label: 'KOODH.COM', value: overview.koodh_domains, icon: Globe, color: '#3b82f6', img: '/images/env_radio.jpg' },
+              { label: 'CUSTOM', value: overview.custom_domains, icon: ExternalLink, color: '#a855f7', img: '/images/env_external_host.jpg' },
+              { label: 'VERIFIED', value: overview.verified, icon: CheckCircle, color: '#22c55e', img: '/images/env_technical.jpg' },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="w-[260px] flex-shrink-0"
+                transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="group w-[260px] flex-shrink-0"
               >
-                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
-                  <div className="relative h-[100px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${stat.color}15, ${stat.color}08)` }}>
-                    <stat.icon className="w-10 h-10" style={{ color: `${stat.color}40` }} />
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                      <span className="text-[10px] font-bold tracking-wider" style={{ color: stat.color }}>{stat.label.toUpperCase()}</span>
+                <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                  <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                    <img src={stat.img} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                      <div className="flex items-center gap-1.5">
+                        <stat.icon className="w-3 h-3" style={{ color: stat.color }} />
+                        <span className="text-[10px] font-bold tracking-wider" style={{ color: stat.color }}>{stat.label}</span>
+                      </div>
                     </div>
-                    <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-3 py-1 border border-black/[0.06]">
-                      <span className="text-xl font-bold text-zinc-800">{stat.value}</span>
-                      {stat.total != null && <span className="text-xs text-zinc-400 ml-1">/ {stat.total}</span>}
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-1 border border-black/[0.06] shadow-sm">
+                      <span className="text-sm font-bold text-zinc-700">{stat.value}</span>
+                      {stat.extra && <span className="text-[10px] text-zinc-400">{stat.extra}</span>}
                     </div>
+                  </div>
+                  <div className="px-3.5 py-3">
+                    <h3 className="text-sm font-bold text-zinc-800">{stat.label.charAt(0) + stat.label.slice(1).toLowerCase()} Domains</h3>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">{stat.value} domain{stat.value !== 1 ? 's' : ''}</p>
                   </div>
                   <div className="h-1" style={{ background: `linear-gradient(90deg, ${stat.color}, ${stat.color}60)` }} />
                 </div>
@@ -485,7 +494,7 @@ export default function DomainManager() {
             </div>
           )}
 
-          {/* Active Routes as 260px cards */}
+          {/* Active Routes as isometric cards */}
           <div>
             <div className="flex items-center gap-2 mb-3 px-1">
               <ArrowRight className="w-4 h-4 text-zinc-400" />
@@ -495,23 +504,24 @@ export default function DomainManager() {
               {routes.filter(r => r.is_active).map((route, i) => (
                 <motion.div
                   key={route.id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 + 0.3, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                  className="w-[260px] flex-shrink-0"
+                  transition={{ delay: i * 0.08 + 0.3, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="group w-[260px] flex-shrink-0"
                 >
-                  <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
-                    <div className="relative h-[100px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6366f115, #6366f108)' }}>
-                      <ArrowRight className="w-10 h-10 text-indigo-200" />
-                      <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                        <span className={`text-[10px] font-bold tracking-wider`}>
-                          {(ROUTE_TYPE_LABELS[route.route_type] || route.route_type).toUpperCase()}
-                        </span>
+                  <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                    <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                      <img src="/images/env_technical.jpg" alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                      <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                        <div className="flex items-center gap-1.5">
+                          <ArrowRight className="w-3 h-3 text-indigo-500" />
+                          <span className="text-[10px] font-bold tracking-wider text-indigo-500">{(ROUTE_TYPE_LABELS[route.route_type] || route.route_type).toUpperCase()}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="px-3.5 py-2">
-                      <p className="text-xs font-mono text-zinc-700 font-medium truncate">{route.subdomain}.{baseDomain}</p>
-                      <p className="text-[10px] text-zinc-400 truncate">{route.label} → {route.target_path}</p>
+                    <div className="px-3.5 py-3">
+                      <h3 className="text-sm font-bold font-mono text-zinc-800 truncate">{route.subdomain}.{baseDomain}</h3>
+                      <p className="text-[11px] text-zinc-400 truncate mt-0.5">{route.label} → {route.target_path}</p>
                     </div>
                     <div className="h-1" style={{ background: 'linear-gradient(90deg, #6366f1, #6366f160)' }} />
                   </div>
@@ -540,27 +550,29 @@ export default function DomainManager() {
                   const VerIcon = verStatus.icon;
                   const isCustom = config.domain_type === 'custom';
                   const domainColor = isCustom ? '#a855f7' : '#3b82f6';
+                  const siteImg = SITE_TYPE_IMAGES[config.site_type] || CYCLING_IMAGES[i % CYCLING_IMAGES.length];
                   return (
                     <motion.div
                       key={config.id}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                      className="w-[260px] flex-shrink-0"
+                      transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                      className="group w-[260px] flex-shrink-0"
                       data-testid={`domain-config-${config.main_site_id}`}
                     >
-                      <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-shadow" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
-                        <div className="relative h-[140px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${domainColor}15, ${domainColor}08)` }}>
-                          {isCustom ? <ExternalLink className="w-16 h-16" style={{ color: `${domainColor}30` }} /> : <Globe className="w-16 h-16" style={{ color: `${domainColor}30` }} />}
-                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                            <span className="text-[10px] font-bold tracking-wider" style={{ color: domainColor }}>
-                              {isCustom ? 'CUSTOM' : 'KOODH'}
-                            </span>
+                      <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                        <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                          <img src={siteImg} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                          <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                            <div className="flex items-center gap-1.5">
+                              {isCustom ? <ExternalLink className="w-3 h-3" style={{ color: domainColor }} /> : <Globe className="w-3 h-3" style={{ color: domainColor }} />}
+                              <span className="text-[10px] font-bold tracking-wider" style={{ color: domainColor }}>{isCustom ? 'CUSTOM' : 'KOODH'}</span>
+                            </div>
                           </div>
-                          <div className={`absolute top-3 right-3 rounded-lg px-2.5 py-1 border backdrop-blur-lg ${
-                            config.verification_status === 'verified' ? 'bg-emerald-100/90 border-emerald-300/30' :
-                            config.verification_status === 'failed' ? 'bg-red-100/90 border-red-300/30' :
-                            'bg-amber-100/90 border-amber-300/30'
+                          <div className={`absolute top-3 right-3 rounded-lg px-2.5 py-1 border backdrop-blur-lg shadow-sm ${
+                            config.verification_status === 'verified' ? 'bg-white/90 border-black/[0.06]' :
+                            config.verification_status === 'failed' ? 'bg-white/90 border-black/[0.06]' :
+                            'bg-white/90 border-black/[0.06]'
                           }`}>
                             <div className="flex items-center gap-1">
                               <VerIcon className={`w-3 h-3 ${
@@ -574,9 +586,9 @@ export default function DomainManager() {
                             </div>
                           </div>
                           {config.ssl_enabled && (
-                            <div className="absolute bottom-3 right-3 bg-emerald-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-emerald-300/30 flex items-center gap-1">
-                              <Lock className="w-3 h-3 text-emerald-600" />
-                              <span className="text-[10px] font-bold text-emerald-600">SSL</span>
+                            <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm flex items-center gap-1">
+                              <Lock className="w-2.5 h-2.5 text-emerald-600" />
+                              <span className="text-[9px] font-bold text-emerald-600">SSL</span>
                             </div>
                           )}
                         </div>
@@ -584,15 +596,15 @@ export default function DomainManager() {
                           <h3 className="text-sm font-bold text-zinc-800 truncate">{config.site_name}</h3>
                           <p className="text-[11px] font-mono text-zinc-400 truncate mt-0.5">{config.full_domain || `${config.subdomain}.${baseDomain}`}</p>
                           <div className="flex gap-1.5 mt-2">
-                            <Button size="sm" variant="ghost" onClick={() => openDomainConfig({ id: config.main_site_id, slug: config.site_slug, name: config.site_name })} className="flex-1 h-7 text-[10px] rounded-lg">
-                              <Edit className="w-3 h-3 mr-1" /> Edit
+                            <Button size="sm" variant="ghost" onClick={() => openDomainConfig({ id: config.main_site_id, slug: config.site_slug, name: config.site_name })} className="flex-1 h-6 text-[10px] rounded-lg">
+                              <Edit className="w-3 h-3 mr-0.5" /> Edit
                             </Button>
                             {isCustom && config.verification_status !== 'verified' && (
-                              <Button size="sm" variant="outline" onClick={() => verifyDomain(config.main_site_id)} disabled={verifying === config.main_site_id} className="h-7 text-[10px] rounded-lg" data-testid={`verify-domain-${config.main_site_id}`}>
+                              <Button size="sm" variant="outline" onClick={() => verifyDomain(config.main_site_id)} disabled={verifying === config.main_site_id} className="h-6 text-[10px] rounded-lg" data-testid={`verify-domain-${config.main_site_id}`}>
                                 {verifying === config.main_site_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                               </Button>
                             )}
-                            <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'domain', id: config.main_site_id, name: config.site_name })} className="h-7 text-[10px] text-red-400 hover:text-red-500 rounded-lg">
+                            <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'domain', id: config.main_site_id, name: config.site_name })} className="h-6 text-[10px] text-red-400 hover:text-red-500 rounded-lg">
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
@@ -613,37 +625,43 @@ export default function DomainManager() {
                 <span className="text-sm font-medium text-amber-600">Not Configured ({unconfiguredSites.length})</span>
               </div>
               <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-                {unconfiguredSites.map((site, i) => (
+                {unconfiguredSites.map((site, i) => {
+                  const siteImg = SITE_TYPE_IMAGES[site.site_type] || CYCLING_IMAGES[i % CYCLING_IMAGES.length];
+                  return (
                   <motion.div
                     key={site.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    className="w-[260px] flex-shrink-0"
+                    transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="group w-[260px] flex-shrink-0"
                   >
-                    <div className="rounded-2xl overflow-hidden border border-amber-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.06)]" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #fffbeb 100%)' }}>
-                      <div className="relative h-[140px] flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #f59e0b15, #f59e0b08)' }}>
-                        <Link2 className="w-16 h-16 text-amber-200" />
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                          <span className="text-[10px] font-bold tracking-wider text-amber-600">
-                            {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
-                          </span>
+                    <div className="rounded-2xl overflow-hidden border border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300" style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                      <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                        <img src={siteImg} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                          <div className="flex items-center gap-1.5">
+                            <Link2 className="w-3 h-3 text-amber-500" />
+                            <span className="text-[10px] font-bold tracking-wider text-amber-500">
+                              {(SITE_TYPE_LABELS[site.site_type] || site.site_type).toUpperCase()}
+                            </span>
+                          </div>
                         </div>
-                        <div className="absolute top-3 right-3 bg-amber-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-amber-300/30">
+                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
                           <span className="text-[10px] font-bold text-amber-600">NO DOMAIN</span>
                         </div>
                       </div>
                       <div className="px-3.5 py-3">
                         <h3 className="text-sm font-bold text-zinc-800 truncate">{site.name}</h3>
                         <p className="text-[11px] font-mono text-zinc-400 truncate mt-0.5">/{site.slug}</p>
-                        <Button size="sm" variant="outline" onClick={() => openDomainConfig(site)} className="w-full h-7 text-[10px] mt-2 rounded-lg" data-testid={`configure-domain-${site.slug}`}>
+                        <Button size="sm" variant="outline" onClick={() => openDomainConfig(site)} className="w-full h-6 text-[10px] mt-2 rounded-lg" data-testid={`configure-domain-${site.slug}`}>
                           <Link2 className="w-3 h-3 mr-1" /> Set up domain
                         </Button>
                       </div>
                       <div className="h-1" style={{ background: 'linear-gradient(90deg, #f59e0b, #f59e0b60)' }} />
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -713,43 +731,41 @@ export default function DomainManager() {
             {routes.map((route, i) => {
               const dns = getRouteDnsStatus(route);
               const routeColor = route.is_active ? '#6366f1' : '#71717a';
+              const routeImg = CYCLING_IMAGES[i % CYCLING_IMAGES.length];
               return (
               <motion.div
                 key={route.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="w-[260px] flex-shrink-0"
+                transition={{ delay: i * 0.08 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="group w-[260px] flex-shrink-0"
                 data-testid={`route-card-${route.subdomain}`}
               >
-                <div className={`rounded-2xl overflow-hidden border shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] transition-shadow ${route.is_active ? 'border-black/[0.06]' : 'border-zinc-200 opacity-60'}`} style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
-                  <div className="relative h-[140px] flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${routeColor}15, ${routeColor}08)` }}>
-                    <ArrowRight className="w-16 h-16" style={{ color: `${routeColor}25` }} />
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06]">
-                      <span className="text-[10px] font-bold tracking-wider" style={{ color: routeColor }}>
-                        {(ROUTE_TYPE_LABELS[route.route_type] || route.route_type).toUpperCase()}
-                      </span>
+                <div className={`rounded-2xl overflow-hidden border shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02] transition-all duration-300 ${route.is_active ? 'border-black/[0.06]' : 'border-zinc-200 opacity-60'}`} style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}>
+                  <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+                    <img src={routeImg} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" style={{ WebkitMaskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)', maskImage: 'radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)' }} />
+                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
+                      <div className="flex items-center gap-1.5">
+                        <ArrowRight className="w-3 h-3" style={{ color: routeColor }} />
+                        <span className="text-[10px] font-bold tracking-wider" style={{ color: routeColor }}>
+                          {(ROUTE_TYPE_LABELS[route.route_type] || route.route_type).toUpperCase()}
+                        </span>
+                      </div>
                     </div>
                     {route.is_system && (
-                      <div className="absolute top-3 right-3 bg-zinc-100/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-zinc-300/30">
+                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2.5 py-1 border border-black/[0.06] shadow-sm">
                         <span className="text-[10px] font-bold text-zinc-500">SYSTEM</span>
                       </div>
                     )}
-                    {/* DNS status badge */}
                     {cfConfig?.configured && route.is_active && (
-                      <div className={`absolute bottom-3 right-3 rounded-lg px-2.5 py-1 border backdrop-blur-lg ${
-                        dns.exists ? 'bg-emerald-100/90 border-emerald-300/30' : 'bg-amber-100/90 border-amber-300/30'
-                      }`}>
-                        <div className="flex items-center gap-1">
-                          {dns.exists ? <CheckCircle className="w-3 h-3 text-emerald-600" /> : <AlertTriangle className="w-3 h-3 text-amber-600" />}
-                          <span className={`text-[10px] font-bold ${dns.exists ? 'text-emerald-600' : 'text-amber-600'}`} data-testid={dns.exists ? `dns-ok-${route.subdomain}` : `dns-missing-${route.subdomain}`}>
-                            {dns.exists ? 'DNS OK' : 'No DNS'}
-                          </span>
-                        </div>
+                      <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-lg rounded-lg px-2 py-0.5 border border-black/[0.06] shadow-sm flex items-center gap-1">
+                        {dns.exists ? <CheckCircle className="w-2.5 h-2.5 text-emerald-600" /> : <AlertTriangle className="w-2.5 h-2.5 text-amber-600" />}
+                        <span className={`text-[9px] font-bold ${dns.exists ? 'text-emerald-600' : 'text-amber-600'}`} data-testid={dns.exists ? `dns-ok-${route.subdomain}` : `dns-missing-${route.subdomain}`}>
+                          {dns.exists ? 'DNS OK' : 'No DNS'}
+                        </span>
                       </div>
                     )}
-                    {/* Active indicator */}
-                    <div className={`absolute bottom-3 left-3 w-2 h-2 rounded-full ${route.is_active ? 'bg-emerald-400' : 'bg-zinc-400'}`} />
+                    <div className={`absolute bottom-3 left-3 w-2.5 h-2.5 rounded-full ${route.is_active ? 'bg-emerald-400' : 'bg-zinc-400'}`} />
                   </div>
                   <div className="px-3.5 py-3">
                     <h3 className="text-sm font-bold font-mono text-zinc-800 truncate">{route.subdomain}.{baseDomain}</h3>
@@ -762,11 +778,11 @@ export default function DomainManager() {
                       <button onClick={() => toggleRouteActive(route)} className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${route.is_active ? 'bg-emerald-500' : 'bg-zinc-300'}`} data-testid={`toggle-route-${route.subdomain}`}>
                         <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${route.is_active ? 'translate-x-4' : 'translate-x-0.5'}`} />
                       </button>
-                      <Button size="sm" variant="ghost" onClick={() => openEditRoute(route)} className="flex-1 h-7 text-[10px] rounded-lg" data-testid={`edit-route-${route.subdomain}`}>
-                        <Edit className="w-3 h-3 mr-1" /> Edit
+                      <Button size="sm" variant="ghost" onClick={() => openEditRoute(route)} className="flex-1 h-6 text-[10px] rounded-lg" data-testid={`edit-route-${route.subdomain}`}>
+                        <Edit className="w-3 h-3 mr-0.5" /> Edit
                       </Button>
                       {!route.is_system && (
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'route', id: route.id, name: `${route.subdomain}.${baseDomain}` })} className="h-7 text-[10px] text-red-400 hover:text-red-500 rounded-lg" data-testid={`delete-route-${route.subdomain}`}>
+                        <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'route', id: route.id, name: `${route.subdomain}.${baseDomain}` })} className="h-6 text-[10px] text-red-400 hover:text-red-500 rounded-lg" data-testid={`delete-route-${route.subdomain}`}>
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       )}
@@ -779,12 +795,12 @@ export default function DomainManager() {
             })}
             {/* New Route card */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: routes.length * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ delay: routes.length * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="w-[260px] flex-shrink-0"
             >
-              <button onClick={openCreateRoute} className="w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-200 hover:border-indigo-300 transition-colors h-full min-h-[260px] flex flex-col items-center justify-center gap-3 group" data-testid="create-route-card">
+              <button onClick={openCreateRoute} className="w-full rounded-2xl overflow-hidden border-2 border-dashed border-zinc-200 hover:border-indigo-300 transition-colors h-full min-h-[300px] flex flex-col items-center justify-center gap-3 group" data-testid="create-route-card">
                 <div className="w-12 h-12 rounded-full bg-zinc-100 group-hover:bg-indigo-100 flex items-center justify-center transition-colors">
                   <Plus className="w-6 h-6 text-zinc-400 group-hover:text-indigo-500 transition-colors" />
                 </div>
