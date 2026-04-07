@@ -106,7 +106,7 @@ export default function BrandingSettings() {
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors ${
                   branding.logo_type === 'text'
                     ? 'bg-orange-500/15 border-orange-500/40 text-orange-400'
-                    : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:border-zinc-600'
+                    : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:border-zinc-300'
                 }`}
               >
                 <Type className="w-4 h-4" />
@@ -124,7 +124,7 @@ export default function BrandingSettings() {
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-colors ${
                   branding.logo_type === 'image'
                     ? 'bg-orange-500/15 border-orange-500/40 text-orange-400'
-                    : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:border-zinc-600'
+                    : 'bg-zinc-50 border-zinc-200 text-zinc-500 hover:border-zinc-300'
                 }`}
               >
                 <Image className="w-4 h-4" />

@@ -271,8 +271,8 @@ export default function LicenseManager() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
               activeTab === tab.id
-                ? 'bg-zinc-900 text-white border-b-2 border-orange-500'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-white text-white border-b-2 border-orange-500'
+                : 'text-zinc-400 hover:text-zinc-700'
             }`}
           >
             <tab.icon className="w-4 h-4" />
@@ -298,7 +298,7 @@ export default function LicenseManager() {
 
           {/* Unassigned sites warning */}
           {unassignedSites.length > 0 && (
-            <Card className="bg-red-950/30 border-red-900/50">
+            <Card className="bg-red-50 border-red-200">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-red-400 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
@@ -312,7 +312,7 @@ export default function LicenseManager() {
                       <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
                         {SITE_TYPE_LABELS[site.site_type] || site.site_type}
                       </span>
-                      <span className="text-sm text-zinc-200">{site.site_name}</span>
+                      <span className="text-sm text-zinc-700">{site.site_name}</span>
                       {site.is_demo && (
                         <span className="px-2 py-0.5 rounded text-xs bg-amber-500/20 text-amber-400">Demo</span>
                       )}
@@ -323,7 +323,7 @@ export default function LicenseManager() {
                         className={`h-7 px-2 text-xs rounded border transition-colors ${
                           site.is_demo
                             ? 'bg-amber-600/20 border-amber-600/40 text-amber-400 hover:bg-amber-600/30'
-                            : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:bg-zinc-200'
+                            : 'bg-zinc-100 border-zinc-300 text-zinc-400 hover:bg-zinc-200'
                         }`}
                         data-testid={`toggle-demo-${site.site_slug}`}
                       >
@@ -357,7 +357,7 @@ export default function LicenseManager() {
                         <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-200 text-zinc-600'}`}>
                           {SITE_TYPE_LABELS[site.site_type] || site.site_type}
                         </span>
-                        <span className="text-sm text-zinc-200">{site.site_name}</span>
+                        <span className="text-sm text-zinc-700">{site.site_name}</span>
                         <span className="px-2 py-0.5 rounded text-xs bg-green-500/20 text-green-400">
                           {site.license_package}
                         </span>
@@ -515,13 +515,13 @@ export default function LicenseManager() {
                     <div className="flex gap-3">
                       <div className="bg-white/40 backdrop-blur-sm rounded px-2 py-1 text-center flex-1">
                         <p className="text-[10px] text-zinc-500 uppercase">Monthly</p>
-                        <p className="text-sm font-semibold text-zinc-200">
+                        <p className="text-sm font-semibold text-zinc-700">
                           {pkg.monthly_price > 0 ? `${pkg.currency} ${pkg.monthly_price.toFixed(2)}` : 'Free'}
                         </p>
                       </div>
                       <div className="bg-white/40 backdrop-blur-sm rounded px-2 py-1 text-center flex-1">
                         <p className="text-[10px] text-zinc-500 uppercase">Yearly</p>
-                        <p className="text-sm font-semibold text-zinc-200">
+                        <p className="text-sm font-semibold text-zinc-700">
                           {pkg.yearly_price > 0 ? `${pkg.currency} ${pkg.yearly_price.toFixed(2)}` : 'Free'}
                         </p>
                       </div>
@@ -533,7 +533,7 @@ export default function LicenseManager() {
                         {(pkg.features || []).map(fId => {
                           const feat = availableFeatures.find(f => f.id === fId);
                           return (
-                            <span key={fId} className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-800 text-zinc-600">
+                            <span key={fId} className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-100 text-zinc-600">
                               {feat?.name || fId}
                             </span>
                           );
@@ -550,7 +550,7 @@ export default function LicenseManager() {
 
       {/* Package Create/Edit Dialog */}
       <Dialog open={pkgDialog} onOpenChange={setPkgDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-zinc-300 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPkg ? 'Edit Package' : 'Create Package'}</DialogTitle>
           </DialogHeader>
@@ -617,7 +617,7 @@ export default function LicenseManager() {
 
       {/* Assignment Dialog */}
       <Dialog open={assignDialog} onOpenChange={setAssignDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
+        <DialogContent className="bg-white border-zinc-300 max-w-md">
           <DialogHeader>
             <DialogTitle>Assign License</DialogTitle>
           </DialogHeader>
@@ -625,7 +625,7 @@ export default function LicenseManager() {
             <div>
               <Label>Site</Label>
               <select
-                className="w-full rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
+                className="w-full rounded-md border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm text-zinc-700"
                 value={assignForm.main_site_id}
                 onChange={e => setAssignForm(p => ({ ...p, main_site_id: e.target.value }))}
                 data-testid="assign-site-select"
@@ -641,7 +641,7 @@ export default function LicenseManager() {
             <div>
               <Label>Package</Label>
               <select
-                className="w-full rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200"
+                className="w-full rounded-md border border-zinc-300 bg-zinc-100 px-3 py-2 text-sm text-zinc-700"
                 value={assignForm.package_id}
                 onChange={e => setAssignForm(p => ({ ...p, package_id: e.target.value }))}
                 data-testid="assign-package-select"
@@ -661,7 +661,7 @@ export default function LicenseManager() {
                     className={`flex-1 px-3 py-1.5 rounded text-sm transition-colors ${
                       assignForm.billing_cycle === c.value
                         ? 'bg-orange-600 text-white'
-                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200'
+                        : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'
                     }`}
                     data-testid={`billing-cycle-${c.value}`}
                   >
@@ -694,7 +694,7 @@ export default function LicenseManager() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialog.open} onOpenChange={open => !open && setDeleteDialog(prev => ({ ...prev, open: false }))}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-300">
+        <AlertDialogContent className="bg-white border-zinc-300">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {deleteDialog.type === 'package' ? 'Package' : 'License'}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -717,7 +717,7 @@ export default function LicenseManager() {
 
 function StatCard({ label, value, icon: Icon, color }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-200 rounded-lg p-3">
+    <div className="bg-white border border-zinc-200 rounded-lg p-3">
       <div className="flex items-center gap-2 mb-1">
         <Icon className={`w-4 h-4 ${color}`} />
         <span className="text-xs text-zinc-500">{label}</span>

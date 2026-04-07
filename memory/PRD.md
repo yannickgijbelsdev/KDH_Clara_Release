@@ -65,6 +65,13 @@ Build a web-based dashboard that allows radio editors to plan radio shows and pr
 - [x] ServerRackView responsive scaling
 - [x] Avatar dropdown cleanup, Content Approval badge fix
 
+### April 7, 2026 - Network Pages Light Theme Migration
+- [x] **DomainManager.js**: 84 dark-mode patronen omgezet naar licht thema (bg-zinc-900→bg-white, text-zinc-200→text-zinc-700, etc.)
+- [x] **LicenseManager.js**: 23 dark-mode patronen gefixed
+- [x] **NotificationSettings.js**: 33 dark-mode patronen gefixed, SMTP form licht thema
+- [x] **BrandingSettings.js**: 4 dark-mode patronen gefixed (toggle buttons)
+- [x] **EnvironmentManager.js**: Was al grotendeels licht, minimale fixes
+
 ### April 7, 2026 - Clara Assistent Redesign & Universal Layout
 - [x] **Clara Assistent → Centered overlay**: Herschreven van side-panel naar centered popup met backdrop blur
 - [x] **Messenger layout**: Chat bubbles, user/assistant berichten, copy/insert knoppen

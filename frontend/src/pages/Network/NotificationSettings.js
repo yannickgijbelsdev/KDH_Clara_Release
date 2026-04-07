@@ -256,7 +256,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
               <div className="relative">
                 <button
                   onClick={() => setProviderOpen(!providerOpen)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-800 border border-zinc-300 hover:border-zinc-600 text-left"
+                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-50 border border-zinc-200 hover:border-zinc-300 text-left"
                   data-testid="smtp-provider-select"
                 >
                   <div>
@@ -268,12 +268,12 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${providerOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {providerOpen && (
-                  <div className="absolute z-50 mt-1 w-full bg-zinc-800 border border-zinc-300 rounded-lg shadow-xl overflow-hidden">
+                  <div className="absolute z-50 mt-1 w-full bg-zinc-50 border border-zinc-200 rounded-lg shadow-xl overflow-hidden">
                     {providers.map(p => (
                       <button
                         key={p.id}
                         onClick={() => selectProvider(p.id)}
-                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${smtpForm.provider === p.id ? 'bg-zinc-700/50' : ''}`}
+                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${smtpForm.provider === p.id ? 'bg-zinc-100' : ''}`}
                         data-testid={`smtp-provider-${p.id}`}
                       >
                         <Mail className="w-4 h-4 text-zinc-400 flex-shrink-0" />
@@ -294,11 +294,11 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>SMTP Host</Label>
-                  <Input value={smtpForm.host} onChange={e => setSmtpForm(p => ({ ...p, host: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="smtp.example.com" data-testid="smtp-host" />
+                  <Input value={smtpForm.host} onChange={e => setSmtpForm(p => ({ ...p, host: e.target.value }))} className="bg-zinc-50 border-zinc-200" placeholder="smtp.example.com" data-testid="smtp-host" />
                 </div>
                 <div>
                   <Label>Port</Label>
-                  <Input type="number" value={smtpForm.port} onChange={e => setSmtpForm(p => ({ ...p, port: parseInt(e.target.value) || 587 }))} className="bg-zinc-800 border-zinc-300" data-testid="smtp-port" />
+                  <Input type="number" value={smtpForm.port} onChange={e => setSmtpForm(p => ({ ...p, port: parseInt(e.target.value) || 587 }))} className="bg-zinc-50 border-zinc-200" data-testid="smtp-port" />
                 </div>
               </div>
             )}
@@ -306,22 +306,22 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Username / Email</Label>
-                <Input value={smtpForm.username} onChange={e => setSmtpForm(p => ({ ...p, username: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="user@example.com" data-testid="smtp-username" />
+                <Input value={smtpForm.username} onChange={e => setSmtpForm(p => ({ ...p, username: e.target.value }))} className="bg-zinc-50 border-zinc-200" placeholder="user@example.com" data-testid="smtp-username" />
               </div>
               <div>
                 <Label>Password / App Password</Label>
-                <Input type="password" value={smtpForm.password} onChange={e => setSmtpForm(p => ({ ...p, password: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="••••••••" data-testid="smtp-password" />
+                <Input type="password" value={smtpForm.password} onChange={e => setSmtpForm(p => ({ ...p, password: e.target.value }))} className="bg-zinc-50 border-zinc-200" placeholder="••••••••" data-testid="smtp-password" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Sender Email</Label>
-                <Input value={smtpForm.from_email} onChange={e => setSmtpForm(p => ({ ...p, from_email: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="noreply@example.com" data-testid="smtp-from-email" />
+                <Input value={smtpForm.from_email} onChange={e => setSmtpForm(p => ({ ...p, from_email: e.target.value }))} className="bg-zinc-50 border-zinc-200" placeholder="noreply@example.com" data-testid="smtp-from-email" />
               </div>
               <div>
                 <Label>Sender Name</Label>
-                <Input value={smtpForm.from_name} onChange={e => setSmtpForm(p => ({ ...p, from_name: e.target.value }))} className="bg-zinc-800 border-zinc-300" placeholder="Clara Radio Dashboard" data-testid="smtp-from-name" />
+                <Input value={smtpForm.from_name} onChange={e => setSmtpForm(p => ({ ...p, from_name: e.target.value }))} className="bg-zinc-50 border-zinc-200" placeholder="Clara Radio Dashboard" data-testid="smtp-from-name" />
               </div>
             </div>
 
@@ -351,7 +351,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   <Input
                     value={testEmailAddr}
                     onChange={e => setTestEmailAddr(e.target.value)}
-                    className="bg-zinc-800 border-zinc-300 flex-1"
+                    className="bg-zinc-50 border-zinc-200 flex-1"
                     placeholder="test@example.com"
                     data-testid="test-email-input"
                   />
@@ -399,7 +399,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   value={systemAlert.email}
                   onChange={(e) => setSystemAlert(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="clara.global@koodh.com"
-                  className="bg-zinc-800 border-zinc-300 mt-1"
+                  className="bg-zinc-50 border-zinc-200 mt-1"
                   data-testid="system-alert-email"
                 />
               </div>
@@ -418,7 +418,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       className={`p-3 rounded-lg border text-left transition-colors ${
                         systemAlert.mode === m.id
                           ? 'border-orange-500/50 bg-orange-500/10'
-                          : 'border-zinc-300 bg-zinc-100/70 hover:border-zinc-600'
+                          : 'border-zinc-300 bg-zinc-100/70 hover:border-zinc-300'
                       }`}
                       data-testid={`system-alert-mode-${m.id}`}
                     >
@@ -447,7 +447,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
               <div className="relative">
                 <button
                   onClick={() => setSiteDropdownOpen(!siteDropdownOpen)}
-                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-800 border border-zinc-300 hover:border-zinc-600 text-left"
+                  className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-50 border border-zinc-200 hover:border-zinc-300 text-left"
                   data-testid="site-selector"
                 >
                   <div className="flex items-center gap-2">
@@ -457,10 +457,10 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${siteDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {siteDropdownOpen && (
-                  <div className="absolute z-50 mt-1 w-full bg-zinc-800 border border-zinc-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 w-full bg-zinc-50 border border-zinc-200 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
                     <button
                       onClick={() => { setSelectedSiteId(''); setSiteDropdownOpen(false); }}
-                      className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${!selectedSiteId ? 'bg-zinc-700/50' : ''}`}
+                      className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${!selectedSiteId ? 'bg-zinc-100' : ''}`}
                       data-testid="site-option-global"
                     >
                       <Globe className="w-4 h-4 text-zinc-400 flex-shrink-0" />
@@ -474,7 +474,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                       <button
                         key={site.id}
                         onClick={() => { setSelectedSiteId(site.id); setSiteDropdownOpen(false); }}
-                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${selectedSiteId === site.id ? 'bg-zinc-700/50' : ''}`}
+                        className={`w-full flex items-center gap-3 p-3 text-left hover:bg-zinc-200 transition-colors ${selectedSiteId === site.id ? 'bg-zinc-100' : ''}`}
                         data-testid={`site-option-${site.slug}`}
                       >
                         <div className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 ${site.cloned_from ? 'bg-blue-500/10' : site.site_type === 'technical' ? 'bg-emerald-500/10' : 'bg-zinc-700'}`}>
@@ -542,7 +542,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                                   className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-colors ${
                                     roleCfg.mode === m.id
                                       ? 'bg-orange-500/10 border-orange-500/30 text-orange-400'
-                                      : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:border-zinc-600'
+                                      : 'bg-zinc-50 border-zinc-200 text-zinc-400 hover:border-zinc-300'
                                   }`}
                                   data-testid={`role-mode-${role.slug}-${m.id}`}
                                 >
@@ -620,7 +620,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   const failedCount = (evt.emails_failed || []).length;
                   const attemptedCount = (evt.emails_attempted || []).length;
                   return (
-                    <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-zinc-800/30 hover:bg-zinc-100/70" data-testid={`notif-log-${i}`}>
+                    <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-zinc-50/30 hover:bg-zinc-100/70" data-testid={`notif-log-${i}`}>
                       <Icon className="w-4 h-4 text-zinc-500 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -637,7 +637,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                             </span>
                           )}
                           {attemptedCount === 0 && sentCount === 0 && failedCount === 0 && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-700/50 text-zinc-500">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500">
                               no recipients
                             </span>
                           )}

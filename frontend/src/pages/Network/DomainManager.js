@@ -422,7 +422,7 @@ export default function DomainManager() {
         ].map(tab => (
           <button key={tab.id} data-testid={`domain-tab-${tab.id}`} onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-              activeTab === tab.id ? 'bg-zinc-900 text-white border-b-2 border-orange-500' : 'text-zinc-400 hover:text-zinc-200'}`}>
+              activeTab === tab.id ? 'bg-white text-white border-b-2 border-orange-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
             <tab.icon className="w-4 h-4" />{tab.label}
           </button>
         ))}
@@ -476,7 +476,7 @@ export default function DomainManager() {
                       <span className={`px-2 py-0.5 rounded text-xs border ${ROUTE_TYPE_COLORS[route.route_type] || 'bg-zinc-200 text-zinc-600 border-zinc-600'}`}>
                         {ROUTE_TYPE_LABELS[route.route_type] || route.route_type}
                       </span>
-                      <span className="text-sm font-mono text-zinc-200">{route.subdomain}.{baseDomain}</span>
+                      <span className="text-sm font-mono text-zinc-700">{route.subdomain}.{baseDomain}</span>
                       <ArrowRight className="w-3 h-3 text-zinc-600" />
                       <span className="text-xs text-zinc-400">{route.target_path}</span>
                     </div>
@@ -507,11 +507,11 @@ export default function DomainManager() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[config.site_type] || 'bg-zinc-200 text-zinc-600'}`}>{SITE_TYPE_LABELS[config.site_type] || config.site_type}</span>
-                          <span className="text-sm text-zinc-200 font-medium">{config.site_name}</span>
+                          <span className="text-sm text-zinc-700 font-medium">{config.site_name}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button size="sm" variant="ghost" onClick={() => openDomainConfig({ id: config.main_site_id, slug: config.site_slug, name: config.site_name })} className="h-7 w-7 p-0"><Edit className="w-3.5 h-3.5" /></Button>
-                          <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'domain', id: config.main_site_id, name: config.site_name })} className="h-7 w-7 p-0 text-red-400 hover:text-red-300"><Trash2 className="w-3.5 h-3.5" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'domain', id: config.main_site_id, name: config.site_name })} className="h-7 w-7 p-0 text-red-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></Button>
                         </div>
                       </div>
                       <div className="mt-2 flex items-center gap-4 text-xs">
@@ -544,7 +544,7 @@ export default function DomainManager() {
                   <div key={site.id} className="flex items-center justify-between bg-zinc-100/70 rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded text-xs ${SITE_TYPE_COLORS[site.site_type] || 'bg-zinc-200 text-zinc-600'}`}>{SITE_TYPE_LABELS[site.site_type] || site.site_type}</span>
-                      <span className="text-sm text-zinc-200">{site.name}</span>
+                      <span className="text-sm text-zinc-700">{site.name}</span>
                       <span className="text-xs text-zinc-600 font-mono">/{site.slug}</span>
                     </div>
                     <Button size="sm" variant="outline" onClick={() => openDomainConfig(site)} className="h-7 text-xs" data-testid={`configure-domain-${site.slug}`}>
@@ -607,7 +607,7 @@ export default function DomainManager() {
               <div className="flex items-start gap-2">
                 <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-red-300">Cloudflare not configured</p>
+                  <p className="text-sm font-medium text-red-600">Cloudflare not configured</p>
                   <p className="text-xs text-zinc-400 mt-0.5">
                     Subdomain routes require DNS records in Cloudflare to work.
                     Go to the <button onClick={() => setActiveTab('cloudflare')} className="text-orange-400 hover:underline font-medium">Cloudflare tab</button> to set up your API credentials first.
@@ -621,7 +621,7 @@ export default function DomainManager() {
             {routes.map(route => {
               const dns = getRouteDnsStatus(route);
               return (
-              <Card key={route.id} className={`border-zinc-200 ${route.is_active ? 'bg-zinc-900' : 'bg-zinc-950/50 opacity-60'}`} data-testid={`route-card-${route.subdomain}`}>
+              <Card key={route.id} className={`border-zinc-200 ${route.is_active ? 'bg-white' : 'bg-zinc-50 opacity-60'}`} data-testid={`route-card-${route.subdomain}`}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -656,7 +656,7 @@ export default function DomainManager() {
                       </button>
                       <Button size="sm" variant="ghost" onClick={() => openEditRoute(route)} className="h-7 w-7 p-0" data-testid={`edit-route-${route.subdomain}`}><Edit className="w-3.5 h-3.5" /></Button>
                       {!route.is_system && (
-                        <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'route', id: route.id, name: `${route.subdomain}.${baseDomain}` })} className="h-7 w-7 p-0 text-red-400 hover:text-red-300" data-testid={`delete-route-${route.subdomain}`}><Trash2 className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => setDeleteDialog({ open: true, type: 'route', id: route.id, name: `${route.subdomain}.${baseDomain}` })} className="h-7 w-7 p-0 text-red-400 hover:text-red-600" data-testid={`delete-route-${route.subdomain}`}><Trash2 className="w-3.5 h-3.5" /></Button>
                       )}
                     </div>
                   </div>
@@ -687,14 +687,14 @@ export default function DomainManager() {
           )}
 
           {/* Step 1: API Token */}
-          <Card className={`border-zinc-200 ${(setupStep === 0 || editStep === 0) ? 'bg-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
+          <Card className={`border-zinc-200 ${(setupStep === 0 || editStep === 0) ? 'bg-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
                 <div className="flex items-center gap-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfConfig?.api_token_set ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
                     {cfConfig?.api_token_set ? <Check className="w-3.5 h-3.5" /> : '1'}
                   </div>
-                  <span className="text-sm font-medium text-zinc-200">API Token</span>
+                  <span className="text-sm font-medium text-zinc-700">API Token</span>
                   {cfConfig?.api_token_set && <span className="text-xs font-mono text-zinc-500">{cfConfig.api_token_preview}</span>}
                   {cfConfig?.api_token_set && setupStep !== 0 && <span className="text-[10px] text-zinc-600 ml-1">(click to edit)</span>}
                 </div>
@@ -706,7 +706,7 @@ export default function DomainManager() {
               </div>
               {(setupStep === 0 || editStep === 0) && (
                 <div className="space-y-3">
-                  <div className="rounded-md bg-zinc-800/60 border border-zinc-300/50 p-3 space-y-2">
+                  <div className="rounded-md bg-zinc-100 border border-zinc-200/50 p-3 space-y-2">
                     <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to create your Cloudflare API Token:</p>
                     <ol className="space-y-1.5 list-none">
                       <li className="flex items-start gap-2 text-xs text-zinc-600">
@@ -754,14 +754,14 @@ export default function DomainManager() {
           </Card>
 
           {/* Step 2: Zone ID */}
-          <Card className={`border-zinc-200 ${(setupStep === 1 || editStep === 1) ? 'bg-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
+          <Card className={`border-zinc-200 ${(setupStep === 1 || editStep === 1) ? 'bg-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
                 <div className="flex items-center gap-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfConfig?.zone_id ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
                     {cfConfig?.zone_id ? <Check className="w-3.5 h-3.5" /> : '2'}
                   </div>
-                  <span className="text-sm font-medium text-zinc-200">Zone ID & Base Domain</span>
+                  <span className="text-sm font-medium text-zinc-700">Zone ID & Base Domain</span>
                   {cfConfig?.zone_id && <span className="text-xs font-mono text-zinc-500 truncate max-w-[200px]">{cfConfig.zone_id}</span>}
                   {cfConfig?.zone_id && setupStep !== 1 && <span className="text-[10px] text-zinc-600 ml-1">(click to edit)</span>}
                 </div>
@@ -773,7 +773,7 @@ export default function DomainManager() {
               </div>
               {(setupStep === 1 || editStep === 1) && (
                 <div className="space-y-3">
-                  <div className="rounded-md bg-zinc-800/60 border border-zinc-300/50 p-3 space-y-2">
+                  <div className="rounded-md bg-zinc-100 border border-zinc-200/50 p-3 space-y-2">
                     <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to find your Zone ID:</p>
                     <ol className="space-y-1.5 list-none">
                       <li className="flex items-start gap-2 text-xs text-zinc-600">
@@ -819,14 +819,14 @@ export default function DomainManager() {
           </Card>
 
           {/* Step 3: Verify Connection */}
-          <Card className={`border-zinc-200 ${setupStep === 2 ? 'bg-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
+          <Card className={`border-zinc-200 ${setupStep === 2 ? 'bg-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${cfVerifyResult?.valid ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
                     {cfVerifyResult?.valid ? <Check className="w-3.5 h-3.5" /> : '3'}
                   </div>
-                  <span className="text-sm font-medium text-zinc-200">Verify Connection</span>
+                  <span className="text-sm font-medium text-zinc-700">Verify Connection</span>
                 </div>
               </div>
               {setupStep === 2 && (
@@ -836,16 +836,16 @@ export default function DomainManager() {
                     {cfVerifying ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Verifying...</> : <><CheckCircle className="w-4 h-4 mr-2" />Verify Connection</>}
                   </Button>
                   {cfVerifyResult && (
-                    <div className={`p-3 rounded-lg border ${cfVerifyResult.valid ? 'bg-emerald-950/30 border-emerald-800' : 'bg-red-950/30 border-red-800'}`}>
+                    <div className={`p-3 rounded-lg border ${cfVerifyResult.valid ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
                       <div className="flex items-center gap-2">
                         {cfVerifyResult.valid ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <XCircle className="w-4 h-4 text-red-400" />}
-                        <span className={`text-sm font-medium ${cfVerifyResult.valid ? 'text-emerald-300' : 'text-red-300'}`}>
+                        <span className={`text-sm font-medium ${cfVerifyResult.valid ? 'text-emerald-600' : 'text-red-600'}`}>
                           {cfVerifyResult.valid ? `Connected — Zone: ${cfVerifyResult.zone_name} (${cfVerifyResult.zone_status})` : (cfVerifyResult.message || `Token status: ${cfVerifyResult.token_status}`)}
                         </span>
                       </div>
                       {/* Show structured steps on error */}
                       {!cfVerifyResult.valid && Array.isArray(cfVerifyResult.steps) && cfVerifyResult.steps.length > 0 && (
-                        <div className="mt-2.5 rounded-md bg-zinc-900/60 border border-zinc-300/50 p-2.5">
+                        <div className="mt-2.5 rounded-md bg-zinc-100 border border-zinc-200/50 p-2.5">
                           <p className="text-[10px] uppercase tracking-wider text-amber-500 font-semibold mb-1.5">How to fix this:</p>
                           <ol className="space-y-1 list-none">
                             {cfVerifyResult.steps.map((step, i) => (
@@ -875,12 +875,12 @@ export default function DomainManager() {
           </Card>
 
           {/* Step 4: Sync DNS */}
-          <Card className={`border-zinc-200 ${setupStep === 3 ? 'bg-gradient-to-r from-orange-950/30 to-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
+          <Card className={`border-zinc-200 ${setupStep === 3 ? 'bg-gradient-to-r from-orange-50 to-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-zinc-100 text-zinc-500">4</div>
-                  <span className="text-sm font-medium text-zinc-200">Sync DNS Records</span>
+                  <span className="text-sm font-medium text-zinc-700">Sync DNS Records</span>
                 </div>
                 <a href={cfDnsUrl} target="_blank" rel="noopener noreferrer"
                   className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1" data-testid="cf-dns-link">
@@ -919,12 +919,12 @@ export default function DomainManager() {
                           record.type === 'A' ? 'bg-blue-500/20 text-blue-400' : record.type === 'CNAME' ? 'bg-emerald-500/20 text-emerald-400' :
                           record.type === 'MX' ? 'bg-purple-500/20 text-purple-400' : record.type === 'TXT' ? 'bg-amber-500/20 text-amber-400' : 'bg-zinc-200 text-zinc-400'
                         }`}>{record.type}</span>
-                        <span className="text-sm font-mono text-zinc-200">{record.name}</span>
+                        <span className="text-sm font-mono text-zinc-700">{record.name}</span>
                         <ArrowRight className="w-3 h-3 text-zinc-600" />
                         <span className="text-xs text-zinc-400 font-mono truncate max-w-[200px]">{record.content}</span>
                         {record.proxied && <span className="px-1.5 py-0.5 rounded text-[10px] bg-orange-500/15 text-orange-400">Proxied</span>}
                       </div>
-                      <button onClick={() => deleteCfRecord(record.id, record.name)} className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 p-1" data-testid={`delete-cf-record-${record.id}`}>
+                      <button onClick={() => deleteCfRecord(record.id, record.name)} className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 p-1" data-testid={`delete-cf-record-${record.id}`}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -935,25 +935,25 @@ export default function DomainManager() {
           )}
 
           {/* Step 5: Cloudflare Worker */}
-          <Card className={`border-zinc-200 ${setupStep === 4 ? 'bg-gradient-to-r from-orange-950/30 to-zinc-900 ring-1 ring-orange-500/30' : 'bg-zinc-900'}`}>
+          <Card className={`border-zinc-200 ${setupStep === 4 ? 'bg-gradient-to-r from-orange-50 to-white ring-1 ring-orange-500/30' : 'bg-white'}`}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === 4 ? null : 4)}>
                 <div className="flex items-center gap-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${workerResult?.status === 'ok' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
                     {workerResult?.status === 'ok' ? <Check className="w-3 h-3" /> : '5'}
                   </div>
-                  <span className="text-sm font-medium text-zinc-200">Cloudflare Worker</span>
+                  <span className="text-sm font-medium text-zinc-700">Cloudflare Worker</span>
                   <span className="text-[10px] px-2 py-0.5 rounded bg-orange-500/10 text-orange-400 border border-orange-500/20">Required for subdomains</span>
                 </div>
                 {workerResult?.status === 'ok' && <span className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Worker active</span>}
               </div>
               {(setupStep >= 2 || editStep === 4) && (
                 <div className="space-y-4">
-                  <div className="rounded-md bg-zinc-800/60 border border-zinc-300/50 p-3">
+                  <div className="rounded-md bg-zinc-100 border border-zinc-200/50 p-3">
                     <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold mb-2">What is this?</p>
                     <p className="text-xs text-zinc-400">The Cloudflare Worker makes subdomains like <code className="text-[10px] bg-zinc-200 px-1 py-0.5 rounded">login.{baseDomain}</code> work by proxying them to Clara. Without it, subdomains just show an error page.</p>
                   </div>
-                  <div className="rounded-md bg-zinc-800/60 border border-zinc-300/50 p-3 space-y-2">
+                  <div className="rounded-md bg-zinc-100 border border-zinc-200/50 p-3 space-y-2">
                     <p className="text-[10px] uppercase tracking-wider text-orange-400 font-semibold">How to deploy:</p>
                     <ol className="space-y-1.5 list-none">
                       {[
@@ -982,7 +982,7 @@ export default function DomainManager() {
                         {workerScriptCopied ? <><Check className="w-3 h-3 mr-1 text-emerald-400" />Copied!</> : <><Copy className="w-3 h-3 mr-1" />Copy script</>}
                       </Button>
                     </div>
-                    <div className="relative rounded-lg border border-zinc-300 bg-zinc-950 overflow-hidden">
+                    <div className="relative rounded-lg border border-zinc-200 bg-zinc-50 overflow-hidden">
                       <pre className="p-3 text-[10px] leading-relaxed text-zinc-400 font-mono overflow-x-auto max-h-[200px] overflow-y-auto" data-testid="worker-script-preview">
                         <code>{WORKER_SCRIPT.substring(0, 600)}...</code>
                       </pre>
@@ -996,27 +996,27 @@ export default function DomainManager() {
                     </Button>
                     {workerResult && (
                       <div className={`rounded-lg border ${
-                        workerResult.status === 'ok' ? 'bg-emerald-950/30 border-emerald-800' :
+                        workerResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200' :
                         workerResult.status === 'warning' ? 'bg-amber-950/30 border-amber-800' :
-                        'bg-red-950/30 border-red-800'
+                        'bg-red-50 border-red-200'
                       }`} data-testid="worker-test-result">
                         <div className="flex items-center gap-2 p-3 pb-2">
                           {workerResult.status === 'ok' ? <CheckCircle className="w-4 h-4 text-emerald-400" /> :
                            workerResult.status === 'warning' ? <AlertTriangle className="w-4 h-4 text-amber-400" /> :
                            <XCircle className="w-4 h-4 text-red-400" />}
                           <span className={`text-sm font-medium ${
-                            workerResult.status === 'ok' ? 'text-emerald-300' :
-                            workerResult.status === 'warning' ? 'text-amber-300' : 'text-red-300'
+                            workerResult.status === 'ok' ? 'text-emerald-600' :
+                            workerResult.status === 'warning' ? 'text-amber-300' : 'text-red-600'
                           }`}>{workerResult.message}</span>
                         </div>
 
                         {/* Domain status table */}
                         {workerResult.domains?.length > 0 && (
                           <div className="px-3 pb-3">
-                            <div className="rounded-md border border-zinc-300/50 overflow-hidden">
+                            <div className="rounded-md border border-zinc-200/50 overflow-hidden">
                               <table className="w-full text-xs" data-testid="worker-domain-table">
                                 <thead>
-                                  <tr className="bg-zinc-800/80">
+                                  <tr className="bg-zinc-100/80">
                                     <th className="text-left px-3 py-1.5 text-zinc-400 font-medium">Subdomain</th>
                                     <th className="text-center px-2 py-1.5 text-zinc-400 font-medium">DNS</th>
                                     <th className="text-center px-2 py-1.5 text-zinc-400 font-medium">Worker</th>
@@ -1046,7 +1046,7 @@ export default function DomainManager() {
                                       <tr key={d.subdomain} className="border-t border-zinc-200" data-testid={`worker-domain-${d.subdomain}`}>
                                         <td className="px-3 py-2">
                                           <div className="flex items-center gap-2">
-                                            <span className="font-mono text-zinc-200">{d.fqdn}</span>
+                                            <span className="font-mono text-zinc-700">{d.fqdn}</span>
                                             {d.is_app && <span className="text-[9px] px-1 py-0.5 rounded bg-zinc-200 text-zinc-400">Main</span>}
                                           </div>
                                           <span className="text-[10px] text-zinc-600">→ {d.target_path}</span>
@@ -1078,7 +1078,7 @@ export default function DomainManager() {
 
                         {/* Steps on error */}
                         {Array.isArray(workerResult.steps) && workerResult.steps.length > 0 && workerResult.status !== 'ok' && (
-                          <div className="mx-3 mb-3 rounded-md bg-zinc-900/60 border border-zinc-300/50 p-2.5">
+                          <div className="mx-3 mb-3 rounded-md bg-zinc-100 border border-zinc-200/50 p-2.5">
                             <p className="text-[10px] uppercase tracking-wider text-amber-500 font-semibold mb-1.5">How to fix this:</p>
                             <ol className="space-y-1 list-none">
                               {workerResult.steps.map((step, i) => (
@@ -1103,7 +1103,7 @@ export default function DomainManager() {
 
       {/* ═══════ DOMAIN SETUP WIZARD ═══════ */}
       <Dialog open={domainDialog} onOpenChange={setDomainDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-lg">
+        <DialogContent className="bg-white border-zinc-200 max-w-lg">
           <DialogHeader>
             <DialogTitle>Set up domain — {editingSite?.name}</DialogTitle>
           </DialogHeader>
@@ -1116,11 +1116,11 @@ export default function DomainManager() {
               <p className="text-xs text-zinc-400">Choose how this site will be accessed.</p>
               <div className="grid grid-cols-2 gap-2">
                 <button onClick={() => setDomainForm(p => ({ ...p, domain_type: 'koodh' }))} data-testid="domain-type-koodh"
-                  className={`flex flex-col items-center gap-1.5 p-4 rounded-lg border transition-colors ${domainForm.domain_type === 'koodh' ? 'bg-blue-600/15 border-blue-500/40 text-blue-400' : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:border-zinc-600'}`}>
+                  className={`flex flex-col items-center gap-1.5 p-4 rounded-lg border transition-colors ${domainForm.domain_type === 'koodh' ? 'bg-blue-600/15 border-blue-500/40 text-blue-400' : 'bg-zinc-100 border-zinc-200 text-zinc-400 hover:border-zinc-600'}`}>
                   <Globe className="w-5 h-5" /><span className="text-sm font-medium">{baseDomain} Subdomain</span><span className="text-[10px] opacity-70">*.{baseDomain}</span>
                 </button>
                 <button onClick={() => setDomainForm(p => ({ ...p, domain_type: 'custom' }))} data-testid="domain-type-custom"
-                  className={`flex flex-col items-center gap-1.5 p-4 rounded-lg border transition-colors ${domainForm.domain_type === 'custom' ? 'bg-purple-600/15 border-purple-500/40 text-purple-400' : 'bg-zinc-800 border-zinc-300 text-zinc-400 hover:border-zinc-600'}`}>
+                  className={`flex flex-col items-center gap-1.5 p-4 rounded-lg border transition-colors ${domainForm.domain_type === 'custom' ? 'bg-purple-600/15 border-purple-500/40 text-purple-400' : 'bg-zinc-100 border-zinc-200 text-zinc-400 hover:border-zinc-600'}`}>
                   <ExternalLink className="w-5 h-5" /><span className="text-sm font-medium">Custom Domain</span><span className="text-[10px] opacity-70">your-domain.com</span>
                 </button>
               </div>
@@ -1166,14 +1166,14 @@ export default function DomainManager() {
             <div className="space-y-4">
               <p className="text-xs text-zinc-400">Add the following DNS records at your domain provider or Cloudflare.</p>
               <div className="space-y-2">
-                <div className="bg-zinc-950 rounded-lg p-3 border border-zinc-200">
+                <div className="bg-zinc-50 rounded-lg p-3 border border-zinc-200">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] text-zinc-500 uppercase">CNAME Record (required)</span>
                     <button onClick={() => copyToClipboard(`${domainForm.custom_domain} CNAME clara.${baseDomain}`)} className="text-zinc-500 hover:text-zinc-600"><Copy className="w-3 h-3" /></button>
                   </div>
                   <code className="text-xs text-emerald-400 font-mono">{domainForm.custom_domain} &rarr; clara.{baseDomain}</code>
                 </div>
-                <div className="bg-zinc-950 rounded-lg p-3 border border-zinc-200">
+                <div className="bg-zinc-50 rounded-lg p-3 border border-zinc-200">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[10px] text-zinc-500 uppercase">Verification CNAME (required)</span>
                     <button onClick={() => copyToClipboard(`_clara-verify.${domainForm.custom_domain} CNAME verify.${baseDomain}`)} className="text-zinc-500 hover:text-zinc-600"><Copy className="w-3 h-3" /></button>
@@ -1196,7 +1196,7 @@ export default function DomainManager() {
             <div className="space-y-4">
               <div className="flex flex-col items-center py-4">
                 <Clock className="w-8 h-8 text-amber-400 mb-2" />
-                <p className="text-sm text-zinc-200 font-medium">Waiting for DNS propagation</p>
+                <p className="text-sm text-zinc-700 font-medium">Waiting for DNS propagation</p>
                 <p className="text-xs text-zinc-400 mt-1 text-center">DNS changes can take up to 24 hours to propagate. You can verify the connection at any time.</p>
               </div>
               <Button onClick={() => { verifyDomain(editingSite?.id); }} disabled={verifying === editingSite?.id} className="w-full" data-testid="verify-domain-wizard-btn">
@@ -1211,7 +1211,7 @@ export default function DomainManager() {
             <div className="space-y-4">
               <div className="flex flex-col items-center py-4">
                 <CheckCircle className="w-8 h-8 text-emerald-400 mb-2" />
-                <p className="text-sm text-zinc-200 font-medium">Domain configured</p>
+                <p className="text-sm text-zinc-700 font-medium">Domain configured</p>
                 <p className="text-xs text-zinc-400 mt-1"><span className="font-mono text-zinc-600">{domainForm.subdomain}.{baseDomain}</span> is ready to use.</p>
                 {cfConfig?.configured && <p className="text-xs text-zinc-500 mt-2">Use "Sync with Cloudflare" to push DNS records automatically.</p>}
               </div>
@@ -1223,7 +1223,7 @@ export default function DomainManager() {
 
       {/* ═══════ ROUTE DIALOG ═══════ */}
       <Dialog open={routeDialog} onOpenChange={setRouteDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-md">
+        <DialogContent className="bg-white border-zinc-200 max-w-md">
           <DialogHeader><DialogTitle>{editingRoute ? 'Edit Route' : 'New Route'}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1236,7 +1236,7 @@ export default function DomainManager() {
             <div className="grid grid-cols-2 gap-3">
               <div><Label>Label</Label><Input value={routeForm.label} onChange={e => setRouteForm(p => ({ ...p, label: e.target.value }))} placeholder="Login Portal" data-testid="route-label-input" /></div>
               <div><Label>Type</Label>
-                <select className="w-full rounded-md border border-zinc-300 bg-zinc-800 px-3 py-2 text-sm text-zinc-200 mt-1" value={routeForm.route_type} onChange={e => setRouteForm(p => ({ ...p, route_type: e.target.value }))} data-testid="route-type-select">
+                <select className="w-full rounded-md border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm text-zinc-700 mt-1" value={routeForm.route_type} onChange={e => setRouteForm(p => ({ ...p, route_type: e.target.value }))} data-testid="route-type-select">
                   <option value="auth">Authentication</option><option value="network">Management</option><option value="firewall">Firewall</option><option value="app">Application</option>
                 </select>
               </div>
@@ -1253,7 +1253,7 @@ export default function DomainManager() {
 
       {/* ═══════ SYNC RESULTS DIALOG ═══════ */}
       <Dialog open={cfSyncDialog} onOpenChange={setCfSyncDialog}>
-        <DialogContent className="bg-zinc-900 border-zinc-300 max-w-lg">
+        <DialogContent className="bg-white border-zinc-200 max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <RefreshCw className={`w-5 h-5 text-orange-400 ${cfSyncing ? 'animate-spin' : ''}`} />Cloudflare DNS Sync
@@ -1269,24 +1269,24 @@ export default function DomainManager() {
             {cfSyncResult && !cfSyncing && (
               <>
                 <div className="grid grid-cols-4 gap-2">
-                  <div className="bg-emerald-950/30 border border-emerald-900/40 rounded-lg p-2 text-center">
+                  <div className="bg-emerald-50 border border-emerald-900/40 rounded-lg p-2 text-center">
                     <p className="text-lg font-bold text-emerald-400">{cfSyncResult.created?.length || 0}</p><p className="text-[10px] text-emerald-400/70">Created</p>
                   </div>
                   <div className="bg-blue-950/30 border border-blue-900/40 rounded-lg p-2 text-center">
                     <p className="text-lg font-bold text-blue-400">{cfSyncResult.updated?.length || 0}</p><p className="text-[10px] text-blue-400/70">Updated</p>
                   </div>
-                  <div className="bg-zinc-800 border border-zinc-300 rounded-lg p-2 text-center">
+                  <div className="bg-zinc-100 border border-zinc-200 rounded-lg p-2 text-center">
                     <p className="text-lg font-bold text-zinc-600">{cfSyncResult.unchanged?.length || 0}</p><p className="text-[10px] text-zinc-500">Unchanged</p>
                   </div>
-                  <div className="bg-red-950/30 border border-red-900/40 rounded-lg p-2 text-center">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-2 text-center">
                     <p className="text-lg font-bold text-red-400">{cfSyncResult.errors?.length || 0}</p><p className="text-[10px] text-red-400/70">Errors</p>
                   </div>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto space-y-1.5">
-                  {cfSyncResult.created?.map((r, i) => <div key={`c-${i}`} className="flex items-center gap-2 bg-emerald-950/20 rounded px-3 py-1.5"><Plus className="w-3 h-3 text-emerald-400 flex-shrink-0" /><span className="text-xs font-mono text-emerald-300">{r.fqdn}</span><span className="text-[10px] text-zinc-500 ml-auto">{r.label}</span></div>)}
+                  {cfSyncResult.created?.map((r, i) => <div key={`c-${i}`} className="flex items-center gap-2 bg-emerald-50 rounded px-3 py-1.5"><Plus className="w-3 h-3 text-emerald-400 flex-shrink-0" /><span className="text-xs font-mono text-emerald-600">{r.fqdn}</span><span className="text-[10px] text-zinc-500 ml-auto">{r.label}</span></div>)}
                   {cfSyncResult.updated?.map((r, i) => <div key={`u-${i}`} className="flex items-center gap-2 bg-blue-950/20 rounded px-3 py-1.5"><Edit className="w-3 h-3 text-blue-400 flex-shrink-0" /><span className="text-xs font-mono text-blue-300">{r.fqdn}</span><span className="text-[10px] text-zinc-500 ml-auto">{r.label}</span></div>)}
-                  {cfSyncResult.unchanged?.map((r, i) => <div key={`nc-${i}`} className="flex items-center gap-2 bg-zinc-800/30 rounded px-3 py-1.5"><Check className="w-3 h-3 text-zinc-500 flex-shrink-0" /><span className="text-xs font-mono text-zinc-400">{r.fqdn}</span><span className="text-[10px] text-zinc-600 ml-auto">{r.label}</span></div>)}
-                  {cfSyncResult.errors?.map((r, i) => <div key={`e-${i}`} className="flex items-center gap-2 bg-red-950/20 rounded px-3 py-1.5"><XCircle className="w-3 h-3 text-red-400 flex-shrink-0" /><span className="text-xs font-mono text-red-300">{r.fqdn}</span><span className="text-[10px] text-red-400/70 ml-auto">{r.error}</span></div>)}
+                  {cfSyncResult.unchanged?.map((r, i) => <div key={`nc-${i}`} className="flex items-center gap-2 bg-zinc-100/30 rounded px-3 py-1.5"><Check className="w-3 h-3 text-zinc-500 flex-shrink-0" /><span className="text-xs font-mono text-zinc-400">{r.fqdn}</span><span className="text-[10px] text-zinc-600 ml-auto">{r.label}</span></div>)}
+                  {cfSyncResult.errors?.map((r, i) => <div key={`e-${i}`} className="flex items-center gap-2 bg-red-50 rounded px-3 py-1.5"><XCircle className="w-3 h-3 text-red-400 flex-shrink-0" /><span className="text-xs font-mono text-red-600">{r.fqdn}</span><span className="text-[10px] text-red-400/70 ml-auto">{r.error}</span></div>)}
                 </div>
               </>
             )}
@@ -1297,7 +1297,7 @@ export default function DomainManager() {
 
       {/* ═══════ DELETE DIALOG ═══════ */}
       <AlertDialog open={deleteDialog.open} onOpenChange={open => !open && setDeleteDialog(prev => ({ ...prev, open: false }))}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-300">
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
             <AlertDialogTitle>{deleteDialog.type === 'domain' ? 'Remove domain configuration?' : 'Delete route?'}</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1316,7 +1316,7 @@ export default function DomainManager() {
 
 function StatCard({ label, value, total, icon: Icon, color }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-200 rounded-lg p-3">
+    <div className="bg-white border border-zinc-200 rounded-lg p-3">
       <div className="flex items-center gap-2 mb-1"><Icon className={`w-4 h-4 ${color}`} /><span className="text-xs text-zinc-500">{label}</span></div>
       <p className="text-2xl font-bold text-zinc-100">{value}{total !== undefined && <span className="text-sm text-zinc-500 font-normal">/{total}</span>}</p>
     </div>
