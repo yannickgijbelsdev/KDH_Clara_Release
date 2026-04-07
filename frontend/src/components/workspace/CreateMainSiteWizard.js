@@ -23,6 +23,14 @@ const SITE_TYPE_BACKGROUNDS = {
   technical: '/images/env_technical.jpg',
   wp_security: '/images/env_wp_security.jpg',
 };
+const WIZARD_THUMBNAILS = {
+  radio: '/images/wiz_radio.jpg',
+  server: '/images/wiz_server.jpg',
+  external_host: '/images/wiz_external_host.jpg',
+  task_scheduler: '/images/wiz_task_scheduler.jpg',
+  technical: '/images/wiz_technical.jpg',
+  wp_security: '/images/wiz_wp_security.jpg',
+};
 
 const SITE_TYPES = [
   { id: 'radio',          icon: Radio,       label: 'Radio Station',     desc: 'Shows, calendar, content library, RDS',    color: '#f97316', features: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings'] },
@@ -56,7 +64,7 @@ const StepEnvironment = ({ selected, onSelect }) => (
             {/* Background preview */}
             <div className="h-28 relative overflow-hidden bg-white">
               <img
-                src={SITE_TYPE_BACKGROUNDS[type.id]}
+                src={WIZARD_THUMBNAILS[type.id]}
                 alt=""
                 className={`w-full h-full object-cover transition-all duration-500 ${isActive ? 'scale-110 opacity-90' : 'scale-100 opacity-60 group-hover:opacity-80 group-hover:scale-105'}`}
               />
