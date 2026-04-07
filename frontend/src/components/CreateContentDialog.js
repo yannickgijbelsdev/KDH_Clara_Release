@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   FileText, Mic, Loader2, Folder,
-  ChevronLeft, ChevronRight, X, Zap
+  ChevronLeft, ChevronRight, X, Zap, Sparkles, Pencil
 } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner';
 import RichTextEditor from './RichTextEditor';
 import WizardStepIndicator from './workspace/WizardStepIndicator';
+import { useClaraAssistant } from '../context/ClaraAssistantContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -30,6 +31,8 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   const [wizardStep, setWizardStep] = useState(0);
   const [categories, setCategories] = useState([]);
   const [tinyMCEDialogOpen, setTinyMCEDialogOpen] = useState(false);
+  const [writingMethod, setWritingMethod] = useState(null); // null | 'manual' | 'clara'
+  const { openClara, registerEditor, unregisterEditor } = useClaraAssistant();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -73,6 +76,7 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   useEffect(() => {
     if (!open) {
       setFormData({ title: '', type: 'text', body: '', excerpt: '', external_url: '', category_id: '', status: 'draft' });
+      setWritingMethod(null);
     }
   }, [open]);
 
@@ -225,36 +229,102 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
               {/* Step 1: Content body */}
               {wizardStep === 1 && (
                 <div>
-                  <h2 className="text-2xl font-bold text-zinc-900 mb-1">Content</h2>
-                  <p className="text-sm text-zinc-500 mb-6">
-                    {formData.type === 'audio' ? 'Add audio details or a URL to the audio file.' : 'Write the content body.'}
-                  </p>
+                  {!writingMethod ? (
+                    /* Writing method choice */
+                    <div>
+                      <h2 className="text-2xl font-bold text-zinc-900 mb-1">How do you want to write?</h2>
+                      <p className="text-sm text-zinc-500 mb-6">Choose how you'd like to create your content.</p>
 
-                  <div className="space-y-5">
-                    {formData.type === 'audio' ? (
-                      <div className="space-y-2">
-                        <Label className="text-zinc-700 font-medium">Description (optional)</Label>
-                        <RichTextEditor
-                          id="create-content-body"
-                          value={formData.body}
-                          onChange={(content) => setFormData({ ...formData, body: content })}
-                          placeholder="Add a description for this audio content..."
-                          height={300}
-                        />
+                      <div className="grid grid-cols-2 gap-4">
+                        <button
+                          onClick={() => setWritingMethod('manual')}
+                          className="p-6 rounded-2xl border-2 border-zinc-200 hover:border-zinc-400 text-left transition-all group"
+                          data-testid="writing-method-manual"
+                        >
+                          <div className="w-12 h-12 rounded-2xl bg-zinc-100 group-hover:bg-zinc-200 flex items-center justify-center mb-4 transition-colors">
+                            <Pencil className="w-6 h-6 text-zinc-500" />
+                          </div>
+                          <h3 className="font-bold text-zinc-900 mb-1">Write your own content</h3>
+                          <p className="text-xs text-zinc-400">Use the rich text editor to write and format your content manually.</p>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setWritingMethod('clara');
+                            // Register a callback so Clara can insert into our form
+                            registerEditor(
+                              formData.body,
+                              formData.title,
+                              (content) => setFormData(prev => ({ ...prev, body: content })),
+                              (title) => setFormData(prev => ({ ...prev, title: title }))
+                            );
+                            openClara('seo');
+                          }}
+                          className="p-6 rounded-2xl border-2 border-orange-200 hover:border-orange-400 bg-orange-50/50 text-left transition-all group"
+                          data-testid="writing-method-clara"
+                        >
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center mb-4">
+                            <Sparkles className="w-6 h-6 text-white" />
+                          </div>
+                          <h3 className="font-bold text-zinc-900 mb-1">Write with Clara Assistent</h3>
+                          <p className="text-xs text-zinc-400">Let AI help you write an SEO-optimized article based on your topic.</p>
+                        </button>
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Label className="text-zinc-700 font-medium">Body</Label>
-                        <RichTextEditor
-                          id="create-content-body"
-                          value={formData.body}
-                          onChange={(content) => setFormData({ ...formData, body: content })}
-                          placeholder="Write your content here..."
-                          height={350}
-                        />
+                    </div>
+                  ) : (
+                    /* Editor view */
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <h2 className="text-2xl font-bold text-zinc-900">Content</h2>
+                        <button
+                          onClick={() => {
+                            registerEditor(
+                              formData.body,
+                              formData.title,
+                              (content) => setFormData(prev => ({ ...prev, body: content })),
+                              (title) => setFormData(prev => ({ ...prev, title: title }))
+                            );
+                            openClara('seo');
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 transition-colors"
+                          title="The Clara Assistent is there to help you write better content"
+                          data-testid="clara-editor-btn"
+                        >
+                          <Sparkles className="w-3.5 h-3.5" />
+                          Clara Assistent
+                        </button>
                       </div>
-                    )}
-                  </div>
+                      <p className="text-sm text-zinc-500 mb-6">
+                        {formData.type === 'audio' ? 'Add audio details or a URL to the audio file.' : 'Write the content body.'}
+                      </p>
+
+                      <div className="space-y-5">
+                        {formData.type === 'audio' ? (
+                          <div className="space-y-2">
+                            <Label className="text-zinc-700 font-medium">Description (optional)</Label>
+                            <RichTextEditor
+                              id="create-content-body"
+                              value={formData.body}
+                              onChange={(content) => setFormData({ ...formData, body: content })}
+                              placeholder="Add a description for this audio content..."
+                              height={300}
+                            />
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Label className="text-zinc-700 font-medium">Body</Label>
+                            <RichTextEditor
+                              id="create-content-body"
+                              value={formData.body}
+                              onChange={(content) => setFormData({ ...formData, body: content })}
+                              placeholder="Write your content here..."
+                              height={350}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

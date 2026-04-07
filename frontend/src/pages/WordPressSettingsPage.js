@@ -16,6 +16,7 @@ import {
   Info,
   Power,
   PowerOff,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -47,6 +48,8 @@ import {
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
+import { useClaraAssistant } from '../context/ClaraAssistantContext';
+import { claraToast } from '../utils/claraToast';
 import { ShieldAlert } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -55,6 +58,7 @@ const WordPressSettingsPage = () => {
   const { isAdmin: isGlobalAdmin } = useAuth();
   const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
+  const { openClara } = useClaraAssistant();
   
   // Use site-specific permission when in main site context
   let hasSiteAdmin = false;
@@ -105,7 +109,7 @@ const WordPressSettingsPage = () => {
       const response = await axios.get(`${API}/wordpress/sites`);
       setSites(response.data);
     } catch (error) {
-      toast.error('Failed to load WordPress sites');
+      claraToast.error('Failed to load WordPress sites', openClara, 'WordPress settings');
     } finally {
       setLoading(false);
     }
@@ -171,7 +175,7 @@ const WordPressSettingsPage = () => {
       setEditDialogOpen(false);
       resetForm();
     } catch (error) {
-      toast.error('Failed to save site');
+      claraToast.error('Failed to save WordPress site', openClara, 'WordPress settings');
     } finally {
       setSaving(false);
     }
@@ -188,11 +192,11 @@ const WordPressSettingsPage = () => {
       if (response.data.success) {
         toast.success('Connection successful!');
       } else {
-        toast.error('Connection failed');
+        claraToast.error('WordPress connection failed', openClara, 'WordPress connection test');
       }
     } catch (error) {
       setTestResults(prev => ({ ...prev, [siteId]: { success: false, message: 'Failed to test connection' } }));
-      toast.error('Failed to test connection');
+      claraToast.error('Failed to test WordPress connection', openClara, 'WordPress connection test');
     } finally {
       setTestingId(null);
     }

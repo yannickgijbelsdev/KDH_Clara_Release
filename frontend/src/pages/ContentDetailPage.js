@@ -31,6 +31,7 @@ import {
   ChevronDown,
   ChevronUp,
   Calendar,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -65,6 +66,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../context/PermissionsContext';
 import RichTextEditor from '../components/RichTextEditor';
+import { claraToast } from '../utils/claraToast';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -97,7 +99,7 @@ const ContentDetailPage = () => {
   const navigate = useNavigate();
   const { isEditor: legacyIsEditor, isAdmin } = useAuth();
   const { canEdit, canDelete, canCreate } = usePermissions();
-  const { registerEditor, unregisterEditor } = useClaraAssistant();
+  const { registerEditor, unregisterEditor, openClara } = useClaraAssistant();
   const isEditor = canEdit('content_library') || canCreate('content_library') || legacyIsEditor;
   const [content, setContent] = useState(null);
   const [wpSites, setWpSites] = useState([]);
@@ -225,7 +227,7 @@ const ContentDetailPage = () => {
       });
       setFeaturedImages(images);
     } catch (error) {
-      toast.error('Failed to load content');
+      claraToast.error('Failed to load content', openClara, 'Content loading');
       navigate(navTo('/content'));
     } finally {
       setLoading(false);
@@ -267,7 +269,7 @@ const ContentDetailPage = () => {
       setIsEditing(false);
       toast.success('Content updated');
     } catch (error) {
-      toast.error('Failed to update content');
+      claraToast.error('Failed to update content', openClara, 'Content editing');
     } finally {
       setSaving(false);
     }
@@ -457,7 +459,7 @@ const ContentDetailPage = () => {
         setDeployFailStep(1);
         setDeployErrorMsg(errorMsg);
         setDeployDone(true);
-        toast.error(`WordPress publish failed: ${errorMsg}`);
+        claraToast.error(`WordPress publish failed: ${errorMsg}`, openClara, 'WordPress publishing');
       } else {
         // Step 2: Publishing succeeded (at least partially)
         setDeployStatus(2);
@@ -501,7 +503,7 @@ const ContentDetailPage = () => {
       setDeployFailStep(1);
       setDeployErrorMsg(detail);
       setDeployDone(true);
-      toast.error(`WordPress publish failed: ${detail}`);
+      claraToast.error(`WordPress publish failed: ${detail}`, openClara, 'WordPress publishing');
     } finally {
       setPublishing(false);
     }
@@ -1336,7 +1338,18 @@ const ContentDetailPage = () => {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   className="mt-6 max-w-md mx-auto bg-red-50 border border-red-200 rounded-xl p-4">
                   <p className="text-sm text-red-600 font-medium mb-1">Error Details</p>
-                  <p className="text-xs text-red-500">{deployErrorMsg}</p>
+                  <p className="text-xs text-red-500 mb-3">{deployErrorMsg}</p>
+                  <button
+                    onClick={() => openClara('error', { errorMessage: `WordPress publish failed: ${deployErrorMsg}`, errorContext: 'WordPress publishing' })}
+                    className="group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-red-200 text-red-600 hover:bg-red-100 transition-colors"
+                    data-testid="clara-error-help-btn"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Clara Assistent
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-zinc-900 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                      The Clara Assistent is there to help you with this fault in Clara
+                    </span>
+                  </button>
                 </motion.div>
               )}
 

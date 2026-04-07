@@ -3,15 +3,31 @@ import { createContext, useContext, useState, useCallback } from 'react';
 const ClaraAssistantContext = createContext({});
 
 export function ClaraAssistantProvider({ children }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [mode, setMode] = useState('seo'); // 'seo' | 'error'
+  const [initialError, setInitialError] = useState('');
+  const [errorContext, setErrorContext] = useState('');
   const [editorContent, setEditorContent] = useState('');
   const [editorTitle, setEditorTitle] = useState('');
   const [insertContentFn, setInsertContentFn] = useState(null);
   const [insertTitleFn, setInsertTitleFn] = useState(null);
 
+  const openClara = useCallback((openMode = 'seo', opts = {}) => {
+    setMode(openMode);
+    setInitialError(opts.errorMessage || '');
+    setErrorContext(opts.errorContext || '');
+    setIsOpen(true);
+  }, []);
+
+  const closeClara = useCallback(() => {
+    setIsOpen(false);
+    setInitialError('');
+    setErrorContext('');
+  }, []);
+
   const registerEditor = useCallback((content, title, onInsertContent, onInsertTitle) => {
     setEditorContent(content || '');
     setEditorTitle(title || '');
-    // Store callback functions wrapped to avoid state-as-function issues
     setInsertContentFn(() => onInsertContent || null);
     setInsertTitleFn(() => onInsertTitle || null);
   }, []);
@@ -25,6 +41,12 @@ export function ClaraAssistantProvider({ children }) {
 
   return (
     <ClaraAssistantContext.Provider value={{
+      isOpen,
+      mode,
+      initialError,
+      errorContext,
+      openClara,
+      closeClara,
       editorContent,
       editorTitle,
       insertContentFn,
