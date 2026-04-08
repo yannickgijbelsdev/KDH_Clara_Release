@@ -86,10 +86,10 @@ export default function NetworkHeader({
     { id: 'environments', icon: Server, label: 'Environments' },
     ...(isSystemAdmin ? [{ id: 'domains', icon: Globe, label: 'Domain Manager' }] : []),
     ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'License Manager' }] : []),
-    { id: 'support-tickets', icon: LifeBuoy, label: 'Support', badge: supportCount },
   ];
 
   const OVERFLOW_ITEMS = [
+    { id: 'support-tickets', icon: LifeBuoy, label: 'Support', badge: supportCount },
     ...(isSystemAdmin ? [{ id: 'notifications', icon: Bell, label: 'Notifications' }] : []),
     ...(isSystemAdmin ? [{ id: 'branding', icon: Paintbrush, label: 'Branding' }] : []),
     ...(isSystemAdmin ? [{ id: 'audit', icon: ShieldAlert, label: 'Permission Audit' }] : []),
@@ -233,8 +233,11 @@ export default function NetworkHeader({
           {/* More dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors">
+              <button className="relative px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors">
                 More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" />
+                {supportCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-red-500 text-white rounded-full px-0.5">{supportCount}</span>
+                )}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -252,6 +255,9 @@ export default function NetworkHeader({
                     className={`cursor-pointer ${active ? 'bg-orange-50 text-orange-600' : 'text-zinc-600 focus:text-zinc-900 focus:bg-black/5'}`}
                   >
                     <Icon className="w-4 h-4 mr-2" />{item.label}
+                    {item.badge > 0 && (
+                      <span className="ml-auto min-w-[18px] h-[18px] inline-flex items-center justify-center text-[10px] font-bold bg-red-500 text-white rounded-full px-1">{item.badge}</span>
+                    )}
                   </DropdownMenuItem>
                 );
               })}

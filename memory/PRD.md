@@ -11,82 +11,75 @@ Multi-environment SaaS platform for radio station management built with React fr
 - WordPress content publishing and security
 - Clara AI Assistant for error troubleshooting and SEO
 - PWA installation support
-- RDS (Radio Data System) metadata monitoring with auto-refresh
-- Two-Factor Authentication (2FA) enforcement with conditional rules
-- License enforcement with grayed-out menus and Clara-powered help overlay
+- RDS metadata monitoring with auto-refresh
+- Two-Factor Authentication (2FA) enforcement
+- License enforcement with grayed-out menus
+- **Full Support Ticket System** with messenger-style chat, status tracking, email notifications, screen recording, and user impersonation
 
 ## Architecture
 ```
 /app
 ├── backend/ (FastAPI)
-│   ├── routers/ (API endpoints)
-│   ├── services/ (Business logic, schedulers)
-│   └── .env (MONGO_URL, DB_NAME, etc.)
+│   ├── routers/
+│   │   ├── support_tickets.py    # NEW: Full CRUD support ticket system
+│   │   ├── auth.py, main_sites.py, wordpress.py, etc.
+│   ├── services/
+│   └── .env
 ├── frontend/ (React)
-│   ├── src/components/ (Shared components)
-│   ├── src/pages/Network/ (Network dashboard pages)
-│   └── .env (REACT_APP_BACKEND_URL)
-└── memory/ (PRD, changelog, credentials)
+│   ├── src/components/
+│   │   ├── UserTicketsPanel.js    # NEW: User-side ticket slide panel
+│   │   ├── TicketUpdatePopup.js   # NEW: Login popup for ticket updates
+│   │   ├── LicenseBlockedOverlay.js
+│   │   ├── ClaraAssistant.js      # Modified: All English, < logo icon
+│   │   ├── MainSiteDashboardLayout.js  # Modified: ticket icon, search popup
+│   │   └── NetworkHeader.js       # Modified: Support badge in More dropdown
+│   ├── src/pages/Network/
+│   │   └── SupportTicketsPage.js  # NEW: Admin messenger-style support page
+│   └── .env
+└── memory/
 ```
 
-## Design System — Light Mode Theme
-All pages use a consistent light-mode design:
-- **Backgrounds**: `bg-white`, `bg-zinc-50`, `bg-zinc-100` for containers/cards
-- **Text**: `text-zinc-900` for headings, `text-zinc-600`/`text-zinc-500` for secondary
-- **Borders**: `border-zinc-200` consistently
-- **Form inputs**: `bg-zinc-50 border border-zinc-200 text-zinc-900`
-- **Select dropdowns**: `bg-white border-zinc-200`
-- **Table headers**: `bg-zinc-100`
-- **Badges/tags**: `bg-zinc-100 text-zinc-500` or `bg-zinc-200`
-- **Separators**: `bg-zinc-200`
-- **Image placeholders**: `bg-zinc-200`
-- **Calendar non-current cells**: `bg-zinc-50`
-- **Hover states**: `hover:bg-zinc-100` or `hover:bg-zinc-200`
+## Support Ticket System
+### Statuses
+- **Open** — counts towards badge counter
+- **Searching for a solution** — does NOT count
+- **Solution found** — does NOT count
+- **Closed** — does NOT count
 
-### Intentionally Dark Elements (DO NOT CHANGE):
-- Nav pill button: `bg-zinc-900 text-white rounded-full`
-- Primary action buttons: `bg-zinc-900 text-white` (dark CTA)
-- ClaraAssistant chat bubbles
-- DevTools panel
-- Tooltips: `bg-zinc-900 text-white`
-- Step indicators (active): `bg-zinc-900 text-white`
+### Features
+- **Messenger-style chat**: Text bubbles with timestamps, sender roles (user/admin)
+- **Attachments**: Image upload, screen recording (navigator.mediaDevices.getDisplayMedia)
+- **Emoji support**: @emoji-mart/react integration
+- **Status management**: Admin-only dropdown to change ticket status
+- **User impersonation**: "Login as user" button for admins to verify issues
+- **Email notifications**: On ticket creation, status change, and new messages
+- **User-side**: Ticket icon next to Clara logo with counter badge, slide-over panel
+- **Login popup**: Notification popup when user has unread ticket updates
 
-### 260px Isometric Card Grid (Network pages)
-- **Width**: `w-[260px]` with `flex flex-wrap justify-center gap-4 sm:gap-6`
-- **Image area**: `h-[180px]` with isometric 3D illustrations from `/images/env_*.jpg`
-- **Image mask**: `radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)`
+### API Endpoints
+- `POST /api/support-tickets` — Create ticket
+- `GET /api/support-tickets` — List tickets (admin=all, user=own)
+- `GET /api/support-tickets/counts` — Badge counter
+- `GET /api/support-tickets/user-updates` — Unread updates for popup
+- `GET /api/support-tickets/{id}` — Full ticket with messages
+- `PUT /api/support-tickets/{id}/status` — Change status (admin only)
+- `POST /api/support-tickets/{id}/messages` — Add message
+- `POST /api/support-tickets/{id}/messages/attachment` — Upload image
+- `POST /api/support-tickets/{id}/recording` — Upload screen recording
 
-## 2FA Enforcement System
-- **Conditional enforcement**: 2FA is mandatory if user is a Network Admin OR if their main_site has `require_2fa=True`
-- **Skip mechanism**: Users can skip setup up to 3 times (permanent, stored in DB `totp_skip_count`). After 3 skips, setup is mandatory.
-- **Backup codes**: 10 auto-generated codes during setup with Copy, Download (.txt), and Email delivery options
-- **Site setting**: `require_2fa` boolean toggle on each main site (EditMainSiteWizard > General Settings)
-- **Backend endpoints**: `/api/auth/2fa/enforcement-status`, `/api/auth/2fa/email-backup-codes`, `/api/auth/2fa/skip`
-- **Frontend**: `TwoFactorEnforcementWrapper` in App.js only activates when `user.force_2fa === true`
-
-## License Enforcement System
-- **Condition**: Site menu is blocked when `!isSystemAdmin && !licenseLoading && licenseInfo && !licenseInfo.has_license && !licenseInfo.is_demo`
-- **UI behavior**: All navigation items (pill nav, icon sidebar, mobile sidebar, search bar) are grayed out and non-clickable
-- **Overlay**: `LicenseBlockedOverlay` component shows a card with:
-  - Shield icon + "Geen actieve licentie" title
-  - Checklist: Betaalde facturen, Offertes, E-mails van Clara Support
-  - "Vraag Clara Assistent" button that opens Clara in 'license' mode
-- **Clara license mode**: Auto-sends license help advice and shows "Contact Support" button for ticket creation
-- **System admin bypass**: System admins (`is_system_admin=true`) always bypass the license check
-
-## 3rd Party Integrations
-- Cloudflare (WAF/DNS) — User API Key required
-- WordPress — Application Password required
-- Radioplayer — API Key integrated
-- ZeroTier — Active
-- OpenAI GPT-5.2 — Emergent Universal Key
-- Office365 SMTP — For emails (password resets, backup codes, notifications)
+## UI Changes (Current Session)
+- **Topbar**: Transparent background, no glassmorphism/blur/border
+- **Pill nav**: No container border/shadow
+- **Search bar**: Icon-only button that opens centered popup overlay (no inline expand)
+- **Date**: English format (Wednesday, April 8, 2026)
+- **Clara Assistant**: Full English UI, `<` logo icon
+- **Quick-action bars**: Consistent pattern across Content Library, Shows, Rundown
 
 ## Credentials
 - System Admin: admkoodh@koodh.com / KYLovie13monx
 - Network Admin: yannick.gijbels@koodh.com / test
 
-## Backlog (Prioritized)
+## Backlog
 ### P1
 - Finalize Calendar Integration (Google Calendar / Outlook) for Clara Tasks
 - Finalize WordPress Plugin Integration (clara-radio-schedule)
@@ -95,5 +88,5 @@ All pages use a consistent light-mode design:
 - Integrate Payment Gateway (Stripe/Mollie) for License Manager
 - Implement Stream Monitor VU Meters
 - Cleanup Obsolete ProRadio Sync Code
-- Fix React Hook dependency warnings (useEffect/useCallback)
+- Fix React Hook dependency warnings
 - Refactoring: Split MainSiteDashboardLayout.js and NetworkDashboard.js
