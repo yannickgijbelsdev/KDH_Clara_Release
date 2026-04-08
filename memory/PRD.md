@@ -13,6 +13,7 @@ Multi-environment SaaS platform for radio station management built with React fr
 - PWA installation support
 - RDS (Radio Data System) metadata monitoring with auto-refresh
 - Two-Factor Authentication (2FA) enforcement with conditional rules
+- License enforcement with grayed-out menus and Clara-powered help overlay
 
 ## Architecture
 ```
@@ -62,6 +63,16 @@ All pages use a consistent light-mode design:
 - **Site setting**: `require_2fa` boolean toggle on each main site (EditMainSiteWizard > General Settings)
 - **Backend endpoints**: `/api/auth/2fa/enforcement-status`, `/api/auth/2fa/email-backup-codes`, `/api/auth/2fa/skip`
 - **Frontend**: `TwoFactorEnforcementWrapper` in App.js only activates when `user.force_2fa === true`
+
+## License Enforcement System
+- **Condition**: Site menu is blocked when `!isSystemAdmin && !licenseLoading && licenseInfo && !licenseInfo.has_license && !licenseInfo.is_demo`
+- **UI behavior**: All navigation items (pill nav, icon sidebar, mobile sidebar, search bar) are grayed out and non-clickable
+- **Overlay**: `LicenseBlockedOverlay` component shows a card with:
+  - Shield icon + "Geen actieve licentie" title
+  - Checklist: Betaalde facturen, Offertes, E-mails van Clara Support
+  - "Vraag Clara Assistent" button that opens Clara in 'license' mode
+- **Clara license mode**: Auto-sends license help advice and shows "Contact Support" button for ticket creation
+- **System admin bypass**: System admins (`is_system_admin=true`) always bypass the license check
 
 ## 3rd Party Integrations
 - Cloudflare (WAF/DNS) — User API Key required
