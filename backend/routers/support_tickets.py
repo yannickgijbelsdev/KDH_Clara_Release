@@ -116,10 +116,12 @@ async def create_ticket(body: CreateTicketBody, current_user: dict = Depends(get
     }
     await db.support_tickets.insert_one(ticket)
 
-    # Notify
-    recipients = await _get_ticket_recipients(ticket)
-    html = _ticket_email_html(ticket_id, body.subject, "New ticket created", body.description, current_user.get("name", "User"))
-    await _send_ticket_email(ticket_id, f"[Clara Support] New: {body.subject}", html, recipients)
+    # Notify in background (don't block the response)
+    async def _notify():
+        recipients = await _get_ticket_recipients(ticket)
+        html = _ticket_email_html(ticket_id, body.subject, "New ticket created", body.description, current_user.get("name", "User"))
+        await _send_ticket_email(ticket_id, f"[Clara Support] New: {body.subject}", html, recipients)
+    asyncio.create_task(_notify())
 
     return {"id": ticket_id, "status": "open"}
 
@@ -225,10 +227,12 @@ async def update_ticket_status(ticket_id: str, body: UpdateStatusBody, current_u
         }
     )
 
-    # Notify
-    recipients = await _get_ticket_recipients(ticket)
-    html = _ticket_email_html(ticket_id, ticket["subject"], "Status updated", status_labels.get(body.status, body.status), current_user.get("name", "Admin"))
-    await _send_ticket_email(ticket_id, f"[Clara Support] Status: {status_labels.get(body.status, body.status)} — {ticket['subject']}", html, recipients)
+    # Notify in background (don't block the response)
+    async def _notify():
+        recipients = await _get_ticket_recipients(ticket)
+        html = _ticket_email_html(ticket_id, ticket["subject"], "Status updated", status_labels.get(body.status, body.status), current_user.get("name", "Admin"))
+        await _send_ticket_email(ticket_id, f"[Clara Support] Status: {status_labels.get(body.status, body.status)} — {ticket['subject']}", html, recipients)
+    asyncio.create_task(_notify())
 
     return {"status": body.status}
 
@@ -268,14 +272,13 @@ async def add_message(ticket_id: str, body: AddMessageBody, current_user: dict =
         {"$set": update_fields, "$push": {"messages": message}}
     )
 
-    # Notify
-    recipients = await _get_ticket_recipients(ticket)
-    # Remove sender from recipients
-    sender_email = current_user.get("email", "")
-    recipients = [r for r in recipients if r != sender_email]
-
-    html = _ticket_email_html(ticket_id, ticket["subject"], "New message", body.text[:200], current_user.get("name", ""))
-    await _send_ticket_email(ticket_id, f"[Clara Support] Reply: {ticket['subject']}", html, recipients)
+    # Notify in background (don't block the response)
+    async def _notify():
+        recipients = await _get_ticket_recipients(ticket)
+        recipients = [r for r in recipients if r != current_user.get("email", "")]
+        html = _ticket_email_html(ticket_id, ticket["subject"], "New message", body.text[:200], current_user.get("name", ""))
+        await _send_ticket_email(ticket_id, f"[Clara Support] Reply: {ticket['subject']}", html, recipients)
+    asyncio.create_task(_notify())
 
     return {"message_id": message["id"]}
 
