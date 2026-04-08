@@ -1049,9 +1049,9 @@ const MainSiteDashboardContent = () => {
             className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors flex-shrink-0"
             data-testid="user-ticket-icon"
           >
-            <LifeBuoy className="w-4 h-4 text-zinc-400" />
+            <LifeBuoy className="w-4 h-4 text-orange-500" />
             {userTicketCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-red-500 text-white rounded-full px-0.5">{userTicketCount}</span>
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-orange-500 text-white rounded-full px-0.5">{userTicketCount}</span>
             )}
           </button>
           {/* Main Site Switcher Dropdown */}
