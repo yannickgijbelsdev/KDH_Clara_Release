@@ -941,7 +941,7 @@ const DashboardLayout = () => {
         {/* Main content */}
         <main className={`${useGroupedMenu ? 'lg:ml-56' : 'lg:ml-[72px]'} min-h-screen ${impersonating ? 'pt-26 lg:pt-10' : 'pt-16 lg:pt-0'} transition-all duration-300`}>
           {/* Page Header */}
-          <div className="hidden lg:block border-b border-white/5 bg-[#F0F0F2]/80 backdrop-blur-sm sticky top-0 z-30">
+          <div className="hidden lg:block bg-transparent sticky top-0 z-30">
             <div className="px-8 py-4">
               <div className="flex items-center justify-between">
                 <div>
