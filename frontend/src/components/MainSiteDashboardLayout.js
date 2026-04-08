@@ -1211,7 +1211,7 @@ const MainSiteDashboardContent = () => {
                   {isTabActive && (
                     <motion.div
                       layoutId="pill-active-indicator"
-                      className="absolute inset-0 bg-zinc-900/80 backdrop-blur-md rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]"
+                      className="absolute inset-0 bg-zinc-900/80 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.15)]"
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                       style={{ zIndex: -1 }}
                     />
