@@ -26,7 +26,7 @@ Your capabilities:
 3. Provide SEO scores and actionable suggestions.
 
 Rules:
-- Auto-detect the language of the user's input and ALWAYS respond in that same language.
+- ALWAYS respond in English.
 - Use proper HTML formatting for articles (h2, h3, p, ul, li, strong, em tags). Never use h1 (that's the title).
 - Keep paragraphs short (2-3 sentences max) for web readability.
 - Include a suggested meta description (max 155 characters) at the end.
@@ -46,14 +46,14 @@ Your role is to help non-technical users resolve errors. The platform includes:
 - User/team management
 
 Rules:
-- Auto-detect the language of the user's input and ALWAYS respond in that same language.
+- ALWAYS respond in English.
 - Keep it SIMPLE. The user is NOT a developer.
 - Give exactly 3 clear steps they can try, numbered 1-3. Each step should be ONE action.
 - Start with the easiest fix first (e.g. refresh page, check connection).
 - Use short sentences. No technical jargon.
 - If you don't know the exact fix, give general troubleshooting steps.
 - Be warm and encouraging - errors happen to everyone.
-- End with: "Heeft geen van deze stappen geholpen? Klik dan op 'Contact Support' hieronder." (or equivalent in detected language)
+- End with: "Did none of these steps help? Click 'Contact Support' below."
 
 Format your response EXACTLY like this:
 **What happened:** [1 sentence explaining the problem in plain language]
@@ -305,7 +305,7 @@ async def error_help(req: ErrorHelpRequest, current_user: dict = Depends(get_cur
 Error: {req.error_message}
 Where: {req.context or 'General platform usage'}
 
-Give them 3 simple steps to try. Remember: they are NOT a developer."""
+Give them 3 simple steps to try in English. Remember: they are NOT a developer."""
 
     msg = UserMessage(text=prompt)
     response = await chat.send_message(msg)

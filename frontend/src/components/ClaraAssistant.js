@@ -111,7 +111,7 @@ export default function ClaraAssistant() {
     if (!generateTopic.trim() || loading) return;
     setLoading(true);
     setMessages([
-      { role: 'user', text: `Genereer een SEO-artikel over: ${generateTopic}` },
+      { role: 'user', text: `Generate an SEO article about: ${generateTopic}` },
       { role: 'assistant', text: '...', loading: true },
     ]);
     setView('chat');
@@ -120,7 +120,7 @@ export default function ClaraAssistant() {
         topic: generateTopic, keywords: generateKeywords, length: generateLength,
       }, { headers });
       setMessages([
-        { role: 'user', text: `Genereer een SEO-artikel over: ${generateTopic}` },
+        { role: 'user', text: `Generate an SEO article about: ${generateTopic}` },
         {
           role: 'assistant',
           text: `**${res.data.title}**\n\n${res.data.body}\n\n*Meta: ${res.data.meta_description}*`,
@@ -129,7 +129,7 @@ export default function ClaraAssistant() {
       ]);
       setSessionId(res.data.session_id);
     } catch {
-      setMessages([{ role: 'assistant', text: 'Genereren mislukt. Controleer je verbinding.', error: true }]);
+      setMessages([{ role: 'assistant', text: 'Generation failed. Check your connection.', error: true }]);
     }
     setLoading(false);
   };
@@ -138,7 +138,7 @@ export default function ClaraAssistant() {
     if (!editorContent || loading) return;
     setLoading(true);
     setMessages([
-      { role: 'user', text: 'Verbeter mijn huidige content voor SEO' },
+      { role: 'user', text: 'Improve my current content for SEO' },
       { role: 'assistant', text: '...', loading: true },
     ]);
     setView('chat');
@@ -147,7 +147,7 @@ export default function ClaraAssistant() {
         content: editorContent, title: editorTitle || '', keywords: generateKeywords,
       }, { headers });
       setMessages([
-        { role: 'user', text: 'Verbeter mijn huidige content voor SEO' },
+        { role: 'user', text: 'Improve my current content for SEO' },
         {
           role: 'assistant', improved: true,
           text: `**SEO Score: ${res.data.score}**\n\n${res.data.analysis}\n\n---\n\n${res.data.improved_content}\n\n*Meta: ${res.data.meta_description}*`,
@@ -156,7 +156,7 @@ export default function ClaraAssistant() {
       ]);
       setSessionId(res.data.session_id);
     } catch {
-      setMessages([{ role: 'assistant', text: 'Analyse mislukt.', error: true }]);
+      setMessages([{ role: 'assistant', text: 'Analysis failed.', error: true }]);
     }
     setLoading(false);
   };
@@ -426,8 +426,8 @@ function EmptyState({ mode, editorContent, onGenerate, onImprove, onSetInput }) 
               <Wand2 className="w-5 h-5 text-orange-500" />
             </div>
             <div>
-              <p className="font-medium text-zinc-900 text-sm">Nieuw artikel genereren</p>
-              <p className="text-xs text-zinc-400">SEO-geoptimaliseerd artikel op basis van een onderwerp</p>
+              <p className="font-medium text-zinc-900 text-sm">Generate new article</p>
+              <p className="text-xs text-zinc-400">SEO-optimized article based on a topic</p>
             </div>
           </div>
         </button>
@@ -439,8 +439,8 @@ function EmptyState({ mode, editorContent, onGenerate, onImprove, onSetInput }) 
               <FileText className="w-5 h-5 text-blue-500" />
             </div>
             <div>
-              <p className="font-medium text-zinc-900 text-sm">Huidige content verbeteren</p>
-              <p className="text-xs text-zinc-400">{editorContent ? 'Analyseer en verbeter je tekst voor SEO' : 'Open eerst een artikel in de editor'}</p>
+              <p className="font-medium text-zinc-900 text-sm">Improve current content</p>
+              <p className="text-xs text-zinc-400">{editorContent ? 'Analyze and improve your text for SEO' : 'Open an article in the editor first'}</p>
             </div>
           </div>
         </button>
@@ -454,7 +454,7 @@ function EmptyState({ mode, editorContent, onGenerate, onImprove, onSetInput }) 
     <div className="p-5 space-y-3">
       <p className="text-sm text-zinc-500 mb-4">Describe the issue you're experiencing, and I'll help you step by step.</p>
       <div className="space-y-2">
-        {['WordPress publicatie mislukt', 'Cloudflare sync werkt niet', 'RDS data wordt niet bijgewerkt', 'Stream monitor toont offline'].map(example => (
+        {['WordPress publishing failed', 'Cloudflare sync not working', 'RDS data not updating', 'Stream monitor shows offline'].map(example => (
           <button key={example} onClick={() => onSetInput(example)}
             className="w-full px-4 py-2.5 bg-zinc-50 hover:bg-zinc-100 rounded-xl text-left text-sm text-zinc-600 transition-colors border border-zinc-100 flex items-center justify-between"
           >
@@ -471,26 +471,26 @@ function GenerateForm({ topic, keywords, length, loading, onTopicChange, onKeywo
   return (
     <div className="p-5 space-y-4">
       <button onClick={onBack} className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-600">
-        <ArrowLeft className="w-3.5 h-3.5" /> Terug
+        <ArrowLeft className="w-3.5 h-3.5" /> Back
       </button>
       <div>
-        <label className="text-xs font-medium text-zinc-500 mb-1.5 block">Onderwerp *</label>
+        <label className="text-xs font-medium text-zinc-500 mb-1.5 block">Topic *</label>
         <input value={topic} onChange={e => onTopicChange(e.target.value)}
-          placeholder="bijv. De toekomst van DAB+ radio in Belgie"
+          placeholder="e.g. The future of DAB+ radio in Belgium"
           className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
           data-testid="clara-topic-input" />
       </div>
       <div>
-        <label className="text-xs font-medium text-zinc-500 mb-1.5 block">Keywords (optioneel)</label>
+        <label className="text-xs font-medium text-zinc-500 mb-1.5 block">Keywords (optional)</label>
         <input value={keywords} onChange={e => onKeywordsChange(e.target.value)}
-          placeholder="bijv. DAB+, digitale radio, FM"
+          placeholder="e.g. DAB+, digital radio, FM"
           className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
           data-testid="clara-keywords-input" />
       </div>
       <div>
-        <label className="text-xs font-medium text-zinc-500 mb-1.5 block">Lengte</label>
+        <label className="text-xs font-medium text-zinc-500 mb-1.5 block">Length</label>
         <div className="flex gap-2">
-          {[['short', 'Kort'], ['medium', 'Middel'], ['long', 'Lang']].map(([val, label]) => (
+          {[['short', 'Short'], ['medium', 'Medium'], ['long', 'Long']].map(([val, label]) => (
             <button key={val} onClick={() => onLengthChange(val)}
               className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${length === val ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}>
               {label}
@@ -502,7 +502,7 @@ function GenerateForm({ topic, keywords, length, loading, onTopicChange, onKeywo
         className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl gap-2"
         data-testid="clara-generate-btn">
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-        Genereer Artikel
+        Generate Article
       </Button>
     </div>
   );
@@ -521,7 +521,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
         <span className="text-sm font-semibold text-zinc-800">Create Support Ticket</span>
       </div>
       <div>
-        <label className="text-xs font-medium text-zinc-500 mb-1 block">Onderwerp</label>
+        <label className="text-xs font-medium text-zinc-500 mb-1 block">Subject</label>
         <input
           value={form.subject}
           onChange={e => onChange({ ...form, subject: e.target.value })}
@@ -531,7 +531,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
         />
       </div>
       <div>
-        <label className="text-xs font-medium text-zinc-500 mb-1 block">Beschrijving</label>
+        <label className="text-xs font-medium text-zinc-500 mb-1 block">Description</label>
         <textarea
           value={form.description}
           onChange={e => onChange({ ...form, description: e.target.value })}
@@ -546,7 +546,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
         <textarea
           value={form.steps_tried}
           onChange={e => onChange({ ...form, steps_tried: e.target.value })}
-          placeholder="bijv. Pagina vernieuwd, opnieuw ingelogd..."
+          placeholder="e.g. Refreshed the page, logged in again..."
           rows={2}
           className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
           data-testid="support-steps-input"
