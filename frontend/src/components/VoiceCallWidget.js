@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
+import { PAGE_MAP } from './ClaraGuideOverlay';
 import axios from 'axios';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -72,9 +73,45 @@ export default function VoiceCallWidget({ open, onClose }) {
       );
       setSessionId(data.session_id);
 
-      // Start ElevenLabs conversation via @11labs/client
+      // Resolve the current site slug for navigation
+      const siteSlug = window.location.pathname.split('/')[1] || '';
+
+      // Start ElevenLabs conversation via @11labs/client with client tools
       const conversation = await Conversation.startSession({
         signedUrl: data.signed_url,
+        clientTools: {
+          hang_up: async () => {
+            // Clara ends the call via voice command
+            setTimeout(() => {
+              if (conversationRef.current) {
+                try { conversationRef.current.endSession(); } catch {}
+                conversationRef.current = null;
+              }
+              setPhase('ended');
+              if (timerRef.current) clearInterval(timerRef.current);
+              setTimeout(() => onClose(), 2000);
+            }, 1500); // Short delay for Clara to say goodbye
+            return 'Call is being ended. Goodbye!';
+          },
+          highlight_element: async ({ element_name, description }) => {
+            window.dispatchEvent(new CustomEvent('clara-highlight', {
+              detail: { element: element_name, description: description || element_name }
+            }));
+            return 'Element highlighted on screen for the user.';
+          },
+          navigate_to_page: async ({ page_name, description }) => {
+            const key = (page_name || '').toLowerCase().trim();
+            const route = PAGE_MAP[key];
+            if (route !== undefined && siteSlug) {
+              const targetPath = route ? `/${siteSlug}/${route}` : `/${siteSlug}`;
+              window.dispatchEvent(new CustomEvent('clara-navigate', {
+                detail: { path: targetPath, highlightAfter: page_name, description }
+              }));
+              return `Navigated to ${page_name}. The page is now visible.`;
+            }
+            return `Page "${page_name}" not found. Available pages: ${Object.keys(PAGE_MAP).join(', ')}`;
+          },
+        },
         onConnect: () => {
           console.log('[VoiceCall] Connected to ElevenLabs');
           setPhase('active');
@@ -107,7 +144,7 @@ export default function VoiceCallWidget({ open, onClose }) {
       console.error('[VoiceCall] Setup failed:', err);
       setPhase('ended');
     }
-  }, [mainSite?.id, token]);
+  }, [mainSite?.id, token, onClose]);
 
   // Mute/unmute
   const toggleMute = useCallback(async () => {

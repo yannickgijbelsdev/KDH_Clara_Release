@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainSiteProvider, useMainSite } from './context/MainSiteContext';
 import { Toaster } from './components/ui/sonner';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
+import ClaraGuideOverlay from './components/ClaraGuideOverlay';
 import { TopLoaderProvider } from './components/TopLoader';
 import SessionWarningModal from './components/SessionWarningModal';
 import TwoFactorEnforcement from './components/TwoFactorEnforcement';
@@ -298,6 +299,18 @@ import { BrandingProvider } from './context/BrandingContext';
 import { ClaraAssistantProvider } from './context/ClaraAssistantContext';
 import ClaraToastInit from './components/ClaraToastInit';
 
+function ClaraNavigationListener() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.detail?.path) navigate(e.detail.path);
+    };
+    window.addEventListener('clara-navigate', handler);
+    return () => window.removeEventListener('clara-navigate', handler);
+  }, [navigate]);
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -308,6 +321,7 @@ function App() {
           <JourneyProvider>
             <CallProvider>
               <ClaraToastInit />
+              <ClaraNavigationListener />
               <TwoFactorEnforcementWrapper />
               <ForcePasswordChangeModal />
               <LoginWizardWrapper />
@@ -315,6 +329,7 @@ function App() {
               <CallWidget />
               <SessionWarningModal />
               <PwaInstallPrompt />
+              <ClaraGuideOverlay />
               <Toaster position="bottom-right" richColors />
             </CallProvider>
           </JourneyProvider>

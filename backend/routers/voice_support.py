@@ -128,24 +128,82 @@ async def get_voice_session(
 
 CLARA_VOICE_PROMPT = """You are Clara, the voice support assistant for the Clara radio station management platform.
 
-IMPORTANT RULES ABOUT THE PLATFORM UI:
+PLATFORM UI:
 - The main navigation is a HORIZONTAL TOP BAR at the top of the screen, NOT a sidebar or left menu.
 - Users switch between sites using a dropdown in the top-right avatar area.
-- Pages include: Shows, Content, Media Library, RDS Builder, Stream Monitor, WordPress, Tasks, and Settings.
-- You CANNOT highlight, select, click, or visually interact with any UI elements. You are a voice-only assistant.
-- NEVER say you will highlight, point to, or show something on screen. Instead, describe WHERE the user can find things by name and location.
+- Available pages: Dashboard, Shows, Calendar, Show Management, Content Library, Media Library, Team Chat, RDS Settings, RDS Builder, RDS Monitor, Stream Monitor, Sites, Team Settings, WordPress, Activity Logs, Firewall, Support Tickets, Enterprise Assistant, Task Boards, Radioplayer, Security Dashboard.
 
-YOUR CAPABILITIES:
-- Explain how features work step by step
-- Help troubleshoot common issues (WordPress publishing, RDS data, stream monitoring, Cloudflare)
-- Guide users through the platform navigation by describing menu locations
-- Suggest creating a support ticket if the issue cannot be resolved
+YOUR TOOLS — USE THEM:
+- When a user asks WHERE something is, use the highlight_element tool to visually show them the element on screen. Always highlight instead of just describing.
+- When a user asks to GO TO a page, use the navigate_to_page tool to take them there.
+- When a user asks to hang up or end the call, use the hang_up tool.
+- You can combine navigation and highlighting: first navigate, then highlight.
+
+EXAMPLES OF TOOL USE:
+- User: "Where are my shows?" → Use highlight_element with element_name="shows" and description="Click here to see all your shows"
+- User: "Take me to the RDS builder" → Use navigate_to_page with page_name="rds builder"
+- User: "Where can I find my stream settings?" → Use highlight_element with element_name="stream monitor" and description="Your stream settings are here"
+- User: "Hang op" or "End the call" → Use hang_up tool
 
 CONVERSATION STYLE:
-- Be concise and friendly. Keep answers short (3-5 sentences max).
+- Be concise and friendly. Keep answers short (2-4 sentences max).
 - Always speak English. Do not switch to other languages even if the user speaks another language.
 - Use simple, non-technical language. The users are radio professionals, not developers.
+- When you highlight or navigate, briefly tell the user what you did ("I've highlighted the Shows tab for you" or "I've taken you to the RDS Builder page").
 - If you don't know something, say so honestly and suggest contacting support."""
+
+
+# Client tool definitions for ElevenLabs (JSON Schema format)
+CLIENT_TOOL_DEFINITIONS = [
+    {
+        "type": "client",
+        "name": "hang_up",
+        "description": "End the voice call. Use this when the user says goodbye, wants to hang up, says 'stop', 'end call', 'hang op', 'tot ziens', or any similar phrase indicating they want to end the conversation.",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    {
+        "type": "client",
+        "name": "highlight_element",
+        "description": "Visually highlight a UI element on the user's screen with a glowing spotlight effect. Use this to SHOW the user where something is located in the interface. Always use this instead of just describing locations.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "element_name": {
+                    "type": "string",
+                    "description": "The name of the UI element to highlight. Valid values: dashboard, shows, calendar, show management, content, content library, media, media library, team chat, rds settings, rds builder, rds monitor, stream monitor, sites, team settings, wordpress, activity logs, firewall, support tickets, enterprise assistant, task boards, radioplayer, security dashboard, user menu, top bar, navigation"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "A short helpful description to show next to the highlighted element, e.g. 'Click here to manage your shows'"
+                }
+            },
+            "required": ["element_name", "description"]
+        }
+    },
+    {
+        "type": "client",
+        "name": "navigate_to_page",
+        "description": "Navigate the user to a specific page in the application. Use this when the user asks to go to a page, open something, or when you need to show them a specific section.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "page_name": {
+                    "type": "string",
+                    "description": "The page to navigate to. Valid values: dashboard, shows, calendar, show management, content, content library, media, media library, team chat, rds settings, rds builder, rds monitor, stream monitor, sites, team settings, wordpress, activity logs, firewall, support tickets, enterprise assistant, task boards, radioplayer, security dashboard"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Optional description to show after navigation"
+                }
+            },
+            "required": ["page_name"]
+        }
+    }
+]
 
 
 class UpdateAgentPromptBody(BaseModel):
@@ -187,3 +245,80 @@ async def update_agent_prompt(
             raise HTTPException(status_code=502, detail=f"Failed to update agent: {resp.text[:200]}")
 
     return {"updated": True, "agent_id": ELEVENLABS_AGENT_ID}
+
+
+@voice_support_router.post("/setup-agent-tools")
+async def setup_agent_tools(
+    current_user: dict = Depends(require_network_admin)
+):
+    """Create client tools on ElevenLabs and assign them to the agent. Run once."""
+    if not ELEVENLABS_API_KEY or not ELEVENLABS_AGENT_ID:
+        raise HTTPException(status_code=500, detail="ElevenLabs not configured")
+
+    el_headers = {"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"}
+    created_tool_ids = []
+
+    async with httpx.AsyncClient() as client:
+        # First get existing tools to avoid duplicates
+        existing_resp = await client.get(
+            "https://api.elevenlabs.io/v1/convai/tools",
+            headers=el_headers,
+            timeout=10,
+        )
+        existing_names = set()
+        if existing_resp.status_code == 200:
+            for tool in existing_resp.json().get("tools", []):
+                tc = tool.get("tool_config", {})
+                existing_names.add(tc.get("name", ""))
+                # Collect IDs of our tools that already exist
+                if tc.get("name") in [t["name"] for t in CLIENT_TOOL_DEFINITIONS]:
+                    created_tool_ids.append(tool["id"])
+
+        # Create missing tools
+        for tool_def in CLIENT_TOOL_DEFINITIONS:
+            if tool_def["name"] in existing_names:
+                logger.info(f"Tool '{tool_def['name']}' already exists, skipping creation")
+                continue
+
+            resp = await client.post(
+                "https://api.elevenlabs.io/v1/convai/tools",
+                headers=el_headers,
+                json={"tool_config": tool_def},
+                timeout=10,
+            )
+            if resp.status_code in (200, 201):
+                tool_id = resp.json().get("id")
+                created_tool_ids.append(tool_id)
+                logger.info(f"Created tool '{tool_def['name']}' with id: {tool_id}")
+            else:
+                logger.error(f"Failed to create tool '{tool_def['name']}': {resp.status_code} {resp.text}")
+
+        # Assign all tool IDs to the agent + update prompt
+        if created_tool_ids:
+            patch_payload = {
+                "conversation_config": {
+                    "agent": {
+                        "prompt": {
+                            "prompt": CLARA_VOICE_PROMPT,
+                            "tool_ids": created_tool_ids,
+                        },
+                        "first_message": "Hi! I'm Clara, your voice support assistant. How can I help you today?",
+                        "language": "en",
+                    }
+                }
+            }
+            resp = await client.patch(
+                f"https://api.elevenlabs.io/v1/convai/agents/{ELEVENLABS_AGENT_ID}",
+                headers=el_headers,
+                json=patch_payload,
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                logger.error(f"Failed to assign tools to agent: {resp.status_code} {resp.text}")
+                raise HTTPException(status_code=502, detail=f"Failed to assign tools: {resp.text[:200]}")
+
+    return {
+        "setup_complete": True,
+        "tool_ids": created_tool_ids,
+        "agent_id": ELEVENLABS_AGENT_ID,
+    }
