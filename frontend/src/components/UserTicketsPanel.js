@@ -136,7 +136,7 @@ export default function UserTicketsPanel({ open, onClose }) {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-bold text-zinc-900">
-                  {selectedId ? (detail?.subject || 'Loading...') : 'Support'}
+                  {selectedId ? (detail?.subject || 'Loading...') : 'Clara Support'}
                 </h3>
                 {selectedId && detail && (
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${STATUS_CONFIG[detail.status]?.bgColor} ${STATUS_CONFIG[detail.status]?.textColor}`}>
