@@ -1,23 +1,27 @@
 # Changelog
 
-## 2026-04-07 — Isometric Image Cards (All Network Pages)
-- Upgraded ALL Network pages from CSS gradient card headers to isometric 3D illustration-based headers
-- Cards now use h-[180px] image areas with `/images/env_*.jpg` and radial-gradient vignette masks
-- White glassmorphism badges (bg-white/90 backdrop-blur-lg) throughout
-- Hover effects: scale-[1.02] + shadow increase + image scale-105
-- Pages updated: Environments, Domain Manager (4 tabs), License Manager (3 tabs), Notifications, Branding
-- Fixed EnvironmentManager.js missing `motion` import (runtime crash bug)
-- Testing: 100% pass rate (iteration_135.json)
+## 2026-04-08 — Fork Session: 3D Images & S3 Migration
 
-## 2026-04-07 — 260px Card Grid Migration (Initial CSS Gradient Version)
-- First pass: converted all Network pages to 260px card grids with CSS gradient headers
-- Testing: 100% pass rate (iteration_134.json)
+### Completed
+- **3D Isometric Room Images** — Generated and applied custom 3D isometric room illustrations for Enterprise Assistant mode selection cards:
+  - Violet/purple developer workspace for Code Assistant
+  - Orange/amber support command center for Enterprise Support
+  - Applied to `EnterpriseAssistantPage.js` MODE_CONFIG heroImage fields
 
-## Previous Sessions
-- Extracted NetworkHeader.js from NetworkDashboard.js
-- Fixed routing for technical/task_scheduler/server site types
-- Redesigned Clara Assistant to centered overlay messenger layout
-- Migrated Network tabs from dark to light theme
-- Fixed RDS stuck data, PWA install prompt, WP publishing, Cloudflare WAF sync
-- Filtered avatar site dropdown for Network Admins
-- Automated RDS background refresh (3-minute interval)
+- **S3 Object Storage Migration for Support Tickets** (P0)
+  - Migrated `upload_attachment` endpoint from base64 encoding to S3 upload via `object_storage.py`
+  - Migrated `upload_recording` endpoint from base64 encoding to S3 upload
+  - Added `GET /api/support-tickets/files/{storage_path}?auth=TOKEN` proxy endpoint
+  - Updated `UserTicketsPanel.js` with `getAttachmentUrl()` helper for S3 URL + backwards compatibility
+  - Updated `SupportTicketsPage.js` with same helper
+  - All tests passed (backend 82%, frontend 100%)
+
+### Previous Sessions (Summary)
+- Clara Enterprise Assistant (Code + Support modes with Claude)
+- Responsive topbar navigation with ResizeObserver
+- Support ticket UX improvements (async emails, gray closed tickets, hidden admin names)
+- PWA install prompt overlay
+- RDS auto-refresh background polling
+- WordPress publishing fixes
+- Cloudflare WAF sync fixes
+- Avatar site-switcher dropdown filtering

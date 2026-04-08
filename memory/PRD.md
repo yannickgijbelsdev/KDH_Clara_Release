@@ -15,26 +15,29 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Two-Factor Authentication (2FA) enforcement
 - License enforcement with grayed-out menus
 - **Full Support Ticket System** with messenger-style chat, status tracking, email notifications, screen recording, and user impersonation
+- **Clara Enterprise Assistant** with Code Assistant (Claude) and Enterprise Support modes
+- **S3 Object Storage** for support ticket attachments (migrated from base64)
 
 ## Architecture
 ```
 /app
 ├── backend/ (FastAPI)
 │   ├── routers/
-│   │   ├── support_tickets.py    # NEW: Full CRUD support ticket system
+│   │   ├── support_tickets.py    # Support tickets with S3 file storage
+│   │   ├── enterprise_assistant.py # Claude-powered code generation & support
 │   │   ├── auth.py, main_sites.py, wordpress.py, etc.
 │   ├── services/
+│   │   ├── object_storage.py     # Emergent S3-compatible storage
+│   │   └── rds_builder_scheduler.py # Auto-refresh background loop
 │   └── .env
 ├── frontend/ (React)
 │   ├── src/components/
-│   │   ├── UserTicketsPanel.js    # NEW: User-side ticket slide panel
-│   │   ├── TicketUpdatePopup.js   # NEW: Login popup for ticket updates
-│   │   ├── LicenseBlockedOverlay.js
-│   │   ├── ClaraAssistant.js      # Modified: All English, < logo icon
-│   │   ├── MainSiteDashboardLayout.js  # Modified: ticket icon, search popup
-│   │   └── NetworkHeader.js       # Modified: Support badge in More dropdown
-│   ├── src/pages/Network/
-│   │   └── SupportTicketsPage.js  # NEW: Admin messenger-style support page
+│   │   ├── UserTicketsPanel.js    # User-side ticket slide panel (S3 URLs)
+│   │   ├── MainSiteDashboardLayout.js # Dynamic nav with ResizeObserver
+│   │   └── ClaraAssistant.js
+│   ├── src/pages/
+│   │   ├── EnterpriseAssistantPage.js # Enterprise code/support with 3D cards
+│   │   └── Network/SupportTicketsPage.js # Admin support page (S3 URLs)
 │   └── .env
 └── memory/
 ```
@@ -47,33 +50,30 @@ Multi-environment SaaS platform for radio station management built with React fr
 - **Closed** — does NOT count
 
 ### Features
-- **Messenger-style chat**: Text bubbles with timestamps, sender roles (user/admin)
-- **Attachments**: Image upload, screen recording (navigator.mediaDevices.getDisplayMedia)
-- **Emoji support**: @emoji-mart/react integration
-- **Status management**: Admin-only dropdown to change ticket status
-- **User impersonation**: "Login as user" button for admins to verify issues
-- **Email notifications**: On ticket creation, status change, and new messages
-- **User-side**: Ticket icon next to Clara logo with counter badge, slide-over panel
-- **Login popup**: Notification popup when user has unread ticket updates
+- Messenger-style chat with text bubbles and timestamps
+- **S3 file attachments** (images, screen recordings) via Emergent Object Storage
+- Emoji support (@emoji-mart/react)
+- Status management (admin-only dropdown)
+- User impersonation for admins
+- Email notifications (async background tasks)
+- Login popup for unread ticket updates
 
 ### API Endpoints
 - `POST /api/support-tickets` — Create ticket
-- `GET /api/support-tickets` — List tickets (admin=all, user=own)
+- `GET /api/support-tickets` — List tickets
 - `GET /api/support-tickets/counts` — Badge counter
-- `GET /api/support-tickets/user-updates` — Unread updates for popup
+- `GET /api/support-tickets/user-updates` — Unread updates
 - `GET /api/support-tickets/{id}` — Full ticket with messages
-- `PUT /api/support-tickets/{id}/status` — Change status (admin only)
+- `PUT /api/support-tickets/{id}/status` — Change status (admin)
 - `POST /api/support-tickets/{id}/messages` — Add message
-- `POST /api/support-tickets/{id}/messages/attachment` — Upload image
-- `POST /api/support-tickets/{id}/recording` — Upload screen recording
+- `POST /api/support-tickets/{id}/messages/attachment` — Upload image to S3
+- `POST /api/support-tickets/{id}/recording` — Upload recording to S3
+- `GET /api/support-tickets/files/{path}?auth=TOKEN` — Proxy S3 files
 
-## UI Changes (Current Session)
-- **Topbar**: Transparent background, no glassmorphism/blur/border
-- **Pill nav**: No container border/shadow
-- **Search bar**: Icon-only button that opens centered popup overlay (no inline expand)
-- **Date**: English format (Wednesday, April 8, 2026)
-- **Clara Assistant**: Full English UI, `<` logo icon
-- **Quick-action bars**: Consistent pattern across Content Library, Shows, Rundown
+## Enterprise Assistant
+- `POST /api/enterprise-assistant/chat` — Claude chat (code/support)
+- `GET /api/enterprise-assistant/sessions` — Chat history
+- Requires `clara_enterprise` site flag
 
 ## Credentials
 - System Admin: admkoodh@koodh.com / KYLovie13monx
