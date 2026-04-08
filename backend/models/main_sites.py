@@ -44,6 +44,8 @@ AVAILABLE_FEATURES = [
     {"id": "server_api_keys", "name": "API Keys", "group": "server"},
     {"id": "vmix_director", "name": "vMix Director", "group": "server"},
     {"id": "canva_director", "name": "Canva Director", "group": "server"},
+    {"id": "radioplayer", "name": "Radioplayer", "group": "server"},
+    {"id": "radio_automation", "name": "Radio Automation", "group": "server"},
 
     # Task management group
     {"id": "task_boards", "name": "Task Boards", "group": "tasks"},

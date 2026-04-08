@@ -247,43 +247,85 @@ const StepAdmin = ({ adminId, onAdminChange, users, token }) => (
 );
 
 /* ── Step 4: Security ── */
-const StepSecurity = ({ require2FA, onToggle2FA, siteType }) => (
+const StepSecurity = ({ require2FA, onToggle2FA, claraEnterprise, onToggleEnterprise, siteType }) => (
   <div>
-    <h2 className="text-2xl font-bold text-zinc-900 mb-1">Security settings</h2>
-    <p className="text-sm text-zinc-500 mb-6">Configure security policies for this environment.</p>
-    <div className="space-y-4">
-      <button
-        onClick={() => onToggle2FA(true)}
-        data-testid="2fa-enable"
-        className={`w-full flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-left ${
-          require2FA ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-400'
-        }`}
-      >
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${require2FA ? 'bg-emerald-500/15' : 'bg-zinc-100'}`}>
-          <Shield className={`w-6 h-6 ${require2FA ? 'text-emerald-600' : 'text-zinc-400'}`} />
+    <h2 className="text-xl font-bold text-zinc-900 mb-1">Security & Enterprise</h2>
+    <p className="text-sm text-zinc-500 mb-5">Configure security policies and enterprise features.</p>
+    <div className="space-y-3">
+      {/* 2FA Section */}
+      <div className="flex gap-3">
+        <button
+          onClick={() => onToggle2FA(true)}
+          data-testid="2fa-enable"
+          className={`flex-1 flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
+            require2FA ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-400'
+          }`}
+        >
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${require2FA ? 'bg-emerald-500/15' : 'bg-zinc-100'}`}>
+            <Shield className={`w-5 h-5 ${require2FA ? 'text-emerald-600' : 'text-zinc-400'}`} />
+          </div>
+          <div className="flex-1">
+            <span className="text-sm font-semibold text-zinc-900">Enforce 2FA</span>
+            <p className="text-[11px] text-zinc-500 mt-0.5">All users must enable 2FA</p>
+          </div>
+          {require2FA && <Check className="w-5 h-5 text-emerald-600" />}
+        </button>
+        <button
+          onClick={() => onToggle2FA(false)}
+          data-testid="2fa-disable"
+          className={`flex-1 flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
+            !require2FA ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-400'
+          }`}
+        >
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${!require2FA ? 'bg-amber-500/15' : 'bg-zinc-100'}`}>
+            <Lock className={`w-5 h-5 ${!require2FA ? 'text-amber-600' : 'text-zinc-400'}`} />
+          </div>
+          <div className="flex-1">
+            <span className="text-sm font-semibold text-zinc-900">Optional 2FA</span>
+            <p className="text-[11px] text-zinc-500 mt-0.5">Users choose on their own</p>
+          </div>
+          {!require2FA && <Check className="w-5 h-5 text-amber-600" />}
+        </button>
+      </div>
+
+      {/* Enterprise Section */}
+      <div className="pt-2">
+        <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Clara Enterprise</p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => onToggleEnterprise(true)}
+            data-testid="enterprise-enable"
+            className={`flex-1 flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
+              claraEnterprise ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-400'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${claraEnterprise ? 'bg-violet-500/15' : 'bg-zinc-100'}`}>
+              <Zap className={`w-5 h-5 ${claraEnterprise ? 'text-violet-600' : 'text-zinc-400'}`} />
+            </div>
+            <div className="flex-1">
+              <span className="text-sm font-semibold text-zinc-900">Enterprise Enabled</span>
+              <p className="text-[11px] text-zinc-500 mt-0.5">AI assistant, voice support, code review</p>
+            </div>
+            {claraEnterprise && <Check className="w-5 h-5 text-violet-600" />}
+          </button>
+          <button
+            onClick={() => onToggleEnterprise(false)}
+            data-testid="enterprise-disable"
+            className={`flex-1 flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
+              !claraEnterprise ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-400'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${!claraEnterprise ? 'bg-zinc-100' : 'bg-zinc-100'}`}>
+              <Lock className={`w-5 h-5 text-zinc-400`} />
+            </div>
+            <div className="flex-1">
+              <span className="text-sm font-semibold text-zinc-900">Standard</span>
+              <p className="text-[11px] text-zinc-500 mt-0.5">No enterprise features</p>
+            </div>
+            {!claraEnterprise && <Check className="w-5 h-5 text-zinc-600" />}
+          </button>
         </div>
-        <div className="flex-1">
-          <span className="text-base font-semibold text-zinc-900">Enforce 2FA</span>
-          <p className="text-xs text-zinc-500 mt-0.5">All users must set up two-factor authentication</p>
-        </div>
-        {require2FA && <Check className="w-5 h-5 text-emerald-600" />}
-      </button>
-      <button
-        onClick={() => onToggle2FA(false)}
-        data-testid="2fa-disable"
-        className={`w-full flex items-center gap-4 p-5 rounded-2xl border-2 transition-all text-left ${
-          !require2FA ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-400'
-        }`}
-      >
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${!require2FA ? 'bg-amber-500/15' : 'bg-zinc-100'}`}>
-          <Lock className={`w-6 h-6 ${!require2FA ? 'text-amber-600' : 'text-zinc-400'}`} />
-        </div>
-        <div className="flex-1">
-          <span className="text-base font-semibold text-zinc-900">Optional 2FA</span>
-          <p className="text-xs text-zinc-500 mt-0.5">Users can optionally enable 2FA on their own</p>
-        </div>
-        {!require2FA && <Check className="w-5 h-5 text-amber-600" />}
-      </button>
+      </div>
     </div>
   </div>
 );
@@ -432,6 +474,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   const [slug, setSlug] = useState('');
   const [adminId, setAdminId] = useState('');
   const [require2FA, setRequire2FA] = useState(false);
+  const [claraEnterprise, setClaraEnterprise] = useState(false);
   const [users, setUsers] = useState([]);
   const [deployStatus, setDeployStatus] = useState(0);
   const [deploying, setDeploying] = useState(false);
@@ -494,6 +537,8 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       name, slug, site_type: siteType,
       environment_id: envId,
       enabled_features: features,
+      require_2fa: require2FA,
+      clara_enterprise: claraEnterprise,
     };
     const apiPromise = fetch(`${API}/api/main-sites`, {
       method: 'POST',
@@ -544,7 +589,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
 
   const handleClose = () => {
     setStep(0); setSiteType('radio'); setName(''); setSlug('');
-    setAdminId(''); setRequire2FA(false); setDeployStatus(0);
+    setAdminId(''); setRequire2FA(false); setClaraEnterprise(false); setDeployStatus(0);
     setDeploying(false); setDeployDone(false); setDeployError(null);
     setSelectedOptionalFeatures([]);
     onClose();
@@ -599,7 +644,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
               {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
               {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
-              {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} siteType={siteType} />}
+              {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} />}
               {stepName === 'Deploying' && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}
             </motion.div>
           </AnimatePresence>
