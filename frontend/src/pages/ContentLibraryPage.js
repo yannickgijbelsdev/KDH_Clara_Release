@@ -199,41 +199,35 @@ const ContentLibraryPage = () => {
 
   return (
     <div data-testid="content-library-page">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Content Library</h1>
-          <p className="text-sm sm:text-base text-zinc-400">
-            {loading ? 'Loading...' : (
-              <>
-                {filteredContent.length === allContent.length 
-                  ? `${allContent.length} items` 
-                  : `${filteredContent.length} of ${allContent.length} items`}
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            data-testid="content-calendar-btn"
-            onClick={() => navigate(buildPath('/content/calendar'))}
-            variant="outline"
-            className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
-          >
-            <CalendarDays className="w-4 h-4" />
-            Calendar
-          </Button>
+      {/* Quick Action Bar */}
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <div className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4" data-testid="panel-content-count">
+          <div className="text-3xl font-bold text-zinc-900">{loading ? '–' : allContent.length}</div>
+          <div>
+            <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Content Library</div>
+            <div className="text-sm font-semibold text-zinc-700">
+              {loading ? 'Loading...' : (filteredContent.length === allContent.length ? 'Articles' : `${filteredContent.length} filtered`)}
+            </div>
+          </div>
           {isEditor && (
             <Button
               data-testid="create-content-btn"
               onClick={() => setIsCreateOpen(true)}
-              className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
+              className="ml-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-orange-500/20"
             >
-              <Plus className="w-5 h-5" />
-              New Content
+              <Plus className="w-3.5 h-3.5" /> New Article
             </Button>
           )}
         </div>
+        <Button
+          data-testid="content-calendar-btn"
+          onClick={() => navigate(buildPath('/content/calendar'))}
+          variant="outline"
+          className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 gap-2"
+        >
+          <CalendarDays className="w-4 h-4" />
+          Calendar
+        </Button>
       </div>
 
       {/* Search and Filters */}

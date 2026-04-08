@@ -366,22 +366,24 @@ const ShowsPage = () => {
 
   return (
     <div data-testid="shows-page">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1 sm:mb-2">Shows</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Plan and manage your radio shows</p>
+      {/* Quick Action Bar */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4" data-testid="panel-show-count">
+          <div className="text-3xl font-bold text-zinc-900">{loading ? '–' : shows.length}</div>
+          <div>
+            <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Shows</div>
+            <div className="text-sm font-semibold text-zinc-700">Radio shows</div>
+          </div>
+          {canCreateShows && (
+            <Button
+              data-testid="create-show-btn"
+              onClick={() => setIsCreateOpen(true)}
+              className="ml-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-orange-500/20"
+            >
+              <Plus className="w-3.5 h-3.5" /> New Show
+            </Button>
+          )}
         </div>
-        {canCreateShows && (
-          <Button
-            data-testid="create-show-btn"
-            onClick={() => setIsCreateOpen(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto"
-          >
-            <Plus className="w-5 h-5" />
-            New Show
-          </Button>
-        )}
       </div>
 
       {/* Filters */}

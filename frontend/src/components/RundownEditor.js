@@ -352,16 +352,24 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
     <div data-testid="rundown-editor" className="bg-white border border-zinc-200 rounded-xl p-6">
       <div className="sticky top-0 z-10 bg-zinc-100 pb-4 -mx-6 px-6 pt-0 border-b border-zinc-200/50 mb-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-violet-500/20 rounded-lg">
-              <ListOrdered className="w-5 h-5 text-violet-500" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-zinc-900">Rundown</h2>
-              <p className="text-sm text-zinc-500">
-                {items.length} items • {totalDuration} total
-                {hasEstimated && <span className="text-violet-400 ml-1">(incl. estimates)</span>}
-              </p>
+          <div className="flex items-center gap-4">
+            <div className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4" data-testid="panel-rundown-count">
+              <div className="text-3xl font-bold text-zinc-900">{items.length}</div>
+              <div>
+                <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Rundown</div>
+                <div className="text-sm font-semibold text-zinc-700">
+                  {totalDuration} total{hasEstimated && <span className="text-violet-400 ml-1">(est.)</span>}
+                </div>
+              </div>
+              {canEdit && (
+                <Button
+                  data-testid="add-rundown-item-btn"
+                  onClick={handleAddItem}
+                  className="ml-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-orange-500/20"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Item
+                </Button>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -383,16 +391,6 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
                   className="data-[state=checked]:bg-green-500"
                 />
               </div>
-            )}
-            {canEdit && (
-              <Button
-                data-testid="add-rundown-item-btn"
-                onClick={handleAddItem}
-                className="gap-2 bg-violet-500 hover:bg-violet-600 text-white btn-primary"
-              >
-                <Plus className="w-4 h-4" />
-                Add Item
-              </Button>
             )}
           </div>
         </div>
