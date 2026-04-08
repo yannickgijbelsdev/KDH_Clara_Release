@@ -163,25 +163,37 @@ export default function UserTicketsPanel({ open, onClose }) {
                 ) : (
                   tickets.map(t => {
                     const sc = STATUS_CONFIG[t.status] || STATUS_CONFIG.open;
+                    const isClosed = t.status === 'solved' || t.status === 'closed';
                     return (
-                      <button
+                      <div
                         key={t.id}
-                        onClick={() => setSelectedId(t.id)}
-                        className="w-full text-left px-4 py-3 border-b border-zinc-50 hover:bg-zinc-50 transition-all"
-                        data-testid={`user-ticket-${t.id}`}
+                        className="relative group"
                       >
-                        <div className="flex items-center gap-2.5">
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sc.color}`} />
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-sm truncate ${t.has_unread_user ? 'font-bold text-zinc-900' : 'font-medium text-zinc-600'}`}>{t.subject}</p>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${sc.bgColor} ${sc.textColor}`}>{sc.label}</span>
-                              <span className="text-[10px] text-zinc-300">{new Date(t.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                        <button
+                          onClick={() => setSelectedId(t.id)}
+                          className={`w-full text-left px-4 py-3 border-b border-zinc-50 transition-all ${isClosed ? 'opacity-40 grayscale' : 'hover:bg-zinc-50'}`}
+                          data-testid={`user-ticket-${t.id}`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sc.color}`} />
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm truncate ${isClosed ? 'text-zinc-400 font-medium' : t.has_unread_user ? 'font-bold text-zinc-900' : 'font-medium text-zinc-600'}`}>{t.subject}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${sc.bgColor} ${sc.textColor}`}>{sc.label}</span>
+                                <span className="text-[10px] text-zinc-300">{new Date(t.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                              </div>
                             </div>
+                            {!isClosed && t.has_unread_user && <div className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />}
                           </div>
-                          {t.has_unread_user && <div className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />}
-                        </div>
-                      </button>
+                        </button>
+                        {isClosed && (
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                            <span className="bg-zinc-900 text-white text-[10px] px-3 py-1.5 rounded-lg shadow-lg max-w-[280px] text-center leading-snug">
+                              This ticket is no longer available. If you have the same problem, please make a new ticket via the Clara Assistant.
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     );
                   })
                 )}
@@ -191,7 +203,9 @@ export default function UserTicketsPanel({ open, onClose }) {
             ) : (
               <>
                 {/* ── Messages ── */}
-                <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5" data-testid="user-messages">
+                {(() => { const isClosed = detail.status === 'solved' || detail.status === 'closed'; return (
+                <>
+                <div className={`flex-1 overflow-y-auto px-3 py-3 space-y-2.5 ${isClosed ? 'opacity-40 grayscale' : ''}`} data-testid="user-messages">
                   {detail.messages?.map(msg => {
                     const isOwn = msg.sender_id === user?.id;
                     if (msg.is_system) {
@@ -233,6 +247,13 @@ export default function UserTicketsPanel({ open, onClose }) {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {isClosed ? (
+                  /* ── Closed ticket notice ── */
+                  <div className="px-3 py-4 border-t border-zinc-100 text-center" data-testid="ticket-closed-notice">
+                    <p className="text-xs text-zinc-400 leading-relaxed">This ticket is no longer available. If you have the same problem, please make a new ticket via the Clara Assistant.</p>
+                  </div>
+                ) : (
+                <>
                 {/* Pending attachments */}
                 {pendingAttachments.length > 0 && (
                   <div className="px-3 pb-1 flex gap-1.5 flex-wrap">
@@ -281,6 +302,9 @@ export default function UserTicketsPanel({ open, onClose }) {
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                 </div>
+                </>
+                )}
+                </>); })()}
               </>
             )}
           </motion.div>
