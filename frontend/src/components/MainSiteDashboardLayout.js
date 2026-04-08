@@ -1063,6 +1063,31 @@ const MainSiteDashboardContent = () => {
             <Radio className="w-4 h-4" />
             <span className="hidden sm:inline">Clara</span>
           </button>
+
+          {/* Status Icons */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Clara Global Protect */}
+            <div className="relative group" data-testid="global-protect-icon">
+              <div className="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center cursor-default">
+                <Shield className="w-3.5 h-3.5 text-emerald-500" />
+              </div>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 bg-zinc-900 text-white text-[10px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                Clara Global Protect is active
+              </div>
+            </div>
+            {/* Clara Enterprise */}
+            {mainSite?.clara_enterprise && (
+              <div className="relative group" data-testid="enterprise-icon">
+                <div className="w-7 h-7 rounded-full bg-violet-500/15 flex items-center justify-center cursor-default">
+                  <Sparkles className="w-3.5 h-3.5 text-violet-500" />
+                </div>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 bg-zinc-900 text-white text-[10px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                  Clara Enterprise
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Support Ticket Icon */}
           <button
             onClick={() => setShowUserTickets(true)}
