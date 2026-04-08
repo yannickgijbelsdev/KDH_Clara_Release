@@ -106,7 +106,7 @@ export default function XmlDashboard() {
               key={s}
               onClick={() => { setStatusFilter(s); setPage(1); }}
               className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                statusFilter === s ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200 border border-zinc-300'
+                statusFilter === s ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 border border-zinc-200'
               }`}
               data-testid={`filter-${s || 'all'}`}
             >
@@ -116,7 +116,7 @@ export default function XmlDashboard() {
         </div>
         <button
           onClick={() => setSortOrder(o => o === 'desc' ? 'asc' : 'desc')}
-          className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-zinc-800 text-zinc-400 hover:bg-zinc-200 border border-zinc-300"
+          className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium bg-zinc-100 text-zinc-500 hover:bg-zinc-200 border border-zinc-200"
           data-testid="sort-toggle"
         >
           <ArrowUpDown className="w-3 h-3" />

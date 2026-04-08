@@ -221,7 +221,7 @@ const TrashPage = () => {
                   <div className="flex items-start gap-4 flex-1 min-w-0">
                     {/* Featured Image or Type Icon */}
                     {item.featured_image || item.external_featured_image ? (
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0 opacity-60">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-200 flex-shrink-0 opacity-60">
                         <img
                           src={
                             item.external_featured_image ||

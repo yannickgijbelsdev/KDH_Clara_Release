@@ -88,7 +88,7 @@ const statusLabels = {
 };
 
 const syncStatusConfig = {
-  not_synced: { icon: Clock, color: 'text-zinc-500', bgColor: 'bg-zinc-800', label: 'Not synced' },
+  not_synced: { icon: Clock, color: 'text-zinc-500', bgColor: 'bg-zinc-200', label: 'Not synced' },
   synced: { icon: CheckCircle, color: 'text-green-500', bgColor: 'bg-green-500/10', label: 'Synced' },
   scheduled: { icon: Calendar, color: 'text-orange-500', bgColor: 'bg-orange-500/10', label: 'Scheduled' },
   failed: { icon: AlertCircle, color: 'text-red-500', bgColor: 'bg-red-500/10', label: 'Failed' },
@@ -637,7 +637,7 @@ const ContentDetailPage = () => {
                 <div className="flex items-start gap-4">
                   {/* Featured Image Thumbnail */}
                   {image && (
-                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-200 flex-shrink-0">
                       <img
                         src={getImageUrl(image)}
                         alt="Featured"
@@ -777,7 +777,7 @@ const ContentDetailPage = () => {
                 data-testid="edit-title-input"
                 value={editData.title}
                 onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                className="bg-zinc-100 border-zinc-300 text-white"
+                className="bg-zinc-100 border-zinc-300 text-zinc-900"
               />
             </div>
 
@@ -822,7 +822,7 @@ const ContentDetailPage = () => {
                 <Input
                   value={editData.external_url}
                   onChange={(e) => setEditData({ ...editData, external_url: e.target.value })}
-                  className="bg-zinc-100 border-zinc-300 text-white"
+                  className="bg-zinc-100 border-zinc-300 text-zinc-900"
                 />
               </div>
             )}
@@ -848,7 +848,7 @@ const ContentDetailPage = () => {
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
                 <SelectContent className="bg-white border-zinc-200">
-                  <SelectItem value="none" className="text-zinc-500 focus:text-white focus:bg-zinc-800">
+                  <SelectItem value="none" className="text-zinc-500 focus:text-zinc-900 focus:bg-zinc-100">
                     No category
                   </SelectItem>
                   {categories.map((cat) => (

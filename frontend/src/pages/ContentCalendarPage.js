@@ -310,7 +310,7 @@ const ContentCalendarPage = () => {
                     onClick={() => setSelectedDate(day)}
                     className={`
                       aspect-square p-1 rounded-lg transition-all duration-200 relative
-                      ${isCurrentMonth ? 'bg-zinc-100' : 'bg-[#1a1a1c]'}
+                      ${isCurrentMonth ? 'bg-zinc-100' : 'bg-zinc-50'}
                       ${isSelected ? 'ring-2 ring-orange-500 bg-orange-500/10' : ''}
                       ${dayIsToday && !isSelected ? 'ring-2 ring-violet-500' : ''}
                       hover:bg-zinc-200
@@ -419,7 +419,7 @@ const ContentCalendarPage = () => {
                       <div className="flex gap-3">
                         {/* Featured Image */}
                         {entry.imageUrl && (
-                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-800">
+                          <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-200">
                             <img
                               src={entry.imageUrl}
                               alt=""

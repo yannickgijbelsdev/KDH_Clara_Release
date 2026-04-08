@@ -49,7 +49,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
       {stats.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {stats.map(s => (
-            <div key={s.member_id} className="bg-zinc-900 border border-zinc-200 rounded-xl p-4">
+            <div key={s.member_id} className="bg-white border border-zinc-200 rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Server className="w-4 h-4 text-zinc-400" />
@@ -97,7 +97,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
           <select
             value={filterMember}
             onChange={e => setFilterMember(e.target.value)}
-            className="bg-zinc-800 border border-zinc-300 rounded-lg px-2 py-1 text-sm text-white"
+            className="bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 text-sm text-zinc-900"
             data-testid="zt-history-filter"
           >
             <option value="">All clients</option>
@@ -122,7 +122,7 @@ export default function ZeroTierAlertHistory({ mainSiteId, token }) {
       ) : (
         <div className="relative pl-6 space-y-0">
           {/* Vertical line */}
-          <div className="absolute left-2.5 top-2 bottom-2 w-px bg-zinc-800" />
+          <div className="absolute left-2.5 top-2 bottom-2 w-px bg-zinc-200" />
 
           {events.map((evt, i) => {
             const isOffline = evt.new_status === 'offline';

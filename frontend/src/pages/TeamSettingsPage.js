@@ -616,7 +616,7 @@ const TeamSettingsPage = () => {
                         <SelectContent className="bg-white border-zinc-200">
                           {/* Show current role if not in available roles (legacy) */}
                           {!availableRoles.find(r => r.slug === member.role) && (
-                            <SelectItem value={member.role} className="text-zinc-500 focus:text-white focus:bg-zinc-800">
+                            <SelectItem value={member.role} className="text-zinc-500 focus:text-zinc-900 focus:bg-zinc-100">
                               <div className="flex items-center gap-2">
                                 <RoleIcon className="w-4 h-4" />
                                 {getRoleLabel(member.role)} (legacy)
@@ -697,7 +697,7 @@ const TeamSettingsPage = () => {
                             <ArrowLeftRight className="w-4 h-4 mr-2" />
                             Login as User
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-zinc-800" />
+                          <DropdownMenuSeparator className="bg-zinc-200" />
                           <DropdownMenuItem
                             onClick={() => {
                               setSelectedUser(member);

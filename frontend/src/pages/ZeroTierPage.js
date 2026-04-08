@@ -357,7 +357,7 @@ const ZeroTierPage = () => {
           <button
             onClick={() => setActiveTab('members')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'members' ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-zinc-600'
+              activeTab === 'members' ? 'bg-orange-600 text-white' : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
             }`}
             data-testid="zt-tab-members"
           >
@@ -366,7 +366,7 @@ const ZeroTierPage = () => {
           <button
             onClick={() => setActiveTab('history')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'history' ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:text-zinc-600'
+              activeTab === 'history' ? 'bg-orange-600 text-white' : 'text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100'
             }`}
             data-testid="zt-tab-history"
           >
@@ -522,7 +522,7 @@ const ZeroTierPage = () => {
                                 value={editNameValue}
                                 onChange={e => setEditNameValue(e.target.value)}
                                 onKeyDown={e => { if (e.key === 'Enter') handleRenameMember(member.id); if (e.key === 'Escape') setEditingName(null); }}
-                                className="h-7 text-sm bg-zinc-800 border-zinc-600 w-48"
+                                className="h-7 text-sm bg-zinc-50 border-zinc-200 w-48"
                                 autoFocus
                                 data-testid={`zt-rename-input-${member.id}`}
                               />
@@ -634,7 +634,7 @@ const ZeroTierPage = () => {
 
                     {/* Expanded member detail */}
                     {selectedMember?.id === member.id && (
-                      <div className="px-5 py-4 bg-zinc-800/30 border-t border-zinc-300/50">
+                      <div className="px-5 py-4 bg-zinc-100/50 border-t border-zinc-200">
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                           <div>
                             <span className="text-xs text-zinc-500 block">Node ID</span>

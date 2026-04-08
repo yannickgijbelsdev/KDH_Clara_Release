@@ -178,7 +178,7 @@ export default function SitesListPage() {
                         className="h-12 w-12 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="h-12 w-12 rounded-lg bg-zinc-800 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-lg bg-zinc-200 flex items-center justify-center">
                         <Globe className="h-6 w-6 text-zinc-500" />
                       </div>
                     )}
@@ -224,7 +224,7 @@ export default function SitesListPage() {
                 </div>
               </div>
 
-              <div className="px-6 py-3 bg-zinc-800/30 flex justify-between">
+              <div className="px-6 py-3 bg-zinc-100 flex justify-between">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -262,7 +262,7 @@ export default function SitesListPage() {
                 value={newSite.name}
                 onChange={(e) => setNewSite(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="My Radio Page"
-                className="bg-zinc-800 border-zinc-300"
+                className="bg-zinc-50 border-zinc-200"
               />
             </div>
             
@@ -279,7 +279,7 @@ export default function SitesListPage() {
                     slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') 
                   }))}
                   placeholder="my-page"
-                  className="bg-zinc-800 border-zinc-300"
+                  className="bg-zinc-50 border-zinc-200"
                 />
               </div>
             </div>

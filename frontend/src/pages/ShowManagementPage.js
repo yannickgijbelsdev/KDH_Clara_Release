@@ -425,7 +425,7 @@ const ShowManagementPage = () => {
                         )}
                       </div>
                       <div>
-                        <p className="text-white font-medium text-lg">{title.name}</p>
+                        <p className="text-zinc-900 font-medium text-lg">{title.name}</p>
                         <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500">
                           {title.description && (
                             <span className="truncate max-w-[300px]">{title.description}</span>
@@ -549,7 +549,7 @@ const ShowManagementPage = () => {
                         <Building2 className="w-6 h-6 text-violet-500" />
                       </div>
                       <div>
-                        <p className="text-white font-medium text-lg">{studio.name}</p>
+                        <p className="text-zinc-900 font-medium text-lg">{studio.name}</p>
                         {studio.description && (
                           <p className="text-sm text-zinc-500">{studio.description}</p>
                         )}

@@ -409,7 +409,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
                 </div>
               ))}
               {members.length > 8 && (
-                <div className="w-6 h-6 rounded-full border-2 border-[#18181b] bg-zinc-800 flex items-center justify-center text-[9px] text-zinc-400">+{members.length - 8}</div>
+                <div className="w-6 h-6 rounded-full border-2 border-zinc-300 bg-zinc-200 flex items-center justify-center text-[9px] text-zinc-500">+{members.length - 8}</div>
               )}
             </div>
             {canEdit && (
@@ -473,7 +473,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-zinc-800/50 rounded-lg animate-pulse" />
+            <div key={i} className="h-16 bg-zinc-200/50 rounded-lg animate-pulse" />
           ))}
         </div>
       ) : items.length === 0 ? (
@@ -487,7 +487,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
             <Button
               onClick={handleAddItem}
               variant="outline"
-              className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-800 hover:text-white"
+              className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add First Item
@@ -550,7 +550,7 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
               const isPresenter = presenters.some(p => p.id === u.id);
               return (
                 <div key={u.id} onClick={() => toggleMember(u.id)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isMember ? 'bg-violet-500/10 border border-violet-500/30' : 'hover:bg-zinc-800 border border-transparent'}`}>
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${isMember ? 'bg-violet-500/10 border border-violet-500/30' : 'hover:bg-zinc-100 border border-transparent'}`}>
                   <div className="w-7 h-7 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-900 overflow-hidden">
                     {getAvatarUrl(u) ? <img src={getAvatarUrl(u)} alt="" className="w-full h-full object-cover" /> : u.name?.charAt(0).toUpperCase()}
                   </div>

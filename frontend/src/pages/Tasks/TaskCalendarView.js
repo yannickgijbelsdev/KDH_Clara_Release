@@ -99,7 +99,7 @@ function MonthView({ year, month, tasksByDate, onTaskClick }) {
         return (
           <div
             key={i}
-            className={`min-h-[100px] border-b border-r border-zinc-200 p-1.5 ${outside ? 'bg-zinc-900/30' : 'bg-zinc-900/70'}`}
+            className={`min-h-[100px] border-b border-r border-zinc-200 p-1.5 ${outside ? 'bg-zinc-50' : 'bg-white'}`}
           >
             <div className={`text-xs font-medium mb-1 ${isToday ? 'text-orange-400' : outside ? 'text-zinc-600' : 'text-zinc-400'}`}>
               {isToday ? (

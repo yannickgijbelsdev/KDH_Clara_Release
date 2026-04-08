@@ -89,7 +89,7 @@ export default function XmlUpload() {
           {uploading ? (
             <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
           ) : (
-            <div className="p-4 rounded-full bg-zinc-800 border border-zinc-300">
+            <div className="p-4 rounded-full bg-zinc-200 border border-zinc-300">
               <Upload className={`w-8 h-8 ${isDragging ? 'text-orange-500' : 'text-zinc-500'}`} />
             </div>
           )}

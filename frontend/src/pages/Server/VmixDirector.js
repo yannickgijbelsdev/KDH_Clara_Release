@@ -92,7 +92,7 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
       <div className="flex gap-1">
         {BG_TYPES.map(t => (
           <button key={t.id} onClick={() => setConfig(p => ({ ...p, [`${prefix}_bg_type`]: t.id }))}
-            className={`px-2 py-1 rounded text-[10px] transition-colors ${bgType === t.id ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200'}`}>
+            className={`px-2 py-1 rounded text-[10px] transition-colors ${bgType === t.id ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'}`}>
             {t.label}
           </button>
         ))}
@@ -103,7 +103,7 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
           <label className="text-[10px] text-zinc-500 uppercase">Color</label>
           <Input type="color" value={toHex6(config[`${prefix}_bg_color`])}
             onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_color`]: e.target.value }))}
-            className="h-8 bg-zinc-800 border-zinc-300" />
+            className="h-8 bg-zinc-50 border-zinc-200" />
         </div>
       )}
 
@@ -114,13 +114,13 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
               <label className="text-[10px] text-zinc-500 uppercase">Start</label>
               <Input type="color" value={config[`${prefix}_bg_gradient_start`] || '#000000'}
                 onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_gradient_start`]: e.target.value }))}
-                className="h-8 bg-zinc-800 border-zinc-300" />
+                className="h-8 bg-zinc-50 border-zinc-200" />
             </div>
             <div>
               <label className="text-[10px] text-zinc-500 uppercase">End</label>
               <Input type="color" value={config[`${prefix}_bg_gradient_end`] || '#333333'}
                 onChange={e => setConfig(p => ({ ...p, [`${prefix}_bg_gradient_end`]: e.target.value }))}
-                className="h-8 bg-zinc-800 border-zinc-300" />
+                className="h-8 bg-zinc-50 border-zinc-200" />
             </div>
           </div>
           <div>
@@ -136,12 +136,12 @@ function BgEditor({ config, setConfig, prefix, uploadBgImage }) {
       {bgType === 'image' && (
         <div className="space-y-2">
           {config[`${prefix}_bg_image_url`] && (
-            <div className="h-12 rounded bg-zinc-800 overflow-hidden">
+            <div className="h-12 rounded bg-zinc-200 overflow-hidden">
               <img src={config[`${prefix}_bg_image_url`]?.startsWith('http') ? config[`${prefix}_bg_image_url`] : `${BASE}${config[`${prefix}_bg_image_url`]}`}
                 alt="" className="w-full h-full object-cover" />
             </div>
           )}
-          <Input type="file" accept="image/*" className="h-8 text-xs bg-zinc-800 border-zinc-300"
+          <Input type="file" accept="image/*" className="h-8 text-xs bg-zinc-50 border-zinc-200"
             onChange={e => { if (e.target.files[0]) uploadBgImage(e.target.files[0], prefix); }} />
           <p className="text-[10px] text-zinc-500">Max 10MB. Use high-res for best quality.</p>
         </div>
@@ -545,7 +545,7 @@ export default function VmixDirector() {
                     key={el.id}
                     data-testid={`vmix-el-toggle-${el.id}`}
                     onClick={() => setActiveElement(el.id)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${activeElement === el.id ? 'bg-orange-500/15 border border-orange-500/25' : 'bg-zinc-800/30 border border-transparent hover:bg-zinc-100/60'}`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${activeElement === el.id ? 'bg-orange-500/15 border border-orange-500/25' : 'bg-zinc-100/30 border border-transparent hover:bg-zinc-100/60'}`}
                   >
                     <Icon className="w-4 h-4 flex-shrink-0" style={{ color: meta?.color }} />
                     <span className="text-sm text-zinc-200 flex-1">{meta?.label}</span>
@@ -576,25 +576,25 @@ export default function VmixDirector() {
                     <label className="text-[10px] text-zinc-500 uppercase">X Position (%)</label>
                     <Input type="number" min={0} max={100} value={Math.round(activeEl.x)}
                       onChange={e => updateElement(activeEl.id, { x: parseFloat(e.target.value) || 0 })}
-                      className="h-8 text-xs bg-zinc-800 border-zinc-300" />
+                      className="h-8 text-xs bg-zinc-50 border-zinc-200" />
                   </div>
                   <div>
                     <label className="text-[10px] text-zinc-500 uppercase">Y Position (%)</label>
                     <Input type="number" min={0} max={100} value={Math.round(activeEl.y)}
                       onChange={e => updateElement(activeEl.id, { y: parseFloat(e.target.value) || 0 })}
-                      className="h-8 text-xs bg-zinc-800 border-zinc-300" />
+                      className="h-8 text-xs bg-zinc-50 border-zinc-200" />
                   </div>
                   <div>
                     <label className="text-[10px] text-zinc-500 uppercase">Width (%)</label>
                     <Input type="number" min={1} max={100} value={Math.round(activeEl.width)}
                       onChange={e => updateElement(activeEl.id, { width: parseFloat(e.target.value) || 1 })}
-                      className="h-8 text-xs bg-zinc-800 border-zinc-300" />
+                      className="h-8 text-xs bg-zinc-50 border-zinc-200" />
                   </div>
                   <div>
                     <label className="text-[10px] text-zinc-500 uppercase">Height (%)</label>
                     <Input type="number" min={1} max={100} value={Math.round(activeEl.height)}
                       onChange={e => updateElement(activeEl.id, { height: parseFloat(e.target.value) || 1 })}
-                      className="h-8 text-xs bg-zinc-800 border-zinc-300" />
+                      className="h-8 text-xs bg-zinc-50 border-zinc-200" />
                   </div>
                 </div>
 
@@ -607,7 +607,7 @@ export default function VmixDirector() {
                         <img src={config.logo_url.startsWith('http') ? config.logo_url : `${BASE}${config.logo_url}`} alt="" className="max-w-full max-h-full object-contain" />
                       </div>
                     )}
-                    <Input data-testid="vmix-logo-upload" type="file" accept="image/*" className="h-8 text-xs bg-zinc-800 border-zinc-300"
+                    <Input data-testid="vmix-logo-upload" type="file" accept="image/*" className="h-8 text-xs bg-zinc-50 border-zinc-200"
                       onChange={e => { if (e.target.files[0]) uploadLogo(e.target.files[0]); }} />
                   </div>
                 )}
@@ -625,13 +625,13 @@ export default function VmixDirector() {
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
                       <Input type="color" value={config.clock_text_color} onChange={e => setConfig(p => ({ ...p, clock_text_color: e.target.value }))}
-                        className="h-8 bg-zinc-800 border-zinc-300" />
+                        className="h-8 bg-zinc-50 border-zinc-200" />
                     </div>
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Font Size (px)</label>
                       <Input type="number" min={12} max={120} value={config.clock_font_size}
                         onChange={e => setConfig(p => ({ ...p, clock_font_size: parseInt(e.target.value) || 48 }))}
-                        className="h-8 text-xs bg-zinc-800 border-zinc-300" />
+                        className="h-8 text-xs bg-zinc-50 border-zinc-200" />
                     </div>
                     <BgEditor config={config} setConfig={setConfig} prefix="clock" uploadBgImage={uploadBgImage} />
                   </div>
@@ -653,7 +653,7 @@ export default function VmixDirector() {
                       <div className="flex gap-1 mt-1">
                         {SEPARATORS.map(s => (
                           <button key={s.id} onClick={() => setConfig(p => ({ ...p, ticker_separator: s.id }))}
-                            className={`px-2 py-1 rounded text-xs ${config.ticker_separator === s.id ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200'}`}>
+                            className={`px-2 py-1 rounded text-xs ${config.ticker_separator === s.id ? 'bg-orange-500 text-white' : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'}`}>
                             {s.preview}
                           </button>
                         ))}
@@ -661,19 +661,19 @@ export default function VmixDirector() {
                       {config.ticker_separator === 'custom' && (
                         <Input value={config.ticker_custom_separator} placeholder="Custom separator"
                           onChange={e => setConfig(p => ({ ...p, ticker_custom_separator: e.target.value }))}
-                          className="h-8 text-xs bg-zinc-800 border-zinc-300 mt-1" />
+                          className="h-8 text-xs bg-zinc-50 border-zinc-200 mt-1" />
                       )}
                     </div>
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Text Color</label>
                       <Input type="color" value={toHex6(config.ticker_text_color)} onChange={e => setConfig(p => ({ ...p, ticker_text_color: e.target.value }))}
-                        className="h-8 bg-zinc-800 border-zinc-300" />
+                        className="h-8 bg-zinc-50 border-zinc-200" />
                     </div>
                     <div>
                       <label className="text-[10px] text-zinc-500 uppercase">Font Size (px)</label>
                       <Input type="number" min={10} max={60} value={config.ticker_font_size}
                         onChange={e => setConfig(p => ({ ...p, ticker_font_size: parseInt(e.target.value) || 24 }))}
-                        className="h-8 text-xs bg-zinc-800 border-zinc-300" />
+                        className="h-8 text-xs bg-zinc-50 border-zinc-200" />
                     </div>
                     <BgEditor config={config} setConfig={setConfig} prefix="ticker" uploadBgImage={uploadBgImage} />
                   </div>
@@ -711,7 +711,7 @@ export default function VmixDirector() {
                           ...p,
                           [activeEl.type === 'now_playing_show' ? 'now_playing_show_text_color' : 'now_playing_track_text_color']: e.target.value
                         }))}
-                        className="h-8 bg-zinc-800 border-zinc-300" />
+                        className="h-8 bg-zinc-50 border-zinc-200" />
                     </div>
                     <BgEditor config={config} setConfig={setConfig} prefix={activeEl.type} uploadBgImage={uploadBgImage} />
                   </div>
@@ -730,7 +730,7 @@ export default function VmixDirector() {
                 <p className="text-xs text-zinc-500 text-center py-3">No messages yet</p>
               )}
               {messages.map(msg => (
-                <div key={msg.id} className="flex items-center gap-2 bg-zinc-800/40 rounded-lg px-3 py-2">
+                <div key={msg.id} className="flex items-center gap-2 bg-zinc-100/40 rounded-lg px-3 py-2">
                   <button onClick={() => toggleMessage(msg)} className={`w-2 h-2 rounded-full flex-shrink-0 ${msg.active ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
                   <span className={`text-xs flex-1 truncate ${msg.active ? 'text-zinc-200' : 'text-zinc-500 line-through'}`}>{msg.text}</span>
                   <button onClick={() => deleteMessage(msg.id)} className="text-zinc-500 hover:text-red-400">
@@ -741,7 +741,7 @@ export default function VmixDirector() {
             </div>
             <div className="flex gap-2">
               <Input data-testid="vmix-new-message" value={newMessage} onChange={e => setNewMessage(e.target.value)}
-                placeholder="New ticker message..." className="h-8 text-xs bg-zinc-800 border-zinc-300 flex-1"
+                placeholder="New ticker message..." className="h-8 text-xs bg-zinc-50 border-zinc-200 flex-1"
                 onKeyDown={e => { if (e.key === 'Enter') addMessage(); }} />
               <Button data-testid="vmix-add-message" size="sm" onClick={addMessage} className="h-8 bg-orange-500 hover:bg-orange-600">
                 <Plus className="w-4 h-4" />

@@ -93,7 +93,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
                 type="time"
                 value={window.start_time}
                 onChange={(e) => updateWindow(index, 'start_time', e.target.value)}
-                className="w-24 h-8 bg-zinc-900 border-zinc-300 text-sm"
+                className="w-24 h-8 bg-zinc-50 border-zinc-200 text-sm"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ const TimeWindowEditor = ({ windows, onChange }) => {
                 type="time"
                 value={window.end_time}
                 onChange={(e) => updateWindow(index, 'end_time', e.target.value)}
-                className="w-24 h-8 bg-zinc-900 border-zinc-300 text-sm"
+                className="w-24 h-8 bg-zinc-50 border-zinc-200 text-sm"
               />
             </div>
             <Button
@@ -344,7 +344,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Commercial Break MFY"
-                className="bg-zinc-900 border-zinc-300"
+                className="bg-zinc-50 border-zinc-200"
               />
             </div>
             <div className="space-y-2">
@@ -353,10 +353,10 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                 value={formData.station}
                 onValueChange={(v) => setFormData({ ...formData, station: v })}
               >
-                <SelectTrigger className="bg-zinc-900 border-zinc-300">
+                <SelectTrigger className="bg-zinc-50 border-zinc-200">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-300">
+                <SelectContent className="bg-zinc-50 border-zinc-200">
                   <SelectItem value="mfy">Radio MFY</SelectItem>
                   <SelectItem value="grk">Radio GRK</SelectItem>
                   <SelectItem value="both">Both Stations</SelectItem>
@@ -421,10 +421,10 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                 value={formData.in_action_type}
                 onValueChange={(v) => setFormData({ ...formData, in_action_type: v })}
               >
-                <SelectTrigger className="bg-zinc-900 border-zinc-300">
+                <SelectTrigger className="bg-zinc-50 border-zinc-200">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-300">
+                <SelectContent className="bg-zinc-50 border-zinc-200">
                   <SelectItem value="custom_text">Show Custom Text</SelectItem>
                   <SelectItem value="show_name">Show Program Name</SelectItem>
                 </SelectContent>
@@ -434,7 +434,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                   value={formData.in_action_text}
                   onChange={(e) => setFormData({ ...formData, in_action_text: e.target.value })}
                   placeholder="e.g., Reclame"
-                  className="bg-zinc-900 border-zinc-300"
+                  className="bg-zinc-50 border-zinc-200"
                 />
               )}
             </div>
@@ -444,10 +444,10 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                 value={formData.out_action_type}
                 onValueChange={(v) => setFormData({ ...formData, out_action_type: v })}
               >
-                <SelectTrigger className="bg-zinc-900 border-zinc-300">
+                <SelectTrigger className="bg-zinc-50 border-zinc-200">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-zinc-300">
+                <SelectContent className="bg-zinc-50 border-zinc-200">
                   <SelectItem value="now_playing">Resume Now Playing</SelectItem>
                   <SelectItem value="show_name">Show Program Name</SelectItem>
                   <SelectItem value="custom_text">Show Custom Text</SelectItem>
@@ -458,7 +458,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                   value={formData.out_action_text}
                   onChange={(e) => setFormData({ ...formData, out_action_text: e.target.value })}
                   placeholder="Custom text..."
-                  className="bg-zinc-900 border-zinc-300"
+                  className="bg-zinc-50 border-zinc-200"
                 />
               )}
             </div>
@@ -474,7 +474,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                 max="30"
                 value={formData.timeout_minutes}
                 onChange={(e) => setFormData({ ...formData, timeout_minutes: parseInt(e.target.value) || 5 })}
-                className="bg-zinc-900 border-zinc-300"
+                className="bg-zinc-50 border-zinc-200"
               />
               <p className="text-xs text-zinc-500">Auto-deactivate if no OUT sound detected</p>
             </div>
@@ -820,7 +820,7 @@ const AudioTriggersPage = () => {
             ) : (
               <div className="max-h-64 overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-zinc-800 sticky top-0">
+                  <thead className="bg-zinc-100 sticky top-0">
                     <tr>
                       <th className="px-4 py-2 text-left text-zinc-400">Time</th>
                       <th className="px-4 py-2 text-left text-zinc-400">Trigger</th>

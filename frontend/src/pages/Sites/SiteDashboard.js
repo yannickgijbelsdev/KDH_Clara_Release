@@ -407,7 +407,7 @@ export default function SiteDashboard() {
                   value={site.name || ''}
                   onChange={(e) => setSite(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="My Radio Page"
-                  className="bg-zinc-800 border-zinc-300"
+                  className="bg-zinc-50 border-zinc-200"
                 />
               </div>
 
@@ -421,7 +421,7 @@ export default function SiteDashboard() {
                     value={site.slug || ''}
                     onChange={(e) => setSite(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') }))}
                     placeholder="my-page"
-                    className="bg-zinc-800 border-zinc-300"
+                    className="bg-zinc-50 border-zinc-200"
                   />
                 </div>
               </div>
@@ -443,7 +443,7 @@ export default function SiteDashboard() {
                       onChange={handleLogoUpload}
                       className="hidden"
                     />
-                    <div className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-200 rounded-lg transition">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition">
                       <Upload className="h-4 w-4" />
                       <span>Upload logo</span>
                     </div>
@@ -507,7 +507,7 @@ export default function SiteDashboard() {
                       value={site.password || ''}
                       onChange={(e) => setSite(prev => ({ ...prev, password: e.target.value }))}
                       placeholder="Set new password"
-                      className="bg-zinc-800 border-zinc-300 pr-10"
+                      className="bg-zinc-50 border-zinc-200 pr-10"
                     />
                     <button
                       type="button"
@@ -562,7 +562,7 @@ export default function SiteDashboard() {
                   onChange={handleHeaderImageUpload}
                   className="hidden"
                 />
-                <div className="flex items-center gap-2 px-4 py-3 bg-zinc-800 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-600">
+                <div className="flex items-center gap-2 px-4 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-300">
                   <Upload className="h-4 w-4" />
                   <span>{site.header_image_url ? 'Upload different image' : 'Upload header image'}</span>
                 </div>
@@ -621,7 +621,7 @@ export default function SiteDashboard() {
                       value={site.audio_url || ''}
                       onChange={(e) => setSite(prev => ({ ...prev, audio_url: e.target.value }))}
                       placeholder="https://stream.example.com/live.mp3"
-                      className="bg-zinc-800 border-zinc-300"
+                      className="bg-zinc-50 border-zinc-200"
                     />
                     <div className="flex gap-4">
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -656,7 +656,7 @@ export default function SiteDashboard() {
                         onChange={handleAudioUpload}
                         className="hidden"
                       />
-                      <div className="flex items-center gap-2 px-4 py-3 bg-zinc-800 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-600">
+                      <div className="flex items-center gap-2 px-4 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-300">
                         <Upload className="h-4 w-4" />
                         <span>{site.audio_url ? 'Upload different file' : 'Upload MP3 or AAC'}</span>
                       </div>
@@ -726,7 +726,7 @@ export default function SiteDashboard() {
                       site.video_type === 'hls' ? 'https://stream.example.com/live.m3u8' :
                       'Video URL'
                     }
-                    className="bg-zinc-800 border-zinc-300"
+                    className="bg-zinc-50 border-zinc-200"
                   />
                 </div>
               </div>
@@ -767,7 +767,7 @@ export default function SiteDashboard() {
                         <Input
                           value={field.label}
                           onChange={(e) => updateFormField(field.id, { label: e.target.value })}
-                          className="bg-zinc-800 border-zinc-300 flex-1"
+                          className="bg-zinc-50 border-zinc-200 flex-1"
                           placeholder="Field name"
                         />
                         <select
@@ -829,9 +829,9 @@ export default function SiteDashboard() {
                       {field.type === 'number' && (
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-zinc-400">Min:</span>
-                          <Input type="number" value={field.min_value ?? ''} onChange={(e) => updateFormField(field.id, { min_value: e.target.value ? parseFloat(e.target.value) : null })} className="bg-zinc-800 border-zinc-300 h-8 text-xs w-24" />
+                          <Input type="number" value={field.min_value ?? ''} onChange={(e) => updateFormField(field.id, { min_value: e.target.value ? parseFloat(e.target.value) : null })} className="bg-zinc-50 border-zinc-200 h-8 text-xs w-24" />
                           <span className="text-xs text-zinc-400">Max:</span>
-                          <Input type="number" value={field.max_value ?? ''} onChange={(e) => updateFormField(field.id, { max_value: e.target.value ? parseFloat(e.target.value) : null })} className="bg-zinc-800 border-zinc-300 h-8 text-xs w-24" />
+                          <Input type="number" value={field.max_value ?? ''} onChange={(e) => updateFormField(field.id, { max_value: e.target.value ? parseFloat(e.target.value) : null })} className="bg-zinc-50 border-zinc-200 h-8 text-xs w-24" />
                         </div>
                       )}
                       {field.type === 'select' && (
@@ -903,7 +903,7 @@ export default function SiteDashboard() {
                     value={site.button_color || '#f97316'}
                     onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
                     placeholder="#f97316"
-                    className="bg-zinc-800 border-zinc-300 w-32"
+                    className="bg-zinc-50 border-zinc-200 w-32"
                   />
                   <Button
                     variant="ghost"
@@ -930,7 +930,7 @@ export default function SiteDashboard() {
                     value={site.background_color || '#09090b'}
                     onChange={(e) => setSite(prev => ({ ...prev, background_color: e.target.value }))}
                     placeholder="#09090b"
-                    className="bg-zinc-800 border-zinc-300 w-32"
+                    className="bg-zinc-50 border-zinc-200 w-32"
                   />
                   <Button
                     variant="ghost"
@@ -957,7 +957,7 @@ export default function SiteDashboard() {
                     value={site.container_color || '#18181b'}
                     onChange={(e) => setSite(prev => ({ ...prev, container_color: e.target.value }))}
                     placeholder="#18181b"
-                    className="bg-zinc-800 border-zinc-300 w-32"
+                    className="bg-zinc-50 border-zinc-200 w-32"
                   />
                   <Button
                     variant="ghost"
@@ -1134,7 +1134,7 @@ export default function SiteDashboard() {
                 <div className="flex gap-2 mt-2">
                   <select
                     id="add-user-select"
-                    className="flex-1 bg-zinc-800 border border-zinc-300 rounded-md px-3 py-2"
+                    className="flex-1 bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2"
                   >
                     <option value="">Select user...</option>
                     {teamUsers
@@ -1147,7 +1147,7 @@ export default function SiteDashboard() {
                   </select>
                   <select
                     id="add-user-role"
-                    className="bg-zinc-800 border border-zinc-300 rounded-md px-3 py-2"
+                    className="bg-zinc-50 border border-zinc-200 rounded-md px-3 py-2"
                     defaultValue="viewer"
                   >
                     <option value="viewer">View only</option>

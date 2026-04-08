@@ -533,7 +533,7 @@ const RDSSettingsPage = () => {
                         type="checkbox"
                         checked={filter.whole_word || false}
                         onChange={(e) => updateFilter('mfy', idx, 'whole_word', e.target.checked)}
-                        className="w-3 h-3 rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                        className="w-3 h-3 rounded border-zinc-300 bg-zinc-100 text-orange-500 focus:ring-orange-500"
                       />
                       <span>Heel woord</span>
                       <span className="text-zinc-600">(voorkomt "Swift" → "Swi&")</span>
@@ -643,7 +643,7 @@ const RDSSettingsPage = () => {
                         type="checkbox"
                         checked={filter.whole_word || false}
                         onChange={(e) => updateFilter('grk', idx, 'whole_word', e.target.checked)}
-                        className="w-3 h-3 rounded border-zinc-600 bg-zinc-800 text-violet-500 focus:ring-violet-500"
+                        className="w-3 h-3 rounded border-zinc-300 bg-zinc-100 text-violet-500 focus:ring-violet-500"
                       />
                       <span>Heel woord</span>
                       <span className="text-zinc-600">(voorkomt "Swift" → "Swi&")</span>

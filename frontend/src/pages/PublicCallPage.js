@@ -245,7 +245,7 @@ export default function PublicCallPage() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-4 py-3 text-sm"
+                className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-3 text-sm"
                 data-testid="caller-name-input"
               />
             </div>
@@ -307,7 +307,7 @@ export default function PublicCallPage() {
           <button
             onClick={toggleMute}
             className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${
-              isMuted ? 'bg-red-500/20 text-red-400' : 'bg-zinc-800 text-zinc-600 hover:bg-zinc-200'
+              isMuted ? 'bg-red-500/20 text-red-400' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
             }`}
             data-testid="caller-mute-btn"
           >

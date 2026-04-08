@@ -883,7 +883,7 @@ const ChatPage = () => {
                         </DropdownMenuItem>
                         {getUserRole() === 'owner' && (
                           <>
-                            <DropdownMenuSeparator className="bg-zinc-800" />
+                            <DropdownMenuSeparator className="bg-zinc-200" />
                             <DropdownMenuItem 
                               onClick={() => setShowDeleteDialog(true)}
                               className="text-red-400 focus:text-red-300 focus:bg-red-500/10"
@@ -967,7 +967,7 @@ const ChatPage = () => {
                                   onClick={() => handleDeleteMessage(message.id)}
                                   className={cn(
                                     'absolute top-1 opacity-0 group-hover:opacity-100 transition-opacity',
-                                    'p-1 rounded-full bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400',
+                                    'p-1 rounded-full bg-zinc-200 hover:bg-red-500/20 text-zinc-400 hover:text-red-400',
                                     message.user_id === user?.id ? 'right-full mr-1' : 'left-full ml-1'
                                   )}
                                   title="Delete message"
@@ -996,7 +996,7 @@ const ChatPage = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowEmojiPicker(false)}
-                          className="absolute -top-2 -right-2 z-10 h-6 w-6 p-0 rounded-full bg-zinc-800 hover:bg-zinc-200 border border-zinc-600"
+                          className="absolute -top-2 -right-2 z-10 h-6 w-6 p-0 rounded-full bg-zinc-200 hover:bg-zinc-300 border border-zinc-300"
                         >
                           <X className="w-3 h-3" />
                         </Button>
@@ -1258,7 +1258,7 @@ const ChatPage = () => {
                               value={memberRole}
                               onValueChange={(value) => handleManageMember('set_role', member.id, value)}
                             >
-                              <SelectTrigger className="w-24 h-8 bg-zinc-800 border-zinc-300 text-xs">
+                              <SelectTrigger className="w-24 h-8 bg-zinc-50 border-zinc-200 text-xs">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-white border-zinc-200">

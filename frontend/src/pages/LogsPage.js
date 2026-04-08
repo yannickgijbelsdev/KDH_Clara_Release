@@ -422,7 +422,7 @@ const LogsPage = () => {
                       ${isSelected 
                         ? 'bg-orange-500 text-white' 
                         : hasLogs 
-                          ? 'bg-zinc-900 text-white hover:bg-zinc-200' 
+                          ? 'bg-zinc-200 text-zinc-900 hover:bg-zinc-300' 
                           : 'text-zinc-600 cursor-not-allowed'
                       }
                       ${isToday(day) && !isSelected ? 'ring-2 ring-orange-500/50' : ''}

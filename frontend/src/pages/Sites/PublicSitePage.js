@@ -333,7 +333,7 @@ export default function PublicSitePage() {
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
               placeholder="Wachtwoord"
-              className="bg-zinc-800 border-transparent mb-4"
+              className="bg-zinc-50 border-zinc-200 mb-4"
             />
             <Button type="submit" className="w-full text-white hover:opacity-90" style={{ backgroundColor: buttonColor }}>
               Toegang krijgen
@@ -499,7 +499,7 @@ export default function PublicSitePage() {
                         value={formData[field.id] || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
-                        className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-white text-sm"
+                        className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 text-sm"
                       >
                         <option value="">{field.placeholder || 'Select...'}</option>
                         {(field.options || []).map(opt => (
@@ -512,7 +512,7 @@ export default function PublicSitePage() {
                         value={formData[field.id] || ''}
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
-                        className="bg-zinc-800 border-transparent text-sm [color-scheme:dark]"
+                        className="bg-zinc-50 border-zinc-200 text-sm [color-scheme:dark]"
                       />
                     ) : field.type === 'number' ? (
                       <Input
@@ -523,7 +523,7 @@ export default function PublicSitePage() {
                         min={field.min_value ?? undefined}
                         max={field.max_value ?? undefined}
                         placeholder={field.placeholder || ''}
-                        className="bg-zinc-800 border-transparent text-sm"
+                        className="bg-zinc-50 border-zinc-200 text-sm"
                       />
                     ) : field.type === 'letters' ? (
                       <Input
@@ -535,7 +535,7 @@ export default function PublicSitePage() {
                         }}
                         required={field.required}
                         placeholder={field.placeholder || 'Letters only'}
-                        className="bg-zinc-800 border-transparent text-sm"
+                        className="bg-zinc-50 border-zinc-200 text-sm"
                       />
                     ) : field.type === 'file' ? (
                       <div className="space-y-2">
@@ -553,7 +553,7 @@ export default function PublicSitePage() {
                               accept={field.file_accept === 'image' ? 'image/*' : field.file_accept === 'audio' ? 'audio/*' : field.file_accept === 'video' ? 'video/*' : 'image/*,audio/*,video/*'}
                               onChange={(e) => handleFieldFileUpload(field.id, e)}
                               className="hidden" disabled={uploading} />
-                            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-300/50 text-sm text-zinc-400">
+                            <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-200 text-sm text-zinc-500">
                               <Upload className="h-4 w-4" />
                               {uploading ? 'Uploading...' : `Upload ${field.file_accept === 'all' ? 'file' : field.file_accept || 'file'}`}
                             </div>
@@ -567,7 +567,7 @@ export default function PublicSitePage() {
                         onChange={(e) => setFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
                         required={field.required}
                         placeholder={field.placeholder || ''}
-                        className="bg-zinc-800 border-transparent text-sm"
+                        className="bg-zinc-50 border-zinc-200 text-sm"
                       />
                     )}
                   </div>
@@ -616,7 +616,7 @@ export default function PublicSitePage() {
                           className="hidden"
                           disabled={uploading}
                         />
-                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-300/50 text-sm text-zinc-400">
+                        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition border border-dashed border-zinc-200 text-sm text-zinc-500">
                           {uploading ? (
                             <>
                               <Loader2 className="h-4 w-4 animate-spin" />

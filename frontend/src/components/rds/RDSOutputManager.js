@@ -64,7 +64,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
   };
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-lg border ${item.enabled ? 'bg-zinc-800/50 border-zinc-300' : 'bg-white/60 border-zinc-200 opacity-60'}`}>
+    <div className={`flex items-center gap-3 p-3 rounded-lg border ${item.enabled ? 'bg-zinc-50 border-zinc-200' : 'bg-white/60 border-zinc-200 opacity-60'}`}>
       {/* Enable/Disable checkbox */}
       <Switch
         checked={item.enabled}
@@ -90,7 +90,7 @@ const OutputItemRow = ({ item, index, onUpdate }) => {
           onKeyDown={(e) => e.key === 'Enter' && handleContentBlur()}
           placeholder="Enter text..."
           disabled={!item.enabled}
-          className="bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-1.5 text-white text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+          className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 text-zinc-900 text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
         />
       ) : (
         <span className="text-zinc-500 text-sm flex-1">{typeConfig.description}</span>
@@ -331,7 +331,7 @@ const OutputCard = ({ output, station, onEdit, onDelete, onRefresh }) => {
   const enabledItemCount = output.items?.filter(i => i.enabled).length || 0;
 
   return (
-    <div className={`bg-zinc-800/50 border rounded-lg p-4 ${output.enabled ? 'border-zinc-300' : 'border-zinc-200 opacity-60'}`}>
+    <div className={`bg-zinc-50 border rounded-lg p-4 ${output.enabled ? 'border-zinc-200' : 'border-zinc-200 opacity-60'}`}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`w-2 h-2 rounded-full ${output.enabled ? 'bg-green-500' : 'bg-zinc-600'}`} />

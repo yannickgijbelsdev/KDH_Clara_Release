@@ -145,7 +145,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
       {/* Status Grid */}
       <div className="grid grid-cols-2 gap-3">
         {/* Live Show */}
-        <div className="bg-zinc-800/30 rounded-lg p-3">
+        <div className="bg-zinc-100/50 rounded-lg p-3">
           <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
             <div className="flex items-center gap-2">
               <Mic className="w-3 h-3" /> Live Show
@@ -181,7 +181,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
         </div>
 
         {/* Now Playing */}
-        <div className="bg-zinc-800/30 rounded-lg p-3">
+        <div className="bg-zinc-100/50 rounded-lg p-3">
           <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
             <div className="flex items-center gap-2">
               <Music className="w-3 h-3" /> Now Playing
@@ -198,7 +198,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
         </div>
 
         {/* Scheduled Text */}
-        <div className="bg-zinc-800/30 rounded-lg p-3">
+        <div className="bg-zinc-100/50 rounded-lg p-3">
           <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
             <div className="flex items-center gap-2">
               <Calendar className="w-3 h-3" /> Scheduled Text
@@ -226,7 +226,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
         </div>
 
         {/* Sequence Status */}
-        <div className="bg-zinc-800/30 rounded-lg p-3">
+        <div className="bg-zinc-100/50 rounded-lg p-3">
           <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
             <RefreshCw className="w-3 h-3" /> Sequence
           </div>
@@ -419,7 +419,7 @@ const RDSMonitorPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
         <RefreshCw className="w-8 h-8 text-zinc-400 animate-spin" />
       </div>
     );
@@ -428,7 +428,7 @@ const RDSMonitorPage = () => {
   const hasStaleCache = monitorData?.stations?.mfy?.cache_stale || monitorData?.stations?.grk?.cache_stale;
 
   return (
-    <div className="min-h-screen bg-zinc-950 p-6">
+    <div className="min-h-screen bg-[#F0F0F2] p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -569,7 +569,7 @@ const RDSMonitorPage = () => {
                           {getItemTypeLabel(entry.item_type)}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 text-white max-w-xs truncate">{entry.text}</td>
+                      <td className="py-3 pr-4 text-zinc-900 max-w-xs truncate">{entry.text}</td>
                       <td className="py-3 pr-4 text-zinc-400 max-w-xs truncate">
                         {entry.presenters?.length > 0 ? entry.presenters.join(', ') : '-'}
                       </td>

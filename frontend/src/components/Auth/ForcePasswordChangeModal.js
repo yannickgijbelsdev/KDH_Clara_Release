@@ -61,7 +61,7 @@ export default function ForcePasswordChangeModal() {
             <label className="text-xs text-zinc-500 mb-1 block">Current Password</label>
             <input
               type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-3 text-sm text-zinc-900 focus:outline-none focus:border-orange-500"
               required autoFocus data-testid="current-password-input"
             />
           </div>
@@ -69,7 +69,7 @@ export default function ForcePasswordChangeModal() {
             <label className="text-xs text-zinc-500 mb-1 block">New Password</label>
             <input
               type="password" value={newPw} onChange={e => setNewPw(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-3 text-sm text-zinc-900 focus:outline-none focus:border-orange-500"
               required minLength={8} data-testid="new-password-input"
             />
           </div>
@@ -77,7 +77,7 @@ export default function ForcePasswordChangeModal() {
             <label className="text-xs text-zinc-500 mb-1 block">Confirm New Password</label>
             <input
               type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-red-500"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-4 py-3 text-sm text-zinc-900 focus:outline-none focus:border-orange-500"
               required data-testid="confirm-password-input"
             />
           </div>

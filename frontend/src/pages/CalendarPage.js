@@ -248,7 +248,7 @@ const CalendarPage = () => {
                     onClick={() => handleDateClick(day)}
                     className={`
                       aspect-square p-1 rounded-lg transition-all duration-200 relative
-                      ${isCurrentMonth ? 'bg-zinc-100' : 'bg-[#1a1a1c]'}
+                      ${isCurrentMonth ? 'bg-zinc-100' : 'bg-zinc-50'}
                       ${isSelected ? 'ring-2 ring-orange-500 bg-orange-500/10' : ''}
                       ${dayIsToday && !isSelected ? 'ring-2 ring-violet-500' : ''}
                       hover:bg-zinc-200
@@ -257,7 +257,7 @@ const CalendarPage = () => {
                     <span
                       className={`
                         text-sm font-mono block mb-1
-                        ${isCurrentMonth ? 'text-zinc-600' : 'text-zinc-600'}
+                        ${isCurrentMonth ? 'text-zinc-600' : 'text-zinc-400'}
                         ${dayIsToday ? 'text-violet-400 font-bold' : ''}
                         ${isSelected ? 'text-rose-400' : ''}
                       `}
@@ -368,7 +368,7 @@ const CalendarPage = () => {
                         <div className="flex gap-3">
                           {/* Show Image */}
                           {show.image && (
-                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-800">
+                            <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-200">
                               <img
                                 src={show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`}
                                 alt={show.title}
@@ -379,7 +379,7 @@ const CalendarPage = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between mb-1">
                               <div className="flex items-center gap-2 min-w-0">
-                                <h4 className="text-white font-medium group-hover:text-rose-400 transition-colors line-clamp-1">
+                                <h4 className="text-zinc-900 font-medium group-hover:text-orange-600 transition-colors line-clamp-1">
                                   {show.title}
                                 </h4>
                                 {stationBadge(show.rds_station)}

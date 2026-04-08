@@ -469,7 +469,7 @@ const ShowDetailPage = () => {
         
         {/* Show Image */}
         {show.image && (
-          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-800">
+          <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-200">
             <img
               src={show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`}
               alt={show.title}
@@ -606,7 +606,7 @@ const ShowDetailPage = () => {
                   data-testid="edit-title-input"
                   value={editData.title}
                   onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-                  className="bg-zinc-100 border-zinc-300 text-white"
+                  className="bg-zinc-100 border-zinc-300 text-zinc-900"
                 />
               </div>
               <div className="space-y-2">
@@ -615,7 +615,7 @@ const ShowDetailPage = () => {
                   data-testid="edit-description-input"
                   value={editData.description || ''}
                   onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                  className="bg-zinc-100 border-zinc-300 text-white resize-none"
+                  className="bg-zinc-100 border-zinc-300 text-zinc-900 resize-none"
                   rows={3}
                 />
               </div>
@@ -661,7 +661,7 @@ const ShowDetailPage = () => {
                 >
                   <SelectTrigger
                     data-testid="edit-status-select"
-                    className="bg-zinc-100 border-zinc-300 text-white"
+                    className="bg-zinc-100 border-zinc-300 text-zinc-900"
                   >
                     <SelectValue />
                   </SelectTrigger>
@@ -681,7 +681,7 @@ const ShowDetailPage = () => {
                       type="button"
                       variant="outline"
                       data-testid="edit-presenters-select"
-                      className="w-full justify-start text-left bg-zinc-100 border-zinc-300 text-white hover:bg-zinc-200"
+                      className="w-full justify-start text-left bg-zinc-100 border-zinc-300 text-zinc-900 hover:bg-zinc-200"
                     >
                       <Users className="w-4 h-4 mr-2 text-violet-400" />
                       {editData.presenter_ids?.length > 0 ? (
@@ -986,7 +986,7 @@ const ShowDetailPage = () => {
                       <Folder className="w-5 h-5 text-zinc-400" />
                     )}
                     <span className="text-zinc-700 font-medium">{folder.name}</span>
-                    <span className="text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">
+                    <span className="text-xs text-zinc-500 bg-zinc-200 px-2 py-0.5 rounded">
                       {folder.asset_count} file{folder.asset_count !== 1 ? 's' : ''}
                     </span>
                   </div>

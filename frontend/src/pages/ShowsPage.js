@@ -48,7 +48,7 @@ const ShowCard = ({ show, index, onClick }) => (
   >
     {/* Show Image */}
     {show.image && (
-      <div className="w-full h-32 bg-zinc-800">
+      <div className="w-full h-32 bg-zinc-200">
         <img
           src={show.image.s3_url || `${API}/uploads/show_title_images/${show.image.file_key}`}
           alt={show.title}

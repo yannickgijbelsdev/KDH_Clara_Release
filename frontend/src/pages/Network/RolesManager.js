@@ -240,7 +240,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                   value={newRoleName}
                   onChange={e => setNewRoleName(e.target.value)}
                   placeholder="Role name"
-                  className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-sm"
                   data-testid="new-role-name"
                   autoFocus
                   onKeyDown={e => e.key === 'Enter' && createRole()}
@@ -266,7 +266,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                   key={role.id}
                   onClick={() => selectRole(role)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg text-sm flex items-center justify-between group transition-all cursor-pointer ${
-                    activeRoleId === role.id ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-600'
+                    activeRoleId === role.id ? 'bg-orange-500 text-white' : 'text-zinc-600 hover:bg-zinc-100'
                   }`}
                   data-testid={`role-${role.slug}`}
                 >
@@ -337,7 +337,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                 </div>
 
                 {/* Column headers */}
-                <div className="px-6 py-2 border-b border-zinc-200/50 flex items-center bg-zinc-900/30">
+                <div className="px-6 py-2 border-b border-zinc-200 flex items-center bg-zinc-100">
                   <div className="flex-1 text-xs text-zinc-600 font-medium">FEATURE / PERMISSION</div>
                   <div className="flex" style={{ width: '280px' }}>
                     {ACTIONS.map(action => (
@@ -396,7 +396,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
                           return (
                             <div
                               key={perm.id}
-                              className="flex items-center px-6 py-2 border-b border-zinc-200/20 hover:bg-zinc-900/30"
+                              className="flex items-center px-6 py-2 border-b border-zinc-200 hover:bg-zinc-50"
                               data-testid={`perm-row-${perm.id}`}
                             >
                               <div className="flex items-center gap-2 flex-1 pl-6">

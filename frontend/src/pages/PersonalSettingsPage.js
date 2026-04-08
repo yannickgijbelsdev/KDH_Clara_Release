@@ -109,7 +109,7 @@ const PersonalSettingsPage = () => {
           {/* Grouped Menu Toggle */}
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <Label className="text-white font-medium">Group Menu Items</Label>
+              <Label className="text-zinc-900 font-medium">Group Menu Items</Label>
               <p className="text-sm text-zinc-400 mt-1">
                 Organize navigation into logical groups (Shows, Content, Admin)
               </p>
@@ -170,7 +170,7 @@ const PersonalSettingsPage = () => {
         </h2>
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <Label className="text-white font-medium">Show install notification</Label>
+            <Label className="text-zinc-900 font-medium">Show install notification</Label>
             <p className="text-sm text-zinc-400 mt-1">
               Show a popup after login suggesting to install Clara as a Web App on your device
             </p>

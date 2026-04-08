@@ -160,7 +160,7 @@ export default function XmlDetails() {
         </Button>
         {showPreview && xmlContent && (
           <div className="bg-[#0d1117] border border-zinc-200 rounded-xl overflow-hidden" data-testid="xml-preview">
-            <div className="px-4 py-2 bg-zinc-900 border-b border-zinc-200 flex items-center gap-2">
+            <div className="px-4 py-2 bg-white border-b border-zinc-200 flex items-center gap-2">
               <Code className="w-3.5 h-3.5 text-zinc-500" />
               <span className="text-xs text-zinc-500">{imp.file_name}</span>
             </div>

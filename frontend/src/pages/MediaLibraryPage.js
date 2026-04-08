@@ -1024,7 +1024,7 @@ const MediaLibraryPage = () => {
 
                   {/* Image Thumbnail Preview */}
                   {asset.mime_type?.startsWith('image/') && (
-                    <div className="mt-3 rounded-lg overflow-hidden bg-zinc-800 h-32">
+                    <div className="mt-3 rounded-lg overflow-hidden bg-zinc-200 h-32">
                       <img
                         src={getFileUrl(asset)}
                         alt={asset.title}
@@ -1046,7 +1046,7 @@ const MediaLibraryPage = () => {
 
                   {/* Video Thumbnail */}
                   {asset.kind === 'video' && (
-                    <div className="mt-3 rounded-lg overflow-hidden bg-zinc-800 h-32 flex items-center justify-center">
+                    <div className="mt-3 rounded-lg overflow-hidden bg-zinc-200 h-32 flex items-center justify-center">
                       <Tv className="w-8 h-8 text-purple-400" />
                     </div>
                   )}
@@ -1282,7 +1282,7 @@ const MediaLibraryPage = () => {
                           type="checkbox"
                           checked={selectedUsersToShare.includes(user.id)}
                           onChange={() => toggleUserSelection(user.id)}
-                          className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                          className="rounded border-zinc-300 bg-zinc-100 text-orange-500 focus:ring-orange-500"
                         />
                         <span className="text-sm text-zinc-600">{user.name}</span>
                         <span className="text-xs text-zinc-500">{user.role}</span>
@@ -1323,7 +1323,7 @@ const MediaLibraryPage = () => {
                             type="checkbox"
                             checked={selectedSeriesToShare.includes(series.id)}
                             onChange={() => toggleSeriesSelection(series.id)}
-                            className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                            className="rounded border-zinc-300 bg-zinc-100 text-orange-500 focus:ring-orange-500"
                           />
                           <span className="text-sm text-zinc-600">{series.title}</span>
                         </label>
@@ -1364,7 +1364,7 @@ const MediaLibraryPage = () => {
                             type="checkbox"
                             checked={selectedShowsToShare.includes(show.id)}
                             onChange={() => toggleShowSelection(show.id)}
-                            className="rounded border-zinc-600 bg-zinc-800 text-orange-500 focus:ring-orange-500"
+                            className="rounded border-zinc-300 bg-zinc-100 text-orange-500 focus:ring-orange-500"
                           />
                           <span className="text-sm text-zinc-600">{show.title}</span>
                           {show.scheduled_date && (
@@ -1632,10 +1632,10 @@ const MediaLibraryPage = () => {
               <>
                 {/* No share link yet */}
                 <div className="text-center py-4">
-                  <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 rounded-full bg-zinc-200 flex items-center justify-center mx-auto mb-4">
                     <Link className="w-8 h-8 text-zinc-500" />
                   </div>
-                  <h3 className="text-white font-medium mb-2">Create a public link</h3>
+                  <h3 className="text-zinc-900 font-medium mb-2">Create a public link</h3>
                   <p className="text-sm text-zinc-400 mb-4">
                     Generate a shareable URL that allows anyone to view and download this file.
                   </p>
@@ -1692,7 +1692,7 @@ const MediaLibraryPage = () => {
           className="fixed inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm z-50"
           data-testid="upload-progress-overlay"
         >
-          <div className="bg-zinc-900 border border-zinc-300 rounded-xl p-6 shadow-2xl min-w-[320px]">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-2xl min-w-[320px]">
             <div className="flex items-center gap-3 mb-4">
               <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
               <div>

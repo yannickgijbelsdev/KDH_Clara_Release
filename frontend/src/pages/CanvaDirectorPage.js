@@ -319,7 +319,7 @@ const CanvaDirectorPage = () => {
       )}
 
       {/* Step 1: API Credentials */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : config.configured ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
+      <div className={`bg-white border rounded-xl transition-all ${(setupStep === 0 || editStep === 0) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : config.configured ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 0 ? null : 0)}>
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${config.configured ? 'bg-emerald-500/20' : (setupStep === 0 || editStep === 0) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-100'}`}>
@@ -364,7 +364,7 @@ const CanvaDirectorPage = () => {
       </div>
 
       {/* Step 2: Redirect URI & Linked Sites */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : (config.configured && config.redirect_uri) ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
+      <div className={`bg-white border rounded-xl transition-all ${(setupStep === 1 || editStep === 1) ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : (config.configured && config.redirect_uri) ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5 cursor-pointer" onClick={() => setEditStep(editStep === 1 ? null : 1)}>
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${(config.configured && config.redirect_uri) ? 'bg-emerald-500/20' : (setupStep === 1 || editStep === 1) ? 'bg-[#7d2ae8]/20' : 'bg-zinc-100'}`}>
@@ -413,7 +413,7 @@ const CanvaDirectorPage = () => {
       </div>
 
       {/* Step 3: Connect Account */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 2 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : authStatus.connected ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
+      <div className={`bg-white border rounded-xl transition-all ${setupStep === 2 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : authStatus.connected ? 'border-emerald-500/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${authStatus.connected ? 'bg-emerald-500/20' : setupStep === 2 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-100'}`}>
@@ -444,7 +444,7 @@ const CanvaDirectorPage = () => {
       </div>
 
       {/* Step 4: Start Designing */}
-      <div className={`bg-zinc-900 border rounded-xl transition-all ${setupStep === 3 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : 'border-zinc-200'}`}>
+      <div className={`bg-white border rounded-xl transition-all ${setupStep === 3 ? 'border-[#7d2ae8]/30 ring-1 ring-[#7d2ae8]/20' : 'border-zinc-200'}`}>
         <div className="flex items-center justify-between p-5">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${setupStep === 3 ? 'bg-[#7d2ae8]/20' : 'bg-zinc-100'}`}>
@@ -516,7 +516,7 @@ const CanvaDirectorPage = () => {
                       const editUrl = d.urls?.edit_url;
                       return (
                         <div key={d.id} className="bg-zinc-100/70 border border-zinc-300 rounded-xl overflow-hidden group" data-testid={`canva-design-${d.id}`}>
-                          <div className="aspect-video bg-zinc-800 relative overflow-hidden">
+                          <div className="aspect-video bg-zinc-200 relative overflow-hidden">
                             {thumbnail ? <img src={thumbnail} alt={d.title} className="w-full h-full object-cover" /> : (
                               <div className="flex items-center justify-center h-full"><Image className="w-8 h-8 text-zinc-600" /></div>
                             )}

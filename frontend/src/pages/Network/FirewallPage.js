@@ -50,7 +50,7 @@ export default function FirewallPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                tab === t.id ? 'bg-red-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-200 hover:border-zinc-300'
+                tab === t.id ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'
               }`}
               data-testid={`tab-${t.id}`}
             >
@@ -648,11 +648,11 @@ function RulesTab({ token, mainSiteId }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Rule Name</label>
-              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" placeholder="e.g. Block suspicious range" data-testid="rule-name-input" />
+              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm" placeholder="e.g. Block suspicious range" data-testid="rule-name-input" />
             </div>
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Type</label>
-              <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" data-testid="rule-type-select">
+              <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm" data-testid="rule-type-select">
                 <option value="blacklist">Blacklist (block these IPs)</option>
                 <option value="whitelist">Whitelist (only allow these IPs)</option>
               </select>
@@ -660,11 +660,11 @@ function RulesTab({ token, mainSiteId }) {
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">IP Addresses / CIDR Ranges (one per line)</label>
-            <textarea value={form.ip_patterns} onChange={e => setForm({ ...form, ip_patterns: e.target.value })} rows={4} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder={"192.168.1.100\n10.0.0.0/24"} data-testid="rule-patterns-input" />
+            <textarea value={form.ip_patterns} onChange={e => setForm({ ...form, ip_patterns: e.target.value })} rows={4} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder={"192.168.1.100\n10.0.0.0/24"} data-testid="rule-patterns-input" />
           </div>
           <div>
             <label className="text-xs text-zinc-500 mb-1 block">Description</label>
-            <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" placeholder="Optional description" />
+            <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm" placeholder="Optional description" />
           </div>
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
@@ -759,15 +759,15 @@ function BlocksTab({ token, mainSiteId }) {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">IP Address</label>
-              <input value={form.ip} onChange={e => setForm({ ...form, ip: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="192.168.1.100" data-testid="block-ip-input" />
+              <input value={form.ip} onChange={e => setForm({ ...form, ip: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="192.168.1.100" data-testid="block-ip-input" />
             </div>
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Reason</label>
-              <input value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" placeholder="Suspicious activity" />
+              <input value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm" placeholder="Suspicious activity" />
             </div>
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Duration (minutes, empty = permanent)</label>
-              <input value={form.duration_minutes} onChange={e => setForm({ ...form, duration_minutes: e.target.value })} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" placeholder="30" type="number" />
+              <input value={form.duration_minutes} onChange={e => setForm({ ...form, duration_minutes: e.target.value })} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm" placeholder="30" type="number" />
             </div>
           </div>
           <div className="flex gap-2 justify-end">
@@ -788,7 +788,7 @@ function BlocksTab({ token, mainSiteId }) {
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-mono font-medium">{block.ip}</span>
                     {block.country_code && block.country_code !== 'XX' && (
-                      <span className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full flex items-center gap-1"><Globe className="w-3 h-3" />{block.country_name} ({block.city})</span>
+                      <span className="text-xs bg-zinc-200 text-zinc-500 px-2 py-0.5 rounded-full flex items-center gap-1"><Globe className="w-3 h-3" />{block.country_name} ({block.city})</span>
                     )}
                     {block.auto_blocked && <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">auto</span>}
                   </div>
@@ -851,7 +851,7 @@ function LogsTab({ token, mainSiteId }) {
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1">
         {eventTypes.map(type => (
-          <button key={type} onClick={() => { setFilter(type); setPage(0); }} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${filter === type ? 'bg-red-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-200 hover:border-zinc-300'}`}>
+          <button key={type} onClick={() => { setFilter(type); setPage(0); }} className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${filter === type ? 'bg-red-600 text-white' : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'}`}>
             {type === 'all' ? 'All' : type.replace(/_/g, ' ')}
           </button>
         ))}
@@ -962,7 +962,7 @@ function SettingsTab({ token, mainSiteId }) {
           {settings.geo_blocking_enabled && (
             <div>
               <label className="text-xs text-zinc-500 mb-1 block">Blocked Country Codes (comma-separated, e.g. CN,RU,KP)</label>
-              <input value={settings.blocked_countries?.join(', ') || ''} onChange={e => update('blocked_countries', e.target.value.split(',').map(c => c.trim().toUpperCase()).filter(Boolean))} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="CN, RU, KP" data-testid="geo-countries-input" />
+              <input value={settings.blocked_countries?.join(', ') || ''} onChange={e => update('blocked_countries', e.target.value.split(',').map(c => c.trim().toUpperCase()).filter(Boolean))} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm font-mono" placeholder="CN, RU, KP" data-testid="geo-countries-input" />
               <p className="text-xs text-zinc-600 mt-1">Use ISO 3166-1 alpha-2 codes. Network admins bypass geo-blocking.</p>
             </div>
           )}
@@ -989,7 +989,7 @@ function NumInput({ label, value, onChange, testId }) {
   return (
     <div>
       <label className="text-xs text-zinc-500 mb-1 block">{label}</label>
-      <input type="number" value={value} onChange={e => onChange(e.target.value)} className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm" data-testid={testId} />
+      <input type="number" value={value} onChange={e => onChange(e.target.value)} className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm" data-testid={testId} />
     </div>
   );
 }

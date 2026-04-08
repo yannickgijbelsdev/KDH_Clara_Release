@@ -139,7 +139,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
           onClick={() => navigate(navTo('/rds-scheduler'))}
           variant="outline"
           size="sm"
-          className="border-zinc-300 text-zinc-600 hover:text-white"
+          className="border-zinc-300 text-zinc-600 hover:text-zinc-900"
         >
           <Calendar className="w-4 h-4 mr-2" />
           Scheduler
@@ -219,7 +219,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
               </div>
 
               {/* Duration badge */}
-              <div className="text-xs text-zinc-500 bg-zinc-800 px-2 py-1 rounded">
+              <div className="text-xs text-zinc-500 bg-zinc-200 px-2 py-1 rounded">
                 {text.duration_type === 'fixed' 
                   ? `${text.duration_minutes || 5} min` 
                   : 'Until next'
@@ -280,7 +280,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
             size="sm"
             onClick={onMoveUp}
             disabled={isFirst}
-            className="h-6 w-6 p-0 text-zinc-500 hover:text-white disabled:opacity-30"
+            className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-900 disabled:opacity-30"
           >
             <ArrowUp className="w-3 h-3" />
           </Button>
@@ -289,14 +289,14 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
             size="sm"
             onClick={onMoveDown}
             disabled={isLast}
-            className="h-6 w-6 p-0 text-zinc-500 hover:text-white disabled:opacity-30"
+            className="h-6 w-6 p-0 text-zinc-500 hover:text-zinc-900 disabled:opacity-30"
           >
             <ArrowDown className="w-3 h-3" />
           </Button>
         </div>
 
         {/* Item number */}
-        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 text-sm font-mono">
+        <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-500 text-sm font-mono">
           {index + 1}
         </div>
 
@@ -309,7 +309,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
         <select
           value={item.type}
           onChange={(e) => onUpdate({ ...item, type: e.target.value })}
-          className="bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-white text-sm flex-shrink-0"
+          className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 text-sm flex-shrink-0"
         >
           {ITEM_TYPES.map(type => (
             <option key={type.value} value={type.value}>{type.label}</option>
@@ -329,7 +329,7 @@ const SequenceItem = ({ item, index, onUpdate, onDelete, onMoveUp, onMoveDown, i
               }
             }}
             placeholder="Enter text..."
-            className="bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2 text-white flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2 text-zinc-900 flex-1 focus:outline-none focus:ring-2 focus:ring-orange-500"
             data-testid={`custom-text-input-${index}`}
           />
         )}
@@ -657,7 +657,7 @@ const RDSBuilderPage = () => {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'outputs'
               ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-              : 'bg-zinc-800 text-zinc-400 border border-zinc-300 hover:text-white'
+              : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
           }`}
         >
           📡 Multi-Output (Streaming, DAB, FM)
@@ -667,7 +667,7 @@ const RDSBuilderPage = () => {
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             activeTab === 'legacy'
               ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-              : 'bg-zinc-800 text-zinc-400 border border-zinc-300 hover:text-white'
+              : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
           }`}
         >
           🔄 Sequence Builder (Legacy)

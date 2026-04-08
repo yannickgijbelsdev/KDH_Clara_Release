@@ -79,7 +79,7 @@ function TicketList() {
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
               filter === s
                 ? 'bg-orange-600 text-white'
-                : 'bg-zinc-900 text-zinc-400 border border-zinc-200 hover:border-zinc-300'
+                : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'
             }`}
             data-testid={`filter-${s}`}
           >
@@ -249,7 +249,7 @@ function TicketDetail({ ticketId }) {
                 className={`text-xs px-3 py-1.5 rounded-lg transition-all font-medium ${
                   ticket.status === s
                     ? `${STATUS_CONFIG[s]?.bg} ${STATUS_CONFIG[s]?.color}`
-                    : 'bg-zinc-900 text-zinc-500 hover:bg-zinc-100'
+                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
                 }`}
                 data-testid={`status-btn-${s}`}
               >
@@ -286,7 +286,7 @@ function TicketDetail({ ticketId }) {
               className={`rounded-xl border p-5 ${
                 msg.is_admin
                   ? 'bg-blue-500/5 border-blue-500/20'
-                  : 'bg-zinc-900 border-zinc-200'
+                  : 'bg-white border-zinc-200'
               }`}
               data-testid={`message-${msg.id}`}
             >

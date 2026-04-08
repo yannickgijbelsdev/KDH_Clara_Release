@@ -742,7 +742,7 @@ const DashboardLayout = () => {
                     <p className="text-xs text-zinc-500">{user?.email}</p>
                   </div>
                 </div>
-                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuSeparator className="bg-zinc-200" />
                 <DropdownMenuItem className="text-zinc-400">
                   <RoleIcon className="w-4 h-4 mr-2" />
                   {displayRoleName}
@@ -750,7 +750,7 @@ const DashboardLayout = () => {
                 {user?.team_name && (
                   <DropdownMenuItem 
                     onClick={() => navigate('/shows')}
-                    className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
+                    className="text-zinc-400 focus:text-zinc-900 focus:bg-zinc-100 cursor-pointer"
                   >
                     <Home className="w-4 h-4 mr-2" />
                     {user.team_name}
@@ -758,10 +758,10 @@ const DashboardLayout = () => {
                 )}
                 {isAdmin && sites.length > 0 && (
                   <>
-                    <DropdownMenuSeparator className="bg-zinc-800" />
+                    <DropdownMenuSeparator className="bg-zinc-200" />
                     <DropdownMenuItem 
                       onClick={() => navigate('/sites')}
-                      className="text-zinc-400 focus:text-white focus:bg-zinc-800 cursor-pointer"
+                      className="text-zinc-400 focus:text-zinc-900 focus:bg-zinc-100 cursor-pointer"
                     >
                       <Globe className="w-4 h-4 mr-2" />
                       Sites
@@ -770,7 +770,7 @@ const DashboardLayout = () => {
                       <DropdownMenuItem 
                         key={site.id}
                         onClick={() => navigate(`/sites/${site.id}`)}
-                        className="text-zinc-500 focus:text-white focus:bg-zinc-800 cursor-pointer pl-8"
+                        className="text-zinc-500 focus:text-zinc-900 focus:bg-zinc-100 cursor-pointer pl-8"
                       >
                         <Home className="w-4 h-4 mr-2 opacity-60" />
                         {site.name}
@@ -778,15 +778,15 @@ const DashboardLayout = () => {
                     ))}
                   </>
                 )}
-                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuSeparator className="bg-zinc-200" />
                 <DropdownMenuItem
                   onClick={() => navigate('/settings')}
-                  className="text-zinc-400 focus:text-white focus:bg-zinc-800"
+                  className="text-zinc-400 focus:text-zinc-900 focus:bg-zinc-100"
                 >
                   <UserCog className="w-4 h-4 mr-2" />
                   Personal Settings
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-zinc-800" />
+                <DropdownMenuSeparator className="bg-zinc-200" />
                 <DropdownMenuItem
                   data-testid="logout-btn"
                   onClick={handleLogout}

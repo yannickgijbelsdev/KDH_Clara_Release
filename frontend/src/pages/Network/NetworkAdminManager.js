@@ -249,7 +249,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
           {(isPrimary || isNetworkAdmin) && (
             <Button
               onClick={() => { resetForm(); setShowAddDialog(true); }}
-              className="w-full gap-2 bg-zinc-800 hover:bg-zinc-200 border border-zinc-300 border-dashed"
+              className="w-full gap-2 bg-zinc-50 hover:bg-zinc-100 border border-zinc-200 border-dashed"
               variant="outline"
               data-testid="add-network-admin-btn"
             >
@@ -291,7 +291,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
                 <div>
                   <Label className="text-sm text-zinc-600 mb-2 block">Select existing user</Label>
                   <select
-                    className="w-full h-10 px-3 rounded-md bg-zinc-800 border border-zinc-300 text-white text-sm"
+                    className="w-full h-10 px-3 rounded-md bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm"
                     value=""
                     onChange={(e) => {
                       const selected = allUsers.find(u => u.id === e.target.value);
@@ -324,7 +324,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    className="bg-zinc-800 border-zinc-300"
+                    className="bg-zinc-50 border-zinc-200"
                     data-testid="admin-name-input"
                   />
                 </div>
@@ -335,7 +335,7 @@ export default function NetworkAdminManager({ open, onClose, inline = false }) {
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    className="bg-zinc-800 border-zinc-300"
+                    className="bg-zinc-50 border-zinc-200"
                     data-testid="admin-email-input"
                   />
                 </div>

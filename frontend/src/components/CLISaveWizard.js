@@ -74,7 +74,7 @@ export default function CLISaveWizard({ open, onClose }) {
                 className={`h-1 rounded-full transition-all duration-300 ${
                   i <= currentStep
                     ? completed ? 'w-4 bg-emerald-500' : 'w-4 bg-orange-500'
-                    : 'w-2 bg-zinc-800'
+                    : 'w-2 bg-zinc-300'
                 }`}
               />
             ))}

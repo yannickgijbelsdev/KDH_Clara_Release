@@ -455,7 +455,7 @@ const ContentLibraryPage = () => {
                   <div className="flex items-start gap-4">
                     {/* Featured Image Thumbnail or Type Icon */}
                     {featuredImageUrl ? (
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-200 flex-shrink-0">
                         <img
                           src={featuredImageUrl}
                           alt=""

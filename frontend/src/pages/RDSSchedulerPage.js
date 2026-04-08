@@ -172,7 +172,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
               <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-zinc-800 border-zinc-300">
+              <SelectContent className="bg-white border-zinc-200">
                 {STATION_OPTIONS.map(opt => (
                   <SelectItem key={opt.value} value={opt.value} className="text-zinc-600">
                     {opt.label}
@@ -212,7 +212,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
                 <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-300">
+                <SelectContent className="bg-white border-zinc-200">
                   {DURATION_OPTIONS.map(opt => (
                     <SelectItem key={opt.value} value={opt.value} className="text-zinc-600">
                       {opt.label}
@@ -244,7 +244,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
                 <SelectTrigger className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 border-zinc-300">
+                <SelectContent className="bg-white border-zinc-200">
                   {RECURRENCE_OPTIONS.map(opt => (
                     <SelectItem key={opt.value} value={opt.value} className="text-zinc-600">
                       {opt.label}
@@ -305,14 +305,14 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
   return (
     <div
       className={`aspect-square p-1 rounded-lg transition-all duration-200 relative
-        ${isCurrentMonth ? 'bg-zinc-100' : 'bg-[#1a1a1c]'}
+        ${isCurrentMonth ? 'bg-zinc-100' : 'bg-zinc-50'}
         ${isToday ? 'ring-2 ring-violet-500' : ''}
         hover:bg-zinc-200 group
       `}
     >
       <div className="flex items-center justify-between mb-1">
         <span className={`text-sm font-mono
-          ${isCurrentMonth ? 'text-zinc-600' : 'text-zinc-600'}
+          ${isCurrentMonth ? 'text-zinc-600' : 'text-zinc-400'}
           ${isToday ? 'text-violet-400 font-bold' : ''}
         `}>
           {format(date, 'd')}
@@ -321,7 +321,7 @@ const CalendarDay = ({ date, items, isCurrentMonth, onItemClick, onAddClick }) =
           variant="ghost"
           size="sm"
           onClick={() => onAddClick(date)}
-          className="h-5 w-5 p-0 text-zinc-600 hover:text-white opacity-0 group-hover:opacity-100"
+          className="h-5 w-5 p-0 text-zinc-600 hover:text-zinc-900 opacity-0 group-hover:opacity-100"
         >
           <Plus className="w-3 h-3" />
         </Button>

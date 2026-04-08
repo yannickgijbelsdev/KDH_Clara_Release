@@ -89,7 +89,7 @@ export default function ApiKeysPage() {
                     {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <Button size="sm" onClick={copyKey} className="bg-zinc-800 hover:bg-zinc-200 text-zinc-700" data-testid="copy-key-btn">
+                <Button size="sm" onClick={copyKey} className="bg-zinc-100 hover:bg-zinc-200 text-zinc-700" data-testid="copy-key-btn">
                   <Copy className="w-4 h-4" />
                 </Button>
               </div>

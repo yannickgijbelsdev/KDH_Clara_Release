@@ -20,7 +20,7 @@ function StepIndicator({ steps, current }) {
     <div className="flex items-center gap-1 mb-4 flex-wrap">
       {steps.map((s, i) => (
         <div key={i} className="flex items-center gap-1">
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${i <= current ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'bg-zinc-800 text-zinc-600 border border-zinc-300'}`}>
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${i <= current ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'bg-zinc-100 text-zinc-500 border border-zinc-200'}`}>
             {i < current ? <Check className="w-3 h-3" /> : i + 1}
           </div>
           <span className={`text-[10px] hidden sm:inline ${i <= current ? 'text-zinc-600' : 'text-zinc-600'}`}>{s}</span>
@@ -299,7 +299,7 @@ export default function WpSecurityPage() {
         <TipBox color="orange" title="Connect Cloudflare to enable real protection">
           Without Cloudflare, rules are only stored locally. With Cloudflare credentials, Clara will automatically create WAF rules, block IPs, and add rate limiting directly in your Cloudflare zone.
         </TipBox>
-        <div className="rounded-md bg-zinc-800/60 border border-zinc-300/50 p-3 space-y-2">
+        <div className="rounded-md bg-zinc-100/60 border border-zinc-200 p-3 space-y-2">
           <p className="text-[10px] uppercase tracking-wider text-zinc-400 font-semibold">How to get your API Token:</p>
           <ol className="space-y-1 text-xs text-zinc-400 list-decimal list-inside">
             <li>Go to <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300">dash.cloudflare.com/profile/api-tokens</a></li>
@@ -405,7 +405,7 @@ export default function WpSecurityPage() {
         {blocklist.length > 0 && (
           <div className="rounded-md border border-zinc-300/50 overflow-hidden">
             <table className="w-full text-xs">
-              <thead><tr className="bg-zinc-800/80"><th className="text-left px-3 py-1.5 text-zinc-400">IP</th><th className="text-left px-3 py-1.5 text-zinc-400">Note</th><th className="text-left px-3 py-1.5 text-zinc-400">Added</th><th className="w-8"></th></tr></thead>
+              <thead><tr className="bg-zinc-100"><th className="text-left px-3 py-1.5 text-zinc-500">IP</th><th className="text-left px-3 py-1.5 text-zinc-500">Note</th><th className="text-left px-3 py-1.5 text-zinc-500">Added</th><th className="w-8"></th></tr></thead>
               <tbody>
                 {blocklist.map(entry => (
                   <tr key={entry.ip} className="border-t border-zinc-200" data-testid={`blocked-ip-${entry.ip}`}>
@@ -525,7 +525,7 @@ export default function WpSecurityPage() {
                 {wfStatus.vulnerability_scan.detected_software?.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {wfStatus.vulnerability_scan.detected_software.map((sw, i) => (
-                      <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-300">{sw.type}/{sw.slug} v{sw.version}</span>
+                      <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 border border-zinc-200">{sw.type}/{sw.slug} v{sw.version}</span>
                     ))}
                   </div>
                 )}
@@ -543,15 +543,15 @@ export default function WpSecurityPage() {
 function WizardStep({ stepNum, title, icon, completed, summary, active, editStep, setEditStep, badge, prerequisite, alwaysShowContent, children }) {
   const isOpen = active || editStep === stepNum || alwaysShowContent;
   return (
-    <Card className={`border-zinc-200 ${active ? 'bg-gradient-to-r from-red-950/30 to-zinc-900 ring-1 ring-red-500/30' : 'bg-zinc-900'}`}>
+    <Card className={`border-zinc-200 ${active ? 'bg-gradient-to-r from-red-100 to-white ring-1 ring-red-500/30' : 'bg-white'}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-3 cursor-pointer" onClick={() => setEditStep(editStep === stepNum ? null : stepNum)}>
           <div className="flex items-center gap-2">
             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${completed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-100 text-zinc-500'}`}>
               {completed ? <Check className="w-3 h-3" /> : stepNum + 1}
             </div>
-            <span className="text-sm font-medium text-zinc-200">{title}</span>
-            {summary && <code className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded">{summary}</code>}
+            <span className="text-sm font-medium text-zinc-700">{title}</span>
+            {summary && <code className="text-[10px] bg-zinc-100 text-zinc-500 px-2 py-0.5 rounded">{summary}</code>}
             {badge}
           </div>
           <span className="text-zinc-600">{icon}</span>
@@ -566,7 +566,7 @@ function WizardStep({ stepNum, title, icon, completed, summary, active, editStep
 function TipBox({ color = 'red', title, children }) {
   const colors = { red: 'text-red-400', orange: 'text-orange-400', emerald: 'text-emerald-400' };
   return (
-    <div className="rounded-md bg-zinc-800/60 border border-zinc-300/50 p-3">
+    <div className="rounded-md bg-zinc-100/60 border border-zinc-200 p-3">
       <p className={`text-[10px] uppercase tracking-wider ${colors[color]} font-semibold mb-1`}>{title}</p>
       <p className="text-xs text-zinc-400">{children}</p>
     </div>

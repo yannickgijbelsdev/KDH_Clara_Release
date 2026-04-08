@@ -39,7 +39,7 @@ export default function CallPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                tab === t.id ? 'bg-green-600 text-white' : 'bg-zinc-900 text-zinc-400 border border-zinc-200 hover:border-zinc-300'
+                tab === t.id ? 'bg-green-600 text-white' : 'bg-zinc-100 text-zinc-600 border border-zinc-200 hover:border-zinc-300 hover:bg-zinc-200'
               }`}
               data-testid={`tab-${t.id}`}
             >
@@ -165,7 +165,7 @@ function CallsTab({ token }) {
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   selectedProfile?.id === p.id
                     ? 'bg-green-600 text-white'
-                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-200'
+                    : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
                 }`}
                 data-testid={`profile-select-${p.id}`}
               >
@@ -187,7 +187,7 @@ function CallsTab({ token }) {
             value={label}
             onChange={e => setLabel(e.target.value)}
             placeholder="Caller name or description (optional)"
-            className="flex-1 bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm"
+            className="flex-1 bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm"
             data-testid="invite-label-input"
           />
           <Button
@@ -215,7 +215,7 @@ function CallsTab({ token }) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      invite.status === 'active' ? 'bg-green-500/10' : 'bg-zinc-800'
+                      invite.status === 'active' ? 'bg-green-500/10' : 'bg-zinc-100'
                     }`}>
                       {invite.status === 'active' ? (
                         <PhoneCall className="w-5 h-5 text-green-400" />
@@ -422,7 +422,7 @@ function ProfilesTab({ token }) {
             <input
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
-              className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm"
               placeholder="e.g. Studio A, Home Setup"
               data-testid="profile-name-input"
             />
@@ -435,7 +435,7 @@ function ProfilesTab({ token }) {
               <select
                 value={form.input_device_id}
                 onChange={e => setForm({ ...form, input_device_id: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm"
+                className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm"
                 data-testid="profile-input-select"
               >
                 <option value="">System default</option>
@@ -451,7 +451,7 @@ function ProfilesTab({ token }) {
               <select
                 value={form.output_device_id}
                 onChange={e => setForm({ ...form, output_device_id: e.target.value })}
-                className="w-full bg-zinc-800 border border-zinc-300 rounded-lg px-3 py-2.5 text-sm"
+                className="w-full bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-2.5 text-sm"
                 data-testid="profile-output-select"
               >
                 <option value="">System default</option>
@@ -563,7 +563,7 @@ function HistoryTab({ token }) {
           {invites.map(invite => (
             <div key={invite.id} className="bg-white/80 backdrop-blur rounded-xl border border-zinc-200 px-5 py-3.5 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-zinc-200 flex items-center justify-center">
                   <PhoneOff className="w-4 h-4 text-zinc-500" />
                 </div>
                 <div>
