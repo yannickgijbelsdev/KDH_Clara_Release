@@ -50,6 +50,14 @@ Multi-environment SaaS platform for radio station management built with React fr
   - Updated agent prompt: Clara now actively uses tools to show/highlight/navigate instead of just describing
   - Endpoint `POST /api/voice-support/setup-agent-tools` for tool creation
   - Endpoint `POST /api/voice-support/update-agent-prompt` for prompt updates
+- **Radio Automation System** (Apr 2026) — Phase 1: UI + Backend:
+  - OmniPlayer-style layout with A/B player decks, waveform visualization, crossfader
+  - Track Library panel with search, demo tracks for first-time experience
+  - Playlist management with drag-to-deck support
+  - Cue Point editor (intro, outro, fade-in, fade-out) per track
+  - VU-meter style indicators per deck
+  - Backend: Full track/playlist CRUD with multisite context (`radio_automation.py`)
+  - Route: `/{site}/radio-automation`
 
 ## Backlog
 ### P0

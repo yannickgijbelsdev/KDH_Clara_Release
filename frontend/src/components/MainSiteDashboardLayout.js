@@ -52,7 +52,7 @@ import { BrandLogo } from './BrandLogo';
 import { useBranding } from '../context/BrandingContext';
 import { WorkspaceCanvas } from './workspace/WorkspaceCanvas';
 import { CanvasPanel } from './workspace/CanvasPanel';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Disc3 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -117,6 +117,7 @@ const FEATURE_NAV_ITEMS = {
   wp_ip_blocklist: { to: 'wp-blocklist', icon: Ban, label: 'IP Blocklist', adminOnly: true },
   wp_login_protection: { to: 'wp-login-protect', icon: Lock, label: 'Login Protection', adminOnly: true },
   enterprise_assistant: { to: 'enterprise-assistant', icon: Sparkles, label: 'Enterprise Assistant' },
+  radio_automation: { to: 'radio-automation', icon: Disc3, label: 'Radio Automation', adminOnly: true },
 };
 
 // Navigation groups with feature mapping
@@ -161,7 +162,7 @@ const NAV_GROUPS = [
     id: 'server',
     label: 'Virtual Datacenter',
     icon: Monitor,
-    features: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer']
+    features: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'radio_automation']
   },
   {
     id: 'tasks',
@@ -212,7 +213,7 @@ const MainSiteDashboardContent = () => {
     if (currentPath === basePath || currentPath === `${basePath}/` || currentPath === `${basePath}/dashboard`) return;
     
     const subPath = currentPath.replace(basePath, '').replace(/^\//, '').split('/')[0];
-    if (!subPath || subPath === 'settings') return; // settings is always valid
+    if (!subPath || subPath === 'settings' || subPath === 'radio-automation') return; // always valid routes
     
     const enabledFeatures = mainSite.enabled_features || [];
     const validRoutes = new Set(['dashboard', 'settings']);

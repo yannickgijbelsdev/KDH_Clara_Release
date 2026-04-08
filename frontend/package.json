@@ -71,6 +71,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tinymce": "^8.3.2",
     "vaul": "^1.1.2",
+    "wavesurfer.js": "^7.12.5",
     "zod": "^3.24.4"
   },
   "scripts": {

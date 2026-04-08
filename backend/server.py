@@ -74,6 +74,7 @@ from routers.clara_assistant import clara_router
 from routers.support_tickets import support_router
 from routers.enterprise_assistant import enterprise_router
 from routers.voice_support import voice_support_router
+from routers.radio_automation import radio_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -151,6 +152,7 @@ api_router.include_router(clara_router)
 api_router.include_router(support_router)
 api_router.include_router(enterprise_router)
 api_router.include_router(voice_support_router)
+api_router.include_router(radio_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
