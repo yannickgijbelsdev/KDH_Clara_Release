@@ -350,7 +350,7 @@ export default function EnterpriseAssistantPage() {
         return (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setShowPreview(null)} data-testid="preview-backdrop" />
-            <div className="fixed top-[64px] right-0 bottom-0 z-50 w-[560px] max-w-[80vw] bg-white border-l border-zinc-200 shadow-2xl flex flex-col animate-[slide-in-right_0.25s_ease-out]" data-testid="preview-panel">
+            <div className="fixed top-[80px] right-5 bottom-5 z-50 w-[520px] max-w-[calc(100vw-40px)] bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] flex flex-col animate-[slide-in-right_0.2s_ease-out] overflow-hidden" data-testid="preview-panel">
               <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center">
