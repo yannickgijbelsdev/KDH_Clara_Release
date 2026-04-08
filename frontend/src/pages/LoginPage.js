@@ -164,6 +164,7 @@ const LoginPage = () => {
               alt="Clara Platform — Radio & Data Intelligence"
               className="w-[90%] max-w-[1100px] object-contain select-none"
               draggable={false}
+              style={{ mixBlendMode: 'multiply' }}
               data-testid="login-hero-rooms"
             />
           </div>
