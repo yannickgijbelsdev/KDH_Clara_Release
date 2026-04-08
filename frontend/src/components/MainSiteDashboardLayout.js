@@ -1046,10 +1046,11 @@ const MainSiteDashboardContent = () => {
           {/* Support Ticket Icon */}
           <button
             onClick={() => setShowUserTickets(true)}
-            className="relative w-9 h-9 flex items-center justify-center rounded-full transition-colors flex-shrink-0 group"
+            className="relative w-9 h-9 flex items-center justify-center rounded-full transition-colors flex-shrink-0"
             data-testid="user-ticket-icon"
           >
-            <span className="absolute inset-1 rounded-full bg-orange-500 opacity-80 group-hover:opacity-100 transition-opacity animate-[glow-pulse_2.5s_ease-in-out_infinite]" />
+            <span className="absolute inset-0 rounded-full bg-orange-400 animate-[glow-ring_3s_ease-out_infinite]" style={{ filter: 'blur(8px)' }} />
+            <span className="absolute inset-1 rounded-full bg-orange-500" />
             <LifeBuoy className="w-4 h-4 text-white relative z-10" />
             {userTicketCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-white text-orange-600 rounded-full px-0.5 z-20 shadow-sm">{userTicketCount}</span>
