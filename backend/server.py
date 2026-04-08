@@ -161,6 +161,18 @@ async def health():
     return {"status": "healthy"}
 
 
+@api_router.get("/files/{path:path}")
+async def serve_file(path: str, auth: str = None):
+    """Serve a file from object storage. Supports ?auth=token for img src usage."""
+    from fastapi import Query, Header, Response
+    from services.object_storage import get_object
+    try:
+        data, content_type = get_object(path)
+        return Response(content=data, media_type=content_type)
+    except Exception:
+        raise HTTPException(status_code=404, detail="File not found")
+
+
 @api_router.get("/config")
 async def get_config():
     """Get public configuration for the frontend."""
