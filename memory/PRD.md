@@ -58,6 +58,11 @@ Multi-environment SaaS platform for radio station management built with React fr
   - VU-meter style indicators per deck
   - Backend: Full track/playlist CRUD with multisite context (`radio_automation.py`)
   - Route: `/{site}/radio-automation`
+- **Site Creation Wizard — Feature Selection** (Apr 2026):
+  - Added "Features" step to CreateMainSiteWizard for Virtual Datacenter type
+  - Users can now choose which tools to activate: XML Imports, API Keys, VMix Director, Canva Director, Radioplayer, Radio Automation
+  - Dynamic step indicator: Features step only appears for site types with optional features
+  - Selected features are included in `enabled_features` on site creation
 
 ## Backlog
 ### P0

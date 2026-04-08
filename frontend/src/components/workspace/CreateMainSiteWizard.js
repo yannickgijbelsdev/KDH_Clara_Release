@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
-  Upload, X
+  Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast
 } from 'lucide-react';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -35,15 +35,25 @@ const WIZARD_THUMBNAILS = {
 };
 
 const SITE_TYPES = [
-  { id: 'radio',          icon: Radio,       label: 'Radio Station',     desc: 'Shows, calendar, content library, RDS',    color: '#f97316', features: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings'] },
-  { id: 'server',         icon: HardDrive,   label: 'Virtual Datacenter', desc: 'XML imports, server management',           color: '#3b82f6', features: ['xml_imports', 'team_settings'] },
-  { id: 'external_host',  icon: ExternalLink, label: 'External Host',    desc: 'External site hosting & monitoring',        color: '#06b6d4', features: ['sites', 'team_settings'] },
-  { id: 'task_scheduler', icon: LayoutGrid,  label: 'Task Manager',      desc: 'Task boards, project management',          color: '#8b5cf6', features: ['task_boards', 'team_settings'] },
-  { id: 'technical',      icon: Network,     label: 'Data Connection',   desc: 'ZeroTier networking, data connections',     color: '#10b981', features: ['zerotier', 'team_settings'] },
-  { id: 'wp_security',    icon: Shield,      label: 'WP Security',       desc: 'WordPress firewall & security scanning',    color: '#ef4444', features: ['wp_security', 'team_settings'] },
+  { id: 'radio',          icon: Radio,       label: 'Radio Station',     desc: 'Shows, calendar, content library, RDS',    color: '#f97316', features: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings'], optionalFeatures: [] },
+  { id: 'server',         icon: HardDrive,   label: 'Virtual Datacenter', desc: 'XML imports, VMix, Radio Automation',      color: '#3b82f6', features: ['team_settings'], optionalFeatures: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'radio_automation'] },
+  { id: 'external_host',  icon: ExternalLink, label: 'External Host',    desc: 'External site hosting & monitoring',        color: '#06b6d4', features: ['sites', 'team_settings'], optionalFeatures: [] },
+  { id: 'task_scheduler', icon: LayoutGrid,  label: 'Task Manager',      desc: 'Task boards, project management',          color: '#8b5cf6', features: ['task_boards', 'team_settings'], optionalFeatures: [] },
+  { id: 'technical',      icon: Network,     label: 'Data Connection',   desc: 'ZeroTier networking, data connections',     color: '#10b981', features: ['zerotier', 'team_settings'], optionalFeatures: [] },
+  { id: 'wp_security',    icon: Shield,      label: 'WP Security',       desc: 'WordPress firewall & security scanning',    color: '#ef4444', features: ['wp_security', 'team_settings'], optionalFeatures: [] },
 ];
 
-const MAIN_SITE_STEPS = ['Environment', 'Details', 'Admin', 'Security', 'Deploying'];
+/* ── Optional feature details for the server type ── */
+const OPTIONAL_FEATURE_INFO = {
+  xml_imports:      { icon: FileCode,  label: 'XML Imports',        desc: 'Import and process XML data feeds',     color: '#3b82f6' },
+  server_api_keys:  { icon: Key,       label: 'API Keys',           desc: 'Manage server API keys and tokens',     color: '#6b7280' },
+  vmix_director:    { icon: Video,     label: 'VMix Director',      desc: 'Video mixing and live production',      color: '#8b5cf6' },
+  canva_director:   { icon: Palette,   label: 'Canva Director',     desc: 'Visual design and graphics control',    color: '#ec4899' },
+  radioplayer:      { icon: Podcast,   label: 'Radioplayer',        desc: 'Radioplayer API integration',           color: '#06b6d4' },
+  radio_automation: { icon: Disc3,     label: 'Radio Automation',   desc: 'A/B player, playlists, cloud playout',  color: '#f97316' },
+};
+
+const MAIN_SITE_STEPS = ['Environment', 'Features', 'Details', 'Admin', 'Security', 'Deploying'];
 
 /* ── Step 1: Choose Environment ── */
 const StepEnvironment = ({ selected, onSelect }) => (
@@ -97,7 +107,63 @@ const StepEnvironment = ({ selected, onSelect }) => (
   </div>
 );
 
-/* ── Step 2: Details ── */
+/* ── Step 2: Feature Selection (for types with optional features) ── */
+const StepFeatures = ({ siteType, selectedFeatures, onToggleFeature }) => {
+  const typeConfig = SITE_TYPES.find(t => t.id === siteType);
+  const optionalFeatures = typeConfig?.optionalFeatures || [];
+
+  if (optionalFeatures.length === 0) return null;
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-zinc-900 mb-1">Choose your features</h2>
+      <p className="text-sm text-zinc-500 mb-4">Select which tools you want to activate for this {typeConfig?.label}.</p>
+      <div className="grid grid-cols-2 gap-2.5">
+        {optionalFeatures.map(featureId => {
+          const info = OPTIONAL_FEATURE_INFO[featureId];
+          if (!info) return null;
+          const Icon = info.icon;
+          const isActive = selectedFeatures.includes(featureId);
+          return (
+            <button
+              key={featureId}
+              onClick={() => onToggleFeature(featureId)}
+              data-testid={`feature-toggle-${featureId}`}
+              className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left group ${
+                isActive
+                  ? 'border-zinc-900 bg-zinc-50 shadow-md'
+                  : 'border-zinc-200 hover:border-zinc-400 hover:shadow-sm'
+              }`}
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all"
+                style={{ backgroundColor: isActive ? `${info.color}20` : '#f4f4f5' }}
+              >
+                <Icon className="w-5 h-5 transition-colors" style={{ color: isActive ? info.color : '#a1a1aa' }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className={`text-sm font-semibold transition-colors ${isActive ? 'text-zinc-900' : 'text-zinc-600'}`}>
+                  {info.label}
+                </div>
+                <div className="text-[11px] text-zinc-400 leading-snug">{info.desc}</div>
+              </div>
+              {isActive && (
+                <motion.div
+                  initial={{ scale: 0 }} animate={{ scale: 1 }}
+                  className="w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center flex-shrink-0"
+                >
+                  <Check className="w-3.5 h-3.5 text-white" />
+                </motion.div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+/* ── Step 3: Details ── */
 const StepDetails = ({ name, slug, onNameChange, onSlugChange, siteType }) => {
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   return (
@@ -361,6 +427,7 @@ const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus,
 export default function CreateMainSiteWizard({ open, onClose, onCreated, token, environments, selectedEnvId }) {
   const [step, setStep] = useState(0);
   const [siteType, setSiteType] = useState('radio');
+  const [selectedOptionalFeatures, setSelectedOptionalFeatures] = useState([]);
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [adminId, setAdminId] = useState('');
@@ -372,14 +439,30 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   const [deployError, setDeployError] = useState(null);
 
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
-  const features = typeConfig?.features || [];
+  const hasOptionalFeatures = (typeConfig?.optionalFeatures || []).length > 0;
+  const features = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
+
+  // Dynamic step mapping: skip "Features" step if no optional features
+  const getActualSteps = () => {
+    if (hasOptionalFeatures) return ['Environment', 'Features', 'Details', 'Admin', 'Security', 'Deploying'];
+    return ['Environment', 'Details', 'Admin', 'Security', 'Deploying'];
+  };
+  const actualSteps = getActualSteps();
+  const deployStepIdx = actualSteps.length - 1;
+
+  const toggleOptionalFeature = (featureId) => {
+    setSelectedOptionalFeatures(prev =>
+      prev.includes(featureId) ? prev.filter(f => f !== featureId) : [...prev, featureId]
+    );
+  };
 
   // Auto-generate slug from name
   useEffect(() => {
-    if (name && step === 1) {
+    const detailsStep = hasOptionalFeatures ? 2 : 1;
+    if (name && step === detailsStep) {
       setSlug(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
     }
-  }, [name, step]);
+  }, [name, step, hasOptionalFeatures]);
 
   // Fetch users for admin step
   const fetchUsers = useCallback(async () => {
@@ -394,8 +477,9 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   }, [token]);
 
   useEffect(() => {
-    if (open && step === 2) fetchUsers();
-  }, [open, step, fetchUsers]);
+    const adminStep = hasOptionalFeatures ? 3 : 2;
+    if (open && step === adminStep) fetchUsers();
+  }, [open, step, fetchUsers, hasOptionalFeatures]);
 
   // Deploy process
   const totalDeploySteps = 4 + (require2FA ? 1 : 0) + features.length;
@@ -462,19 +546,24 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     setStep(0); setSiteType('radio'); setName(''); setSlug('');
     setAdminId(''); setRequire2FA(false); setDeployStatus(0);
     setDeploying(false); setDeployDone(false); setDeployError(null);
+    setSelectedOptionalFeatures([]);
     onClose();
   };
 
+  // Map step index to step name based on current type
+  const stepName = actualSteps[step] || '';
+
   const canNext = () => {
-    if (step === 0) return !!siteType;
-    if (step === 1) return name.trim().length > 0 && slug.trim().length > 0;
-    if (step === 2) return true; // admin is optional
-    if (step === 3) return true;
+    if (stepName === 'Environment') return !!siteType;
+    if (stepName === 'Features') return true; // optional features are optional
+    if (stepName === 'Details') return name.trim().length > 0 && slug.trim().length > 0;
+    if (stepName === 'Admin') return true;
+    if (stepName === 'Security') return true;
     return false;
   };
 
   const handleNext = () => {
-    if (step === 3) { setStep(4); startDeploy(); }
+    if (stepName === 'Security') { setStep(deployStepIdx); startDeploy(); }
     else setStep(s => s + 1);
   };
 
@@ -483,7 +572,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       <DialogContent hideClose className="bg-white border-zinc-200 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="create-wizard-dialog">
         {/* Header with close */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
-          <WizardStepIndicator currentStep={step} steps={MAIN_SITE_STEPS} />
+          <WizardStepIndicator currentStep={step} steps={actualSteps} />
           {!deploying && (
             <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
               <X className="w-4 h-4 text-zinc-400" />
@@ -506,17 +595,18 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-              {step === 0 && <StepEnvironment selected={siteType} onSelect={setSiteType} />}
-              {step === 1 && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
-              {step === 2 && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
-              {step === 3 && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} siteType={siteType} />}
-              {step === 4 && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}
+              {stepName === 'Environment' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); }} />}
+              {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
+              {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
+              {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
+              {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} siteType={siteType} />}
+              {stepName === 'Deploying' && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* Footer actions - always visible at bottom */}
-        {step < 4 && (
+        {stepName !== 'Deploying' && (
           <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
             <Button
               variant="ghost"
@@ -532,7 +622,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               className="gap-2 bg-zinc-900 hover:bg-zinc-900 text-white px-6 rounded-full"
               data-testid="wizard-next-btn"
             >
-              {step === 3 ? (
+              {stepName === 'Security' ? (
                 <>
                   <Zap className="w-4 h-4" /> Deploy Server
                 </>
