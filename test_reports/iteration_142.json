@@ -1,0 +1,98 @@
+{
+  "summary": "Tested ElevenLabs Conversational AI Voice Support feature (migrated from OpenAI Realtime API). All backend APIs working correctly (7/7 tests passed). Frontend UI elements (Voice Call button, incoming call overlay, decline button) functioning as expected for Enterprise sites.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_voice_support_elevenlabs.py",
+    "/app/test_reports/pytest/voice_support_elevenlabs_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Voice Support router correctly checks clara_enterprise flag before returning signed URL",
+    "GET /api/voice-support/signed-url returns wss:// WebSocket URL from ElevenLabs API",
+    "VoiceCallWidget.js uses @elevenlabs/react useConversation hook for WebRTC audio",
+    "ConversationProvider wraps VoiceCallWidget in MainSiteDashboardLayout.js (line 16-17)",
+    "ClaraAssistant.js includes 'Or call Clara Support' button (line 347) that triggers voice call via requestVoiceCall()",
+    "MainSiteDashboardLayout.js correctly shows Voice Call button only for Enterprise sites (line 1143-1155)",
+    "Voice call context bridge works: ClaraAssistantContext.voiceCallRequested -> MainSiteDashboardLayout -> VoiceCallWidget"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_voice_support_elevenlabs.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "system_admin": "admkoodh@koodh.com / KYLovie13monx",
+    "network_admin": "yannick.gijbels@koodh.com / test"
+  },
+  "seed_data_creation": "Created voice support sessions during testing (auto-cleaned by user scope)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Voice Support feature migrated from OpenAI Realtime API to ElevenLabs Conversational AI. Backend tests in test_voice_support_elevenlabs.py cover: signed-url (Enterprise), signed-url (non-Enterprise 403), save-transcript, sessions list, session detail, 404 for nonexistent session, unauthenticated 401. Frontend tests verified: Voice Call button visible for radiogroep (Enterprise), Voice Call button NOT visible for dbntstudio (non-Enterprise), incoming call overlay with ringing animation, decline button closes overlay. ClaraAssistant 'Call Clara Support' button exists in code (line 347) and triggers voice call via context bridge. WebRTC voice streaming cannot be fully tested in headless browser (requires microphone).",
+  "features_tested": {
+    "voice_support_signed_url_enterprise": {
+      "status": "PASS",
+      "details": "GET /api/voice-support/signed-url returns wss:// WebSocket URL from ElevenLabs for Enterprise site (radiogroep)"
+    },
+    "voice_support_signed_url_non_enterprise_403": {
+      "status": "PASS",
+      "details": "GET /api/voice-support/signed-url returns 403 for non-Enterprise site (dbntstudio)"
+    },
+    "voice_support_save_transcript": {
+      "status": "PASS",
+      "details": "POST /api/voice-support/save-transcript saves transcript with messages, language, duration"
+    },
+    "voice_support_sessions_list": {
+      "status": "PASS",
+      "details": "GET /api/voice-support/sessions returns session history for user"
+    },
+    "voice_support_session_detail": {
+      "status": "PASS",
+      "details": "GET /api/voice-support/session/{id} returns full transcript"
+    },
+    "voice_support_session_404": {
+      "status": "PASS",
+      "details": "GET /api/voice-support/session/{id} returns 404 for non-existent session"
+    },
+    "voice_support_unauthenticated_401": {
+      "status": "PASS",
+      "details": "GET /api/voice-support/signed-url returns 401/403 without authentication"
+    },
+    "voice_call_button_enterprise_visible": {
+      "status": "PASS",
+      "details": "Voice Call button (green phone icon) visible in header for Enterprise site (radiogroep)"
+    },
+    "voice_call_button_non_enterprise_hidden": {
+      "status": "PASS",
+      "details": "Voice Call button NOT visible for non-Enterprise site (dbntstudio)"
+    },
+    "incoming_call_overlay": {
+      "status": "PASS",
+      "details": "Clicking Voice Call button shows incoming call overlay with 'Clara Support', 'Incoming call...', ringing animation"
+    },
+    "decline_button_closes_overlay": {
+      "status": "PASS",
+      "details": "Clicking decline button (red phone) closes the voice call overlay"
+    },
+    "clara_assistant_call_support_button": {
+      "status": "PASS (code verified)",
+      "details": "ClaraAssistant.js line 347 contains 'Or call Clara Support' button (data-testid='clara-call-support-btn') that triggers requestVoiceCall() via context bridge"
+    }
+  },
+  "elevenlabs_integration_notes": {
+    "api_endpoint": "https://api.elevenlabs.io/v1/convai/conversation/get-signed-url",
+    "agent_id": "agent_8101knpxmcfjfsrbfee7taaq3jjx",
+    "sdk_used": "@elevenlabs/react with ConversationProvider and useConversation hook",
+    "signed_url_format": "wss://... WebSocket URL for real-time voice conversation"
+  },
+  "webrtc_note": "WebRTC voice streaming cannot be fully end-to-end tested in headless browser (requires microphone and real WebRTC connection). API endpoints and UI rendering tested successfully."
+}

@@ -1,27 +1,25 @@
-"""Voice Support — AI-powered real-time voice calls using OpenAI Realtime API."""
+"""Voice Support — AI-powered real-time voice calls using ElevenLabs Conversational AI."""
 import os
 import uuid
+import logging
+import httpx
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import List
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from emergentintegrations.llm.openai import OpenAIChatRealtime
 from database import db
 from services.auth import get_current_user
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+logger = logging.getLogger(__name__)
+
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY")
+ELEVENLABS_AGENT_ID = os.environ.get("ELEVENLABS_AGENT_ID")
 
 voice_support_router = APIRouter(prefix="/voice-support", tags=["Voice Support"])
-
-# Initialize OpenAI Realtime
-openai_realtime = OpenAIChatRealtime(api_key=OPENAI_API_KEY)
-
-# Register the WebRTC endpoints under /voice-support
-OpenAIChatRealtime.register_openai_realtime_router(voice_support_router, openai_realtime)
 
 
 # --- Models ---
@@ -34,22 +32,19 @@ class SaveTranscriptBody(BaseModel):
     duration_seconds: int = 0
 
 
-class VoiceSessionResponse(BaseModel):
-    session_id: str
-
-
 # --- Endpoints ---
 
-@voice_support_router.post("/start-session")
-async def start_voice_session(
+@voice_support_router.get("/signed-url")
+async def get_signed_url(
     main_site_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Start a voice support session. Requires Enterprise."""
+    """Get a signed URL from ElevenLabs to start a voice conversation. Enterprise only."""
     site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0})
     if not site or not site.get("clara_enterprise"):
         raise HTTPException(status_code=403, detail="Clara Enterprise is not enabled for this site")
 
+    # Create a session record
     session_id = str(uuid.uuid4())
     session = {
         "session_id": session_id,
@@ -64,7 +59,23 @@ async def start_voice_session(
     }
     await db.voice_support_sessions.insert_one(session)
 
-    return {"session_id": session_id, "site_name": site.get("name", "")}
+    # Get signed URL from ElevenLabs
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id={ELEVENLABS_AGENT_ID}",
+            headers={"xi-api-key": ELEVENLABS_API_KEY},
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            logger.error(f"ElevenLabs signed URL error: {resp.status_code} {resp.text}")
+            raise HTTPException(status_code=502, detail="Failed to get voice session")
+        data = resp.json()
+
+    return {
+        "signed_url": data["signed_url"],
+        "session_id": session_id,
+        "site_name": site.get("name", ""),
+    }
 
 
 @voice_support_router.post("/save-transcript")
