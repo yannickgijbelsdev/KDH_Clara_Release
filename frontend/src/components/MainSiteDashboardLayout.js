@@ -13,9 +13,11 @@ import DevToolsInspector from './DevTools/DevToolsInspector';
 import HelpButton from './Tickets/HelpButton';
 import ClaraCLI from './ClaraCLI';
 import ClaraAssistant from './ClaraAssistant';
+import VoiceCallWidget from './VoiceCallWidget';
 import LicenseBlockedOverlay from './LicenseBlockedOverlay';
 import UserTicketsPanel from './UserTicketsPanel';
 import TicketUpdatePopup from './TicketUpdatePopup';
+import { useClaraAssistant } from '../context/ClaraAssistantContext';
 // ClaraAssistantProvider is now at the App root level
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
@@ -256,6 +258,18 @@ const MainSiteDashboardContent = () => {
   const [ticketUpdates, setTicketUpdates] = useState([]);
   const [showTicketPopup, setShowTicketPopup] = useState(false);
   const [showUserTickets, setShowUserTickets] = useState(false);
+  const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const { voiceCallRequested, clearVoiceCallRequest } = useClaraAssistant();
+
+  // Handle voice call request from ClaraAssistant
+  useEffect(() => {
+    if (voiceCallRequested && mainSite?.clara_enterprise) {
+      setShowVoiceCall(true);
+      clearVoiceCallRequest();
+    } else if (voiceCallRequested) {
+      clearVoiceCallRequest();
+    }
+  }, [voiceCallRequested, mainSite?.clara_enterprise, clearVoiceCallRequest]);
   
   // Get user's menu preference (grouped or flat)
   const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
@@ -1124,6 +1138,20 @@ const MainSiteDashboardContent = () => {
               <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-white text-orange-600 rounded-full px-0.5 z-20 shadow-sm">{userTicketCount}</span>
             )}
           </button>
+          {/* Voice Call Button — Enterprise only */}
+          {mainSite?.clara_enterprise && (
+            <button
+              onClick={() => setShowVoiceCall(true)}
+              className="relative w-9 h-9 flex items-center justify-center rounded-full bg-green-500/15 hover:bg-green-500/25 transition-colors flex-shrink-0 group"
+              data-testid="voice-call-trigger-btn"
+              title="Call Clara Support"
+            >
+              <Phone className="w-4 h-4 text-green-600" />
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 bg-zinc-900 text-white text-[10px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                Call Clara Support
+              </div>
+            </button>
+          )}
           {/* CLI Button */}
           {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && (
             <button
@@ -1455,6 +1483,12 @@ const MainSiteDashboardContent = () => {
       onOpenTicket={() => setShowUserTickets(true)}
     />
     <ClaraAssistant />
+    {mainSite?.clara_enterprise && (
+      <VoiceCallWidget
+        open={showVoiceCall}
+        onClose={() => setShowVoiceCall(false)}
+      />
+    )}
     </DevToolsProvider>
   );
 };

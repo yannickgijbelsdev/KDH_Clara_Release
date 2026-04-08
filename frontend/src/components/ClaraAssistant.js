@@ -6,7 +6,7 @@ import axios from 'axios';
 import {
   Sparkles, X, Send, FileText, Loader2,
   Copy, Check, Wand2, ArrowLeft, RotateCcw,
-  LifeBuoy, CheckCircle2, ChevronRight,
+  LifeBuoy, CheckCircle2, ChevronRight, Phone,
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ export default function ClaraAssistant() {
   const {
     isOpen, mode, initialError, initialMessage, errorContext, closeClara,
     editorContent, editorTitle, insertContentFn, insertTitleFn,
+    requestVoiceCall,
   } = useClaraAssistant();
 
   const [messages, setMessages] = useState([]);
@@ -330,7 +331,7 @@ export default function ClaraAssistant() {
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex justify-center pt-2"
+                        className="flex flex-col items-center gap-2 pt-2"
                       >
                         <button
                           onClick={() => setShowSupportForm(true)}
@@ -339,6 +340,14 @@ export default function ClaraAssistant() {
                         >
                           <LifeBuoy className="w-4 h-4" />
                           Not resolved? Contact Support
+                        </button>
+                        <button
+                          onClick={requestVoiceCall}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 rounded-full text-xs font-medium text-green-700 transition-colors border border-green-200"
+                          data-testid="clara-call-support-btn"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          Or call Clara Support
                         </button>
                       </motion.div>
                     )}

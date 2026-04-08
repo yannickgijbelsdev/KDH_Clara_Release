@@ -11,8 +11,8 @@ export function ClaraAssistantProvider({ children }) {
   const [editorTitle, setEditorTitle] = useState('');
   const [insertContentFn, setInsertContentFn] = useState(null);
   const [insertTitleFn, setInsertTitleFn] = useState(null);
-
   const [initialMessage, setInitialMessage] = useState('');
+  const [voiceCallRequested, setVoiceCallRequested] = useState(false);
 
   const openClara = useCallback((openMode = 'seo', opts = {}) => {
     setMode(openMode);
@@ -26,6 +26,15 @@ export function ClaraAssistantProvider({ children }) {
     setIsOpen(false);
     setInitialError('');
     setErrorContext('');
+  }, []);
+
+  const requestVoiceCall = useCallback(() => {
+    setIsOpen(false);
+    setVoiceCallRequested(true);
+  }, []);
+
+  const clearVoiceCallRequest = useCallback(() => {
+    setVoiceCallRequested(false);
   }, []);
 
   const registerEditor = useCallback((content, title, onInsertContent, onInsertTitle) => {
@@ -57,6 +66,9 @@ export function ClaraAssistantProvider({ children }) {
       insertTitleFn,
       registerEditor,
       unregisterEditor,
+      voiceCallRequested,
+      requestVoiceCall,
+      clearVoiceCallRequest,
     }}>
       {children}
     </ClaraAssistantContext.Provider>

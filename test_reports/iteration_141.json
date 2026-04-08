@@ -1,0 +1,95 @@
+{
+  "summary": "Tested AI Voice Call Support feature (OpenAI Realtime Voice API) for Enterprise sites. All backend APIs working correctly. Frontend UI elements (Voice Call button, incoming call overlay, decline button) functioning as expected. Enterprise Assistant 3D images loading correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_voice_support.py",
+    "/app/test_reports/pytest/voice_support_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Voice Support router correctly checks clara_enterprise flag before allowing session creation",
+    "WebRTC endpoints registered via emergentintegrations library (realtime/session, realtime/negotiate)",
+    "VoiceCallWidget.js properly handles all phases: ringing -> connecting -> active -> ended",
+    "ClaraAssistant.js includes 'Or call Clara Support' button (line 345-351) that triggers voice call via requestVoiceCall()",
+    "MainSiteDashboardLayout.js correctly shows Voice Call button only for Enterprise sites (line 1142-1154)",
+    "Enterprise Assistant page loads 3D isometric room images from static.prod-images.emergentagent.com"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_voice_support.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "system_admin": "admkoodh@koodh.com / KYLovie13monx",
+    "network_admin": "yannick.gijbels@koodh.com / test"
+  },
+  "seed_data_creation": "Created voice support sessions during testing (auto-cleaned by user scope)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Voice Support feature is fully working for Enterprise sites. Backend tests in test_voice_support.py cover: start-session (Enterprise), start-session (non-Enterprise 403), realtime/session endpoint, save-transcript, sessions list, session detail, 404 for nonexistent session, unauthenticated 401. Frontend tests verified: Voice Call button visible for radiogroep (Enterprise), Voice Call button NOT visible for dbntstudio (non-Enterprise), incoming call overlay with ringing animation, decline button closes overlay, Enterprise Assistant page with 3D images. WebRTC voice streaming cannot be fully tested in headless browser (requires microphone).",
+  "features_tested": {
+    "voice_support_start_session_enterprise": {
+      "status": "PASS",
+      "details": "POST /api/voice-support/start-session creates session for Enterprise site (radiogroep)"
+    },
+    "voice_support_start_session_non_enterprise_403": {
+      "status": "PASS",
+      "details": "POST /api/voice-support/start-session returns 403 for non-Enterprise site (dbntstudio)"
+    },
+    "voice_support_realtime_session": {
+      "status": "PASS",
+      "details": "POST /api/voice-support/realtime/session endpoint exists and returns session config"
+    },
+    "voice_support_save_transcript": {
+      "status": "PASS",
+      "details": "POST /api/voice-support/save-transcript saves transcript with messages, language, duration"
+    },
+    "voice_support_sessions_list": {
+      "status": "PASS",
+      "details": "GET /api/voice-support/sessions returns session history for user"
+    },
+    "voice_support_session_detail": {
+      "status": "PASS",
+      "details": "GET /api/voice-support/session/{id} returns full transcript"
+    },
+    "voice_call_button_enterprise_visible": {
+      "status": "PASS",
+      "details": "Voice Call button (green phone icon) visible in header for Enterprise site (radiogroep)"
+    },
+    "voice_call_button_non_enterprise_hidden": {
+      "status": "PASS",
+      "details": "Voice Call button NOT visible for non-Enterprise site (dbntstudio)"
+    },
+    "incoming_call_overlay": {
+      "status": "PASS",
+      "details": "Clicking Voice Call button shows incoming call overlay with 'Clara Support', 'Incoming call...', ringing animation"
+    },
+    "decline_button_closes_overlay": {
+      "status": "PASS",
+      "details": "Clicking decline button (red phone) closes the voice call overlay"
+    },
+    "clara_assistant_call_support_button": {
+      "status": "PASS",
+      "details": "ClaraAssistant.js contains 'Or call Clara Support' button (data-testid='clara-call-support-btn') that appears after conversation"
+    },
+    "enterprise_assistant_3d_images": {
+      "status": "PASS",
+      "details": "Enterprise Assistant page shows 3D isometric room images from static.prod-images.emergentagent.com for Code Assistant and Enterprise Support modes"
+    },
+    "s3_attachment_upload": {
+      "status": "PASS",
+      "details": "POST /api/support-tickets/{id}/messages/attachment endpoint exists (regression test)"
+    }
+  },
+  "webrtc_note": "WebRTC voice streaming cannot be fully end-to-end tested in headless browser (requires microphone and real WebRTC connection). API endpoints and UI rendering tested successfully."
+}
