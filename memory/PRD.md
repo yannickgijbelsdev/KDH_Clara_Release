@@ -40,7 +40,13 @@ Multi-environment SaaS platform for radio station management built with React fr
 - System Admin: admkoodh@koodh.com / KYLovie13monx
 - Network Admin: yannick.gijbels@koodh.com / test
 
+## Recent Fixes
+- **Rundown delete bug** (Apr 2026): Fixed `delete_rundown_item` endpoint — added multisite context (`X-Main-Site-ID`) and changed from admin-only to editor/admin/member permissions (consistent with create/update)
+- **Clara Assistant error handling** (Apr 2026): Improved error messages when LLM key hits rate limit — now shows actionable message directing users to create support tickets directly
+
 ## Backlog
+### P0
+- Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)
 ### P1
 - Calendar Integration (Google Calendar / Outlook) for Clara Tasks
 - WordPress Plugin Integration (clara-radio-schedule)

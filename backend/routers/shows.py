@@ -1663,20 +1663,31 @@ async def update_rundown_item(
 async def delete_rundown_item(
     show_id: str,
     item_id: str,
-    current_user: dict = Depends(require_admin)
+    request: Request,
+    current_user: dict = Depends(get_current_user)
 ):
-    """Delete a rundown item. Admin only."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')}
-    )
+    """Delete a rundown item. Allowed for editors, admins, and show members."""
+    main_site_id = await get_main_site_id_from_header(request)
+
+    if main_site_id:
+        show = await db.shows.find_one({"id": show_id, "main_site_id": main_site_id})
+    else:
+        show = await db.shows.find_one({"id": show_id, "team_id": current_user.get('team_id')})
+
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
-    
+
+    # Allow editors/admins OR show members
+    role = current_user.get("role", "viewer")
+    is_member = current_user["id"] in (show.get("members") or [])
+    if role not in ("admin", "editor") and not is_member:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this rundown item")
+
     result = await db.rundown_items.delete_one({"id": item_id, "show_id": show_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Item not found")
     
-    # Broadcast WebSocket event for legacy shows
+    # Broadcast WebSocket event
     await ws_manager.broadcast(f"show_{show_id}", {
         "type": "item_deleted",
         "item_id": item_id,

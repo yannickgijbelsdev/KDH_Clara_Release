@@ -74,7 +74,7 @@ export default function ClaraAssistant() {
       setMessages(prev => [...prev, { role: 'assistant', text: res.data.explanation, isErrorHelp: true }]);
       setSupportForm(prev => ({ ...prev, subject: `Error: ${errorMsg.slice(0, 80)}`, description: errorMsg, steps_tried: '' }));
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, something went wrong. Please try again.', error: true }]);
+      setMessages(prev => [...prev, { role: 'assistant', text: 'The AI assistant is currently unavailable (rate limit reached). Please create a support ticket directly using the button below.', error: true }]);
     }
     setLoading(false);
   };
@@ -115,7 +115,7 @@ export default function ClaraAssistant() {
       setSessionId(res.data.session_id);
       setMessages(prev => [...prev, { role: 'assistant', text: res.data.response }]);
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, something went wrong. Please try again.', error: true }]);
+      setMessages(prev => [...prev, { role: 'assistant', text: 'The AI assistant is currently unavailable. Please try again later or create a support ticket directly.', error: true }]);
     }
     setLoading(false);
   };
