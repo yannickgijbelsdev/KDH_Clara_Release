@@ -12,6 +12,7 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Clara AI Assistant for error troubleshooting and SEO
 - PWA installation support
 - RDS (Radio Data System) metadata monitoring with auto-refresh
+- Two-Factor Authentication (2FA) enforcement with conditional rules
 
 ## Architecture
 ```
@@ -46,17 +47,26 @@ All Network pages use a consistent card layout:
 - `/images/env_wp_security.jpg` — WordPress Security
 
 ## Key Pages & Features (All using isometric card grid)
-- Sites Overview ✅
-- Environments ✅
-- Domain Manager (Overview, Site Domains, Subdomain Routing, Cloudflare) ✅
-- License Manager (Overview, Packages, Requests) ✅
-- Notifications (Roles, History) ✅
-- Branding (Platform Name, Logo, Favicon) ✅
-- Backups ✅
-- API Explorer ✅
-- Clara AI Assistant (centered overlay messenger) ✅
-- PWA Install Prompt ✅
-- RDS Monitor (auto-refresh every 3 min) ✅
+- Sites Overview
+- Environments
+- Domain Manager (Overview, Site Domains, Subdomain Routing, Cloudflare)
+- License Manager (Overview, Packages, Requests)
+- Notifications (Roles, History)
+- Branding (Platform Name, Logo, Favicon)
+- Backups
+- API Explorer
+- Clara AI Assistant (centered overlay messenger)
+- PWA Install Prompt
+- RDS Monitor (auto-refresh every 3 min)
+- 2FA Enforcement (conditional, with 3 permanent skips)
+
+## 2FA Enforcement System
+- **Conditional enforcement**: 2FA is mandatory if user is a Network Admin OR if their main_site has `require_2fa=True`
+- **Skip mechanism**: Users can skip setup up to 3 times (permanent, stored in DB `totp_skip_count`). After 3 skips, setup is mandatory.
+- **Backup codes**: 10 auto-generated codes during setup with Copy, Download (.txt), and Email delivery options
+- **Site setting**: `require_2fa` boolean toggle on each main site (EditMainSiteWizard > General Settings)
+- **Backend endpoints**: `/api/auth/2fa/enforcement-status`, `/api/auth/2fa/email-backup-codes`, `/api/auth/2fa/skip`
+- **Frontend**: `TwoFactorEnforcementWrapper` in App.js only activates when `user.force_2fa === true`
 
 ## 3rd Party Integrations
 - Cloudflare (WAF/DNS) — User API Key required
@@ -64,7 +74,20 @@ All Network pages use a consistent card layout:
 - Radioplayer — API Key integrated
 - ZeroTier — Active
 - OpenAI GPT-5.2 — Emergent Universal Key
+- Office365 SMTP — For emails (password resets, backup codes, notifications)
 
 ## Credentials
 - System Admin: admkoodh@koodh.com / KYLovie13monx
 - Network Admin: yannick.gijbels@koodh.com / test
+
+## Backlog (Prioritized)
+### P1
+- Finalize Calendar Integration (Google Calendar / Outlook) for Clara Tasks
+- Finalize WordPress Plugin Integration (clara-radio-schedule)
+
+### P2
+- Integrate Payment Gateway (Stripe/Mollie) for License Manager
+- Implement Stream Monitor VU Meters
+- Cleanup Obsolete ProRadio Sync Code
+- Fix React Hook dependency warnings (useEffect/useCallback)
+- Refactoring: Split MainSiteDashboardLayout.js and NetworkDashboard.js
