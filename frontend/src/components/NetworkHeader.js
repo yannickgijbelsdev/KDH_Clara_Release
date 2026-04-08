@@ -185,7 +185,7 @@ export default function NetworkHeader({
 
         {/* Pill Tabs (desktop) */}
         <div
-          className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 border border-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.6)] bg-white/25 backdrop-blur-2xl"
+          className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent"
           data-testid="pill-nav"
         >
           {NAV_ITEMS.slice(0, 5).map(tab => {
