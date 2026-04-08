@@ -194,6 +194,7 @@ async def create_main_site(
         "site_type": data.site_type,
         "linked_main_site_id": data.linked_main_site_id,
         "is_demo": data.is_demo,
+        "require_2fa": data.require_2fa,
         "environment_id": data.environment_id,
         "created_at": now,
         "updated_at": now
@@ -377,6 +378,9 @@ async def update_main_site(
 
     if data.is_demo is not None:
         update_data["is_demo"] = data.is_demo
+
+    if data.require_2fa is not None:
+        update_data["require_2fa"] = data.require_2fa
 
     await db.main_sites.update_one(
         {"id": main_site_id},

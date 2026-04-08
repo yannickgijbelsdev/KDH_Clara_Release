@@ -66,6 +66,7 @@ class MainSiteCreate(BaseModel):
     linked_main_site_id: Optional[str] = None  # For server sites: linked parent main site
     is_demo: bool = False  # Demo sites bypass license requirements
     environment_id: Optional[str] = None  # Assign to specific environment
+    require_2fa: bool = False  # Require 2FA for all users of this site
 
 
 class MainSiteUpdate(BaseModel):
@@ -77,6 +78,7 @@ class MainSiteUpdate(BaseModel):
     enabled_features: Optional[List[str]] = None
     linked_main_site_id: Optional[str] = None
     is_demo: Optional[bool] = None
+    require_2fa: Optional[bool] = None
 
 
 class MainSiteResponse(BaseModel):
@@ -94,6 +96,7 @@ class MainSiteResponse(BaseModel):
     user_count: int = 0
     cloned_from: Optional[str] = None
     is_demo: bool = False
+    require_2fa: bool = False
     environment_id: Optional[str] = None
     environment_name: Optional[str] = None
     environment_color: Optional[str] = None
@@ -116,6 +119,7 @@ class MainSiteListResponse(BaseModel):
     user_count: int = 0
     cloned_from: Optional[str] = None
     is_demo: bool = False
+    require_2fa: bool = False
     environment_id: Optional[str] = None
     environment_name: Optional[str] = None
     environment_color: Optional[str] = None

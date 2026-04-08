@@ -333,8 +333,8 @@ const TwoFactorEnforcementWrapper = () => {
     setDismissed(false);
   }, [user?.id]);
 
-  // Don't show if: no user, already enabled, or dismissed this session
-  if (!user || user.totp_enabled || dismissed) return null;
+  // Only show if: user exists, 2FA not enabled, force_2fa is true, and not dismissed
+  if (!user || user.totp_enabled || dismissed || !user.force_2fa) return null;
 
   return (
     <TwoFactorEnforcement

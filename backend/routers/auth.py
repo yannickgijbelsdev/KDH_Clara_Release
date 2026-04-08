@@ -23,6 +23,34 @@ from services.two_factor import (
 from services.permissions import get_user_permissions
 
 
+async def check_user_requires_2fa(user: dict) -> bool:
+    """Check if a user is required to set up 2FA.
+    
+    2FA is required if:
+    1. The user is a Network Admin.
+    2. Any main_site the user belongs to has require_2fa=True.
+    """
+    if user.get('is_network_admin'):
+        return True
+    
+    # Check if any of the user's main sites require 2FA
+    user_sites = await db.main_site_users.find(
+        {"user_id": user["id"]},
+        {"_id": 0, "main_site_id": 1}
+    ).to_list(100)
+    
+    if user_sites:
+        site_ids = [s["main_site_id"] for s in user_sites]
+        enforcing_site = await db.main_sites.find_one(
+            {"id": {"$in": site_ids}, "require_2fa": True},
+            {"_id": 0, "id": 1}
+        )
+        if enforcing_site:
+            return True
+    
+    return False
+
+
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -274,6 +302,11 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         totp_skip_count=user.get('totp_skip_count', 0)
     )
     
+    # Check if 2FA setup is enforced for this user
+    force_2fa = False
+    if not totp_enabled:
+        force_2fa = await check_user_requires_2fa(user)
+    
     return {
         "requires_2fa": False,
         "token": token,
@@ -282,6 +315,7 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
         "temp_token": None,
         "totp_skip_count": user.get('totp_skip_count', 0),
         "force_password_change": user.get('force_password_change', False),
+        "force_2fa": force_2fa,
     }
 
 
@@ -554,10 +588,17 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         totp_enabled=current_user.get('totp_enabled', False),
         totp_skip_count=current_user.get('totp_skip_count', 0)
     )
+    
+    # Check if 2FA setup is enforced for this user
+    force_2fa = False
+    if not current_user.get('totp_enabled', False):
+        force_2fa = await check_user_requires_2fa(current_user)
+    
     return {
         **resp.dict(),
         "force_password_change": current_user.get('force_password_change', False),
         "is_blocked": current_user.get('is_blocked', False),
+        "force_2fa": force_2fa,
     }
 
 
@@ -597,7 +638,7 @@ async def get_my_permissions(request: Request, current_user: dict = Depends(get_
 @auth_router.post("/2fa/skip")
 async def skip_2fa_setup(current_user: dict = Depends(get_current_user)):
     """Skip 2FA setup. Users can skip up to 3 times, then it becomes mandatory."""
-    current_skips = current_user.get('totp_skip_count', 0)
+    current_skips = max(0, current_user.get('totp_skip_count', 0))
     
     if current_skips >= 3:
         raise HTTPException(status_code=400, detail="Maximum skips reached. 2FA setup is now required.")
@@ -881,3 +922,88 @@ async def regenerate_backup_codes(
     
     return {"backup_codes": new_codes}
 
+
+
+class EmailBackupCodesRequest(BaseModel):
+    codes: List[str]
+
+
+@auth_router.post("/2fa/email-backup-codes")
+async def email_backup_codes(
+    data: EmailBackupCodesRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Email backup codes to the current user via the configured SMTP integration."""
+    from services.email_service import send_email_with_config, _get_branding_info, _build_dynamic_header
+
+    if not data.codes:
+        raise HTTPException(status_code=400, detail="No backup codes provided")
+
+    smtp_config = await db.notification_config.find_one({"type": "smtp"}, {"_id": 0})
+    if not smtp_config or not smtp_config.get("password"):
+        raise HTTPException(status_code=503, detail="Email service is not configured")
+
+    branding = await _get_branding_info()
+    brand_name = branding["brand_name"]
+    brand_logo_url = branding["brand_logo_url"]
+    header = _build_dynamic_header(brand_name, brand_logo_url, "2FA Backup Codes", "linear-gradient(135deg,#f97316,#ea580c)")
+
+    codes_html = "".join(
+        f'<div style="background:#27272a;border-radius:6px;padding:8px 16px;font-family:monospace;font-size:14px;color:#f97316;letter-spacing:1px;">{code}</div>'
+        for code in data.codes
+    )
+
+    html = f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;background:#18181b;color:#e4e4e7;border-radius:12px;overflow:hidden;">
+        {header}
+        <div style="padding:24px;">
+            <p style="margin:0 0 16px;font-size:14px;color:#a1a1aa;">
+                Hello {current_user.get('name', '')},
+            </p>
+            <p style="margin:0 0 16px;font-size:13px;color:#a1a1aa;">
+                Here are your 2FA backup codes. Store them in a safe place. Each code can only be used once.
+            </p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+                {codes_html}
+            </div>
+            <div style="background:#27272a;border:1px solid #ef444444;border-radius:8px;padding:12px 16px;margin-top:12px;">
+                <p style="margin:0;font-size:12px;color:#ef4444;">
+                    Keep these codes secure. Do not share them with anyone. If you suspect they have been compromised, regenerate them immediately.
+                </p>
+            </div>
+        </div>
+        <div style="padding:12px 24px;background:#09090b;text-align:center;font-size:11px;color:#52525b;">Clara Global Protect</div>
+    </div>"""
+
+    subject = f"{brand_name} - Your 2FA Backup Codes"
+    success = await send_email_with_config(smtp_config, current_user['email'], subject, html)
+
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send email")
+
+    await log_action(
+        action="Backup Codes Emailed",
+        category="auth",
+        user_id=current_user['id'],
+        user_name=current_user['name'],
+        user_email=current_user['email'],
+        ip_address=get_client_ip(request)
+    )
+
+    return {"message": "Backup codes sent to your email"}
+
+
+@auth_router.get("/2fa/enforcement-status")
+async def get_2fa_enforcement_status(current_user: dict = Depends(get_current_user)):
+    """Check if the current user is required to set up 2FA."""
+    totp_enabled = current_user.get('totp_enabled', False)
+    force_2fa = False
+    if not totp_enabled:
+        force_2fa = await check_user_requires_2fa(current_user)
+    return {
+        "force_2fa": force_2fa,
+        "totp_enabled": totp_enabled,
+        "totp_skip_count": current_user.get('totp_skip_count', 0),
+        "skips_remaining": max(0, 3 - current_user.get('totp_skip_count', 0)),
+    }

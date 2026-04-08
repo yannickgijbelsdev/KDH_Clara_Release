@@ -36,6 +36,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [require2fa, setRequire2fa] = useState(false);
 
   // License
   const [packages, setPackages] = useState([]);
@@ -58,6 +59,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     setName(site.name || '');
     setSlug(site.slug || '');
     setLogoUrl(site.logo_url || '');
+    setRequire2fa(site.require_2fa || false);
   }, [open, site]);
 
   // Load license + users when step changes
@@ -100,7 +102,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     setSaving(true);
     try {
       await fetch(`${API}/api/main-sites/${site.id}`, {
-        method: 'PUT', headers, body: JSON.stringify({ name, slug, logo_url: logoUrl }),
+        method: 'PUT', headers, body: JSON.stringify({ name, slug, logo_url: logoUrl, require_2fa: require2fa }),
       });
       onUpdated?.();
     } catch (e) { console.error(e); }
@@ -242,6 +244,27 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                   <span className="text-zinc-400 text-sm">/</span>
                   <Input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} className="bg-zinc-50 border-zinc-200 font-mono" data-testid="edit-site-slug" />
                 </div>
+              </div>
+
+              {/* 2FA Enforcement Toggle */}
+              <div className="flex items-center justify-between p-3 bg-zinc-50 border border-zinc-200 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <Shield className="w-5 h-5 text-orange-500" />
+                  <div>
+                    <p className="text-sm font-medium text-zinc-900">Require 2FA</p>
+                    <p className="text-xs text-zinc-500">All users of this site must enable two-factor authentication</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={require2fa}
+                  onClick={() => setRequire2fa(!require2fa)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${require2fa ? 'bg-orange-500' : 'bg-zinc-300'}`}
+                  data-testid="require-2fa-toggle"
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${require2fa ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
               </div>
 
               <div className="flex gap-2 pt-2">

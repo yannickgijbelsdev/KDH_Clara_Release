@@ -11,7 +11,7 @@ import {
   DialogDescription,
 } from './ui/dialog';
 import { toast } from 'sonner';
-import { Shield, ShieldCheck, ShieldOff, Copy, Check, AlertTriangle, KeyRound, Loader2 } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldOff, Copy, Check, AlertTriangle, KeyRound, Loader2, Download, Mail } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -120,6 +120,36 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
   const copyAllCodes = () => {
     navigator.clipboard.writeText(backupCodes.join('\n'));
     toast.success('All codes copied');
+  };
+
+  const downloadCodes = () => {
+    const text = `Clara Global Protect - 2FA Backup Codes\n${'='.repeat(40)}\n\nGenerated: ${new Date().toLocaleString()}\n\n${backupCodes.map((c, i) => `${i + 1}. ${c}`).join('\n')}\n\nKeep these codes safe. Each code can only be used once.`;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backup-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Backup codes downloaded');
+  };
+
+  const [emailing, setEmailing] = useState(false);
+  const emailCodes = async () => {
+    setEmailing(true);
+    try {
+      await axios.post(`${API}/auth/2fa/email-backup-codes`, { codes: backupCodes });
+      toast.success('Backup codes sent to your email');
+    } catch (error) {
+      const detail = error.response?.data?.detail;
+      if (detail === 'Email service is not configured') {
+        toast.error('Email service is not configured. Ask your administrator.');
+      } else {
+        toast.error(detail || 'Failed to send email');
+      }
+    } finally {
+      setEmailing(false);
+    }
   };
 
   if (loading) {
@@ -269,7 +299,7 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
           {setupStep === 3 && (
             <div className="space-y-4">
               <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
-                <p className="text-amber-200 text-sm flex items-center gap-2">
+                <p className="text-amber-700 text-sm flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
                   Store these codes safely! You can use them if you lose access to your authenticator.
                 </p>
@@ -279,27 +309,38 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                   <button
                     key={i}
                     onClick={() => copyCode(code, i)}
-                    className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 font-mono text-sm text-white flex items-center justify-between transition-colors"
+                    className="bg-zinc-100 hover:bg-zinc-200 rounded px-3 py-2 font-mono text-sm text-zinc-900 flex items-center justify-between transition-colors"
+                    data-testid={`backup-code-${i}`}
                   >
                     {code}
                     {copiedIndex === i ? (
                       <Check className="w-4 h-4 text-emerald-500" />
                     ) : (
-                      <Copy className="w-4 h-4 text-zinc-500" />
+                      <Copy className="w-4 h-4 text-zinc-400" />
                     )}
                   </button>
                 ))}
               </div>
-              <Button variant="outline" onClick={copyAllCodes} className="w-full gap-2">
-                <Copy className="w-4 h-4" />
-                Alle codes kopiëren
-              </Button>
+              <div className="grid grid-cols-3 gap-2">
+                <Button variant="outline" onClick={copyAllCodes} className="gap-2" data-testid="copy-all-codes-btn">
+                  <Copy className="w-4 h-4" />
+                  Copy
+                </Button>
+                <Button variant="outline" onClick={downloadCodes} className="gap-2" data-testid="download-codes-btn">
+                  <Download className="w-4 h-4" />
+                  Download
+                </Button>
+                <Button variant="outline" onClick={emailCodes} disabled={emailing} className="gap-2" data-testid="email-codes-btn">
+                  <Mail className="w-4 h-4" />
+                  {emailing ? '...' : 'Email'}
+                </Button>
+              </div>
               <Button onClick={() => {
                 setSetupDialogOpen(false);
                 setSetupStep(1);
                 setVerifyCode('');
                 setSetupData(null);
-              }} className="w-full">
+              }} className="w-full" data-testid="2fa-setup-done-btn">
                 Klaar
               </Button>
             </div>
@@ -408,21 +449,31 @@ const TwoFactorSetup = ({ user, onUpdate }) => {
                       <button
                         key={i}
                         onClick={() => copyCode(code, i)}
-                        className="bg-zinc-800 hover:bg-zinc-700 rounded px-3 py-2 font-mono text-sm text-white flex items-center justify-between transition-colors"
+                        className="bg-zinc-100 hover:bg-zinc-200 rounded px-3 py-2 font-mono text-sm text-zinc-900 flex items-center justify-between transition-colors"
                       >
                         {code}
                         {copiedIndex === i ? (
                           <Check className="w-4 h-4 text-emerald-500" />
                         ) : (
-                          <Copy className="w-4 h-4 text-zinc-500" />
+                          <Copy className="w-4 h-4 text-zinc-400" />
                         )}
                       </button>
                     ))}
                   </div>
-                  <Button variant="outline" onClick={copyAllCodes} className="w-full gap-2 mt-2">
-                    <Copy className="w-4 h-4" />
-                    Alle codes kopiëren
-                  </Button>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    <Button variant="outline" onClick={copyAllCodes} className="gap-2">
+                      <Copy className="w-4 h-4" />
+                      Copy
+                    </Button>
+                    <Button variant="outline" onClick={downloadCodes} className="gap-2">
+                      <Download className="w-4 h-4" />
+                      Download
+                    </Button>
+                    <Button variant="outline" onClick={emailCodes} disabled={emailing} className="gap-2">
+                      <Mail className="w-4 h-4" />
+                      {emailing ? '...' : 'Email'}
+                    </Button>
+                  </div>
                 </div>
               </>
             )}

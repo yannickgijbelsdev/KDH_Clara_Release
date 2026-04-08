@@ -179,7 +179,7 @@ export const AuthProvider = ({ children }) => {
       backup_code: backupCode
     });
     
-    const { requires_2fa, token: newToken, user: userData, expires_at, temp_token, force_password_change } = response.data;
+    const { requires_2fa, token: newToken, user: userData, expires_at, temp_token, force_password_change, force_2fa } = response.data;
     
     // If 2FA is required and no code was provided, return the flag
     if (requires_2fa && !newToken) {
@@ -196,10 +196,10 @@ export const AuthProvider = ({ children }) => {
     }
     axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     setToken(newToken);
-    setUser({ ...userData, force_password_change: force_password_change || false });
+    setUser({ ...userData, force_password_change: force_password_change || false, force_2fa: force_2fa || false });
     setImpersonating(null);
     setShowSessionWarning(false);
-    return { ...userData, force_password_change: force_password_change || false };
+    return { ...userData, force_password_change: force_password_change || false, force_2fa: force_2fa || false };
   };
 
   const register = async (email, password, name, teamName) => {
