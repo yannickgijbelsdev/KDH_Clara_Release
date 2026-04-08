@@ -191,7 +191,7 @@ export default function EnvironmentManager() {
         {environments.map((env, i) => {
           const siteCount = env.site_count || 0;
           const adminCount = env.admin_count || 0;
-          const ENV_IMAGES = ['/images/env_server.jpg', '/images/env_technical.jpg', '/images/env_radio.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg', '/images/env_wp_security.jpg'];
+          const ENV_IMAGES = ['/images/env_environment.jpg', '/images/env_server.jpg', '/images/env_technical.jpg', '/images/env_radio.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg'];
           const envImg = ENV_IMAGES[i % ENV_IMAGES.length];
           return (
             <motion.div

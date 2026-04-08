@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const SITE_TYPE_IMAGES = { radio: '/images/env_radio.jpg', technical: '/images/env_technical.jpg', server: '/images/env_server.jpg', task_scheduler: '/images/env_task_scheduler.jpg', external_host: '/images/env_external_host.jpg', wp_security: '/images/env_wp_security.jpg' };
-const CYCLING_IMAGES = ['/images/env_server.jpg', '/images/env_technical.jpg', '/images/env_radio.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg', '/images/env_wp_security.jpg'];
+const CYCLING_IMAGES = ['/images/env_license.jpg', '/images/env_license.jpg', '/images/env_license.jpg', '/images/env_license.jpg', '/images/env_license.jpg', '/images/env_license.jpg'];
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -294,11 +294,11 @@ export default function LicenseManager() {
           {/* Stats as isometric image cards */}
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
             {[
-              { label: 'TOTAL SITES', value: overview.length, icon: Globe, color: '#3b82f6', img: '/images/env_server.jpg' },
-              { label: 'LICENSED', value: assignedSites.length, icon: Check, color: '#22c55e', img: '/images/env_radio.jpg' },
-              { label: 'NO LICENSE', value: unassignedSites.filter(s => !s.is_demo).length, icon: AlertTriangle, color: '#ef4444', img: '/images/env_wp_security.jpg' },
-              { label: 'DEMO', value: overview.filter(s => s.is_demo).length, icon: Globe, color: '#f59e0b', img: '/images/env_external_host.jpg' },
-              { label: 'LIFETIME', value: assignedSites.filter(s => s.is_lifetime).length, icon: Infinity, color: '#a855f7', img: '/images/env_task_scheduler.jpg' },
+              { label: 'TOTAL SITES', value: overview.length, icon: Globe, color: '#3b82f6', img: '/images/env_license.jpg' },
+              { label: 'LICENSED', value: assignedSites.length, icon: Check, color: '#22c55e', img: '/images/env_license.jpg' },
+              { label: 'NO LICENSE', value: unassignedSites.filter(s => !s.is_demo).length, icon: AlertTriangle, color: '#ef4444', img: '/images/env_license.jpg' },
+              { label: 'DEMO', value: overview.filter(s => s.is_demo).length, icon: Globe, color: '#f59e0b', img: '/images/env_license.jpg' },
+              { label: 'LIFETIME', value: assignedSites.filter(s => s.is_lifetime).length, icon: Infinity, color: '#a855f7', img: '/images/env_license.jpg' },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
