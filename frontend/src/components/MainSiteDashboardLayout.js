@@ -249,6 +249,8 @@ const MainSiteDashboardContent = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const cliTriggerRef = useRef(null);
+  const pillNavRef = useRef(null);
+  const [visibleNavCount, setVisibleNavCount] = useState(4);
   const searchInputRef = useCallback(node => { if (node) node.focus(); }, []);
   const [userTicketCount, setUserTicketCount] = useState(0);
   const [ticketUpdates, setTicketUpdates] = useState([]);
@@ -328,6 +330,26 @@ const MainSiteDashboardContent = () => {
     const interval = setInterval(fetchTicketData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Dynamically calculate how many nav items fit in the pill bar
+  useEffect(() => {
+    const container = pillNavRef.current;
+    if (!container) return;
+    const ITEM_AVG_WIDTH = 160; // generous average px per pill
+    const DASHBOARD_WIDTH = 140; // Dashboard pill + gap
+    const MORE_WIDTH = 90; // More button
+    const RIGHT_SECTION = 200; // icons on the right side (search, avatar, etc.)
+    const calculate = () => {
+      const totalWidth = container.offsetWidth;
+      const availableWidth = totalWidth - DASHBOARD_WIDTH - RIGHT_SECTION;
+      const maxFit = Math.max(1, Math.floor((availableWidth - MORE_WIDTH) / ITEM_AVG_WIDTH));
+      setVisibleNavCount(maxFit);
+    };
+    const observer = new ResizeObserver(calculate);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
 
   // Fetch sites for navigation
   const fetchSites = useCallback(async () => {
@@ -1169,21 +1191,21 @@ const MainSiteDashboardContent = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <div className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent" data-testid="pill-nav">
-            {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, 4).map(i => ({ label: i.label, to: i.to }))].map(tab => {
+          <div ref={pillNavRef} className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent flex-1 min-w-0 justify-center overflow-hidden" data-testid="pill-nav">
+            {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, visibleNavCount).map(i => ({ label: i.label, to: i.to }))].map(tab => {
               const isTabActive = !isLicenseBlocked && (tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/')));
               const pathSegment = tab.to.split('/').pop();
               const pillBadge = getBadgeCount(pathSegment);
               return isLicenseBlocked ? (
                 <span key={tab.to}
-                  className="relative px-5 py-2.5 rounded-[20px] text-sm font-medium text-zinc-300 cursor-not-allowed select-none"
+                  className="relative px-5 py-2.5 rounded-[20px] text-sm font-medium text-zinc-300 cursor-not-allowed select-none whitespace-nowrap flex-shrink-0"
                   data-testid={`pill-disabled-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {tab.label}
                 </span>
               ) : (
                 <NavLink key={tab.to} to={tab.to} end={tab.to === `/${mainSiteSlug}`}
-                  className={`relative px-5 py-2.5 rounded-[20px] text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 z-[1] ${isTabActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-700'}`}
+                  className={`relative px-5 py-2.5 rounded-[20px] text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 z-[1] whitespace-nowrap flex-shrink-0 ${isTabActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-700'}`}
                   data-testid={`pill-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {isTabActive && (
@@ -1205,13 +1227,13 @@ const MainSiteDashboardContent = () => {
                 </NavLink>
               );
             })}
-            {!isLicenseBlocked && flatNavItems.length > 4 && (
+            {!isLicenseBlocked && flatNavItems.length > visibleNavCount && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors flex items-center">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
+                  <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors flex items-center whitespace-nowrap flex-shrink-0">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="bg-white/30 backdrop-blur-2xl border-white/40 shadow-[0_8px_40px_rgba(0,0,0,0.1),inset_0_1px_0_rgba(255,255,255,0.6)] rounded-2xl">
-                  {flatNavItems.slice(4).map(item => {
+                  {flatNavItems.slice(visibleNavCount).map(item => {
                     const Icon = item.icon;
                     const dropBadge = getBadgeCount(item.to.split('/').pop());
                     return (
