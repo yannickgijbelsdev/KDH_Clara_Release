@@ -1209,10 +1209,8 @@ const MainSiteDashboardContent = () => {
                   data-testid={`pill-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {isTabActive && (
-                    <motion.div
-                      layoutId="pill-active-indicator"
-                      className="absolute inset-0 bg-zinc-900/80 rounded-full shadow-[0_2px_12px_rgba(0,0,0,0.15)]"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    <div
+                      className="absolute inset-0 bg-zinc-900 rounded-full shadow-sm"
                       style={{ zIndex: -1 }}
                     />
                   )}
