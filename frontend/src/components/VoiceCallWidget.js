@@ -257,7 +257,7 @@ export default function VoiceCallWidget({ open, onClose }) {
                 </div>
 
                 {/* Audio Visualizer */}
-                <div className="px-5 py-3 flex items-center justify-center gap-1">
+                <div className="px-5 py-3 flex items-end justify-center gap-1 h-[40px]">
                   {Array.from({ length: 20 }).map((_, i) => (
                     <motion.div
                       key={i}
