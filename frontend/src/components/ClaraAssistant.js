@@ -558,7 +558,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
         <textarea
           value={form.description}
           onChange={e => onChange({ ...form, description: e.target.value })}
-          placeholder="Wat ging er precies mis? Wat probeerde je te doen?"
+          placeholder="What exactly went wrong? What were you trying to do?"
           rows={3}
           className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 resize-none"
           data-testid="support-description-input"
