@@ -146,6 +146,16 @@ export default function UserTicketsPanel({ open, onClose }) {
                   </span>
                 )}
               </div>
+              {!selectedId && (
+                <button
+                  onClick={() => { onClose(); openClara('support-help'); }}
+                  className="p-1.5 rounded-lg hover:bg-orange-50 transition-colors"
+                  data-testid="header-how-to-clara-btn"
+                  title="How to find the Clara Assistant?"
+                >
+                  <HelpCircle className="w-4 h-4 text-orange-500" />
+                </button>
+              )}
               <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100" data-testid="close-tickets-panel">
                 <X className="w-4 h-4 text-zinc-400" />
               </button>
