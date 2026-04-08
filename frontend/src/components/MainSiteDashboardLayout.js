@@ -1009,7 +1009,7 @@ const MainSiteDashboardContent = () => {
         )}
 
         {/* ─── Horizontal Top Navigation ─── */}
-        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-transparent border-b border-zinc-200/40 z-50" data-testid="workspace-topbar">
+        <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-transparent z-50" data-testid="workspace-topbar">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors">
             <Menu className="w-5 h-5" />
           </button>
