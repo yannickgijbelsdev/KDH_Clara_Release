@@ -6,18 +6,18 @@ import { useClaraAssistant } from '../context/ClaraAssistantContext';
 const CHECKLIST = [
   {
     icon: Receipt,
-    title: 'Betaalde facturen',
-    desc: 'Controleer of alle facturen voor je licentie correct betaald zijn.',
+    title: 'Paid invoices',
+    desc: 'Check that all invoices for your license have been correctly paid.',
   },
   {
     icon: FileCheck,
-    title: 'Offertes',
-    desc: 'Heb je een offerte ontvangen en ondertekend teruggestuurd?',
+    title: 'Quotes',
+    desc: 'Did you receive a quote? Make sure it has been signed and returned.',
   },
   {
     icon: Mail,
-    title: 'E-mails van Clara Support',
-    desc: 'Kijk in je inbox (en spam) of je activeringsinstructies hebt ontvangen.',
+    title: 'Emails from Clara Support',
+    desc: 'Check your inbox (and spam) for activation instructions you may have received.',
   },
 ];
 
@@ -26,7 +26,7 @@ export default function LicenseBlockedOverlay({ siteName }) {
 
   const handleAskClara = () => {
     openClara('license', {
-      initialMessage: `Site "${siteName || 'Mijn site'}" heeft geen actieve licentie.`,
+      initialMessage: `Site "${siteName || 'My site'}" does not have an active license.`,
     });
   };
 
@@ -52,10 +52,10 @@ export default function LicenseBlockedOverlay({ siteName }) {
               </div>
               <div>
                 <h2 className="text-lg font-bold text-zinc-900" data-testid="license-blocked-title">
-                  Geen actieve licentie
+                  No active license
                 </h2>
                 <p className="text-sm text-zinc-500 mt-1 max-w-sm">
-                  Deze site heeft momenteel geen actieve licentie. De menu-items zijn daarom niet beschikbaar.
+                  This site does not currently have an active license. Menu items are therefore unavailable.
                 </p>
               </div>
             </div>
@@ -63,7 +63,7 @@ export default function LicenseBlockedOverlay({ siteName }) {
             {/* Checklist */}
             <div className="space-y-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Controleer het volgende
+                Things to check
               </p>
               {CHECKLIST.map((item, i) => {
                 const Icon = item.icon;
@@ -99,10 +99,10 @@ export default function LicenseBlockedOverlay({ siteName }) {
                 data-testid="license-ask-clara-btn"
               >
                 <Sparkles className="w-4 h-4" />
-                Vraag Clara Assistent
+                Ask Clara Assistant
               </Button>
               <p className="text-[11px] text-zinc-400 text-center">
-                Clara kan je helpen controleren of er openstaande facturen, offertes of berichten zijn.
+                Clara can help you check for outstanding invoices, quotes, or messages.
               </p>
             </div>
           </div>

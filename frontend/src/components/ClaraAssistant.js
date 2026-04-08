@@ -71,18 +71,18 @@ export default function ClaraAssistant() {
       setMessages(prev => [...prev, { role: 'assistant', text: res.data.explanation, isErrorHelp: true }]);
       setSupportForm(prev => ({ ...prev, subject: `Error: ${errorMsg.slice(0, 80)}`, description: errorMsg, steps_tried: '' }));
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, er ging iets mis. Probeer het opnieuw.', error: true }]);
+      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, something went wrong. Please try again.', error: true }]);
     }
     setLoading(false);
   };
 
   const autoSendLicenseHelp = async (msg) => {
-    const helpText = `Mijn site heeft geen actieve licentie. Wat kan ik controleren?`;
+    const helpText = `My site does not have an active license. What should I check?`;
     setMessages([{ role: 'user', text: helpText }]);
     setLoading(true);
-    const licenseAdvice = `Ik help je graag! Controleer de volgende zaken:\n\n**1. Betaalde facturen**\nControleer of alle facturen voor je licentie betaald zijn. Kijk in je boekhoudpakket of bankafschriften of de betaling correct is verwerkt.\n\n**2. Offertes**\nHeb je een offerte ontvangen voor een licentie? Controleer of deze is ondertekend en geretourneerd.\n\n**3. E-mails van Clara Support**\nKijk in je inbox (en spam-map) of je e-mails hebt ontvangen van Clara Support over je licentie of activeringsinstructies.\n\n---\n\nAls je al deze stappen hebt gecontroleerd en het probleem blijft bestaan, klik dan hieronder op **Contact Support** om een ticket aan te maken.`;
+    const licenseAdvice = `Happy to help! Please check the following:\n\n**1. Paid invoices**\nVerify that all invoices for your license have been paid. Check your accounting software or bank statements to confirm the payment was processed.\n\n**2. Quotes**\nDid you receive a quote for a license? Make sure it has been signed and returned.\n\n**3. Emails from Clara Support**\nCheck your inbox (and spam folder) for any emails from Clara Support regarding your license or activation instructions.\n\n---\n\nIf you've checked all these steps and the issue persists, click **Contact Support** below to create a ticket.`;
     setMessages(prev => [...prev, { role: 'assistant', text: licenseAdvice, isErrorHelp: true }]);
-    setSupportForm(prev => ({ ...prev, subject: 'Licentie activatie - site heeft geen actieve licentie', description: msg || 'Mijn site is niet gelicenseerd. Ik heb de controlestappen doorlopen maar het probleem blijft bestaan.', steps_tried: '' }));
+    setSupportForm(prev => ({ ...prev, subject: 'License activation - site has no active license', description: msg || 'My site is not licensed. I have completed the troubleshooting steps but the issue persists.', steps_tried: '' }));
     setLoading(false);
   };
 
@@ -102,7 +102,7 @@ export default function ClaraAssistant() {
       setSessionId(res.data.session_id);
       setMessages(prev => [...prev, { role: 'assistant', text: res.data.response }]);
     } catch {
-      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, er ging iets mis. Probeer het opnieuw.', error: true }]);
+      setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, something went wrong. Please try again.', error: true }]);
     }
     setLoading(false);
   };
@@ -206,7 +206,7 @@ export default function ClaraAssistant() {
     setShowSupportForm(false);
   };
 
-  const modeLabel = mode === 'seo' ? 'SEO Schrijfhulp' : mode === 'license' ? 'Licentie Hulp' : 'Probleemoplossing';
+  const modeLabel = mode === 'seo' ? 'SEO Writing Assistant' : mode === 'license' ? 'License Help' : 'Troubleshooting';
 
   return (
     <AnimatePresence>
@@ -238,10 +238,10 @@ export default function ClaraAssistant() {
               <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 rounded-t-3xl">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode === 'seo' ? 'from-orange-500 to-amber-500' : mode === 'license' ? 'from-amber-500 to-orange-500' : 'from-red-500 to-rose-500'} flex items-center justify-center shadow-lg`}>
-                    <Sparkles className="w-5 h-5 text-white" />
+                    <span className="text-white font-black text-lg leading-none">&lt;</span>
                   </div>
                   <div>
-                    <h2 className="font-bold text-zinc-900 text-base">Clara Assistent</h2>
+                    <h2 className="font-bold text-zinc-900 text-base">Clara Assistant</h2>
                     <p className="text-xs text-zinc-400">{modeLabel}</p>
                   </div>
                 </div>
@@ -315,7 +315,7 @@ export default function ClaraAssistant() {
                           data-testid="clara-contact-support-btn"
                         >
                           <LifeBuoy className="w-4 h-4" />
-                          Niet opgelost? Contact Support
+                          Not resolved? Contact Support
                         </button>
                       </motion.div>
                     )}
@@ -334,7 +334,7 @@ export default function ClaraAssistant() {
                       value={input}
                       onChange={e => setInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                      placeholder={mode === 'seo' ? 'Stel een vraag over je content...' : 'Beschrijf het probleem...'}
+                      placeholder={mode === 'seo' ? 'Ask a question about your content...' : 'Describe the issue...'}
                       disabled={loading}
                       className="flex-1 bg-zinc-50 border border-zinc-200 rounded-full px-4 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 disabled:opacity-50"
                       data-testid="clara-chat-input"
@@ -349,7 +349,7 @@ export default function ClaraAssistant() {
                       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </Button>
                   </div>
-                  <p className="text-[10px] text-zinc-300 text-center mt-2">Aangedreven door Clara AI</p>
+                  <p className="text-[10px] text-zinc-300 text-center mt-2">Powered by Clara AI</p>
                 </div>
               )}
             </div>
@@ -452,7 +452,7 @@ function EmptyState({ mode, editorContent, onGenerate, onImprove, onSetInput }) 
   }
   return (
     <div className="p-5 space-y-3">
-      <p className="text-sm text-zinc-500 mb-4">Beschrijf het probleem dat je tegenkomt, en ik help je stap voor stap.</p>
+      <p className="text-sm text-zinc-500 mb-4">Describe the issue you're experiencing, and I'll help you step by step.</p>
       <div className="space-y-2">
         {['WordPress publicatie mislukt', 'Cloudflare sync werkt niet', 'RDS data wordt niet bijgewerkt', 'Stream monitor toont offline'].map(example => (
           <button key={example} onClick={() => onSetInput(example)}
@@ -518,14 +518,14 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
     >
       <div className="flex items-center gap-2 mb-2">
         <LifeBuoy className="w-4 h-4 text-orange-500" />
-        <span className="text-sm font-semibold text-zinc-800">Support Ticket Aanmaken</span>
+        <span className="text-sm font-semibold text-zinc-800">Create Support Ticket</span>
       </div>
       <div>
         <label className="text-xs font-medium text-zinc-500 mb-1 block">Onderwerp</label>
         <input
           value={form.subject}
           onChange={e => onChange({ ...form, subject: e.target.value })}
-          placeholder="Korte beschrijving van het probleem"
+          placeholder="Brief description of the issue"
           className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
           data-testid="support-subject-input"
         />
@@ -542,7 +542,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
         />
       </div>
       <div>
-        <label className="text-xs font-medium text-zinc-500 mb-1 block">Welke stappen heb je al geprobeerd?</label>
+        <label className="text-xs font-medium text-zinc-500 mb-1 block">What steps have you already tried?</label>
         <textarea
           value={form.steps_tried}
           onChange={e => onChange({ ...form, steps_tried: e.target.value })}
@@ -554,7 +554,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
       </div>
       <div className="flex gap-2 pt-1">
         <Button variant="outline" onClick={onCancel} className="flex-1 rounded-xl text-sm" data-testid="support-cancel-btn">
-          Annuleren
+          Cancel
         </Button>
         <Button
           onClick={onSubmit}
@@ -563,7 +563,7 @@ function SupportForm({ form, onChange, onSubmit, submitting, onCancel }) {
           data-testid="support-submit-btn"
         >
           {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-          Verstuur
+          Submit
         </Button>
       </div>
     </motion.div>
