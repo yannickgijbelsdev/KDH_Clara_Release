@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -138,8 +138,8 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
    ════════════════════════════════════════════════════ */
 export default function ServerRackView({ sites, onCreateSite, onEditSite, onDeleteSite, environments, selectedEnvId, user }) {
   const [selectedRack, setSelectedRack] = useState(null);
-  const sceneRef = useRef(null);
-  const [sceneScale, setSceneScale] = useState(1);
+  const [carouselPage, setCarouselPage] = useState(0);
+  const VISIBLE_RACKS = 3;
 
   const envName = environments?.find(e => e.id === selectedEnvId)?.name || 'Production';
 
@@ -152,25 +152,8 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
     return result;
   }, [sites]);
 
-  // Dynamically scale racks to fit the available space
-  const computeScale = useCallback(() => {
-    if (!sceneRef.current) return;
-    const containerH = sceneRef.current.clientHeight;
-    const containerW = sceneRef.current.clientWidth;
-    // Base rack height ~420px (top + 5 blades + bottom), base rack width = 280px + gaps
-    const baseRackH = 480;
-    const rackCount = racks.length;
-    const baseSceneW = rackCount * 260 + (rackCount - 1) * 24 + 60;
-    const scaleH = containerH / (baseRackH + 60);
-    const scaleW = containerW / (baseSceneW + 80);
-    setSceneScale(Math.max(Math.min(scaleH, scaleW, 2.2), 0.45));
-  }, [racks.length]);
-
-  useEffect(() => {
-    computeScale();
-    window.addEventListener('resize', computeScale);
-    return () => window.removeEventListener('resize', computeScale);
-  }, [computeScale]);
+  const maxPage = Math.max(0, racks.length - VISIBLE_RACKS);
+  const visibleRacks = racks.slice(carouselPage, carouselPage + VISIBLE_RACKS);
 
   const totalUsers = sites.reduce((sum, s) => sum + (s.user_count || 0), 0);
   const selectedRackSites = selectedRack !== null ? (racks[selectedRack] || []) : [];
@@ -226,22 +209,70 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
         </div>
 
         {/* ── Center: THE RACK SCENE ── */}
-        <div ref={sceneRef} className="flex-1 flex items-center justify-center relative">
+        <div className="flex-1 flex items-center justify-center relative">
 
-          {/* Racks - scaled to fit */}
-          <div className="flex items-start gap-4 sm:gap-6 relative z-10 origin-center transition-transform duration-300 ease-out" style={{ transform: `scale(${sceneScale})` }}>
-            {racks.map((rackSites, i) => (
-              <ServerRack3D
-                key={i}
-                rackIndex={i}
-                sites={rackSites}
-                isSelected={selectedRack === i}
-                onClick={() => setSelectedRack(selectedRack === i ? null : i)}
-              />
-            ))}
+          {/* Carousel prev arrow */}
+          {carouselPage > 0 && (
+            <button
+              onClick={() => setCarouselPage(p => Math.max(0, p - 1))}
+              className="absolute left-2 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg border border-black/[0.06] flex items-center justify-center hover:bg-white transition-colors"
+              data-testid="rack-carousel-prev"
+            >
+              <ChevronLeft className="w-5 h-5 text-zinc-600" />
+            </button>
+          )}
+
+          {/* Racks - carousel */}
+          <div className="flex items-start gap-6 relative z-10">
+            <AnimatePresence mode="popLayout">
+              {visibleRacks.map((rackSites, vi) => {
+                const actualIndex = carouselPage + vi;
+                return (
+                  <motion.div
+                    key={`rack-${actualIndex}`}
+                    initial={{ opacity: 0, x: 60 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -60 }}
+                    transition={{ duration: 0.3, delay: vi * 0.05 }}
+                  >
+                    <ServerRack3D
+                      rackIndex={actualIndex}
+                      sites={rackSites}
+                      isSelected={selectedRack === actualIndex}
+                      onClick={() => setSelectedRack(selectedRack === actualIndex ? null : actualIndex)}
+                    />
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
 
-          {/* Rack detail panel — anchored to the side */}
+          {/* Carousel next arrow */}
+          {carouselPage < maxPage && (
+            <button
+              onClick={() => setCarouselPage(p => Math.min(maxPage, p + 1))}
+              className="absolute right-2 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg border border-black/[0.06] flex items-center justify-center hover:bg-white transition-colors"
+              data-testid="rack-carousel-next"
+            >
+              <ChevronRight className="w-5 h-5 text-zinc-600" />
+            </button>
+          )}
+
+          {/* Carousel dots */}
+          {racks.length > VISIBLE_RACKS && (
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
+              {Array.from({ length: maxPage + 1 }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCarouselPage(i)}
+                  className={`w-2 h-2 rounded-full transition-colors ${i === carouselPage ? 'bg-orange-500' : 'bg-zinc-300 hover:bg-zinc-400'}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Rack detail panel — anchored to the side */}
           <AnimatePresence>
             {selectedRack !== null && (
               <motion.div
@@ -330,9 +361,8 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
 
-        {/* ── Bottom bar ── */}
+          {/* ── Bottom bar ── */}
         <div className="flex items-end justify-between flex-shrink-0">
           {selectedRack === null && (
             <motion.div

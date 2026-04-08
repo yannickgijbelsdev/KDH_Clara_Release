@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { Conversation } from '@11labs/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Phone, PhoneOff, Mic, MicOff, Minimize2,
@@ -14,7 +15,6 @@ const API = process.env.REACT_APP_BACKEND_URL;
 export default function VoiceCallWidget({ open, onClose }) {
   const { token } = useAuth();
   const { mainSite } = useMainSite();
-  const headers = { Authorization: `Bearer ${token}` };
 
   const [phase, setPhase] = useState('ringing');
   const [localMuted, setLocalMuted] = useState(false);
@@ -24,12 +24,7 @@ export default function VoiceCallWidget({ open, onClose }) {
   const [sessionId, setSessionId] = useState(null);
   const [aiSpeaking, setAiSpeaking] = useState(false);
 
-  const wsRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const audioQueueRef = useRef([]);
-  const isPlayingRef = useRef(false);
-  const streamRef = useRef(null);
+  const conversationRef = useRef(null);
   const timerRef = useRef(null);
   const startTimeRef = useRef(null);
 
@@ -63,111 +58,68 @@ export default function VoiceCallWidget({ open, onClose }) {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
-  // Play queued audio chunks
-  const playNextAudio = useCallback(async () => {
-    if (audioQueueRef.current.length === 0) {
-      isPlayingRef.current = false;
-      setAiSpeaking(false);
-      return;
-    }
-    isPlayingRef.current = true;
-    setAiSpeaking(true);
-
-    const audioData = audioQueueRef.current.shift();
-    try {
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      const audioBuffer = await audioContextRef.current.decodeAudioData(audioData);
-      const source = audioContextRef.current.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
-      source.onended = () => playNextAudio();
-      source.start();
-    } catch {
-      playNextAudio();
-    }
-  }, []);
-
-  const queueAudio = useCallback((arrayBuffer) => {
-    audioQueueRef.current.push(arrayBuffer);
-    if (!isPlayingRef.current) playNextAudio();
-  }, [playNextAudio]);
-
-  // Accept call → WebSocket connection to ElevenLabs
+  // Accept call
   const acceptCall = useCallback(async () => {
     setPhase('connecting');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true, noiseSuppression: true }
-      });
-      streamRef.current = stream;
+      // Request mic permission
+      await navigator.mediaDevices.getUserMedia({ audio: true });
 
       // Get signed URL from backend
       const { data } = await axios.get(
         `${API}/api/voice-support/signed-url?main_site_id=${mainSite?.id}`,
-        { headers }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setSessionId(data.session_id);
 
-      // Connect WebSocket
-      const ws = new WebSocket(data.signed_url);
-      ws.binaryType = 'arraybuffer';
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        setPhase('active');
-        // Send initiation message
-        ws.send(JSON.stringify({ type: 'conversation_initiation_client_data' }));
-
-        // Start recording and sending audio
-        const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
-        mediaRecorderRef.current = recorder;
-
-        recorder.ondataavailable = (event) => {
-          if (event.data.size > 0 && ws.readyState === WebSocket.OPEN) {
-            ws.send(event.data);
+      // Start ElevenLabs conversation via @11labs/client
+      const conversation = await Conversation.startSession({
+        signedUrl: data.signed_url,
+        onConnect: () => {
+          console.log('[VoiceCall] Connected to ElevenLabs');
+          setPhase('active');
+        },
+        onDisconnect: () => {
+          console.log('[VoiceCall] Disconnected');
+          setPhase('ended');
+        },
+        onMessage: (message) => {
+          console.log('[VoiceCall] Message:', message);
+          if (message.message) {
+            setTranscript(prev => [...prev, {
+              role: message.source === 'ai' ? 'assistant' : 'user',
+              text: message.message,
+              time: new Date().toISOString(),
+            }]);
           }
-        };
-        recorder.start(100); // 100ms chunks
-      };
+        },
+        onModeChange: (mode) => {
+          setAiSpeaking(mode.mode === 'speaking');
+        },
+        onError: (error) => {
+          console.error('[VoiceCall] Error:', error);
+          setPhase('ended');
+        },
+      });
 
-      ws.onmessage = (event) => {
-        if (typeof event.data === 'string') {
-          try {
-            const msg = JSON.parse(event.data);
-            if (msg.type === 'agent_response' && msg.agent_response_text) {
-              setTranscript(prev => [...prev, { role: 'assistant', text: msg.agent_response_text, time: new Date().toISOString() }]);
-            } else if (msg.type === 'user_transcript' && msg.user_transcript_text) {
-              setTranscript(prev => [...prev, { role: 'user', text: msg.user_transcript_text, time: new Date().toISOString() }]);
-            }
-          } catch {}
-        } else {
-          // Binary audio data from agent
-          queueAudio(event.data);
-        }
-      };
-
-      ws.onclose = () => {
-        if (phase !== 'ended') setPhase('ended');
-      };
-
-      ws.onerror = () => {
-        setPhase('ended');
-      };
-
+      conversationRef.current = conversation;
     } catch (err) {
-      console.error('Voice call failed:', err);
+      console.error('[VoiceCall] Setup failed:', err);
       setPhase('ended');
     }
-  }, [mainSite?.id, token, queueAudio]);
+  }, [mainSite?.id, token]);
 
   // Mute/unmute
-  const toggleMute = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getAudioTracks().forEach(t => { t.enabled = localMuted; });
+  const toggleMute = useCallback(async () => {
+    if (conversationRef.current) {
+      const newMuted = !localMuted;
+      setLocalMuted(newMuted);
+      if (newMuted) {
+        await conversationRef.current.setVolume({ volume: 0 });
+      } else {
+        await conversationRef.current.setVolume({ volume: 1 });
+      }
     }
-    setLocalMuted(prev => !prev);
   }, [localMuted]);
 
   // Hang up
@@ -175,21 +127,10 @@ export default function VoiceCallWidget({ open, onClose }) {
     setPhase('ended');
     if (timerRef.current) clearInterval(timerRef.current);
 
-    if (mediaRecorderRef.current?.state !== 'inactive') {
-      try { mediaRecorderRef.current.stop(); } catch {}
+    if (conversationRef.current) {
+      try { await conversationRef.current.endSession(); } catch {}
+      conversationRef.current = null;
     }
-    if (wsRef.current) {
-      try { wsRef.current.close(); } catch {}
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-    }
-    if (audioContextRef.current) {
-      try { audioContextRef.current.close(); } catch {}
-      audioContextRef.current = null;
-    }
-    audioQueueRef.current = [];
-    isPlayingRef.current = false;
 
     // Save transcript
     if (sessionId && transcript.length > 0) {
@@ -200,7 +141,7 @@ export default function VoiceCallWidget({ open, onClose }) {
           language: '',
           messages: transcript,
           duration_seconds: duration,
-        }, { headers });
+        }, { headers: { Authorization: `Bearer ${token}` } });
       } catch {}
     }
 
