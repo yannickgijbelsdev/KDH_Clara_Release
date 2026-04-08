@@ -7,66 +7,58 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Network-level management dashboard for multi-site radio operations
 - WordPress content publishing and security
 - Clara AI Assistant, Clara Enterprise Code Assistant (Claude), Enterprise Support
-- **Clara Voice Support** — Real-time AI voice calls using OpenAI Realtime API (WebRTC)
+- **Clara Voice Support** — Real-time AI voice calls using ElevenLabs Conversational AI
 - Support Ticket System with S3 file attachments
 - PWA installation support
 - RDS metadata monitoring with auto-refresh
-- Two-Factor Authentication (2FA) enforcement
 
 ## Architecture
 ```
 /app
 ├── backend/ (FastAPI)
 │   ├── routers/
-│   │   ├── voice_support.py         # NEW: AI voice calls via OpenAI Realtime WebRTC
+│   │   ├── voice_support.py         # ElevenLabs signed URL + transcript CRUD
 │   │   ├── enterprise_assistant.py  # Claude-powered code generation & support
 │   │   ├── support_tickets.py       # Tickets with S3 file storage
-│   │   ├── clara_assistant.py       # Clara AI assistant
-│   │   └── main_sites.py, wordpress.py, auth.py, etc.
+│   │   └── clara_assistant.py, auth.py, main_sites.py, etc.
 │   └── services/
 │       ├── object_storage.py        # Emergent S3-compatible storage
-│       └── rds_builder_scheduler.py # Auto-refresh background loop
+│       └── rds_builder_scheduler.py
 ├── frontend/ (React)
 │   └── src/
 │       ├── components/
-│       │   ├── VoiceCallWidget.js        # NEW: Voice call UI (ringing/active/ended)
-│       │   ├── MainSiteDashboardLayout.js # Dynamic nav, voice call integration
-│       │   ├── UserTicketsPanel.js        # User-side ticket panel (S3 URLs)
+│       │   ├── VoiceCallWidget.js        # ElevenLabs voice call UI
+│       │   ├── MainSiteDashboardLayout.js # Dynamic nav, ConversationProvider
 │       │   ├── ClaraAssistant.js          # "Call Clara Support" button
-│       │   └── ClaraCLI.js
+│       │   └── UserTicketsPanel.js
 │       ├── pages/
 │       │   ├── EnterpriseAssistantPage.js # 3D isometric room cards
 │       │   └── Network/SupportTicketsPage.js
 │       └── context/
-│           └── ClaraAssistantContext.js   # voiceCallRequested state
+│           └── ClaraAssistantContext.js   # voiceCallRequested bridge
 └── memory/
 ```
 
-## Voice Support Feature
+## Voice Support (ElevenLabs)
 ### Flow
 1. User clicks green phone icon in header (Enterprise only) or "Call Clara Support" in Clara Assistant
 2. Incoming call overlay appears with pulsing animation
-3. User accepts → WebRTC connection established via backend negotiate endpoint
-4. AI greets user and asks for preferred language
-5. Real-time voice conversation with live transcript
+3. User accepts → ElevenLabs WebRTC session starts via signed URL
+4. AI (Sarah voice) greets user and asks for preferred language
+5. Real-time voice conversation
 6. User can mute/unmute, minimize widget, or hang up
 7. Transcript saved to MongoDB on hang up
 
 ### API Endpoints
-- `POST /api/voice-support/start-session?main_site_id=X` — Create session (Enterprise only)
-- `POST /api/voice-support/realtime/session` — Get OpenAI ephemeral session
-- `POST /api/voice-support/realtime/negotiate` — WebRTC SDP negotiation
+- `GET /api/voice-support/signed-url?main_site_id=X` — Get ElevenLabs signed WebSocket URL
 - `POST /api/voice-support/save-transcript` — Save transcript after call
 - `GET /api/voice-support/sessions?main_site_id=X` — Session history
 - `GET /api/voice-support/session/{id}` — Full transcript
 
-### DB Schema
-- `voice_support_sessions`: session_id, main_site_id, user_id, user_name, status, messages[], language, duration_seconds, started_at, ended_at
-
-## Support Ticket S3 Storage
-- Attachments uploaded via `object_storage.py` to Emergent S3
-- Proxy endpoint: `GET /api/support-tickets/files/{path}?auth=TOKEN`
-- Frontend helper `getAttachmentUrl()` supports both S3 URLs and legacy base64
+### Configuration
+- ElevenLabs Agent ID: agent_8101knpxmcfjfsrbfee7taaq3jjx
+- Voice: Sarah (EXAVITQu4vr4xnSDxMaL)
+- Frontend SDK: @elevenlabs/react with ConversationProvider
 
 ## Credentials
 - System Admin: admkoodh@koodh.com / KYLovie13monx
