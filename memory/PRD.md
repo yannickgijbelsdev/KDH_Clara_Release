@@ -28,37 +28,32 @@ Multi-environment SaaS platform for radio station management built with React fr
 └── memory/ (PRD, changelog, credentials)
 ```
 
-## Design System — 260px Isometric Card Grid
-All Network pages use a consistent card layout:
+## Design System — Light Mode Theme
+All pages use a consistent light-mode design:
+- **Backgrounds**: `bg-white`, `bg-zinc-50`, `bg-zinc-100` for containers/cards
+- **Text**: `text-zinc-900` for headings, `text-zinc-600`/`text-zinc-500` for secondary
+- **Borders**: `border-zinc-200` consistently
+- **Form inputs**: `bg-zinc-50 border border-zinc-200 text-zinc-900`
+- **Select dropdowns**: `bg-white border-zinc-200`
+- **Table headers**: `bg-zinc-100`
+- **Badges/tags**: `bg-zinc-100 text-zinc-500` or `bg-zinc-200`
+- **Separators**: `bg-zinc-200`
+- **Image placeholders**: `bg-zinc-200`
+- **Calendar non-current cells**: `bg-zinc-50`
+- **Hover states**: `hover:bg-zinc-100` or `hover:bg-zinc-200`
+
+### Intentionally Dark Elements (DO NOT CHANGE):
+- Nav pill button: `bg-zinc-900 text-white rounded-full`
+- Primary action buttons: `bg-zinc-900 text-white` (dark CTA)
+- ClaraAssistant chat bubbles
+- DevTools panel
+- Tooltips: `bg-zinc-900 text-white`
+- Step indicators (active): `bg-zinc-900 text-white`
+
+### 260px Isometric Card Grid (Network pages)
 - **Width**: `w-[260px]` with `flex flex-wrap justify-center gap-4 sm:gap-6`
 - **Image area**: `h-[180px]` with isometric 3D illustrations from `/images/env_*.jpg`
 - **Image mask**: `radial-gradient(ellipse 60% 65% at center 55%, black 50%, transparent 100%)`
-- **Badges**: White glassmorphism (`bg-white/90 backdrop-blur-lg rounded-lg`)
-- **Accent bar**: `h-1` gradient at card bottom matching entity color
-- **Animations**: Framer Motion staggered entrance (delay: i * 0.08, y: 30)
-- **Hover**: `scale-[1.02]` + shadow increase + image `scale-105`
-
-### Available isometric images:
-- `/images/env_radio.jpg` — Radio sites
-- `/images/env_server.jpg` — Servers/Datacenters
-- `/images/env_technical.jpg` — Technical/Data connections
-- `/images/env_task_scheduler.jpg` — Task schedulers
-- `/images/env_external_host.jpg` — External hosts
-- `/images/env_wp_security.jpg` — WordPress Security
-
-## Key Pages & Features (All using isometric card grid)
-- Sites Overview
-- Environments
-- Domain Manager (Overview, Site Domains, Subdomain Routing, Cloudflare)
-- License Manager (Overview, Packages, Requests)
-- Notifications (Roles, History)
-- Branding (Platform Name, Logo, Favicon)
-- Backups
-- API Explorer
-- Clara AI Assistant (centered overlay messenger)
-- PWA Install Prompt
-- RDS Monitor (auto-refresh every 3 min)
-- 2FA Enforcement (conditional, with 3 permanent skips)
 
 ## 2FA Enforcement System
 - **Conditional enforcement**: 2FA is mandatory if user is a Network Admin OR if their main_site has `require_2fa=True`
