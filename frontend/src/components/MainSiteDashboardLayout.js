@@ -13,7 +13,6 @@ import DevToolsInspector from './DevTools/DevToolsInspector';
 import HelpButton from './Tickets/HelpButton';
 import ClaraCLI from './ClaraCLI';
 import ClaraAssistant from './ClaraAssistant';
-import { ConversationProvider } from '@elevenlabs/react';
 import VoiceCallWidget from './VoiceCallWidget';
 import LicenseBlockedOverlay from './LicenseBlockedOverlay';
 import UserTicketsPanel from './UserTicketsPanel';
@@ -1485,12 +1484,10 @@ const MainSiteDashboardContent = () => {
     />
     <ClaraAssistant />
     {mainSite?.clara_enterprise && (
-      <ConversationProvider>
-        <VoiceCallWidget
-          open={showVoiceCall}
-          onClose={() => setShowVoiceCall(false)}
-        />
-      </ConversationProvider>
+      <VoiceCallWidget
+        open={showVoiceCall}
+        onClose={() => setShowVoiceCall(false)}
+      />
     )}
     </DevToolsProvider>
   );
