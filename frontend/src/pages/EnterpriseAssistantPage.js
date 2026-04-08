@@ -20,6 +20,7 @@ const MODE_CONFIG = {
     borderLight: 'border-violet-200',
     textAccent: 'text-violet-600',
     btnBg: 'bg-violet-600 hover:bg-violet-500',
+    heroImage: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80&fit=crop',
   },
   support: {
     label: 'Enterprise Support',
@@ -30,6 +31,7 @@ const MODE_CONFIG = {
     borderLight: 'border-orange-200',
     textAccent: 'text-orange-600',
     btnBg: 'bg-orange-600 hover:bg-orange-500',
+    heroImage: 'https://images.unsplash.com/photo-1674421268440-133fc5d36cd1?w=600&q=80&fit=crop',
   },
 };
 
@@ -143,18 +145,26 @@ export default function EnterpriseAssistantPage() {
               <h2 className="text-2xl font-bold text-zinc-900 mb-2">What would you like to do?</h2>
               <p className="text-zinc-400 text-sm">Choose an assistant mode to get started</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {Object.entries(MODE_CONFIG).map(([key, cfg]) => {
                 const Icon = cfg.icon;
                 return (
                   <button key={key} onClick={() => startNewChat(key)}
-                    className={`group relative p-6 rounded-2xl border ${cfg.borderLight} ${cfg.bgLight} hover:shadow-md transition-all text-left`}
+                    className="group relative overflow-hidden rounded-2xl border border-zinc-200 hover:shadow-lg transition-all text-left"
                     data-testid={`mode-select-${key}`}>
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cfg.color} flex items-center justify-center mb-4`}>
-                      <Icon className="w-5 h-5 text-white" />
+                    <div className="h-32 w-full overflow-hidden">
+                      <img src={cfg.heroImage} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className={`absolute inset-0 h-32 bg-gradient-to-t ${key === 'code' ? 'from-violet-900/60' : 'from-orange-900/60'} to-transparent`} />
                     </div>
-                    <h3 className="text-zinc-900 font-semibold mb-1">{cfg.label}</h3>
-                    <p className="text-zinc-500 text-xs leading-relaxed">{cfg.description}</p>
+                    <div className="p-5">
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${cfg.color} flex items-center justify-center`}>
+                          <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <h3 className="text-zinc-900 font-semibold">{cfg.label}</h3>
+                      </div>
+                      <p className="text-zinc-500 text-xs leading-relaxed">{cfg.description}</p>
+                    </div>
                   </button>
                 );
               })}
