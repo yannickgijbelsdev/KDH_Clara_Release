@@ -3,7 +3,7 @@ import { useMainSite } from '../context/MainSiteContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import {
-  Code2, HeadphonesIcon, Send, Loader2, Plus, Trash2,
+  Code2, Sparkles, Send, Loader2, Plus, Trash2,
   ChevronLeft, Copy, Check, Eye, EyeOff, X
 } from 'lucide-react';
 import axios from 'axios';
@@ -25,7 +25,7 @@ const MODE_CONFIG = {
   support: {
     label: 'Enterprise Support',
     description: 'Advanced technical troubleshooting, security settings, and site analytics.',
-    icon: HeadphonesIcon,
+    icon: Sparkles,
     color: 'from-orange-500 to-amber-600',
     bgLight: 'bg-orange-50',
     borderLight: 'border-orange-200',
@@ -177,7 +177,7 @@ export default function EnterpriseAssistantPage() {
                     <button key={s.session_id} onClick={() => loadSession(s.session_id)}
                       className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-50 transition-colors text-left">
                       <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${s.mode === 'code' ? 'bg-violet-100 text-violet-500' : 'bg-orange-100 text-orange-500'}`}>
-                        {s.mode === 'code' ? <Code2 className="w-3 h-3" /> : <HeadphonesIcon className="w-3 h-3" />}
+                        {s.mode === 'code' ? <Code2 className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
                       </div>
                       <span className="text-sm text-zinc-600 truncate flex-1">{s.title}</span>
                       <span className="text-[10px] text-zinc-300">{new Date(s.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
