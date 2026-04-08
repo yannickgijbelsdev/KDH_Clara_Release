@@ -7,7 +7,7 @@ import usePageTitle from '../hooks/usePageTitle';
 import {
   Globe, Crown, Network, Shield, Bell, Paintbrush,
   Server, ChevronDown, LogOut, ShieldAlert, UserCog,
-  HardDrive, Code, Menu, X,
+  HardDrive, Code, Menu, X, LifeBuoy,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -56,8 +56,24 @@ export default function NetworkHeader({
   const [internalEnvs, setInternalEnvs] = useState([]);
   const [internalEnvId, setInternalEnvId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [supportCount, setSupportCount] = useState(0);
 
   const isSystemAdmin = user?.is_system_admin === true;
+
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API}/api/support-tickets/counts`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : {})
+      .then(d => setSupportCount(d.open || 0))
+      .catch(() => {});
+    const interval = setInterval(() => {
+      fetch(`${API}/api/support-tickets/counts`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : {})
+        .then(d => setSupportCount(d.open || 0))
+        .catch(() => {});
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [token]);
 
   // Use external environments if provided, else fetch internally
   const environments = externalEnvs || internalEnvs;
@@ -70,6 +86,7 @@ export default function NetworkHeader({
     { id: 'environments', icon: Server, label: 'Environments' },
     ...(isSystemAdmin ? [{ id: 'domains', icon: Globe, label: 'Domain Manager' }] : []),
     ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'License Manager' }] : []),
+    { id: 'support-tickets', icon: LifeBuoy, label: 'Support', badge: supportCount },
   ];
 
   const OVERFLOW_ITEMS = [
@@ -206,6 +223,9 @@ export default function NetworkHeader({
                   />
                 )}
                 {tab.label}
+                {tab.badge > 0 && (
+                  <span className="ml-1.5 min-w-[18px] h-[18px] inline-flex items-center justify-center text-[10px] font-bold bg-red-500 text-white rounded-full px-1">{tab.badge}</span>
+                )}
               </button>
             );
           })}

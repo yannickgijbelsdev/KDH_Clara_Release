@@ -14,6 +14,8 @@ import HelpButton from './Tickets/HelpButton';
 import ClaraCLI from './ClaraCLI';
 import ClaraAssistant from './ClaraAssistant';
 import LicenseBlockedOverlay from './LicenseBlockedOverlay';
+import UserTicketsPanel from './UserTicketsPanel';
+import TicketUpdatePopup from './TicketUpdatePopup';
 // ClaraAssistantProvider is now at the App root level
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
@@ -243,6 +245,10 @@ const MainSiteDashboardContent = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const searchInputRef = useCallback(node => { if (node) node.focus(); }, []);
+  const [userTicketCount, setUserTicketCount] = useState(0);
+  const [ticketUpdates, setTicketUpdates] = useState([]);
+  const [showTicketPopup, setShowTicketPopup] = useState(false);
+  const [showUserTickets, setShowUserTickets] = useState(false);
   
   // Get user's menu preference (grouped or flat)
   const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
@@ -297,6 +303,26 @@ const MainSiteDashboardContent = () => {
 
   // Close search on route change
   useEffect(() => { setSearchOpen(false); setSearchQuery(''); setSearchExpanded(false); }, [location.pathname]);
+
+  // Fetch user ticket counts and updates
+  useEffect(() => {
+    const fetchTicketData = async () => {
+      try {
+        const [countsRes, updatesRes] = await Promise.all([
+          axios.get(`${API}/api/support-tickets/counts`, { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get(`${API}/api/support-tickets/user-updates`, { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        setUserTicketCount(countsRes.data.open || 0);
+        if (updatesRes.data.has_updates && updatesRes.data.tickets?.length > 0) {
+          setTicketUpdates(updatesRes.data.tickets);
+          setShowTicketPopup(true);
+        }
+      } catch {}
+    };
+    fetchTicketData();
+    const interval = setInterval(fetchTicketData, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch sites for navigation
   const fetchSites = useCallback(async () => {
@@ -1017,6 +1043,17 @@ const MainSiteDashboardContent = () => {
             <Radio className="w-4 h-4" />
             <span className="hidden sm:inline">Clara</span>
           </button>
+          {/* Support Ticket Icon */}
+          <button
+            onClick={() => setShowUserTickets(true)}
+            className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-black/5 transition-colors flex-shrink-0"
+            data-testid="user-ticket-icon"
+          >
+            <LifeBuoy className="w-4 h-4 text-zinc-400" />
+            {userTicketCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-red-500 text-white rounded-full px-0.5">{userTicketCount}</span>
+            )}
+          </button>
           {/* Main Site Switcher Dropdown */}
           {myMainSites.length > 1 && (
             <DropdownMenu>
@@ -1329,6 +1366,12 @@ const MainSiteDashboardContent = () => {
     {isClone && <DevToolsInspector />}
     {mainSite?.site_type !== 'technical' && <HelpButton />}
     {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && <ClaraCLI />}
+    <UserTicketsPanel open={showUserTickets} onClose={() => setShowUserTickets(false)} />
+    <TicketUpdatePopup
+      tickets={showTicketPopup ? ticketUpdates : []}
+      onClose={() => setShowTicketPopup(false)}
+      onOpenTicket={() => setShowUserTickets(true)}
+    />
     <ClaraAssistant />
     </DevToolsProvider>
   );

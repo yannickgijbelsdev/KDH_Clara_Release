@@ -27,7 +27,7 @@ import {
   Tv, FileText, MessageSquare, Radio, Cog, Activity, Bug, CheckCircle,
   AlertTriangle, Info, X, Clock, Loader2, ChevronDown, ChevronUp, LogOut, 
   Crown, Network, Pencil, Mic, Eye, FileCheck, UserCog, Code, Shield, ShieldAlert, BarChart3,
-  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server, Palette, Check, Upload
+  HardDrive, Monitor, LayoutGrid, List, Wrench, Bell, Menu, ChevronRight, User, Paintbrush, Server, Palette, Check, Upload, LifeBuoy
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -48,6 +48,7 @@ import NetworkAdminManager from './NetworkAdminManager';
 import NotificationSettings from './NotificationSettings';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import BrandingSettings from './BrandingSettings';
+import SupportTicketsPage from './SupportTicketsPage';
 import LicenseManager from './LicenseManager';
 import DomainManager from './DomainManager';
 import {
@@ -426,6 +427,14 @@ export default function NetworkDashboard() {
         { id: 'user-access', icon: UserCog, label: 'User Access' },
       ]
     }] : []),
+    {
+      id: 'support',
+      label: 'Support',
+      icon: LifeBuoy,
+      items: [
+        { id: 'support-tickets', icon: LifeBuoy, label: 'Support Tickets' },
+      ]
+    },
     {
       id: 'security',
       label: 'Security',
@@ -964,6 +973,11 @@ export default function NetworkDashboard() {
                 <UserAccessSection token={token} API={API} openUserAccessPanel={openUserAccessPanel} userAccessPanel={userAccessPanel} mainSites={mainSites} roleIcons={roleIcons} roleLabels={roleLabels} />
               </div>
             </div>
+          )}
+
+          {/* ═══════════ SUPPORT TICKETS ═══════════ */}
+          {activeSection === 'support-tickets' && (
+            <SupportTicketsPage inline token={token} onClose={() => setActiveSection('sites')} />
           )}
 
           {/* ═══════════ ACCOUNT SECURITY ═══════════ */}
