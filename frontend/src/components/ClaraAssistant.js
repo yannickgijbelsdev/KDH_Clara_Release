@@ -170,7 +170,7 @@ export default function ClaraAssistant() {
   const insertIntoEditor = (msg) => {
     if (msg.body && insertContentFn) {
       insertContentFn(msg.body);
-      toast.success('Content ingevoegd in editor');
+      toast.success('Content inserted into editor');
     }
     if (msg.title && insertTitleFn) insertTitleFn(msg.title);
     closeClara();
@@ -180,20 +180,31 @@ export default function ClaraAssistant() {
     if (!supportForm.subject.trim() || !supportForm.description.trim()) return;
     setSubmittingTicket(true);
     try {
-      await axios.post(`${API}/api/clara-assistant/support-ticket`, {
-        ...supportForm,
+      // Build Clara conversation context
+      const claraContext = messages
+        .filter(m => !m.loading)
+        .map(m => `[${m.role}] ${m.text}`)
+        .join('\n\n');
+
+      const fullDescription = `${supportForm.description}\n\n--- Clara Assistant Context ---\n${claraContext}${supportForm.steps_tried ? `\n\nSteps tried: ${supportForm.steps_tried}` : ''}`;
+
+      await axios.post(`${API}/api/support-tickets`, {
+        subject: supportForm.subject,
+        description: fullDescription,
         error_message: initialError || '',
+        steps_tried: supportForm.steps_tried || '',
         page_url: window.location.href,
+        main_site_id: '',
       }, { headers });
       setShowSupportForm(false);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        text: 'Je supportticket is verstuurd! Ons team neemt zo snel mogelijk contact met je op.',
+        text: 'Your support ticket has been submitted! Our team will get back to you as soon as possible.',
         isSuccess: true,
       }]);
-      toast.success('Supportticket verstuurd');
+      toast.success('Support ticket submitted');
     } catch {
-      toast.error('Kon ticket niet versturen. Probeer het opnieuw.');
+      toast.error('Could not submit ticket. Please try again.');
     }
     setSubmittingTicket(false);
   };

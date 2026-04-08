@@ -1364,7 +1364,6 @@ const MainSiteDashboardContent = () => {
     </TooltipProvider>
     {isClone && <DevToolsPanel />}
     {isClone && <DevToolsInspector />}
-    {mainSite?.site_type !== 'technical' && <HelpButton />}
     {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && <ClaraCLI />}
     <UserTicketsPanel open={showUserTickets} onClose={() => setShowUserTickets(false)} />
     <TicketUpdatePopup
