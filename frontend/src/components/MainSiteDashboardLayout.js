@@ -1134,71 +1134,84 @@ const MainSiteDashboardContent = () => {
               </DropdownMenu>
             )}
           </div>
-          {/* Search Bar - Icon-only that expands on click */}
-          <div className="relative flex-shrink-0 ml-auto lg:ml-0">
-            {searchExpanded ? (
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
-                  onBlur={() => { if (!searchQuery) { setSearchExpanded(false); setSearchOpen(false); } }}
-                  placeholder="Zoeken..."
-                  disabled={isLicenseBlocked}
-                  className={`w-52 pl-9 pr-8 py-2 text-sm bg-white/60 backdrop-blur-xl border border-zinc-200/60 rounded-full text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
-                  data-testid="global-search-input"
-                />
-                <button
-                  onClick={() => { setSearchQuery(''); setSearchExpanded(false); setSearchOpen(false); }}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-zinc-500 transition-colors"
-                  data-testid="search-close-btn"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-                {searchLoading && <Loader2 className="absolute right-8 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 animate-spin" />}
-              </div>
-            ) : (
-              <button
-                onClick={() => { if (!isLicenseBlocked) setSearchExpanded(true); }}
-                className={`w-9 h-9 flex items-center justify-center rounded-full border border-white/40 bg-white/20 backdrop-blur-xl hover:bg-white/40 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
-                data-testid="search-icon-btn"
-              >
-                <Search className="w-4 h-4 text-zinc-400" />
-              </button>
-            )}
-            {searchOpen && searchQuery.length >= 2 && (
-              <div className="absolute top-full mt-2 right-0 w-80 bg-white/90 backdrop-blur-2xl border border-black/[0.06] rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden z-[100]" data-testid="search-results-dropdown">
-                {searchResults.length === 0 && !searchLoading && (
-                  <div className="px-4 py-6 text-center text-sm text-zinc-400">Geen resultaten gevonden</div>
-                )}
-                {searchResults.map((result, idx) => {
-                  const typeIcon = result.type === 'content' ? FileText : result.type === 'show' ? Radio : Image;
-                  const TypeIcon = typeIcon;
-                  const typeLabel = result.type === 'content' ? 'Content' : result.type === 'show' ? 'Show' : 'Media';
-                  const route = result.type === 'content' ? `/${mainSiteSlug}/content/${result.id}` : result.type === 'show' ? `/${mainSiteSlug}/shows` : `/${mainSiteSlug}/media`;
-                  return (
-                    <button
-                      key={`${result.type}-${result.id}-${idx}`}
-                      onClick={() => { navigate(route); setSearchOpen(false); setSearchQuery(''); }}
-                      className="w-full px-4 py-2.5 flex items-center gap-3 hover:bg-zinc-50 transition-colors text-left border-b border-black/[0.03] last:border-b-0"
-                      data-testid={`search-result-${result.id}`}
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
-                        <TypeIcon className="w-3.5 h-3.5 text-zinc-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-zinc-800 truncate">{result.title}</p>
-                        <p className="text-[11px] text-zinc-400 truncate">{typeLabel} - {result.subtitle}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {searchOpen && <div className="fixed inset-0 z-[99]" onClick={() => { setSearchOpen(false); setSearchExpanded(false); setSearchQuery(''); }} />}
+          {/* Search - Icon button that opens a centered popup */}
+          <div className="flex-shrink-0 ml-auto lg:ml-0">
+            <button
+              onClick={() => { if (!isLicenseBlocked) setSearchExpanded(true); }}
+              className={`w-9 h-9 flex items-center justify-center rounded-full border border-white/40 bg-white/20 backdrop-blur-xl hover:bg-white/40 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
+              data-testid="search-icon-btn"
+            >
+              <Search className="w-4 h-4 text-zinc-400" />
+            </button>
           </div>
+
+          {/* Search Popup Overlay */}
+          {searchExpanded && (
+            <>
+              <div className="fixed inset-0 z-[200] bg-black/30 backdrop-blur-sm" onClick={() => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }} />
+              <div className="fixed inset-0 z-[201] flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
+                <div className="w-full max-w-md pointer-events-auto" data-testid="search-popup">
+                  <div className="bg-white rounded-2xl shadow-[0_25px_80px_rgba(0,0,0,0.15)] border border-zinc-200/60 overflow-hidden">
+                    {/* Search input */}
+                    <div className="relative p-3 border-b border-zinc-100">
+                      <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+                        placeholder="Zoeken..."
+                        autoFocus
+                        className="w-full pl-10 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
+                        data-testid="global-search-input"
+                      />
+                      {searchLoading && <Loader2 className="absolute right-16 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 animate-spin" />}
+                      <button
+                        onClick={() => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }}
+                        className="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-zinc-500 transition-colors"
+                        data-testid="search-close-btn"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {/* Results */}
+                    {searchQuery.length >= 2 && (
+                      <div className="max-h-[50vh] overflow-y-auto" data-testid="search-results-dropdown">
+                        {searchResults.length === 0 && !searchLoading && (
+                          <div className="px-4 py-8 text-center text-sm text-zinc-400">Geen resultaten gevonden</div>
+                        )}
+                        {searchResults.map((result, idx) => {
+                          const typeIcon = result.type === 'content' ? FileText : result.type === 'show' ? Radio : Image;
+                          const TypeIcon = typeIcon;
+                          const typeLabel = result.type === 'content' ? 'Content' : result.type === 'show' ? 'Show' : 'Media';
+                          const route = result.type === 'content' ? `/${mainSiteSlug}/content/${result.id}` : result.type === 'show' ? `/${mainSiteSlug}/shows` : `/${mainSiteSlug}/media`;
+                          return (
+                            <button
+                              key={`${result.type}-${result.id}-${idx}`}
+                              onClick={() => { navigate(route); setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }}
+                              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-zinc-50 transition-colors text-left border-b border-zinc-100 last:border-b-0"
+                              data-testid={`search-result-${result.id}`}
+                            >
+                              <div className="w-9 h-9 rounded-xl bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                                <TypeIcon className="w-4 h-4 text-zinc-400" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-zinc-800 truncate">{result.title}</p>
+                                <p className="text-[11px] text-zinc-400 truncate">{typeLabel} - {result.subtitle}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {searchQuery.length < 2 && (
+                      <div className="px-4 py-5 text-center text-xs text-zinc-300">Typ minimaal 2 tekens om te zoeken</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
           <div className="flex items-center gap-3 flex-shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
