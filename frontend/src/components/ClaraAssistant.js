@@ -51,6 +51,8 @@ export default function ClaraAssistant() {
         autoSendError(initialError, errorContext);
       } else if (mode === 'license' && initialMessage) {
         autoSendLicenseHelp(initialMessage);
+      } else if (mode === 'support-help') {
+        autoSendSupportHelp();
       }
     }
   }, [isOpen]);
@@ -84,6 +86,16 @@ export default function ClaraAssistant() {
     setMessages(prev => [...prev, { role: 'assistant', text: licenseAdvice, isErrorHelp: true }]);
     setSupportForm(prev => ({ ...prev, subject: 'License activation - site has no active license', description: msg || 'My site is not licensed. I have completed the troubleshooting steps but the issue persists.', steps_tried: '' }));
     setLoading(false);
+  };
+
+  const autoSendSupportHelp = () => {
+    const question = `How do I create a new support ticket?`;
+    const answer = `Great question! Here's how to create a support ticket:\n\n**Step 1 — Open the Clara Assistant**\nClick the **<** button in the bottom-right corner of any page. That's me!\n\n**Step 2 — Describe your problem**\nTell me what's going wrong. I'll try to help you troubleshoot the issue first.\n\n**Step 3 — Create a ticket**\nIf I can't solve it, a **Contact Support** button will appear below my response. Click it to open the support form.\n\n**Step 4 — Fill in the details**\nAdd a subject, describe the problem, and optionally attach a screenshot or screen recording. Our support team will be notified immediately.\n\n---\n\nYou can also start right now — just type your problem below and I'll help you out!`;
+    setMessages([
+      { role: 'user', text: question },
+      { role: 'assistant', text: answer, isErrorHelp: true },
+    ]);
+    setSupportForm(prev => ({ ...prev, subject: '', description: '', steps_tried: '' }));
   };
 
   const sendMessage = async () => {

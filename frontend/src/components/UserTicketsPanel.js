@@ -2,11 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   LifeBuoy, Send, Image, Smile, X, Monitor, Circle,
-  Shield, ChevronLeft, Loader2
+  Shield, ChevronLeft, Loader2, HelpCircle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useClaraAssistant } from '../context/ClaraAssistantContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -19,6 +20,7 @@ const STATUS_CONFIG = {
 
 export default function UserTicketsPanel({ open, onClose }) {
   const { token, user } = useAuth();
+  const { openClara } = useClaraAssistant();
   const headers = { Authorization: `Bearer ${token}` };
 
   const [tickets, setTickets] = useState([]);
@@ -251,6 +253,14 @@ export default function UserTicketsPanel({ open, onClose }) {
                   /* ── Closed ticket notice ── */
                   <div className="px-3 py-4 border-t border-zinc-100 text-center" data-testid="ticket-closed-notice">
                     <p className="text-xs text-zinc-400 leading-relaxed">This ticket is no longer available. If you have the same problem, please make a new ticket via the Clara Assistant.</p>
+                    <button
+                      onClick={() => { onClose(); openClara('support-help'); }}
+                      className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors"
+                      data-testid="how-to-find-clara-btn"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      How to find the Clara Assistant?
+                    </button>
                   </div>
                 ) : (
                 <>
