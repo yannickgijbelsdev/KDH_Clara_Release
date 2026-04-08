@@ -1137,7 +1137,7 @@ const MainSiteDashboardContent = () => {
                 onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
                 onFocus={() => setSearchOpen(true)}
                 placeholder="Zoeken..."
-                className="w-44 lg:w-56 pl-9 pr-3 py-2 text-sm bg-white/40 backdrop-blur-xl border border-white/40 rounded-full text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:bg-white/60 transition-all"
+                className="w-32 lg:w-36 xl:w-56 pl-9 pr-3 py-2 text-sm bg-white/40 backdrop-blur-xl border border-white/40 rounded-full text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:bg-white/60 transition-all"
                 data-testid="global-search-input"
               />
               {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 animate-spin" />}
