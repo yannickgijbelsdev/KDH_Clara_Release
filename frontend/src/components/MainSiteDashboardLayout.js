@@ -1148,7 +1148,7 @@ const MainSiteDashboardContent = () => {
           {/* Search Popup Overlay */}
           {searchExpanded && (
             <>
-              <div className="fixed inset-0 z-[200] bg-black/30 backdrop-blur-sm" onClick={() => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }} />
+              <div className="fixed inset-0 z-[200] bg-black/30" onClick={() => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }} />
               <div className="fixed inset-0 z-[201] flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
                 <div className="w-full max-w-md pointer-events-auto" data-testid="search-popup">
                   <div className="bg-white rounded-2xl shadow-[0_25px_80px_rgba(0,0,0,0.15)] border border-zinc-200/60 overflow-hidden">
@@ -1160,7 +1160,7 @@ const MainSiteDashboardContent = () => {
                         type="text"
                         value={searchQuery}
                         onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
-                        placeholder="Zoeken..."
+                        placeholder="Search..."
                         autoFocus
                         className="w-full pl-10 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
                         data-testid="global-search-input"
@@ -1178,7 +1178,7 @@ const MainSiteDashboardContent = () => {
                     {searchQuery.length >= 2 && (
                       <div className="max-h-[50vh] overflow-y-auto" data-testid="search-results-dropdown">
                         {searchResults.length === 0 && !searchLoading && (
-                          <div className="px-4 py-8 text-center text-sm text-zinc-400">Geen resultaten gevonden</div>
+                          <div className="px-4 py-8 text-center text-sm text-zinc-400">No results found</div>
                         )}
                         {searchResults.map((result, idx) => {
                           const typeIcon = result.type === 'content' ? FileText : result.type === 'show' ? Radio : Image;
@@ -1205,7 +1205,7 @@ const MainSiteDashboardContent = () => {
                       </div>
                     )}
                     {searchQuery.length < 2 && (
-                      <div className="px-4 py-5 text-center text-xs text-zinc-300">Typ minimaal 2 tekens om te zoeken</div>
+                      <div className="px-4 py-5 text-center text-xs text-zinc-300">Type at least 2 characters to search</div>
                     )}
                   </div>
                 </div>
