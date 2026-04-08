@@ -124,7 +124,7 @@ export default function NetworkHeader({
     <TooltipProvider delayDuration={0}>
       {/* ─── Top Navigation Bar ─── */}
       <nav
-        className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-white/35 backdrop-blur-2xl border-b border-white/40 shadow-[0_1px_12px_rgba(0,0,0,0.04),inset_0_-1px_0_rgba(255,255,255,0.5)] z-50 overflow-x-hidden"
+        className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-transparent z-50 overflow-x-hidden"
         data-testid="workspace-topbar"
       >
         {/* Mobile menu button */}
