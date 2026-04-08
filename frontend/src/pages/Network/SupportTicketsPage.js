@@ -13,6 +13,12 @@ import Picker from '@emoji-mart/react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
+// Helper to get the correct attachment URL (supports both S3 urls and legacy base64 data_urls)
+function getAttachmentUrl(att, token) {
+  if (att.url) return `${API}${att.url}?auth=${token}`;
+  return att.data_url || '';
+}
+
 const STATUS_CONFIG = {
   open: { label: 'Open', color: 'bg-red-500', textColor: 'text-red-600', bgColor: 'bg-red-50', icon: AlertCircle },
   searching: { label: 'Searching', color: 'bg-amber-500', textColor: 'text-amber-600', bgColor: 'bg-amber-50', icon: SearchIcon },
@@ -294,11 +300,11 @@ export default function SupportTicketsPage({ inline, onClose }) {
                         {msg.attachments?.map(att => (
                           <div key={att.id} className="mt-2">
                             {att.is_recording ? (
-                              <video src={att.data_url} controls className="rounded-lg max-w-full" style={{ maxHeight: 200 }} />
+                              <video src={getAttachmentUrl(att, token)} controls className="rounded-lg max-w-full" style={{ maxHeight: 200 }} />
                             ) : att.content_type?.startsWith('image') ? (
-                              <img src={att.data_url} alt={att.filename} className="rounded-lg max-w-full" style={{ maxHeight: 200 }} />
+                              <img src={getAttachmentUrl(att, token)} alt={att.filename} className="rounded-lg max-w-full" style={{ maxHeight: 200 }} />
                             ) : (
-                              <a href={att.data_url} download={att.filename} className="text-xs underline">{att.filename}</a>
+                              <a href={getAttachmentUrl(att, token)} download={att.filename} className="text-xs underline">{att.filename}</a>
                             )}
                           </div>
                         ))}
@@ -319,7 +325,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                 {pendingAttachments.map((att, i) => (
                   <div key={i} className="relative group">
                     {att.content_type?.startsWith('image') ? (
-                      <img src={att.data_url} alt="" className="w-16 h-16 rounded-lg object-cover border border-zinc-200" />
+                      <img src={getAttachmentUrl(att, token)} alt="" className="w-16 h-16 rounded-lg object-cover border border-zinc-200" />
                     ) : (
                       <div className="w-16 h-16 rounded-lg bg-zinc-100 flex items-center justify-center border border-zinc-200">
                         <Video className="w-5 h-5 text-zinc-400" />

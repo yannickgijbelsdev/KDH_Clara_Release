@@ -20,7 +20,7 @@ const MODE_CONFIG = {
     borderLight: 'border-violet-200',
     textAccent: 'text-violet-600',
     btnBg: 'bg-violet-600 hover:bg-violet-500',
-    heroImage: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&q=80&fit=crop',
+    heroImage: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/c762631e32f0e58294e8591e211c7606d033ef078898b42b3ab000bae14d45b0.png',
   },
   support: {
     label: 'Enterprise Support',
@@ -31,7 +31,7 @@ const MODE_CONFIG = {
     borderLight: 'border-orange-200',
     textAccent: 'text-orange-600',
     btnBg: 'bg-orange-600 hover:bg-orange-500',
-    heroImage: 'https://images.unsplash.com/photo-1674421268440-133fc5d36cd1?w=600&q=80&fit=crop',
+    heroImage: 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/7730c25377f309a5e6dec1f0b79bac42bd0469f1f04fe0e6cdde623dc5aa754e.png',
   },
 };
 

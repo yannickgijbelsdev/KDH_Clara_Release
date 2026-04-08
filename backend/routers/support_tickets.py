@@ -1,12 +1,16 @@
 """Support Tickets — Full CRUD with messenger-style messages, status tracking, and email notifications."""
 import uuid
 import asyncio
+import logging
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Response
 from pydantic import BaseModel
 from typing import Optional, List
 from database import db
 from services.auth import get_current_user
+from services.object_storage import upload_file as s3_upload_file, get_object as s3_get_object
+
+logger = logging.getLogger(__name__)
 
 support_router = APIRouter(prefix="/support-tickets", tags=["Support Tickets"])
 
@@ -289,7 +293,7 @@ async def upload_attachment(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload an image/screenshot attachment and return its data URL."""
+    """Upload an image/screenshot attachment to S3 and return its URL."""
     ticket = await db.support_tickets.find_one({"id": ticket_id}, {"_id": 0, "user_id": 1})
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -298,20 +302,27 @@ async def upload_attachment(
     if not is_admin and ticket.get("user_id") != current_user.get("id"):
         raise HTTPException(status_code=403, detail="Access denied")
 
-    import base64
     content = await file.read()
     if len(content) > 5 * 1024 * 1024:  # 5MB limit
         raise HTTPException(status_code=413, detail="File too large (max 5MB)")
 
     content_type = file.content_type or "image/png"
-    b64 = base64.b64encode(content).decode()
-    data_url = f"data:{content_type};base64,{b64}"
+    filename = file.filename or "attachment.png"
+
+    try:
+        result = await asyncio.to_thread(s3_upload_file, content, filename, content_type, "tickets")
+        storage_path = result["storage_path"]
+        url = f"/api/support-tickets/files/{storage_path}"
+    except Exception as e:
+        logger.error(f"S3 upload failed: {e}")
+        raise HTTPException(status_code=500, detail="File upload failed")
 
     attachment = {
         "id": str(uuid.uuid4())[:8],
-        "filename": file.filename,
+        "filename": filename,
         "content_type": content_type,
-        "data_url": data_url,
+        "storage_path": storage_path,
+        "url": url,
         "size": len(content),
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -325,7 +336,7 @@ async def upload_recording(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload a screen recording."""
+    """Upload a screen recording to S3."""
     ticket = await db.support_tickets.find_one({"id": ticket_id}, {"_id": 0, "user_id": 1})
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
@@ -334,23 +345,50 @@ async def upload_recording(
     if not is_admin and ticket.get("user_id") != current_user.get("id"):
         raise HTTPException(status_code=403, detail="Access denied")
 
-    import base64
     content = await file.read()
     if len(content) > 50 * 1024 * 1024:  # 50MB limit
         raise HTTPException(status_code=413, detail="Recording too large (max 50MB)")
 
     content_type = file.content_type or "video/webm"
-    b64 = base64.b64encode(content).decode()
-    data_url = f"data:{content_type};base64,{b64}"
+    filename = file.filename or "recording.webm"
+
+    try:
+        result = await asyncio.to_thread(s3_upload_file, content, filename, content_type, "recordings")
+        storage_path = result["storage_path"]
+        url = f"/api/support-tickets/files/{storage_path}"
+    except Exception as e:
+        logger.error(f"S3 upload failed: {e}")
+        raise HTTPException(status_code=500, detail="Recording upload failed")
 
     attachment = {
         "id": str(uuid.uuid4())[:8],
-        "filename": file.filename or "recording.webm",
+        "filename": filename,
         "content_type": content_type,
-        "data_url": data_url,
+        "storage_path": storage_path,
+        "url": url,
         "size": len(content),
         "is_recording": True,
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
     }
 
     return {"attachment": attachment}
+
+
+@support_router.get("/files/{storage_path:path}")
+async def serve_file(storage_path: str, auth: Optional[str] = Query(None)):
+    """Proxy endpoint to serve files from S3 storage. Supports ?auth=token for img/video tags."""
+    if not auth:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    # Validate token
+    from services.auth import decode_token
+    try:
+        decode_token(auth)
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    try:
+        data, content_type = await asyncio.to_thread(s3_get_object, storage_path)
+        return Response(content=data, media_type=content_type)
+    except Exception as e:
+        logger.error(f"S3 download failed for {storage_path}: {e}")
+        raise HTTPException(status_code=404, detail="File not found")

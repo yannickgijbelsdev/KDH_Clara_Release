@@ -11,6 +11,12 @@ import { useClaraAssistant } from '../context/ClaraAssistantContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
+// Helper to get the correct attachment URL (supports both S3 urls and legacy base64 data_urls)
+function getAttachmentUrl(att, token) {
+  if (att.url) return `${API}${att.url}?auth=${token}`;
+  return att.data_url || '';
+}
+
 const STATUS_CONFIG = {
   open: { label: 'Open', textColor: 'text-red-600', bgColor: 'bg-red-50', color: 'bg-red-500' },
   searching: { label: 'Searching', textColor: 'text-amber-600', bgColor: 'bg-amber-50', color: 'bg-amber-500' },
@@ -240,11 +246,11 @@ export default function UserTicketsPanel({ open, onClose }) {
                             {msg.attachments?.map(att => (
                               <div key={att.id} className="mt-1.5">
                                 {att.is_recording ? (
-                                  <video src={att.data_url} controls className="rounded-lg max-w-full" style={{ maxHeight: 140 }} />
+                                  <video src={getAttachmentUrl(att, token)} controls className="rounded-lg max-w-full" style={{ maxHeight: 140 }} />
                                 ) : att.content_type?.startsWith('image') ? (
-                                  <img src={att.data_url} alt={att.filename} className="rounded-lg max-w-full" style={{ maxHeight: 140 }} />
+                                  <img src={getAttachmentUrl(att, token)} alt={att.filename} className="rounded-lg max-w-full" style={{ maxHeight: 140 }} />
                                 ) : (
-                                  <a href={att.data_url} download={att.filename} className="text-xs underline">{att.filename}</a>
+                                  <a href={getAttachmentUrl(att, token)} download={att.filename} className="text-xs underline">{att.filename}</a>
                                 )}
                               </div>
                             ))}
@@ -280,7 +286,7 @@ export default function UserTicketsPanel({ open, onClose }) {
                     {pendingAttachments.map((att, i) => (
                       <div key={i} className="relative group">
                         {att.content_type?.startsWith('image') ? (
-                          <img src={att.data_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-zinc-200" />
+                          <img src={getAttachmentUrl(att, token)} alt="" className="w-12 h-12 rounded-lg object-cover border border-zinc-200" />
                         ) : (
                           <div className="w-12 h-12 rounded-lg bg-zinc-100 flex items-center justify-center border border-zinc-200">
                             <Monitor className="w-4 h-4 text-zinc-400" />
