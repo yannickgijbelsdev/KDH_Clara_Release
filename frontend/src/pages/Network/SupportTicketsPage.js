@@ -275,7 +275,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3" data-testid="messages-container">
               {ticketDetail.messages?.map((msg) => {
-                const isOwn = msg.sender_id === user?.id;
+                const isAdmin = msg.sender_role === 'admin';
                 const isSystem = msg.is_system;
                 if (isSystem) {
                   return (
@@ -285,11 +285,12 @@ export default function SupportTicketsPage({ inline, onClose }) {
                   );
                 }
                 return (
-                  <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`} data-testid={`msg-${msg.id}`}>
-                    <div className={`max-w-[70%] ${isOwn ? 'order-2' : ''}`}>
-                      {!isOwn && <p className="text-[10px] text-zinc-400 mb-1 ml-1">{msg.sender_name} {msg.sender_role === 'admin' && <Shield className="w-3 h-3 inline text-orange-400" />}</p>}
-                      <div className={`px-4 py-2.5 rounded-2xl text-sm ${isOwn ? 'bg-zinc-900 text-white rounded-br-md' : 'bg-zinc-100 text-zinc-800 rounded-bl-md'}`}>
-                        <p className="whitespace-pre-wrap">{msg.text}</p>
+                  <div key={msg.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`} data-testid={`msg-${msg.id}`}>
+                    <div className="max-w-[70%]">
+                      {!isAdmin && <p className="text-[10px] text-zinc-400 mb-1 ml-1">{msg.sender_name} <User className="w-3 h-3 inline text-zinc-300" /></p>}
+                      {isAdmin && <p className="text-[10px] text-zinc-400 mb-1 mr-1 text-right">{msg.sender_name} <Shield className="w-3 h-3 inline text-orange-400" /></p>}
+                      <div className={`px-4 py-2.5 rounded-2xl text-sm shadow-sm ${isAdmin ? 'bg-zinc-900 text-white rounded-br-md' : 'bg-zinc-200/70 text-zinc-800 rounded-bl-md border border-zinc-300/60'}`}>
+                        <p className="whitespace-pre-wrap break-words">{msg.text}</p>
                         {msg.attachments?.map(att => (
                           <div key={att.id} className="mt-2">
                             {att.is_recording ? (
@@ -302,7 +303,7 @@ export default function SupportTicketsPage({ inline, onClose }) {
                           </div>
                         ))}
                       </div>
-                      <p className={`text-[10px] text-zinc-300 mt-1 ${isOwn ? 'text-right mr-1' : 'ml-1'}`}>
+                      <p className={`text-[10px] text-zinc-300 mt-1 ${isAdmin ? 'text-right mr-1' : 'ml-1'}`}>
                         {new Date(msg.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
