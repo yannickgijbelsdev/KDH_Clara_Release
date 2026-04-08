@@ -1148,7 +1148,7 @@ const MainSiteDashboardContent = () => {
           {/* Search Popup Overlay */}
           {searchExpanded && (
             <>
-              <div className="fixed inset-0 z-[200] bg-black/30" onClick={() => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }} />
+              <div className="fixed inset-0 z-[200] bg-black/15" onClick={() => { setSearchExpanded(false); setSearchOpen(false); setSearchQuery(''); }} />
               <div className="fixed inset-0 z-[201] flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
                 <div className="w-full max-w-md pointer-events-auto" data-testid="search-popup">
                   <div className="bg-white rounded-2xl shadow-[0_25px_80px_rgba(0,0,0,0.15)] border border-zinc-200/60 overflow-hidden">

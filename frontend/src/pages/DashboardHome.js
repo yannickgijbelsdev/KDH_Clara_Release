@@ -207,7 +207,7 @@ function TimePanel({ now }) {
     <Panel testId="panel-time" delay={0.3} className="inline-flex items-center gap-4 px-6 py-3">
       <span className="text-2xl font-bold text-zinc-900 tabular-nums">{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
       <span className="w-px h-5 bg-zinc-200" />
-      <span className="text-sm text-zinc-500">{now.toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
+      <span className="text-sm text-zinc-500">{now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
     </Panel>
   );
 }
