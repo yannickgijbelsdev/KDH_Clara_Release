@@ -43,6 +43,7 @@ Multi-environment SaaS platform for radio station management built with React fr
 ## Recent Fixes
 - **Rundown delete bug** (Apr 2026): Fixed `delete_rundown_item` endpoint — added multisite context (`X-Main-Site-ID`) and changed from admin-only to editor/admin/member permissions (consistent with create/update)
 - **Clara Assistant error handling** (Apr 2026): Improved error messages when LLM key hits rate limit — now shows actionable message directing users to create support tickets directly
+- **Clara Voice Support overrides** (Apr 2026): Added prompt overrides to ElevenLabs Conversation — fixed wrong UI descriptions (menu at top, not left), removed highlight claims, forced English language for better quality
 
 ## Backlog
 ### P0
