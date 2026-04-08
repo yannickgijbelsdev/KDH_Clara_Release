@@ -1,79 +1,72 @@
 # Radio Show Planning & Management Platform — PRD
 
 ## Original Problem Statement
-Multi-environment SaaS platform for radio station management built with React frontend, FastAPI backend, and MongoDB. Integrates with Cloudflare, WordPress, Radioplayer, ZeroTier, and OpenAI GPT-5.2.
+Multi-environment SaaS platform for radio station management built with React frontend, FastAPI backend, and MongoDB. Integrates with Cloudflare, WordPress, Radioplayer, ZeroTier, and OpenAI.
 
-## Core Requirements
+## Core Features
 - Network-level management dashboard for multi-site radio operations
-- Environment management (Production, Staging, Dev)
-- Domain management with Cloudflare integration
-- License management for sites and packages
 - WordPress content publishing and security
-- Clara AI Assistant for error troubleshooting and SEO
+- Clara AI Assistant, Clara Enterprise Code Assistant (Claude), Enterprise Support
+- **Clara Voice Support** — Real-time AI voice calls using OpenAI Realtime API (WebRTC)
+- Support Ticket System with S3 file attachments
 - PWA installation support
 - RDS metadata monitoring with auto-refresh
 - Two-Factor Authentication (2FA) enforcement
-- License enforcement with grayed-out menus
-- **Full Support Ticket System** with messenger-style chat, status tracking, email notifications, screen recording, and user impersonation
-- **Clara Enterprise Assistant** with Code Assistant (Claude) and Enterprise Support modes
-- **S3 Object Storage** for support ticket attachments (migrated from base64)
 
 ## Architecture
 ```
 /app
 ├── backend/ (FastAPI)
 │   ├── routers/
-│   │   ├── support_tickets.py    # Support tickets with S3 file storage
-│   │   ├── enterprise_assistant.py # Claude-powered code generation & support
-│   │   ├── auth.py, main_sites.py, wordpress.py, etc.
-│   ├── services/
-│   │   ├── object_storage.py     # Emergent S3-compatible storage
-│   │   └── rds_builder_scheduler.py # Auto-refresh background loop
-│   └── .env
+│   │   ├── voice_support.py         # NEW: AI voice calls via OpenAI Realtime WebRTC
+│   │   ├── enterprise_assistant.py  # Claude-powered code generation & support
+│   │   ├── support_tickets.py       # Tickets with S3 file storage
+│   │   ├── clara_assistant.py       # Clara AI assistant
+│   │   └── main_sites.py, wordpress.py, auth.py, etc.
+│   └── services/
+│       ├── object_storage.py        # Emergent S3-compatible storage
+│       └── rds_builder_scheduler.py # Auto-refresh background loop
 ├── frontend/ (React)
-│   ├── src/components/
-│   │   ├── UserTicketsPanel.js    # User-side ticket slide panel (S3 URLs)
-│   │   ├── MainSiteDashboardLayout.js # Dynamic nav with ResizeObserver
-│   │   └── ClaraAssistant.js
-│   ├── src/pages/
-│   │   ├── EnterpriseAssistantPage.js # Enterprise code/support with 3D cards
-│   │   └── Network/SupportTicketsPage.js # Admin support page (S3 URLs)
-│   └── .env
+│   └── src/
+│       ├── components/
+│       │   ├── VoiceCallWidget.js        # NEW: Voice call UI (ringing/active/ended)
+│       │   ├── MainSiteDashboardLayout.js # Dynamic nav, voice call integration
+│       │   ├── UserTicketsPanel.js        # User-side ticket panel (S3 URLs)
+│       │   ├── ClaraAssistant.js          # "Call Clara Support" button
+│       │   └── ClaraCLI.js
+│       ├── pages/
+│       │   ├── EnterpriseAssistantPage.js # 3D isometric room cards
+│       │   └── Network/SupportTicketsPage.js
+│       └── context/
+│           └── ClaraAssistantContext.js   # voiceCallRequested state
 └── memory/
 ```
 
-## Support Ticket System
-### Statuses
-- **Open** — counts towards badge counter
-- **Searching for a solution** — does NOT count
-- **Solution found** — does NOT count
-- **Closed** — does NOT count
-
-### Features
-- Messenger-style chat with text bubbles and timestamps
-- **S3 file attachments** (images, screen recordings) via Emergent Object Storage
-- Emoji support (@emoji-mart/react)
-- Status management (admin-only dropdown)
-- User impersonation for admins
-- Email notifications (async background tasks)
-- Login popup for unread ticket updates
+## Voice Support Feature
+### Flow
+1. User clicks green phone icon in header (Enterprise only) or "Call Clara Support" in Clara Assistant
+2. Incoming call overlay appears with pulsing animation
+3. User accepts → WebRTC connection established via backend negotiate endpoint
+4. AI greets user and asks for preferred language
+5. Real-time voice conversation with live transcript
+6. User can mute/unmute, minimize widget, or hang up
+7. Transcript saved to MongoDB on hang up
 
 ### API Endpoints
-- `POST /api/support-tickets` — Create ticket
-- `GET /api/support-tickets` — List tickets
-- `GET /api/support-tickets/counts` — Badge counter
-- `GET /api/support-tickets/user-updates` — Unread updates
-- `GET /api/support-tickets/{id}` — Full ticket with messages
-- `PUT /api/support-tickets/{id}/status` — Change status (admin)
-- `POST /api/support-tickets/{id}/messages` — Add message
-- `POST /api/support-tickets/{id}/messages/attachment` — Upload image to S3
-- `POST /api/support-tickets/{id}/recording` — Upload recording to S3
-- `GET /api/support-tickets/files/{path}?auth=TOKEN` — Proxy S3 files
+- `POST /api/voice-support/start-session?main_site_id=X` — Create session (Enterprise only)
+- `POST /api/voice-support/realtime/session` — Get OpenAI ephemeral session
+- `POST /api/voice-support/realtime/negotiate` — WebRTC SDP negotiation
+- `POST /api/voice-support/save-transcript` — Save transcript after call
+- `GET /api/voice-support/sessions?main_site_id=X` — Session history
+- `GET /api/voice-support/session/{id}` — Full transcript
 
-## Enterprise Assistant
-- `POST /api/enterprise-assistant/chat` — Claude chat (code/support)
-- `GET /api/enterprise-assistant/sessions` — Chat history
-- Requires `clara_enterprise` site flag
+### DB Schema
+- `voice_support_sessions`: session_id, main_site_id, user_id, user_name, status, messages[], language, duration_seconds, started_at, ended_at
+
+## Support Ticket S3 Storage
+- Attachments uploaded via `object_storage.py` to Emergent S3
+- Proxy endpoint: `GET /api/support-tickets/files/{path}?auth=TOKEN`
+- Frontend helper `getAttachmentUrl()` supports both S3 URLs and legacy base64
 
 ## Credentials
 - System Admin: admkoodh@koodh.com / KYLovie13monx
@@ -89,4 +82,4 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Implement Stream Monitor VU Meters
 - Cleanup Obsolete ProRadio Sync Code
 - Fix React Hook dependency warnings
-- Refactoring: Split MainSiteDashboardLayout.js and NetworkDashboard.js
+- Refactoring: Split MainSiteDashboardLayout.js
