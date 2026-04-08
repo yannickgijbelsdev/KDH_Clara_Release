@@ -15,7 +15,7 @@ const resolveUrl = (url) => {
   return url.startsWith('/') ? `${API}${url}` : url;
 };
 
-const ROOMS_IMG = '/images/clara_rooms.jpg';
+const ROOMS_IMG = '/images/clara_rooms.png';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
