@@ -241,6 +241,8 @@ const MainSiteDashboardContent = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const searchInputRef = useCallback(node => { if (node) node.focus(); }, []);
   
   // Get user's menu preference (grouped or flat)
   const useGroupedMenu = user?.preferences?.grouped_menu ?? true;
@@ -294,7 +296,7 @@ const MainSiteDashboardContent = () => {
   }, [searchQuery]);
 
   // Close search on route change
-  useEffect(() => { setSearchOpen(false); setSearchQuery(''); }, [location.pathname]);
+  useEffect(() => { setSearchOpen(false); setSearchQuery(''); setSearchExpanded(false); }, [location.pathname]);
 
   // Fetch sites for navigation
   const fetchSites = useCallback(async () => {
@@ -1132,22 +1134,40 @@ const MainSiteDashboardContent = () => {
               </DropdownMenu>
             )}
           </div>
-          {/* Search Bar */}
+          {/* Search Bar - Icon-only that expands on click */}
           <div className="relative flex-shrink-0 ml-auto lg:ml-0">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
-                onFocus={() => setSearchOpen(true)}
-                placeholder="Zoeken..."
-                disabled={isLicenseBlocked}
-                className={`w-32 lg:w-36 xl:w-56 pl-9 pr-3 py-2 text-sm bg-white/40 backdrop-blur-xl border border-white/40 rounded-full text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:bg-white/60 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
-                data-testid="global-search-input"
-              />
-              {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 animate-spin" />}
-            </div>
+            {searchExpanded ? (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
+                  onBlur={() => { if (!searchQuery) { setSearchExpanded(false); setSearchOpen(false); } }}
+                  placeholder="Zoeken..."
+                  disabled={isLicenseBlocked}
+                  className={`w-52 pl-9 pr-8 py-2 text-sm bg-white/60 backdrop-blur-xl border border-zinc-200/60 rounded-full text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
+                  data-testid="global-search-input"
+                />
+                <button
+                  onClick={() => { setSearchQuery(''); setSearchExpanded(false); setSearchOpen(false); }}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-300 hover:text-zinc-500 transition-colors"
+                  data-testid="search-close-btn"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                {searchLoading && <Loader2 className="absolute right-8 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 animate-spin" />}
+              </div>
+            ) : (
+              <button
+                onClick={() => { if (!isLicenseBlocked) setSearchExpanded(true); }}
+                className={`w-9 h-9 flex items-center justify-center rounded-full border border-white/40 bg-white/20 backdrop-blur-xl hover:bg-white/40 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
+                data-testid="search-icon-btn"
+              >
+                <Search className="w-4 h-4 text-zinc-400" />
+              </button>
+            )}
             {searchOpen && searchQuery.length >= 2 && (
               <div className="absolute top-full mt-2 right-0 w-80 bg-white/90 backdrop-blur-2xl border border-black/[0.06] rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden z-[100]" data-testid="search-results-dropdown">
                 {searchResults.length === 0 && !searchLoading && (
@@ -1177,7 +1197,7 @@ const MainSiteDashboardContent = () => {
                 })}
               </div>
             )}
-            {searchOpen && <div className="fixed inset-0 z-[99]" onClick={() => setSearchOpen(false)} />}
+            {searchOpen && <div className="fixed inset-0 z-[99]" onClick={() => { setSearchOpen(false); setSearchExpanded(false); setSearchQuery(''); }} />}
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <DropdownMenu>
