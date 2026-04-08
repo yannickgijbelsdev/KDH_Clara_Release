@@ -13,8 +13,8 @@ import {
   Infinity, AlertTriangle, Loader2, ChevronDown, Clock, CheckCircle, XCircle, FileText
 } from 'lucide-react';
 
-const SITE_TYPE_IMAGES = { radio: '/images/env_radio.jpg', technical: '/images/env_technical.jpg', server: '/images/env_server.jpg', task_scheduler: '/images/env_task_scheduler.jpg', external_host: '/images/env_external_host.jpg', wp_security: '/images/env_wp_security.jpg' };
-const CYCLING_IMAGES = ['/images/env_license.jpg', '/images/env_license.jpg', '/images/env_license.jpg', '/images/env_license.jpg', '/images/env_license.jpg', '/images/env_license.jpg'];
+const SITE_TYPE_IMAGES = { radio: '/images/env_license.jpg', technical: '/images/env_license.jpg', server: '/images/env_license.jpg', task_scheduler: '/images/env_license.jpg', external_host: '/images/env_license.jpg', wp_security: '/images/env_license.jpg' };
+const CYCLING_IMAGES = ['/images/env_license.jpg'];
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,

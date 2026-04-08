@@ -67,7 +67,7 @@ export default function BrandingSettings() {
       label: 'PLATFORM NAME',
       icon: Type,
       color: '#f97316',
-      img: '/images/env_radio.jpg',
+      img: '/images/env_branding.jpg',
       description: 'Shown in sidebar, login page, and emails',
     },
     {
@@ -75,7 +75,7 @@ export default function BrandingSettings() {
       label: 'LOGO',
       icon: Image,
       color: '#3b82f6',
-      img: '/images/env_technical.jpg',
+      img: '/images/env_branding.jpg',
       description: 'Platform logo for sidebar and headers',
     },
     {
@@ -83,7 +83,7 @@ export default function BrandingSettings() {
       label: 'FAVICON',
       icon: Star,
       color: '#8b5cf6',
-      img: '/images/env_task_scheduler.jpg',
+      img: '/images/env_branding.jpg',
       description: 'Browser tab icon (.ico, .png, .svg)',
     },
   ];

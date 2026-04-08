@@ -96,8 +96,8 @@ const ROUTE_TYPE_COLORS = {
 };
 const SITE_TYPE_COLORS = { radio: 'bg-orange-500/20 text-orange-400', technical: 'bg-emerald-500/20 text-emerald-400', server: 'bg-blue-500/20 text-blue-400', task_scheduler: 'bg-violet-500/20 text-violet-400', external_host: 'bg-cyan-500/20 text-cyan-400' };
 const SITE_TYPE_LABELS = { radio: 'Radio', technical: 'Data Connection', server: 'Virtual Datacenter', task_scheduler: 'Tasks', external_host: 'External Host' };
-const SITE_TYPE_IMAGES = { radio: '/images/env_radio.jpg', technical: '/images/env_technical.jpg', server: '/images/env_server.jpg', task_scheduler: '/images/env_task_scheduler.jpg', external_host: '/images/env_external_host.jpg', wp_security: '/images/env_wp_security.jpg' };
-const CYCLING_IMAGES = ['/images/env_domain.jpg', '/images/env_domain.jpg', '/images/env_domain.jpg', '/images/env_domain.jpg', '/images/env_domain.jpg', '/images/env_domain.jpg'];
+const SITE_TYPE_IMAGES = { radio: '/images/env_domain.jpg', technical: '/images/env_domain.jpg', server: '/images/env_domain.jpg', task_scheduler: '/images/env_domain.jpg', external_host: '/images/env_domain.jpg', wp_security: '/images/env_domain.jpg' };
+const CYCLING_IMAGES = ['/images/env_domain.jpg'];
 const STATUS_CONFIGS = {
   verified: { icon: CheckCircle, color: 'text-emerald-400', label: 'Verified' },
   pending: { icon: Clock, color: 'text-amber-400', label: 'Pending' },
@@ -436,10 +436,10 @@ export default function DomainManager() {
         <div className="space-y-6">
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
             {[
-              { label: 'CONFIGURED', value: overview.configured_domains, extra: `/ ${overview.total_sites}`, icon: Link2, color: '#10b981', img: '/images/env_server.jpg' },
-              { label: 'KOODH.COM', value: overview.koodh_domains, icon: Globe, color: '#3b82f6', img: '/images/env_radio.jpg' },
-              { label: 'CUSTOM', value: overview.custom_domains, icon: ExternalLink, color: '#a855f7', img: '/images/env_external_host.jpg' },
-              { label: 'VERIFIED', value: overview.verified, icon: CheckCircle, color: '#22c55e', img: '/images/env_technical.jpg' },
+              { label: 'CONFIGURED', value: overview.configured_domains, extra: `/ ${overview.total_sites}`, icon: Link2, color: '#10b981', img: '/images/env_domain.jpg' },
+              { label: 'KOODH.COM', value: overview.koodh_domains, icon: Globe, color: '#3b82f6', img: '/images/env_domain.jpg' },
+              { label: 'CUSTOM', value: overview.custom_domains, icon: ExternalLink, color: '#a855f7', img: '/images/env_domain.jpg' },
+              { label: 'VERIFIED', value: overview.verified, icon: CheckCircle, color: '#22c55e', img: '/images/env_domain.jpg' },
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}

@@ -504,7 +504,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   const isExpanded = selectedRole === role.slug;
                   const activeCount = (roleCfg.categories || []).length;
                   const roleColor = role.slug === 'admin' ? '#f97316' : role.slug === 'presenter' ? '#3b82f6' : role.slug === 'editor' ? '#8b5cf6' : '#22c55e';
-                  const ROLE_IMAGES = ['/images/env_server.jpg', '/images/env_radio.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg'];
+                  const ROLE_IMAGES = ['/images/env_notification.jpg'];
                   const roleImg = ROLE_IMAGES[i % ROLE_IMAGES.length];
 
                   return (
@@ -643,7 +643,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   const failedCount = (evt.emails_failed || []).length;
                   const attemptedCount = (evt.emails_attempted || []).length;
                   const evtColor = failedCount > 0 ? '#ef4444' : sentCount > 0 ? '#22c55e' : '#71717a';
-                  const HIST_IMAGES = ['/images/env_radio.jpg', '/images/env_server.jpg', '/images/env_technical.jpg', '/images/env_task_scheduler.jpg', '/images/env_external_host.jpg', '/images/env_wp_security.jpg'];
+                  const HIST_IMAGES = ['/images/env_notification.jpg'];
                   return (
                     <motion.div
                       key={i}
