@@ -7,6 +7,8 @@ import { Terminal, X, Send, Lock, ShieldCheck, Loader2, Check } from 'lucide-rea
 import { toast } from 'sonner';
 import CLISaveWizard from './CLISaveWizard';
 
+import { useClaraAssistant } from '../context/ClaraAssistantContext';
+
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Commands that modify data and should show the save wizard
@@ -26,6 +28,7 @@ const WRITE_PREFIXES = [
 export default function ClaraCLI({ triggerRef }) {
   const { token, user } = useAuth();
   const { mainSite } = useMainSite();
+  const { requestVoiceCall } = useClaraAssistant();
   const [open, setOpen] = useState(false);
 
   // Expose open function via triggerRef
@@ -126,6 +129,18 @@ export default function ClaraCLI({ triggerRef }) {
     // Client-side /clear
     if (command.trim() === '/clear') {
       setHistory([{ type: 'system', text: `Clara CLI v1.0 — Connected to ${mainSite?.name || 'site'}\nType /commands to see available commands.\n` }]);
+      return;
+    }
+
+    // Client-side /call support
+    if (command.trim().toLowerCase() === '/call support') {
+      if (!mainSite?.clara_enterprise) {
+        setHistory(prev => [...prev, { type: 'error', text: 'Clara Voice Support requires Enterprise. Contact your administrator.' }]);
+        return;
+      }
+      setHistory(prev => [...prev, { type: 'success', text: 'Initiating voice call with Clara Support...' }]);
+      setOpen(false);
+      requestVoiceCall();
       return;
     }
 
