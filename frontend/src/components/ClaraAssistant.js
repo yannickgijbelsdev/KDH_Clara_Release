@@ -325,8 +325,8 @@ export default function ClaraAssistant() {
                       />
                     )}
 
-                    {/* "Contact Support" button after error help messages */}
-                    {(mode === 'error' || mode === 'license') && messages.some(m => m.isErrorHelp) && !showSupportForm && !loading && (
+                    {/* "Contact Support" button — always show after conversation has messages */}
+                    {messages.length >= 2 && !showSupportForm && !loading && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
