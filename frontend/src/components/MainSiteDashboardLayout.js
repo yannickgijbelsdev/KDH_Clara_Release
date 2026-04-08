@@ -8,6 +8,7 @@ import { useTopLoader } from './TopLoader';
 import { PermissionsProvider, usePermissions } from '../context/PermissionsContext';
 import { DevToolsProvider } from '../context/DevToolsContext';
 import DevToolsPanel from './DevTools/DevToolsPanel';
+import usePageTitle from '../hooks/usePageTitle';
 import DevToolsInspector from './DevTools/DevToolsInspector';
 import HelpButton from './Tickets/HelpButton';
 import ClaraCLI from './ClaraCLI';
@@ -379,15 +380,11 @@ const MainSiteDashboardContent = () => {
   }, []);
 
   // Update browser tab title dynamically
-  useEffect(() => {
-    if (isInSiteContext && currentSite) {
-      document.title = `Clara | ${currentSite.name}`;
-    } else if (mainSite?.name) {
-      document.title = `Clara | ${mainSite.name}`;
-    } else {
-      document.title = brandName;
-    }
-  }, [isInSiteContext, currentSite, mainSite?.name]);
+  usePageTitle(
+    isInSiteContext && currentSite ? currentSite.name
+      : mainSite?.name || null,
+    'Clara'
+  );
 
   // Mark chat as read when visiting chat page
   useEffect(() => {

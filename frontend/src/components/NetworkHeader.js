@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/button';
+import usePageTitle from '../hooks/usePageTitle';
 import {
   Globe, Crown, Network, Shield, Bell, Paintbrush,
   Server, ChevronDown, LogOut, ShieldAlert, UserCog,
@@ -51,6 +52,7 @@ export default function NetworkHeader({
 }) {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
+  usePageTitle('Network Management', 'Clara');
   const [internalEnvs, setInternalEnvs] = useState([]);
   const [internalEnvId, setInternalEnvId] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);

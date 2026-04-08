@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
 import { usePermissions } from '../context/PermissionsContext';
+import usePageTitle from '../hooks/usePageTitle';
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
@@ -271,15 +272,11 @@ const DashboardLayout = () => {
   }, []);
 
   // Update browser tab title dynamically
-  useEffect(() => {
-    if (isInSiteContext && currentSite) {
-      document.title = `${brandName} | ${currentSite.name}`;
-    } else if (user?.team_name) {
-      document.title = `${brandName} | ${user.team_name}`;
-    } else {
-      document.title = brandName;
-    }
-  }, [isInSiteContext, currentSite, user?.team_name, brandName]);
+  usePageTitle(
+    isInSiteContext && currentSite ? currentSite.name
+      : user?.team_name || null,
+    brandName
+  );
 
   // Mark chat as read when visiting chat page
   useEffect(() => {
@@ -299,14 +296,7 @@ const DashboardLayout = () => {
     }
   }, [location.pathname, menuCounts.logs]);
 
-  // Set browser tab title dynamically
-  useEffect(() => {
-    if (user?.team_name) {
-      document.title = `${brandName} | ${user.team_name}`;
-    } else {
-      document.title = brandName;
-    }
-  }, [user?.team_name, brandName]);
+  // (title managed by usePageTitle hook above)
 
   const handleLogout = () => {
     logout();

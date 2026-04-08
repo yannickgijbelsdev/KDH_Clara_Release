@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useBranding } from '../context/BrandingContext';
 import { Button } from '../components/ui/button';
@@ -26,6 +26,8 @@ const LoginPage = () => {
   const [requires2FA, setRequires2FA] = useState(false);
   const [useBackupCode, setUseBackupCode] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+
+  useEffect(() => { document.title = 'Clara | Login'; }, []);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
