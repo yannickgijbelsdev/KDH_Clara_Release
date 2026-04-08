@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -23,7 +23,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -248,6 +248,7 @@ const MainSiteDashboardContent = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const cliTriggerRef = useRef(null);
   const searchInputRef = useCallback(node => { if (node) node.focus(); }, []);
   const [userTicketCount, setUserTicketCount] = useState(0);
   const [ticketUpdates, setTicketUpdates] = useState([]);
@@ -1101,6 +1102,17 @@ const MainSiteDashboardContent = () => {
               <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-white text-orange-600 rounded-full px-0.5 z-20 shadow-sm">{userTicketCount}</span>
             )}
           </button>
+          {/* CLI Button */}
+          {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && (
+            <button
+              onClick={() => cliTriggerRef.current?.()}
+              className="w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center transition-colors flex-shrink-0"
+              data-testid="cli-toggle-btn"
+              title="Clara CLI"
+            >
+              <Terminal className="w-3.5 h-3.5 text-zinc-500" />
+            </button>
+          )}
           {/* Main Site Switcher Dropdown */}
           {myMainSites.length > 1 && (
             <DropdownMenu>
@@ -1415,7 +1427,7 @@ const MainSiteDashboardContent = () => {
     </TooltipProvider>
     {isClone && <DevToolsPanel />}
     {isClone && <DevToolsInspector />}
-    {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && <ClaraCLI />}
+    {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && <ClaraCLI triggerRef={cliTriggerRef} />}
     <UserTicketsPanel open={showUserTickets} onClose={() => setShowUserTickets(false)} />
     <TicketUpdatePopup
       tickets={showTicketPopup ? ticketUpdates : []}

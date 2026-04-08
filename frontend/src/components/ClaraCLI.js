@@ -23,10 +23,15 @@ const WRITE_PREFIXES = [
   '/backup create', '/backup restore',
 ];
 
-export default function ClaraCLI() {
+export default function ClaraCLI({ triggerRef }) {
   const { token, user } = useAuth();
   const { mainSite } = useMainSite();
   const [open, setOpen] = useState(false);
+
+  // Expose open function via triggerRef
+  useEffect(() => {
+    if (triggerRef) triggerRef.current = () => setOpen(true);
+  }, [triggerRef]);
   const [accessStatus, setAccessStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
@@ -217,16 +222,6 @@ export default function ClaraCLI() {
 
   return (
     <>
-      {/* CLI Toggle Button */}
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-20 right-6 z-40 w-11 h-11 rounded-full bg-white border border-zinc-200 hover:border-emerald-500/50 hover:bg-zinc-50 flex items-center justify-center transition-all shadow-lg group"
-        data-testid="cli-toggle-btn"
-        title="Clara CLI"
-      >
-        <Terminal className="w-5 h-5 text-emerald-400 group-hover:text-emerald-300" />
-      </button>
-
       {/* CLI Panel */}
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4" data-testid="cli-panel">
