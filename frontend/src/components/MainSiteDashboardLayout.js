@@ -1153,7 +1153,7 @@ const MainSiteDashboardContent = () => {
                 <div className="w-full max-w-md pointer-events-auto" data-testid="search-popup">
                   <div className="bg-white rounded-2xl shadow-[0_25px_80px_rgba(0,0,0,0.15)] border border-zinc-200/60 overflow-hidden">
                     {/* Search input */}
-                    <div className="relative p-3 border-b border-zinc-100">
+                    <div className="relative p-3">
                       <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                       <input
                         ref={searchInputRef}
@@ -1162,7 +1162,7 @@ const MainSiteDashboardContent = () => {
                         onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
                         placeholder="Search..."
                         autoFocus
-                        className="w-full pl-10 pr-10 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all"
+                        className="w-full pl-10 pr-10 py-2.5 text-sm bg-transparent border-0 text-zinc-900 placeholder:text-zinc-300 focus:outline-none transition-all"
                         data-testid="global-search-input"
                       />
                       {searchLoading && <Loader2 className="absolute right-16 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-300 animate-spin" />}
