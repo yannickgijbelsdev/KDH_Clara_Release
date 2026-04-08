@@ -6,7 +6,7 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import {
   Upload, Check, ChevronRight, Globe, Users, CreditCard,
-  Shield, UserPlus, Trash2, Crown, Pencil, Eye, Mic
+  Shield, UserPlus, Trash2, Crown, Pencil, Eye, Mic, Sparkles
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -37,6 +37,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const [slug, setSlug] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [require2fa, setRequire2fa] = useState(false);
+  const [claraEnterprise, setClaraEnterprise] = useState(false);
 
   // License
   const [packages, setPackages] = useState([]);
@@ -60,6 +61,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     setSlug(site.slug || '');
     setLogoUrl(site.logo_url || '');
     setRequire2fa(site.require_2fa || false);
+    setClaraEnterprise(site.clara_enterprise || false);
   }, [open, site]);
 
   // Load license + users when step changes
@@ -102,7 +104,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     setSaving(true);
     try {
       await fetch(`${API}/api/main-sites/${site.id}`, {
-        method: 'PUT', headers, body: JSON.stringify({ name, slug, logo_url: logoUrl, require_2fa: require2fa }),
+        method: 'PUT', headers, body: JSON.stringify({ name, slug, logo_url: logoUrl, require_2fa: require2fa, clara_enterprise: claraEnterprise }),
       });
       onUpdated?.();
     } catch (e) { console.error(e); }
@@ -264,6 +266,27 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                   data-testid="require-2fa-toggle"
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${require2fa ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </div>
+
+              {/* Clara Enterprise toggle */}
+              <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl border border-violet-100">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 text-violet-500" />
+                  <div>
+                    <p className="text-sm font-medium text-zinc-900">Clara Enterprise</p>
+                    <p className="text-xs text-zinc-500">Enable Enterprise Code Assistant & Enterprise Support</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={claraEnterprise}
+                  onClick={() => setClaraEnterprise(!claraEnterprise)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${claraEnterprise ? 'bg-violet-500' : 'bg-zinc-300'}`}
+                  data-testid="clara-enterprise-toggle"
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${claraEnterprise ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
 

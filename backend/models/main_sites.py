@@ -67,6 +67,7 @@ class MainSiteCreate(BaseModel):
     is_demo: bool = False  # Demo sites bypass license requirements
     environment_id: Optional[str] = None  # Assign to specific environment
     require_2fa: bool = False  # Require 2FA for all users of this site
+    clara_enterprise: bool = False  # Enable Clara Enterprise features
 
 
 class MainSiteUpdate(BaseModel):
@@ -79,6 +80,7 @@ class MainSiteUpdate(BaseModel):
     linked_main_site_id: Optional[str] = None
     is_demo: Optional[bool] = None
     require_2fa: Optional[bool] = None
+    clara_enterprise: Optional[bool] = None
 
 
 class MainSiteResponse(BaseModel):
@@ -97,6 +99,7 @@ class MainSiteResponse(BaseModel):
     cloned_from: Optional[str] = None
     is_demo: bool = False
     require_2fa: bool = False
+    clara_enterprise: bool = False
     environment_id: Optional[str] = None
     environment_name: Optional[str] = None
     environment_color: Optional[str] = None

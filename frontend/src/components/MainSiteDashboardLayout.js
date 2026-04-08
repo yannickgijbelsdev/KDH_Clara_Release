@@ -23,7 +23,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -114,6 +114,7 @@ const FEATURE_NAV_ITEMS = {
   wp_waf_rules: { to: 'wp-waf', icon: Shield, label: 'WAF Rules', adminOnly: true },
   wp_ip_blocklist: { to: 'wp-blocklist', icon: Ban, label: 'IP Blocklist', adminOnly: true },
   wp_login_protection: { to: 'wp-login-protect', icon: Lock, label: 'Login Protection', adminOnly: true },
+  enterprise_assistant: { to: 'enterprise-assistant', icon: Sparkles, label: 'Enterprise Assistant' },
 };
 
 // Navigation groups with feature mapping
@@ -217,6 +218,9 @@ const MainSiteDashboardContent = () => {
       const nav = FEATURE_NAV_ITEMS[f];
       if (nav) validRoutes.add(nav.to);
     });
+    if (mainSite.clara_enterprise) {
+      validRoutes.add('enterprise-assistant');
+    }
     
     if (!validRoutes.has(subPath)) {
       navigate(`/${mainSiteSlug}`, { replace: true });
@@ -600,7 +604,7 @@ const MainSiteDashboardContent = () => {
     // Features always available for everyone (not dependent on enabled_features)
     const alwaysAvailable = ['support_tickets'];
     
-    return NAV_GROUPS.map(group => {
+    const groups = NAV_GROUPS.map(group => {
       // Server group is only for server site types
       if (group.id === 'server' && mainSite.site_type !== 'server') return null;
       
@@ -632,6 +636,21 @@ const MainSiteDashboardContent = () => {
       
       return { ...group, items };
     }).filter(Boolean);
+
+    // Add Enterprise Assistant if clara_enterprise is enabled
+    if (mainSite.clara_enterprise) {
+      const eaItem = FEATURE_NAV_ITEMS['enterprise_assistant'];
+      if (eaItem) {
+        groups.push({
+          id: 'enterprise',
+          label: 'Enterprise',
+          icon: Sparkles,
+          items: [{ ...eaItem, to: `/${mainSiteSlug}/${eaItem.to}`, featureId: 'enterprise_assistant' }],
+        });
+      }
+    }
+
+    return groups;
   };
 
   const navGroups = buildNavGroups();
@@ -962,6 +981,7 @@ const MainSiteDashboardContent = () => {
     location.pathname === `/${mainSiteSlug}/` ||
     location.pathname === `/${mainSiteSlug}/dashboard`
   );
+  const isEnterpriseAssistant = location.pathname === `/${mainSiteSlug}/enterprise-assistant`;
 
   // Build topbar title
   const topBarTitle = isInSiteContext && currentSite
@@ -1352,6 +1372,10 @@ const MainSiteDashboardContent = () => {
             </CanvasPanel>
           ) : isDashboardHome ? (
             <Outlet />
+          ) : isEnterpriseAssistant ? (
+            <div className="absolute inset-3 rounded-[20px] overflow-hidden">
+              <Outlet />
+            </div>
           ) : (
             <CanvasPanel position="main" scrollable testId="main-content-panel">
               {isInSiteContext && currentSite ? (

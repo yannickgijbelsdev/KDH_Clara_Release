@@ -58,6 +58,7 @@ import VmixDirector from './pages/Server/VmixDirector';
 import WpSecurityPage from './pages/Security/WpSecurityPage';
 import TaskBoardsPage from './pages/Tasks/TaskBoardsPage';
 import CanvaDirectorPage from './pages/CanvaDirectorPage';
+import EnterpriseAssistantPage from './pages/EnterpriseAssistantPage';
 import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import { useSubdomainRouter } from './hooks/useSubdomainRouter';
@@ -268,6 +269,7 @@ const AppRoutes = () => {
         <Route path="wp-login-protect" element={<WpSecurityPage />} />
         <Route path="task-boards" element={<TaskBoardsPage />} />
         <Route path="task-boards/:boardId" element={<TaskBoardsPage />} />
+        <Route path="enterprise-assistant" element={<EnterpriseAssistantPage />} />
       </Route>
 
       {/* Public Call Page - /call/:callToken (no auth required) */}
