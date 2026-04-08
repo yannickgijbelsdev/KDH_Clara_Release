@@ -12,10 +12,13 @@ export function ClaraAssistantProvider({ children }) {
   const [insertContentFn, setInsertContentFn] = useState(null);
   const [insertTitleFn, setInsertTitleFn] = useState(null);
 
+  const [initialMessage, setInitialMessage] = useState('');
+
   const openClara = useCallback((openMode = 'seo', opts = {}) => {
     setMode(openMode);
     setInitialError(opts.errorMessage || '');
     setErrorContext(opts.errorContext || '');
+    setInitialMessage(opts.initialMessage || '');
     setIsOpen(true);
   }, []);
 
@@ -44,6 +47,7 @@ export function ClaraAssistantProvider({ children }) {
       isOpen,
       mode,
       initialError,
+      initialMessage,
       errorContext,
       openClara,
       closeClara,

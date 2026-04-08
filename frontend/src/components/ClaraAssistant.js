@@ -16,7 +16,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 export default function ClaraAssistant() {
   const { user, token } = useAuth();
   const {
-    isOpen, mode, initialError, errorContext, closeClara,
+    isOpen, mode, initialError, initialMessage, errorContext, closeClara,
     editorContent, editorTitle, insertContentFn, insertTitleFn,
   } = useClaraAssistant();
 
@@ -49,6 +49,8 @@ export default function ClaraAssistant() {
       setSupportForm({ subject: '', description: '', steps_tried: '' });
       if (mode === 'error' && initialError) {
         autoSendError(initialError, errorContext);
+      } else if (mode === 'license' && initialMessage) {
+        autoSendLicenseHelp(initialMessage);
       }
     }
   }, [isOpen]);
@@ -71,6 +73,16 @@ export default function ClaraAssistant() {
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', text: 'Sorry, er ging iets mis. Probeer het opnieuw.', error: true }]);
     }
+    setLoading(false);
+  };
+
+  const autoSendLicenseHelp = async (msg) => {
+    const helpText = `Mijn site heeft geen actieve licentie. Wat kan ik controleren?`;
+    setMessages([{ role: 'user', text: helpText }]);
+    setLoading(true);
+    const licenseAdvice = `Ik help je graag! Controleer de volgende zaken:\n\n**1. Betaalde facturen**\nControleer of alle facturen voor je licentie betaald zijn. Kijk in je boekhoudpakket of bankafschriften of de betaling correct is verwerkt.\n\n**2. Offertes**\nHeb je een offerte ontvangen voor een licentie? Controleer of deze is ondertekend en geretourneerd.\n\n**3. E-mails van Clara Support**\nKijk in je inbox (en spam-map) of je e-mails hebt ontvangen van Clara Support over je licentie of activeringsinstructies.\n\n---\n\nAls je al deze stappen hebt gecontroleerd en het probleem blijft bestaan, klik dan hieronder op **Contact Support** om een ticket aan te maken.`;
+    setMessages(prev => [...prev, { role: 'assistant', text: licenseAdvice, isErrorHelp: true }]);
+    setSupportForm(prev => ({ ...prev, subject: 'Licentie activatie - site heeft geen actieve licentie', description: msg || 'Mijn site is niet gelicenseerd. Ik heb de controlestappen doorlopen maar het probleem blijft bestaan.', steps_tried: '' }));
     setLoading(false);
   };
 
@@ -194,7 +206,7 @@ export default function ClaraAssistant() {
     setShowSupportForm(false);
   };
 
-  const modeLabel = mode === 'seo' ? 'SEO Schrijfhulp' : 'Probleemoplossing';
+  const modeLabel = mode === 'seo' ? 'SEO Schrijfhulp' : mode === 'license' ? 'Licentie Hulp' : 'Probleemoplossing';
 
   return (
     <AnimatePresence>
@@ -225,7 +237,7 @@ export default function ClaraAssistant() {
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 rounded-t-3xl">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode === 'seo' ? 'from-orange-500 to-amber-500' : 'from-red-500 to-rose-500'} flex items-center justify-center shadow-lg`}>
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${mode === 'seo' ? 'from-orange-500 to-amber-500' : mode === 'license' ? 'from-amber-500 to-orange-500' : 'from-red-500 to-rose-500'} flex items-center justify-center shadow-lg`}>
                     <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -291,7 +303,7 @@ export default function ClaraAssistant() {
                     )}
 
                     {/* "Contact Support" button after error help messages */}
-                    {mode === 'error' && messages.some(m => m.isErrorHelp) && !showSupportForm && !loading && (
+                    {(mode === 'error' || mode === 'license') && messages.some(m => m.isErrorHelp) && !showSupportForm && !loading && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}

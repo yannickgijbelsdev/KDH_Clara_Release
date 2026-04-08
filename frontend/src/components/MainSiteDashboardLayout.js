@@ -13,6 +13,7 @@ import DevToolsInspector from './DevTools/DevToolsInspector';
 import HelpButton from './Tickets/HelpButton';
 import ClaraCLI from './ClaraCLI';
 import ClaraAssistant from './ClaraAssistant';
+import LicenseBlockedOverlay from './LicenseBlockedOverlay';
 // ClaraAssistantProvider is now at the App root level
 import { 
   LayoutList, LogOut, User, Calendar, Settings, Crown, Pencil, Eye, 
@@ -1072,10 +1073,17 @@ const MainSiteDashboardContent = () => {
           )}
           <div className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 border border-white/40 shadow-[0_4px_30px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.6)] bg-white/25 backdrop-blur-2xl" data-testid="pill-nav">
             {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, 4).map(i => ({ label: i.label, to: i.to }))].map(tab => {
-              const isTabActive = tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/'));
+              const isTabActive = !isLicenseBlocked && (tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/')));
               const pathSegment = tab.to.split('/').pop();
               const pillBadge = getBadgeCount(pathSegment);
-              return (
+              return isLicenseBlocked ? (
+                <span key={tab.to}
+                  className="relative px-5 py-2.5 rounded-[20px] text-sm font-medium text-zinc-300 cursor-not-allowed select-none"
+                  data-testid={`pill-disabled-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {tab.label}
+                </span>
+              ) : (
                 <NavLink key={tab.to} to={tab.to} end={tab.to === `/${mainSiteSlug}`}
                   className={`relative px-5 py-2.5 rounded-[20px] text-sm font-medium transition-colors duration-200 flex items-center gap-1.5 z-[1] ${isTabActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-700'}`}
                   data-testid={`pill-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
@@ -1099,7 +1107,7 @@ const MainSiteDashboardContent = () => {
                 </NavLink>
               );
             })}
-            {flatNavItems.length > 4 && (
+            {!isLicenseBlocked && flatNavItems.length > 4 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="px-4 py-2 rounded-full text-sm font-medium text-zinc-400 hover:text-zinc-700 hover:bg-white/60 transition-colors flex items-center">More<ChevronDown className="w-3.5 h-3.5 ml-1 inline" /></button>
@@ -1134,7 +1142,8 @@ const MainSiteDashboardContent = () => {
                 onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true); }}
                 onFocus={() => setSearchOpen(true)}
                 placeholder="Zoeken..."
-                className="w-32 lg:w-36 xl:w-56 pl-9 pr-3 py-2 text-sm bg-white/40 backdrop-blur-xl border border-white/40 rounded-full text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:bg-white/60 transition-all"
+                disabled={isLicenseBlocked}
+                className={`w-32 lg:w-36 xl:w-56 pl-9 pr-3 py-2 text-sm bg-white/40 backdrop-blur-xl border border-white/40 rounded-full text-zinc-700 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:bg-white/60 transition-all ${isLicenseBlocked ? 'opacity-30 cursor-not-allowed' : ''}`}
                 data-testid="global-search-input"
               />
               {searchLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-300 animate-spin" />}
@@ -1244,7 +1253,11 @@ const MainSiteDashboardContent = () => {
                 <NavLink to={`/${mainSiteSlug}`} end onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
                   <LayoutDashboard className="w-5 h-5" /><span className="font-medium">Dashboard</span>
                 </NavLink>
-                {flatNavItems.map((item) => { const Icon = item.icon; return (
+                {flatNavItems.map((item) => { const Icon = item.icon; return isLicenseBlocked ? (
+                  <span key={item.to} className="flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-300 cursor-not-allowed">
+                    <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
+                  </span>
+                ) : (
                   <NavLink key={item.to} to={item.to} onClick={closeSidebar} className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-orange-50 text-orange-600' : 'text-zinc-500 hover:text-zinc-800 hover:bg-black/5'}`}>
                     <Icon className="w-5 h-5" /><span className="font-medium">{item.label}</span>
                   </NavLink>
@@ -1263,13 +1276,7 @@ const MainSiteDashboardContent = () => {
         <WorkspaceCanvas backgroundImage={isDashboardHome ? (SITE_TYPE_BACKGROUNDS[mainSite?.site_type] || SITE_TYPE_BACKGROUNDS.radio) : 'none'}>
           {isLicenseBlocked ? (
             <CanvasPanel position="main" testId="no-license-block">
-              <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="max-w-md text-center space-y-4">
-                  <h2 className="text-xl font-bold text-zinc-800">No Active License</h2>
-                  <p className="text-sm text-zinc-500">This site does not have an active license.</p>
-                  <a href="mailto:info@koodh.com" className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-medium transition-colors">info@koodh.com</a>
-                </div>
-              </div>
+              <LicenseBlockedOverlay siteName={mainSite?.name} />
             </CanvasPanel>
           ) : isDashboardHome ? (
             <Outlet />

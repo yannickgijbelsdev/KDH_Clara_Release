@@ -1,0 +1,110 @@
+{
+  "summary": "License blocking feature testing completed. All 13 backend API tests passed (100%). Frontend UI tests verified: license blocked overlay renders correctly, navigation items are grayed out, search is disabled, Clara Assistant opens in license mode with Contact Support button. System admin bypasses license block correctly. Licensed sites work normally.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "All dialogs",
+        "issues": ["Minor: Console warnings about DialogContent missing DialogTitle for accessibility - not blocking functionality"]
+      }
+    ]
+  },
+  "test_results": {
+    "Backend_API_Tests": {
+      "status": "PASS",
+      "total_tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "details": [
+        "TestLicenseCheckEndpoint::test_license_check_endpoint_exists - PASS",
+        "TestLicenseCheckEndpoint::test_licensed_site_returns_has_license_true - PASS",
+        "TestLicenseCheckEndpoint::test_unlicensed_site_returns_has_license_false - PASS",
+        "TestLicenseCheckEndpoint::test_license_check_requires_auth - PASS",
+        "TestLicenseCheckEndpoint::test_network_admin_can_check_license - PASS",
+        "TestLicenseResponseFields::test_licensed_site_has_package_details - PASS",
+        "TestLicenseResponseFields::test_licensed_site_has_assignment_details - PASS",
+        "TestLicenseResponseFields::test_days_remaining_field - PASS",
+        "TestUserAccessToSites::test_system_admin_user_has_is_system_admin_flag - PASS",
+        "TestUserAccessToSites::test_network_admin_user_has_is_network_admin_flag - PASS",
+        "TestUserAccessToSites::test_network_admin_has_access_to_clone_site - PASS",
+        "TestLicenseOverviewEndpoint::test_license_overview_requires_network_admin - PASS",
+        "TestLicenseOverviewEndpoint::test_network_admin_can_access_overview - PASS"
+      ]
+    },
+    "Frontend_License_Blocked_Overlay": {
+      "status": "PASS",
+      "details": "LicenseBlockedOverlay renders correctly with title 'Geen actieve licentie', 3 checklist items, and 'Vraag Clara Assistent' button"
+    },
+    "Frontend_Pill_Navigation_Grayed_Out": {
+      "status": "PASS",
+      "details": "5 pill navigation items are grayed out (disabled) when license is blocked"
+    },
+    "Frontend_Search_Disabled": {
+      "status": "PASS",
+      "details": "Search input has opacity-30 and cursor-not-allowed classes when license is blocked"
+    },
+    "Frontend_Mobile_Sidebar_Grayed_Out": {
+      "status": "PASS",
+      "details": "18 mobile sidebar navigation items are grayed out when license is blocked"
+    },
+    "Frontend_Clara_License_Mode": {
+      "status": "PASS",
+      "details": "Clara Assistant opens in 'license' mode with pre-populated license help advice and Contact Support button"
+    },
+    "Frontend_System_Admin_Bypass": {
+      "status": "PASS",
+      "details": "System admin (is_system_admin=true) bypasses license block and can access unlicensed site normally"
+    },
+    "Frontend_Licensed_Site_Works_Normally": {
+      "status": "PASS",
+      "details": "Licensed site (radiogroep) works normally - no license overlay, navigation clickable, search enabled"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_license_blocking.py",
+    "/app/test_reports/pytest/license_blocking_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "isLicenseBlocked logic correctly checks: !isSystemAdmin && !licenseLoading && licenseInfo && !licenseInfo.has_license && !licenseInfo.is_demo",
+    "LicenseBlockedOverlay component has proper data-testid attributes for testing",
+    "ClaraAssistant correctly handles 'license' mode with autoSendLicenseHelp function",
+    "Backend /api/licenses/check/{main_site_id} returns correct has_license, is_demo, package, and assignment fields"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_license_blocking.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (all UI tests passed)"
+  },
+  "test_credentials": {
+    "system_admin": "admkoodh@koodh.com / KYLovie13monx (bypasses license check)",
+    "network_admin": "yannick.gijbels@koodh.com / test (sees license block on unlicensed sites)"
+  },
+  "test_sites": {
+    "licensed_site": "radiogroep (slug) - has active license",
+    "unlicensed_site": "clone-radiogroep-e4bb83 (slug) - no license, not demo"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "License blocking feature fully implemented and tested. Backend endpoint /api/licenses/check/{main_site_id} returns has_license boolean. Frontend checks isLicenseBlocked = !isSystemAdmin && !licenseLoading && licenseInfo && !licenseInfo.has_license && !licenseInfo.is_demo. System admins bypass the check. Network admin user has 2FA enforcement (force_2fa=true) - use 'Skip for now' button to dismiss. PWA install prompt may appear - dismiss with X button.",
+  "features_verified": {
+    "License blocked overlay renders correctly when site has no license": "VERIFIED - overlay shows with title, checklist, Clara button",
+    "Top pill navigation items are grayed out when license is blocked": "VERIFIED - 5 disabled pill items found",
+    "Icon sidebar navigation items are grayed out when license is blocked": "VERIFIED - nav items have disabled styling",
+    "Search bar is disabled when license is blocked": "VERIFIED - has opacity-30 and cursor-not-allowed",
+    "Mobile sidebar navigation items are grayed out when license is blocked": "VERIFIED - 18 grayed out items found",
+    "'Vraag Clara Assistent' button is visible and clickable on the license overlay": "VERIFIED - button found and clickable",
+    "Clara Assistant opens in 'license' mode with pre-populated license help advice": "VERIFIED - Clara opens with license help messages",
+    "Contact Support button appears in Clara after license help messages": "VERIFIED - button found with data-testid='clara-contact-support-btn'",
+    "Licensed sites still work normally (no license blocking)": "VERIFIED - radiogroep works normally",
+    "System admin users bypass the license block entirely": "VERIFIED - system admin can access unlicensed site"
+  }
+}
