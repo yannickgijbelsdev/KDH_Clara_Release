@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useMainSite } from '../context/MainSiteContext';
 import { useTopLoader } from './TopLoader';
@@ -1148,6 +1148,7 @@ const MainSiteDashboardContent = () => {
             </DropdownMenu>
           )}
           <div ref={pillNavRef} className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent flex-1 min-w-0 justify-center overflow-hidden" data-testid="pill-nav">
+            <LayoutGroup>
             {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, visibleNavCount).map(i => ({ label: i.label, to: i.to }))].map(tab => {
               const isTabActive = !isLicenseBlocked && (tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/')));
               const pathSegment = tab.to.split('/').pop();
@@ -1165,9 +1166,11 @@ const MainSiteDashboardContent = () => {
                   data-testid={`pill-${tab.label.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {isTabActive && (
-                    <div
+                    <motion.div
+                      layoutId="pill-active"
                       className="absolute inset-0 bg-zinc-900 rounded-full shadow-sm"
                       style={{ zIndex: -1 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
                   {tab.label}
@@ -1205,6 +1208,7 @@ const MainSiteDashboardContent = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            </LayoutGroup>
           </div>
           {/* Search - Icon button that opens a centered popup */}
           <div className="flex-shrink-0 ml-auto lg:ml-0">
