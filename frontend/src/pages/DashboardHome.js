@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Radio, Users, FileText, Calendar, ArrowRight, Search, Mic,
   HardDrive, Network, LayoutGrid, Shield, ExternalLink,
-  Layers, Server, CheckCircle
+  Layers, Server, CheckCircle, Monitor, Wifi, WifiOff
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMainSite } from '../context/MainSiteContext';
@@ -41,11 +41,13 @@ export default function DashboardHome() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [contentCount, setContentCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [ztMembers, setZtMembers] = useState(null);
 
   const siteType = mainSite?.site_type || 'radio';
   const isRadio = siteType === 'radio';
   const theme = SITE_TYPE_THEMES[siteType] || SITE_TYPE_THEMES.radio;
   const Icon = theme.icon;
+  const features = mainSite?.enabled_features || [];
 
   const fetchData = useCallback(async () => {
     if (!mainSite?.id || !token) return;
@@ -57,6 +59,9 @@ export default function DashboardHome() {
     if (isRadio) {
       promises.push(fetch(`${API}/api/shows?main_site_id=${mainSite.id}`, { headers }));
       promises.push(fetch(`${API}/api/content?main_site_id=${mainSite.id}&limit=1`, { headers }));
+    }
+    if (features.includes('zerotier')) {
+      promises.push(fetch(`${API}/api/zerotier/${mainSite.id}/members`, { headers }));
     }
     try {
       const results = await Promise.allSettled(promises);
@@ -72,11 +77,17 @@ export default function DashboardHome() {
         const d = await results[2].value.json();
         setContentCount(d.total || (Array.isArray(d) ? d.length : 0));
       }
+      // ZeroTier members: index depends on whether radio promises were added
+      const ztIdx = isRadio ? 3 : 1;
+      if (features.includes('zerotier') && results[ztIdx]?.status === 'fulfilled' && results[ztIdx].value.ok) {
+        const d = await results[ztIdx].value.json();
+        setZtMembers(Array.isArray(d) ? d : d.members || []);
+      }
     } catch (e) {
       console.error('Dashboard fetch error:', e);
     }
     setLoading(false);
-  }, [mainSite?.id, token, isRadio]);
+  }, [mainSite?.id, token, isRadio, features]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -93,7 +104,6 @@ export default function DashboardHome() {
   const hours = now.getHours();
   const greeting = hours < 12 ? 'Good morning' : hours < 18 ? 'Good afternoon' : 'Good evening';
 
-  const features = mainSite?.enabled_features || [];
   const navItems = [];
   if (!isRadio) {
     if (features.includes('sites')) navItems.push({ label: 'Sites', icon: Layers, to: 'sites', color: 'text-blue-500 bg-blue-50' });
@@ -132,7 +142,7 @@ export default function DashboardHome() {
           {isRadio ? (
             <MetricsPanel shows={shows} contentCount={contentCount} teamMembers={teamMembers} />
           ) : (
-            <FeaturesPanel features={features} theme={theme} />
+            <FeaturesPanel features={features} theme={theme} ztMembers={ztMembers} />
           )}
           <TeamPanel teamMembers={teamMembers} loading={loading} navigate={navigate} mainSiteSlug={mainSiteSlug} />
           <TimePanel now={now} />
@@ -165,7 +175,7 @@ export default function DashboardHome() {
               {isRadio ? (
                 <MetricsPanel shows={shows} contentCount={contentCount} teamMembers={teamMembers} />
               ) : (
-                <FeaturesPanel features={features} theme={theme} />
+                <FeaturesPanel features={features} theme={theme} ztMembers={ztMembers} />
               )}
             </div>
           </div>
@@ -296,7 +306,10 @@ function MetricsPanel({ shows, contentCount, teamMembers }) {
   );
 }
 
-function FeaturesPanel({ features, theme }) {
+function FeaturesPanel({ features, theme, ztMembers }) {
+  const onlineCount = ztMembers ? ztMembers.filter(m => m.online).length : 0;
+  const totalCount = ztMembers ? ztMembers.length : 0;
+
   return (
     <Panel testId="panel-features" delay={0.2}>
       <div className="px-5 py-4">
@@ -310,6 +323,28 @@ function FeaturesPanel({ features, theme }) {
           ))}
           {features.length === 0 && <p className="text-xs text-zinc-400 italic">No features enabled</p>}
         </div>
+
+        {ztMembers && (
+          <div className="mt-4 pt-4 border-t border-zinc-100">
+            <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">ZeroTier Network</span>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="bg-emerald-50 rounded-xl p-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Wifi className="w-3.5 h-3.5 text-emerald-500" />
+                </div>
+                <div className="text-lg font-bold text-emerald-600">{onlineCount}</div>
+                <div className="text-[10px] text-emerald-500 uppercase tracking-wider">Online</div>
+              </div>
+              <div className="bg-zinc-50 rounded-xl p-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Monitor className="w-3.5 h-3.5 text-zinc-400" />
+                </div>
+                <div className="text-lg font-bold text-zinc-600">{totalCount}</div>
+                <div className="text-[10px] text-zinc-400 uppercase tracking-wider">Total</div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Panel>
   );
