@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const ZeroTierPage = () => {
   const { user } = useAuth();
   const { mainSiteSlug } = useParams();
+  const navigate = useNavigate();
   const [mainSite, setMainSite] = useState(null);
   const [config, setConfig] = useState(null);
   const [network, setNetwork] = useState(null);
@@ -424,9 +425,9 @@ const ZeroTierPage = () => {
         <div className="bg-white/60 border border-zinc-200 rounded-xl p-12 text-center">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
           <h2 className="text-zinc-900 text-lg font-semibold mb-2">ZeroTier Not Configured</h2>
-          <p className="text-zinc-400 mb-4">Enter your API token and Network ID to start monitoring.</p>
-          <Button onClick={() => setConfigOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20">
-            <Settings className="w-4 h-4 mr-1" /> Configure Now
+          <p className="text-zinc-400 mb-4">Configure your ZeroTier connection in the site settings to start monitoring.</p>
+          <Button onClick={() => navigate(`/${mainSiteSlug}/settings`)} className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20" data-testid="zt-goto-settings">
+            <Settings className="w-4 h-4 mr-1" /> Go to Site Settings
           </Button>
         </div>
       )}

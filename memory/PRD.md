@@ -160,6 +160,13 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Removed routes: `/:slug/tickets`, `/:slug/firewall` from App.js
 - Firewall is now managed exclusively via rack-level controls in ServerRackView
 
+## ZeroTier Wizard Integration (Apr 2026)
+- Added "ZeroTier Connection" step in CreateMainSiteWizard for "Data Connection" site type
+- Step includes API Token (with show/hide toggle) and Network ID fields
+- Config auto-saved to DB via `PUT /api/zerotier/{id}/config` during deploy
+- Step is optional — users can skip and configure later
+- ZeroTierPage "Not Configured" state now redirects to site settings instead of inline config
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)

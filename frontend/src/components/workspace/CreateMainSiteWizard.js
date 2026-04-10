@@ -4,7 +4,7 @@ import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
   Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast,
-  Plus, Trash2, GripVertical, Music, Globe
+  Plus, Trash2, GripVertical, Music, Globe, Eye, EyeOff
 } from 'lucide-react';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -792,6 +792,53 @@ const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus,
   );
 };
 
+/* ── Step: ZeroTier Connection ── */
+const StepZeroTier = ({ ztConfig, onZtConfigChange }) => {
+  const [showToken, setShowToken] = useState(false);
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-zinc-900 mb-1">ZeroTier Connection</h2>
+      <p className="text-sm text-zinc-500 mb-5">
+        Connect your ZeroTier network to monitor members and manage access. You can also configure this later.
+      </p>
+      <div className="space-y-4">
+        <div>
+          <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">API Token</Label>
+          <div className="flex gap-2 mt-1">
+            <Input
+              type={showToken ? 'text' : 'password'}
+              value={ztConfig.api_token}
+              onChange={(e) => onZtConfigChange({ ...ztConfig, api_token: e.target.value })}
+              placeholder="Enter your ZeroTier API token"
+              className="bg-zinc-50 border-zinc-200 text-zinc-900"
+              data-testid="wizard-zt-token"
+            />
+            <Button variant="ghost" size="icon" onClick={() => setShowToken(!showToken)} className="text-zinc-400 flex-shrink-0">
+              {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </Button>
+          </div>
+          <p className="text-xs text-zinc-400 mt-1">Get your token from <a href="https://my.zerotier.com/account" target="_blank" rel="noreferrer" className="text-orange-500 hover:underline">my.zerotier.com/account</a></p>
+        </div>
+        <div>
+          <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Network ID</Label>
+          <Input
+            value={ztConfig.network_id}
+            onChange={(e) => onZtConfigChange({ ...ztConfig, network_id: e.target.value })}
+            placeholder="e.g. 8056c2e21c000001"
+            className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
+            data-testid="wizard-zt-network"
+          />
+        </div>
+      </div>
+      <div className="mt-5 p-3 bg-orange-50 border border-orange-100 rounded-xl">
+        <p className="text-xs text-orange-600">
+          <strong>Tip:</strong> You can skip this step and configure ZeroTier later from the site settings.
+        </p>
+      </div>
+    </div>
+  );
+};
+
 /* ════════════════════════════════════════════════════
    MAIN WIZARD COMPONENT
    ════════════════════════════════════════════════════ */
@@ -814,6 +861,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     name: '', wp_base_url: '', username: '', app_password: '',
     default_post_type: 'post', default_publish_status: 'draft',
   });
+  const [ztConfig, setZtConfig] = useState({ api_token: '', network_id: '' });
 
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const hasOptionalFeatures = (typeConfig?.optionalFeatures || []).length > 0;
@@ -821,12 +869,15 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   const hasWordPress = siteType === 'radio' || siteType === 'external_host';
   const features = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
 
+  const isTechnicalType = siteType === 'technical';
+
   // Dynamic step mapping
   const getActualSteps = () => {
     const steps = ['Environment'];
     if (hasOptionalFeatures) steps.push('Features');
     steps.push('Details');
     if (isRadioType) steps.push('Stations');
+    if (isTechnicalType) steps.push('ZeroTier');
     if (hasWordPress) steps.push('WordPress');
     steps.push('Admin', 'Security', 'Deploying');
     return steps;
@@ -867,7 +918,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   }, [open, stepName, fetchUsers]);
 
   // Deploy process
-  const totalDeploySteps = 4 + (require2FA ? 1 : 0) + features.length + (rdsStations.length > 0 ? 1 : 0) + (wpConfig.wp_base_url ? 1 : 0);
+  const totalDeploySteps = 4 + (require2FA ? 1 : 0) + features.length + (rdsStations.length > 0 ? 1 : 0) + (wpConfig.wp_base_url ? 1 : 0) + (ztConfig.api_token ? 1 : 0);
 
   const startDeploy = async () => {
     setDeploying(true);
@@ -894,7 +945,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       2500,  // Deploying environment
       2000,  // Setting up firewall
     ];
-    const extraCount = (require2FA ? 1 : 0) + features.length + 2 + (rdsStations.length > 0 ? 1 : 0) + (wpConfig.wp_base_url ? 1 : 0);
+    const extraCount = (require2FA ? 1 : 0) + features.length + 2 + (rdsStations.length > 0 ? 1 : 0) + (wpConfig.wp_base_url ? 1 : 0) + (ztConfig.api_token ? 1 : 0);
     for (let j = 0; j < extraCount; j++) {
       stepDelays.push(1200 + Math.random() * 1000);
     }
@@ -951,6 +1002,19 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
           }
         }
 
+        // Save ZeroTier config if provided
+        if (ztConfig.api_token && ztConfig.network_id && siteData?.id) {
+          try {
+            await fetch(`${API}/api/zerotier/${siteData.id}/config`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ api_token: ztConfig.api_token, network_id: ztConfig.network_id }),
+            });
+          } catch (ztErr) {
+            console.error('Failed to save ZeroTier config:', ztErr);
+          }
+        }
+
         setDeployStatus(totalDeploySteps + 1);
         setDeployDone(true);
         setTimeout(() => { onCreated?.(); handleClose(); }, 2000);
@@ -982,6 +1046,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     if (stepName === 'Details') return name.trim().length > 0 && slug.trim().length > 0;
     if (stepName === 'Stations') return true; // stations are optional
     if (stepName === 'WordPress') return true; // wordpress is optional
+    if (stepName === 'ZeroTier') return true; // zerotier is optional
     if (stepName === 'Admin') return true;
     if (stepName === 'Security') return true;
     return false;
@@ -1020,10 +1085,11 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-              {stepName === 'Environment' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
+              {stepName === 'Environment' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
               {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
               {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
               {stepName === 'Stations' && <StepStations stations={rdsStations} onStationsChange={setRdsStations} />}
+              {stepName === 'ZeroTier' && <StepZeroTier ztConfig={ztConfig} onZtConfigChange={setZtConfig} />}
               {stepName === 'WordPress' && <StepWordPress wpConfig={wpConfig} onWpConfigChange={setWpConfig} />}
               {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
               {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} />}
