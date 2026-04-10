@@ -99,6 +99,14 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Racks now auto-calculate: visible count (1-N based on viewport), card width (280-420px range), proportional image height
 - Ultra-wide screens show 5+ racks; smaller screens gracefully degrade to fewer racks
 
+## Clara Health Diagnostic Modal (Apr 2026)
+- Replaced top-right notification banner with full Clara-style centered diagnostic modal
+- Per-issue cards: type badge (WordPress/RDS), site name, error, AI diagnosis with solutions
+- "Reconfigure" button navigates to the site's settings page (/{slug}/wordpress or /{slug}/rds)
+- "Re-test" button retests individual connections with live AI diagnosis update
+- Backend: health-scan now returns site_id/site_slug/site_type per check; new POST /api/clara-test/retest-check endpoint
+- Rescan All, Dismiss, and session-based daily suppression
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)
