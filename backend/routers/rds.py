@@ -695,9 +695,6 @@ async def get_shoutcast_filters(
     current_user: dict = Depends(require_admin)
 ):
     """Get the now playing filters for a station."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     settings = await db.shoutcast_settings.find_one(
         {"station": station},
         {"_id": 0}
@@ -721,8 +718,6 @@ async def update_shoutcast_filters(
     current_user: dict = Depends(require_admin)
 ):
     """Update the now playing filters for a station."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
     
     now = datetime.now(timezone.utc).isoformat()
     
@@ -761,9 +756,6 @@ async def get_station_show_image(station: str):
     
     Returns JSON with image URL for programmatic access.
     """
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     # Get the current live show for this station
     cached = await db.rds_cached_rundowns.find_one(
         {"is_active": True, "rds_station": {"$in": [station, "both"]}},
@@ -826,9 +818,6 @@ async def get_station_show_image_redirect(station: str):
     """
     from fastapi.responses import RedirectResponse
     
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=404, detail="Station not found")
-    
     # Get the current live show for this station
     cached = await db.rds_cached_rundowns.find_one(
         {"is_active": True, "rds_station": {"$in": [station, "both"]}},
@@ -876,9 +865,6 @@ async def get_station_show_image_url_txt(station: str):
     """
     from fastapi.responses import PlainTextResponse
     
-    if station not in ["mfy", "grk"]:
-        return PlainTextResponse(content="", media_type="text/plain")
-    
     # Get the current live show for this station
     cached = await db.rds_cached_rundowns.find_one(
         {"is_active": True, "rds_station": {"$in": [station, "both"]}},
@@ -913,16 +899,20 @@ async def get_station_show_image_url_txt(station: str):
 
 @rds_router.get("/shoutcast/logs")
 async def get_shoutcast_logs(
+    request: Request,
     station: Optional[str] = None,
+    stations: Optional[str] = None,
     limit: int = 100,
     current_user: dict = Depends(require_admin)
 ):
-    """Get recent Shoutcast now playing logs."""
+    """Get recent Shoutcast now playing logs. Optionally filter by station code(s)."""
     query = {}
     if station:
-        if station not in ["mfy", "grk"]:
-            raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
         query["station"] = station
+    elif stations:
+        code_list = [s.strip().lower() for s in stations.split(",") if s.strip()]
+        if code_list:
+            query["station"] = {"$in": code_list}
     
     logs = await db.shoutcast_logs.find(
         query,
@@ -940,8 +930,6 @@ async def clear_shoutcast_logs(
     """Clear Shoutcast logs (optionally for a specific station)."""
     query = {}
     if station:
-        if station not in ["mfy", "grk"]:
-            raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
         query["station"] = station
     
     result = await db.shoutcast_logs.delete_many(query)

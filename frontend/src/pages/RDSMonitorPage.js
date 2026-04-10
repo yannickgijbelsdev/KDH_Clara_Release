@@ -455,20 +455,15 @@ const RDSMonitorPage = () => {
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="space-y-6">
-        {/* Header */}
+        {/* Toolbar */}
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900" data-testid="rds-monitor-title">
-              RDS Monitor
-            </h1>
-            <p className="text-zinc-400 text-sm">
-              Real-time RDS output monitoring
-              {lastAutoSync && (
-                <span className="ml-2 text-green-400">
-                  &bull; Last auto-sync: {lastAutoSync.toLocaleTimeString()}
-                </span>
-              )}
-            </p>
+          <div className="flex items-center gap-2 text-sm text-zinc-400">
+            <span>Real-time RDS output monitoring</span>
+            {lastAutoSync && (
+              <span className="text-green-500">
+                &bull; Last auto-sync: {lastAutoSync.toLocaleTimeString()}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 text-sm text-zinc-400">
@@ -521,7 +516,7 @@ const RDSMonitorPage = () => {
         {lastUpdate && ((Date.now() - lastUpdate.getTime()) > 30000) && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm" data-testid="stale-warning">
             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-            <span>Data is niet recent vernieuwd ({Math.round((Date.now() - lastUpdate.getTime()) / 1000)}s geleden). Polling wordt herstart...</span>
+            <span>Data not recently refreshed ({Math.round((Date.now() - lastUpdate.getTime()) / 1000)}s ago). Polling will restart...</span>
             <Button variant="outline" size="sm" onClick={() => { fetchingRef.current = false; fetchMonitorData(); }} className="ml-auto border-amber-500/30 text-amber-400 hover:text-amber-300 text-xs h-6 px-2">
               <RefreshCw className="w-3 h-3 mr-1" /> Refresh Now
             </Button>
@@ -530,7 +525,7 @@ const RDSMonitorPage = () => {
         {fetchErrors > 3 && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-            <span>Verbindingsproblemen — {fetchErrors} mislukte pogingen</span>
+            <span>Connection issues — {fetchErrors} failed attempts</span>
           </div>
         )}
 

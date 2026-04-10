@@ -33,9 +33,7 @@ import AdminApprovalPage from './pages/AdminApprovalPage';
 import TrashPage from './pages/TrashPage';
 import PersonalSettingsPage from './pages/PersonalSettingsPage';
 import { fetchSubdomainConfig, buildLoginRedirectUrl } from './services/subdomainAuth';
-import RDSSettingsPage from './pages/RDSSettingsPage';
-import RDSBuilderPage from './pages/RDSBuilderPage';
-import RDSSchedulerPage from './pages/RDSSchedulerPage';
+import RDSPage from './pages/RDSPage';
 import RDSMonitorPage from './pages/RDSMonitorPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
 import AudioTriggersPage from './pages/AudioTriggersPage';
@@ -208,10 +206,7 @@ const AppRoutes = () => {
         <Route path="team" element={<TeamSettingsPage />} />
         <Route path="logs" element={<LogsPage />} />
         <Route path="wordpress" element={<WordPressSettingsPage />} />
-        <Route path="rds" element={<RDSSettingsPage />} />
-        <Route path="rds-builder" element={<RDSBuilderPage />} />
-        <Route path="rds-scheduler" element={<RDSSchedulerPage />} />
-        <Route path="rds-monitor" element={<RDSMonitorPage />} />
+        <Route path="rds" element={<RDSPage />} />
         <Route path="audio-triggers" element={<AudioTriggersPage />} />
         <Route path="streams" element={<StreamMonitorPage />} />
         <Route path="sites" element={<SitesListPage />} />
@@ -246,10 +241,7 @@ const AppRoutes = () => {
         <Route path="team" element={<TeamSettingsPage />} />
         <Route path="logs" element={<LogsPage />} />
         <Route path="wordpress" element={<WordPressSettingsPage />} />
-        <Route path="rds" element={<RDSSettingsPage />} />
-        <Route path="rds-builder" element={<RDSBuilderPage />} />
-        <Route path="rds-scheduler" element={<RDSSchedulerPage />} />
-        <Route path="rds-monitor" element={<RDSMonitorPage />} />
+        <Route path="rds" element={<RDSPage />} />
         <Route path="audio-triggers" element={<AudioTriggersPage />} />
         <Route path="streams" element={<StreamMonitorPage />} />
         <Route path="sites" element={<SitesListPage />} />

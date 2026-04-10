@@ -136,7 +136,7 @@ const ScheduledTextsManager = ({ station, stationName, color, navTo }) => {
           </div>
         </div>
         <Button
-          onClick={() => navigate(navTo('/rds-scheduler'))}
+          onClick={() => navigate(navTo('/rds?tab=scheduler'))}
           variant="outline"
           size="sm"
           className="border-zinc-300 text-zinc-600 hover:text-zinc-900"
@@ -664,16 +664,7 @@ const RDSBuilderPage = () => {
   return (
     <div data-testid="rds-builder-page">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-orange-500/20 to-violet-500/20 rounded-lg">
-            <Radio className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900">RDS Builder</h1>
-            <p className="text-sm text-zinc-500">Configure RDS text outputs for MagicRDS</p>
-          </div>
-        </div>
+      <div className="flex items-center justify-end mb-6">
         <div className="flex gap-2">
           <Button
             onClick={() => navigate(navTo('/audio-triggers'))}
@@ -681,13 +672,6 @@ const RDSBuilderPage = () => {
           >
             <Volume2 className="w-4 h-4 mr-2" />
             Audio Triggers
-          </Button>
-          <Button
-            onClick={() => navigate(navTo('/rds-scheduler'))}
-            className="bg-violet-500 hover:bg-violet-600 text-white"
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Custom Text Scheduler
           </Button>
         </div>
       </div>

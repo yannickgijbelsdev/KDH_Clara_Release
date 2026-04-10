@@ -474,23 +474,9 @@ const RDSSchedulerPage = () => {
 
   return (
     <div data-testid="rds-scheduler-page">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(navTo('/rds-builder'))}
-            className="text-zinc-400 hover:text-zinc-700"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 mb-1">RDS Scheduler</h1>
-            <p className="text-sm sm:text-base text-zinc-400">Schedule custom texts for specific times</p>
-          </div>
-        </div>
-        <Button onClick={() => handleAddClick(new Date())} className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary w-full sm:w-auto">
+      {/* Toolbar */}
+      <div className="flex items-center justify-end mb-6">
+        <Button onClick={() => handleAddClick(new Date())} className="bg-orange-500 hover:bg-orange-600 text-white gap-2 h-10 sm:h-11 px-4 sm:px-5 btn-primary">
           <Plus className="w-5 h-5" />
           New Text
         </Button>

@@ -28,7 +28,7 @@ class RDSItem(BaseModel):
 
 class RDSSequence(BaseModel):
     """A complete RDS sequence for a station."""
-    station: Literal["mfy", "grk"]
+    station: str
     items: List[RDSItem]
     enabled: bool = True
     loop: bool = True  # Whether to loop the sequence
@@ -52,9 +52,6 @@ async def get_rds_sequence(
     current_user: dict = Depends(require_admin)
 ):
     """Get the RDS sequence for a station."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     sequence = await db.rds_sequences.find_one(
         {"station": station},
         {"_id": 0}
@@ -87,9 +84,6 @@ async def update_rds_sequence(
     current_user: dict = Depends(require_admin)
 ):
     """Update the RDS sequence for a station."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     now = datetime.now(timezone.utc).isoformat()
     
     # Convert items to dicts
@@ -135,9 +129,6 @@ async def get_rds_output_txt(station: str):
     """
     from fastapi.responses import PlainTextResponse
     
-    if station not in ["mfy", "grk"]:
-        return PlainTextResponse(content="", media_type="text/plain")
-    
     output = await db.rds_builder_output.find_one(
         {"station": station},
         {"_id": 0}
@@ -157,9 +148,6 @@ async def get_rds_output(station: str):
     Returns plain text that rotates based on the configured sequence.
     """
     from fastapi.responses import PlainTextResponse
-    
-    if station not in ["mfy", "grk"]:
-        return PlainTextResponse(content="", media_type="text/plain")
     
     # Get current output from cache
     output = await db.rds_builder_output.find_one(
@@ -193,9 +181,6 @@ async def get_rds_builder_status(
     current_user: dict = Depends(require_admin)
 ):
     """Get the current status of the RDS builder for a station."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     output = await db.rds_builder_output.find_one(
         {"station": station},
         {"_id": 0}
@@ -411,7 +396,7 @@ async def force_refresh_rds():
         "id": str(uuid.uuid4()),
         "timestamp": timestamp,
         "status": "force_refresh",
-        "message": f"NUCLEAR force refresh — {cleared_count} stale caches gewist | MFY: {live_shows['mfy']['title'] if live_shows['mfy'] else default_names['mfy']} | GRK: {live_shows['grk']['title'] if live_shows['grk'] else default_names['grk']}",
+        "message": f"NUCLEAR force refresh — {cleared_count} stale caches cleared | MFY: {live_shows['mfy']['title'] if live_shows['mfy'] else default_names['mfy']} | GRK: {live_shows['grk']['title'] if live_shows['grk'] else default_names['grk']}",
         "live_shows": live_shows
     })
     
@@ -426,7 +411,7 @@ async def force_refresh_rds():
         "cleared_stale_caches": cleared_count,
         "mfy_output": default_names["mfy"] if not live_shows.get("mfy") else live_shows["mfy"]["title"],
         "grk_output": default_names["grk"] if not live_shows.get("grk") else live_shows["grk"]["title"],
-        "message": f"Alles gewist en opnieuw opgebouwd. {cleared_count} stale cache(s) verwijderd."
+        "message": f"All cleared and rebuilt. {cleared_count} stale cache(s) removed."
     }
 
 
@@ -788,7 +773,7 @@ class RDSOutputConfig(BaseModel):
     """Configuration for a named RDS output."""
     name: str  # Display name (e.g., "Streaming", "DAB+", "FM")
     slug: str  # URL-safe identifier (e.g., "streaming", "dab", "fm")
-    station: Literal["mfy", "grk"]
+    station: str
     items: List[RDSOutputItem]
     enabled: bool = True
     loop: bool = True
@@ -813,9 +798,6 @@ async def get_rds_outputs(
     current_user: dict = Depends(require_admin)
 ):
     """Get all RDS output configurations for a station."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     outputs = await db.rds_outputs.find(
         {"station": station},
         {"_id": 0}
@@ -839,9 +821,6 @@ async def create_rds_output(
     current_user: dict = Depends(require_admin)
 ):
     """Create a new RDS output configuration."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     # Validate slug is URL-safe
     import re
     if not re.match(r'^[a-z0-9-]+$', data.slug):
@@ -882,9 +861,6 @@ async def update_rds_output(
     current_user: dict = Depends(require_admin)
 ):
     """Update an RDS output configuration."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     existing = await db.rds_outputs.find_one({"station": station, "slug": slug})
     if not existing:
         raise HTTPException(status_code=404, detail="Output not found")
@@ -933,9 +909,6 @@ async def delete_rds_output(
     current_user: dict = Depends(require_admin)
 ):
     """Delete an RDS output configuration."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     existing = await db.rds_outputs.find_one({"station": station, "slug": slug})
     if not existing:
         raise HTTPException(status_code=404, detail="Output not found")
@@ -956,9 +929,6 @@ async def get_named_output_txt(station: str, slug: str):
     Example: /api/rds-builder/output/grk/streaming.txt
     """
     from fastapi.responses import PlainTextResponse
-    
-    if station not in ["mfy", "grk"]:
-        return PlainTextResponse(content="", media_type="text/plain")
     
     # Find the output configuration
     output_config = await db.rds_outputs.find_one(
@@ -990,9 +960,6 @@ async def get_named_output(station: str, slug: str):
     if slug in ["mfy", "grk", "mfy.txt", "grk.txt"]:
         return PlainTextResponse(content="", media_type="text/plain")
     
-    if station not in ["mfy", "grk"]:
-        return PlainTextResponse(content="", media_type="text/plain")
-    
     output_config = await db.rds_outputs.find_one(
         {"station": station, "slug": slug},
         {"_id": 0, "id": 1, "enabled": 1}
@@ -1019,9 +986,6 @@ async def get_output_status(
     current_user: dict = Depends(require_admin)
 ):
     """Get the current status of a named RDS output."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     output_config = await db.rds_outputs.find_one(
         {"station": station, "slug": slug},
         {"_id": 0}
@@ -1054,7 +1018,7 @@ async def get_output_status(
 
 class ScheduledTextCreate(BaseModel):
     """Create a scheduled custom text."""
-    station: Literal["mfy", "grk", "both"]
+    station: str
     text: str
     start_datetime: str  # ISO format datetime
     duration_type: Literal["fixed", "until_next"] = "fixed"
@@ -1068,7 +1032,7 @@ class ScheduledTextUpdate(BaseModel):
     """Update a scheduled custom text."""
     text: Optional[str] = None
     start_datetime: Optional[str] = None
-    station: Optional[Literal["mfy", "grk", "both"]] = None
+    station: Optional[str] = None
     duration_type: Optional[Literal["fixed", "until_next"]] = None
     duration_minutes: Optional[int] = None
     recurrence_type: Optional[Literal["none", "hourly", "daily", "weekly", "monthly"]] = None
@@ -1100,9 +1064,6 @@ async def get_scheduled_texts(
     
     ALL times are in Brussels timezone (Europe/Brussels).
     """
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     # Get texts for this specific station OR texts set to "both"
     texts = await db.rds_scheduled_texts.find(
         {"$or": [{"station": station}, {"station": "both"}]},
@@ -1202,9 +1163,6 @@ async def get_scheduled_texts_calendar(
     from datetime import timedelta
     from dateutil.relativedelta import relativedelta
     
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     # Parse date range
     try:
         start = datetime.fromisoformat(start_date + "T00:00:00")
@@ -1281,9 +1239,6 @@ async def create_scheduled_text(
     current_user: dict = Depends(require_admin)
 ):
     """Create a new scheduled custom text."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     now = datetime.now(timezone.utc).isoformat()
     text_id = str(uuid.uuid4())
     
@@ -1316,9 +1271,6 @@ async def update_scheduled_text(
     current_user: dict = Depends(require_admin)
 ):
     """Update a scheduled custom text."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     # Find by ID only, since station might be "both" in the actual data
     existing = await db.rds_scheduled_texts.find_one({"id": text_id})
     if not existing:
@@ -1360,9 +1312,6 @@ async def delete_scheduled_text(
     current_user: dict = Depends(require_admin)
 ):
     """Delete a scheduled custom text."""
-    if station not in ["mfy", "grk"]:
-        raise HTTPException(status_code=400, detail="Station must be 'mfy' or 'grk'")
-    
     # Find by ID only, since station might be "both" in the actual data
     existing = await db.rds_scheduled_texts.find_one({"id": text_id})
     if not existing:
@@ -1382,9 +1331,6 @@ async def get_active_scheduled_text(station: str):
     """
     from fastapi.responses import JSONResponse
     from dateutil.relativedelta import relativedelta
-    
-    if station not in ["mfy", "grk"]:
-        return JSONResponse(content={"active": False, "text": None})
     
     now = datetime.now(timezone.utc)
     

@@ -80,11 +80,15 @@ const RDSSettingsPage = () => {
         axios.get(`${API}/rds/shoutcast/filters/${st.code}`).catch(() => ({ data: { filters: [] } }))
       );
 
+      // Build station codes for log filtering
+      const stationCodes = fetchedStations.map(st => st.code).join(',');
+      const stationsParam = stationCodes ? `&stations=${stationCodes}` : '';
+
       const [settingsRes, endpointsRes, logsRes, shoutcastLogsRes, staleRes, ...filterResults] = await Promise.all([
         axios.get(`${API}/rds/settings`),
         axios.get(`${API}/rds/endpoints`),
         axios.get(`${API}/rds/logs?limit=20`),
-        axios.get(`${API}/rds/shoutcast/logs?limit=50`),
+        axios.get(`${API}/rds/shoutcast/logs?limit=50${stationsParam}`),
         axios.get(`${API}/rds-builder/stale-config`).catch(() => ({ data: null })),
         ...filterPromises,
       ]);
@@ -245,17 +249,8 @@ const RDSSettingsPage = () => {
 
   return (
     <div data-testid="rds-settings-page">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-500/20 rounded-lg">
-            <Radio className="w-6 h-6 text-orange-500" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900">RDS Settings</h1>
-            <p className="text-sm text-zinc-500">MagicRDS and external systems integration</p>
-          </div>
-        </div>
+      {/* Toolbar */}
+      <div className="flex items-center justify-end mb-6">
         <Button
           onClick={handleRefreshCache}
           disabled={refreshing}
@@ -443,7 +438,7 @@ const RDSSettingsPage = () => {
         <div className="flex items-center gap-2 mb-4">
           <Clock className="w-5 h-5 text-zinc-400" />
           <h2 className="text-lg font-semibold text-zinc-900">Cache Logs</h2>
-          <span className="text-xs text-zinc-500 ml-2">Laatste 20</span>
+          <span className="text-xs text-zinc-500 ml-2">Last 20</span>
         </div>
 
         {logs.length === 0 ? (
@@ -535,7 +530,7 @@ const RDSSettingsPage = () => {
                       <div className="flex items-center gap-4 pl-1">
                         <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
                           <input type="checkbox" checked={filter.whole_word || false} onChange={(e) => updateFilter(stCode, idx, 'whole_word', e.target.checked)} className="w-3 h-3 rounded border-zinc-300 bg-zinc-100" />
-                          <span>Heel woord</span>
+                          <span>Whole word</span>
                         </label>
                       </div>
                     </div>
@@ -555,7 +550,7 @@ const RDSSettingsPage = () => {
                           <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
                           <span className="text-zinc-600 mx-1">&rarr;</span>
                           <span style={{ color: st.color }}>{f.replace || '(remove)'}</span>
-                          {f.whole_word && <span className="text-zinc-600 ml-1">(heel woord)</span>}
+                          {f.whole_word && <span className="text-zinc-600 ml-1">(whole word)</span>}
                         </div>
                       ))}
                     </div>

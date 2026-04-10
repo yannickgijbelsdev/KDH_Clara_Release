@@ -94,9 +94,7 @@ const FEATURE_NAV_ITEMS = {
   content_approval: { to: 'approvals', icon: ClipboardCheck, label: 'Content Approval', approverOnly: true },
   trash: { to: 'trash', icon: Trash2, label: 'Trash', adminOnly: true },
   team_chat: { to: 'chat', icon: MessageSquare, label: 'Team Chat' },
-  rds_settings: { to: 'rds', icon: Radio, label: 'RDS Settings', adminOnly: true },
-  rds_builder: { to: 'rds-builder', icon: Wand2, label: 'RDS Builder', adminOnly: true },
-  rds_monitor: { to: 'rds-monitor', icon: Activity, label: 'RDS Monitor', adminOnly: true },
+  rds_settings: { to: 'rds', icon: Radio, label: 'RDS', adminOnly: true },
   stream_monitor: { to: 'streams', icon: Headphones, label: 'Stream Monitor', adminOnly: true },
   sites: { to: 'sites', icon: Globe, label: 'Sites', adminOnly: true, hasSitesList: true },
   team_settings: { to: 'team', icon: Users, label: 'Team Settings', adminOnly: true },
@@ -144,7 +142,7 @@ const NAV_GROUPS = [
     id: 'streaming',
     label: 'Streaming & RDS',
     icon: Radio,
-    features: ['rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor', 'call_studio']
+    features: ['rds_settings', 'stream_monitor', 'call_studio']
   },
   {
     id: 'sites',
