@@ -198,14 +198,13 @@ const LoginPage = () => {
 
       {/* Right side: login form */}
       <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white/80 backdrop-blur-2xl border-l border-zinc-200/40">
-        {/* Mobile logo & rooms */}
+        {/* Mobile logo */}
         <div className="lg:hidden mb-8 text-center">
           {logoUrl ? (
             <img src={logoUrl} alt={platformName} className="h-8 object-contain mx-auto mb-4" />
           ) : (
             <span className="text-xl font-bold text-zinc-800 tracking-tight">{platformName}</span>
           )}
-          <img src={ROOMS_IMG} alt="Clara Platform" className="w-52 mx-auto mt-2 mb-2 object-contain" />
         </div>
 
         <div className="w-full max-w-[380px]">
