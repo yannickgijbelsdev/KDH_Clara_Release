@@ -109,6 +109,18 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Backend: health-scan now returns site_id/site_slug/site_type per check; new POST /api/clara-test/retest-check endpoint
 - Rescan All, Dismiss, and session-based daily suppression
 
+## Unified RDS Tabbed Page (Apr 2026)
+- Created `RDSPage.js`: unified tabbed interface with Settings | Monitor | Builder | Scheduler
+- Deep-linking via `?tab=monitor|builder|scheduler` URL params
+- Removed individual page headers (RDS header lives in the unified wrapper)
+- Updated sidebar: single "RDS" item replaces 3 separate items (RDS Settings, RDS Builder, RDS Monitor)
+- All routes consolidated under `/:mainSiteSlug/rds`
+- Fixed all hardcoded MFY/GRK station validation blocks across `rds.py` and `rds_builder.py`
+- Dynamic shoutcast log filtering by site's station codes
+- Dynamic Scheduler station tabs (fetched from `/api/rds-stations/by-slug/{slug}`)
+- New backend endpoint: `GET /api/rds-stations/by-slug/{slug}`
+- Fixed Dutch text to English across RDS pages (testing agent also contributed fixes)
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)

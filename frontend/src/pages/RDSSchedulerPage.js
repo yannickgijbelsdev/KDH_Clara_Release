@@ -67,11 +67,11 @@ const STATION_OPTIONS = [
 ];
 
 // Create/Edit Dialog
-const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) => {
+const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation, stationOptions }) => {
   const [text, setText] = useState('');
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
-  const [targetStation, setTargetStation] = useState('mfy');
+  const [targetStation, setTargetStation] = useState('');
   const [durationType, setDurationType] = useState('fixed');
   const [durationMinutes, setDurationMinutes] = useState(5);
   const [recurrenceType, setRecurrenceType] = useState('none');
@@ -85,7 +85,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
       const dt = item.start_datetime ? parseISO(item.start_datetime) : new Date();
       setStartDate(format(dt, 'yyyy-MM-dd'));
       setStartTime(format(dt, 'HH:mm'));
-      setTargetStation(item.station || currentStation || 'mfy');
+      setTargetStation(item.station || currentStation || '');
       setDurationType(item.duration_type || 'fixed');
       setDurationMinutes(item.duration_minutes || 5);
       setRecurrenceType(item.recurrence_type || 'none');
@@ -96,7 +96,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
       setText('');
       setStartDate(format(new Date(), 'yyyy-MM-dd'));
       setStartTime('12:00');
-      setTargetStation(currentStation || 'mfy');
+      setTargetStation(currentStation || '');
       setDurationType('fixed');
       setDurationMinutes(5);
       setRecurrenceType('none');
@@ -173,7 +173,7 @@ const ScheduledTextDialog = ({ isOpen, onClose, onSave, item, currentStation }) 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-white border-zinc-200">
-                {STATION_OPTIONS.map(opt => (
+                {(stationOptions || STATION_OPTIONS).map(opt => (
                   <SelectItem key={opt.value} value={opt.value} className="text-zinc-600">
                     {opt.label}
                   </SelectItem>
@@ -363,7 +363,8 @@ const RDSSchedulerPage = () => {
   const { mainSiteSlug } = useParams();
   const { isAdmin } = useAuth();
   const { canView, loading: permissionsLoading } = usePermissions();
-  const [station, setStation] = useState('mfy');
+  const [station, setStation] = useState('');
+  const [stations, setStations] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [calendarItems, setCalendarItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -374,6 +375,23 @@ const RDSSchedulerPage = () => {
   
   // Helper for context-aware navigation
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
+
+  // Fetch dynamic stations
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        const res = await axios.get(`${API}/rds-stations/by-slug/${mainSiteSlug}`);
+        const fetched = res.data?.stations || [];
+        setStations(fetched);
+        if (fetched.length > 0 && !station) {
+          setStation(fetched[0].code);
+        }
+      } catch {
+        setStations([]);
+      }
+    };
+    if (mainSiteSlug) fetchStations();
+  }, [mainSiteSlug, station]);
 
   // Calculate calendar days - memoized to prevent infinite loops
   const monthStart = startOfMonth(currentMonth);
@@ -429,8 +447,8 @@ const RDSSchedulerPage = () => {
       await axios.put(`${API}/rds-builder/scheduled-texts/${station}/${editingItem.id}`, data);
       toast.success('Scheduled text updated');
     } else {
-      // For creating, use mfy as the API route but include station in data
-      await axios.post(`${API}/rds-builder/scheduled-texts/mfy`, data);
+      // For creating, use the first available station code
+      await axios.post(`${API}/rds-builder/scheduled-texts/${station || 'mfy'}`, data);
       toast.success('Scheduled text created');
     }
     fetchCalendarItems();
@@ -520,24 +538,21 @@ const RDSSchedulerPage = () => {
 
         {/* Station Tabs */}
         <div className="flex items-center gap-2 mb-4">
-          <Button
-            variant={station === 'mfy' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setStation('mfy')}
-            className={station === 'mfy' ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'border-zinc-300 text-zinc-400 hover:text-zinc-700'}
-          >
-            <Radio className="w-4 h-4 mr-2" />
-            Radio MFY
-          </Button>
-          <Button
-            variant={station === 'grk' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setStation('grk')}
-            className={station === 'grk' ? 'bg-violet-500 hover:bg-violet-600 text-white' : 'border-zinc-300 text-zinc-400 hover:text-zinc-700'}
-          >
-            <Radio className="w-4 h-4 mr-2" />
-            Radio GRK
-          </Button>
+          {stations.map((st) => (
+            <Button
+              key={st.code}
+              variant={station === st.code ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setStation(st.code)}
+              className={station === st.code
+                ? 'text-white'
+                : 'border-zinc-300 text-zinc-400 hover:text-zinc-700'}
+              style={station === st.code ? { backgroundColor: st.color || '#f97316' } : {}}
+            >
+              <Radio className="w-4 h-4 mr-2" />
+              {st.name}
+            </Button>
+          ))}
         </div>
 
         {/* Weekday Headers */}
@@ -600,6 +615,10 @@ const RDSSchedulerPage = () => {
         onSave={handleSave}
         item={editingItem || (preselectedDate ? { start_datetime: preselectedDate.toISOString() } : null)}
         currentStation={station}
+        stationOptions={[
+          ...stations.map(st => ({ value: st.code, label: st.name })),
+          ...(stations.length > 1 ? [{ value: 'both', label: 'All stations' }] : []),
+        ]}
       />
 
       {/* Delete button in dialog footer when editing */}

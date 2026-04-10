@@ -68,6 +68,20 @@ async def resolve_station(station_code: str, main_site_id: str = None):
 
 # ── Endpoints ──
 
+@rds_stations_router.get("/by-slug/{slug}")
+async def list_stations_by_slug(
+    slug: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """List all RDS stations for a main site identified by its slug."""
+    site = await db.main_sites.find_one({"slug": slug}, {"_id": 0, "id": 1})
+    if not site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+    stations = await get_stations_for_site(site["id"])
+    return {"stations": stations}
+
+
+
 @rds_stations_router.get("/{main_site_id}")
 async def list_stations(
     main_site_id: str,
