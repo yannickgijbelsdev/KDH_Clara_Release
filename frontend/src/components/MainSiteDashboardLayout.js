@@ -211,6 +211,11 @@ const MainSiteDashboardContent = () => {
     if (mainSite.clara_enterprise) {
       validRoutes.add('enterprise-assistant');
     }
+    // Technical sites always have zerotier + team access
+    if (mainSite.site_type === 'technical') {
+      validRoutes.add('zerotier');
+      validRoutes.add('team');
+    }
     
     if (!validRoutes.has(subPath)) {
       navigate(`/${mainSiteSlug}`, { replace: true });
