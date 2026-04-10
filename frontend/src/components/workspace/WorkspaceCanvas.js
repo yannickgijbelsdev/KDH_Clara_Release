@@ -6,7 +6,7 @@ export const WorkspaceCanvas = ({ children, className, backgroundImage }) => {
   return (
     <div
       data-testid="workspace-canvas"
-      className={cn('relative w-full h-full overflow-hidden bg-[#F0F0F2]', className)}
+      className={cn('relative w-full h-full overflow-hidden bg-white', className)}
     >
       {/* Layer 1: Background image with center-only mask */}
       {bgUrl && (
