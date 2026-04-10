@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import {
   Upload, Check, ChevronRight, Globe, Users, CreditCard,
   Shield, UserPlus, Trash2, Crown, Pencil, Eye, Mic, Sparkles,
-  Plus, Music, ExternalLink
+  Plus, Music, ExternalLink, Zap, Loader2, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -70,6 +70,10 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const [wpEditing, setWpEditing] = useState(null); // index or 'new'
   const [wpForm, setWpForm] = useState({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
   const [wpSaving, setWpSaving] = useState(false);
+  const [wpTestLoading, setWpTestLoading] = useState(null); // index being tested
+  const [wpTestResult, setWpTestResult] = useState(null);
+  const [rdsTestLoading, setRdsTestLoading] = useState(null); // station index
+  const [rdsTestResult, setRdsTestResult] = useState(null);
 
   const isRadioType = site?.site_type === 'radio';
   const hasWordPress = site?.site_type === 'radio' || site?.site_type === 'external_host';
@@ -311,6 +315,51 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const startNewWp = () => {
     setWpForm({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
     setWpEditing('new');
+    setWpTestResult(null);
+  };
+
+  const handleTestWpWithClara = async (idx) => {
+    const ws = wpSites[idx];
+    setWpTestLoading(idx);
+    setWpTestResult(null);
+    try {
+      const res = await fetch(`${API}/api/clara-test/test-wordpress`, {
+        method: 'POST', headers: { ...headers, 'X-Main-Site-Id': site.id },
+        body: JSON.stringify({ name: ws.name, wp_base_url: ws.wp_base_url, username: ws.username, app_password: ws.app_password }),
+      });
+      if (res.ok) { setWpTestResult(await res.json()); }
+      else { setWpTestResult({ status: 'error', diagnosis: 'Could not reach the test service.' }); }
+    } catch { setWpTestResult({ status: 'error', diagnosis: 'Network error.' }); }
+    setWpTestLoading(null);
+  };
+
+  const handleTestFormWpWithClara = async () => {
+    setWpTestLoading('form');
+    setWpTestResult(null);
+    try {
+      const res = await fetch(`${API}/api/clara-test/test-wordpress`, {
+        method: 'POST', headers,
+        body: JSON.stringify(wpForm),
+      });
+      if (res.ok) { setWpTestResult(await res.json()); }
+      else { setWpTestResult({ status: 'error', diagnosis: 'Could not reach the test service.' }); }
+    } catch { setWpTestResult({ status: 'error', diagnosis: 'Network error.' }); }
+    setWpTestLoading(null);
+  };
+
+  const handleTestRdsWithClara = async (idx) => {
+    const st = rdsStations[idx];
+    setRdsTestLoading(idx);
+    setRdsTestResult(null);
+    try {
+      const res = await fetch(`${API}/api/clara-test/test-rds-stream`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ stream_url: st.stream_url, station_name: st.name, stream_type: st.stream_type }),
+      });
+      if (res.ok) { setRdsTestResult({ idx, ...(await res.json()) }); }
+      else { setRdsTestResult({ idx, status: 'error', diagnosis: 'Could not reach the test service.' }); }
+    } catch { setRdsTestResult({ idx, status: 'error', diagnosis: 'Network error.' }); }
+    setRdsTestLoading(null);
   };
 
   if (!site) return null;
@@ -452,10 +501,24 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                         <span className="text-sm font-semibold text-zinc-700">{station.name || `Station ${idx + 1}`}</span>
                         {station.code && <span className="text-[11px] font-mono text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">{station.code}</span>}
                       </div>
-                      <button onClick={() => removeStation(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors" data-testid={`edit-remove-station-${idx}`}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => handleTestRdsWithClara(idx)} disabled={rdsTestLoading === idx || !station.stream_url} className="w-7 h-7 rounded-lg flex items-center justify-center text-violet-400 hover:text-violet-600 hover:bg-violet-50 transition-colors disabled:opacity-30" data-testid={`test-station-${idx}`} title="Test with Clara">
+                          {rdsTestLoading === idx ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                        </button>
+                        <button onClick={() => removeStation(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors" data-testid={`edit-remove-station-${idx}`}>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
+
+                    {rdsTestResult && rdsTestResult.idx === idx && rdsTestLoading === null && (
+                      <div className={`p-2.5 rounded-lg border text-xs leading-relaxed ${rdsTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`} data-testid={`rds-test-result-${idx}`}>
+                        <div className="flex items-start gap-1.5">
+                          {rdsTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-red-500 flex-shrink-0" />}
+                          <p>{rdsTestResult.diagnosis}</p>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
@@ -561,33 +624,57 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                     </div>
                   </div>
                   <div className="flex gap-2 pt-1">
-                    <Button variant="outline" onClick={() => setWpEditing(null)} className="flex-1">Cancel</Button>
+                    <Button variant="outline" onClick={() => { setWpEditing(null); setWpTestResult(null); }} className="flex-1">Cancel</Button>
+                    <button onClick={handleTestFormWpWithClara} disabled={wpTestLoading === 'form' || !wpForm.wp_base_url || !wpForm.username || !wpForm.app_password} className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 text-white text-sm font-medium hover:from-violet-600 hover:to-indigo-600 transition-all disabled:opacity-40" data-testid="clara-test-wp-form-btn">
+                      {wpTestLoading === 'form' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />} Test
+                    </button>
                     <Button onClick={handleSaveWpSite} disabled={wpSaving || !wpForm.wp_base_url || !wpForm.username} className="flex-1" data-testid="save-wp-btn">
                       {wpSaving ? 'Saving...' : 'Save'}
                     </Button>
                   </div>
+                  {wpTestResult && wpTestLoading === null && (
+                    <div className={`mt-2 p-2.5 rounded-lg border text-xs leading-relaxed ${wpTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`} data-testid="wp-form-test-result">
+                      <div className="flex items-start gap-1.5">
+                        {wpTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-red-500 flex-shrink-0" />}
+                        <p>{wpTestResult.diagnosis}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <>
                   {wpSites.length > 0 ? (
                     <div className="space-y-2">
                       {wpSites.map((ws, idx) => (
-                        <div key={ws.id} className="flex items-center justify-between p-3 rounded-xl border border-zinc-200 bg-white" data-testid={`wp-site-card-${idx}`}>
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${ws.is_active ? 'bg-green-500' : 'bg-zinc-300'}`} />
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium text-zinc-800 truncate">{ws.name}</p>
-                              <p className="text-xs text-zinc-400 truncate">{ws.wp_base_url}</p>
+                        <div key={ws.id}>
+                          <div className="flex items-center justify-between p-3 rounded-xl border border-zinc-200 bg-white" data-testid={`wp-site-card-${idx}`}>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${ws.is_active ? 'bg-green-500' : 'bg-zinc-300'}`} />
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium text-zinc-800 truncate">{ws.name}</p>
+                                <p className="text-xs text-zinc-400 truncate">{ws.wp_base_url}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <button onClick={() => handleTestWpWithClara(idx)} disabled={wpTestLoading === idx} className="w-7 h-7 rounded-lg flex items-center justify-center text-violet-400 hover:text-violet-600 hover:bg-violet-50 transition-colors" data-testid={`test-wp-${idx}`} title="Test with Clara">
+                                {wpTestLoading === idx ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                              </button>
+                              <button onClick={() => startEditWp(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors" data-testid={`edit-wp-${idx}`}>
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => handleDeleteWpSite(ws.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors" data-testid={`delete-wp-${idx}`}>
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 flex-shrink-0">
-                            <button onClick={() => startEditWp(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors" data-testid={`edit-wp-${idx}`}>
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button onClick={() => handleDeleteWpSite(ws.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors" data-testid={`delete-wp-${idx}`}>
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                          {wpTestResult && wpTestLoading === null && wpTestResult.status && (
+                            <div className={`mt-1 p-2.5 rounded-lg border text-xs leading-relaxed ${wpTestResult.status === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`} data-testid={`wp-test-result-${idx}`}>
+                              <div className="flex items-start gap-1.5">
+                                {wpTestResult.status === 'ok' ? <Check className="w-3.5 h-3.5 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-3.5 h-3.5 mt-0.5 text-red-500 flex-shrink-0" />}
+                                <p>{wpTestResult.diagnosis}</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

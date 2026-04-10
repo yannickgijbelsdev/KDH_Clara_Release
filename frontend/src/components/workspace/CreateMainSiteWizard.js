@@ -379,8 +379,57 @@ const StepStations = ({ stations, onStationsChange }) => {
 
 
 /* ── Step: WordPress Settings ── */
+const WP_API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+
+const ClaraTestResult = ({ status, diagnosis, loading }) => {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-lg border border-zinc-200 animate-pulse">
+        <Loader2 className="w-4 h-4 animate-spin text-violet-500" />
+        <span className="text-sm text-zinc-500">Clara is testing the connection...</span>
+      </div>
+    );
+  }
+  if (!diagnosis) return null;
+  const isOk = status === 'ok';
+  return (
+    <div className={`p-3 rounded-lg border text-sm leading-relaxed ${
+      isOk ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+    }`} data-testid="clara-test-result">
+      <div className="flex items-start gap-2">
+        {isOk ? <Check className="w-4 h-4 mt-0.5 text-emerald-600 flex-shrink-0" /> : <X className="w-4 h-4 mt-0.5 text-red-500 flex-shrink-0" />}
+        <p>{diagnosis}</p>
+      </div>
+    </div>
+  );
+};
+
 const StepWordPress = ({ wpConfig, onWpConfigChange }) => {
   const update = (field, value) => onWpConfigChange({ ...wpConfig, [field]: value });
+  const [testLoading, setTestLoading] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+
+  const handleTestWithClara = async () => {
+    setTestLoading(true);
+    setTestResult(null);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${WP_API}/clara-test/test-wordpress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(wpConfig),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTestResult(data);
+      } else {
+        setTestResult({ status: 'error', diagnosis: 'Could not reach the test service.' });
+      }
+    } catch {
+      setTestResult({ status: 'error', diagnosis: 'Network error while testing.' });
+    }
+    setTestLoading(false);
+  };
 
   return (
     <div>
@@ -465,6 +514,19 @@ const StepWordPress = ({ wpConfig, onWpConfigChange }) => {
             </select>
           </div>
         </div>
+
+        {/* Clara Test Button */}
+        <button
+          onClick={handleTestWithClara}
+          disabled={testLoading || !wpConfig.wp_base_url || !wpConfig.username || !wpConfig.app_password}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 text-white text-sm font-medium hover:from-violet-600 hover:to-indigo-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          data-testid="clara-test-wp-btn"
+        >
+          {testLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+          Test Connection with Clara
+        </button>
+
+        <ClaraTestResult status={testResult?.status} diagnosis={testResult?.diagnosis} loading={testLoading} />
 
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
           <p className="text-xs text-amber-700">

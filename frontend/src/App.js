@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainSiteProvider, useMainSite } from './context/MainSiteContext';
 import { Toaster } from './components/ui/sonner';
+import ClaraHealthBanner from './components/ClaraHealthBanner';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 import ClaraGuideOverlay from './components/ClaraGuideOverlay';
 import { TopLoaderProvider } from './components/TopLoader';
@@ -332,6 +333,7 @@ function App() {
               <SessionWarningModal />
               <PwaInstallPrompt />
               <ClaraGuideOverlay />
+              <ClaraHealthScanWrapper />
               <Toaster position="bottom-right" richColors />
             </CallProvider>
           </JourneyProvider>
@@ -423,6 +425,14 @@ const LoginWizardWrapper = () => {
       user={user}
     />
   );
+};
+
+
+const ClaraHealthScanWrapper = () => {
+  const { user, token } = useAuth();
+  const isAdmin = user?.is_network_admin || user?.is_system_admin;
+  if (!user || !token || !isAdmin) return null;
+  return <ClaraHealthBanner token={token} isAdmin={isAdmin} />;
 };
 
 export default App;
