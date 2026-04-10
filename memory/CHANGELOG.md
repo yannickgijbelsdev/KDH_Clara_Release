@@ -1,6 +1,6 @@
 # Changelog
 
-## 2026-04-10 — Fork Session: UI Width Standardization
+## 2026-04-10 — Fork Session: UI Width Standardization & Dynamic RDS Stations
 
 ### UI Consistency: Page Width Unification
 - Removed `max-w-6xl mx-auto` from RDSBuilderPage.js
@@ -15,6 +15,17 @@
 - Removed `max-w-7xl mx-auto` from ZeroTierPage.js
 - Removed `max-w-5xl mx-auto` from TaskBoardsPage.js
 - All pages now use full CanvasPanel width, consistent with Content Library
+
+### Dynamic RDS Station Configuration
+- NEW: `/app/backend/routers/rds_stations.py` — Full CRUD for RDS station configs per main site
+- NEW: `rds_stations` MongoDB collection with station name, code, stream URL, stream type, default text, color
+- MODIFIED: CreateMainSiteWizard.js — Added "Stations" step for radio type sites
+- MODIFIED: EditMainSiteWizard.js — Added "Stations" tab for radio type sites
+- MODIFIED: RDSBuilderPage.js — Fetches stations dynamically from API
+- MODIFIED: RDSSettingsPage.js — Dynamic filter sections per station
+- MODIFIED: RDSMonitorPage.js — Dynamic station cards and countdowns
+- Migrated existing MFY/GRK hardcoded data to dynamic station configs
+- Testing: 100% backend (12/12), 100% frontend — All pass
 
 ## 2026-04-08 — Fork Session: ElevenLabs Voice, 3D Images & S3 Migration
 

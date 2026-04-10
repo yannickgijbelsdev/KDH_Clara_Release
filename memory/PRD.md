@@ -68,6 +68,15 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Standardized all page widths inside CanvasPanel to match Content Library (full-width)
 - Removed restrictive `max-w-*` classes from: RDSBuilderPage, RDSSettingsPage, RDSMonitorPage, AudioTriggersPage, StreamMonitorPage, RadioplayerPage, WpSecurityPage, XmlUpload, XmlDetails, ZeroTierPage, TaskBoardsPage
 
+## Dynamic RDS Stations (Apr 2026)
+- New `rds_stations` collection: stores station configs per main_site (name, code, stream_url, stream_type, default_text, color)
+- Backend CRUD endpoints: GET/POST/PUT/DELETE /api/rds-stations/{main_site_id}
+- Bulk-sync endpoint: PUT /api/rds-stations/{main_site_id}/bulk-sync
+- Legacy migration endpoint: POST /api/rds-stations/migrate/legacy (migrated MFY/GRK)
+- Create Site Wizard: "Stations" step added for radio type (Environment → Details → Stations → Admin → Security → Deploying)
+- Edit Site Wizard: "Stations" tab added for radio type sites
+- RDS Builder, Settings, Monitor pages now dynamically load stations from API instead of hardcoded MFY/GRK
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)
