@@ -69,32 +69,38 @@ export default function PermissionAuditPanel({ token, onClose, inline = false })
     ? 'bg-transparent w-full flex flex-col' 
     : 'fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4';
   const contentClass = inline
-    ? 'bg-[#0a0a0b] border border-zinc-200 rounded-2xl w-full flex flex-col overflow-hidden'
-    : 'bg-[#0a0a0b] border border-zinc-200 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden';
+    ? 'bg-white border border-zinc-200 rounded-2xl w-full flex flex-col overflow-hidden'
+    : 'bg-white border border-zinc-200 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden';
 
   return (
     <div className={wrapperClass} data-testid="permission-audit-panel">
       <div className={contentClass}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
-          <div className="flex items-center gap-3">
-            <ShieldAlert className="w-5 h-5 text-amber-500" />
-            <div>
-              <h2 className="text-lg font-bold">Permission Audit Log</h2>
-              <p className="text-xs text-zinc-500">Track blocked actions and troubleshoot access issues</p>
+        {/* Header — only show in modal mode (inline already has page header) */}
+        {!inline ? (
+          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200">
+            <div className="flex items-center gap-3">
+              <ShieldAlert className="w-5 h-5 text-amber-500" />
+              <div>
+                <h2 className="text-lg font-bold text-zinc-900">Permission Audit Log</h2>
+                <p className="text-xs text-zinc-500">Track blocked actions and troubleshoot access issues</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={fetchData} className="gap-1.5">
-              <RefreshCw className="w-3.5 h-3.5" /> Refresh
-            </Button>
-            {!inline && (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={fetchData} className="gap-1.5">
+                <RefreshCw className="w-3.5 h-3.5" /> Refresh
+              </Button>
               <button onClick={onClose} className="p-2 rounded-lg hover:bg-zinc-100 text-zinc-500">
                 <X className="w-5 h-5" />
               </button>
-            )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center justify-end px-6 py-3 border-b border-zinc-200">
+            <Button variant="outline" size="sm" onClick={fetchData} className="gap-1.5">
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            </Button>
+          </div>
+        )}
 
         {loading && !stats ? (
           <div className="flex-1 flex items-center justify-center py-16">
