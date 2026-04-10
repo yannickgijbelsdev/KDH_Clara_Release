@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
   Radio,
@@ -248,6 +249,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
 StationCard.displayName = 'StationCard';
 
 const RDSMonitorPage = () => {
+  const { mainSiteSlug } = useParams();
   const [monitorData, setMonitorData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -257,27 +259,54 @@ const RDSMonitorPage = () => {
   const [lastAutoSync, setLastAutoSync] = useState(null);
   const intervalRef = useRef(null);
   const countdownRef = useRef(null);
-  const fetchingRef = useRef(false); // Prevent overlapping fetches
-  const abortRef = useRef(null); // AbortController for cancellation
-  const lastFetchStartRef = useRef(null); // Track when fetch started (for stuck detection)
-  const [fetchErrors, setFetchErrors] = useState(0); // Track consecutive fetch errors
+  const fetchingRef = useRef(false);
+  const abortRef = useRef(null);
+  const lastFetchStartRef = useRef(null);
+  const [fetchErrors, setFetchErrors] = useState(0);
 
-  // Store countdown target timestamps (not relative seconds) to survive tab throttling
-  const countdownTargetsRef = useRef({ mfy: null, grk: null });
-  const showEndTargetsRef = useRef({ mfy: null, grk: null });
-  const scheduledTextTargetsRef = useRef({ mfy: null, grk: null });
+  // Dynamic station config
+  const [stations, setStations] = useState([]);
+  const stationCodesRef = useRef([]);
+
+  // Fetch station configs once
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const siteRes = await fetch(`${API}/main-sites/by-slug/${mainSiteSlug}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!siteRes.ok) return;
+        const siteData = await siteRes.json();
+        const stRes = await fetch(`${API}/rds-stations/${siteData.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (stRes.ok) {
+          const stData = await stRes.json();
+          const stList = stData.stations || [];
+          setStations(stList);
+          stationCodesRef.current = stList.map(s => s.code);
+        }
+      } catch (e) { console.error('Station fetch error:', e); }
+    };
+    if (mainSiteSlug) fetchStations();
+  }, [mainSiteSlug]);
+
+  // Store countdown target timestamps — dynamic per station
+  const countdownTargetsRef = useRef({});
+  const showEndTargetsRef = useRef({});
+  const scheduledTextTargetsRef = useRef({});
   const [tick, setTick] = useState(0);
-
-  // ... (fetchMonitorData defined above)
 
   // Initialize countdown TARGET TIMESTAMPS when monitorData changes
   useEffect(() => {
     if (!monitorData?.stations) return;
-
     const now = Date.now();
+    const codes = stationCodesRef.current.length > 0
+      ? stationCodesRef.current
+      : Object.keys(monitorData.stations);
 
-    // stale_at is an absolute timestamp from the server
-    for (const s of ['mfy', 'grk']) {
+    for (const s of codes) {
       const staleAt = monitorData.stations[s]?.now_playing?.stale_at;
       countdownTargetsRef.current[s] = staleAt ? new Date(staleAt).getTime() : null;
 
@@ -300,18 +329,15 @@ const RDSMonitorPage = () => {
 
   // Derive countdown SECONDS from target timestamps (computed on every tick)
   const now = Date.now();
-  const countdowns = {
-    mfy: countdownTargetsRef.current.mfy ? Math.max(0, Math.floor((countdownTargetsRef.current.mfy - now) / 1000)) : null,
-    grk: countdownTargetsRef.current.grk ? Math.max(0, Math.floor((countdownTargetsRef.current.grk - now) / 1000)) : null,
-  };
-  const showEndCountdowns = {
-    mfy: showEndTargetsRef.current.mfy ? Math.max(0, Math.floor((showEndTargetsRef.current.mfy - now) / 1000)) : null,
-    grk: showEndTargetsRef.current.grk ? Math.max(0, Math.floor((showEndTargetsRef.current.grk - now) / 1000)) : null,
-  };
-  const scheduledTextCountdowns = {
-    mfy: scheduledTextTargetsRef.current.mfy ? Math.max(0, Math.floor((scheduledTextTargetsRef.current.mfy - now) / 1000)) : null,
-    grk: scheduledTextTargetsRef.current.grk ? Math.max(0, Math.floor((scheduledTextTargetsRef.current.grk - now) / 1000)) : null,
-  };
+  const countdowns = {};
+  const showEndCountdowns = {};
+  const scheduledTextCountdowns = {};
+  const codes = stations.length > 0 ? stations.map(s => s.code) : Object.keys(monitorData?.stations || {});
+  for (const s of codes) {
+    countdowns[s] = countdownTargetsRef.current[s] ? Math.max(0, Math.floor((countdownTargetsRef.current[s] - now) / 1000)) : null;
+    showEndCountdowns[s] = showEndTargetsRef.current[s] ? Math.max(0, Math.floor((showEndTargetsRef.current[s] - now) / 1000)) : null;
+    scheduledTextCountdowns[s] = scheduledTextTargetsRef.current[s] ? Math.max(0, Math.floor((scheduledTextTargetsRef.current[s] - now) / 1000)) : null;
+  }
 
   const fetchMonitorData = useCallback(async () => {
     // Safety: force-reset the lock if it's been stuck for more than 15 seconds
@@ -373,12 +399,11 @@ const RDSMonitorPage = () => {
   useEffect(() => {
     if (!autoSync || !monitorData?.stations) return;
 
-    const mfyStale = monitorData.stations.mfy?.cache_stale;
-    const grkStale = monitorData.stations.grk?.cache_stale;
+    const anyStale = Object.values(monitorData.stations).some(s => s?.cache_stale);
 
-    if ((mfyStale || grkStale) && !forceRefreshing) {
+    if (anyStale && !forceRefreshing) {
       const ts = Date.now();
-      if (ts - lastAutoSyncRef.current > 60000) { // 60s throttle
+      if (ts - lastAutoSyncRef.current > 60000) {
         lastAutoSyncRef.current = ts;
         forceRefresh(true);
       }
@@ -425,7 +450,7 @@ const RDSMonitorPage = () => {
     );
   }
 
-  const hasStaleCache = monitorData?.stations?.mfy?.cache_stale || monitorData?.stations?.grk?.cache_stale;
+  const hasStaleCache = monitorData?.stations && Object.values(monitorData.stations).some(s => s?.cache_stale);
 
   return (
     <div className="min-h-screen bg-white p-6">
@@ -510,23 +535,21 @@ const RDSMonitorPage = () => {
         )}
 
         {/* Station Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <StationCard
-            station="mfy"
-            stationName="Radio MFY"
-            data={monitorData?.stations?.mfy}
-            staleCountdown={countdowns.mfy}
-            showEndCountdown={showEndCountdowns.mfy}
-            scheduledTextCountdown={scheduledTextCountdowns.mfy}
-          />
-          <StationCard
-            station="grk"
-            stationName="Radio GRK"
-            data={monitorData?.stations?.grk}
-            staleCountdown={countdowns.grk}
-            showEndCountdown={showEndCountdowns.grk}
-            scheduledTextCountdown={scheduledTextCountdowns.grk}
-          />
+        <div className={`grid grid-cols-1 ${stations.length > 1 ? 'lg:grid-cols-2' : ''} gap-6`}>
+          {(stations.length > 0
+            ? stations
+            : Object.keys(monitorData?.stations || {}).map(code => ({ code, name: code.toUpperCase() }))
+          ).map((st) => (
+            <StationCard
+              key={st.code}
+              station={st.code}
+              stationName={st.name}
+              data={monitorData?.stations?.[st.code]}
+              staleCountdown={countdowns[st.code]}
+              showEndCountdown={showEndCountdowns[st.code]}
+              scheduledTextCountdown={scheduledTextCountdowns[st.code]}
+            />
+          ))}
         </div>
 
         {/* History Section */}
@@ -557,9 +580,7 @@ const RDSMonitorPage = () => {
                     <tr key={entry.id || index} className="text-sm">
                       <td className="py-3 pr-4 text-zinc-400 whitespace-nowrap">{entry.timestamp_formatted}</td>
                       <td className="py-3 pr-4">
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                          entry.station === 'mfy' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
-                        }`}>
+                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-700">
                           {entry.station?.toUpperCase()}
                         </span>
                       </td>

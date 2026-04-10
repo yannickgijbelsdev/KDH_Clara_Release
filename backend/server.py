@@ -75,6 +75,7 @@ from routers.support_tickets import support_router
 from routers.enterprise_assistant import enterprise_router
 from routers.voice_support import voice_support_router
 from routers.radio_automation import radio_router
+from routers.rds_stations import rds_stations_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -122,6 +123,7 @@ api_router.include_router(media_router)
 api_router.include_router(logs_router)
 api_router.include_router(rds_router)
 api_router.include_router(rds_builder_router)
+api_router.include_router(rds_stations_router)
 api_router.include_router(stream_proxy_router)
 api_router.include_router(audio_trigger_router)
 api_router.include_router(sites_router)

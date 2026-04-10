@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
-  Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast
+  Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast,
+  Plus, Trash2, GripVertical, Music
 } from 'lucide-react';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -211,6 +212,171 @@ const StepDetails = ({ name, slug, onNameChange, onSlugChange, siteType }) => {
     </div>
   );
 };
+
+/* ── Station colors palette ── */
+const STATION_COLORS = ['#f97316', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#eab308'];
+
+const STREAM_TYPES = [
+  { value: 'shoutcast_v1', label: 'Shoutcast v1' },
+  { value: 'shoutcast_v2', label: 'Shoutcast v2' },
+  { value: 'icecast', label: 'Icecast' },
+];
+
+/* ── Step: RDS Stations ── */
+const StepStations = ({ stations, onStationsChange }) => {
+  const addStation = () => {
+    const idx = stations.length;
+    onStationsChange([
+      ...stations,
+      {
+        name: '',
+        code: '',
+        stream_url: '',
+        stream_type: 'shoutcast_v1',
+        default_text: '',
+        color: STATION_COLORS[idx % STATION_COLORS.length],
+        order: idx,
+      },
+    ]);
+  };
+
+  const updateStation = (index, field, value) => {
+    const updated = stations.map((s, i) =>
+      i === index ? { ...s, [field]: value } : s
+    );
+    // Auto-generate code from name
+    if (field === 'name') {
+      updated[index].code = value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 20);
+    }
+    onStationsChange(updated);
+  };
+
+  const removeStation = (index) => {
+    onStationsChange(stations.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-zinc-900 mb-1">Configure RDS Stations</h2>
+      <p className="text-sm text-zinc-500 mb-4">
+        Add the radio stations you want to manage. You can configure their stream URLs and metadata.
+      </p>
+
+      <div className="space-y-3 max-h-[340px] overflow-y-auto pr-1">
+        {stations.map((station, idx) => (
+          <div
+            key={idx}
+            className="border border-zinc-200 rounded-2xl p-4 space-y-3 bg-white"
+            data-testid={`station-card-${idx}`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: station.color }}
+                />
+                <span className="text-sm font-semibold text-zinc-700">
+                  Station {idx + 1}
+                </span>
+                {station.code && (
+                  <span className="text-[11px] font-mono text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">
+                    {station.code}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => removeStation(idx)}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                data-testid={`remove-station-${idx}`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Station Name</Label>
+                <Input
+                  value={station.name}
+                  onChange={(e) => updateStation(idx, 'name', e.target.value)}
+                  placeholder="e.g. Radio MFY"
+                  className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm"
+                  data-testid={`station-name-${idx}`}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Stream Type</Label>
+                <select
+                  value={station.stream_type}
+                  onChange={(e) => updateStation(idx, 'stream_type', e.target.value)}
+                  className="w-full h-9 bg-zinc-50 border border-zinc-200 rounded-lg text-sm px-3 text-zinc-700"
+                  data-testid={`station-stream-type-${idx}`}
+                >
+                  {STREAM_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Stream URL</Label>
+              <Input
+                value={station.stream_url}
+                onChange={(e) => updateStation(idx, 'stream_url', e.target.value)}
+                placeholder="http://stream.example.com:9010/stats?sid=1"
+                className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm font-mono"
+                data-testid={`station-stream-url-${idx}`}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Default Text</Label>
+                <Input
+                  value={station.default_text}
+                  onChange={(e) => updateStation(idx, 'default_text', e.target.value)}
+                  placeholder="e.g. altijd dichtbij"
+                  className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm"
+                  data-testid={`station-default-text-${idx}`}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Color</Label>
+                <div className="flex items-center gap-1.5 h-9">
+                  {STATION_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => updateStation(idx, 'color', c)}
+                      className={`w-6 h-6 rounded-full transition-all ${
+                        station.color === c ? 'ring-2 ring-offset-1 ring-zinc-900 scale-110' : 'hover:scale-110'
+                      }`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button
+        onClick={addStation}
+        className="mt-3 w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-zinc-300 text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 transition-colors"
+        data-testid="add-station-btn"
+      >
+        <Plus className="w-4 h-4" />
+        <span className="text-sm font-medium">Add Station</span>
+      </button>
+    </div>
+  );
+};
+
 
 /* ── Step 3: Admin ── */
 const StepAdmin = ({ adminId, onAdminChange, users, token }) => (
@@ -480,15 +646,21 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   const [deploying, setDeploying] = useState(false);
   const [deployDone, setDeployDone] = useState(false);
   const [deployError, setDeployError] = useState(null);
+  const [rdsStations, setRdsStations] = useState([]);
 
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const hasOptionalFeatures = (typeConfig?.optionalFeatures || []).length > 0;
+  const isRadioType = siteType === 'radio';
   const features = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
 
-  // Dynamic step mapping: skip "Features" step if no optional features
+  // Dynamic step mapping
   const getActualSteps = () => {
-    if (hasOptionalFeatures) return ['Environment', 'Features', 'Details', 'Admin', 'Security', 'Deploying'];
-    return ['Environment', 'Details', 'Admin', 'Security', 'Deploying'];
+    const steps = ['Environment'];
+    if (hasOptionalFeatures) steps.push('Features');
+    steps.push('Details');
+    if (isRadioType) steps.push('Stations');
+    steps.push('Admin', 'Security', 'Deploying');
+    return steps;
   };
   const actualSteps = getActualSteps();
   const deployStepIdx = actualSteps.length - 1;
@@ -499,13 +671,15 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     );
   };
 
+  // Map step index to step name based on current type
+  const stepName = actualSteps[step] || '';
+
   // Auto-generate slug from name
   useEffect(() => {
-    const detailsStep = hasOptionalFeatures ? 2 : 1;
-    if (name && step === detailsStep) {
+    if (name && stepName === 'Details') {
       setSlug(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
     }
-  }, [name, step, hasOptionalFeatures]);
+  }, [name, stepName]);
 
   // Fetch users for admin step
   const fetchUsers = useCallback(async () => {
@@ -520,12 +694,11 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   }, [token]);
 
   useEffect(() => {
-    const adminStep = hasOptionalFeatures ? 3 : 2;
-    if (open && step === adminStep) fetchUsers();
-  }, [open, step, fetchUsers, hasOptionalFeatures]);
+    if (open && stepName === 'Admin') fetchUsers();
+  }, [open, stepName, fetchUsers]);
 
   // Deploy process
-  const totalDeploySteps = 4 + (require2FA ? 1 : 0) + features.length;
+  const totalDeploySteps = 4 + (require2FA ? 1 : 0) + features.length + (rdsStations.length > 0 ? 1 : 0);
 
   const startDeploy = async () => {
     setDeploying(true);
@@ -552,7 +725,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       2500,  // Deploying environment
       2000,  // Setting up firewall
     ];
-    const extraCount = (require2FA ? 1 : 0) + features.length + 2;
+    const extraCount = (require2FA ? 1 : 0) + features.length + 2 + (rdsStations.length > 0 ? 1 : 0);
     for (let j = 0; j < extraCount; j++) {
       stepDelays.push(1200 + Math.random() * 1000);
     }
@@ -560,7 +733,6 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     for (let i = 0; i <= totalDeploySteps; i++) {
       const delay = stepDelays[i] || (1200 + Math.random() * 800);
       await new Promise(r => setTimeout(r, delay));
-      // Don't finish the last step yet — wait for the API
       if (i < totalDeploySteps) {
         setDeployStatus(i + 1);
       }
@@ -570,7 +742,21 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     try {
       const res = await apiPromise;
       if (res.ok) {
-        // Site is now in the database and rack — mark final step done
+        const siteData = await res.json();
+
+        // Sync RDS stations if any were configured
+        if (rdsStations.length > 0 && siteData?.id) {
+          try {
+            await fetch(`${API}/api/rds-stations/${siteData.id}/bulk-sync`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ stations: rdsStations }),
+            });
+          } catch (stationErr) {
+            console.error('Failed to sync RDS stations:', stationErr);
+          }
+        }
+
         setDeployStatus(totalDeploySteps + 1);
         setDeployDone(true);
         setTimeout(() => { onCreated?.(); handleClose(); }, 2000);
@@ -591,17 +777,15 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     setStep(0); setSiteType('radio'); setName(''); setSlug('');
     setAdminId(''); setRequire2FA(false); setClaraEnterprise(false); setDeployStatus(0);
     setDeploying(false); setDeployDone(false); setDeployError(null);
-    setSelectedOptionalFeatures([]);
+    setSelectedOptionalFeatures([]); setRdsStations([]);
     onClose();
   };
 
-  // Map step index to step name based on current type
-  const stepName = actualSteps[step] || '';
-
   const canNext = () => {
     if (stepName === 'Environment') return !!siteType;
-    if (stepName === 'Features') return true; // optional features are optional
+    if (stepName === 'Features') return true;
     if (stepName === 'Details') return name.trim().length > 0 && slug.trim().length > 0;
+    if (stepName === 'Stations') return true; // stations are optional
     if (stepName === 'Admin') return true;
     if (stepName === 'Security') return true;
     return false;
@@ -640,9 +824,10 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-              {stepName === 'Environment' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); }} />}
+              {stepName === 'Environment' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); }} />}
               {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
               {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
+              {stepName === 'Stations' && <StepStations stations={rdsStations} onStationsChange={setRdsStations} />}
               {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
               {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} />}
               {stepName === 'Deploying' && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}

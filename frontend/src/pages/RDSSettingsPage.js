@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { formatInTimeZone } from 'date-fns-tz';
 import {
@@ -27,6 +28,7 @@ import { toast } from 'sonner';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const RDSSettingsPage = () => {
+  const { mainSiteSlug } = useParams();
   const [settings, setSettings] = useState(null);
   const [endpoints, setEndpoints] = useState(null);
   const [logs, setLogs] = useState([]);
@@ -41,10 +43,12 @@ const RDSSettingsPage = () => {
     cache_refresh_interval: 5,
   });
   
-  // Shoutcast filters state
-  const [mfyFilters, setMfyFilters] = useState([]);
-  const [grkFilters, setGrkFilters] = useState([]);
-  const [editingFilters, setEditingFilters] = useState(null); // 'mfy' or 'grk'
+  // Dynamic stations
+  const [stations, setStations] = useState([]);
+
+  // Shoutcast filters state - dynamic per station
+  const [stationFilters, setStationFilters] = useState({});
+  const [editingFilters, setEditingFilters] = useState(null);
   const [savingFilters, setSavingFilters] = useState(false);
   
   // Stale config state
@@ -53,32 +57,60 @@ const RDSSettingsPage = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const [settingsRes, endpointsRes, logsRes, shoutcastLogsRes, mfyFiltersRes, grkFiltersRes, staleRes] = await Promise.all([
+      const token = localStorage.getItem('token');
+      const authHeaders = { Authorization: `Bearer ${token}` };
+
+      // First get main site ID and stations
+      let fetchedStations = [];
+      try {
+        const siteRes = await fetch(`${API}/main-sites/by-slug/${mainSiteSlug}`, { headers: authHeaders });
+        if (siteRes.ok) {
+          const siteData = await siteRes.json();
+          const stRes = await fetch(`${API}/rds-stations/${siteData.id}`, { headers: authHeaders });
+          if (stRes.ok) {
+            const stData = await stRes.json();
+            fetchedStations = stData.stations || [];
+          }
+        }
+      } catch (e) { console.error('Station fetch error:', e); }
+      setStations(fetchedStations);
+
+      // Fetch filter data for each station
+      const filterPromises = fetchedStations.map(st =>
+        axios.get(`${API}/rds/shoutcast/filters/${st.code}`).catch(() => ({ data: { filters: [] } }))
+      );
+
+      const [settingsRes, endpointsRes, logsRes, shoutcastLogsRes, staleRes, ...filterResults] = await Promise.all([
         axios.get(`${API}/rds/settings`),
         axios.get(`${API}/rds/endpoints`),
         axios.get(`${API}/rds/logs?limit=20`),
         axios.get(`${API}/rds/shoutcast/logs?limit=50`),
-        axios.get(`${API}/rds/shoutcast/filters/mfy`),
-        axios.get(`${API}/rds/shoutcast/filters/grk`),
         axios.get(`${API}/rds-builder/stale-config`).catch(() => ({ data: null })),
+        ...filterPromises,
       ]);
+
       setSettings(settingsRes.data);
       setEndpoints(endpointsRes.data);
       setLogs(logsRes.data);
       setShoutcastLogs(shoutcastLogsRes.data);
-      setMfyFilters(mfyFiltersRes.data.filters || []);
-      setGrkFilters(grkFiltersRes.data.filters || []);
       if (staleRes.data) setStaleConfig(staleRes.data);
       setEditData({
         production_base_url: settingsRes.data.production_base_url,
         cache_refresh_interval: settingsRes.data.cache_refresh_interval,
       });
+
+      // Build filter state map
+      const filtersMap = {};
+      fetchedStations.forEach((st, i) => {
+        filtersMap[st.code] = filterResults[i]?.data?.filters || [];
+      });
+      setStationFilters(filtersMap);
     } catch (error) {
       toast.error('Could not load RDS settings');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mainSiteSlug]);
 
   useEffect(() => {
     fetchData();
@@ -136,7 +168,7 @@ const RDSSettingsPage = () => {
   const handleSaveFilters = async (station) => {
     setSavingFilters(true);
     try {
-      const filters = station === 'mfy' ? mfyFilters : grkFilters;
+      const filters = stationFilters[station] || [];
       await axios.put(`${API}/rds/shoutcast/filters/${station}`, { filters });
       toast.success(`Filters saved for ${station.toUpperCase()}`);
       setEditingFilters(null);
@@ -149,31 +181,25 @@ const RDSSettingsPage = () => {
 
   const addFilter = (station) => {
     const newFilter = { match: '', replace: '', case_insensitive: true, whole_word: false };
-    if (station === 'mfy') {
-      setMfyFilters([...mfyFilters, newFilter]);
-    } else {
-      setGrkFilters([...grkFilters, newFilter]);
-    }
+    setStationFilters(prev => ({
+      ...prev,
+      [station]: [...(prev[station] || []), newFilter],
+    }));
   };
 
   const removeFilter = (station, index) => {
-    if (station === 'mfy') {
-      setMfyFilters(mfyFilters.filter((_, i) => i !== index));
-    } else {
-      setGrkFilters(grkFilters.filter((_, i) => i !== index));
-    }
+    setStationFilters(prev => ({
+      ...prev,
+      [station]: (prev[station] || []).filter((_, i) => i !== index),
+    }));
   };
 
   const updateFilter = (station, index, field, value) => {
-    if (station === 'mfy') {
-      const updated = [...mfyFilters];
+    setStationFilters(prev => {
+      const updated = [...(prev[station] || [])];
       updated[index] = { ...updated[index], [field]: value };
-      setMfyFilters(updated);
-    } else {
-      const updated = [...grkFilters];
-      updated[index] = { ...updated[index], [field]: value };
-      setGrkFilters(updated);
-    }
+      return { ...prev, [station]: updated };
+    });
   };
 
   const copyToClipboard = (url, name) => {
@@ -458,225 +484,86 @@ const RDSSettingsPage = () => {
           Filter certain texts from the now playing info. If the text matches, it will be replaced.
         </p>
 
-        {/* MFY Filters */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-orange-400">Radio MFY</h3>
-            <div className="flex gap-2">
-              {editingFilters === 'mfy' ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingFilters(null)}
-                    className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleSaveFilters('mfy')}
-                    disabled={savingFilters}
-                    className="bg-orange-500 hover:bg-orange-600 text-white text-xs"
-                  >
-                    <Save className="w-3 h-3 mr-1" />
-                    {savingFilters ? 'Saving...' : 'Save'}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditingFilters('mfy')}
-                  className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
-                >
-                  <Settings className="w-3 h-3 mr-1" />
-                  Edit
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          {editingFilters === 'mfy' ? (
-            <div className="space-y-2">
-              {mfyFilters.map((filter, idx) => (
-                <div key={idx} className="flex flex-col gap-2 bg-zinc-50 rounded-lg p-2">
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      value={filter.match}
-                      onChange={(e) => updateFilter('mfy', idx, 'match', e.target.value)}
-                      placeholder="Text to filter (e.g. ft.)"
-                      className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1"
-                    />
-                    <span className="text-zinc-500 text-xs">→</span>
-                    <Input
-                      value={filter.replace}
-                      onChange={(e) => updateFilter('mfy', idx, 'replace', e.target.value)}
-                      placeholder="Replace with (e.g. &)"
-                      className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFilter('mfy', idx)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-7 w-7"
-                    >
-                      <Trash2 className="w-3 h-3" />
+        {/* Dynamic Station Filters */}
+        {stations.map((st) => {
+          const stCode = st.code;
+          const stFilters = stationFilters[stCode] || [];
+          return (
+            <div key={stCode} className="mb-6 last:mb-0">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: st.color }} />
+                  <h3 className="text-sm font-semibold text-zinc-700">{st.name}</h3>
+                </div>
+                <div className="flex gap-2">
+                  {editingFilters === stCode ? (
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => setEditingFilters(null)} className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs">
+                        Cancel
+                      </Button>
+                      <Button size="sm" onClick={() => handleSaveFilters(stCode)} disabled={savingFilters} className="text-white text-xs" style={{ backgroundColor: st.color }}>
+                        <Save className="w-3 h-3 mr-1" />
+                        {savingFilters ? 'Saving...' : 'Save'}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => setEditingFilters(stCode)} className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs">
+                      <Settings className="w-3 h-3 mr-1" />
+                      Edit
                     </Button>
-                  </div>
-                  <div className="flex items-center gap-4 pl-1">
-                    <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filter.whole_word || false}
-                        onChange={(e) => updateFilter('mfy', idx, 'whole_word', e.target.checked)}
-                        className="w-3 h-3 rounded border-zinc-300 bg-zinc-100 text-orange-500 focus:ring-orange-500"
-                      />
-                      <span>Heel woord</span>
-                      <span className="text-zinc-600">(voorkomt "Swift" → "Swi&")</span>
-                    </label>
-                  </div>
+                  )}
                 </div>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => addFilter('mfy')}
-                className="border-dashed border-zinc-300 text-zinc-400 hover:bg-zinc-100 text-xs w-full"
-              >
-                <Plus className="w-3 h-3 mr-1" />
-                Add filter
-              </Button>
-            </div>
-          ) : (
-            <div className="text-zinc-400 text-sm">
-              {mfyFilters.length === 0 ? (
-                <p className="text-zinc-500 italic">No filters set</p>
-              ) : (
-                <div className="space-y-1">
-                  {mfyFilters.map((f, i) => (
-                    <div key={i} className="text-xs bg-zinc-100 rounded px-2 py-1 flex items-center gap-1">
-                      <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
-                      <span className="text-zinc-600 mx-1">→</span>
-                      <span className="text-orange-400">{f.replace || '(remove)'}</span>
-                      {f.whole_word && <span className="text-zinc-600 ml-1">(heel woord)</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
 
-        {/* GRK Filters */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-violet-400">Radio GRK</h3>
-            <div className="flex gap-2">
-              {editingFilters === 'grk' ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingFilters(null)}
-                    className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => handleSaveFilters('grk')}
-                    disabled={savingFilters}
-                    className="bg-violet-500 hover:bg-violet-600 text-white text-xs"
-                  >
-                    <Save className="w-3 h-3 mr-1" />
-                    {savingFilters ? 'Saving...' : 'Save'}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditingFilters('grk')}
-                  className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
-                >
-                  <Settings className="w-3 h-3 mr-1" />
-                  Edit
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          {editingFilters === 'grk' ? (
-            <div className="space-y-2">
-              {grkFilters.map((filter, idx) => (
-                <div key={idx} className="flex flex-col gap-2 bg-zinc-50 rounded-lg p-2">
-                  <div className="flex gap-2 items-center">
-                    <Input
-                      value={filter.match}
-                      onChange={(e) => updateFilter('grk', idx, 'match', e.target.value)}
-                      placeholder="Text to filter (e.g. ft.)"
-                      className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1"
-                    />
-                    <span className="text-zinc-500 text-xs">→</span>
-                    <Input
-                      value={filter.replace}
-                      onChange={(e) => updateFilter('grk', idx, 'replace', e.target.value)}
-                      placeholder="Replace with (e.g. &)"
-                      className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFilter('grk', idx)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-7 w-7"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-4 pl-1">
-                    <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={filter.whole_word || false}
-                        onChange={(e) => updateFilter('grk', idx, 'whole_word', e.target.checked)}
-                        className="w-3 h-3 rounded border-zinc-300 bg-zinc-100 text-violet-500 focus:ring-violet-500"
-                      />
-                      <span>Heel woord</span>
-                      <span className="text-zinc-600">(voorkomt "Swift" → "Swi&")</span>
-                    </label>
-                  </div>
-                </div>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => addFilter('grk')}
-                className="border-dashed border-zinc-300 text-zinc-400 hover:bg-zinc-100 text-xs w-full"
-              >
-                <Plus className="w-3 h-3 mr-1" />
-                Add filter
-              </Button>
-            </div>
-          ) : (
-            <div className="text-zinc-400 text-sm">
-              {grkFilters.length === 0 ? (
-                <p className="text-zinc-500 italic">No filters set</p>
-              ) : (
-                <div className="space-y-1">
-                  {grkFilters.map((f, i) => (
-                    <div key={i} className="text-xs bg-zinc-100 rounded px-2 py-1 flex items-center gap-1">
-                      <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
-                      <span className="text-zinc-600 mx-1">→</span>
-                      <span className="text-violet-400">{f.replace || '(remove)'}</span>
-                      {f.whole_word && <span className="text-zinc-600 ml-1">(heel woord)</span>}
+              {editingFilters === stCode ? (
+                <div className="space-y-2">
+                  {stFilters.map((filter, idx) => (
+                    <div key={idx} className="flex flex-col gap-2 bg-zinc-50 rounded-lg p-2">
+                      <div className="flex gap-2 items-center">
+                        <Input value={filter.match} onChange={(e) => updateFilter(stCode, idx, 'match', e.target.value)} placeholder="Text to filter" className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1" />
+                        <span className="text-zinc-500 text-xs">&rarr;</span>
+                        <Input value={filter.replace} onChange={(e) => updateFilter(stCode, idx, 'replace', e.target.value)} placeholder="Replace with" className="bg-zinc-50 border-zinc-200 text-zinc-900 text-xs flex-1" />
+                        <Button variant="ghost" size="sm" onClick={() => removeFilter(stCode, idx)} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-7 w-7">
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-4 pl-1">
+                        <label className="flex items-center gap-1.5 text-xs text-zinc-400 cursor-pointer">
+                          <input type="checkbox" checked={filter.whole_word || false} onChange={(e) => updateFilter(stCode, idx, 'whole_word', e.target.checked)} className="w-3 h-3 rounded border-zinc-300 bg-zinc-100" />
+                          <span>Heel woord</span>
+                        </label>
+                      </div>
                     </div>
                   ))}
+                  <Button variant="outline" size="sm" onClick={() => addFilter(stCode)} className="border-dashed border-zinc-300 text-zinc-400 hover:bg-zinc-100 text-xs w-full">
+                    <Plus className="w-3 h-3 mr-1" /> Add filter
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-zinc-400 text-sm">
+                  {stFilters.length === 0 ? (
+                    <p className="text-zinc-500 italic">No filters set</p>
+                  ) : (
+                    <div className="space-y-1">
+                      {stFilters.map((f, i) => (
+                        <div key={i} className="text-xs bg-zinc-100 rounded px-2 py-1 flex items-center gap-1">
+                          <span className="text-zinc-400">&ldquo;{f.match}&rdquo;</span>
+                          <span className="text-zinc-600 mx-1">&rarr;</span>
+                          <span style={{ color: st.color }}>{f.replace || '(remove)'}</span>
+                          {f.whole_word && <span className="text-zinc-600 ml-1">(heel woord)</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
+          );
+        })}
+
+        {stations.length === 0 && (
+          <p className="text-zinc-500 text-sm italic">No stations configured. Go to site settings to add RDS stations.</p>
+        )}
       </div>
 
       {/* Stale Now Playing Config */}
@@ -732,26 +619,18 @@ const RDSSettingsPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-xs text-zinc-400">MFY Fallback Text</Label>
-              <Input
-                value={staleConfig.fallback_text?.mfy || ''}
-                onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, mfy: e.target.value}})}
-                className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
-                placeholder="e.g. altijd dichtbij"
-                data-testid="stale-fallback-mfy"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-zinc-400">GRK Fallback Text</Label>
-              <Input
-                value={staleConfig.fallback_text?.grk || ''}
-                onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, grk: e.target.value}})}
-                className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
-                placeholder="e.g. the feelgood station"
-                data-testid="stale-fallback-grk"
-              />
-            </div>
+            {stations.map((st) => (
+              <div key={st.code}>
+                <Label className="text-xs text-zinc-400">{st.name} Fallback Text</Label>
+                <Input
+                  value={staleConfig.fallback_text?.[st.code] || ''}
+                  onChange={e => setStaleConfig({...staleConfig, fallback_text: {...staleConfig.fallback_text, [st.code]: e.target.value}})}
+                  className="bg-zinc-50 border-zinc-200 text-zinc-900 mt-1"
+                  placeholder={st.default_text || `e.g. ${st.name}`}
+                  data-testid={`stale-fallback-${st.code}`}
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -771,29 +650,28 @@ const RDSSettingsPage = () => {
           </div>
         ) : (
           <div className="space-y-1 max-h-64 overflow-y-auto">
-            {shoutcastLogs.map((log) => (
-              <div
-                key={log.id}
-                className={`flex items-center gap-3 p-2 rounded text-xs ${
-                  log.station === 'mfy' ? 'bg-orange-500/5' : 'bg-violet-500/5'
-                }`}
-              >
-                <span className={`font-mono font-bold ${
-                  log.station === 'mfy' ? 'text-orange-400' : 'text-violet-400'
-                }`}>
-                  {log.station.toUpperCase()}
-                </span>
-                <span className="text-zinc-400 truncate flex-1">
-                  {log.song_title || <span className="italic text-zinc-600">(filtered)</span>}
-                </span>
-                <span className="text-zinc-600">
-                  {log.current_listeners} listeners
-                </span>
-                <span className="text-zinc-700 text-[10px]">
-                  {formatInTimeZone(new Date(log.timestamp), 'Europe/Brussels', 'HH:mm:ss')}
-                </span>
-              </div>
-            ))}
+            {shoutcastLogs.map((log) => {
+              const st = stations.find(s => s.code === log.station);
+              return (
+                <div
+                  key={log.id}
+                  className="flex items-center gap-3 p-2 rounded text-xs bg-zinc-50"
+                >
+                  <span className="font-mono font-bold" style={{ color: st?.color || '#888' }}>
+                    {log.station?.toUpperCase()}
+                  </span>
+                  <span className="text-zinc-400 truncate flex-1">
+                    {log.song_title || <span className="italic text-zinc-600">(filtered)</span>}
+                  </span>
+                  <span className="text-zinc-600">
+                    {log.current_listeners} listeners
+                  </span>
+                  <span className="text-zinc-700 text-[10px]">
+                    {formatInTimeZone(new Date(log.timestamp), 'Europe/Brussels', 'HH:mm:ss')}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

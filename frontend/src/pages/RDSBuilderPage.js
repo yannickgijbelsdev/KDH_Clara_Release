@@ -615,9 +615,51 @@ const RDSBuilderPage = () => {
   const navigate = useNavigate();
   const { mainSiteSlug } = useParams();
   const [activeTab, setActiveTab] = useState('outputs');
+  const [stations, setStations] = useState([]);
+  const [loadingStations, setLoadingStations] = useState(true);
   
   // Helper for context-aware navigation
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
+
+  // Fetch stations dynamically
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        // First get main site ID from slug
+        const siteRes = await fetch(`${API}/main-sites/by-slug/${mainSiteSlug}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!siteRes.ok) return;
+        const siteData = await siteRes.json();
+        const mainSiteId = siteData.id;
+
+        // Fetch stations
+        const stRes = await fetch(`${API}/rds-stations/${mainSiteId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (stRes.ok) {
+          const stData = await stRes.json();
+          setStations(stData.stations || []);
+        }
+      } catch (e) {
+        console.error('Failed to load stations:', e);
+      } finally {
+        setLoadingStations(false);
+      }
+    };
+    if (mainSiteSlug) fetchStations();
+  }, [mainSiteSlug]);
+
+  // Map station color hex to tailwind color name for components
+  const getColorName = (hexColor) => {
+    const map = {
+      '#f97316': 'orange', '#8b5cf6': 'violet', '#3b82f6': 'blue',
+      '#10b981': 'emerald', '#ef4444': 'red', '#ec4899': 'pink',
+      '#06b6d4': 'cyan', '#eab308': 'yellow',
+    };
+    return map[hexColor] || 'orange';
+  };
 
   return (
     <div data-testid="rds-builder-page">
@@ -650,67 +692,95 @@ const RDSBuilderPage = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        <button
-          onClick={() => setActiveTab('outputs')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'outputs'
-              ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-              : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
-          }`}
-        >
-          📡 Multi-Output (Streaming, DAB, FM)
-        </button>
-        <button
-          onClick={() => setActiveTab('legacy')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === 'legacy'
-              ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-              : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
-          }`}
-        >
-          🔄 Sequence Builder (Legacy)
-        </button>
-      </div>
-
-      {activeTab === 'outputs' ? (
-        <>
-          {/* Info banner */}
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
-            <p className="text-blue-400 text-sm">
-              <strong>Multi-Output Mode:</strong> Create different outputs for Streaming, DAB+, FM, etc. 
-              For each output, you can select which items to show (Show Name, Now Playing, Custom Text) with custom durations.
-            </p>
-          </div>
-
-          {/* Scheduled Texts Section */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-            <ScheduledTextsManager station="mfy" stationName="Radio MFY" color="orange" navTo={navTo} />
-            <ScheduledTextsManager station="grk" stationName="Radio GRK" color="violet" navTo={navTo} />
-          </div>
-
-          {/* Output Managers */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <RDSOutputManager station="mfy" stationName="Radio MFY" color="orange" />
-            <RDSOutputManager station="grk" stationName="Radio GRK" color="violet" />
-          </div>
-        </>
+      {loadingStations ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
+        </div>
+      ) : stations.length === 0 ? (
+        <div className="text-center py-20 space-y-3">
+          <Radio className="w-10 h-10 text-zinc-300 mx-auto" />
+          <p className="text-zinc-500 text-sm">No stations configured yet.</p>
+          <p className="text-zinc-400 text-xs">Go to site settings to add RDS stations.</p>
+        </div>
       ) : (
         <>
-          {/* Info banner */}
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
-            <p className="text-yellow-400 text-sm">
-              <strong>Legacy Sequence Builder:</strong> The old way to create RDS sequences. 
-              Use Multi-Output for more flexibility with different outputs.
-            </p>
+          {/* Tabs */}
+          <div className="flex gap-2 mb-6">
+            <button
+              onClick={() => setActiveTab('outputs')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'outputs'
+                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                  : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
+              }`}
+            >
+              Multi-Output (Streaming, DAB, FM)
+            </button>
+            <button
+              onClick={() => setActiveTab('legacy')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'legacy'
+                  ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                  : 'bg-zinc-100 text-zinc-500 border border-zinc-200 hover:text-zinc-900'
+              }`}
+            >
+              Sequence Builder (Legacy)
+            </button>
           </div>
 
-          {/* Station Builders */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <StationBuilder station="mfy" stationName="Radio MFY" color="orange" />
-            <StationBuilder station="grk" stationName="Radio GRK" color="violet" />
-          </div>
+          {activeTab === 'outputs' ? (
+            <>
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                <p className="text-blue-400 text-sm">
+                  <strong>Multi-Output Mode:</strong> Create different outputs for Streaming, DAB+, FM, etc. 
+                  For each output, you can select which items to show (Show Name, Now Playing, Custom Text) with custom durations.
+                </p>
+              </div>
+
+              <div className={`grid grid-cols-1 ${stations.length > 1 ? 'xl:grid-cols-2' : ''} gap-6 mb-6`}>
+                {stations.map((st) => (
+                  <ScheduledTextsManager
+                    key={st.code}
+                    station={st.code}
+                    stationName={st.name}
+                    color={getColorName(st.color)}
+                    navTo={navTo}
+                  />
+                ))}
+              </div>
+
+              <div className={`grid grid-cols-1 ${stations.length > 1 ? 'xl:grid-cols-2' : ''} gap-6`}>
+                {stations.map((st) => (
+                  <RDSOutputManager
+                    key={st.code}
+                    station={st.code}
+                    stationName={st.name}
+                    color={getColorName(st.color)}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                <p className="text-yellow-400 text-sm">
+                  <strong>Legacy Sequence Builder:</strong> The old way to create RDS sequences. 
+                  Use Multi-Output for more flexibility with different outputs.
+                </p>
+              </div>
+
+              <div className={`grid grid-cols-1 ${stations.length > 1 ? 'xl:grid-cols-2' : ''} gap-6`}>
+                {stations.map((st) => (
+                  <StationBuilder
+                    key={st.code}
+                    station={st.code}
+                    stationName={st.name}
+                    color={getColorName(st.color)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

@@ -6,16 +6,25 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import {
   Upload, Check, ChevronRight, Globe, Users, CreditCard,
-  Shield, UserPlus, Trash2, Crown, Pencil, Eye, Mic, Sparkles
+  Shield, UserPlus, Trash2, Crown, Pencil, Eye, Mic, Sparkles,
+  Plus, Music
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-const STEPS = [
+const BASE_STEPS = [
   { id: 'general', label: 'General', icon: Globe },
+  { id: 'stations', label: 'Stations', icon: Music },
   { id: 'license', label: 'License', icon: CreditCard },
   { id: 'admin', label: 'Admin', icon: Users },
+];
+
+const STATION_COLORS = ['#f97316', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#eab308'];
+const STREAM_TYPES = [
+  { value: 'shoutcast_v1', label: 'Shoutcast v1' },
+  { value: 'shoutcast_v2', label: 'Shoutcast v2' },
+  { value: 'icecast', label: 'Icecast' },
 ];
 
 const ROLE_OPTIONS = [
@@ -50,6 +59,13 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const [availableUsers, setAvailableUsers] = useState([]);
   const [addUserId, setAddUserId] = useState('');
   const [addRole, setAddRole] = useState('editor');
+
+  // RDS Stations
+  const [rdsStations, setRdsStations] = useState([]);
+  const [stationsSaving, setStationsSaving] = useState(false);
+
+  const isRadioType = site?.site_type === 'radio';
+  const STEPS = BASE_STEPS.filter(s => s.id !== 'stations' || isRadioType);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -94,10 +110,23 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     } catch (e) { console.error(e); }
   }, [site?.id, token]);
 
+  const loadStations = useCallback(async () => {
+    if (!site?.id) return;
+    try {
+      const res = await fetch(`${API}/api/rds-stations/${site.id}`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setRdsStations(data.stations || []);
+      }
+    } catch (e) { console.error(e); }
+  }, [site?.id, token]);
+
   useEffect(() => {
-    if (step === 1 && open) loadLicenseData();
-    if (step === 2 && open) loadUserData();
-  }, [step, open, loadLicenseData, loadUserData]);
+    const stepId = STEPS[step]?.id;
+    if (stepId === 'license' && open) loadLicenseData();
+    if (stepId === 'admin' && open) loadUserData();
+    if (stepId === 'stations' && open) loadStations();
+  }, [step, open, loadLicenseData, loadUserData, loadStations, STEPS]);
 
   // Handlers
   const handleSaveGeneral = async () => {
@@ -180,9 +209,44 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     } catch (e) { console.error(e); }
   };
 
+  const addStation = () => {
+    const idx = rdsStations.length;
+    setRdsStations(prev => [...prev, {
+      name: '', code: '', stream_url: '', stream_type: 'shoutcast_v1',
+      default_text: '', color: STATION_COLORS[idx % STATION_COLORS.length], order: idx,
+    }]);
+  };
+
+  const updateStation = (index, field, value) => {
+    setRdsStations(prev => prev.map((s, i) => {
+      if (i !== index) return s;
+      const updated = { ...s, [field]: value };
+      if (field === 'name') {
+        updated.code = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 20);
+      }
+      return updated;
+    }));
+  };
+
+  const removeStation = (index) => {
+    setRdsStations(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSaveStations = async () => {
+    setStationsSaving(true);
+    try {
+      await fetch(`${API}/api/rds-stations/${site.id}/bulk-sync`, {
+        method: 'PUT', headers, body: JSON.stringify({ stations: rdsStations }),
+      });
+      await loadStations();
+    } catch (e) { console.error(e); }
+    setStationsSaving(false);
+  };
+
   if (!site) return null;
 
   const logoSrc = logoUrl?.startsWith('/') ? `${API}${logoUrl}` : logoUrl;
+  const currentStepId = STEPS[step]?.id;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose?.()}>
@@ -211,7 +275,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
         {/* Step content */}
         <AnimatePresence mode="wait">
           {/* Step 0: General */}
-          {step === 0 && (
+          {currentStepId === 'general' && (
             <motion.div key="general" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-5">
               <div>
                 <h3 className="text-lg font-bold text-zinc-900">General Settings</h3>
@@ -294,15 +358,92 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                 <Button onClick={handleSaveGeneral} disabled={saving || !name} className="flex-1" data-testid="save-general-btn">
                   {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
-                <Button variant="outline" onClick={() => setStep(1)} className="gap-1">
+                <Button variant="outline" onClick={() => setStep(s => s + 1)} className="gap-1">
                   Next <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* Step 1: License */}
-          {step === 1 && (
+          {/* Step: Stations (radio only) */}
+          {currentStepId === 'stations' && (
+            <motion.div key="stations" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900">RDS Stations</h3>
+                <p className="text-sm text-zinc-500 mt-0.5">Configure the radio stations and their stream connections.</p>
+              </div>
+
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                {rdsStations.map((station, idx) => (
+                  <div key={station.id || idx} className="border border-zinc-200 rounded-xl p-3 space-y-2.5 bg-white" data-testid={`edit-station-card-${idx}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: station.color }} />
+                        <span className="text-sm font-semibold text-zinc-700">{station.name || `Station ${idx + 1}`}</span>
+                        {station.code && <span className="text-[11px] font-mono text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">{station.code}</span>}
+                      </div>
+                      <button onClick={() => removeStation(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors" data-testid={`edit-remove-station-${idx}`}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Name</Label>
+                        <Input value={station.name} onChange={(e) => updateStation(idx, 'name', e.target.value)} placeholder="e.g. Radio MFY" className="h-8 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid={`edit-station-name-${idx}`} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Stream Type</Label>
+                        <select value={station.stream_type} onChange={(e) => updateStation(idx, 'stream_type', e.target.value)} className="w-full h-8 bg-zinc-50 border border-zinc-200 rounded-lg text-sm px-2 text-zinc-700" data-testid={`edit-station-type-${idx}`}>
+                          {STREAM_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Stream URL</Label>
+                      <Input value={station.stream_url} onChange={(e) => updateStation(idx, 'stream_url', e.target.value)} placeholder="http://stream.example.com:9010/stats?sid=1" className="h-8 bg-zinc-50 border-zinc-200 rounded-lg text-sm font-mono" data-testid={`edit-station-url-${idx}`} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Default Text</Label>
+                        <Input value={station.default_text} onChange={(e) => updateStation(idx, 'default_text', e.target.value)} placeholder="e.g. altijd dichtbij" className="h-8 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid={`edit-station-default-${idx}`} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Color</Label>
+                        <div className="flex items-center gap-1 h-8">
+                          {STATION_COLORS.map(c => (
+                            <button key={c} onClick={() => updateStation(idx, 'color', c)}
+                              className={`w-5 h-5 rounded-full transition-all ${station.color === c ? 'ring-2 ring-offset-1 ring-zinc-900 scale-110' : 'hover:scale-110'}`}
+                              style={{ backgroundColor: c }} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button onClick={addStation} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-zinc-300 text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 transition-colors" data-testid="edit-add-station-btn">
+                <Plus className="w-4 h-4" />
+                <span className="text-sm font-medium">Add Station</span>
+              </button>
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => setStep(s => s - 1)} className="flex-1">Back</Button>
+                <Button onClick={handleSaveStations} disabled={stationsSaving} className="flex-1" data-testid="save-stations-btn">
+                  {stationsSaving ? 'Saving...' : 'Save Stations'}
+                </Button>
+                <Button variant="outline" onClick={() => setStep(s => s + 1)} className="gap-1">
+                  Next <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Step: License */}
+          {currentStepId === 'license' && (
             <motion.div key="license" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-5">
               <div>
                 <h3 className="text-lg font-bold text-zinc-900">License</h3>
@@ -363,19 +504,19 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
               )}
 
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" onClick={() => setStep(0)} className="flex-1">Back</Button>
+                <Button variant="outline" onClick={() => setStep(s => s - 1)} className="flex-1">Back</Button>
                 <Button onClick={handleAssignLicense} disabled={saving || !selectedPackageId} className="flex-1" data-testid="save-license-btn">
                   {saving ? 'Saving...' : 'Save License'}
                 </Button>
-                <Button variant="outline" onClick={() => setStep(2)} className="gap-1">
+                <Button variant="outline" onClick={() => setStep(s => s + 1)} className="gap-1">
                   Next <ChevronRight className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* Step 2: Admin */}
-          {step === 2 && (
+          {/* Step: Admin */}
+          {currentStepId === 'admin' && (
             <motion.div key="admin" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-5">
               <div>
                 <h3 className="text-lg font-bold text-zinc-900">Team & Admin</h3>
@@ -444,7 +585,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">Back</Button>
+                <Button variant="outline" onClick={() => setStep(s => s - 1)} className="flex-1">Back</Button>
                 <Button onClick={() => onClose?.()} className="flex-1" data-testid="edit-done-btn">Done</Button>
               </div>
             </motion.div>
