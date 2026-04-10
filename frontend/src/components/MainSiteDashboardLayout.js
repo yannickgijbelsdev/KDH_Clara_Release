@@ -10,13 +10,10 @@ import { DevToolsProvider } from '../context/DevToolsContext';
 import DevToolsPanel from './DevTools/DevToolsPanel';
 import usePageTitle from '../hooks/usePageTitle';
 import DevToolsInspector from './DevTools/DevToolsInspector';
-import HelpButton from './Tickets/HelpButton';
 import ClaraCLI from './ClaraCLI';
 import ClaraAssistant from './ClaraAssistant';
 import VoiceCallWidget from './VoiceCallWidget';
 import LicenseBlockedOverlay from './LicenseBlockedOverlay';
-import UserTicketsPanel from './UserTicketsPanel';
-import TicketUpdatePopup from './TicketUpdatePopup';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
 // ClaraAssistantProvider is now at the App root level
 import { 
@@ -24,7 +21,7 @@ import {
   FileText, Globe, MessageSquare, File, Mic, Menu, X, Sliders, Home, 
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
-  ArrowLeft, Send, Palette, Network, Activity, LifeBuoy, Shield, Phone, Monitor,
+  ArrowLeft, Send, Palette, Network, Activity, Shield, Phone, Monitor,
   KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal
 } from 'lucide-react';
 import { Button } from './ui/button';
@@ -100,9 +97,7 @@ const FEATURE_NAV_ITEMS = {
   team_settings: { to: 'team', icon: Users, label: 'Team Settings', adminOnly: true },
   wordpress: { to: 'wordpress', icon: Globe, label: 'WordPress', adminOnly: true },
   activity_logs: { to: 'logs', icon: ScrollText, label: 'Activity Logs', adminOnly: true },
-  firewall: { to: 'firewall', icon: Shield, label: 'Firewall', adminOnly: true },
   call_studio: { to: 'call-studio', icon: Phone, label: 'Call Studio' },
-  support_tickets: { to: 'tickets', icon: LifeBuoy, label: 'Support Tickets' },
   zerotier: { to: 'zerotier', icon: Monitor, label: 'ZeroTier', adminOnly: true },
   radioplayer: { to: 'radioplayer', icon: RadioplayerIcon, label: 'Radioplayer', adminOnly: true },
   xml_imports: { to: 'xml-imports', icon: FileCode, label: 'XML Imports' },
@@ -154,7 +149,7 @@ const NAV_GROUPS = [
     id: 'admin',
     label: 'Administration',
     icon: Settings,
-    features: ['team_settings', 'wordpress', 'activity_logs', 'firewall', 'zerotier']
+    features: ['team_settings', 'wordpress', 'activity_logs', 'zerotier']
   },
   {
     id: 'server',
@@ -167,12 +162,6 @@ const NAV_GROUPS = [
     label: 'Tasks',
     icon: LayoutList,
     features: ['task_boards']
-  },
-  {
-    id: 'support',
-    label: 'Support',
-    icon: LifeBuoy,
-    features: ['support_tickets']
   },
 ];
 
@@ -253,12 +242,7 @@ const MainSiteDashboardContent = () => {
   const pillNavRef = useRef(null);
   const [visibleNavCount, setVisibleNavCount] = useState(4);
   const searchInputRef = useCallback(node => { if (node) node.focus(); }, []);
-  const [userTicketCount, setUserTicketCount] = useState(0);
-  const [ticketUpdates, setTicketUpdates] = useState([]);
-  const [showTicketPopup, setShowTicketPopup] = useState(false);
-  const [showUserTickets, setShowUserTickets] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
-  const [firewallActive, setFirewallActive] = useState(false);
   const { voiceCallRequested, clearVoiceCallRequest } = useClaraAssistant();
 
   // Handle voice call request from ClaraAssistant
@@ -324,26 +308,6 @@ const MainSiteDashboardContent = () => {
 
   // Close search on route change
   useEffect(() => { setSearchOpen(false); setSearchQuery(''); setSearchExpanded(false); }, [location.pathname]);
-
-  // Fetch user ticket counts and updates
-  useEffect(() => {
-    const fetchTicketData = async () => {
-      try {
-        const [countsRes, updatesRes] = await Promise.all([
-          axios.get(`${API}/api/support-tickets/counts`, { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get(`${API}/api/support-tickets/user-updates`, { headers: { Authorization: `Bearer ${token}` } }),
-        ]);
-        setUserTicketCount(countsRes.data.open || 0);
-        if (updatesRes.data.has_updates && updatesRes.data.tickets?.length > 0) {
-          setTicketUpdates(updatesRes.data.tickets);
-          setShowTicketPopup(true);
-        }
-      } catch {}
-    };
-    fetchTicketData();
-    const interval = setInterval(fetchTicketData, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Fetch firewall status for this site
   useEffect(() => {
@@ -570,7 +534,7 @@ const MainSiteDashboardContent = () => {
           if (!userIsAdmin && !canView(featureId)) return null;
           return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId };
         }).filter(Boolean);
-      const adminItems = ['team_settings', 'firewall', 'wordpress', 'activity_logs']
+      const adminItems = ['team_settings', 'wordpress', 'activity_logs']
         .filter(f => enabledFeatures.includes(f))
         .map(featureId => {
           const navItem = FEATURE_NAV_ITEMS[featureId];
@@ -581,8 +545,6 @@ const MainSiteDashboardContent = () => {
       const groups = [];
       if (contentItems.length > 0) groups.push({ id: 'content', label: 'Content', icon: FileText, items: contentItems });
       if (adminItems.length > 0) groups.push({ id: 'admin', label: 'Administration', icon: Settings, items: adminItems });
-      const supportItem = FEATURE_NAV_ITEMS['support_tickets'];
-      if (supportItem) groups.push({ id: 'support', label: 'Support', icon: LifeBuoy, items: [{ ...supportItem, to: `/${mainSiteSlug}/${supportItem.to}`, featureId: 'support_tickets' }] });
       return groups;
     }
 
@@ -596,7 +558,7 @@ const MainSiteDashboardContent = () => {
           return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId };
         })
         .filter(Boolean);
-      const adminItems = ['team_settings', 'firewall', 'activity_logs']
+      const adminItems = ['team_settings', 'activity_logs']
         .filter(f => enabledFeatures.includes(f))
         .map(featureId => {
           const navItem = FEATURE_NAV_ITEMS[featureId];
@@ -619,16 +581,6 @@ const MainSiteDashboardContent = () => {
           items: adminItems
         });
       }
-      // Always add support tickets
-      const supportItem = FEATURE_NAV_ITEMS['support_tickets'];
-      if (supportItem) {
-        groups.push({
-          id: 'support',
-          label: 'Support',
-          icon: LifeBuoy,
-          items: [{ ...supportItem, to: `/${mainSiteSlug}/${supportItem.to}`, featureId: 'support_tickets' }]
-        });
-      }
       return groups;
     }
 
@@ -649,24 +601,13 @@ const MainSiteDashboardContent = () => {
 
     
     const enabledFeatures = mainSite.enabled_features || [];
-    
-    // Features that are always available for admins (not dependent on enabled_features)
-    const alwaysAvailableForAdmin = ['firewall'];
-    
-    // Features always available for everyone (not dependent on enabled_features)
-    const alwaysAvailable = ['support_tickets'];
-    
+
     const groups = NAV_GROUPS.map(group => {
       // Server group is only for server site types
       if (group.id === 'server' && mainSite.site_type !== 'server') return null;
       
       const items = group.features
         .filter(featureId => {
-          // Always show support tickets for everyone
-          if (alwaysAvailable.includes(featureId)) return true;
-          // Always show certain features for admins
-          if (alwaysAvailableForAdmin.includes(featureId) && userIsAdmin) return true;
-          // Otherwise check enabled features
           return enabledFeatures.includes(featureId);
         })
         .map(featureId => {
@@ -1138,19 +1079,6 @@ const MainSiteDashboardContent = () => {
             )}
           </div>
 
-          {/* Support Ticket Icon */}
-          <button
-            onClick={() => setShowUserTickets(true)}
-            className="relative w-9 h-9 flex items-center justify-center rounded-full transition-colors flex-shrink-0"
-            data-testid="user-ticket-icon"
-          >
-            <span className="absolute inset-0 rounded-full bg-orange-400 animate-[glow-ring_3s_ease-out_infinite]" style={{ filter: 'blur(8px)' }} />
-            <span className="absolute inset-1 rounded-full bg-orange-500" />
-            <LifeBuoy className="w-4 h-4 text-white relative z-10" />
-            {userTicketCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold bg-white text-orange-600 rounded-full px-0.5 z-20 shadow-sm">{userTicketCount}</span>
-            )}
-          </button>
           {/* CLI Button */}
           {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && (
             <button
@@ -1475,12 +1403,6 @@ const MainSiteDashboardContent = () => {
     {isClone && <DevToolsPanel />}
     {isClone && <DevToolsInspector />}
     {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && <ClaraCLI triggerRef={cliTriggerRef} />}
-    <UserTicketsPanel open={showUserTickets} onClose={() => setShowUserTickets(false)} />
-    <TicketUpdatePopup
-      tickets={showTicketPopup ? ticketUpdates : []}
-      onClose={() => setShowTicketPopup(false)}
-      onOpenTicket={() => setShowUserTickets(true)}
-    />
     <ClaraAssistant />
     {mainSite?.clara_enterprise && (
       <VoiceCallWidget

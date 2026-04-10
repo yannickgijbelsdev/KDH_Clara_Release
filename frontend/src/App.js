@@ -42,8 +42,6 @@ import SiteDashboard from './pages/Sites/SiteDashboard';
 import PublicSitePage from './pages/Sites/PublicSitePage';
 import StatisticsPage from './pages/Network/StatisticsPage';
 import BackupManagementPage from './pages/Network/BackupManagementPage';
-import FirewallPage from './pages/Network/FirewallPage';
-import TicketsPage from './pages/Tickets/TicketsPage';
 import CallPage from './pages/CallPage';
 import PublicCallPage from './pages/PublicCallPage';
 import { JourneyProvider } from './context/JourneyContext';
@@ -246,9 +244,6 @@ const AppRoutes = () => {
         <Route path="streams" element={<StreamMonitorPage />} />
         <Route path="sites" element={<SitesListPage />} />
         <Route path="sites/:siteId" element={<SiteDashboard />} />
-        <Route path="tickets" element={<TicketsPage />} />
-        <Route path="tickets/:ticketId" element={<TicketsPage />} />
-        <Route path="firewall" element={<FirewallPage />} />
         <Route path="call-studio" element={<CallPage />} />
         <Route path="zerotier" element={<ZeroTierPage />} />
         <Route path="radioplayer" element={<RadioplayerPage />} />

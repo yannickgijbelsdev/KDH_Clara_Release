@@ -152,7 +152,13 @@ Multi-environment SaaS platform for radio station management built with React fr
   - "Enable All Firewalls" (partial protection, orange CTA + amber hint)
   - "Protected — Disable Firewall" (all protected, green with red hover)
 - Automatic `firewallStatus` refetch after toggle — rack badges update immediately
-- Tested: 100% backend (7/7), 100% frontend
+
+## Menu Cleanup (Apr 2026)
+- Removed old "Firewall" page from sidebar menu (all site types: radio, external_host, task_scheduler, server)
+- Removed old "Support Tickets" page from sidebar menu and header icon
+- Removed ticket polling useEffect (30s interval), UserTicketsPanel, TicketUpdatePopup components
+- Removed routes: `/:slug/tickets`, `/:slug/firewall` from App.js
+- Firewall is now managed exclusively via rack-level controls in ServerRackView
 
 ## Backlog
 ### P0
