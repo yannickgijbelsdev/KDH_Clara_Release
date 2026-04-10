@@ -419,7 +419,7 @@ const RDSMonitorPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F0F0F2] flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <RefreshCw className="w-8 h-8 text-zinc-400 animate-spin" />
       </div>
     );
@@ -428,7 +428,7 @@ const RDSMonitorPage = () => {
   const hasStaleCache = monitorData?.stations?.mfy?.cache_stale || monitorData?.stations?.grk?.cache_stale;
 
   return (
-    <div className="min-h-screen bg-[#F0F0F2] p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
