@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -17,12 +17,16 @@ const SITE_TYPE_CONFIG = {
 };
 
 const SERVERS_PER_RACK = 5;
+const RACK_GAP = 24;
+const MIN_RACK_W = 280;
+const MAX_RACK_W = 420;
+const ARROW_SPACE = 100;
 
 /* ════════════════════════════════════════════════════
    ISOMETRIC 3D SERVER RACK (Clara style)
    Each rack is an isometric room card
    ════════════════════════════════════════════════════ */
-const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
+const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320 }) => {
   const cfg0 = sites[0] ? (SITE_TYPE_CONFIG[sites[0].site_type] || SITE_TYPE_CONFIG.radio) : null;
   const accentColor = cfg0?.color || '#71717a';
 
@@ -34,7 +38,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
       transition={{ delay: rackIndex * 0.1 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className="cursor-pointer group relative flex-shrink-0"
-      style={{ width: 320 }}
+      style={{ width }}
     >
       {/* Card */}
       <div
@@ -46,7 +50,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
       >
         {/* Room image area */}
-        <div className="relative h-[210px] overflow-hidden bg-[#F0F0F2]">
+        <div className="relative overflow-hidden bg-[#F0F0F2]" style={{ height: Math.round(width * 0.656) }}>
           <img
             src="/images/env_server.jpg"
             alt=""
@@ -139,7 +143,20 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
 export default function ServerRackView({ sites, onCreateSite, onEditSite, onDeleteSite, environments, selectedEnvId, user }) {
   const [selectedRack, setSelectedRack] = useState(null);
   const [carouselPage, setCarouselPage] = useState(0);
-  const VISIBLE_RACKS = 3;
+
+  /* ── Dynamic sizing: measure container & compute visible rack count + width ── */
+  const rackAreaRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const el = rackAreaRef.current;
+    if (!el) return;
+    const update = () => setContainerWidth(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(() => update());
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const envName = environments?.find(e => e.id === selectedEnvId)?.name || 'Production';
 
@@ -152,8 +169,24 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
     return result;
   }, [sites]);
 
-  const maxPage = Math.max(0, racks.length - VISIBLE_RACKS);
-  const visibleRacks = racks.slice(carouselPage, carouselPage + VISIBLE_RACKS);
+  const visibleCount = useMemo(() => {
+    if (!containerWidth) return 3;
+    const usable = containerWidth - ARROW_SPACE;
+    const count = Math.floor((usable + RACK_GAP) / (MIN_RACK_W + RACK_GAP));
+    return Math.max(1, Math.min(count, racks.length));
+  }, [containerWidth, racks.length]);
+
+  const rackWidth = useMemo(() => {
+    if (!containerWidth) return 320;
+    const usable = containerWidth - ARROW_SPACE;
+    const totalGap = (visibleCount - 1) * RACK_GAP;
+    const w = Math.floor((usable - totalGap) / visibleCount);
+    return Math.min(MAX_RACK_W, Math.max(MIN_RACK_W, w));
+  }, [containerWidth, visibleCount]);
+
+  const maxPage = Math.max(0, racks.length - visibleCount);
+  const safeCarouselPage = Math.min(carouselPage, maxPage);
+  const visibleRacks = racks.slice(safeCarouselPage, safeCarouselPage + visibleCount);
 
   const totalUsers = sites.reduce((sum, s) => sum + (s.user_count || 0), 0);
   const selectedRackSites = selectedRack !== null ? (racks[selectedRack] || []) : [];
@@ -209,10 +242,10 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
         </div>
 
         {/* ── Center: THE RACK SCENE ── */}
-        <div className="flex-1 flex items-center justify-center relative">
+        <div ref={rackAreaRef} className="flex-1 flex items-center justify-center relative">
 
           {/* Carousel prev arrow */}
-          {carouselPage > 0 && (
+          {safeCarouselPage > 0 && (
             <button
               onClick={() => setCarouselPage(p => Math.max(0, p - 1))}
               className="absolute left-2 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg border border-black/[0.06] flex items-center justify-center hover:bg-white transition-colors"
@@ -240,6 +273,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                       sites={rackSites}
                       isSelected={selectedRack === actualIndex}
                       onClick={() => setSelectedRack(selectedRack === actualIndex ? null : actualIndex)}
+                      width={rackWidth}
                     />
                   </motion.div>
                 );
@@ -248,7 +282,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
           </div>
 
           {/* Carousel next arrow */}
-          {carouselPage < maxPage && (
+          {safeCarouselPage < maxPage && (
             <button
               onClick={() => setCarouselPage(p => Math.min(maxPage, p + 1))}
               className="absolute right-2 z-20 w-10 h-10 rounded-full bg-white/90 shadow-lg border border-black/[0.06] flex items-center justify-center hover:bg-white transition-colors"
@@ -259,7 +293,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
           )}
 
           {/* Carousel dots */}
-          {racks.length > VISIBLE_RACKS && (
+          {racks.length > visibleCount && (
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20">
               {Array.from({ length: maxPage + 1 }).map((_, i) => (
                 <button

@@ -93,6 +93,12 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Uses GPT-5.2 via Emergent LLM Key for diagnosis
 - Health banner appears in top-right corner after login with dismiss button
 
+## Server Rack Dynamic Scaling (Apr 2026)
+- Fixed ServerRackView.js to dynamically scale racks based on screen width
+- Replaced hardcoded `width: 320px` and `VISIBLE_RACKS = 3` with ResizeObserver-based dynamic sizing
+- Racks now auto-calculate: visible count (1-N based on viewport), card width (280-420px range), proportional image height
+- Ultra-wide screens show 5+ racks; smaller screens gracefully degrade to fewer racks
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)
