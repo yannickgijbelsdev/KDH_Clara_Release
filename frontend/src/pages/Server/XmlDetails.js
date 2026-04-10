@@ -80,7 +80,7 @@ export default function XmlDetails() {
   ].filter(Boolean);
 
   return (
-    <div className="space-y-6 max-w-3xl" data-testid="xml-details-page">
+    <div className="space-y-6" data-testid="xml-details-page">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

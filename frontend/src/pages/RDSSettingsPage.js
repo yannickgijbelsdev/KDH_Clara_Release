@@ -218,7 +218,7 @@ const RDSSettingsPage = () => {
   }
 
   return (
-    <div data-testid="rds-settings-page" className="max-w-4xl mx-auto">
+    <div data-testid="rds-settings-page">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">

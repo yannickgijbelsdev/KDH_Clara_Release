@@ -302,7 +302,7 @@ const ZeroTierPage = () => {
   const isConfigured = config?.network_id && config?.api_token_masked;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto" data-testid="zerotier-page">
+    <div className="p-6" data-testid="zerotier-page">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

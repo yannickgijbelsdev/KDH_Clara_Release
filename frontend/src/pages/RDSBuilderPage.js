@@ -620,7 +620,7 @@ const RDSBuilderPage = () => {
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
   return (
-    <div data-testid="rds-builder-page" className="max-w-6xl mx-auto">
+    <div data-testid="rds-builder-page">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

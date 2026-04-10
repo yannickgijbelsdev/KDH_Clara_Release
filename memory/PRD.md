@@ -64,12 +64,17 @@ Multi-environment SaaS platform for radio station management built with React fr
   - Dynamic step indicator: Features step only appears for site types with optional features
   - Selected features are included in `enabled_features` on site creation
 
+## UI Consistency (Apr 2026)
+- Standardized all page widths inside CanvasPanel to match Content Library (full-width)
+- Removed restrictive `max-w-*` classes from: RDSBuilderPage, RDSSettingsPage, RDSMonitorPage, AudioTriggersPage, StreamMonitorPage, RadioplayerPage, WpSecurityPage, XmlUpload, XmlDetails, ZeroTierPage, TaskBoardsPage
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)
 ### P1
 - Calendar Integration (Google Calendar / Outlook) for Clara Tasks
 - WordPress Plugin Integration (clara-radio-schedule)
+- Radio Automation Phase 2 (Audio Engine + Cloud Playback)
 ### P2
 - Payment Gateway (Stripe/Mollie), Stream Monitor VU Meters
-- React Hook warnings, MainSiteDashboardLayout refactoring
+- React Hook warnings (45+ files, mostly `headers` dep), MainSiteDashboardLayout refactoring

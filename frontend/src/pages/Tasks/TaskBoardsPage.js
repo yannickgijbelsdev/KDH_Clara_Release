@@ -56,7 +56,7 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900">Task Boards</h1>

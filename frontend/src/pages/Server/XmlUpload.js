@@ -55,7 +55,7 @@ export default function XmlUpload() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl" data-testid="xml-upload-page">
+    <div className="space-y-6" data-testid="xml-upload-page">
       <div className="flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1.5 rounded hover:bg-zinc-100 text-zinc-400 hover:text-zinc-700">
           <ArrowLeft className="w-5 h-5" />

@@ -260,7 +260,7 @@ export default function WpSecurityPage() {
   if (loading) return <div className="flex items-center justify-center h-64 text-zinc-500"><Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading security config...</div>;
 
   return (
-    <div className="space-y-4 max-w-4xl" data-testid="wp-security-page">
+    <div className="space-y-4" data-testid="wp-security-page">
       <div>
         <h2 className="text-lg font-semibold text-zinc-100 flex items-center gap-2"><Shield className="w-5 h-5 text-red-400" /> WordPress Security</h2>
         <p className="text-xs text-zinc-500">Firewall, WAF rules, IP blocklist & brute force protection</p>

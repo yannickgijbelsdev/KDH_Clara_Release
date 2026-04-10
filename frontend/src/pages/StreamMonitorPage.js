@@ -389,7 +389,7 @@ const StreamPlayer = ({ stream }) => {
 // Main Page Component
 const StreamMonitorPage = () => {
   return (
-    <div data-testid="stream-monitor-page" className="max-w-6xl mx-auto">
+    <div data-testid="stream-monitor-page">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="p-2 bg-green-500/20 rounded-lg">

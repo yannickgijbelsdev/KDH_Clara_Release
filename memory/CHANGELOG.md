@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-04-10 — Fork Session: UI Width Standardization
+
+### UI Consistency: Page Width Unification
+- Removed `max-w-6xl mx-auto` from RDSBuilderPage.js
+- Removed `max-w-4xl mx-auto` from RDSSettingsPage.js
+- Removed `max-w-7xl mx-auto` from RDSMonitorPage.js
+- Removed `max-w-6xl mx-auto` from AudioTriggersPage.js
+- Removed `max-w-6xl mx-auto` from StreamMonitorPage.js
+- Removed `max-w-4xl mx-auto` from RadioplayerPage.js
+- Removed `max-w-4xl` from WpSecurityPage.js
+- Removed `max-w-2xl` from XmlUpload.js
+- Removed `max-w-3xl` from XmlDetails.js
+- Removed `max-w-7xl mx-auto` from ZeroTierPage.js
+- Removed `max-w-5xl mx-auto` from TaskBoardsPage.js
+- All pages now use full CanvasPanel width, consistent with Content Library
+
 ## 2026-04-08 — Fork Session: ElevenLabs Voice, 3D Images & S3 Migration
 
 ### New Feature: Clara Voice Support (ElevenLabs Conversational AI)
