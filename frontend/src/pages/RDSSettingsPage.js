@@ -359,8 +359,8 @@ const RDSSettingsPage = () => {
           return (
             <div key={station} className="mb-6 last:mb-0">
               <h3 className={`text-sm font-semibold mb-3 ${
-                stationColor === 'orange' ? 'text-orange-400' : 
-                stationColor === 'violet' ? 'text-violet-400' : 'text-zinc-400'
+                stationColor === 'orange' ? 'text-orange-600' : 
+                stationColor === 'violet' ? 'text-violet-600' : 'text-zinc-600'
               }`}>
                 {stationName}
               </h3>
@@ -377,15 +377,12 @@ const RDSSettingsPage = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="text-zinc-700 text-sm font-medium">{endpoint.name.replace(`${station.toUpperCase()} - `, '').replace('Alle Stations - ', '').replace('All Stations - ', '')}</h4>
-                          <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs rounded-full">
+                          <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
                             Public
                           </span>
                         </div>
                         <p className="text-zinc-500 text-xs mb-2">{endpoint.description}</p>
-                        <code className={`text-xs bg-black/30 px-2 py-1 rounded font-mono break-all ${
-                          stationColor === 'orange' ? 'text-orange-400' : 
-                          stationColor === 'violet' ? 'text-violet-400' : 'text-zinc-400'
-                        }`}>
+                        <code className="text-xs bg-zinc-100 text-zinc-700 px-2 py-1 rounded font-mono break-all">
                           {endpoint.full_url}
                         </code>
                       </div>
