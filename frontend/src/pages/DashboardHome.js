@@ -101,8 +101,8 @@ export default function DashboardHome() {
     return () => clearInterval(timer);
   }, []);
 
-  const hours = now.getHours();
-  const greeting = hours < 12 ? 'Good morning' : hours < 18 ? 'Good afternoon' : 'Good evening';
+  const brusselsHours = Number(now.toLocaleString('en-US', { timeZone: 'Europe/Brussels', hour: 'numeric', hour12: false }));
+  const greeting = brusselsHours < 4 ? 'Good night' : brusselsHours < 12 ? 'Good morning' : brusselsHours < 18 ? 'Good afternoon' : 'Good evening';
 
   const navItems = [];
   if (!isRadio) {
