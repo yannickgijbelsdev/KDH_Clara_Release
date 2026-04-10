@@ -86,6 +86,13 @@ Multi-environment SaaS platform for radio station management built with React fr
 - External Host flow: Environment → Details → WordPress → Admin → Security → Deploying
 - Other types: no WordPress or Stations steps
 
+## Clara Test Agent (Apr 2026)
+- AI-powered connection testing: Clara tests WordPress and RDS connections and explains issues
+- Automatic health scan: Clara scans all main sites on admin login, shows notification banner if issues found
+- Backend endpoints: POST /api/clara-test/test-wordpress, POST /api/clara-test/test-rds-stream, GET /api/clara-test/health-scan
+- Uses GPT-5.2 via Emergent LLM Key for diagnosis
+- Health banner appears in top-right corner after login with dismiss button
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)

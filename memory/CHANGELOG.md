@@ -34,6 +34,15 @@
 - External Host flow: Environment → Details → WordPress → Admin → Security → Deploying
 - Testing: 100% frontend — All pass
 
+### Clara Test Agent & Health Scan
+- NEW: `/app/backend/routers/clara_test_agent.py` — AI-powered connection testing (WP + RDS streams)
+- NEW: `/app/frontend/src/components/ClaraHealthBanner.js` — Auto health scan notification after admin login
+- MODIFIED: CreateMainSiteWizard.js — "Test Connection with Clara" button in WordPress step
+- MODIFIED: EditMainSiteWizard.js — Clara test buttons (zap icon) on WP sites and RDS stations
+- MODIFIED: App.js — Integrated ClaraHealthScanWrapper for automatic scanning
+- Uses GPT-5.2 via Emergent LLM Key (emergentintegrations LlmChat)
+- Testing: 100% backend (9/9), 100% frontend — All pass
+
 ## 2026-04-08 — Fork Session: ElevenLabs Voice, 3D Images & S3 Migration
 
 ### New Feature: Clara Voice Support (ElevenLabs Conversational AI)
