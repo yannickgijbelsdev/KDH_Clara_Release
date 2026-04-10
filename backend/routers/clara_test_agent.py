@@ -269,6 +269,7 @@ async def health_scan(
     for site in sites:
         site_id = site.get("id")
         site_name = site.get("name", "Unknown")
+        site_slug = site.get("slug", "")
         site_type = site.get("site_type", "")
 
         # Check WordPress connections
@@ -280,16 +281,20 @@ async def health_scan(
             for wp in wp_sites:
                 if not wp.get("app_password"):
                     checks.append({
-                        "site": site_name, "type": "wordpress",
+                        "site": site_name, "site_id": site_id, "site_slug": site_slug,
+                        "site_type": site_type, "type": "wordpress",
                         "target": wp.get("name", wp.get("wp_base_url", "")),
+                        "wp_base_url": wp.get("wp_base_url", ""),
                         "success": False, "error": "No application password configured",
                     })
                     continue
 
                 result = await _test_wp_connection(wp)
                 checks.append({
-                    "site": site_name, "type": "wordpress",
+                    "site": site_name, "site_id": site_id, "site_slug": site_slug,
+                    "site_type": site_type, "type": "wordpress",
                     "target": wp.get("name", wp.get("wp_base_url", "")),
+                    "wp_base_url": wp.get("wp_base_url", ""),
                     **result,
                 })
 
@@ -304,8 +309,10 @@ async def health_scan(
                     continue
                 result = await _test_rds_stream(st)
                 checks.append({
-                    "site": site_name, "type": "rds_stream",
-                    "target": f"{st.get('name', st.get('code', ''))} ({st.get('stream_url', '')})",
+                    "site": site_name, "site_id": site_id, "site_slug": site_slug,
+                    "site_type": site_type, "type": "rds_stream",
+                    "target": f"{st.get('name', st.get('code', ''))}",
+                    "stream_url": st.get("stream_url", ""),
                     **result,
                 })
 
@@ -339,3 +346,51 @@ Summarize the findings. If there are issues, list them with brief fixes. If all 
     diagnosis = await chat.send_message(UserMessage(text=prompt))
 
     return HealthScanResponse(has_issues=has_issues, diagnosis=diagnosis, checks=checks)
+
+
+@clara_test_router.post("/retest-check")
+async def retest_single_check(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Re-test a single WordPress or RDS connection and get Clara's updated diagnosis."""
+    if not EMERGENT_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    body = await request.json()
+    check_type = body.get("type", "")
+    site_name = body.get("site", "")
+
+    if check_type == "wordpress":
+        wp_base_url = body.get("wp_base_url", "")
+        if not wp_base_url:
+            return {"success": False, "diagnosis": "No WordPress URL available for re-test."}
+
+        wp_site = await db.wordpress_sites.find_one(
+            {"wp_base_url": {"$regex": f"^{wp_base_url.rstrip('/')}"}}, {"_id": 0}
+        )
+        if not wp_site or not wp_site.get("app_password"):
+            return {"success": False, "diagnosis": "WordPress connection not found or missing credentials. Please reconfigure the connection first."}
+
+        result = await _test_wp_connection(wp_site)
+        chat = _get_diagnose_chat()
+        prompt = f"""I re-tested the WordPress connection for "{site_name}" at {wp_base_url}.
+Results: {result}
+If successful, confirm briefly and congratulate. If failed, explain clearly what's wrong and the exact steps to fix it."""
+        diagnosis = await chat.send_message(UserMessage(text=prompt))
+        return {"success": result.get("success", False), "diagnosis": diagnosis, "raw_result": result}
+
+    elif check_type == "rds_stream":
+        stream_url = body.get("stream_url", "")
+        if not stream_url:
+            return {"success": False, "diagnosis": "No stream URL available for re-test."}
+
+        result = await _test_rds_stream({"stream_url": stream_url})
+        chat = _get_diagnose_chat()
+        prompt = f"""I re-tested the RDS stream for "{site_name}" at {stream_url}.
+Results: {result}
+If successful, confirm briefly and congratulate. If failed, explain clearly what's wrong and the exact steps to fix it."""
+        diagnosis = await chat.send_message(UserMessage(text=prompt))
+        return {"success": result.get("success", False), "diagnosis": diagnosis, "raw_result": result}
+
+    return {"success": False, "diagnosis": "Unknown check type."}
