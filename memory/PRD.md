@@ -121,6 +121,17 @@ Multi-environment SaaS platform for radio station management built with React fr
 - New backend endpoint: `GET /api/rds-stations/by-slug/{slug}`
 - Fixed Dutch text to English across RDS pages (testing agent also contributed fixes)
 
+## Dynamic Station Filtering Across Full Stack (Apr 2026)
+- Removed ALL remaining hardcoded MFY/GRK iteration loops from:
+  - `rds_builder.py`: monitor endpoint, force-refresh, check_live_shows_from_calendar, scheduled-texts-status
+  - `rds_builder_scheduler.py`: run_rds_builder_cycle, _background_full_refresh
+  - `rds_scheduler.py`: refresh_live_show_cache (for "both" station broadcast)
+  - `shoutcast.py`: ShoutcastScheduler._run_loop
+- Monitor endpoint now accepts `?stations=` query param for per-site filtering
+- Frontend RDSMonitorPage passes dynamic station codes to all API calls
+- RDSSchedulerPage station tabs now load dynamically from `/api/rds-stations/by-slug/{slug}`
+- New backend endpoint: `GET /api/rds-stations/by-slug/{slug}`
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)

@@ -594,8 +594,12 @@ async def process_rds_sequence(db, station: str):
 
 
 async def run_rds_builder_cycle(db):
-    """Run one cycle of the RDS builder for both stations."""
-    for station in ["mfy", "grk"]:
+    """Run one cycle of the RDS builder for all dynamic stations."""
+    # Get all station codes from DB
+    all_stations = await db.rds_stations.find({}, {"_id": 0, "code": 1}).to_list(100)
+    station_codes = [s["code"] for s in all_stations] if all_stations else ["mfy", "grk"]
+    
+    for station in station_codes:
         try:
             await process_rds_sequence(db, station)
         except Exception as e:
@@ -862,13 +866,17 @@ class RDSBuilderScheduler:
             now_brussels = datetime.now(BRUSSELS_TZ)
             timestamp = now_brussels.isoformat()
             
-            default_names = {"grk": "the feelgood station", "mfy": "altijd dichtbij"}
+            default_names = {}
+            all_st = await self.db.rds_stations.find({}, {"_id": 0, "code": 1, "default_text": 1}).to_list(100)
+            for st in all_st:
+                default_names[st["code"]] = st.get("default_text", st["code"])
+            station_codes = [s["code"] for s in all_st] if all_st else ["mfy", "grk"]
             
             # 1. Refresh the live show cache (deactivates ended shows)
             await run_scheduled_cache_refresh()
             
             # 2. For each station, check if builder output is stale
-            for station in ["mfy", "grk"]:
+            for station in station_codes:
                 # Check if there's actually a live show right now
                 has_active = await self.db.rds_cached_rundowns.find_one(
                     {"is_active": True, "rds_station": {"$in": [station, "both"]}},

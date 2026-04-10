@@ -214,7 +214,13 @@ async def check_live_shows_from_calendar():
     """
     now_brussels = datetime.now(BRUSSELS_TZ)
     
-    live_shows_by_station = {"mfy": None, "grk": None}
+    live_shows_by_station = {}
+    # Initialize with all dynamic station codes
+    all_st = await db.rds_stations.find({}, {"_id": 0, "code": 1}).to_list(100)
+    for st in all_st:
+        live_shows_by_station[st["code"]] = None
+    if not live_shows_by_station:
+        live_shows_by_station = {"mfy": None, "grk": None}
     
     # Shows are stored in Brussels time, so only check with Brussels time
     check_time = now_brussels
@@ -314,10 +320,11 @@ async def force_refresh_rds():
     now_brussels_dt = datetime.now(BRUSSELS_TZ)
     timestamp = now_brussels_dt.isoformat()
     
-    default_names = {
-        "grk": "the feelgood station",
-        "mfy": "altijd dichtbij"
-    }
+    default_names = {}
+    # Get dynamic default texts from station configs
+    all_st = await db.rds_stations.find({}, {"_id": 0, "code": 1, "default_text": 1}).to_list(100)
+    for st in all_st:
+        default_names[st["code"]] = st.get("default_text", st["code"])
     
     # STEP 1: NUCLEAR CLEAR — deactivate ALL cached rundowns unconditionally
     deactivated = await db.rds_cached_rundowns.update_many(
@@ -333,7 +340,8 @@ async def force_refresh_rds():
     live_shows = await check_live_shows_from_calendar()
     
     # STEP 4: For each station, rebuild the output from scratch
-    for station in ["mfy", "grk"]:
+    all_station_codes = [s["code"] for s in all_st] if all_st else ["mfy", "grk"]
+    for station in all_station_codes:
         live_show = live_shows.get(station)
         
         if live_show:
@@ -421,35 +429,49 @@ MONITOR_CACHE_TTL_SECONDS = 5
 
 
 @rds_builder_router.get("/monitor")
-async def get_rds_monitor_data():
-    """Public endpoint: Get real-time RDS monitoring data for all stations.
+async def get_rds_monitor_data(stations: str = None):
+    """Public endpoint: Get real-time RDS monitoring data.
     
-    Returns current output for both stations plus recent change history.
+    Accepts optional `stations` query param (comma-separated codes) to filter.
     No authentication required for monitoring displays.
     Uses 5-second cache to reduce CPU load from frequent polling.
-    
     ALL times are in Brussels timezone (Europe/Brussels).
     """
     global _monitor_cache
     
+    # Parse station codes from query param
+    station_codes = None
+    if stations:
+        station_codes = [s.strip().lower() for s in stations.split(",") if s.strip()]
+    
+    cache_key = ",".join(sorted(station_codes)) if station_codes else "__all__"
+    
     now_brussels_dt = now_brussels()
     
-    # Check if cached data is still valid
-    if (_monitor_cache["data"] is not None and 
-        _monitor_cache["timestamp"] is not None and
-        (now_brussels_dt - _monitor_cache["timestamp"]).total_seconds() < MONITOR_CACHE_TTL_SECONDS):
-        # Return cached data with updated timestamp display
-        cached = _monitor_cache["data"].copy()
+    # Check if cached data is still valid (per station set)
+    cached_entry = _monitor_cache.get("data") if isinstance(_monitor_cache, dict) else None
+    cached_cache_key = _monitor_cache.get("cache_key") if isinstance(_monitor_cache, dict) else None
+    cached_ts = _monitor_cache.get("timestamp") if isinstance(_monitor_cache, dict) else None
+    
+    if (cached_entry is not None and cached_cache_key == cache_key and
+        cached_ts is not None and
+        (now_brussels_dt - cached_ts).total_seconds() < MONITOR_CACHE_TTL_SECONDS):
+        cached = cached_entry.copy()
         cached["timestamp"] = now_brussels_dt.isoformat()
         cached["timestamp_formatted"] = now_brussels_dt.strftime("%H:%M:%S")
         cached["cached"] = True
         return cached
     
-    # Generate fresh data
+    # Determine which stations to query
+    if station_codes:
+        query_stations = station_codes
+    else:
+        all_st = await db.rds_stations.find({}, {"_id": 0, "code": 1}).to_list(100)
+        query_stations = [s["code"] for s in all_st] if all_st else ["mfy", "grk"]
     
-    # Get current outputs for both stations
+    # Generate fresh data
     stations_data = {}
-    for station in ["mfy", "grk"]:
+    for station in query_stations:
         output = await db.rds_builder_output.find_one(
             {"station": station},
             {"_id": 0}
@@ -534,9 +556,12 @@ async def get_rds_monitor_data():
             }
         }
     
-    # Get recent RDS output history (last 50 changes)
+    # Get recent RDS output history (last 50 changes), filtered by station
+    history_filter = {}
+    if station_codes:
+        history_filter["station"] = {"$in": station_codes}
     history = await db.rds_output_history.find(
-        {},
+        history_filter,
         {"_id": 0}
     ).sort("timestamp", -1).limit(50).to_list(50)
     
@@ -545,7 +570,7 @@ async def get_rds_monitor_data():
     
     # Get next scheduled texts for each station
     scheduled_texts_info = {}
-    for station in ["mfy", "grk"]:
+    for station in query_stations:
         texts = await db.rds_scheduled_texts.find(
             {"$or": [{"station": station}, {"station": "both"}], "enabled": True},
             {"_id": 0}
@@ -608,7 +633,7 @@ async def get_rds_monitor_data():
         }
     
     # Add calendar check data to each station
-    for station in ["mfy", "grk"]:
+    for station in query_stations:
         calendar_show = calendar_live_shows.get(station)
         stations_data[station]["calendar_live_show"] = calendar_show
         stations_data[station]["next_scheduled_text"] = scheduled_texts_info[station]["next"]
@@ -639,6 +664,7 @@ async def get_rds_monitor_data():
     # Store in cache
     _monitor_cache["data"] = response_data
     _monitor_cache["timestamp"] = now_brussels_dt
+    _monitor_cache["cache_key"] = cache_key
     
     return response_data
 
@@ -657,7 +683,7 @@ async def get_rds_output_history(
     limit = min(limit, 500)
     
     query = {}
-    if station and station in ["mfy", "grk"]:
+    if station:
         query["station"] = station
     
     history = await db.rds_output_history.find(
@@ -669,21 +695,25 @@ async def get_rds_output_history(
 
 
 @rds_builder_router.get("/scheduled-texts-status")
-async def get_scheduled_texts_status():
-    """Get the current status of scheduled texts for all stations.
-    
-    Returns active scheduled text (if any) and next upcoming scheduled text for each station.
-    This is used by the RDS Monitor to show scheduled text status.
-    
+async def get_scheduled_texts_status(stations: str = None):
+    """Get the current status of scheduled texts.
+    Accepts optional `stations` query param (comma-separated codes).
     ALL times are in Brussels timezone (Europe/Brussels).
     """
     from services.rds_builder_scheduler import get_active_scheduled_text_for_station
     
     now_bru = now_brussels()
     
+    # Determine which stations to query
+    if stations:
+        query_stations = [s.strip().lower() for s in stations.split(",") if s.strip()]
+    else:
+        all_st = await db.rds_stations.find({}, {"_id": 0, "code": 1}).to_list(100)
+        query_stations = [s["code"] for s in all_st] if all_st else ["mfy", "grk"]
+    
     result = {}
     
-    for station in ["mfy", "grk"]:
+    for station in query_stations:
         # Get currently active scheduled text
         active = await get_active_scheduled_text_for_station(db, station)
         

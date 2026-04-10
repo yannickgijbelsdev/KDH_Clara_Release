@@ -498,11 +498,14 @@ class ShoutcastScheduler:
         logger.info("Shoutcast scheduler stopped")
     
     async def _run_loop(self):
-        """Main loop that fetches now playing data."""
+        """Main loop that fetches now playing data for all dynamic stations."""
         while self.running:
             try:
-                # Fetch now playing for both stations
-                for station in ["mfy", "grk"]:
+                # Fetch station codes from DB
+                all_st = await self.db.rds_stations.find({}, {"_id": 0, "code": 1}).to_list(100)
+                station_codes = [s["code"] for s in all_st] if all_st else ["mfy", "grk"]
+                
+                for station in station_codes:
                     await cache_now_playing(self.db, station)
                 
                 await asyncio.sleep(self.check_interval)

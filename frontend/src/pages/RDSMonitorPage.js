@@ -356,9 +356,11 @@ const RDSMonitorPage = () => {
     abortRef.current = controller;
 
     try {
-      const response = await axios.get(`${API}/rds-builder/monitor`, {
+      const stCodes = stationCodesRef.current;
+      const stationsParam = stCodes.length > 0 ? `?stations=${stCodes.join(',')}` : '';
+      const response = await axios.get(`${API}/rds-builder/monitor${stationsParam}`, {
         signal: controller.signal,
-        timeout: 8000, // 8s timeout to prevent hanging requests
+        timeout: 8000,
       });
       setMonitorData(response.data);
       setLastUpdate(new Date());

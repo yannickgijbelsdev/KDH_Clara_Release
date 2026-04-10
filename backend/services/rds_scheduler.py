@@ -196,8 +196,10 @@ async def refresh_live_show_cache(team_id: str = None) -> dict:
             
             # Determine which station slots to fill
             if rds_station == "both":
-                # Show is for both stations: create/update entries for both mfy and grk
-                for st in ["mfy", "grk"]:
+                # Show is for all stations: create/update entries for each
+                all_st = await db.rds_stations.find({}, {"_id": 0, "code": 1}).to_list(100)
+                target_stations = [s["code"] for s in all_st] if all_st else ["mfy", "grk"]
+                for st in target_stations:
                     station_data = {**cached_data, "rds_station": st}
                     await db.rds_cached_rundowns.update_one(
                         {"team_id": show_team_id, "rds_station": st},
