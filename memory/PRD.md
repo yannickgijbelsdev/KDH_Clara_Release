@@ -145,6 +145,15 @@ Multi-environment SaaS platform for radio station management built with React fr
 - MainSiteDashboardLayout header shows "Clara Global Protect" text badge only when firewall is active for that site
 - Firewall status conditional on `firewall_settings.enabled = true` per site
 
+## Rack-Level Firewall Activation (Apr 2026)
+- New `POST /api/firewall/enable-rack` endpoint: accepts `{site_ids: [...], enabled: bool}`, bulk-enables/disables firewall for all sites
+- ServerRackView rack detail panel: firewall toggle button with 3 states:
+  - "Enable Firewall" (no sites protected, orange CTA)
+  - "Enable All Firewalls" (partial protection, orange CTA + amber hint)
+  - "Protected — Disable Firewall" (all protected, green with red hover)
+- Automatic `firewallStatus` refetch after toggle — rack badges update immediately
+- Tested: 100% backend (7/7), 100% frontend
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)
