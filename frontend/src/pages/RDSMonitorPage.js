@@ -68,7 +68,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
     : data?.current_text;
 
   return (
-    <div className="bg-white/80 backdrop-blur rounded-xl p-6 space-y-4">
+    <div className="bg-white rounded-xl p-6 space-y-4">
       {cacheStale && (
         <div className="bg-amber-500/20 border border-amber-500/50 rounded-lg p-3 flex items-center gap-2">
           <AlertCircle className="w-5 h-5 text-amber-400" />
@@ -114,7 +114,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
       </div>
 
       {/* Current Output */}
-      <div className="bg-zinc-100/70 rounded-lg p-4 border border-zinc-300">
+      <div className="bg-white rounded-lg p-4 border border-zinc-200">
         <div className="flex items-center gap-2 mb-2">
           {getItemTypeIcon(displayType)}
           <span className="text-xs text-zinc-400 uppercase tracking-wider">
@@ -145,7 +145,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
       {/* Status Grid */}
       <div className="grid grid-cols-2 gap-3">
         {/* Live Show */}
-        <div className="bg-zinc-100/50 rounded-lg p-3">
+        <div className="bg-white rounded-lg p-3 border border-zinc-200">
           <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
             <div className="flex items-center gap-2">
               <Mic className="w-3 h-3" /> Live Show
@@ -181,7 +181,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
         </div>
 
         {/* Now Playing */}
-        <div className="bg-zinc-100/50 rounded-lg p-3">
+        <div className="bg-white rounded-lg p-3 border border-zinc-200">
           <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
             <div className="flex items-center gap-2">
               <Music className="w-3 h-3" /> Now Playing
@@ -198,7 +198,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
         </div>
 
         {/* Scheduled Text */}
-        <div className="bg-zinc-100/50 rounded-lg p-3">
+        <div className="bg-white rounded-lg p-3 border border-zinc-200">
           <div className="flex items-center justify-between text-zinc-400 text-xs mb-1">
             <div className="flex items-center gap-2">
               <Calendar className="w-3 h-3" /> Scheduled Text
@@ -226,7 +226,7 @@ const StationCard = memo(({ station, data, stationName, staleCountdown, showEndC
         </div>
 
         {/* Sequence Status */}
-        <div className="bg-zinc-100/50 rounded-lg p-3">
+        <div className="bg-white rounded-lg p-3 border border-zinc-200">
           <div className="flex items-center gap-2 text-zinc-400 text-xs mb-1">
             <RefreshCw className="w-3 h-3" /> Sequence
           </div>
