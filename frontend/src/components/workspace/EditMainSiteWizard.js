@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import {
   Upload, Check, ChevronRight, Globe, Users, CreditCard,
   Shield, UserPlus, Trash2, Crown, Pencil, Eye, Mic, Sparkles,
-  Plus, Music
+  Plus, Music, ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -16,6 +16,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const BASE_STEPS = [
   { id: 'general', label: 'General', icon: Globe },
   { id: 'stations', label: 'Stations', icon: Music },
+  { id: 'wordpress', label: 'WordPress', icon: ExternalLink },
   { id: 'license', label: 'License', icon: CreditCard },
   { id: 'admin', label: 'Admin', icon: Users },
 ];
@@ -64,8 +65,18 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const [rdsStations, setRdsStations] = useState([]);
   const [stationsSaving, setStationsSaving] = useState(false);
 
+  // WordPress
+  const [wpSites, setWpSites] = useState([]);
+  const [wpEditing, setWpEditing] = useState(null); // index or 'new'
+  const [wpForm, setWpForm] = useState({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
+  const [wpSaving, setWpSaving] = useState(false);
+
   const isRadioType = site?.site_type === 'radio';
-  const STEPS = BASE_STEPS.filter(s => s.id !== 'stations' || isRadioType);
+  const hasWordPress = site?.site_type === 'radio' || site?.site_type === 'external_host';
+  const STEPS = BASE_STEPS.filter(s =>
+    (s.id !== 'stations' || isRadioType) &&
+    (s.id !== 'wordpress' || hasWordPress)
+  );
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -121,12 +132,26 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     } catch (e) { console.error(e); }
   }, [site?.id, token]);
 
+  const loadWpSites = useCallback(async () => {
+    if (!site?.id) return;
+    try {
+      const res = await fetch(`${API}/api/wordpress/sites`, {
+        headers: { ...headers, 'X-Main-Site-Id': site.id },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setWpSites(Array.isArray(data) ? data : []);
+      }
+    } catch (e) { console.error(e); }
+  }, [site?.id, token]);
+
   useEffect(() => {
     const stepId = STEPS[step]?.id;
     if (stepId === 'license' && open) loadLicenseData();
     if (stepId === 'admin' && open) loadUserData();
     if (stepId === 'stations' && open) loadStations();
-  }, [step, open, loadLicenseData, loadUserData, loadStations, STEPS]);
+    if (stepId === 'wordpress' && open) loadWpSites();
+  }, [step, open, loadLicenseData, loadUserData, loadStations, loadWpSites, STEPS]);
 
   // Handlers
   const handleSaveGeneral = async () => {
@@ -241,6 +266,51 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
       await loadStations();
     } catch (e) { console.error(e); }
     setStationsSaving(false);
+  };
+
+  const handleSaveWpSite = async () => {
+    setWpSaving(true);
+    try {
+      if (wpEditing === 'new') {
+        await fetch(`${API}/api/wordpress/sites`, {
+          method: 'POST',
+          headers: { ...headers, 'X-Main-Site-Id': site.id },
+          body: JSON.stringify({ ...wpForm, is_active: true }),
+        });
+      } else {
+        const wpSite = wpSites[wpEditing];
+        await fetch(`${API}/api/wordpress/sites/${wpSite.id}`, {
+          method: 'PUT',
+          headers: { ...headers, 'X-Main-Site-Id': site.id },
+          body: JSON.stringify(wpForm),
+        });
+      }
+      setWpEditing(null);
+      setWpForm({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
+      await loadWpSites();
+    } catch (e) { console.error(e); }
+    setWpSaving(false);
+  };
+
+  const handleDeleteWpSite = async (wpSiteId) => {
+    try {
+      await fetch(`${API}/api/wordpress/sites/${wpSiteId}`, {
+        method: 'DELETE',
+        headers: { ...headers, 'X-Main-Site-Id': site.id },
+      });
+      await loadWpSites();
+    } catch (e) { console.error(e); }
+  };
+
+  const startEditWp = (idx) => {
+    const s = wpSites[idx];
+    setWpForm({ name: s.name, wp_base_url: s.wp_base_url, username: s.username, app_password: '', default_post_type: s.default_post_type, default_publish_status: s.default_publish_status });
+    setWpEditing(idx);
+  };
+
+  const startNewWp = () => {
+    setWpForm({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
+    setWpEditing('new');
   };
 
   if (!site) return null;
@@ -441,6 +511,105 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
               </div>
             </motion.div>
           )}
+
+          {/* Step: WordPress */}
+          {currentStepId === 'wordpress' && (
+            <motion.div key="wordpress" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900">WordPress Connections</h3>
+                <p className="text-sm text-zinc-500 mt-0.5">Manage WordPress site connections for publishing content.</p>
+              </div>
+
+              {wpEditing !== null ? (
+                <div className="border border-zinc-200 rounded-xl p-4 space-y-3 bg-white">
+                  <h4 className="text-sm font-semibold text-zinc-700">{wpEditing === 'new' ? 'New Connection' : 'Edit Connection'}</h4>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Site Name</Label>
+                    <Input value={wpForm.name} onChange={(e) => setWpForm(f => ({...f, name: e.target.value}))} placeholder="e.g. My WordPress Site" className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid="edit-wp-name" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">WordPress URL</Label>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-2 w-4 h-4 text-zinc-400" />
+                      <Input value={wpForm.wp_base_url} onChange={(e) => setWpForm(f => ({...f, wp_base_url: e.target.value}))} placeholder="https://example.com" className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm pl-10" data-testid="edit-wp-url" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Username</Label>
+                      <Input value={wpForm.username} onChange={(e) => setWpForm(f => ({...f, username: e.target.value}))} placeholder="wp-service-account" className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid="edit-wp-user" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Application Password</Label>
+                      <Input type="password" value={wpForm.app_password} onChange={(e) => setWpForm(f => ({...f, app_password: e.target.value}))} placeholder={wpEditing === 'new' ? 'xxxx xxxx xxxx' : '(unchanged)'} className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid="edit-wp-pass" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Post Type</Label>
+                      <select value={wpForm.default_post_type} onChange={(e) => setWpForm(f => ({...f, default_post_type: e.target.value}))} className="w-full h-9 bg-zinc-50 border border-zinc-200 rounded-lg text-sm px-2 text-zinc-700">
+                        <option value="post">Post</option>
+                        <option value="page">Page</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Default Status</Label>
+                      <select value={wpForm.default_publish_status} onChange={(e) => setWpForm(f => ({...f, default_publish_status: e.target.value}))} className="w-full h-9 bg-zinc-50 border border-zinc-200 rounded-lg text-sm px-2 text-zinc-700">
+                        <option value="draft">Draft</option>
+                        <option value="publish">Publish</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button variant="outline" onClick={() => setWpEditing(null)} className="flex-1">Cancel</Button>
+                    <Button onClick={handleSaveWpSite} disabled={wpSaving || !wpForm.wp_base_url || !wpForm.username} className="flex-1" data-testid="save-wp-btn">
+                      {wpSaving ? 'Saving...' : 'Save'}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {wpSites.length > 0 ? (
+                    <div className="space-y-2">
+                      {wpSites.map((ws, idx) => (
+                        <div key={ws.id} className="flex items-center justify-between p-3 rounded-xl border border-zinc-200 bg-white" data-testid={`wp-site-card-${idx}`}>
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${ws.is_active ? 'bg-green-500' : 'bg-zinc-300'}`} />
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-zinc-800 truncate">{ws.name}</p>
+                              <p className="text-xs text-zinc-400 truncate">{ws.wp_base_url}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button onClick={() => startEditWp(idx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors" data-testid={`edit-wp-${idx}`}>
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => handleDeleteWpSite(ws.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-500 hover:bg-red-50 transition-colors" data-testid={`delete-wp-${idx}`}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-zinc-500 italic">No WordPress connections configured.</p>
+                  )}
+                  <button onClick={startNewWp} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-zinc-300 text-zinc-500 hover:border-zinc-400 hover:text-zinc-700 transition-colors" data-testid="add-wp-connection-btn">
+                    <Plus className="w-4 h-4" />
+                    <span className="text-sm font-medium">Add WordPress Connection</span>
+                  </button>
+                </>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => setStep(s => s - 1)} className="flex-1">Back</Button>
+                <Button variant="outline" onClick={() => setStep(s => s + 1)} className="gap-1 flex-1">
+                  Next <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
 
           {/* Step: License */}
           {currentStepId === 'license' && (

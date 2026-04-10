@@ -4,7 +4,7 @@ import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
   Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast,
-  Plus, Trash2, GripVertical, Music
+  Plus, Trash2, GripVertical, Music, Globe
 } from 'lucide-react';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -378,6 +378,107 @@ const StepStations = ({ stations, onStationsChange }) => {
 };
 
 
+/* ── Step: WordPress Settings ── */
+const StepWordPress = ({ wpConfig, onWpConfigChange }) => {
+  const update = (field, value) => onWpConfigChange({ ...wpConfig, [field]: value });
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-zinc-900 mb-1">WordPress Connection</h2>
+      <p className="text-sm text-zinc-500 mb-4">
+        Connect your WordPress site to publish content directly. You can also configure this later.
+      </p>
+
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Site Name</Label>
+          <Input
+            value={wpConfig.name || ''}
+            onChange={(e) => update('name', e.target.value)}
+            placeholder="e.g. My WordPress Site"
+            className="h-10 bg-zinc-50 border-zinc-200 rounded-lg"
+            data-testid="wp-site-name"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">WordPress URL</Label>
+          <div className="relative">
+            <Globe className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
+            <Input
+              value={wpConfig.wp_base_url || ''}
+              onChange={(e) => update('wp_base_url', e.target.value)}
+              placeholder="https://example.com"
+              className="h-10 bg-zinc-50 border-zinc-200 rounded-lg pl-10"
+              data-testid="wp-base-url"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Username</Label>
+            <Input
+              value={wpConfig.username || ''}
+              onChange={(e) => update('username', e.target.value)}
+              placeholder="wp-service-account"
+              className="h-10 bg-zinc-50 border-zinc-200 rounded-lg"
+              data-testid="wp-username"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Application Password</Label>
+            <Input
+              type="password"
+              value={wpConfig.app_password || ''}
+              onChange={(e) => update('app_password', e.target.value)}
+              placeholder="xxxx xxxx xxxx xxxx"
+              className="h-10 bg-zinc-50 border-zinc-200 rounded-lg"
+              data-testid="wp-app-password"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Default Post Type</Label>
+            <select
+              value={wpConfig.default_post_type || 'post'}
+              onChange={(e) => update('default_post_type', e.target.value)}
+              className="w-full h-10 bg-zinc-50 border border-zinc-200 rounded-lg text-sm px-3 text-zinc-700"
+              data-testid="wp-post-type"
+            >
+              <option value="post">Post</option>
+              <option value="page">Page</option>
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Default Status</Label>
+            <select
+              value={wpConfig.default_publish_status || 'draft'}
+              onChange={(e) => update('default_publish_status', e.target.value)}
+              className="w-full h-10 bg-zinc-50 border border-zinc-200 rounded-lg text-sm px-3 text-zinc-700"
+              data-testid="wp-publish-status"
+            >
+              <option value="draft">Draft</option>
+              <option value="publish">Publish</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+          <p className="text-xs text-amber-700">
+            <strong>Tip:</strong> Use a WordPress Application Password (not your login password).
+            Go to <em>WordPress &rarr; Users &rarr; Profile &rarr; Application Passwords</em> to generate one.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+
 /* ── Step 3: Admin ── */
 const StepAdmin = ({ adminId, onAdminChange, users, token }) => (
   <div>
@@ -647,10 +748,15 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   const [deployDone, setDeployDone] = useState(false);
   const [deployError, setDeployError] = useState(null);
   const [rdsStations, setRdsStations] = useState([]);
+  const [wpConfig, setWpConfig] = useState({
+    name: '', wp_base_url: '', username: '', app_password: '',
+    default_post_type: 'post', default_publish_status: 'draft',
+  });
 
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const hasOptionalFeatures = (typeConfig?.optionalFeatures || []).length > 0;
   const isRadioType = siteType === 'radio';
+  const hasWordPress = siteType === 'radio' || siteType === 'external_host';
   const features = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
 
   // Dynamic step mapping
@@ -659,6 +765,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     if (hasOptionalFeatures) steps.push('Features');
     steps.push('Details');
     if (isRadioType) steps.push('Stations');
+    if (hasWordPress) steps.push('WordPress');
     steps.push('Admin', 'Security', 'Deploying');
     return steps;
   };
@@ -698,7 +805,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   }, [open, stepName, fetchUsers]);
 
   // Deploy process
-  const totalDeploySteps = 4 + (require2FA ? 1 : 0) + features.length + (rdsStations.length > 0 ? 1 : 0);
+  const totalDeploySteps = 4 + (require2FA ? 1 : 0) + features.length + (rdsStations.length > 0 ? 1 : 0) + (wpConfig.wp_base_url ? 1 : 0);
 
   const startDeploy = async () => {
     setDeploying(true);
@@ -725,7 +832,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       2500,  // Deploying environment
       2000,  // Setting up firewall
     ];
-    const extraCount = (require2FA ? 1 : 0) + features.length + 2 + (rdsStations.length > 0 ? 1 : 0);
+    const extraCount = (require2FA ? 1 : 0) + features.length + 2 + (rdsStations.length > 0 ? 1 : 0) + (wpConfig.wp_base_url ? 1 : 0);
     for (let j = 0; j < extraCount; j++) {
       stepDelays.push(1200 + Math.random() * 1000);
     }
@@ -757,6 +864,31 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
           }
         }
 
+        // Create WordPress site connection if configured
+        if (wpConfig.wp_base_url && wpConfig.username && siteData?.id) {
+          try {
+            await fetch(`${API}/api/wordpress/sites`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+                'X-Main-Site-Id': siteData.id,
+              },
+              body: JSON.stringify({
+                name: wpConfig.name || name,
+                wp_base_url: wpConfig.wp_base_url,
+                username: wpConfig.username,
+                app_password: wpConfig.app_password,
+                default_post_type: wpConfig.default_post_type || 'post',
+                default_publish_status: wpConfig.default_publish_status || 'draft',
+                is_active: true,
+              }),
+            });
+          } catch (wpErr) {
+            console.error('Failed to create WordPress site:', wpErr);
+          }
+        }
+
         setDeployStatus(totalDeploySteps + 1);
         setDeployDone(true);
         setTimeout(() => { onCreated?.(); handleClose(); }, 2000);
@@ -778,6 +910,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     setAdminId(''); setRequire2FA(false); setClaraEnterprise(false); setDeployStatus(0);
     setDeploying(false); setDeployDone(false); setDeployError(null);
     setSelectedOptionalFeatures([]); setRdsStations([]);
+    setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
     onClose();
   };
 
@@ -786,6 +919,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     if (stepName === 'Features') return true;
     if (stepName === 'Details') return name.trim().length > 0 && slug.trim().length > 0;
     if (stepName === 'Stations') return true; // stations are optional
+    if (stepName === 'WordPress') return true; // wordpress is optional
     if (stepName === 'Admin') return true;
     if (stepName === 'Security') return true;
     return false;
@@ -824,10 +958,11 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-              {stepName === 'Environment' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); }} />}
+              {stepName === 'Environment' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
               {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
               {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
               {stepName === 'Stations' && <StepStations stations={rdsStations} onStationsChange={setRdsStations} />}
+              {stepName === 'WordPress' && <StepWordPress wpConfig={wpConfig} onWpConfigChange={setWpConfig} />}
               {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
               {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} />}
               {stepName === 'Deploying' && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}
