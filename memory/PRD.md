@@ -132,6 +132,19 @@ Multi-environment SaaS platform for radio station management built with React fr
 - RDSSchedulerPage station tabs now load dynamically from `/api/rds-stations/by-slug/{slug}`
 - New backend endpoint: `GET /api/rds-stations/by-slug/{slug}`
 
+## RDS Permission Consolidation (Apr 2026)
+- Merged `rds_settings`, `rds_builder`, `rds_monitor` into single `rds` feature/permission
+- DB migration in server startup converts existing sites and roles automatically
+- CLI `ALL_FEATURES` and `ALL_AVAILABLE_FEATURES` updated
+- Sidebar shows single "RDS" menu item under "Streaming & RDS" group
+
+## Firewall at Rack Level + Header (Apr 2026)
+- New `GET /api/firewall/status/bulk` endpoint returns firewall enabled status per site
+- ServerRackView shows "Clara Global Protect" (green) badge when ALL sites in rack have firewall enabled
+- Shows "Partial Protection" (amber) badge when SOME sites have firewall enabled
+- MainSiteDashboardLayout header shows "Clara Global Protect" text badge only when firewall is active for that site
+- Firewall status conditional on `firewall_settings.enabled = true` per site
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)
