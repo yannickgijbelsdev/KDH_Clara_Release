@@ -411,7 +411,7 @@ const ZeroTierPage = () => {
           <Button
             onClick={handleSaveConfig}
             disabled={savingConfig}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20"
             data-testid="zt-save-config"
           >
             <Save className="w-4 h-4 mr-1" /> {savingConfig ? 'Saving...' : 'Save Configuration'}
@@ -425,7 +425,7 @@ const ZeroTierPage = () => {
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
           <h2 className="text-zinc-900 text-lg font-semibold mb-2">ZeroTier Not Configured</h2>
           <p className="text-zinc-400 mb-4">Enter your API token and Network ID to start monitoring.</p>
-          <Button onClick={() => setConfigOpen(true)} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+          <Button onClick={() => setConfigOpen(true)} className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20">
             <Settings className="w-4 h-4 mr-1" /> Configure Now
           </Button>
         </div>
@@ -613,7 +613,7 @@ const ZeroTierPage = () => {
                         ) : (
                           <Button
                             size="sm"
-                            className="h-7 px-2 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                            className="h-7 px-2 text-xs bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20"
                             onClick={() => handleAuthorize(member.id, true)}
                             data-testid={`zt-auth-inline-${member.id}`}
                           >
@@ -725,7 +725,7 @@ const ZeroTierPage = () => {
                           ) : (
                             <Button
                               size="sm"
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                              className="bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/20"
                               onClick={(e) => { e.stopPropagation(); handleAuthorize(selectedMember.id, true); }}
                               data-testid="zt-auth-btn"
                             >
