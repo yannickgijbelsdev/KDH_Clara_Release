@@ -1,0 +1,82 @@
+{
+  "summary": "Completed testing of Firewall Global Protect badges and RDS menu consolidation features. All backend tests passed (11/11). All frontend tests passed. Features verified: 1) GET /api/firewall/status/bulk returns correct enabled status per site, 2) Server Rack cards show 'Partial Protection' badge when SOME sites have firewall enabled, 3) MainSite dashboard header shows 'Clara Global Protect' badge when firewall is enabled, 4) Badge correctly hidden when firewall is NOT enabled, 5) RDS permission migration complete - single 'rds' feature instead of rds_settings/rds_builder/rds_monitor, 6) Sidebar shows single 'RDS' item, 7) RDS unified page loads with all 4 tabs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_firewall_rds_features.py",
+    "/app/test_reports/pytest/firewall_rds_features_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_firewall_rds_features.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "admin": "admkoodh@koodh.com / KYLovie13monx"
+  },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Firewall Global Protect badges and RDS consolidation features are fully functional. Firewall enabled for Radio Bala (9a05843f...) and MFY/GRK (db23c31a...). DBNT Studio (fc37cb22...) has firewall disabled. RDS migration complete - all radio sites now have single 'rds' feature.",
+  "features_tested": {
+    "backend": {
+      "GET /api/firewall/status/bulk": {
+        "returns_200": "PASS",
+        "structure_correct": "PASS - Returns {status: {site_id: boolean}, rule_counts: {site_id: number}}",
+        "radio_bala_enabled": "PASS - Returns true for 9a05843f-1c1e-41cb-b19e-9350902e050b",
+        "mfy_grk_enabled": "PASS - Returns true for db23c31a-7776-4805-a4a5-bd019dd7c2be",
+        "dbnt_studio_disabled": "PASS - Returns false for fc37cb22-b93e-4fc8-9d77-818b3af45d35",
+        "requires_auth": "PASS - Returns 401/403 without auth"
+      },
+      "RDS Feature Consolidation": {
+        "radio_bala_single_rds": "PASS - Has 'rds' feature, no old rds_settings/rds_builder/rds_monitor",
+        "mfy_grk_single_rds": "PASS - Has 'rds' feature, no old rds_settings/rds_builder/rds_monitor"
+      },
+      "GET /api/rds/endpoints": {
+        "returns_200": "PASS",
+        "returns_station_data": "PASS"
+      },
+      "CLI /disconnect configuration": {
+        "includes_rds_feature": "PASS - Returns 'rds' in available features",
+        "no_old_rds_features": "PASS - Does not include rds_settings/rds_builder/rds_monitor"
+      }
+    },
+    "frontend": {
+      "MainSite Header - Firewall Badge": {
+        "Radio Bala (enabled)": "PASS - Shows 'Clara Global Protect' badge with green shield icon",
+        "DBNT Studio (disabled)": "PASS - Badge correctly hidden"
+      },
+      "Server Rack View - Firewall Badges": {
+        "Rack view loads": "PASS",
+        "Partial Protection badge": "PASS - Shows amber 'Partial Protection' badge on Rack 01 (mixed firewall status)",
+        "Full Protection badge": "INFO - No racks have ALL sites with firewall enabled"
+      },
+      "RDS Sidebar Navigation": {
+        "Single RDS item": "PASS - Only one 'RDS' item in More dropdown",
+        "No separate items": "PASS - No 'RDS Settings', 'RDS Monitor', 'RDS Builder' items"
+      },
+      "RDS Unified Page": {
+        "Page loads at /:slug/rds": "PASS",
+        "4 tabs present": "PASS - Settings, Monitor, Builder, Scheduler",
+        "Tab switching": "PASS - Updates URL with ?tab=monitor",
+        "Dynamic station names": "PASS - Shows 'Radio Bala' not hardcoded MFY/GRK"
+      }
+    }
+  },
+  "firewall_status_data": {
+    "Radio Bala (9a05843f-1c1e-41cb-b19e-9350902e050b)": "enabled=true",
+    "MFY/GRK (db23c31a-7776-4805-a4a5-bd019dd7c2be)": "enabled=true",
+    "DBNT Studio (fc37cb22-b93e-4fc8-9d77-818b3af45d35)": "enabled=false"
+  }
+}

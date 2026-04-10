@@ -111,7 +111,7 @@ COMMANDS = [
 ALL_FEATURES = [
     "shows", "calendar", "show_management", "content_library", "media_library",
     "content_approval", "trash", "team_chat", "team_settings", "activity_logs",
-    "wordpress", "rds_builder", "call_studio", "rundown", "support_tickets",
+    "wordpress", "rds", "call_studio", "rundown", "support_tickets",
     "stream_monitor", "firewall", "radioplayer",
 ]
 
@@ -404,7 +404,7 @@ def _cmd_help():
 # ==================== DISCONNECT CONFIGURATION ====================
 
 ALL_AVAILABLE_FEATURES = {
-    'radio': ['shows', 'calendar', 'show_management', 'content_library', 'media_library', 'content_approval', 'trash', 'team_chat', 'rds_settings', 'rds_builder', 'rds_monitor', 'stream_monitor', 'call_studio', 'rundown', 'support_tickets', 'team_settings', 'firewall', 'activity_logs', 'wordpress'],
+    'radio': ['shows', 'calendar', 'show_management', 'content_library', 'media_library', 'content_approval', 'trash', 'team_chat', 'rds', 'stream_monitor', 'call_studio', 'rundown', 'support_tickets', 'team_settings', 'firewall', 'activity_logs', 'wordpress'],
     'task_scheduler': ['task_boards', 'team_settings', 'firewall', 'activity_logs'],
     'server': ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'team_settings', 'firewall', 'activity_logs'],
     'technical': ['zerotier', 'team_settings', 'firewall', 'activity_logs'],

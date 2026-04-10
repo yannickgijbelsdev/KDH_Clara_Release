@@ -94,7 +94,7 @@ const FEATURE_NAV_ITEMS = {
   content_approval: { to: 'approvals', icon: ClipboardCheck, label: 'Content Approval', approverOnly: true },
   trash: { to: 'trash', icon: Trash2, label: 'Trash', adminOnly: true },
   team_chat: { to: 'chat', icon: MessageSquare, label: 'Team Chat' },
-  rds_settings: { to: 'rds', icon: Radio, label: 'RDS', adminOnly: true },
+  rds: { to: 'rds', icon: Radio, label: 'RDS', adminOnly: true },
   stream_monitor: { to: 'streams', icon: Headphones, label: 'Stream Monitor', adminOnly: true },
   sites: { to: 'sites', icon: Globe, label: 'Sites', adminOnly: true, hasSitesList: true },
   team_settings: { to: 'team', icon: Users, label: 'Team Settings', adminOnly: true },
@@ -142,7 +142,7 @@ const NAV_GROUPS = [
     id: 'streaming',
     label: 'Streaming & RDS',
     icon: Radio,
-    features: ['rds_settings', 'stream_monitor', 'call_studio']
+    features: ['rds', 'stream_monitor', 'call_studio']
   },
   {
     id: 'sites',
@@ -258,6 +258,7 @@ const MainSiteDashboardContent = () => {
   const [showTicketPopup, setShowTicketPopup] = useState(false);
   const [showUserTickets, setShowUserTickets] = useState(false);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const [firewallActive, setFirewallActive] = useState(false);
   const { voiceCallRequested, clearVoiceCallRequest } = useClaraAssistant();
 
   // Handle voice call request from ClaraAssistant
@@ -343,6 +344,21 @@ const MainSiteDashboardContent = () => {
     const interval = setInterval(fetchTicketData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch firewall status for this site
+  useEffect(() => {
+    if (!mainSite?.id) return;
+    const fetchFw = async () => {
+      try {
+        const res = await axios.get(`${API}/firewall/status/bulk`);
+        setFirewallActive(res.data?.status?.[mainSite.id] === true);
+      } catch {
+        setFirewallActive(false);
+      }
+    };
+    fetchFw();
+  }, [mainSite?.id]);
+
 
   // Dynamically calculate how many nav items fit in the pill bar
   useEffect(() => {
@@ -1102,15 +1118,13 @@ const MainSiteDashboardContent = () => {
 
           {/* Status Icons */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            {/* Clara Global Protect */}
-            <div className="relative group" data-testid="global-protect-icon">
-              <div className="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center cursor-default">
+            {/* Clara Global Protect — only show when firewall is active */}
+            {firewallActive && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20" data-testid="global-protect-icon">
                 <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                <span className="text-[11px] font-semibold text-emerald-600 whitespace-nowrap">Clara Global Protect</span>
               </div>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 bg-zinc-900 text-white text-[10px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
-                Clara Global Protect is active
-              </div>
-            </div>
+            )}
             {/* Clara Enterprise */}
             {mainSite?.clara_enterprise && (
               <div className="relative group" data-testid="enterprise-icon">

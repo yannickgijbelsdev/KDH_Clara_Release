@@ -86,6 +86,32 @@ async def update_settings(
     return await get_firewall_settings(main_site_id)
 
 
+@firewall_router.get("/status/bulk")
+async def get_firewall_status_bulk(current_user: dict = Depends(get_current_user)):
+    """Get firewall enabled status for all sites. Used by Server Rack view and headers."""
+    all_settings = await db.firewall_settings.find(
+        {}, {"_id": 0, "main_site_id": 1, "enabled": 1}
+    ).to_list(200)
+    
+    # Build a map: site_id -> enabled
+    status_map = {}
+    for s in all_settings:
+        sid = s.get("main_site_id")
+        if sid:
+            status_map[sid] = s.get("enabled", False)
+    
+    # Also count rules per site
+    pipeline = [
+        {"$match": {"active": True}},
+        {"$group": {"_id": "$main_site_id", "count": {"$sum": 1}}}
+    ]
+    rule_counts = await db.firewall_rules.aggregate(pipeline).to_list(200)
+    rules_map = {r["_id"]: r["count"] for r in rule_counts}
+    
+    return {"status": status_map, "rule_counts": rules_map}
+
+
+
 # ============== RULES (IP whitelist/blacklist) ==============
 
 @firewall_router.get("/rules/{main_site_id}")

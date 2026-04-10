@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
+  Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield, ShieldCheck,
   Layers, Users, Plus, Server, ChevronLeft, ChevronRight, X, Zap, Pencil, Trash2
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
@@ -26,9 +26,13 @@ const ARROW_SPACE = 100;
    ISOMETRIC 3D SERVER RACK (Clara style)
    Each rack is an isometric room card
    ════════════════════════════════════════════════════ */
-const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320 }) => {
+const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320, firewallStatus = {} }) => {
   const cfg0 = sites[0] ? (SITE_TYPE_CONFIG[sites[0].site_type] || SITE_TYPE_CONFIG.radio) : null;
   const accentColor = cfg0?.color || '#71717a';
+
+  // Check if ALL sites in this rack have firewall enabled
+  const allProtected = sites.length > 0 && sites.every(s => firewallStatus[s.id] === true);
+  const someProtected = sites.some(s => firewallStatus[s.id] === true);
 
   return (
     <motion.div
@@ -69,6 +73,19 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320 }) =>
             <div className="w-2 h-2 rounded-full bg-emerald-500" style={{ boxShadow: '0 0 6px rgba(34,197,94,0.5)' }} />
             <span className="text-[10px] font-semibold text-emerald-600">Online</span>
           </div>
+          {/* Clara Global Protect badge */}
+          {allProtected && (
+            <div className="absolute bottom-2 left-3 right-3 flex items-center gap-1.5 bg-emerald-500/90 backdrop-blur-lg rounded-lg px-2.5 py-1.5 border border-emerald-400/30 shadow-sm" data-testid={`rack-firewall-${rackIndex}`}>
+              <ShieldCheck className="w-3.5 h-3.5 text-white flex-shrink-0" />
+              <span className="text-[10px] font-bold text-white tracking-wide">Clara Global Protect</span>
+            </div>
+          )}
+          {someProtected && !allProtected && (
+            <div className="absolute bottom-2 left-3 right-3 flex items-center gap-1.5 bg-amber-500/90 backdrop-blur-lg rounded-lg px-2.5 py-1.5 border border-amber-400/30 shadow-sm" data-testid={`rack-firewall-partial-${rackIndex}`}>
+              <Shield className="w-3.5 h-3.5 text-white flex-shrink-0" />
+              <span className="text-[10px] font-bold text-white tracking-wide">Partial Protection</span>
+            </div>
+          )}
         </div>
 
         {/* Server list */}
@@ -143,6 +160,20 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320 }) =>
 export default function ServerRackView({ sites, onCreateSite, onEditSite, onDeleteSite, environments, selectedEnvId, user }) {
   const [selectedRack, setSelectedRack] = useState(null);
   const [carouselPage, setCarouselPage] = useState(0);
+  const [firewallStatus, setFirewallStatus] = useState({});
+
+  /* ── Fetch firewall status for all sites ── */
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    const API = process.env.REACT_APP_BACKEND_URL;
+    fetch(`${API}/api/firewall/status/bulk`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.status) setFirewallStatus(data.status); })
+      .catch(() => {});
+  }, [sites]);
 
   /* ── Dynamic sizing: measure container & compute visible rack count + width ── */
   const rackAreaRef = useRef(null);
@@ -274,6 +305,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                       isSelected={selectedRack === actualIndex}
                       onClick={() => setSelectedRack(selectedRack === actualIndex ? null : actualIndex)}
                       width={rackWidth}
+                      firewallStatus={firewallStatus}
                     />
                   </motion.div>
                 );

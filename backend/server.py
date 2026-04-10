@@ -1343,11 +1343,39 @@ async def startup_db_client():
             logger.info("Radioplayer config initialized")
         # Add radioplayer feature to all main sites that have streaming features
         await db.main_sites.update_many(
-            {"enabled_features": {"$in": ["rds_settings", "rds_builder", "rds_monitor", "stream_monitor"]}},
+            {"enabled_features": {"$in": ["rds", "rds_settings", "rds_builder", "rds_monitor", "stream_monitor"]}},
             {"$addToSet": {"enabled_features": "radioplayer"}}
         )
     except Exception as e:
         logger.warning(f"Radioplayer config init failed: {e}")
+
+    # Migrate RDS permissions: consolidate rds_settings/rds_builder/rds_monitor → rds
+    try:
+        old_rds = ["rds_settings", "rds_builder", "rds_monitor"]
+        sites_with_old = await db.main_sites.find(
+            {"enabled_features": {"$in": old_rds}}, {"_id": 0, "id": 1, "enabled_features": 1}
+        ).to_list(200)
+        for site in sites_with_old:
+            feats = site.get("enabled_features", [])
+            new_feats = [f for f in feats if f not in old_rds]
+            if "rds" not in new_feats:
+                new_feats.append("rds")
+            await db.main_sites.update_one({"id": site["id"]}, {"$set": {"enabled_features": new_feats}})
+        if sites_with_old:
+            logger.info(f"Migrated RDS features for {len(sites_with_old)} sites")
+        # Also update roles (only those with array permissions)
+        roles_with_old = await db.roles.find(
+            {"permissions": {"$type": "array", "$in": old_rds}}, {"_id": 1, "permissions": 1}
+        ).to_list(200)
+        for role in roles_with_old:
+            perms = role.get("permissions", [])
+            if isinstance(perms, list):
+                new_perms = [p for p in perms if p not in old_rds]
+                if "rds" not in new_perms:
+                    new_perms.append("rds")
+                await db.roles.update_one({"_id": role["_id"]}, {"$set": {"permissions": new_perms}})
+    except Exception as e:
+        logger.warning(f"RDS permission migration failed: {e}")
 
     # Migrate proxy URLs in content bodies back to direct S3 URLs
     # (S3 files are uploaded with ACL='public-read', so direct access works)
