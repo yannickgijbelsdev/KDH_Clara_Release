@@ -243,6 +243,7 @@ const MainSiteDashboardContent = () => {
   const [visibleNavCount, setVisibleNavCount] = useState(4);
   const searchInputRef = useCallback(node => { if (node) node.focus(); }, []);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
+  const [firewallActive, setFirewallActive] = useState(false);
   const { voiceCallRequested, clearVoiceCallRequest } = useClaraAssistant();
 
   // Handle voice call request from ClaraAssistant
