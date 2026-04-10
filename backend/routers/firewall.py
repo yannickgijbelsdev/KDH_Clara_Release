@@ -111,6 +111,38 @@ async def get_firewall_status_bulk(current_user: dict = Depends(get_current_user
     return {"status": status_map, "rule_counts": rules_map}
 
 
+class BulkEnableRequest(BaseModel):
+    site_ids: List[str]
+    enabled: bool = True
+
+
+@firewall_router.post("/enable-rack")
+async def enable_firewall_for_rack(
+    body: BulkEnableRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Bulk enable/disable firewall for all sites in a rack."""
+    require_network_admin(current_user)
+    if not body.site_ids:
+        raise HTTPException(status_code=400, detail="No site_ids provided")
+
+    now = datetime.now(timezone.utc).isoformat()
+    updated = 0
+    for sid in body.site_ids:
+        await db.firewall_settings.update_one(
+            {"main_site_id": sid},
+            {"$set": {
+                "main_site_id": sid,
+                "enabled": body.enabled,
+                "updated_at": now,
+            }},
+            upsert=True,
+        )
+        invalidate_cache(sid)
+        updated += 1
+
+    return {"updated": updated, "enabled": body.enabled}
+
 
 # ============== RULES (IP whitelist/blacklist) ==============
 

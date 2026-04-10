@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield, ShieldCheck,
-  Layers, Users, Plus, Server, ChevronLeft, ChevronRight, X, Zap, Pencil, Trash2
+  Layers, Users, Plus, Server, ChevronLeft, ChevronRight, X, Zap, Pencil, Trash2,
+  ShieldOff, Loader2
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 
@@ -161,9 +162,9 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
   const [selectedRack, setSelectedRack] = useState(null);
   const [carouselPage, setCarouselPage] = useState(0);
   const [firewallStatus, setFirewallStatus] = useState({});
+  const [firewallLoading, setFirewallLoading] = useState(false);
 
-  /* ── Fetch firewall status for all sites ── */
-  useEffect(() => {
+  const fetchFirewallStatus = () => {
     const token = localStorage.getItem('token');
     if (!token) return;
     const API = process.env.REACT_APP_BACKEND_URL;
@@ -173,7 +174,26 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data?.status) setFirewallStatus(data.status); })
       .catch(() => {});
-  }, [sites]);
+  };
+
+  /* ── Fetch firewall status for all sites ── */
+  useEffect(() => { fetchFirewallStatus(); }, [sites]);
+
+  const handleToggleRackFirewall = async (rackSites, enable) => {
+    const token = localStorage.getItem('token');
+    if (!token || !rackSites.length) return;
+    setFirewallLoading(true);
+    try {
+      const API = process.env.REACT_APP_BACKEND_URL;
+      const res = await fetch(`${API}/api/firewall/enable-rack`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ site_ids: rackSites.map(s => s.id), enabled: enable }),
+      });
+      if (res.ok) fetchFirewallStatus();
+    } catch (e) { /* silent */ }
+    setFirewallLoading(false);
+  };
 
   /* ── Dynamic sizing: measure container & compute visible rack count + width ── */
   const rackAreaRef = useRef(null);
@@ -372,6 +392,39 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                       <X className="w-4 h-4 text-zinc-400" />
                     </button>
                   </div>
+
+                  {/* Firewall toggle */}
+                  {selectedRackSites.length > 0 && (() => {
+                    const allOn = selectedRackSites.every(s => firewallStatus[s.id] === true);
+                    const someOn = selectedRackSites.some(s => firewallStatus[s.id] === true);
+                    return (
+                      <div className="px-4 py-3 border-b border-black/[0.05] flex-shrink-0" data-testid="rack-firewall-toggle">
+                        <button
+                          disabled={firewallLoading}
+                          onClick={(e) => { e.stopPropagation(); handleToggleRackFirewall(selectedRackSites, !allOn); }}
+                          className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                            allOn
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                              : 'bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600'
+                          }`}
+                          data-testid="rack-firewall-toggle-btn"
+                        >
+                          {firewallLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : allOn ? (
+                            <><ShieldCheck className="w-4 h-4" /><span>Protected — Disable Firewall</span></>
+                          ) : someOn ? (
+                            <><Shield className="w-4 h-4" /><span>Enable All Firewalls</span></>
+                          ) : (
+                            <><ShieldOff className="w-4 h-4" /><span>Enable Firewall</span></>
+                          )}
+                        </button>
+                        {someOn && !allOn && (
+                          <p className="text-[10px] text-amber-600 text-center mt-1.5">Some servers are not yet protected</p>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Server list */}
                   <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
