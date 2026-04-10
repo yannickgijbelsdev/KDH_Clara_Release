@@ -77,6 +77,15 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Edit Site Wizard: "Stations" tab added for radio type sites
 - RDS Builder, Settings, Monitor pages now dynamically load stations from API instead of hardcoded MFY/GRK
 
+## WordPress Wizard Integration (Apr 2026)
+- Create Site Wizard: "WordPress" step added for radio + external_host types
+- Edit Site Wizard: "WordPress" tab added for radio + external_host types
+- Full CRUD: view, add, edit, delete WordPress connections per site
+- WordPress config saved via POST /api/wordpress/sites with X-Main-Site-Id header
+- Radio flow: Environment → Details → Stations → WordPress → Admin → Security → Deploying
+- External Host flow: Environment → Details → WordPress → Admin → Security → Deploying
+- Other types: no WordPress or Stations steps
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)

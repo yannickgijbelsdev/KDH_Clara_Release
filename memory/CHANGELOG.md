@@ -27,6 +27,13 @@
 - Migrated existing MFY/GRK hardcoded data to dynamic station configs
 - Testing: 100% backend (12/12), 100% frontend — All pass
 
+### WordPress Wizard Integration
+- MODIFIED: CreateMainSiteWizard.js — Added "WordPress" step for radio + external_host types
+- MODIFIED: EditMainSiteWizard.js — Added "WordPress" tab with full CRUD (view/add/edit/delete connections)
+- Radio flow: Environment → Details → Stations → WordPress → Admin → Security → Deploying
+- External Host flow: Environment → Details → WordPress → Admin → Security → Deploying
+- Testing: 100% frontend — All pass
+
 ## 2026-04-08 — Fork Session: ElevenLabs Voice, 3D Images & S3 Migration
 
 ### New Feature: Clara Voice Support (ElevenLabs Conversational AI)
