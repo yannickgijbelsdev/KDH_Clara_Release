@@ -34,7 +34,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
       transition={{ delay: rackIndex * 0.1 + 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className="cursor-pointer group relative flex-shrink-0"
-      style={{ width: 260 }}
+      style={{ width: 320 }}
     >
       {/* Card */}
       <div
@@ -46,7 +46,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
       >
         {/* Room image area */}
-        <div className="relative h-[180px] overflow-hidden bg-[#F0F0F2]">
+        <div className="relative h-[210px] overflow-hidden bg-[#F0F0F2]">
           <img
             src="/images/env_server.jpg"
             alt=""
@@ -68,7 +68,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
         </div>
 
         {/* Server list */}
-        <div className="px-3 py-2.5 space-y-[5px]">
+        <div className="px-3.5 py-3 space-y-[6px]">
           {Array.from({ length: SERVERS_PER_RACK }).map((_, i) => {
             const site = sites[i];
             const cfg = site ? (SITE_TYPE_CONFIG[site.site_type] || SITE_TYPE_CONFIG.radio) : null;
@@ -76,7 +76,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
 
             if (!site) {
               return (
-                <div key={i} className="h-[36px] rounded-lg border border-dashed border-black/[0.06] bg-black/[0.01] flex items-center justify-center">
+                <div key={i} className="h-[40px] rounded-lg border border-dashed border-black/[0.06] bg-black/[0.01] flex items-center justify-center">
                   <span className="text-[9px] text-zinc-300 tracking-wide font-medium">EMPTY SLOT</span>
                 </div>
               );
@@ -85,7 +85,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
             return (
               <div
                 key={i}
-                className="h-[36px] rounded-lg flex items-center gap-2 px-2.5 transition-all duration-150"
+                className="h-[40px] rounded-lg flex items-center gap-2.5 px-3 transition-all duration-150"
                 style={{
                   background: `linear-gradient(90deg, ${cfg.color}08 0%, transparent 100%)`,
                   border: `1px solid ${cfg.color}15`,
@@ -96,8 +96,8 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick }) => {
                   style={{ backgroundColor: cfg.color, boxShadow: `0 0 4px ${cfg.color}60` }}
                 />
                 <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: cfg.color }} />
-                <span className="text-[11px] font-semibold text-zinc-700 truncate flex-1">{site.name}</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold flex-shrink-0" style={{ backgroundColor: `${cfg.color}10`, color: cfg.color }}>{cfg.label}</span>
+                <span className="text-xs font-semibold text-zinc-700 truncate flex-1">{site.name}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold flex-shrink-0" style={{ backgroundColor: `${cfg.color}10`, color: cfg.color }}>{cfg.label}</span>
               </div>
             );
           })}
