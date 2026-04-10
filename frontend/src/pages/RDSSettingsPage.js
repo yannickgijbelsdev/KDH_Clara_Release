@@ -374,63 +374,68 @@ const RDSSettingsPage = () => {
           Copy these URLs to use in MagicRDS or other external systems.
         </p>
 
-        {/* Group endpoints by station */}
-        {['mfy', 'grk', 'all'].map((station) => {
-          const stationEndpoints = endpoints?.endpoints?.filter(e => e.station === station) || [];
-          if (stationEndpoints.length === 0) return null;
+        {/* Group endpoints by station — dynamically */}
+        {(() => {
+          const allEndpoints = endpoints?.endpoints || [];
+          // Get unique station codes from the endpoint data
+          const stationCodes = [...new Set(allEndpoints.map(e => e.station))];
+          return stationCodes.map((stCode) => {
+            const stationEndpoints = allEndpoints.filter(e => e.station === stCode);
+            if (stationEndpoints.length === 0) return null;
+            
+            // Use station_name from the endpoint data, or fallback to dynamic stations list
+            const stationName = stationEndpoints[0]?.station_name
+              || stations.find(s => s.code === stCode)?.name
+              || (stCode === 'all' ? 'All Stations' : stCode.toUpperCase());
+            const stationColor = stationEndpoints[0]?.station_color
+              || stations.find(s => s.code === stCode)?.color
+              || '#71717a';
           
-          const stationName = station === 'mfy' ? 'Radio MFY' : station === 'grk' ? 'Radio GRK' : 'All Stations';
-          const stationColor = station === 'mfy' ? 'orange' : station === 'grk' ? 'violet' : 'zinc';
-          
-          return (
-            <div key={station} className="mb-6 last:mb-0">
-              <h3 className={`text-sm font-semibold mb-3 ${
-                stationColor === 'orange' ? 'text-orange-600' : 
-                stationColor === 'violet' ? 'text-violet-600' : 'text-zinc-600'
-              }`}>
-                {stationName}
-              </h3>
-              <div className="space-y-2">
-                {stationEndpoints.map((endpoint, index) => (
-                  <div
-                    key={index}
-                    className={`bg-zinc-50 rounded-lg p-3 border ${
-                      stationColor === 'orange' ? 'border-orange-500/30' : 
-                      stationColor === 'violet' ? 'border-violet-500/30' : 'border-zinc-200'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-zinc-700 text-sm font-medium">{endpoint.name.replace(`${station.toUpperCase()} - `, '').replace('Alle Stations - ', '').replace('All Stations - ', '')}</h4>
-                          <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
-                            Public
-                          </span>
+            return (
+              <div key={stCode} className="mb-6 last:mb-0">
+                <h3 className="text-sm font-semibold mb-3" style={{ color: stationColor }}>
+                  {stationName}
+                </h3>
+                <div className="space-y-2">
+                  {stationEndpoints.map((endpoint, index) => (
+                    <div
+                      key={index}
+                      className="bg-zinc-50 rounded-lg p-3 border"
+                      style={{ borderColor: `${stationColor}30` }}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="text-zinc-700 text-sm font-medium">{endpoint.name.replace(`${stationName} - `, '')}</h4>
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                              Public
+                            </span>
+                          </div>
+                          <p className="text-zinc-500 text-xs mb-2">{endpoint.description}</p>
+                          <code className="text-xs bg-zinc-100 text-zinc-700 px-2 py-1 rounded font-mono break-all">
+                            {endpoint.full_url}
+                          </code>
                         </div>
-                        <p className="text-zinc-500 text-xs mb-2">{endpoint.description}</p>
-                        <code className="text-xs bg-zinc-100 text-zinc-700 px-2 py-1 rounded font-mono break-all">
-                          {endpoint.full_url}
-                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyToClipboard(endpoint.full_url, endpoint.name)}
+                          className="shrink-0 gap-1 border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs px-2 py-1 h-7"
+                        >
+                          {copiedUrl === endpoint.name ? (
+                            <Check className="w-3 h-3 text-green-500" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToClipboard(endpoint.full_url, endpoint.name)}
-                        className="shrink-0 gap-1 border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs px-2 py-1 h-7"
-                      >
-                        {copiedUrl === endpoint.name ? (
-                          <Check className="w-3 h-3 text-green-500" />
-                        ) : (
-                          <Copy className="w-3 h-3" />
-                        )}
-                      </Button>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
       </div>
 
       {/* Cache Logs Section */}

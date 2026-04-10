@@ -73,6 +73,8 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Backend CRUD endpoints: GET/POST/PUT/DELETE /api/rds-stations/{main_site_id}
 - Bulk-sync endpoint: PUT /api/rds-stations/{main_site_id}/bulk-sync
 - Legacy migration endpoint: POST /api/rds-stations/migrate/legacy (migrated MFY/GRK)
+- **GET /api/rds/endpoints** now dynamically generates station-specific API endpoints from `rds_stations` collection (no more hardcoded MFY/GRK)
+- Frontend RDSSettingsPage API Endpoints section dynamically renders stations from endpoint data (station_name, station_color)
 - Create Site Wizard: "Stations" step added for radio type (Environment → Details → Stations → Admin → Security → Deploying)
 - Edit Site Wizard: "Stations" tab added for radio type sites
 - RDS Builder, Settings, Monitor pages now dynamically load stations from API instead of hardcoded MFY/GRK

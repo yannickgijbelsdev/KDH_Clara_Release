@@ -153,8 +153,9 @@ async def update_rds_settings(
 
 @rds_router.get("/endpoints")
 async def get_rds_endpoints(request: Request, current_user: dict = Depends(require_admin)):
-    """Get all available RDS API endpoints with production URLs."""
+    """Get all available RDS API endpoints with production URLs, dynamically from stations."""
     query_filter = await get_rds_query_filter(request, current_user)
+    main_site_id = await get_main_site_id_from_header(request)
     
     settings = await db.rds_settings.find_one(
         query_filter,
@@ -163,113 +164,108 @@ async def get_rds_endpoints(request: Request, current_user: dict = Depends(requi
     
     base_url = settings.get("production_base_url", "https://clara.koodh.com") if settings else "https://clara.koodh.com"
     
+    # Fetch dynamic stations for this site
+    stations = []
+    if main_site_id:
+        stations = await db.rds_stations.find(
+            {"main_site_id": main_site_id}, {"_id": 0}
+        ).to_list(50)
+    if not stations:
+        # Fallback: try team_id
+        team_id = current_user.get("team_id")
+        if team_id:
+            stations = await db.rds_stations.find(
+                {"main_site_id": team_id}, {"_id": 0}
+            ).to_list(50)
+
+    endpoints_list = []
+    for st in stations:
+        code = st.get("code", "").lower()
+        name = st.get("name", code.upper())
+        if not code:
+            continue
+        endpoints_list.extend([
+            {
+                "name": f"{name} - Live Show",
+                "description": f"Title of the current {name} live show (plain text)",
+                "path": f"/api/rds/{code}/live",
+                "full_url": f"{base_url}/api/rds/{code}/live",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "text/plain",
+                "station": code,
+                "station_name": name,
+                "station_color": st.get("color", "#f97316"),
+            },
+            {
+                "name": f"{name} - Now Playing",
+                "description": f"Current track from {name} Shoutcast (plain text)",
+                "path": f"/api/rds/{code}/now-playing.txt",
+                "full_url": f"{base_url}/api/rds/{code}/now-playing.txt",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "text/plain",
+                "station": code,
+                "station_name": name,
+                "station_color": st.get("color", "#f97316"),
+            },
+            {
+                "name": f"{name} - Now Playing (JSON)",
+                "description": "Shoutcast info including listeners (JSON)",
+                "path": f"/api/rds/{code}/now-playing",
+                "full_url": f"{base_url}/api/rds/{code}/now-playing",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "application/json",
+                "station": code,
+                "station_name": name,
+                "station_color": st.get("color", "#f97316"),
+            },
+            {
+                "name": f"{name} - Cached Rundown",
+                "description": f"Cached JSON rundown from {name} live show",
+                "path": f"/api/rds/{code}/cached-rundown",
+                "full_url": f"{base_url}/api/rds/{code}/cached-rundown",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "application/json",
+                "station": code,
+                "station_name": name,
+                "station_color": st.get("color", "#f97316"),
+            },
+        ])
+
+    # General endpoints (backwards compatibility)
+    endpoints_list.extend([
+        {
+            "name": "All Stations - Live Show",
+            "description": "Title of any current live show (plain text)",
+            "path": "/api/rds/live",
+            "full_url": f"{base_url}/api/rds/live",
+            "method": "GET",
+            "auth_required": False,
+            "response_type": "text/plain",
+            "station": "all",
+            "station_name": "All Stations",
+            "station_color": "#71717a",
+        },
+        {
+            "name": "All Stations - Cached Rundown",
+            "description": "Cached JSON rundown from any live show",
+            "path": "/api/rds/cached-rundown",
+            "full_url": f"{base_url}/api/rds/cached-rundown",
+            "method": "GET",
+            "auth_required": False,
+            "response_type": "application/json",
+            "station": "all",
+            "station_name": "All Stations",
+            "station_color": "#71717a",
+        }
+    ])
+
     return {
         "base_url": base_url,
-        "endpoints": [
-            # MFY Station Endpoints
-            {
-                "name": "MFY - Live Show",
-                "description": "Title of the current MFY live show (plain text)",
-                "path": "/api/rds/mfy/live",
-                "full_url": f"{base_url}/api/rds/mfy/live",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "text/plain",
-                "station": "mfy"
-            },
-            {
-                "name": "MFY - Now Playing",
-                "description": "Current track from MFY Shoutcast (plain text)",
-                "path": "/api/rds/mfy/now-playing.txt",
-                "full_url": f"{base_url}/api/rds/mfy/now-playing.txt",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "text/plain",
-                "station": "mfy"
-            },
-            {
-                "name": "MFY - Now Playing (JSON)",
-                "description": "Shoutcast info including listeners (JSON)",
-                "path": "/api/rds/mfy/now-playing",
-                "full_url": f"{base_url}/api/rds/mfy/now-playing",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "application/json",
-                "station": "mfy"
-            },
-            {
-                "name": "MFY - Cached Rundown",
-                "description": "Cached JSON rundown from MFY live show",
-                "path": "/api/rds/mfy/cached-rundown",
-                "full_url": f"{base_url}/api/rds/mfy/cached-rundown",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "application/json",
-                "station": "mfy"
-            },
-            # GRK Station Endpoints
-            {
-                "name": "GRK - Live Show",
-                "description": "Title of the current GRK live show (plain text)",
-                "path": "/api/rds/grk/live",
-                "full_url": f"{base_url}/api/rds/grk/live",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "text/plain",
-                "station": "grk"
-            },
-            {
-                "name": "GRK - Now Playing",
-                "description": "Current track from GRK Shoutcast (plain text)",
-                "path": "/api/rds/grk/now-playing.txt",
-                "full_url": f"{base_url}/api/rds/grk/now-playing.txt",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "text/plain",
-                "station": "grk"
-            },
-            {
-                "name": "GRK - Now Playing (JSON)",
-                "description": "Shoutcast info including listeners (JSON)",
-                "path": "/api/rds/grk/now-playing",
-                "full_url": f"{base_url}/api/rds/grk/now-playing",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "application/json",
-                "station": "grk"
-            },
-            {
-                "name": "GRK - Cached Rundown",
-                "description": "Cached JSON rundown from GRK live show",
-                "path": "/api/rds/grk/cached-rundown",
-                "full_url": f"{base_url}/api/rds/grk/cached-rundown",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "application/json",
-                "station": "grk"
-            },
-            # General Endpoints (backwards compatibility)
-            {
-                "name": "All Stations - Live Show",
-                "description": "Title of any current live show (plain text)",
-                "path": "/api/rds/live",
-                "full_url": f"{base_url}/api/rds/live",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "text/plain",
-                "station": "all"
-            },
-            {
-                "name": "All Stations - Cached Rundown",
-                "description": "Cached JSON rundown from any live show",
-                "path": "/api/rds/cached-rundown",
-                "full_url": f"{base_url}/api/rds/cached-rundown",
-                "method": "GET",
-                "auth_required": False,
-                "response_type": "application/json",
-                "station": "all"
-            }
-        ]
+        "endpoints": endpoints_list
     }
 
 
