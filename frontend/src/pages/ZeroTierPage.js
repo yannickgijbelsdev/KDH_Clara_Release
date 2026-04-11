@@ -427,7 +427,7 @@ const ZeroTierPage = () => {
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
           <h2 className="text-zinc-900 text-lg font-semibold mb-2">ZeroTier is not configured for {mainSite?.name || mainSiteSlug}</h2>
           <p className="text-zinc-400 mb-4">Configure your ZeroTier connection in the site settings to start monitoring.</p>
-          <ClaraErrorButton errorMessage={`ZeroTier is not configured for ${mainSite?.name || mainSiteSlug}`} errorContext="ZeroTier configuration" />
+          <ClaraErrorButton errorMessage={`ZeroTier is not configured for ${mainSite?.name || mainSiteSlug}. The API token and Network ID need to be set in the site settings.`} errorContext="ZeroTier setup — user needs to enter API token and Network ID via site settings" />
         </div>
       )}
 

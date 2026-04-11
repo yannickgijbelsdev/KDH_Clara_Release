@@ -1,12 +1,16 @@
 import { Sparkles } from 'lucide-react';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
+import { useMainSite } from '../context/MainSiteContext';
 
 /**
  * Inline Clara Assistent error help button.
- * Place next to any error message to offer AI-powered troubleshooting.
+ * Only visible on Enterprise main sites.
  */
 export default function ClaraErrorButton({ errorMessage, errorContext = '', className = '' }) {
   const { openClara } = useClaraAssistant();
+  const { mainSite } = useMainSite();
+
+  if (!mainSite?.clara_enterprise) return null;
 
   return (
     <button
@@ -17,7 +21,7 @@ export default function ClaraErrorButton({ errorMessage, errorContext = '', clas
       <Sparkles className="w-3 h-3" />
       Clara Assistent
       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-zinc-900 text-white text-[11px] rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg z-50">
-        The Clara Assistent is there to help you with this fault in Clara
+        Ask Clara for help with this issue
       </span>
     </button>
   );
