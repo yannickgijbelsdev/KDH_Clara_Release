@@ -148,11 +148,24 @@ async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
         envs = await db.environments.find({"id": {"$in": env_ids}}, {"_id": 0, "id": 1, "name": 1, "color": 1}).to_list(50)
         env_lookup = {e["id"]: e for e in envs}
 
+    # Batch count queries instead of N+1
+    site_ids = [s["id"] for s in main_sites]
+
+    site_counts_agg = await db.sites.aggregate([
+        {"$match": {"main_site_id": {"$in": site_ids}}},
+        {"$group": {"_id": "$main_site_id", "count": {"$sum": 1}}}
+    ]).to_list(200)
+    site_count_map = {r["_id"]: r["count"] for r in site_counts_agg}
+
+    user_counts_agg = await db.main_site_users.aggregate([
+        {"$match": {"main_site_id": {"$in": site_ids}}},
+        {"$group": {"_id": "$main_site_id", "count": {"$sum": 1}}}
+    ]).to_list(200)
+    user_count_map = {r["_id"]: r["count"] for r in user_counts_agg}
+
     for site in main_sites:
-        site_count = await db.sites.count_documents({"main_site_id": site["id"]})
-        user_count = await db.main_site_users.count_documents({"main_site_id": site["id"]})
-        site["site_count"] = site_count
-        site["user_count"] = user_count
+        site["site_count"] = site_count_map.get(site["id"], 0)
+        site["user_count"] = user_count_map.get(site["id"], 0)
         if site.get("linked_main_site_id"):
             site["linked_main_site_name"] = linked_names.get(site["linked_main_site_id"])
         # Add environment info
