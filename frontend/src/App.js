@@ -406,7 +406,11 @@ const LoginWizardWrapper = () => {
   return (
     <LoginWizard
       open={showWizard}
-      onClose={() => setShowWizard(false)}
+      onClose={() => {
+        setShowWizard(false);
+        // Signal that login wizard is done — scan widget can start
+        window.dispatchEvent(new Event('clara-login-complete'));
+      }}
       siteName={siteName}
       userName={user?.name || ''}
       user={user}

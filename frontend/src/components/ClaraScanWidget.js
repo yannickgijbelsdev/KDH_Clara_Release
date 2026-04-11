@@ -219,44 +219,68 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
     ? (rackScan.status === 'scanning' ? 'scanning' : 'idle')
     : rackIssueCount > 0 ? 'warning' : 'success';
 
-  /* ── Start scans ── */
+  /* ── Start scans — wait for login wizard to finish ── */
   useEffect(() => {
     if (!token || !isAdmin) return;
-    // Respect user preference (default: enabled)
     if (userPreferences?.show_login_scan === false) return;
-    // Don't re-run if already dismissed in this browser session
     if (sessionStorage.getItem(sessionKey)) return;
-
-    setView('popup');
-    autoMinRef.current = setTimeout(() => {
-      setView(prev => (prev === 'popup' ? 'minimized' : prev));
-    }, 5000);
 
     const headers = { Authorization: `Bearer ${token}` };
 
-    (async () => {
-      setHealthScan(prev => ({ ...prev, status: 'scanning' }));
-      try {
-        const res = await fetch(`${API}/api/clara-test/health-scan`, { headers });
-        if (res.ok) {
-          const data = await res.json();
-          setHealthScan({ status: 'done', checks: data.checks || [], hasIssues: data.has_issues, diagnosis: data.diagnosis });
-        } else setHealthScan(prev => ({ ...prev, status: 'done' }));
-      } catch { setHealthScan(prev => ({ ...prev, status: 'done' })); }
-    })();
+    const launchScans = () => {
+      if (sessionStorage.getItem(sessionKey)) return; // guard against double-fire
+      setView('popup');
+      autoMinRef.current = setTimeout(() => {
+        setView(prev => (prev === 'popup' ? 'minimized' : prev));
+      }, 5000);
 
-    (async () => {
-      setRackScan(prev => ({ ...prev, status: 'scanning' }));
-      try {
-        const res = await fetch(`${API}/api/clara-test/rack-scan`, { headers });
-        if (res.ok) {
-          const data = await res.json();
-          setRackScan({ status: 'done', issues: data.issues || [], summary: data.summary });
-        } else setRackScan(prev => ({ ...prev, status: 'done' }));
-      } catch { setRackScan(prev => ({ ...prev, status: 'done' })); }
-    })();
+      (async () => {
+        setHealthScan(prev => ({ ...prev, status: 'scanning' }));
+        try {
+          const res = await fetch(`${API}/api/clara-test/health-scan`, { headers });
+          if (res.ok) {
+            const data = await res.json();
+            setHealthScan({ status: 'done', checks: data.checks || [], hasIssues: data.has_issues, diagnosis: data.diagnosis });
+          } else setHealthScan(prev => ({ ...prev, status: 'done' }));
+        } catch { setHealthScan(prev => ({ ...prev, status: 'done' })); }
+      })();
 
-    return () => { if (autoMinRef.current) clearTimeout(autoMinRef.current); };
+      (async () => {
+        setRackScan(prev => ({ ...prev, status: 'scanning' }));
+        try {
+          const res = await fetch(`${API}/api/clara-test/rack-scan`, { headers });
+          if (res.ok) {
+            const data = await res.json();
+            setRackScan({ status: 'done', issues: data.issues || [], summary: data.summary });
+          } else setRackScan(prev => ({ ...prev, status: 'done' }));
+        } catch { setRackScan(prev => ({ ...prev, status: 'done' })); }
+      })();
+    };
+
+    // If login wizard was already shown this session, launch immediately
+    const wizardAlreadyDone = sessionStorage.getItem('login_wizard_shown') !== 'true'
+      || !sessionStorage.getItem('show_login_wizard');
+
+    if (wizardAlreadyDone && !document.querySelector('[data-testid="login-wizard"]')) {
+      // No wizard active — start after a short delay
+      const t = setTimeout(launchScans, 2000);
+      return () => { clearTimeout(t); if (autoMinRef.current) clearTimeout(autoMinRef.current); };
+    }
+
+    // Wait for the login wizard to close
+    const onWizardDone = () => {
+      setTimeout(launchScans, 800); // Small grace period after wizard closes
+    };
+    window.addEventListener('clara-login-complete', onWizardDone, { once: true });
+
+    // Fallback: if wizard never closes (edge case), start after 20s
+    const fallback = setTimeout(launchScans, 20000);
+
+    return () => {
+      window.removeEventListener('clara-login-complete', onWizardDone);
+      clearTimeout(fallback);
+      if (autoMinRef.current) clearTimeout(autoMinRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, isAdmin]);
 
