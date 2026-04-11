@@ -55,12 +55,12 @@ const OPTIONAL_FEATURE_INFO = {
   radio_automation: { icon: Disc3,     label: 'Radio Automation',   desc: 'A/B player, playlists, cloud playout',  color: '#f97316' },
 };
 
-const MAIN_SITE_STEPS = ['Environment', 'Features', 'Details', 'Admin', 'Security', 'Deploying'];
+const MAIN_SITE_STEPS = ['Choosing a server', 'Features', 'Details', 'Admin', 'Security', 'Deploying'];
 
-/* ── Step 1: Choose Environment ── */
+/* ── Step 1: Choose Server ── */
 const StepEnvironment = ({ selected, onSelect }) => (
   <div>
-    <h2 className="text-xl font-bold text-zinc-900 mb-1">Choose your environment</h2>
+    <h2 className="text-xl font-bold text-zinc-900 mb-1">Choose your Clara server</h2>
     <p className="text-sm text-zinc-500 mb-4">Select the type of server rack you want to deploy.</p>
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
       {SITE_TYPES.map(type => {
@@ -711,7 +711,7 @@ const StepDeploying = ({ siteName, siteType, require2FA, features, deployStatus,
     ...(require2FA ? [{ id: '2fa', label: 'Deploying 2FA security policies...' }] : []),
     ...features.map(f => ({ id: f, label: `Enabling ${f.replace(/_/g, ' ')}...` })),
     { id: 'admin', label: 'Assigning site admin permissions...' },
-    { id: 'final', label: 'Finalizing your environment...' },
+    { id: 'final', label: 'Finalizing your server...' },
   ];
 
   // Auto-scroll to the active step
@@ -878,7 +878,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
 
   // Dynamic step mapping
   const getActualSteps = () => {
-    const steps = ['Environment'];
+    const steps = ['Choosing a server'];
     if (hasOptionalFeatures) steps.push('Features');
     steps.push('Details');
     if (isRadioType) steps.push('Stations');
@@ -1046,7 +1046,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   };
 
   const canNext = () => {
-    if (stepName === 'Environment') return !!siteType;
+    if (stepName === 'Choosing a server') return !!siteType;
     if (stepName === 'Features') return true;
     if (stepName === 'Details') return name.trim().length > 0 && slug.trim().length > 0;
     if (stepName === 'Stations') return true; // stations are optional
@@ -1090,7 +1090,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-              {stepName === 'Environment' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
+              {stepName === 'Choosing a server' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
               {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
               {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
               {stepName === 'Stations' && <StepStations stations={rdsStations} onStationsChange={setRdsStations} />}
