@@ -14,6 +14,7 @@ from services.endpoint_protection import (
     get_endpoint_settings, invalidate_endpoint_cache, get_all_endpoint_groups,
     get_public_connection_stats, ENDPOINT_GROUPS,
 )
+from services.redis_cache import cache_get, cache_set, cache_delete
 
 firewall_router = APIRouter(prefix="/firewall", tags=["firewall"])
 
@@ -88,19 +89,21 @@ async def update_settings(
 
 @firewall_router.get("/status/bulk")
 async def get_firewall_status_bulk(current_user: dict = Depends(get_current_user)):
-    """Get firewall enabled status for all sites. Used by Server Rack view and headers."""
+    """Get firewall enabled status for all sites with Redis caching."""
+    cached = await cache_get("firewall:status:bulk")
+    if cached:
+        return cached
+
     all_settings = await db.firewall_settings.find(
         {}, {"_id": 0, "main_site_id": 1, "enabled": 1}
     ).to_list(200)
     
-    # Build a map: site_id -> enabled
     status_map = {}
     for s in all_settings:
         sid = s.get("main_site_id")
         if sid:
             status_map[sid] = s.get("enabled", False)
     
-    # Also count rules per site
     pipeline = [
         {"$match": {"active": True}},
         {"$group": {"_id": "$main_site_id", "count": {"$sum": 1}}}
@@ -108,7 +111,9 @@ async def get_firewall_status_bulk(current_user: dict = Depends(get_current_user
     rule_counts = await db.firewall_rules.aggregate(pipeline).to_list(200)
     rules_map = {r["_id"]: r["count"] for r in rule_counts}
     
-    return {"status": status_map, "rule_counts": rules_map}
+    result = {"status": status_map, "rule_counts": rules_map}
+    await cache_set("firewall:status:bulk", result, ttl=15)
+    return result
 
 
 class BulkEnableRequest(BaseModel):
@@ -141,6 +146,7 @@ async def enable_firewall_for_rack(
         invalidate_cache(sid)
         updated += 1
 
+    await cache_delete("firewall:status:bulk")
     return {"updated": updated, "enabled": body.enabled}
 
 

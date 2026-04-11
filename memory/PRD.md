@@ -167,6 +167,17 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Step is optional — users can skip and configure later
 - ZeroTierPage "Not Configured" state now redirects to site settings instead of inline config
 
+## Clara System Scan + Redis Caching (Apr 2026)
+- **Clara System Scan**: Automatic infrastructure audit after each login
+  - Scans all sites & racks for: disabled firewalls, missing ZeroTier/WordPress/RDS config, 2FA not enforced, default geo-blocking
+  - Issues sorted by severity (critical → warning → info) with expandable details
+  - Runs after ClaraHealthBanner is dismissed, once per day per session
+  - Backend: `GET /api/clara-test/rack-scan`
+- **Redis Caching**: Integrated Redis for faster API responses
+  - Cached endpoints: `main_sites` (30s TTL), `firewall/status/bulk` (15s TTL)
+  - Auto-invalidation on create/update/delete operations
+  - Service: `backend/services/redis_cache.py`
+
 ## Clara Global Protect — Full Rack Firewall (Apr 2026)
 - Auto-enable firewall on site creation (can be manually disabled)
 - Enterprise toggle restricted to System Administrators only (Create + Edit wizard, backend enforced)

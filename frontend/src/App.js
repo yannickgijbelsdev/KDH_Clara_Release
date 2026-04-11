@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { MainSiteProvider, useMainSite } from './context/MainSiteContext';
 import { Toaster } from './components/ui/sonner';
 import ClaraHealthBanner from './components/ClaraHealthBanner';
+import ClaraRackScan from './components/ClaraRackScan';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 import ClaraGuideOverlay from './components/ClaraGuideOverlay';
 import { TopLoaderProvider } from './components/TopLoader';
@@ -419,7 +420,12 @@ const ClaraHealthScanWrapper = () => {
   const { user, token } = useAuth();
   const isAdmin = user?.is_network_admin || user?.is_system_admin;
   if (!user || !token || !isAdmin) return null;
-  return <ClaraHealthBanner token={token} isAdmin={isAdmin} />;
+  return (
+    <>
+      <ClaraHealthBanner token={token} isAdmin={isAdmin} />
+      <ClaraRackScan />
+    </>
+  );
 };
 
 export default App;

@@ -16,6 +16,7 @@ from models.main_sites import (
 from services.auth import get_current_user
 from services.audit import log_action
 from services.license_request import send_license_request
+from services.redis_cache import cache_get, cache_set, cache_delete_pattern
 from routers.shows import resolve_avatar_url
 
 import logging
@@ -83,11 +84,15 @@ async def get_available_features(current_user: dict = Depends(get_current_user))
 
 @main_sites_router.get("", response_model=list[MainSiteListResponse])
 async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
-    """Get all main sites. System admins see all, environment admins see sites in their
-    assigned environments, others see only their assigned sites.
-    Clone sites are only visible to admins of the parent site."""
-    is_network_admin = current_user.get('is_network_admin', False)
+    """Get all main sites with Redis caching."""
     user_id = current_user['id']
+    is_network_admin = current_user.get('is_network_admin', False)
+    cache_key = f"main_sites:{user_id}"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
+    # Original query logic
     
     if is_network_admin:
         # Check if system admin (sees all) or environment admin (scoped)
@@ -156,6 +161,7 @@ async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
             site["environment_name"] = env.get("name")
             site["environment_color"] = env.get("color")
     
+    await cache_set(cache_key, main_sites, ttl=30)
     return main_sites
 
 
@@ -248,6 +254,7 @@ async def create_main_site(
         requester_email=current_user.get("email", ""),
     ))
 
+    await cache_delete_pattern("main_sites:*")
     return main_site_doc
 
 
@@ -426,6 +433,7 @@ async def update_main_site(
         target_name=updated.get("name", ""),
     ))
 
+    await cache_delete_pattern("main_sites:*")
     return updated
 
 

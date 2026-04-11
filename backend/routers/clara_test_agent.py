@@ -394,3 +394,128 @@ If successful, confirm briefly and congratulate. If failed, explain clearly what
         return {"success": result.get("success", False), "diagnosis": diagnosis, "raw_result": result}
 
     return {"success": False, "diagnosis": "Unknown check type."}
+
+
+# ============== RACK SCAN (Login Audit) ==============
+
+@clara_test_router.get("/rack-scan")
+async def rack_scan(current_user: dict = Depends(get_current_user)):
+    """Scan all racks and sites for configuration issues, security gaps, and improvement suggestions."""
+    issues = []
+
+    # 1. Get all main sites the user has access to
+    all_sites = await db.main_sites.find({}, {"_id": 0}).to_list(500)
+    all_racks = await db.server_racks.find({}, {"_id": 0}).to_list(100)
+
+    # 2. Check firewall status
+    fw_settings = await db.firewall_settings.find({}, {"_id": 0}).to_list(500)
+    fw_map = {s["main_site_id"]: s.get("enabled", False) for s in fw_settings if "main_site_id" in s}
+
+    for site in all_sites:
+        site_id = site.get("id", "")
+        site_name = site.get("name", "Unknown")
+        site_type = site.get("site_type", "radio")
+
+        # Firewall check
+        if not fw_map.get(site_id, False):
+            issues.append({
+                "site_id": site_id,
+                "site_name": site_name,
+                "category": "security",
+                "severity": "critical",
+                "title": "Firewall not enabled",
+                "description": f"Clara Global Protect is not active for {site_name}. This leaves the site vulnerable to brute force attacks.",
+                "action": "enable_firewall",
+                "action_label": "Enable Firewall",
+            })
+
+        # ZeroTier check for technical sites
+        if site_type == "technical":
+            zt_config = await db.zerotier_configs.find_one({"main_site_id": site_id}, {"_id": 0})
+            if not zt_config or not zt_config.get("api_token"):
+                issues.append({
+                    "site_id": site_id,
+                    "site_name": site_name,
+                    "category": "configuration",
+                    "severity": "warning",
+                    "title": "ZeroTier not configured",
+                    "description": f"ZeroTier network monitoring is not set up for {site_name}.",
+                    "action": "configure_zerotier",
+                    "action_label": "Configure",
+                })
+
+        # WordPress check
+        enabled_features = site.get("enabled_features", [])
+        if "wordpress" in enabled_features:
+            wp_site = await db.wordpress_sites.find_one({"main_site_id": site_id}, {"_id": 0})
+            if not wp_site or not wp_site.get("wp_base_url"):
+                issues.append({
+                    "site_id": site_id,
+                    "site_name": site_name,
+                    "category": "configuration",
+                    "severity": "warning",
+                    "title": "WordPress not connected",
+                    "description": f"WordPress integration is enabled but not configured for {site_name}.",
+                    "action": "configure_wordpress",
+                    "action_label": "Configure",
+                })
+
+        # RDS check for radio sites
+        if site_type == "radio":
+            rds_stations = await db.rds_stations.find({"main_site_id": site_id}, {"_id": 0}).to_list(50)
+            if len(rds_stations) == 0:
+                issues.append({
+                    "site_id": site_id,
+                    "site_name": site_name,
+                    "category": "configuration",
+                    "severity": "info",
+                    "title": "No RDS stations configured",
+                    "description": f"No RDS stations are set up for {site_name}. Configure stations to enable RDS metadata.",
+                    "action": "configure_rds",
+                    "action_label": "Configure",
+                })
+
+        # 2FA check
+        if not site.get("require_2fa", False):
+            issues.append({
+                "site_id": site_id,
+                "site_name": site_name,
+                "category": "security",
+                "severity": "info",
+                "title": "2FA not enforced",
+                "description": f"Two-factor authentication is not required for {site_name}.",
+                "action": "enable_2fa",
+                "action_label": "Enable",
+            })
+
+    # 3. Check geo-blocking on racks
+    for rack in all_racks:
+        rack_id = rack.get("id", "")
+        rack_name = rack.get("name", f"Rack {rack_id}")
+        geo_rules = await db.firewall_geo_rules.find_one({"rack_id": rack_id}, {"_id": 0})
+        if not geo_rules:
+            issues.append({
+                "rack_id": rack_id,
+                "site_name": rack_name,
+                "category": "security",
+                "severity": "warning",
+                "title": "Geo-blocking using defaults",
+                "description": f"Rack '{rack_name}' uses default European geo-blocking. Review and customize if needed.",
+                "action": "configure_geo",
+                "action_label": "Review",
+            })
+
+    # Sort by severity
+    severity_order = {"critical": 0, "warning": 1, "info": 2}
+    issues.sort(key=lambda x: severity_order.get(x.get("severity", "info"), 3))
+
+    summary = {
+        "total_sites": len(all_sites),
+        "total_racks": len(all_racks),
+        "total_issues": len(issues),
+        "critical": len([i for i in issues if i["severity"] == "critical"]),
+        "warnings": len([i for i in issues if i["severity"] == "warning"]),
+        "info": len([i for i in issues if i["severity"] == "info"]),
+    }
+
+    return {"summary": summary, "issues": issues}
