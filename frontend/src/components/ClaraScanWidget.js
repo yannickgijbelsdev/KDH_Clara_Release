@@ -257,24 +257,23 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
       })();
     };
 
-    // If login wizard was already shown this session, launch immediately
-    const wizardAlreadyDone = sessionStorage.getItem('login_wizard_shown') !== 'true'
-      || !sessionStorage.getItem('show_login_wizard');
+    // Detect if a login wizard session was triggered
+    const wizardWasTriggered = sessionStorage.getItem('login_wizard_shown') === 'true';
 
-    if (wizardAlreadyDone && !document.querySelector('[data-testid="login-wizard"]')) {
-      // No wizard active — start after a short delay
-      const t = setTimeout(launchScans, 2000);
+    if (!wizardWasTriggered && !document.querySelector('[data-testid="login-wizard"]')) {
+      // No wizard was shown this session and none in DOM — safe to start immediately
+      const t = setTimeout(launchScans, 1500);
       return () => { clearTimeout(t); if (autoMinRef.current) clearTimeout(autoMinRef.current); };
     }
 
-    // Wait for the login wizard to close
+    // Wizard was triggered — always wait for it to close
     const onWizardDone = () => {
-      setTimeout(launchScans, 800); // Small grace period after wizard closes
+      setTimeout(launchScans, 800);
     };
     window.addEventListener('clara-login-complete', onWizardDone, { once: true });
 
-    // Fallback: if wizard never closes (edge case), start after 20s
-    const fallback = setTimeout(launchScans, 20000);
+    // Fallback: if wizard never closes, start after 25s
+    const fallback = setTimeout(launchScans, 25000);
 
     return () => {
       window.removeEventListener('clara-login-complete', onWizardDone);
