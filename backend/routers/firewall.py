@@ -697,3 +697,191 @@ async def get_endpoint_connections(main_site_id: str, current_user: dict = Depen
             conn["city"] = geo.get("city", "")
 
     return {"connections": stats}
+
+
+# ============== RACK-LEVEL FIREWALL MANAGEMENT ==============
+
+EUROPEAN_COUNTRIES = [
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR",
+    "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL",
+    "PL", "PT", "RO", "SK", "SI", "ES", "SE", "GB", "NO", "CH",
+    "IS", "LI", "AD", "MC", "SM", "VA", "ME", "RS", "AL", "MK",
+    "BA", "MD", "UA", "BY", "XK",
+]
+
+ALL_COUNTRIES = {
+    "AF": "Afghanistan", "AL": "Albania", "DZ": "Algeria", "AD": "Andorra", "AO": "Angola",
+    "AR": "Argentina", "AM": "Armenia", "AU": "Australia", "AT": "Austria", "AZ": "Azerbaijan",
+    "BS": "Bahamas", "BH": "Bahrain", "BD": "Bangladesh", "BY": "Belarus", "BE": "Belgium",
+    "BZ": "Belize", "BJ": "Benin", "BT": "Bhutan", "BO": "Bolivia", "BA": "Bosnia and Herzegovina",
+    "BW": "Botswana", "BR": "Brazil", "BN": "Brunei", "BG": "Bulgaria", "BF": "Burkina Faso",
+    "BI": "Burundi", "KH": "Cambodia", "CM": "Cameroon", "CA": "Canada", "CF": "Central African Republic",
+    "TD": "Chad", "CL": "Chile", "CN": "China", "CO": "Colombia", "CD": "Congo (DRC)",
+    "CR": "Costa Rica", "HR": "Croatia", "CU": "Cuba", "CY": "Cyprus", "CZ": "Czech Republic",
+    "DK": "Denmark", "DJ": "Djibouti", "DO": "Dominican Republic", "EC": "Ecuador", "EG": "Egypt",
+    "SV": "El Salvador", "EE": "Estonia", "ET": "Ethiopia", "FI": "Finland", "FR": "France",
+    "GA": "Gabon", "GE": "Georgia", "DE": "Germany", "GH": "Ghana", "GR": "Greece",
+    "GT": "Guatemala", "GN": "Guinea", "HT": "Haiti", "HN": "Honduras", "HU": "Hungary",
+    "IS": "Iceland", "IN": "India", "ID": "Indonesia", "IR": "Iran", "IQ": "Iraq",
+    "IE": "Ireland", "IL": "Israel", "IT": "Italy", "JM": "Jamaica", "JP": "Japan",
+    "JO": "Jordan", "KZ": "Kazakhstan", "KE": "Kenya", "KW": "Kuwait", "KG": "Kyrgyzstan",
+    "LA": "Laos", "LV": "Latvia", "LB": "Lebanon", "LI": "Liechtenstein", "LT": "Lithuania",
+    "LU": "Luxembourg", "MK": "North Macedonia", "MG": "Madagascar", "MY": "Malaysia",
+    "ML": "Mali", "MT": "Malta", "MX": "Mexico", "MD": "Moldova", "MC": "Monaco",
+    "MN": "Mongolia", "ME": "Montenegro", "MA": "Morocco", "MZ": "Mozambique", "MM": "Myanmar",
+    "NP": "Nepal", "NL": "Netherlands", "NZ": "New Zealand", "NI": "Nicaragua", "NE": "Niger",
+    "NG": "Nigeria", "NO": "Norway", "OM": "Oman", "PK": "Pakistan", "PA": "Panama",
+    "PY": "Paraguay", "PE": "Peru", "PH": "Philippines", "PL": "Poland", "PT": "Portugal",
+    "QA": "Qatar", "RO": "Romania", "RU": "Russia", "RW": "Rwanda", "SA": "Saudi Arabia",
+    "SN": "Senegal", "RS": "Serbia", "SG": "Singapore", "SK": "Slovakia", "SI": "Slovenia",
+    "SO": "Somalia", "ZA": "South Africa", "KR": "South Korea", "ES": "Spain", "LK": "Sri Lanka",
+    "SD": "Sudan", "SE": "Sweden", "CH": "Switzerland", "SY": "Syria", "TW": "Taiwan",
+    "TJ": "Tajikistan", "TZ": "Tanzania", "TH": "Thailand", "TN": "Tunisia", "TR": "Turkey",
+    "TM": "Turkmenistan", "UG": "Uganda", "UA": "Ukraine", "AE": "UAE", "GB": "United Kingdom",
+    "US": "United States", "UY": "Uruguay", "UZ": "Uzbekistan", "VE": "Venezuela", "VN": "Vietnam",
+    "YE": "Yemen", "ZM": "Zambia", "ZW": "Zimbabwe", "XK": "Kosovo", "SM": "San Marino", "VA": "Vatican City",
+}
+
+
+class GeoRulesUpdate(BaseModel):
+    allowed_countries: List[str]
+
+
+class UnblockIPRequest(BaseModel):
+    ip: str
+    rack_id: str
+
+
+# --- Geo-blocking rules per rack ---
+
+@firewall_router.get("/rack/{rack_id}/geo-rules")
+async def get_rack_geo_rules(rack_id: str, current_user: dict = Depends(get_current_user)):
+    """Get geo-blocking rules for a rack. Returns allowed countries."""
+    require_network_admin(current_user)
+    doc = await db.firewall_geo_rules.find_one({"rack_id": rack_id}, {"_id": 0})
+    if not doc:
+        return {"rack_id": rack_id, "allowed_countries": EUROPEAN_COUNTRIES, "is_default": True}
+    return doc
+
+
+@firewall_router.put("/rack/{rack_id}/geo-rules")
+async def update_rack_geo_rules(rack_id: str, body: GeoRulesUpdate, current_user: dict = Depends(get_current_user)):
+    """Update allowed countries for a rack."""
+    require_network_admin(current_user)
+    now = datetime.now(timezone.utc).isoformat()
+    await db.firewall_geo_rules.update_one(
+        {"rack_id": rack_id},
+        {"$set": {"rack_id": rack_id, "allowed_countries": body.allowed_countries, "is_default": False, "updated_at": now, "updated_by": current_user.get("email", "")}},
+        upsert=True,
+    )
+    return {"rack_id": rack_id, "allowed_countries": body.allowed_countries}
+
+
+@firewall_router.post("/rack/{rack_id}/geo-rules/add-country")
+async def add_country_to_rack(rack_id: str, country_code: str = Query(...), current_user: dict = Depends(get_current_user)):
+    """Add a country to the allowed list."""
+    require_network_admin(current_user)
+    doc = await db.firewall_geo_rules.find_one({"rack_id": rack_id}, {"_id": 0})
+    allowed = doc["allowed_countries"] if doc else list(EUROPEAN_COUNTRIES)
+    if country_code.upper() not in allowed:
+        allowed.append(country_code.upper())
+    now = datetime.now(timezone.utc).isoformat()
+    await db.firewall_geo_rules.update_one(
+        {"rack_id": rack_id},
+        {"$set": {"rack_id": rack_id, "allowed_countries": allowed, "is_default": False, "updated_at": now}},
+        upsert=True,
+    )
+    return {"allowed_countries": allowed}
+
+
+@firewall_router.post("/rack/{rack_id}/geo-rules/remove-country")
+async def remove_country_from_rack(rack_id: str, country_code: str = Query(...), current_user: dict = Depends(get_current_user)):
+    """Remove a country from the allowed list (block it)."""
+    require_network_admin(current_user)
+    doc = await db.firewall_geo_rules.find_one({"rack_id": rack_id}, {"_id": 0})
+    allowed = doc["allowed_countries"] if doc else list(EUROPEAN_COUNTRIES)
+    allowed = [c for c in allowed if c != country_code.upper()]
+    now = datetime.now(timezone.utc).isoformat()
+    await db.firewall_geo_rules.update_one(
+        {"rack_id": rack_id},
+        {"$set": {"rack_id": rack_id, "allowed_countries": allowed, "is_default": False, "updated_at": now}},
+        upsert=True,
+    )
+    return {"allowed_countries": allowed}
+
+
+# --- Brute-force logs and blocked IPs ---
+
+@firewall_router.get("/rack/{rack_id}/logs")
+async def get_rack_firewall_logs(rack_id: str, limit: int = Query(50, le=200), current_user: dict = Depends(get_current_user)):
+    """Get firewall security logs for all sites in a rack."""
+    require_network_admin(current_user)
+    # Find sites in this rack
+    rack = await db.server_racks.find_one({"id": rack_id}, {"_id": 0, "site_ids": 1})
+    site_ids = rack.get("site_ids", []) if rack else []
+    logs = await db.firewall_logs.find(
+        {"$or": [{"site_id": {"$in": site_ids}}, {"rack_id": rack_id}]}, {"_id": 0}
+    ).sort("timestamp", -1).to_list(limit)
+    return {"logs": logs, "total": len(logs)}
+
+
+@firewall_router.get("/rack/{rack_id}/blocked-ips")
+async def get_rack_blocked_ips(rack_id: str, current_user: dict = Depends(get_current_user)):
+    """Get all blocked IPs for sites in a rack."""
+    require_network_admin(current_user)
+    blocked = await db.firewall_blocked_ips.find(
+        {"rack_id": rack_id}, {"_id": 0}
+    ).sort("blocked_at", -1).to_list(500)
+    return {"blocked_ips": blocked}
+
+
+@firewall_router.post("/rack/{rack_id}/unblock-ip")
+async def unblock_rack_ip(rack_id: str, body: UnblockIPRequest, current_user: dict = Depends(get_current_user)):
+    """Unblock an IP address for a rack."""
+    require_network_admin(current_user)
+    result = await db.firewall_blocked_ips.delete_one({"rack_id": rack_id, "ip": body.ip})
+    # Log the unblock
+    await db.firewall_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "site_id": "",
+        "rack_id": rack_id,
+        "event": "ip_unblocked",
+        "ip": body.ip,
+        "details": f"Manually unblocked by {current_user.get('email', '')}",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "severity": "info",
+    })
+    return {"unblocked": result.deleted_count > 0, "ip": body.ip}
+
+
+@firewall_router.post("/rack/{rack_id}/block-ip")
+async def block_rack_ip(rack_id: str, ip: str = Query(...), reason: str = Query("manual"), current_user: dict = Depends(get_current_user)):
+    """Manually block an IP address for a rack."""
+    require_network_admin(current_user)
+    now = datetime.now(timezone.utc).isoformat()
+    await db.firewall_blocked_ips.update_one(
+        {"rack_id": rack_id, "ip": ip},
+        {"$set": {"rack_id": rack_id, "ip": ip, "reason": reason, "blocked_at": now, "blocked_by": current_user.get("email", "")}},
+        upsert=True,
+    )
+    await db.firewall_logs.insert_one({
+        "id": str(uuid.uuid4()),
+        "site_id": "",
+        "rack_id": rack_id,
+        "event": "ip_blocked",
+        "ip": ip,
+        "details": f"Manually blocked by {current_user.get('email', '')} — {reason}",
+        "timestamp": now,
+        "severity": "warning",
+    })
+    return {"blocked": True, "ip": ip}
+
+
+@firewall_router.get("/countries")
+async def list_countries(current_user: dict = Depends(get_current_user)):
+    """Return all countries with codes and European flag."""
+    require_network_admin(current_user)
+    countries = []
+    for code, name in sorted(ALL_COUNTRIES.items(), key=lambda x: x[1]):
+        countries.append({"code": code, "name": name, "is_european": code in EUROPEAN_COUNTRIES})
+    return {"countries": countries}

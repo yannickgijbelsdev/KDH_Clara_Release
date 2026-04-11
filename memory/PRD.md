@@ -167,6 +167,18 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Step is optional — users can skip and configure later
 - ZeroTierPage "Not Configured" state now redirects to site settings instead of inline config
 
+## Clara Global Protect — Full Rack Firewall (Apr 2026)
+- Auto-enable firewall on site creation (can be manually disabled)
+- Enterprise toggle restricted to System Administrators only (Create + Edit wizard, backend enforced)
+- Rack-level firewall management panel (modal from rack detail):
+  - **Logs tab**: Security event logs (brute force, IP blocks, unblocks, geo blocks) per rack
+  - **Blocked IPs tab**: View blocked IPs, manual block/unblock with reason tracking
+  - **Geo Blocking tab**: Country-level access control per rack
+    - Default: 45 European countries allowed, 105 non-European blocked
+    - Search, toggle individual countries, EU badge indicators
+- Backend endpoints: geo-rules CRUD, IP block/unblock, logs query (by rack_id + site_ids)
+- Collections: `firewall_logs`, `firewall_blocked_ips`, `firewall_geo_rules`
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps: Station Source → Metadata Fields → Shows/Playlist → Preview & Activate)

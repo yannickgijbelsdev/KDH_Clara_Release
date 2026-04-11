@@ -7,6 +7,7 @@ import {
   ShieldOff, Loader2
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
+import RackFirewallPanel from './RackFirewallPanel';
 
 const SITE_TYPE_CONFIG = {
   radio:          { icon: Radio,        color: '#f97316', label: 'Radio' },
@@ -163,6 +164,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
   const [carouselPage, setCarouselPage] = useState(0);
   const [firewallStatus, setFirewallStatus] = useState({});
   const [firewallLoading, setFirewallLoading] = useState(false);
+  const [firewallPanelRack, setFirewallPanelRack] = useState(null);
 
   const fetchFirewallStatus = () => {
     const token = localStorage.getItem('token');
@@ -249,6 +251,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
   };
 
   return (
+    <>
     <div className="relative w-full h-full overflow-hidden bg-[#F0F0F2]" data-testid="server-rack-view">
       {/* Subtle dot pattern */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{
@@ -422,6 +425,15 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                         {someOn && !allOn && (
                           <p className="text-[10px] text-amber-600 text-center mt-1.5">Some servers are not yet protected</p>
                         )}
+                        {(allOn || someOn) && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setFirewallPanelRack({ id: selectedRack.id, name: selectedRack.name }); }}
+                            className="w-full mt-2 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+                            data-testid="rack-firewall-manage-btn"
+                          >
+                            <Shield className="w-3.5 h-3.5" /> Manage Firewall
+                          </button>
+                        )}
                       </div>
                     );
                   })()}
@@ -506,5 +518,15 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
         </div>
       </div>
     </div>
+
+    {/* Firewall Management Panel */}
+    {firewallPanelRack && (
+      <RackFirewallPanel
+        rackId={firewallPanelRack.id}
+        rackName={firewallPanelRack.name}
+        onClose={() => setFirewallPanelRack(null)}
+      />
+    )}
+    </>
   );
 }
