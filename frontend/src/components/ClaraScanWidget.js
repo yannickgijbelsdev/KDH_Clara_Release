@@ -187,13 +187,12 @@ function ScanRow({ label, sublabel, icon, status, detail }) {
 /* ══════════════════════════════════════════════════
    MAIN WIDGET
    ══════════════════════════════════════════════════ */
-export default function ClaraScanWidget({ token, isAdmin }) {
+export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
   const [view, setView] = useState('hidden');
   const [healthScan, setHealthScan] = useState({ status: 'idle', checks: [], hasIssues: false });
   const [rackScan, setRackScan] = useState({ status: 'idle', issues: [], summary: null });
   const [visibleChecks, setVisibleChecks] = useState([]);
   const autoMinRef = useRef(null);
-  const todayKey = useRef(new Date().toISOString().split('T')[0]);
 
   /* ── Fix Guide state ── */
   const [guideIssue, setGuideIssue] = useState(null);
@@ -201,7 +200,7 @@ export default function ClaraScanWidget({ token, isAdmin }) {
   const [guideStep, setGuideStep] = useState(0);
   const [guideStepStatus, setGuideStepStatus] = useState([]); // 'pending' | 'active' | 'done'
 
-  const sessionKey = `clara_unified_scan_${todayKey.current}`;
+  const sessionKey = 'clara_scan_this_session';
 
   /* derived */
   const hDone = healthScan.status === 'done';
@@ -223,6 +222,9 @@ export default function ClaraScanWidget({ token, isAdmin }) {
   /* ── Start scans ── */
   useEffect(() => {
     if (!token || !isAdmin) return;
+    // Respect user preference (default: enabled)
+    if (userPreferences?.show_login_scan === false) return;
+    // Don't re-run if already dismissed in this browser session
     if (sessionStorage.getItem(sessionKey)) return;
 
     setView('popup');
@@ -270,8 +272,6 @@ export default function ClaraScanWidget({ token, isAdmin }) {
   /* ── Dismiss ── */
   const handleDismiss = useCallback(() => {
     sessionStorage.setItem(sessionKey, 'done');
-    sessionStorage.setItem(`clara_health_scan_${todayKey.current}`, 'dismissed');
-    sessionStorage.setItem(`clara_rack_scan_${todayKey.current}`, 'done');
     setView('dismissed');
     setGuideIssue(null);
   }, [sessionKey]);

@@ -419,7 +419,7 @@ const ClaraHealthScanWrapper = () => {
   const { user, token } = useAuth();
   const isAdmin = user?.is_network_admin || user?.is_system_admin;
   if (!user || !token || !isAdmin) return null;
-  return <ClaraScanWidget token={token} isAdmin={isAdmin} />;
+  return <ClaraScanWidget token={token} isAdmin={isAdmin} userPreferences={user?.preferences} />;
 };
 
 export default App;

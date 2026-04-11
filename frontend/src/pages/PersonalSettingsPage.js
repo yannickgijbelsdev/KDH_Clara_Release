@@ -9,6 +9,7 @@ import {
   Check,
   Shield,
   Smartphone,
+  ScanSearch,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Label } from '../components/ui/label';
@@ -25,6 +26,7 @@ const PersonalSettingsPage = () => {
   const [preferences, setPreferences] = useState({
     grouped_menu: true,
     show_pwa_prompt: true,
+    show_login_scan: true,
   });
 
   useEffect(() => {
@@ -33,6 +35,7 @@ const PersonalSettingsPage = () => {
       setPreferences({
         grouped_menu: user.preferences.grouped_menu ?? true,
         show_pwa_prompt: user.preferences.show_pwa_prompt ?? true,
+        show_login_scan: user.preferences.show_login_scan ?? true,
       });
     }
   }, [user]);
@@ -116,6 +119,28 @@ const PersonalSettingsPage = () => {
             onCheckedChange={(checked) => setPreferences(prev => ({ ...prev, show_pwa_prompt: checked }))}
             className="data-[state=checked]:bg-orange-500"
             data-testid="pwa-prompt-toggle"
+          />
+        </div>
+      </div>
+
+      {/* Clara Login Scan */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
+        <h2 className="text-lg font-semibold text-zinc-900 mb-4 flex items-center gap-2">
+          <ScanSearch className="w-5 h-5 text-orange-400" />
+          Clara System Scan
+        </h2>
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <Label className="text-zinc-900 font-medium">Scan at login</Label>
+            <p className="text-sm text-zinc-400 mt-1">
+              Run an automatic infrastructure and configuration scan every time you log in. Clara will check all sites, firewalls, and integrations for issues.
+            </p>
+          </div>
+          <Switch
+            checked={preferences.show_login_scan}
+            onCheckedChange={(checked) => setPreferences(prev => ({ ...prev, show_login_scan: checked }))}
+            className="data-[state=checked]:bg-orange-500"
+            data-testid="login-scan-toggle"
           />
         </div>
       </div>
