@@ -1,16 +1,12 @@
 import { Sparkles } from 'lucide-react';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
-import { useMainSite } from '../context/MainSiteContext';
 
 /**
  * Inline Clara Assistent error help button.
- * Only visible on Enterprise main sites.
+ * Always visible — provides AI-powered troubleshooting for any error state.
  */
 export default function ClaraErrorButton({ errorMessage, errorContext = '', className = '' }) {
   const { openClara } = useClaraAssistant();
-  const { mainSite } = useMainSite();
-
-  if (!mainSite?.clara_enterprise) return null;
 
   return (
     <button

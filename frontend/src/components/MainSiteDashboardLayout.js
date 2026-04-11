@@ -1413,7 +1413,7 @@ const MainSiteDashboardContent = () => {
     {isClone && <DevToolsPanel />}
     {isClone && <DevToolsInspector />}
     {(user?.role === 'admin' || user?.is_network_admin || user?.is_system_admin) && <ClaraCLI triggerRef={cliTriggerRef} />}
-    {mainSite?.clara_enterprise && <ClaraAssistant />}
+    <ClaraAssistant />
     {mainSite?.clara_enterprise && (
       <VoiceCallWidget
         open={showVoiceCall}
