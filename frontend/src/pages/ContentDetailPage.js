@@ -68,6 +68,7 @@ import { usePermissions } from '../context/PermissionsContext';
 import RichTextEditor from '../components/RichTextEditor';
 import { claraToast } from '../utils/claraToast';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
+import ClaraErrorButton from '../components/ClaraErrorButton';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -667,7 +668,9 @@ const ContentDetailPage = () => {
                           <> • Synced {format(parseISO(ps.last_synced_at), 'MMM d, yyyy HH:mm')}</>
                         )}
                         {ps.sync_status === 'failed' && ps.sync_error_message && (
-                          <span className="text-rose-400 block mt-1">{ps.sync_error_message}</span>
+                          <span className="text-rose-400 block mt-1">{ps.sync_error_message}
+                            <span className="inline-block ml-2"><ClaraErrorButton errorMessage={ps.sync_error_message} errorContext="WordPress sync failed" /></span>
+                          </span>
                         )}
                       </p>
                     </div>

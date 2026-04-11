@@ -12,6 +12,7 @@ import {
 } from '../../components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { ConnectionStatus } from '../../components/ConnectionStatus';
+import ClaraErrorButton from '../../components/ClaraErrorButton';
 import {
   Globe, Plus, Edit, Trash2, Check, Loader2, Shield,
   ExternalLink, AlertTriangle, CheckCircle, Clock, XCircle, Copy,
@@ -490,7 +491,7 @@ export default function DomainManager() {
                 <p className="text-sm text-zinc-600 font-medium">Cloudflare API not configured</p>
                 <p className="text-xs text-zinc-400">Set up your Cloudflare API Token to manage DNS records automatically</p>
               </div>
-              <Button size="sm" variant="outline" className="ml-auto" onClick={() => setActiveTab('cloudflare')}>Set up</Button>
+              <ClaraErrorButton errorMessage="Cloudflare API is not configured" errorContext="Domain management — Cloudflare integration" className="ml-auto" />
             </div>
           )}
 
@@ -720,8 +721,8 @@ export default function DomainManager() {
                   <p className="text-sm font-medium text-red-600">Cloudflare not configured</p>
                   <p className="text-xs text-zinc-400 mt-0.5">
                     Subdomain routes require DNS records in Cloudflare to work.
-                    Go to the <button onClick={() => setActiveTab('cloudflare')} className="text-orange-400 hover:underline font-medium">Cloudflare tab</button> to set up your API credentials first.
                   </p>
+                  <div className="mt-2"><ClaraErrorButton errorMessage="Cloudflare is not configured for this site" errorContext="Subdomain routes require Cloudflare DNS configuration" /></div>
                 </div>
               </div>
             </div>

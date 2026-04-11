@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import ClaraErrorButton from '../components/ClaraErrorButton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../components/ui/alert-dialog';
 import ZeroTierAlertHistory from './ZeroTierAlertHistory';
@@ -425,7 +426,8 @@ const ZeroTierPage = () => {
         <div className="bg-white/60 border border-zinc-200 rounded-xl p-12 text-center">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
           <h2 className="text-zinc-900 text-lg font-semibold mb-2">ZeroTier is not configured for {mainSite?.name || mainSiteSlug}</h2>
-          <p className="text-zinc-400">Configure your ZeroTier connection in the site settings to start monitoring.</p>
+          <p className="text-zinc-400 mb-4">Configure your ZeroTier connection in the site settings to start monitoring.</p>
+          <ClaraErrorButton errorMessage={`ZeroTier is not configured for ${mainSite?.name || mainSiteSlug}`} errorContext="ZeroTier configuration" />
         </div>
       )}
 

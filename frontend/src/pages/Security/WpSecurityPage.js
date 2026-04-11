@@ -7,6 +7,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { ConnectionStatus } from '../../components/ConnectionStatus';
+import ClaraErrorButton from '../../components/ClaraErrorButton';
 import {
   Shield, Globe, Lock, Ban, Check, Loader2, Trash2, Cloud, Zap,
   ShieldCheck, Copy, AlertTriangle, CheckCircle, XCircle, Bug, Search,
@@ -38,8 +39,9 @@ function SyncBadge({ result }) {
   const steps = result.steps || [];
   const tooltip = steps.length > 0 ? steps.join('\n') : result.message;
   return (
-    <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 cursor-help" title={tooltip}>
+    <span className="inline-flex items-center gap-1.5 text-[9px] px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 cursor-help" title={tooltip}>
       Sync failed: {result.message?.substring(0, 50)}
+      <ClaraErrorButton errorMessage={`WAF Sync failed: ${result.message}`} errorContext="WordPress Security — Cloudflare WAF sync" className="text-[9px] px-1.5 py-0.5" />
     </span>
   );
 }
