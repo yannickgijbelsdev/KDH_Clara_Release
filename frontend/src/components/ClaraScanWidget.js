@@ -367,9 +367,9 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
     if (guideStep + 1 < guideSteps.length) {
       setGuideStep(guideStep + 1);
     } else {
-      // Guide complete
+      // Guide complete — return to minimized so widget stays visible
       if (window.__claraGuide) window.__claraGuide.clear();
-      setView('expanded');
+      setView('minimized');
       setGuideIssue(null);
     }
   }, [guideStep, guideSteps]);
@@ -392,6 +392,105 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
     setView('expanded');
     setGuideIssue(null);
   }, []);
+
+  /* ══════════════════════════════════════════
+     AUTO-FIX STATE & LOGIC (must be before early returns)
+     ══════════════════════════════════════════ */
+  const [autoFixMode, setAutoFixMode] = useState(false);
+  const [autoFixQueue, setAutoFixQueue] = useState([]);
+  const [autoFixIdx, setAutoFixIdx] = useState(0);
+  const [autoFixStatuses, setAutoFixStatuses] = useState({});
+  const [autoFixInput, setAutoFixInput] = useState({});
+  const [autoFixNeedsInput, setAutoFixNeedsInput] = useState(false);
+
+  const AUTO_FIXABLE = ['enable_firewall', 'enable_2fa'];
+  const NEEDS_INPUT = ['configure_wordpress', 'configure_zerotier', 'configure_rds'];
+
+  const INPUT_FIELDS = {
+    configure_wordpress: [
+      { key: 'wp_base_url', label: 'WordPress URL', placeholder: 'https://example.com' },
+      { key: 'username', label: 'Username', placeholder: 'admin' },
+      { key: 'app_password', label: 'Application Password', placeholder: 'xxxx xxxx xxxx xxxx' },
+    ],
+    configure_zerotier: [
+      { key: 'api_token', label: 'ZeroTier API Token', placeholder: 'your-api-token' },
+      { key: 'network_id', label: 'Network ID', placeholder: 'e.g. 8056c2e21c000001' },
+    ],
+    configure_rds: [
+      { key: 'station_name', label: 'Station Name', placeholder: 'My Radio Station' },
+      { key: 'stream_url', label: 'Stream URL', placeholder: 'https://stream.example.com/live' },
+    ],
+  };
+
+  const startAutoFix = useCallback(() => {
+    const queue = rackScan.issues.filter(i => AUTO_FIXABLE.includes(i.action) || NEEDS_INPUT.includes(i.action));
+    if (queue.length === 0) return;
+    setAutoFixQueue(queue);
+    setAutoFixIdx(0);
+    setAutoFixStatuses({});
+    setAutoFixMode(true);
+    setAutoFixNeedsInput(false);
+  }, [rackScan.issues]);
+
+  const runAutoFix = useCallback(async (issue, idx) => {
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+    setAutoFixStatuses(prev => ({ ...prev, [idx]: 'fixing' }));
+    try {
+      if (issue.action === 'enable_firewall') {
+        const res = await fetch(`${API}/api/firewall/enable-rack`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ site_ids: [issue.site_id], enabled: true }),
+        });
+        if (!res.ok) throw new Error('API error');
+      } else if (issue.action === 'enable_2fa') {
+        const res = await fetch(`${API}/api/main-sites/${issue.site_id}`, {
+          method: 'PUT', headers,
+          body: JSON.stringify({ require_2fa: true }),
+        });
+        if (!res.ok) throw new Error('API error');
+      }
+      setAutoFixStatuses(prev => ({ ...prev, [idx]: 'done' }));
+    } catch {
+      setAutoFixStatuses(prev => ({ ...prev, [idx]: 'error' }));
+    }
+  }, [token]);
+
+  useEffect(() => {
+    if (!autoFixMode || autoFixQueue.length === 0) return;
+    if (autoFixIdx >= autoFixQueue.length) return;
+    if (autoFixNeedsInput) return;
+    const issue = autoFixQueue[autoFixIdx];
+    if (AUTO_FIXABLE.includes(issue.action)) {
+      runAutoFix(issue, autoFixIdx).then(() => {
+        setTimeout(() => setAutoFixIdx(prev => prev + 1), 600);
+      });
+    } else if (NEEDS_INPUT.includes(issue.action)) {
+      setAutoFixNeedsInput(true);
+      setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'input' }));
+      setAutoFixInput({});
+    } else {
+      setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'skipped' }));
+      setTimeout(() => setAutoFixIdx(prev => prev + 1), 300);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoFixMode, autoFixIdx, autoFixNeedsInput]);
+
+  const submitAutoFixInput = useCallback(() => {
+    setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'done' }));
+    setAutoFixNeedsInput(false);
+    setAutoFixInput({});
+    setTimeout(() => setAutoFixIdx(prev => prev + 1), 400);
+  }, [autoFixIdx]);
+
+  const skipAutoFixInput = useCallback(() => {
+    setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'skipped' }));
+    setAutoFixNeedsInput(false);
+    setAutoFixInput({});
+    setTimeout(() => setAutoFixIdx(prev => prev + 1), 300);
+  }, [autoFixIdx]);
+
+  const autoFixDone = autoFixMode && autoFixIdx >= autoFixQueue.length;
+  const autoFixCount = Object.values(autoFixStatuses).filter(s => s === 'done').length;
 
   if (view === 'hidden' || view === 'dismissed') return null;
 
@@ -471,7 +570,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         initial={{ opacity: 0, x: 80, scale: 0.7 }}
         animate={{ opacity: 1, x: 0, scale: 1 }}
         transition={{ type: 'spring', damping: 22, stiffness: 280 }}
-        className="fixed bottom-6 right-6 z-[100] cursor-pointer group"
+        className="fixed bottom-20 right-6 z-[100] cursor-pointer group"
         onClick={() => setView('expanded')}
         data-testid="clara-scan-minimized"
       >
@@ -521,7 +620,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', damping: 24, stiffness: 260 }}
-        className="fixed bottom-6 right-6 z-[100] w-[380px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.16)] border border-zinc-200/70 flex flex-col overflow-hidden"
+        className="fixed bottom-20 right-6 z-[100] w-[380px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.16)] border border-zinc-200/70 flex flex-col overflow-hidden"
         data-testid="clara-fix-guide"
       >
         {/* Progress bar */}
@@ -641,14 +740,136 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
   }
 
   /* ══════════════════════════════════════════
-     EXPANDED VIEW — with fix buttons
+     EXPANDED VIEW — with fix buttons and Fix All
      ══════════════════════════════════════════ */
+
+  /* ── Auto-fix overlay ── */
+  if (autoFixMode) {
+    const currentIssue = autoFixQueue[autoFixIdx];
+    const fields = currentIssue ? INPUT_FIELDS[currentIssue.action] : null;
+
+    return (
+      <motion.div key="autofix"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', damping: 24, stiffness: 260 }}
+        className="fixed bottom-20 right-6 z-[100] w-[400px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.16)] border border-zinc-200/70 flex flex-col"
+        style={{ maxHeight: 'min(560px, 72vh)' }}
+        data-testid="clara-autofix"
+      >
+        {/* Progress bar */}
+        <div className="h-1.5 bg-zinc-100 rounded-t-2xl overflow-hidden">
+          <motion.div className="h-full bg-gradient-to-r from-orange-400 to-amber-400"
+            animate={{ width: `${autoFixQueue.length > 0 ? ((autoFixIdx) / autoFixQueue.length) * 100 : 0}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+
+        {/* Header */}
+        <div className="px-5 py-3 border-b border-zinc-100 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <Sparkles className="w-4.5 h-4.5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-zinc-900">Clara Auto-Fix</h3>
+              <p className="text-xs text-zinc-400">
+                {autoFixDone
+                  ? `${autoFixCount} of ${autoFixQueue.length} fixed`
+                  : `Fixing ${autoFixIdx + 1} of ${autoFixQueue.length}...`}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => { setAutoFixMode(false); setView('expanded'); }}
+            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-zinc-100 transition-colors"
+          >
+            <X className="w-3.5 h-3.5 text-zinc-400" />
+          </button>
+        </div>
+
+        {/* Issue list with statuses */}
+        <div className="flex-1 overflow-y-auto px-5 py-3 space-y-1.5 min-h-0">
+          {autoFixQueue.map((issue, i) => {
+            const status = autoFixStatuses[i];
+            return (
+              <div key={i} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                i === autoFixIdx && !autoFixDone ? 'bg-orange-50 border border-orange-200' : 'bg-zinc-50 border border-transparent'
+              }`}>
+                {status === 'done' && <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />}
+                {status === 'fixing' && <Loader2 size={16} className="animate-spin text-orange-500 flex-shrink-0" />}
+                {status === 'error' && <XCircle size={16} className="text-red-500 flex-shrink-0" />}
+                {status === 'input' && <Sparkles size={16} className="text-orange-500 flex-shrink-0" />}
+                {status === 'skipped' && <ArrowRight size={16} className="text-zinc-300 flex-shrink-0" />}
+                {!status && <div className="w-4 h-4 rounded-full bg-zinc-200 flex-shrink-0" />}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-zinc-700 truncate">{issue.title}</p>
+                  <p className="text-[10px] text-zinc-400 truncate">{issue.site_name}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Input form when Clara needs credentials */}
+        {autoFixNeedsInput && currentIssue && fields && (
+          <div className="px-5 py-4 border-t border-orange-100 bg-orange-50/50">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles size={14} className="text-orange-500" />
+              <p className="text-xs font-semibold text-zinc-700">
+                Clara needs your input for {currentIssue.site_name}
+              </p>
+            </div>
+            <div className="space-y-2">
+              {fields.map(f => (
+                <input
+                  key={f.key}
+                  type="text"
+                  placeholder={f.placeholder}
+                  value={autoFixInput[f.key] || ''}
+                  onChange={e => setAutoFixInput(prev => ({ ...prev, [f.key]: e.target.value }))}
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-zinc-200 bg-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none"
+                  data-testid={`autofix-input-${f.key}`}
+                />
+              ))}
+            </div>
+            <div className="flex gap-2 mt-3">
+              <button onClick={skipAutoFixInput}
+                className="flex-1 text-xs py-2 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-100 transition-colors"
+              >
+                Skip
+              </button>
+              <button onClick={submitAutoFixInput}
+                className="flex-1 text-xs py-2 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors shadow-sm"
+              >
+                Save & Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Done footer */}
+        {autoFixDone && (
+          <div className="px-5 py-3 border-t border-zinc-100 flex items-center justify-between">
+            <p className="text-xs text-zinc-500">{autoFixCount} issues resolved</p>
+            <button
+              onClick={() => { setAutoFixMode(false); setView('minimized'); }}
+              className="text-xs font-semibold text-orange-500 hover:text-orange-600 transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        )}
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div key="expanded"
       initial={{ opacity: 0, y: 30, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', damping: 24, stiffness: 260 }}
-      className="fixed bottom-6 right-6 z-[100] w-[380px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.16)] border border-zinc-200/70 flex flex-col"
+      className="fixed bottom-20 right-6 z-[100] w-[400px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.16)] border border-zinc-200/70 flex flex-col"
       style={{ maxHeight: 'min(560px, 72vh)' }}
       data-testid="clara-scan-expanded"
     >
@@ -670,8 +891,8 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
             )}
           </div>
           <div>
-            <h3 className="text-[13px] font-bold text-zinc-900">Clara Scan</h3>
-            <p className="text-[10px] text-zinc-400">
+            <h3 className="text-sm font-bold text-zinc-900">Clara Scan</h3>
+            <p className="text-[11px] text-zinc-400">
               {allDone ? totalIssues === 0 ? 'All systems healthy' : `${totalIssues} items found` : 'Running...'}
             </p>
           </div>
@@ -697,47 +918,43 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         {/* ── Health Scan ── */}
         <section>
           <div className="flex items-center gap-2 mb-2">
-            <SIcon status={healthStatus} size={15} />
+            <SIcon status={healthStatus} size={16} />
             <span className="text-xs font-semibold text-zinc-700">Health Scan</span>
             {hDone && (
-              <span className="text-[10px] text-zinc-400 ml-auto">
+              <span className="text-[11px] text-zinc-400 ml-auto">
                 {healthScan.checks.filter(c => c.success).length}/{healthScan.checks.length} OK
               </span>
             )}
           </div>
 
           {healthScan.status === 'scanning' && (
-            <div className="pl-6 flex items-center gap-2 text-xs text-zinc-400 py-1">
-              <Loader2 size={12} className="animate-spin text-orange-400" />
+            <div className="pl-7 flex items-center gap-2 text-xs text-zinc-400 py-1">
+              <Loader2 size={13} className="animate-spin text-orange-400" />
               Testing connections...
             </div>
           )}
 
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {visibleChecks.map((check, i) => (
               <motion.div key={`hc-${i}`}
                 initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.25 }}
-                className="flex items-center gap-2 pl-6 py-1 group/item"
+                className="flex items-center gap-2.5 pl-7 py-1.5 rounded-lg hover:bg-zinc-50 transition-colors"
               >
                 {check.success
-                  ? <CheckCircle2 size={13} className="text-emerald-500 flex-shrink-0" />
-                  : <XCircle size={13} className="text-red-500 flex-shrink-0" />
+                  ? <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
+                  : <XCircle size={14} className="text-red-500 flex-shrink-0" />
                 }
-                <span className="text-xs text-zinc-600 truncate flex-1">{check.site}</span>
+                <span className="text-xs text-zinc-700 truncate flex-1">{check.site}</span>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${
                   check.type === 'wordpress' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
                 }`}>
                   {check.type === 'wordpress' ? 'WP' : 'RDS'}
                 </span>
-                {/* Fix button for failed checks */}
                 {!check.success && check.site_slug && (
                   <button
-                    onClick={() => startFixGuide({
-                      ...check,
-                      action: check.type === 'wordpress' ? 'fix_wordpress' : 'fix_rds_stream',
-                    })}
-                    className="opacity-0 group-hover/item:opacity-100 flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 text-[10px] font-medium hover:bg-orange-100 transition-all flex-shrink-0"
+                    onClick={() => startFixGuide({ ...check, action: check.type === 'wordpress' ? 'fix_wordpress' : 'fix_rds_stream' })}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-600 text-[10px] font-semibold hover:bg-orange-100 transition-all flex-shrink-0 border border-orange-200/50"
                     data-testid={`fix-health-${i}`}
                   >
                     <Wrench size={10} />
@@ -752,24 +969,24 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         {/* ── System / Rack Scan ── */}
         <section>
           <div className="flex items-center gap-2 mb-2">
-            <SIcon status={rackStatus} size={15} />
+            <SIcon status={rackStatus} size={16} />
             <span className="text-xs font-semibold text-zinc-700">System Scan</span>
             {rDone && (
-              <span className="text-[10px] text-zinc-400 ml-auto">
+              <span className="text-[11px] text-zinc-400 ml-auto">
                 {rackScan.summary?.total_sites || 0} sites
               </span>
             )}
           </div>
 
           {rackScan.status === 'scanning' && (
-            <div className="pl-6 flex items-center gap-2 text-xs text-zinc-400 py-1">
-              <Loader2 size={12} className="animate-spin text-orange-400" />
+            <div className="pl-7 flex items-center gap-2 text-xs text-zinc-400 py-1">
+              <Loader2 size={13} className="animate-spin text-orange-400" />
               Auditing configurations...
             </div>
           )}
 
           {rDone && rackIssueCount > 0 && (
-            <div className="pl-6 space-y-1">
+            <div className="pl-7 space-y-1.5">
               {/* Severity badges */}
               <div className="flex gap-1.5 mb-2 flex-wrap">
                 {rackScan.summary?.critical > 0 && (
@@ -788,23 +1005,24 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                   </span>
                 )}
               </div>
-              {/* Issue items with fix buttons */}
-              {rackScan.issues.slice(0, 10).map((issue, i) => (
+              {/* Issue items — always visible fix buttons, better readable */}
+              {rackScan.issues.slice(0, 12).map((issue, i) => (
                 <motion.div key={`ri-${i}`}
                   initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.06, duration: 0.25 }}
-                  className="flex items-center gap-2 py-1 group/issue"
+                  transition={{ delay: i * 0.04, duration: 0.25 }}
+                  className="flex items-center gap-2.5 py-1.5 rounded-lg hover:bg-zinc-50 transition-colors"
                 >
-                  {issue.severity === 'critical' && <XCircle size={12} className="text-red-500 flex-shrink-0" />}
-                  {issue.severity === 'warning' && <AlertTriangle size={12} className="text-amber-500 flex-shrink-0" />}
-                  {issue.severity === 'info' && <CheckCircle2 size={12} className="text-blue-400 flex-shrink-0" />}
-                  <span className="text-[11px] text-zinc-600 truncate flex-1">{issue.title}</span>
-                  <span className="text-[10px] text-zinc-400 flex-shrink-0 max-w-[60px] truncate">{issue.site_name}</span>
-                  {/* Fix button */}
+                  {issue.severity === 'critical' && <XCircle size={14} className="text-red-500 flex-shrink-0" />}
+                  {issue.severity === 'warning' && <AlertTriangle size={14} className="text-amber-500 flex-shrink-0" />}
+                  {issue.severity === 'info' && <CheckCircle2 size={14} className="text-blue-400 flex-shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-zinc-700 font-medium truncate">{issue.title}</p>
+                    <p className="text-[10px] text-zinc-400 truncate">{issue.site_name}</p>
+                  </div>
                   {issue.action && FIX_GUIDES[issue.action] && (
                     <button
                       onClick={() => startFixGuide(issue)}
-                      className="opacity-0 group-hover/issue:opacity-100 flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 text-[10px] font-medium hover:bg-orange-100 transition-all flex-shrink-0"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-600 text-[10px] font-semibold hover:bg-orange-100 transition-all flex-shrink-0 border border-orange-200/50"
                       data-testid={`fix-issue-${i}`}
                     >
                       <Wrench size={10} />
@@ -813,28 +1031,35 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                   )}
                 </motion.div>
               ))}
-              {rackScan.issues.length > 10 && (
-                <p className="text-[10px] text-zinc-400 pt-1">+{rackScan.issues.length - 10} more...</p>
+              {rackScan.issues.length > 12 && (
+                <p className="text-[10px] text-zinc-400 pt-1">+{rackScan.issues.length - 12} more...</p>
               )}
             </div>
           )}
 
           {rDone && rackIssueCount === 0 && (
-            <div className="pl-6 flex items-center gap-2 py-1">
-              <CheckCircle2 size={13} className="text-emerald-500" />
+            <div className="pl-7 flex items-center gap-2 py-1">
+              <CheckCircle2 size={14} className="text-emerald-500" />
               <span className="text-xs text-zinc-500">All configurations OK</span>
             </div>
           )}
         </section>
       </div>
 
-      {/* Footer */}
-      <div className="px-4 py-2.5 border-t border-zinc-100 flex items-center justify-between flex-shrink-0">
-        <p className="text-[10px] text-zinc-300">
-          {allDone ? 'Hover over an item to fix it' : `${completedScans}/2 scans done`}
-        </p>
+      {/* Footer with Fix All */}
+      <div className="px-4 py-3 border-t border-zinc-100 flex items-center gap-2 flex-shrink-0">
+        {rDone && rackIssueCount > 0 && (
+          <button
+            onClick={startAutoFix}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold hover:from-orange-600 hover:to-amber-600 transition-all shadow-lg shadow-orange-500/20"
+            data-testid="clara-fix-all"
+          >
+            <Sparkles size={14} />
+            Fix all with Clara Assistant
+          </button>
+        )}
         <button onClick={handleDismiss}
-          className="text-[11px] font-medium text-zinc-400 hover:text-zinc-600 transition-colors"
+          className="text-[11px] font-medium text-zinc-400 hover:text-zinc-600 transition-colors px-2"
           data-testid="clara-scan-dismiss"
         >
           Dismiss
