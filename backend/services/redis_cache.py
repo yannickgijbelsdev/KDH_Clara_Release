@@ -27,7 +27,10 @@ async def get_redis():
         _last_check = now
         try:
             import redis.asyncio as redis_lib
-            _redis = redis_lib.Redis(host="localhost", port=6379, decode_responses=True, socket_connect_timeout=1, socket_timeout=1)
+            _redis = redis_lib.Redis(
+                host="localhost", port=6379, decode_responses=True,
+                socket_connect_timeout=0.3, socket_timeout=0.3,
+            )
             await _redis.ping()
             _redis_available = True
             _redis_checked = True
@@ -36,8 +39,6 @@ async def get_redis():
             _redis = None
             _redis_available = False
             _redis_checked = True
-            if not _redis_checked:
-                logger.info("Redis unavailable — using in-memory cache")
             return None
     return _redis if _redis_available else None
 

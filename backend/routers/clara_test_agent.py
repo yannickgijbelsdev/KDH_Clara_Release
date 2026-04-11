@@ -1,4 +1,5 @@
 """Clara Test Agent - AI-powered connection testing and site health scanning."""
+import asyncio
 import os
 import uuid
 import logging
@@ -11,6 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Request
 
 from database import db
 from services.auth import get_current_user
+from services.redis_cache import cache_get, cache_set
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 logger = logging.getLogger(__name__)
@@ -26,15 +28,6 @@ When given test results from WordPress or RDS stream connections, you:
 3. If everything is OK, confirm with a brief positive message
 Keep responses concise (2-4 sentences for success, 4-8 sentences for errors).
 Always respond in English. Use a friendly, professional tone."""
-
-HEALTH_SCAN_SYSTEM = """You are Clara, a site health monitor for a radio station management platform.
-You receive a health report of all main sites including WordPress and RDS stream status.
-Summarize the findings:
-- List any failing connections with brief explanations
-- Suggest fixes for each issue
-- If everything is healthy, say so briefly
-Keep it concise and actionable. Always respond in English. Use a friendly, professional tone.
-Format with markdown: use **bold** for site names, bullet points for issues."""
 
 
 # ── Models ──
@@ -61,7 +54,7 @@ class HealthScanResponse(BaseModel):
 async def _test_wp_connection(wp_site: dict) -> dict:
     """Test a WordPress connection and return structured results."""
     try:
-        async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
             auth_str = f"{wp_site['username']}:{wp_site['app_password']}"
             auth_bytes = base64.b64encode(auth_str.encode()).decode()
             base_url = wp_site['wp_base_url'].rstrip('/')
@@ -81,22 +74,21 @@ async def _test_wp_connection(wp_site: dict) -> dict:
                         "status_code": 200,
                         "wp_user": user_data.get("name", "unknown"),
                         "wp_role": ", ".join(user_data.get("roles", [])),
-                        "capabilities": list(user_data.get("capabilities", {}).keys())[:10],
                     }
                 except Exception:
-                    return {"success": False, "status_code": 200, "error": "Response was not valid JSON (possible HTML page)"}
+                    return {"success": False, "status_code": 200, "error": "Response was not valid JSON"}
             elif response.status_code == 401:
-                return {"success": False, "status_code": 401, "error": "Authentication failed - check username and application password"}
+                return {"success": False, "status_code": 401, "error": "Authentication failed"}
             elif response.status_code == 403:
-                return {"success": False, "status_code": 403, "error": "Access forbidden - user may lack required permissions"}
+                return {"success": False, "status_code": 403, "error": "Access forbidden"}
             elif response.status_code == 404:
-                return {"success": False, "status_code": 404, "error": "REST API not found - check if WordPress URL is correct and REST API is enabled"}
+                return {"success": False, "status_code": 404, "error": "REST API not found"}
             else:
-                return {"success": False, "status_code": response.status_code, "error": f"Unexpected response: {response.text[:200]}"}
+                return {"success": False, "status_code": response.status_code, "error": f"HTTP {response.status_code}"}
     except httpx.ConnectError:
-        return {"success": False, "error": "Could not connect to the server - check if the URL is correct and the server is running"}
+        return {"success": False, "error": "Could not connect to server"}
     except httpx.TimeoutException:
-        return {"success": False, "error": "Connection timed out after 12 seconds"}
+        return {"success": False, "error": "Connection timed out"}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -108,20 +100,18 @@ async def _test_rds_stream(station: dict) -> dict:
         return {"success": False, "error": "No stream URL configured"}
 
     try:
-        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=3.0, follow_redirects=True) as client:
             response = await client.get(stream_url)
             if response.status_code == 200:
-                # Check if it returns XML/JSON stats (Shoutcast/Icecast)
                 content = response.text[:500]
                 has_stats = any(k in content.lower() for k in ["songtitle", "servertitle", "currentlisteners", "source", "mount"])
                 return {
                     "success": True,
                     "status_code": 200,
                     "has_stats": has_stats,
-                    "content_preview": content[:100],
                 }
             else:
-                return {"success": False, "status_code": response.status_code, "error": f"Stream returned HTTP {response.status_code}"}
+                return {"success": False, "status_code": response.status_code, "error": f"HTTP {response.status_code}"}
     except httpx.ConnectError:
         return {"success": False, "error": "Could not connect to stream server"}
     except httpx.TimeoutException:
@@ -135,16 +125,6 @@ def _get_diagnose_chat() -> LlmChat:
         api_key=EMERGENT_KEY,
         session_id=f"clara-diag-{uuid.uuid4().hex[:8]}",
         system_message=DIAGNOSE_SYSTEM,
-    )
-    chat.with_model("openai", "gpt-5.2")
-    return chat
-
-
-def _get_health_chat() -> LlmChat:
-    chat = LlmChat(
-        api_key=EMERGENT_KEY,
-        session_id=f"clara-health-{uuid.uuid4().hex[:8]}",
-        system_message=HEALTH_SCAN_SYSTEM,
     )
     chat.with_model("openai", "gpt-5.2")
     return chat
@@ -253,99 +233,131 @@ Diagnose this stream connection test. If successful, confirm what type of data w
 async def health_scan(
     current_user: dict = Depends(get_current_user),
 ):
-    """Scan all main sites for WordPress and RDS issues. Returns Clara's diagnosis.
-    Called automatically after admin login."""
+    """Fast health scan — returns config checks instantly, external checks run in background."""
     if not current_user.get("is_network_admin") and not current_user.get("is_system_admin"):
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    if not EMERGENT_KEY:
-        raise HTTPException(status_code=500, detail="AI service not configured")
+    # Return cached result if available (includes completed external checks)
+    cache_key = "health_scan_result"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
 
+    # Phase 1: Fast DB-only config checks (instant)
+    sites_q = db.main_sites.find({}, {"_id": 0, "id": 1, "name": 1, "slug": 1, "site_type": 1}).to_list(100)
+    wp_q = db.wordpress_sites.find({"is_active": True}, {"_id": 0}).to_list(100)
+    rds_q = db.rds_stations.find({}, {"_id": 0}).to_list(200)
+    sites, wp_sites_all, rds_stations_all = await asyncio.gather(sites_q, wp_q, rds_q)
+
+    wp_by_site = {}
+    for wp in wp_sites_all:
+        sid = wp.get("main_site_id")
+        if sid:
+            wp_by_site.setdefault(sid, []).append(wp)
+    rds_by_site = {}
+    for st in rds_stations_all:
+        sid = st.get("main_site_id")
+        if sid:
+            rds_by_site.setdefault(sid, []).append(st)
+
+    # Build config-level checks (no external HTTP)
     checks = []
-
-    # Get all main sites
-    sites = await db.main_sites.find({}, {"_id": 0}).to_list(100)
+    pending_tasks = []
 
     for site in sites:
-        site_id = site.get("id")
-        site_name = site.get("name", "Unknown")
-        site_slug = site.get("slug", "")
-        site_type = site.get("site_type", "")
+        sid = site["id"]
 
-        # Check WordPress connections
-        if site_type in ("radio", "external_host"):
-            wp_sites = await db.wordpress_sites.find(
-                {"main_site_id": site_id, "is_active": True}, {"_id": 0}
-            ).to_list(20)
+        # WP checks — any site with WP connections
+        for wp in wp_by_site.get(sid, []):
+            check_entry = {
+                "site": site["name"], "site_id": sid,
+                "site_slug": site.get("slug", ""), "site_type": site.get("site_type", ""),
+                "type": "wordpress",
+                "target": wp.get("name", wp.get("wp_base_url", "")),
+                "wp_base_url": wp.get("wp_base_url", ""),
+            }
+            if not wp.get("app_password"):
+                check_entry["success"] = False
+                check_entry["error"] = "No application password configured"
+                checks.append(check_entry)
+            else:
+                check_entry["success"] = True
+                check_entry["status"] = "configured"
+                checks.append(check_entry)
+                pending_tasks.append((len(checks) - 1, wp, site))
 
-            for wp in wp_sites:
-                if not wp.get("app_password"):
-                    checks.append({
-                        "site": site_name, "site_id": site_id, "site_slug": site_slug,
-                        "site_type": site_type, "type": "wordpress",
-                        "target": wp.get("name", wp.get("wp_base_url", "")),
-                        "wp_base_url": wp.get("wp_base_url", ""),
-                        "success": False, "error": "No application password configured",
-                    })
-                    continue
-
-                result = await _test_wp_connection(wp)
-                checks.append({
-                    "site": site_name, "site_id": site_id, "site_slug": site_slug,
-                    "site_type": site_type, "type": "wordpress",
-                    "target": wp.get("name", wp.get("wp_base_url", "")),
-                    "wp_base_url": wp.get("wp_base_url", ""),
-                    **result,
-                })
-
-        # Check RDS stations
-        if site_type == "radio":
-            stations = await db.rds_stations.find(
-                {"main_site_id": site_id}, {"_id": 0}
-            ).to_list(50)
-
-            for st in stations:
-                if not st.get("stream_url"):
-                    continue
-                result = await _test_rds_stream(st)
-                checks.append({
-                    "site": site_name, "site_id": site_id, "site_slug": site_slug,
-                    "site_type": site_type, "type": "rds_stream",
-                    "target": f"{st.get('name', st.get('code', ''))}",
-                    "stream_url": st.get("stream_url", ""),
-                    **result,
-                })
+        # RDS checks — any site with RDS stations
+        for st in rds_by_site.get(sid, []):
+            if not st.get("stream_url"):
+                continue
+            check_entry = {
+                "site": site["name"], "site_id": sid,
+                "site_slug": site.get("slug", ""), "site_type": site.get("site_type", ""),
+                "type": "rds_stream",
+                "target": st.get("name", st.get("code", "")),
+                "stream_url": st.get("stream_url", ""),
+                "success": True,
+                "status": "configured",
+            }
+            checks.append(check_entry)
+            pending_tasks.append((len(checks) - 1, st, site))
 
     has_issues = any(not c.get("success") for c in checks)
 
     if not checks:
-        return HealthScanResponse(
-            has_issues=False,
-            diagnosis="No WordPress or RDS connections configured yet. Nothing to check!",
-            checks=[],
-        )
+        resp = {"has_issues": False, "diagnosis": "No connections configured yet.", "checks": []}
+        await cache_set(cache_key, resp, ttl=60)
+        return resp
 
-    # Build report for Clara
-    report_lines = []
-    for c in checks:
-        status_icon = "OK" if c.get("success") else "FAIL"
-        report_lines.append(f"[{status_icon}] {c['site']} / {c['type']} / {c['target']}: {c.get('error', 'connected')}")
+    ok_count = sum(1 for c in checks if c.get("success"))
+    fail_count = len(checks) - ok_count
+    diagnosis = f"{ok_count} connections configured." if fail_count == 0 else f"{fail_count} config issues found."
 
-    report = "\n".join(report_lines)
+    resp = {"has_issues": has_issues, "diagnosis": diagnosis, "checks": checks}
+    await cache_set(cache_key, resp, ttl=60)
 
-    chat = _get_health_chat()
-    prompt = f"""Here is the health scan report for all main sites:
+    # Phase 2: Fire-and-forget background task for external connectivity checks
+    if pending_tasks:
+        asyncio.create_task(_run_external_health_checks(pending_tasks, checks, cache_key))
 
-{report}
+    return resp
 
-Total checks: {len(checks)}
-Failures: {sum(1 for c in checks if not c.get('success'))}
 
-Summarize the findings. If there are issues, list them with brief fixes. If all healthy, confirm briefly."""
+async def _run_external_health_checks(pending_tasks, checks, cache_key):
+    """Background task: test actual WP/RDS connectivity and update cache."""
+    try:
+        async def _do_check(idx, config, site_info):
+            check = checks[idx]
+            if check["type"] == "wordpress":
+                return idx, await _test_wp_connection(config)
+            else:
+                return idx, await _test_rds_stream(config)
 
-    diagnosis = await chat.send_message(UserMessage(text=prompt))
+        tasks = [_do_check(idx, config, site) for idx, config, site in pending_tasks]
+        results = await asyncio.wait_for(asyncio.gather(*tasks, return_exceptions=True), timeout=8.0)
 
-    return HealthScanResponse(has_issues=has_issues, diagnosis=diagnosis, checks=checks)
+        for r in results:
+            if isinstance(r, tuple):
+                idx, result = r
+                checks[idx].update(result)
+                checks[idx].pop("status", None)
+
+        has_issues = any(not c.get("success") for c in checks)
+        ok_count = sum(1 for c in checks if c.get("success"))
+        fail_count = len(checks) - ok_count
+        if fail_count == 0:
+            diagnosis = f"All {ok_count} connections are healthy."
+        else:
+            failing = [f"**{c['site']}** ({c['type']}): {c.get('error', 'unknown')}" for c in checks if not c.get("success")]
+            diagnosis = f"{fail_count} of {len(checks)} connections have issues:\n" + "\n".join(f"- {f}" for f in failing)
+
+        resp = {"has_issues": has_issues, "diagnosis": diagnosis, "checks": checks}
+        await cache_set(cache_key, resp, ttl=60)
+        logger.info(f"Health scan background: {ok_count} OK, {fail_count} failed out of {len(checks)}")
+    except asyncio.TimeoutError:
+        logger.warning("Health scan background checks timed out after 8s")
+    except Exception as e:
+        logger.warning(f"Health scan background error: {e}")
 
 
 @clara_test_router.post("/retest-check")
@@ -400,16 +412,43 @@ If successful, confirm briefly and congratulate. If failed, explain clearly what
 
 @clara_test_router.get("/rack-scan")
 async def rack_scan(current_user: dict = Depends(get_current_user)):
-    """Scan all racks and sites for configuration issues, security gaps, and improvement suggestions."""
+    """Scan all racks and sites for configuration issues — batch-optimized."""
+
+    # Check cache first (60s TTL)
+    cache_key = "rack_scan_result"
+    cached = await cache_get(cache_key)
+    if cached:
+        return cached
+
     issues = []
 
-    # 1. Get all main sites the user has access to
-    all_sites = await db.main_sites.find({}, {"_id": 0}).to_list(500)
-    all_racks = await db.server_racks.find({}, {"_id": 0}).to_list(100)
+    # Batch-fetch ALL data in parallel (6 queries instead of N+1)
+    sites_q = db.main_sites.find({}, {"_id": 0}).to_list(500)
+    racks_q = db.server_racks.find({}, {"_id": 0}).to_list(100)
+    fw_q = db.firewall_settings.find({}, {"_id": 0}).to_list(500)
+    zt_q = db.zerotier_configs.find({}, {"_id": 0}).to_list(500)
+    wp_q = db.wordpress_sites.find({}, {"_id": 0, "main_site_id": 1, "wp_base_url": 1}).to_list(500)
+    rds_q = db.rds_stations.find({}, {"_id": 0, "main_site_id": 1}).to_list(500)
+    geo_q = db.firewall_geo_rules.find({}, {"_id": 0, "rack_id": 1}).to_list(100)
 
-    # 2. Check firewall status
-    fw_settings = await db.firewall_settings.find({}, {"_id": 0}).to_list(500)
+    all_sites, all_racks, fw_settings, zt_configs, wp_sites_all, rds_all, geo_rules_all = await asyncio.gather(
+        sites_q, racks_q, fw_q, zt_q, wp_q, rds_q, geo_q
+    )
+
+    # Build lookup maps
     fw_map = {s["main_site_id"]: s.get("enabled", False) for s in fw_settings if "main_site_id" in s}
+    zt_map = {z["main_site_id"]: z for z in zt_configs if "main_site_id" in z}
+    wp_map = {}
+    for wp in wp_sites_all:
+        sid = wp.get("main_site_id")
+        if sid:
+            wp_map.setdefault(sid, []).append(wp)
+    rds_map = {}
+    for st in rds_all:
+        sid = st.get("main_site_id")
+        if sid:
+            rds_map.setdefault(sid, []).append(st)
+    geo_map = {g["rack_id"]: g for g in geo_rules_all if "rack_id" in g}
 
     for site in all_sites:
         site_id = site.get("id", "")
@@ -420,108 +459,88 @@ async def rack_scan(current_user: dict = Depends(get_current_user)):
         # Firewall check
         if not fw_map.get(site_id, False):
             issues.append({
-                "site_id": site_id,
-                "site_name": site_name,
-                "site_slug": site_slug,
-                "category": "security",
-                "severity": "critical",
+                "site_id": site_id, "site_name": site_name, "site_slug": site_slug,
+                "category": "security", "severity": "critical",
                 "title": "Firewall not enabled",
-                "description": f"Clara Global Protect is not active for {site_name}. This leaves the site vulnerable to brute force attacks.",
-                "action": "enable_firewall",
-                "action_label": "Enable Firewall",
+                "description": f"Clara Global Protect is not active for {site_name}.",
+                "action": "enable_firewall", "action_label": "Enable Firewall",
             })
 
         # ZeroTier check for technical sites
         if site_type == "technical":
-            zt_config = await db.zerotier_configs.find_one({"main_site_id": site_id}, {"_id": 0})
-            if not zt_config or not zt_config.get("api_token"):
+            zt = zt_map.get(site_id)
+            if not zt or not zt.get("api_token"):
                 issues.append({
-                    "site_id": site_id,
-                    "site_name": site_name,
-                    "site_slug": site_slug,
-                    "category": "configuration",
-                    "severity": "warning",
+                    "site_id": site_id, "site_name": site_name, "site_slug": site_slug,
+                    "category": "configuration", "severity": "warning",
                     "title": "ZeroTier not configured",
                     "description": f"ZeroTier network monitoring is not set up for {site_name}.",
-                    "action": "configure_zerotier",
-                    "action_label": "Configure",
+                    "action": "configure_zerotier", "action_label": "Configure",
                 })
 
         # WordPress check
         enabled_features = site.get("enabled_features", [])
         if "wordpress" in enabled_features:
-            wp_site = await db.wordpress_sites.find_one({"main_site_id": site_id}, {"_id": 0})
-            if not wp_site or not wp_site.get("wp_base_url"):
+            wp_list = wp_map.get(site_id, [])
+            has_wp = any(w.get("wp_base_url") for w in wp_list)
+            if not has_wp:
                 issues.append({
-                    "site_id": site_id,
-                    "site_name": site_name,
-                    "site_slug": site_slug,
-                    "category": "configuration",
-                    "severity": "warning",
+                    "site_id": site_id, "site_name": site_name, "site_slug": site_slug,
+                    "category": "configuration", "severity": "warning",
                     "title": "WordPress not connected",
                     "description": f"WordPress integration is enabled but not configured for {site_name}.",
-                    "action": "configure_wordpress",
-                    "action_label": "Configure",
+                    "action": "configure_wordpress", "action_label": "Configure",
                 })
 
         # RDS check for radio sites
         if site_type == "radio":
-            rds_stations = await db.rds_stations.find({"main_site_id": site_id}, {"_id": 0}).to_list(50)
-            if len(rds_stations) == 0:
+            if not rds_map.get(site_id):
                 issues.append({
-                    "site_id": site_id,
-                    "site_name": site_name,
-                    "site_slug": site_slug,
-                    "category": "configuration",
-                    "severity": "info",
+                    "site_id": site_id, "site_name": site_name, "site_slug": site_slug,
+                    "category": "configuration", "severity": "info",
                     "title": "No RDS stations configured",
-                    "description": f"No RDS stations are set up for {site_name}. Configure stations to enable RDS metadata.",
-                    "action": "configure_rds",
-                    "action_label": "Configure",
+                    "description": f"No RDS stations are set up for {site_name}.",
+                    "action": "configure_rds", "action_label": "Configure",
                 })
 
         # 2FA check
         if not site.get("require_2fa", False):
             issues.append({
-                "site_id": site_id,
-                "site_name": site_name,
-                "site_slug": site_slug,
-                "category": "security",
-                "severity": "info",
+                "site_id": site_id, "site_name": site_name, "site_slug": site_slug,
+                "category": "security", "severity": "info",
                 "title": "2FA not enforced",
                 "description": f"Two-factor authentication is not required for {site_name}.",
-                "action": "enable_2fa",
-                "action_label": "Enable",
+                "action": "enable_2fa", "action_label": "Enable",
             })
 
-    # 3. Check geo-blocking on racks
+    # Geo-blocking on racks
     for rack in all_racks:
         rack_id = rack.get("id", "")
         rack_name = rack.get("name", f"Rack {rack_id}")
-        geo_rules = await db.firewall_geo_rules.find_one({"rack_id": rack_id}, {"_id": 0})
-        if not geo_rules:
+        if not geo_map.get(rack_id):
             issues.append({
-                "rack_id": rack_id,
-                "site_name": rack_name,
-                "category": "security",
-                "severity": "warning",
+                "rack_id": rack_id, "site_name": rack_name,
+                "category": "security", "severity": "warning",
                 "title": "Geo-blocking using defaults",
-                "description": f"Rack '{rack_name}' uses default European geo-blocking. Review and customize if needed.",
-                "action": "configure_geo",
-                "action_label": "Review",
+                "description": f"Rack '{rack_name}' uses default European geo-blocking.",
+                "action": "configure_geo", "action_label": "Review",
             })
 
     # Sort by severity
     severity_order = {"critical": 0, "warning": 1, "info": 2}
     issues.sort(key=lambda x: severity_order.get(x.get("severity", "info"), 3))
 
-    summary = {
-        "total_sites": len(all_sites),
-        "total_racks": len(all_racks),
-        "total_issues": len(issues),
-        "critical": len([i for i in issues if i["severity"] == "critical"]),
-        "warnings": len([i for i in issues if i["severity"] == "warning"]),
-        "info": len([i for i in issues if i["severity"] == "info"]),
+    result = {
+        "summary": {
+            "total_sites": len(all_sites),
+            "total_racks": len(all_racks),
+            "total_issues": len(issues),
+            "critical": len([i for i in issues if i["severity"] == "critical"]),
+            "warnings": len([i for i in issues if i["severity"] == "warning"]),
+            "info": len([i for i in issues if i["severity"] == "info"]),
+        },
+        "issues": issues,
     }
 
-    return {"summary": summary, "issues": issues}
+    await cache_set(cache_key, result, ttl=60)
+    return result

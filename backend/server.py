@@ -1124,7 +1124,24 @@ app.add_middleware(NoCacheMiddleware)
 async def startup_db_client():
     """Migrate legacy data and ensure bootstrap admin exists on startup."""
     from services.auth import hash_password
-    
+
+    # Ensure MongoDB indexes for fast queries
+    try:
+        await db.main_sites.create_index("id", unique=True, background=True)
+        await db.main_sites.create_index("slug", background=True)
+        await db.main_sites.create_index("environment_id", background=True)
+        await db.main_site_users.create_index([("user_id", 1), ("main_site_id", 1)], background=True)
+        await db.main_site_users.create_index("main_site_id", background=True)
+        await db.sites.create_index("main_site_id", background=True)
+        await db.wordpress_sites.create_index("main_site_id", background=True)
+        await db.rds_stations.create_index("main_site_id", background=True)
+        await db.firewall_settings.create_index("main_site_id", background=True)
+        await db.users.create_index("id", unique=True, background=True)
+        await db.users.create_index("email", unique=True, background=True)
+        logger.info("MongoDB indexes ensured")
+    except Exception as e:
+        logger.warning(f"Index creation: {e}")
+
     # Ensure ffmpeg is installed for audio trigger functionality
     try:
         from scripts.ensure_ffmpeg import ensure_ffmpeg, reset_ffmpeg_cache
