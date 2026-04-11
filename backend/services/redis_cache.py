@@ -1,70 +1,112 @@
-"""Redis cache service for Clara — provides fast caching for API responses."""
+"""Redis cache service for Clara — with in-memory fallback when Redis is unavailable."""
 import json
-import redis.asyncio as redis
+import time
 import logging
 
 logger = logging.getLogger(__name__)
 
 _redis = None
+_redis_checked = False
+_redis_available = False
+_last_check = 0
+_CHECK_COOLDOWN = 300  # Only retry Redis every 5 minutes
+
+# In-memory cache fallback
+_mem_cache = {}
 
 
 async def get_redis():
-    global _redis
-    if _redis is None:
+    global _redis, _redis_checked, _redis_available, _last_check
+    now = time.time()
+
+    # If we already know Redis is down, don't retry until cooldown
+    if _redis_checked and not _redis_available and (now - _last_check) < _CHECK_COOLDOWN:
+        return None
+
+    if _redis is None or (not _redis_available and (now - _last_check) >= _CHECK_COOLDOWN):
+        _last_check = now
         try:
-            _redis = redis.Redis(host="localhost", port=6379, decode_responses=True)
+            import redis.asyncio as redis_lib
+            _redis = redis_lib.Redis(host="localhost", port=6379, decode_responses=True, socket_connect_timeout=1, socket_timeout=1)
             await _redis.ping()
+            _redis_available = True
+            _redis_checked = True
             logger.info("Redis connected")
-        except Exception as e:
-            logger.warning(f"Redis unavailable: {e}")
+        except Exception:
             _redis = None
-    return _redis
+            _redis_available = False
+            _redis_checked = True
+            if not _redis_checked:
+                logger.info("Redis unavailable — using in-memory cache")
+            return None
+    return _redis if _redis_available else None
+
+
+def _mem_get(key):
+    entry = _mem_cache.get(key)
+    if entry and entry['exp'] > time.time():
+        return entry['val']
+    if entry:
+        del _mem_cache[key]
+    return None
+
+
+def _mem_set(key, value, ttl):
+    # Limit memory cache to 500 entries
+    if len(_mem_cache) > 500:
+        cutoff = time.time()
+        expired = [k for k, v in _mem_cache.items() if v['exp'] <= cutoff]
+        for k in expired:
+            del _mem_cache[k]
+        if len(_mem_cache) > 500:
+            _mem_cache.clear()
+    _mem_cache[key] = {'val': value, 'exp': time.time() + ttl}
 
 
 async def cache_get(key: str):
-    """Get a cached value. Returns None if not found or Redis unavailable."""
     r = await get_redis()
-    if not r:
-        return None
-    try:
-        val = await r.get(key)
-        return json.loads(val) if val else None
-    except Exception:
-        return None
+    if r:
+        try:
+            val = await r.get(key)
+            return json.loads(val) if val else None
+        except Exception:
+            pass
+    return _mem_get(key)
 
 
 async def cache_set(key: str, value, ttl: int = 60):
-    """Set a cached value with TTL in seconds."""
+    _mem_set(key, value, ttl)
     r = await get_redis()
-    if not r:
-        return
-    try:
-        await r.setex(key, ttl, json.dumps(value))
-    except Exception:
-        pass
+    if r:
+        try:
+            await r.setex(key, ttl, json.dumps(value))
+        except Exception:
+            pass
 
 
 async def cache_delete(key: str):
-    """Delete a cached key."""
+    _mem_cache.pop(key, None)
     r = await get_redis()
-    if not r:
-        return
-    try:
-        await r.delete(key)
-    except Exception:
-        pass
+    if r:
+        try:
+            await r.delete(key)
+        except Exception:
+            pass
 
 
 async def cache_delete_pattern(pattern: str):
-    """Delete all keys matching a pattern."""
+    # Clear matching in-memory keys
+    import fnmatch
+    to_del = [k for k in _mem_cache if fnmatch.fnmatch(k, pattern)]
+    for k in to_del:
+        del _mem_cache[k]
     r = await get_redis()
-    if not r:
-        return
-    try:
-        keys = []
-        async for key in r.scan_iter(match=pattern):
-            keys.append(key)
-        if keys:
-            await r.delete(*keys)
-    except Exception:
-        pass
+    if r:
+        try:
+            keys = []
+            async for key in r.scan_iter(match=pattern):
+                keys.append(key)
+            if keys:
+                await r.delete(*keys)
+        except Exception:
+            pass
