@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
@@ -576,7 +577,7 @@ const StepAdmin = ({ adminId, onAdminChange, users, token }) => (
 );
 
 /* ── Step 4: Security ── */
-const StepSecurity = ({ require2FA, onToggle2FA, claraEnterprise, onToggleEnterprise, siteType }) => (
+const StepSecurity = ({ require2FA, onToggle2FA, claraEnterprise, onToggleEnterprise, siteType, isSystemAdmin }) => (
   <div>
     <h2 className="text-xl font-bold text-zinc-900 mb-1">Security & Enterprise</h2>
     <p className="text-sm text-zinc-500 mb-5">Configure security policies and enterprise features.</p>
@@ -617,7 +618,8 @@ const StepSecurity = ({ require2FA, onToggle2FA, claraEnterprise, onToggleEnterp
         </button>
       </div>
 
-      {/* Enterprise Section */}
+      {/* Enterprise Section — System Admin only */}
+      {isSystemAdmin && (
       <div className="pt-2">
         <p className="text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">Clara Enterprise</p>
         <div className="flex gap-3">
@@ -655,6 +657,7 @@ const StepSecurity = ({ require2FA, onToggle2FA, claraEnterprise, onToggleEnterp
           </button>
         </div>
       </div>
+      )}
     </div>
   </div>
 );
@@ -843,6 +846,8 @@ const StepZeroTier = ({ ztConfig, onZtConfigChange }) => {
    MAIN WIZARD COMPONENT
    ════════════════════════════════════════════════════ */
 export default function CreateMainSiteWizard({ open, onClose, onCreated, token, environments, selectedEnvId }) {
+  const { user } = useAuth();
+  const isSystemAdmin = user?.is_system_admin === true;
   const [step, setStep] = useState(0);
   const [siteType, setSiteType] = useState('radio');
   const [selectedOptionalFeatures, setSelectedOptionalFeatures] = useState([]);
@@ -1092,7 +1097,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               {stepName === 'ZeroTier' && <StepZeroTier ztConfig={ztConfig} onZtConfigChange={setZtConfig} />}
               {stepName === 'WordPress' && <StepWordPress wpConfig={wpConfig} onWpConfigChange={setWpConfig} />}
               {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
-              {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} />}
+              {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} isSystemAdmin={isSystemAdmin} />}
               {stepName === 'Deploying' && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}
             </motion.div>
           </AnimatePresence>

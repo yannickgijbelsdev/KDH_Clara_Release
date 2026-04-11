@@ -195,7 +195,7 @@ async def create_main_site(
         "linked_main_site_id": data.linked_main_site_id,
         "is_demo": data.is_demo,
         "require_2fa": data.require_2fa,
-        "clara_enterprise": data.clara_enterprise,
+        "clara_enterprise": data.clara_enterprise if current_user.get('is_system_admin') else False,
         "environment_id": data.environment_id,
         "created_at": now,
         "updated_at": now
@@ -213,6 +213,13 @@ async def create_main_site(
     main_site_doc["user_count"] = 0
     
     logger.info(f"Main site created: {data.name} ({slug}) by {current_user['email']}")
+
+    # Auto-enable firewall for the new site
+    await db.firewall_settings.update_one(
+        {"main_site_id": main_site_id},
+        {"$set": {"main_site_id": main_site_id, "enabled": True, "updated_at": now}},
+        upsert=True,
+    )
 
     # Log and notify system admin
     type_label = {"server": "Server Site", "technical": "Technical Site", "task_scheduler": "Clara Tasks", "wp_security": "WP Security Site"}.get(data.site_type, "Main Site")
@@ -384,7 +391,10 @@ async def update_main_site(
         update_data["require_2fa"] = data.require_2fa
 
     if data.clara_enterprise is not None:
-        update_data["clara_enterprise"] = data.clara_enterprise
+        if not current_user.get('is_system_admin'):
+            pass  # Only system admins can change enterprise status
+        else:
+            update_data["clara_enterprise"] = data.clara_enterprise
 
     await db.main_sites.update_one(
         {"id": main_site_id},

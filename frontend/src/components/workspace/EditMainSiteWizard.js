@@ -36,7 +36,8 @@ const ROLE_OPTIONS = [
 ];
 
 export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const isSystemAdmin = user?.is_system_admin === true;
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
@@ -452,7 +453,8 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                 </button>
               </div>
 
-              {/* Clara Enterprise toggle */}
+              {/* Clara Enterprise toggle — System Admin only */}
+              {isSystemAdmin && (
               <div className="flex items-center justify-between p-3 bg-violet-50 rounded-xl border border-violet-100">
                 <div className="flex items-center gap-3">
                   <Sparkles className="w-5 h-5 text-violet-500" />
@@ -472,6 +474,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${claraEnterprise ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
+              )}
 
               <div className="flex gap-2 pt-2">
                 <Button onClick={handleSaveGeneral} disabled={saving || !name} className="flex-1" data-testid="save-general-btn">
