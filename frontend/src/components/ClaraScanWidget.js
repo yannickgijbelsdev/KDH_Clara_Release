@@ -533,22 +533,25 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
           <div className="flex items-center gap-2 mb-4">
             {guideSteps.map((_, i) => (
               <div key={i} className="flex items-center gap-2">
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                  guideStepStatus[i] === 'done'
-                    ? 'bg-emerald-100 text-emerald-600'
-                    : guideStepStatus[i] === 'active'
-                      ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                      : 'bg-zinc-100 text-zinc-400'
-                }`}>
+                <div
+                  style={{ width: 28, height: 28, minWidth: 28, minHeight: 28, borderRadius: '50%' }}
+                  className={`flex items-center justify-center text-xs font-bold transition-all ${
+                    guideStepStatus[i] === 'done'
+                      ? 'bg-emerald-100 text-emerald-600'
+                      : guideStepStatus[i] === 'active'
+                        ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
+                        : 'bg-zinc-100 text-zinc-400'
+                  }`}
+                >
                   {guideStepStatus[i] === 'done'
                     ? <CheckCircle2 size={14} />
                     : i + 1
                   }
                 </div>
                 {i < guideSteps.length - 1 && (
-                  <div className={`w-8 h-0.5 rounded-full transition-colors ${
+                  <div className={`rounded-full transition-colors ${
                     guideStepStatus[i] === 'done' ? 'bg-emerald-300' : 'bg-zinc-200'
-                  }`} />
+                  }`} style={{ width: 32, height: 2 }} />
                 )}
               </div>
             ))}

@@ -1,12 +1,6 @@
 import { Check } from 'lucide-react';
 import { useRef, useEffect } from 'react';
 
-/**
- * Sliding wizard step indicator.
- * Auto-scrolls to keep the active step centered. Only the active step
- * and its nearest neighbours show their label — the rest collapse to
- * numbered circles so the bar always fits.
- */
 export default function WizardStepIndicator({ currentStep, steps }) {
   const scrollRef = useRef(null);
   const activeRef = useRef(null);
@@ -42,9 +36,10 @@ export default function WizardStepIndicator({ currentStep, steps }) {
           >
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
+                style={{ width: 28, height: 28, minWidth: 28, minHeight: 28, borderRadius: '50%' }}
+                className={`flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
                   isActive
-                    ? 'bg-zinc-900 text-white shadow-md scale-110'
+                    ? 'bg-zinc-900 text-white shadow-md'
                     : isDone
                       ? 'bg-zinc-900 text-white'
                       : 'border-2 border-zinc-300 text-zinc-400'
@@ -64,7 +59,7 @@ export default function WizardStepIndicator({ currentStep, steps }) {
             </div>
 
             {!isLast && (
-              <div className={`w-5 h-px mx-1.5 flex-shrink-0 transition-colors ${isDone ? 'bg-zinc-400' : 'bg-zinc-200'}`} />
+              <div className={`flex-shrink-0 transition-colors ${isDone ? 'bg-zinc-400' : 'bg-zinc-200'}`} style={{ width: 20, height: 1, margin: '0 6px' }} />
             )}
           </div>
         );
