@@ -181,11 +181,18 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Replaced separate `ClaraHealthBanner` + `ClaraRackScan` modals with unified `ClaraScanWidget.js`
 - **3-phase UX**: Popup (5 sec centered) → Minimized (floating bottom-right pill) → Expanded (side panel)
 - Non-blocking: user can continue working while scans run in background
-- Visual progress: circular progress ring, per-item ✓/✗ animations, severity badges
-- Runs both Health Scan and System Scan simultaneously (no waiting for one to finish)
-- Auto-dismiss when no issues found (after 4 seconds)
-- Session-based daily suppression (once per day per session)
+- Visual progress: circular progress ring, per-item checkmarks/crosses, severity badges
+- Runs both Health Scan and System Scan simultaneously
+- Auto-dismiss when no issues found
+- Session-based daily suppression
+- **Fix Guide Mode**: Click "Fix" on any issue to get a step-by-step guided fix flow
+  - Numbered step indicators (active/done/pending)
+  - Automatic navigation to relevant pages
+  - ClaraGuideOverlay spotlight highlights target UI elements
+  - Tooltips with contextual instructions
+  - Supports: enable_firewall, configure_wordpress, configure_zerotier, configure_rds, enable_2fa, configure_geo, fix_wordpress, fix_rds_stream
 - Component: `frontend/src/components/ClaraScanWidget.js`
+- Backend: Added `site_slug` to rack scan issues for navigation (`clara_test_agent.py`)
 
 ## Clara Global Protect — Full Rack Firewall (Apr 2026)
 - Auto-enable firewall on site creation (can be manually disabled)

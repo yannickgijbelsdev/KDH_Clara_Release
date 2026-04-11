@@ -414,6 +414,7 @@ async def rack_scan(current_user: dict = Depends(get_current_user)):
     for site in all_sites:
         site_id = site.get("id", "")
         site_name = site.get("name", "Unknown")
+        site_slug = site.get("slug", "")
         site_type = site.get("site_type", "radio")
 
         # Firewall check
@@ -421,6 +422,7 @@ async def rack_scan(current_user: dict = Depends(get_current_user)):
             issues.append({
                 "site_id": site_id,
                 "site_name": site_name,
+                "site_slug": site_slug,
                 "category": "security",
                 "severity": "critical",
                 "title": "Firewall not enabled",
@@ -436,6 +438,7 @@ async def rack_scan(current_user: dict = Depends(get_current_user)):
                 issues.append({
                     "site_id": site_id,
                     "site_name": site_name,
+                    "site_slug": site_slug,
                     "category": "configuration",
                     "severity": "warning",
                     "title": "ZeroTier not configured",
@@ -452,6 +455,7 @@ async def rack_scan(current_user: dict = Depends(get_current_user)):
                 issues.append({
                     "site_id": site_id,
                     "site_name": site_name,
+                    "site_slug": site_slug,
                     "category": "configuration",
                     "severity": "warning",
                     "title": "WordPress not connected",
@@ -467,6 +471,7 @@ async def rack_scan(current_user: dict = Depends(get_current_user)):
                 issues.append({
                     "site_id": site_id,
                     "site_name": site_name,
+                    "site_slug": site_slug,
                     "category": "configuration",
                     "severity": "info",
                     "title": "No RDS stations configured",
@@ -480,6 +485,7 @@ async def rack_scan(current_user: dict = Depends(get_current_user)):
             issues.append({
                 "site_id": site_id,
                 "site_name": site_name,
+                "site_slug": site_slug,
                 "category": "security",
                 "severity": "info",
                 "title": "2FA not enforced",

@@ -38,6 +38,15 @@ const ELEMENT_MAP = {
   'navigation': '[data-testid="pill-nav"]',
   // Sidebar nav (mobile / collapsed)
   'sidebar': '[data-testid="mobile-menu-btn"]',
+  // Fix guide targets (scan widget)
+  'server-rack': '[data-testid^="rack-visual-"]',
+  'rack-firewall-toggle': '[data-testid="rack-firewall-toggle-btn"]',
+  'add-wordpress': '[data-testid="add-wp-site-btn"]',
+  'wordpress-connection': '[data-testid="wordpress-settings-page"]',
+  'zerotier-config': '[data-testid="zt-config-btn"]',
+  'add-station': '[data-testid="rds-tab-settings"]',
+  'rds-stream-url': '[data-testid="rds-unified-page"]',
+  'require-2fa': '[data-testid="team-settings-page"]',
 };
 
 /**
