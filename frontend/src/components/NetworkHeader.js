@@ -7,7 +7,7 @@ import usePageTitle from '../hooks/usePageTitle';
 import {
   Globe, Crown, Network, Shield, Bell, Paintbrush,
   Server, ChevronDown, LogOut, ShieldAlert, UserCog,
-  HardDrive, Code, Menu, X, LifeBuoy,
+  HardDrive, Code, Menu, X, LifeBuoy, Upload,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -98,6 +98,7 @@ export default function NetworkHeader({
     { id: 'support-tickets', icon: LifeBuoy, label: 'Support', badge: supportCount },
     ...(isSystemAdmin ? [{ id: 'notifications', icon: Bell, label: 'Notifications' }] : []),
     ...(isSystemAdmin ? [{ id: 'branding', icon: Paintbrush, label: 'Branding' }] : []),
+    ...(isSystemAdmin ? [{ id: 'vdc-deploy', icon: Upload, label: 'Deploy to VDC' }] : []),
     ...(isSystemAdmin ? [{ id: 'audit', icon: ShieldAlert, label: 'Permission Audit' }] : []),
     ...(isSystemAdmin ? [{ id: 'user-access', icon: UserCog, label: 'User Access' }] : []),
     { id: 'security', icon: Shield, label: 'Account Security' },

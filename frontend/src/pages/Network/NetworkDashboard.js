@@ -48,6 +48,7 @@ import NetworkAdminManager from './NetworkAdminManager';
 import NotificationSettings from './NotificationSettings';
 import TwoFactorSetup from '../../components/TwoFactorSetup';
 import BrandingSettings from './BrandingSettings';
+import VDCDeployPanel from './VDCDeployPanel';
 import SupportTicketsPage from './SupportTicketsPage';
 import LicenseManager from './LicenseManager';
 import DomainManager from './DomainManager';
@@ -416,6 +417,7 @@ export default function NetworkDashboard() {
         ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'License Manager' }] : []),
         ...(isSystemAdmin ? [{ id: 'notifications', icon: Bell, label: 'Notifications' }] : []),
         ...(isSystemAdmin ? [{ id: 'branding', icon: Paintbrush, label: 'Branding' }] : []),
+        ...(isSystemAdmin ? [{ id: 'vdc-deploy', icon: Upload, label: 'Deploy to VDC' }] : []),
       ]
     },
     ...(isSystemAdmin ? [{
@@ -882,6 +884,23 @@ export default function NetworkDashboard() {
               </motion.div>
               <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
                 <BrandingSettings />
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════ VDC DEPLOY ═══════════ */}
+          {activeSection === 'vdc-deploy' && (
+            <div className="flex flex-col h-full gap-4">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+                className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
+                <Upload className="w-5 h-5 text-orange-500" />
+                <div>
+                  <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Deploy to VDC</div>
+                  <div className="text-sm font-semibold text-zinc-700">Encrypted deployment to Clara Host VDC</div>
+                </div>
+              </motion.div>
+              <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">
+                <VDCDeployPanel />
               </div>
             </div>
           )}

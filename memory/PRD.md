@@ -73,6 +73,21 @@ Multi-environment SaaS platform for radio station management built with React fr
   - CSS variables `--primary`, `--accent`, `--ring` updated to HSL 338 90% 46%
   - All hard-coded hex values (`#f97316`, `#ea580c`, `#f59e0b`, etc.) and `rgba(249,115,22,...)` replaced globally
 
+## Clara Scan Widget Improvements (Apr 2026)
+- 2FA auto-fix moved from AUTO_FIXABLE to CONFIRM_FIXABLE — shows confirmation dialog with Skip/Enable 2FA buttons
+- Re-run scans button added to expanded view header (⟳) and footer ("Re-run") — resets all state and re-runs health + system scan
+- Component: `frontend/src/components/ClaraScanWidget.js`
+
+## VDC Deployment Module (Apr 2026)
+- Encrypted deployment of source code + MongoDB database to Clara Host VDC (https://vdc.koodh.com)
+- Encryption: RSA-4096 (key exchange) + AES-256-GCM (data encryption, 12-byte nonce)
+- Chunked upload: 4MB per chunk, background async processing
+- Backend: `backend/routers/vdc_deploy.py` — `/api/vdc-deploy/start`, `/api/vdc-deploy/status`
+- Frontend: `frontend/src/pages/Network/VDCDeployPanel.js` — accessible via More → Deploy to VDC
+- 6-step flow: Handshake → Public Key → Prepare Data → Init Session → Upload Chunks → Finalize
+- Real-time progress polling with phase indicators
+- Only accessible by system admins
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps)
