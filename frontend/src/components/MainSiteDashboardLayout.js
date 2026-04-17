@@ -1058,9 +1058,14 @@ const MainSiteDashboardContent = () => {
           <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors">
             <Menu className="w-5 h-5" />
           </button>
-          <button onClick={() => navigate(`/${mainSiteSlug}`)} className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0" data-testid="logo-pill">
-            <Radio className="w-4 h-4" />
-            <span className="hidden sm:inline">Clara</span>
+          <button onClick={() => navigate(`/${mainSiteSlug}`)} className={brandingData.logo_type === 'image' && brandingData.logo_url
+            ? "flex items-center flex-shrink-0 hover:opacity-80 transition-opacity"
+            : "bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0"} data-testid="logo-pill">
+            {brandingData.logo_type === 'image' && brandingData.logo_url ? (
+              <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
+            ) : (
+              <><Radio className="w-4 h-4" /><span className="hidden sm:inline">{brandName}</span></>
+            )}
           </button>
 
           {/* Status Icons */}
@@ -1357,8 +1362,14 @@ const MainSiteDashboardContent = () => {
         <aside className={`lg:hidden fixed top-0 left-0 h-full z-50 w-72 bg-white/95 backdrop-blur-2xl border-r border-black/[0.06] transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="p-5 h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
-              <div className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold">
-                <Radio className="w-4 h-4" />Clara
+              <div className={brandingData.logo_type === 'image' && brandingData.logo_url
+                ? "flex items-center"
+                : "bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold"}>
+                {brandingData.logo_type === 'image' && brandingData.logo_url ? (
+                  <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
+                ) : (
+                  <><Radio className="w-4 h-4" />{brandName}</>
+                )}
               </div>
               <Button variant="ghost" size="icon" onClick={closeSidebar} className="text-zinc-400 hover:text-zinc-700"><X className="w-5 h-5" /></Button>
             </div>

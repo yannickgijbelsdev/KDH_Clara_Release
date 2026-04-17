@@ -14,6 +14,7 @@ import {
 } from '../ui/dropdown-menu';
 import { getAvatarUrl } from '../../utils/avatar';
 import { BrandLogo } from '../BrandLogo';
+import { useBranding } from '../../context/BrandingContext';
 import { cn } from '../../lib/utils';
 
 export const WorkspaceSidebar = ({
@@ -29,6 +30,11 @@ export const WorkspaceSidebar = ({
   bannerOffset = false,
   isLicenseBlocked = false,
 }) => {
+  const { branding } = useBranding();
+  const brandLogoUrl = branding.logo_type === 'image' && branding.logo_url
+    ? (branding.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${branding.logo_url}` : branding.logo_url)
+    : null;
+
   return (
     <aside
       data-testid="workspace-sidebar"
@@ -39,9 +45,15 @@ export const WorkspaceSidebar = ({
       )}
     >
       {/* Logo */}
-      <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-        <span className="text-zinc-700 font-black text-base tracking-tight">C</span>
-      </div>
+      {brandLogoUrl ? (
+        <div className="mb-6 px-2">
+          <img src={brandLogoUrl} alt={branding.platform_name || 'Clara'} className="h-7 object-contain" />
+        </div>
+      ) : (
+        <div className="mb-6 w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
+          <span className="text-zinc-700 font-black text-base tracking-tight">C</span>
+        </div>
+      )}
 
       {/* Main Navigation */}
       <nav className="flex-1 flex flex-col items-center gap-1.5 overflow-y-auto overflow-x-hidden py-2 scrollbar-hide">

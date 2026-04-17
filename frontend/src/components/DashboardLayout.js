@@ -416,10 +416,16 @@ const DashboardLayout = () => {
         <header className={`lg:hidden fixed ${impersonating ? 'top-10' : 'top-0'} left-0 right-0 z-50 glass border-b border-white/10`}>
           <div className="flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-orange-500 rounded-lg">
-                <span className="text-zinc-700 font-black text-sm">C</span>
-              </div>
-              <BrandLogo className="text-lg font-bold text-zinc-900" />
+              {brandingData.logo_type === 'image' && brandingData.logo_url ? (
+                <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
+              ) : (
+                <>
+                  <div className="p-2 bg-orange-500 rounded-lg">
+                    <span className="text-zinc-700 font-black text-sm">C</span>
+                  </div>
+                  <BrandLogo className="text-lg font-bold text-zinc-900" />
+                </>
+              )}
             </div>
             <Button
               variant="ghost"
@@ -445,7 +451,11 @@ const DashboardLayout = () => {
         <aside className={`hidden lg:flex fixed ${impersonating ? 'top-10' : 'top-0'} left-0 h-full z-50 ${useGroupedMenu ? 'w-56' : 'w-[72px]'} flex-col py-6 glass border-r border-white/10 transition-all duration-300`}>
           {/* Logo */}
           <div className={`mb-6 ${useGroupedMenu ? 'px-4' : 'px-2 text-center'}`}>
-            <BrandLogo className="text-white font-black text-base" />
+            {brandingData.logo_type === 'image' && brandingData.logo_url ? (
+              <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
+            ) : (
+              <BrandLogo className="text-white font-black text-base" />
+            )}
           </div>
 
           {/* Navigation */}
@@ -802,10 +812,16 @@ const DashboardLayout = () => {
             {/* Mobile: Close button area */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-orange-500 rounded-lg">
-                  <span className="text-zinc-700 font-black text-sm">C</span>
-                </div>
-                <BrandLogo className="text-lg font-bold text-zinc-900" />
+                {brandingData.logo_type === 'image' && brandingData.logo_url ? (
+                  <img src={brandingData.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${brandingData.logo_url}` : brandingData.logo_url} alt={brandName} className="h-7 object-contain" />
+                ) : (
+                  <>
+                    <div className="p-2 bg-orange-500 rounded-lg">
+                      <span className="text-zinc-700 font-black text-sm">C</span>
+                    </div>
+                    <BrandLogo className="text-lg font-bold text-zinc-900" />
+                  </>
+                )}
               </div>
               <Button
                 variant="ghost"
