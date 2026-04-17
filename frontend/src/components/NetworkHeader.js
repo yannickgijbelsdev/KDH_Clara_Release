@@ -20,6 +20,7 @@ import {
   TooltipProvider,
 } from './ui/tooltip';
 import { getAvatarUrl } from '../utils/avatar';
+import { useBranding } from '../context/BrandingContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -52,6 +53,7 @@ export default function NetworkHeader({
 }) {
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
+  const { branding } = useBranding();
   usePageTitle('Network Management', 'Clara');
   const [internalEnvs, setInternalEnvs] = useState([]);
   const [internalEnvId, setInternalEnvId] = useState(null);
@@ -59,6 +61,10 @@ export default function NetworkHeader({
   const [supportCount, setSupportCount] = useState(0);
 
   const isSystemAdmin = user?.is_system_admin === true;
+  const brandLogoUrl = branding.logo_type === 'image' && branding.logo_url
+    ? (branding.logo_url.startsWith('/') ? `${API}${branding.logo_url}` : branding.logo_url)
+    : null;
+  const brandName = branding.platform_name || 'Clara';
 
   useEffect(() => {
     if (!token) return;
@@ -159,8 +165,11 @@ export default function NetworkHeader({
           className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0"
           data-testid="logo-pill"
         >
-          <Network className="w-4 h-4" />
-          <span className="hidden sm:inline">Clara</span>
+          {brandLogoUrl ? (
+            <img src={brandLogoUrl} alt={brandName} className="h-5 object-contain" />
+          ) : (
+            <><Network className="w-4 h-4" /><span className="hidden sm:inline">{brandName}</span></>
+          )}
         </Link>
         <span className="hidden sm:inline text-sm text-zinc-400 font-medium flex-shrink-0" data-testid="enterprise-global-label">Enterprise Global</span>
 
@@ -342,7 +351,11 @@ export default function NetworkHeader({
         <div className="p-5 h-full flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <div className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold">
-              <Network className="w-4 h-4" />Clara
+              {brandLogoUrl ? (
+                <img src={brandLogoUrl} alt={brandName} className="h-5 object-contain" />
+              ) : (
+                <><Network className="w-4 h-4" />{brandName}</>
+              )}
             </div>
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-zinc-700">
               <X className="w-5 h-5" />

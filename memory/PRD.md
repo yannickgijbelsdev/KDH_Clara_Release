@@ -62,6 +62,12 @@ Multi-environment SaaS platform for radio station management built with React fr
 - **Fix Guide Mode**: Click "Fix" on any issue to get a step-by-step guided fix flow
 - Component: `frontend/src/components/ClaraScanWidget.js`
 
+## Branding Update (Apr 2026)
+- Replaced default "Clara" text logo with custom Koodh Clara image logo (pink/red "koodh" + purple "clara")
+- Logo stored at: `/api/uploads/branding/koodh_clara_logo_cropped.png`
+- Updated: LoginPage.js (h-14), BrandLogo.js (h-9 default), NetworkHeader.js (uses BrandingContext)
+- Auto-cropped from 4269x2400 original to 3365x715 (logo text only, no black padding)
+
 ## Backlog
 ### P0
 - Dynamic Step-by-Step RDS Builder Wizard (4 steps)

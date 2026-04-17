@@ -2,7 +2,7 @@ import { useBranding } from '../context/BrandingContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-export function BrandLogo({ className = 'text-lg font-bold text-zinc-900', imgClass = 'h-7 object-contain' }) {
+export function BrandLogo({ className = 'text-lg font-bold text-zinc-900', imgClass = 'h-9 object-contain rounded' }) {
   const { branding } = useBranding();
   const name = branding.platform_name || 'Clara';
 
