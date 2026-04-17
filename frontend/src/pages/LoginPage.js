@@ -246,7 +246,7 @@ const LoginPage = () => {
                     type="submit"
                     data-testid="forgot-submit-btn"
                     disabled={forgotLoading}
-                    className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-lg"
+                className="w-full h-12 bg-[#dd0c51] hover:bg-[#c40a47] text-white font-semibold rounded-xl shadow-lg"
                   >
                     {forgotLoading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Sending...</> : 'Send temporary password'}
                   </Button>
@@ -306,7 +306,7 @@ const LoginPage = () => {
                 type="submit"
                 data-testid="login-submit-btn"
                 disabled={isLoading}
-                className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-lg transition-all duration-200"
+                className="w-full h-12 bg-[#dd0c51] hover:bg-[#c40a47] text-white font-semibold rounded-xl shadow-lg transition-all duration-200"
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
@@ -377,7 +377,7 @@ const LoginPage = () => {
                 type="submit"
                 data-testid="login-2fa-submit-btn"
                 disabled={isLoading || (!useBackupCode && totpCode.length !== 6)}
-                className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl shadow-lg transition-all duration-200"
+                className="w-full h-12 bg-[#dd0c51] hover:bg-[#c40a47] text-white font-semibold rounded-xl shadow-lg transition-all duration-200"
               >
                 {isLoading ? 'Verifying...' : 'Verify'}
               </Button>
