@@ -321,7 +321,10 @@ h1, h2, h3, h4, h5, h6 {
 [data-testid="main-content-panel"] .bg-blue-500 .text-white,
 [data-testid="main-content-panel"] .btn-primary.text-white,
 [data-testid="main-content-panel"] .bg-orange-500 > *,
-[data-testid="main-content-panel"] .bg-orange-600 > * {
+[data-testid="main-content-panel"] .bg-orange-600 > *,
+[data-testid="main-content-panel"] .bg-\[\#dd0c51\],
+[data-testid="main-content-panel"] .bg-\[\#dd0c51\] > *,
+[data-testid="main-content-panel"] .bg-\[\#dd0c51\] .lucide {
   color: #fff !important;
 }
 
