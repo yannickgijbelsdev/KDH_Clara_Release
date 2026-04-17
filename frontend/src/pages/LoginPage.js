@@ -145,7 +145,7 @@ const LoginPage = () => {
       <div className="hidden lg:flex flex-col justify-between relative z-10 flex-1 p-12 xl:p-16">
         <div>
           {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="h-14 object-contain rounded-lg" data-testid="login-logo" />
+            <img src={logoUrl} alt={platformName} className="h-7 object-contain" data-testid="login-logo" />
           ) : (
             <span className="text-2xl font-bold text-zinc-800 tracking-tight" data-testid="login-logo-text">{platformName}</span>
           )}
@@ -201,7 +201,7 @@ const LoginPage = () => {
         {/* Mobile logo */}
         <div className="lg:hidden mb-8 text-center">
           {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="h-12 object-contain mx-auto mb-4 rounded-lg" />
+            <img src={logoUrl} alt={platformName} className="h-7 object-contain mx-auto mb-4" />
           ) : (
             <span className="text-xl font-bold text-zinc-800 tracking-tight">{platformName}</span>
           )}
