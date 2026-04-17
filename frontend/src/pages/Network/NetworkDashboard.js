@@ -893,7 +893,7 @@ export default function NetworkDashboard() {
             <div className="flex flex-col h-full gap-4">
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                 className="bg-white/80 backdrop-blur-2xl rounded-2xl border border-black/[0.05] shadow-[0_6px_30px_rgba(0,0,0,0.06)] p-4 flex items-center gap-4 flex-shrink-0">
-                <Upload className="w-5 h-5 text-orange-500" />
+                <Upload className="w-5 h-5 text-zinc-700" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Deploy to VDC</div>
                   <div className="text-sm font-semibold text-zinc-700">Encrypted deployment to Clara Host VDC</div>
