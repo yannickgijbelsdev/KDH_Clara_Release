@@ -297,7 +297,7 @@ export default function LicenseManager() {
               { label: 'TOTAL SITES', value: overview.length, icon: Globe, color: '#3b82f6', img: '/images/env_license.jpg' },
               { label: 'LICENSED', value: assignedSites.length, icon: Check, color: '#22c55e', img: '/images/env_license.jpg' },
               { label: 'NO LICENSE', value: unassignedSites.filter(s => !s.is_demo).length, icon: AlertTriangle, color: '#ef4444', img: '/images/env_license.jpg' },
-              { label: 'DEMO', value: overview.filter(s => s.is_demo).length, icon: Globe, color: '#f59e0b', img: '/images/env_license.jpg' },
+              { label: 'DEMO', value: overview.filter(s => s.is_demo).length, icon: Globe, color: '#7c1ac8', img: '/images/env_license.jpg' },
               { label: 'LIFETIME', value: assignedSites.filter(s => s.is_lifetime).length, icon: Infinity, color: '#a855f7', img: '/images/env_license.jpg' },
             ].map((stat, i) => (
               <motion.div
@@ -480,7 +480,7 @@ export default function LicenseManager() {
               {licenseRequests.map((req, i) => {
                 const isPending = req.status === 'pending';
                 const isApproved = req.status === 'approved';
-                const color = isPending ? '#f59e0b' : isApproved ? '#22c55e' : '#ef4444';
+                const color = isPending ? '#7c1ac8' : isApproved ? '#22c55e' : '#ef4444';
                 const StatusIcon = isPending ? Clock : isApproved ? CheckCircle : XCircle;
                 return (
                   <motion.div
@@ -628,7 +628,7 @@ export default function LicenseManager() {
                       )}
                     </div>
                   </div>
-                  <div className="h-1" style={{ background: 'linear-gradient(90deg, #f97316, #f9731660)' }} />
+                  <div className="h-1" style={{ background: 'linear-gradient(90deg, #dd0c51, #dd0c5160)' }} />
                 </div>
               </motion.div>
             ))}

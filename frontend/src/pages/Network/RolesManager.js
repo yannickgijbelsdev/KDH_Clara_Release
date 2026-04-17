@@ -200,7 +200,7 @@ export default function RolesManager({ mainSiteId, mainSiteName, token, onClose 
     );
   }
 
-  const COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280', '#14b8a6'];
+  const COLORS = ['#ef4444', '#7c1ac8', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#6b7280', '#14b8a6'];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" data-testid="roles-manager">

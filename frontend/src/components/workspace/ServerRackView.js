@@ -10,7 +10,7 @@ import { Button } from '../../components/ui/button';
 import RackFirewallPanel from './RackFirewallPanel';
 
 const SITE_TYPE_CONFIG = {
-  radio:          { icon: Radio,        color: '#f97316', label: 'Radio' },
+  radio:          { icon: Radio,        color: '#dd0c51', label: 'Radio' },
   server:         { icon: HardDrive,    color: '#3b82f6', label: 'Datacenter' },
   technical:      { icon: Network,      color: '#10b981', label: 'Data Conn.' },
   task_scheduler: { icon: LayoutGrid,   color: '#8b5cf6', label: 'Tasks' },
@@ -50,7 +50,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320, fire
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-orange-300 shadow-[0_8px_40px_rgba(249,115,22,0.15)] scale-[1.03]'
+            ? 'border-orange-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -149,7 +149,7 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320, fire
         <motion.div
           layoutId="rack-select-bar"
           className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-orange-500"
-          style={{ boxShadow: '0 0 12px rgba(249,115,22,0.5)' }}
+          style={{ boxShadow: '0 0 12px rgba(221,12,81,0.5)' }}
         />
       )}
     </motion.div>

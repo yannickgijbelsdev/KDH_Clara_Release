@@ -138,7 +138,7 @@ const LoginPage = () => {
     >
       {/* Subtle radial glow */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 70% 60% at 35% 50%, rgba(245,200,120,0.10) 0%, transparent 70%)'
+        background: 'radial-gradient(ellipse 70% 60% at 35% 50%, rgba(124,26,200,0.10) 0%, transparent 70%)'
       }} />
 
       {/* Left side: floating rooms & tagline */}

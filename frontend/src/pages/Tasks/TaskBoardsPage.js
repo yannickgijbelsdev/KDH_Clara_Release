@@ -37,7 +37,7 @@ const PRIORITY_CONFIG = {
 };
 
 const LABEL_COLORS = [
-  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+  '#ef4444', '#dd0c51', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
 ];
 
 // ─── Board List View ───
@@ -45,7 +45,7 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
-  const [color, setColor] = useState('#f59e0b');
+  const [color, setColor] = useState('#7c1ac8');
 
   const handleCreate = () => {
     if (!name.trim()) return;
@@ -120,7 +120,7 @@ function BoardListView({ boards, onSelect, onCreate, onDelete, mainSiteSlug }) {
             <div>
               <label className="text-sm text-zinc-400 mb-2 block">Color</label>
               <div className="flex gap-2">
-                {['#f59e0b','#ef4444','#3b82f6','#22c55e','#8b5cf6','#ec4899','#06b6d4','#6b7280'].map(c => (
+                {['#7c1ac8','#ef4444','#3b82f6','#22c55e','#8b5cf6','#ec4899','#06b6d4','#6b7280'].map(c => (
                   <button key={c} onClick={() => setColor(c)} className={`w-7 h-7 rounded-full border-2 transition-all ${color === c ? 'border-zinc-900 scale-110' : 'border-transparent'}`} style={{ backgroundColor: c }} />
                 ))}
               </div>

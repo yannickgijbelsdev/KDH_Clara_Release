@@ -654,7 +654,7 @@ const RDSBuilderPage = () => {
   // Map station color hex to tailwind color name for components
   const getColorName = (hexColor) => {
     const map = {
-      '#f97316': 'orange', '#8b5cf6': 'violet', '#3b82f6': 'blue',
+      '#dd0c51': 'orange', '#8b5cf6': 'violet', '#3b82f6': 'blue',
       '#10b981': 'emerald', '#ef4444': 'red', '#ec4899': 'pink',
       '#06b6d4': 'cyan', '#eab308': 'yellow',
     };

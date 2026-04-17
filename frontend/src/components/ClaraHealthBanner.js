@@ -243,7 +243,7 @@ function ScanningState() {
 function IssueCard({ check, idx, retesting, retestResult, onRetest, onReconfigure }) {
   const isWp = check.type === 'wordpress';
   const Icon = isWp ? ExternalLink : Radio;
-  const color = isWp ? '#3b82f6' : '#f97316';
+  const color = isWp ? '#3b82f6' : '#dd0c51';
   const label = isWp ? 'WordPress' : 'RDS Stream';
   const isFixed = retestResult?.success === true;
   const retestDiagnosis = retestResult?.diagnosis;

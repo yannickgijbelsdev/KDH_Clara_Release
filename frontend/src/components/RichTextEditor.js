@@ -357,13 +357,13 @@ const RichTextEditor = ({
           color: #e4e4e7 !important;
         }
         .tox .tox-button {
-          background-color: #f97316 !important;
-          border-color: #f97316 !important;
+          background-color: #dd0c51 !important;
+          border-color: #dd0c51 !important;
           color: white !important;
         }
         .tox .tox-button:hover {
-          background-color: #ea580c !important;
-          border-color: #ea580c !important;
+          background-color: #c40a47 !important;
+          border-color: #c40a47 !important;
         }
       `}</style>
       {/* Global TinyMCE z-index fix for dialogs/dropdowns */}

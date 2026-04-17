@@ -895,14 +895,14 @@ export default function SiteDashboard() {
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
-                    value={site.button_color || '#f97316'}
+                    value={site.button_color || '#dd0c51'}
                     onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
                     className="w-12 h-10 rounded cursor-pointer border border-zinc-300 bg-transparent"
                   />
                   <Input
-                    value={site.button_color || '#f97316'}
+                    value={site.button_color || '#dd0c51'}
                     onChange={(e) => setSite(prev => ({ ...prev, button_color: e.target.value }))}
-                    placeholder="#f97316"
+                    placeholder="#dd0c51"
                     className="bg-zinc-50 border-zinc-200 w-32"
                   />
                   <Button
@@ -977,7 +977,7 @@ export default function SiteDashboard() {
                   <p className="text-zinc-700 text-sm mb-2">Container preview</p>
                   <button
                     className="px-4 py-2 rounded-lg text-white font-medium transition"
-                    style={{ backgroundColor: site.button_color || '#f97316' }}
+                    style={{ backgroundColor: site.button_color || '#dd0c51' }}
                   >
                     Submit
                   </button>

@@ -65,8 +65,13 @@ Multi-environment SaaS platform for radio station management built with React fr
 ## Branding Update (Apr 2026)
 - Replaced default "Clara" text logo with custom Koodh Clara image logo (pink/red "koodh" + purple "clara")
 - Logo stored at: `/api/uploads/branding/koodh_clara_logo_cropped.png`
-- Updated: LoginPage.js (h-14), BrandLogo.js (h-9 default), NetworkHeader.js (uses BrandingContext)
+- Updated: LoginPage.js (h-7 — matching header size), BrandLogo.js (h-9 default), NetworkHeader.js (uses BrandingContext)
 - Auto-cropped from 4269x2400 original to 3365x715 (logo text only, no black padding)
+- **Brand Colors (Apr 2026)**: Replaced all orange (#f97316) with `#dd0c51` (pink/magenta) for buttons & accents, and amber (#f59e0b) with `#7c1ac8` (purple) for gradients & secondary accents.
+  - Tailwind `orange` palette overridden in `tailwind.config.js`
+  - Tailwind `amber` palette overridden in `tailwind.config.js`
+  - CSS variables `--primary`, `--accent`, `--ring` updated to HSL 338 90% 46%
+  - All hard-coded hex values (`#f97316`, `#ea580c`, `#f59e0b`, etc.) and `rgba(249,115,22,...)` replaced globally
 
 ## Backlog
 ### P0

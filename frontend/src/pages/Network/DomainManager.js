@@ -58,7 +58,7 @@ async function handleRequest(request) {
   const route = data.routes?.find(r => r.subdomain === subdomain);
 
   if (!route) {
-    return new Response('<html><body style="font-family:system-ui;background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0"><div style="text-align:center"><h1 style="color:#f4f4f5">Subdomain niet geconfigureerd</h1><p>' + hostname + ' is niet ingesteld.</p><a href="https://' + CONFIG.APP_SUBDOMAIN + '.' + CONFIG.BASE_DOMAIN + '" style="color:#f97316">Naar Clara</a></div></body></html>',
+    return new Response('<html><body style="font-family:system-ui;background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0"><div style="text-align:center"><h1 style="color:#f4f4f5">Subdomain niet geconfigureerd</h1><p>' + hostname + ' is niet ingesteld.</p><a href="https://' + CONFIG.APP_SUBDOMAIN + '.' + CONFIG.BASE_DOMAIN + '" style="color:#dd0c51">Naar Clara</a></div></body></html>',
       { status: 404, headers: { 'Content-Type': 'text/html;charset=UTF-8' } });
   }
 
@@ -658,7 +658,7 @@ export default function DomainManager() {
                           <Link2 className="w-3 h-3 mr-1" /> Set up domain
                         </Button>
                       </div>
-                      <div className="h-1" style={{ background: 'linear-gradient(90deg, #f59e0b, #f59e0b60)' }} />
+                      <div className="h-1" style={{ background: 'linear-gradient(90deg, #7c1ac8, #7c1ac860)' }} />
                     </div>
                   </motion.div>
                   );

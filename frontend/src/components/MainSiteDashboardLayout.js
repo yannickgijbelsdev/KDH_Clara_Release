@@ -902,7 +902,7 @@ const MainSiteDashboardContent = () => {
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(249,115,22,0.15)]' 
+                      ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
                       : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                     }
                   `}
@@ -947,7 +947,7 @@ const MainSiteDashboardContent = () => {
                   className={`
                     w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative
                     ${isActive 
-                      ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(249,115,22,0.15)]' 
+                      ? 'bg-orange-500/15 text-orange-500 shadow-[0_2px_12px_rgba(221,12,81,0.15)]' 
                       : 'text-zinc-400 hover:text-zinc-700 hover:bg-black/[0.06]'
                     }
                   `}
@@ -1127,7 +1127,7 @@ const MainSiteDashboardContent = () => {
                   return sortedEnvIds.map(envId => (
                     <div key={envId}>
                       <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5" style={{ color: envGroups[envId].color || '#71717a' }}>
-                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#f97316' }} />
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: envGroups[envId].color || '#dd0c51' }} />
                         {envGroups[envId].name}
                       </div>
                       {envGroups[envId].sites.map(site => (

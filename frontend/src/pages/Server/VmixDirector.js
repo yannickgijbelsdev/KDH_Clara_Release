@@ -16,7 +16,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BASE = process.env.REACT_APP_BACKEND_URL;
 
 const ELEMENT_TYPES = {
-  logo: { label: 'Logo', icon: Image, color: '#f59e0b' },
+  logo: { label: 'Logo', icon: Image, color: '#7c1ac8' },
   clock: { label: 'Clock', icon: Clock, color: '#3b82f6' },
   ticker: { label: 'Ticker', icon: Type, color: '#10b981' },
   now_playing_show: { label: 'Now Playing (Show)', icon: Radio, color: '#8b5cf6' },

@@ -34,8 +34,8 @@ const methodColors = {
 };
 
 const CATEGORY_COLORS = [
-  '#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#06b6d4', '#ef4444',
-  '#d946ef', '#f59e0b', '#14b8a6', '#6366f1', '#ec4899', '#84cc16',
+  '#dd0c51', '#3b82f6', '#10b981', '#8b5cf6', '#06b6d4', '#ef4444',
+  '#d946ef', '#7c1ac8', '#14b8a6', '#6366f1', '#ec4899', '#84cc16',
 ];
 
 const CATEGORY_BACKGROUNDS = {
@@ -79,7 +79,7 @@ const CategoryCard = ({ category, data, index, isSelected, onClick, color }) => 
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-orange-300 shadow-[0_8px_40px_rgba(249,115,22,0.15)] scale-[1.03]'
+            ? 'border-orange-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -130,7 +130,7 @@ const CategoryCard = ({ category, data, index, isSelected, onClick, color }) => 
         <motion.div
           layoutId="endpoint-select-bar"
           className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-orange-500"
-          style={{ boxShadow: '0 0 12px rgba(249,115,22,0.5)' }}
+          style={{ boxShadow: '0 0 12px rgba(221,12,81,0.5)' }}
         />
       )}
     </motion.div>

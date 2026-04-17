@@ -152,7 +152,7 @@ function ProgressRing({ progress, size = 36, stroke = 3, className = '' }) {
       <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e4e4e7" strokeWidth={stroke} />
       <circle
         cx={size / 2} cy={size / 2} r={r} fill="none"
-        stroke="#f97316" strokeWidth={stroke}
+        stroke="#dd0c51" strokeWidth={stroke}
         strokeDasharray={c} strokeDashoffset={offset}
         strokeLinecap="round" className="transition-all duration-700 ease-out"
       />

@@ -66,7 +66,7 @@ export default function BrandingSettings() {
       id: 'name',
       label: 'PLATFORM NAME',
       icon: Type,
-      color: '#f97316',
+      color: '#dd0c51',
       img: '/images/env_branding.jpg',
       description: 'Shown in sidebar, login page, and emails',
     },

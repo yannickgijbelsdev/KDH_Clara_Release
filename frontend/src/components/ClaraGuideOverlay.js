@@ -222,12 +222,12 @@ export default function ClaraGuideOverlay() {
             width: rect.width + padding * 2,
             height: rect.height + padding * 2,
           }}
-          initial={{ boxShadow: '0 0 0 0 rgba(249,115,22,0)' }}
+          initial={{ boxShadow: '0 0 0 0 rgba(221,12,81,0)' }}
           animate={{
             boxShadow: [
-              '0 0 0 0 rgba(249,115,22,0.6)',
-              '0 0 20px 8px rgba(249,115,22,0.3)',
-              '0 0 0 0 rgba(249,115,22,0.6)',
+              '0 0 0 0 rgba(221,12,81,0.6)',
+              '0 0 20px 8px rgba(221,12,81,0.3)',
+              '0 0 0 0 rgba(221,12,81,0.6)',
             ],
           }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}

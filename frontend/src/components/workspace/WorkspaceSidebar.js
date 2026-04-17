@@ -83,7 +83,7 @@ export const WorkspaceSidebar = ({
                   className={cn(
                     'w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-200 relative',
                     isActive
-                      ? 'bg-orange-500/15 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.15)]'
+                      ? 'bg-orange-500/15 text-orange-400 shadow-[0_0_20px_rgba(221,12,81,0.15)]'
                       : 'text-zinc-500 hover:text-white hover:bg-white/[0.06]'
                   )}
                 >

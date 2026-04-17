@@ -547,7 +547,7 @@ const RDSSchedulerPage = () => {
               className={station === st.code
                 ? 'text-white'
                 : 'border-zinc-300 text-zinc-400 hover:text-zinc-700'}
-              style={station === st.code ? { backgroundColor: st.color || '#f97316' } : {}}
+              style={station === st.code ? { backgroundColor: st.color || '#dd0c51' } : {}}
             >
               <Radio className="w-4 h-4 mr-2" />
               {st.name}

@@ -101,7 +101,7 @@ const TeamSettingsPage = () => {
   const [availableRoles, setAvailableRoles] = useState([
     // Fallback defaults until dynamic roles are loaded
     { slug: 'admin', name: 'Admin', color: '#ef4444', description: 'Full access to everything' },
-    { slug: 'editor', name: 'Editor', color: '#f59e0b', description: 'Can manage content and shows' },
+    { slug: 'editor', name: 'Editor', color: '#7c1ac8', description: 'Can manage content and shows' },
     { slug: 'presenter', name: 'Presenter', color: '#3b82f6', description: 'Can view and manage assigned shows' },
     { slug: 'viewer', name: 'Viewer', color: '#6b7280', description: 'Read-only access' },
   ]);

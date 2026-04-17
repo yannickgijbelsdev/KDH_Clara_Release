@@ -44,7 +44,7 @@ function timeAgo(iso) {
 
 /* ── Config ── */
 const SITE_TYPE_CONFIG = {
-  radio:          { icon: Radio,        color: '#f97316', label: 'Radio',       bg: '/images/env_radio.jpg' },
+  radio:          { icon: Radio,        color: '#dd0c51', label: 'Radio',       bg: '/images/env_radio.jpg' },
   server:         { icon: HardDrive,    color: '#3b82f6', label: 'Datacenter',  bg: '/images/env_server.jpg' },
   technical:      { icon: Network,      color: '#10b981', label: 'Data Conn.',  bg: '/images/env_technical.jpg' },
   task_scheduler: { icon: LayoutGrid,   color: '#8b5cf6', label: 'Tasks',       bg: '/images/env_task_scheduler.jpg' },
@@ -84,7 +84,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
       <div
         className={`relative rounded-2xl overflow-hidden transition-all duration-300 border ${
           isSelected
-            ? 'border-orange-300 shadow-[0_8px_40px_rgba(249,115,22,0.15)] scale-[1.03]'
+            ? 'border-orange-300 shadow-[0_8px_40px_rgba(221,12,81,0.15)] scale-[1.03]'
             : 'border-black/[0.06] shadow-[0_4px_24px_rgba(0,0,0,0.06)] group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] group-hover:scale-[1.02]'
         }`}
         style={{ background: 'linear-gradient(160deg, #ffffff 0%, #f9f8f6 100%)' }}
@@ -135,7 +135,7 @@ const BackupSiteCard = ({ site, index, isSelected, onClick, backupCount, lastBac
         <motion.div
           layoutId="backup-select-bar"
           className="absolute -bottom-2 left-1/2 -translate-x-1/2 h-1 w-12 rounded-full bg-orange-500"
-          style={{ boxShadow: '0 0 12px rgba(249,115,22,0.5)' }}
+          style={{ boxShadow: '0 0 12px rgba(221,12,81,0.5)' }}
         />
       )}
     </motion.div>

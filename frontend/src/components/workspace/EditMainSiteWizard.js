@@ -21,7 +21,7 @@ const BASE_STEPS = [
   { id: 'admin', label: 'Admin', icon: Users },
 ];
 
-const STATION_COLORS = ['#f97316', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#eab308'];
+const STATION_COLORS = ['#dd0c51', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#eab308'];
 const STREAM_TYPES = [
   { value: 'shoutcast_v1', label: 'Shoutcast v1' },
   { value: 'shoutcast_v2', label: 'Shoutcast v2' },

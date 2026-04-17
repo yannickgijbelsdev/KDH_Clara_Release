@@ -13,7 +13,7 @@ import { getAvatarUrl } from '../utils/avatar';
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const SITE_TYPE_THEMES = {
-  radio:          { img: '/images/env_radio.jpg', accent: '#f97316', label: 'Radio Station',    icon: Radio },
+  radio:          { img: '/images/env_radio.jpg', accent: '#dd0c51', label: 'Radio Station',    icon: Radio },
   external_host:  { img: '/images/env_external_host.jpg', accent: '#06b6d4', label: 'External Host',    icon: ExternalLink },
   server:         { img: '/images/env_server.jpg', accent: '#3b82f6', label: 'Virtual Datacenter', icon: HardDrive },
   technical:      { img: '/images/env_technical.jpg', accent: '#10b981', label: 'Data Connection',  icon: Network },

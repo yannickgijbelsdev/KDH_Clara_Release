@@ -45,7 +45,7 @@ const VUMeter = ({ isPlaying, color }) => {
   const peakDecayRef = useRef(0);
 
   const colorMap = {
-    orange: { primary: '#f97316', secondary: '#fb923c' },
+    orange: { primary: '#dd0c51', secondary: '#f05d8b' },
     violet: { primary: '#8b5cf6', secondary: '#a78bfa' },
     emerald: { primary: '#10b981', secondary: '#34d399' }
   };

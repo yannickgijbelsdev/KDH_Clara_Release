@@ -503,7 +503,7 @@ export default function NotificationSettings({ open, onClose, inline = false, ma
                   const roleCfg = roleSettings[role.slug] || { categories: [], mode: 'daily' };
                   const isExpanded = selectedRole === role.slug;
                   const activeCount = (roleCfg.categories || []).length;
-                  const roleColor = role.slug === 'admin' ? '#f97316' : role.slug === 'presenter' ? '#3b82f6' : role.slug === 'editor' ? '#8b5cf6' : '#22c55e';
+                  const roleColor = role.slug === 'admin' ? '#dd0c51' : role.slug === 'presenter' ? '#3b82f6' : role.slug === 'editor' ? '#8b5cf6' : '#22c55e';
                   const ROLE_IMAGES = ['/images/env_notification.jpg'];
                   const roleImg = ROLE_IMAGES[i % ROLE_IMAGES.length];
 

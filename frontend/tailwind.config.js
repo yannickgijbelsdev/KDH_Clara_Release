@@ -7,6 +7,34 @@ module.exports = {
   ],
   theme: {
   	extend: {
+  		colors: {
+  			orange: {
+  				50: '#fef1f6',
+  				100: '#fde6ef',
+  				200: '#fcc0d6',
+  				300: '#fa8fb4',
+  				400: '#f05d8b',
+  				500: '#dd0c51',
+  				600: '#c40a47',
+  				700: '#a5083c',
+  				800: '#880a34',
+  				900: '#700c2f',
+  				950: '#44031a',
+  			},
+  			amber: {
+  				50: '#f5f0ff',
+  				100: '#ede5ff',
+  				200: '#dcceff',
+  				300: '#c4a8ff',
+  				400: '#a76ef7',
+  				500: '#7c1ac8',
+  				600: '#6b13b0',
+  				700: '#5a0f95',
+  				800: '#4c0e7d',
+  				900: '#3f0c66',
+  				950: '#280840',
+  			},
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

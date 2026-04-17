@@ -54,7 +54,7 @@ const Waveform = ({ deck, isPlaying, progress = 0, cuePoints = {}, color, onSeek
       const y = (h - barH) / 2;
 
       if (i < playedIdx) {
-        ctx.fillStyle = color || '#f97316';
+        ctx.fillStyle = color || '#dd0c51';
       } else {
         ctx.fillStyle = 'rgba(255,255,255,0.15)';
       }
@@ -82,7 +82,7 @@ const Waveform = ({ deck, isPlaying, progress = 0, cuePoints = {}, color, onSeek
     drawCue(cuePoints.intro, 'INTRO', '#22d3ee');
     drawCue(cuePoints.outro, 'OUTRO', '#f43f5e');
     drawCue(cuePoints.fadeIn, 'FADE IN', '#a3e635');
-    drawCue(cuePoints.fadeOut, 'FADE OUT', '#fb923c');
+    drawCue(cuePoints.fadeOut, 'FADE OUT', '#f05d8b');
 
     // Playhead
     const phX = progress * w;

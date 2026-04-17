@@ -267,7 +267,7 @@ export default function PublicSitePage() {
   };
 
   // Get button styles
-  const buttonColor = site?.button_color || '#f97316';
+  const buttonColor = site?.button_color || '#dd0c51';
   const backgroundColor = site?.background_color || '#09090b';
   const containerColor = site?.container_color || '#18181b';
 

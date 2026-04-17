@@ -18,15 +18,15 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 const COLORS = {
   published: '#22c55e',
-  scheduled: '#f59e0b',
+  scheduled: '#7c1ac8',
   failed: '#ef4444',
   created: '#3b82f6',
   approved: '#22c55e',
-  pending: '#f59e0b',
+  pending: '#7c1ac8',
   rejected: '#ef4444',
 };
 
-const PIE_COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+const PIE_COLORS = ['#22c55e', '#7c1ac8', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;

@@ -37,7 +37,7 @@ const WIZARD_THUMBNAILS = {
 };
 
 const SITE_TYPES = [
-  { id: 'radio',          icon: Radio,       label: 'Radio Station',     desc: 'Shows, calendar, content library, RDS',    color: '#f97316', features: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings'], optionalFeatures: [] },
+  { id: 'radio',          icon: Radio,       label: 'Radio Station',     desc: 'Shows, calendar, content library, RDS',    color: '#dd0c51', features: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings'], optionalFeatures: [] },
   { id: 'server',         icon: HardDrive,   label: 'Virtual Datacenter', desc: 'XML imports, VMix, Radio Automation',      color: '#3b82f6', features: ['team_settings'], optionalFeatures: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'radio_automation'] },
   { id: 'external_host',  icon: ExternalLink, label: 'External Host',    desc: 'External site hosting & monitoring',        color: '#06b6d4', features: ['sites', 'team_settings'], optionalFeatures: [] },
   { id: 'task_scheduler', icon: LayoutGrid,  label: 'Task Manager',      desc: 'Task boards, project management',          color: '#8b5cf6', features: ['task_boards', 'team_settings'], optionalFeatures: [] },
@@ -52,7 +52,7 @@ const OPTIONAL_FEATURE_INFO = {
   vmix_director:    { icon: Video,     label: 'VMix Director',      desc: 'Video mixing and live production',      color: '#8b5cf6' },
   canva_director:   { icon: Palette,   label: 'Canva Director',     desc: 'Visual design and graphics control',    color: '#ec4899' },
   radioplayer:      { icon: Podcast,   label: 'Radioplayer',        desc: 'Radioplayer API integration',           color: '#06b6d4' },
-  radio_automation: { icon: Disc3,     label: 'Radio Automation',   desc: 'A/B player, playlists, cloud playout',  color: '#f97316' },
+  radio_automation: { icon: Disc3,     label: 'Radio Automation',   desc: 'A/B player, playlists, cloud playout',  color: '#dd0c51' },
 };
 
 const MAIN_SITE_STEPS = ['Choosing a server', 'Features', 'Details', 'Admin', 'Security', 'Deploying'];
@@ -215,7 +215,7 @@ const StepDetails = ({ name, slug, onNameChange, onSlugChange, siteType }) => {
 };
 
 /* ── Station colors palette ── */
-const STATION_COLORS = ['#f97316', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#eab308'];
+const STATION_COLORS = ['#dd0c51', '#8b5cf6', '#3b82f6', '#10b981', '#ef4444', '#ec4899', '#06b6d4', '#eab308'];
 
 const STREAM_TYPES = [
   { value: 'shoutcast_v1', label: 'Shoutcast v1' },
