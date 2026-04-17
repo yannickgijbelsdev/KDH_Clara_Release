@@ -1,7 +1,7 @@
-"""Clara Host VDC Deployment Router.
+"""Koodh VDC Deployment Router.
 
 Handles encrypted deployment of source code and MongoDB database
-to Clara Host VDC (https://vdc.koodh.com).
+to Koodh VDC (https://vdc.koodh.com).
 """
 import os
 import io
@@ -102,7 +102,7 @@ async def _run_deploy(user_id: str):
     try:
         async with httpx.AsyncClient(timeout=60) as client:
             # ── Step 1: Handshake ──
-            _set_status(user_id, "handshake", 5, "Connecting to Clara Host VDC...")
+            _set_status(user_id, "handshake", 5, "Connecting to Koodh VDC...")
             challenge = base64.b64encode(os.urandom(32)).decode()
             hs_resp = await client.post(f"{VDC_BASE}/api/clara/handshake", headers=headers, json={
                 "client_name": "Koodh Clara",
@@ -114,7 +114,7 @@ async def _run_deploy(user_id: str):
                 return
             hs_data = hs_resp.json()
             if hs_data.get("status") != "online":
-                _set_status(user_id, "handshake", 5, error="Clara Host VDC is offline")
+                _set_status(user_id, "handshake", 5, error="Koodh VDC is offline")
                 return
 
             # ── Step 2: Get public key ──
@@ -223,11 +223,11 @@ async def _run_deploy(user_id: str):
             )
 
     except httpx.ConnectError:
-        _set_status(user_id, "error", 0, error="Cannot reach Clara Host VDC. Check your connection.")
+        _set_status(user_id, "error", 0, error="Cannot reach Koodh VDC. Check your connection.")
     except httpx.ReadError:
-        _set_status(user_id, "error", 0, error="Connection to Clara Host VDC was interrupted. The server may be temporarily unavailable.")
+        _set_status(user_id, "error", 0, error="Connection to Koodh VDC was interrupted. The server may be temporarily unavailable.")
     except httpx.TimeoutException:
-        _set_status(user_id, "error", 0, error="Connection to Clara Host VDC timed out. Try again later.")
+        _set_status(user_id, "error", 0, error="Connection to Koodh VDC timed out. Try again later.")
     except Exception as e:
         logger.exception("VDC deploy error")
         _set_status(user_id, "error", 0, error=str(e) or "An unexpected error occurred during deployment.")

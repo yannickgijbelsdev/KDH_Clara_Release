@@ -896,7 +896,7 @@ export default function NetworkDashboard() {
                 <Upload className="w-5 h-5 text-zinc-700" />
                 <div>
                   <div className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">Deploy to VDC</div>
-                  <div className="text-sm font-semibold text-zinc-700">Encrypted deployment to Clara Host VDC</div>
+                  <div className="text-sm font-semibold text-zinc-700">Encrypted deployment to Koodh VDC</div>
                 </div>
               </motion.div>
               <div className="flex-1 overflow-y-auto bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_4px_24px_rgba(0,0,0,0.04)] p-5">

@@ -12,7 +12,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const PHASE_LABELS = {
   idle: 'Ready to deploy',
   starting: 'Starting...',
-  handshake: 'Connecting to Clara Host VDC',
+  handshake: 'Connecting to Koodh VDC',
   keys: 'Fetching encryption keys',
   preparing: 'Preparing data',
   encrypting: 'Encrypting data',
@@ -87,8 +87,8 @@ export default function VDCDeployPanel() {
           <div className="flex-1">
             <h3 className="text-sm font-bold text-zinc-800 mb-1">Encrypted Deployment</h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
-              Deploy your complete application (source code + database) to Clara Host VDC with end-to-end AES-256-GCM encryption.
-              Data is encrypted before it leaves your machine and can only be decrypted by Clara Host.
+              Deploy your complete application (source code + database) to Koodh VDC with end-to-end AES-256-GCM encryption.
+              Data is encrypted before it leaves your machine and can only be decrypted by Koodh VDC.
             </p>
             <div className="flex items-center gap-2.5 mt-3">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-900 text-white text-[10px] font-semibold tracking-wide">
@@ -167,7 +167,7 @@ export default function VDCDeployPanel() {
               <div className="mt-4 bg-emerald-50 border border-emerald-100 rounded-lg p-3 flex items-start gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-xs text-emerald-700 font-medium">Upload complete — awaiting admin approval in Clara Host dashboard.</p>
+                  <p className="text-xs text-emerald-700 font-medium">Upload complete — awaiting admin approval in Koodh VDC dashboard.</p>
                   {status.deployment_id && (
                     <p className="text-[10px] text-emerald-500 mt-1 font-mono">ID: {status.deployment_id}</p>
                   )}
@@ -183,13 +183,13 @@ export default function VDCDeployPanel() {
         <Button
           onClick={startDeploy}
           disabled={deploying}
-          className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl px-5 h-10 gap-2 font-semibold text-sm"
+          className="bg-[#dd0c51] hover:bg-[#c40a47] text-white rounded-full px-5 h-10 gap-2 font-semibold text-sm shadow-lg shadow-[#dd0c51]/20"
           data-testid="vdc-deploy-btn"
         >
           {deploying ? (
             <><Loader2 className="w-4 h-4 animate-spin" /> Deploying...</>
           ) : (
-            <><Upload className="w-4 h-4" /> Deploy to Clara Host VDC</>
+            <><Upload className="w-4 h-4" /> Deploy to Koodh VDC</>
           )}
         </Button>
 
