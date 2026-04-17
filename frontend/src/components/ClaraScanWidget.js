@@ -299,6 +299,40 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
     setGuideIssue(null);
   }, [sessionKey]);
 
+  /* ── Re-run scans ── */
+  const rerunScans = useCallback(() => {
+    const headers = { Authorization: `Bearer ${token}` };
+    setHealthScan({ status: 'scanning', checks: [], hasIssues: false });
+    setRackScan({ status: 'scanning', issues: [], summary: null });
+    setVisibleChecks([]);
+    setAutoFixMode(false);
+    setAutoFixQueue([]);
+    setAutoFixIdx(0);
+    setAutoFixStatuses({});
+    setAutoFixNeedsInput(false);
+    setAutoFixNeedsConfirm(false);
+
+    (async () => {
+      try {
+        const res = await fetch(`${API}/api/clara-test/health-scan`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          setHealthScan({ status: 'done', checks: data.checks || [], hasIssues: data.has_issues, diagnosis: data.diagnosis });
+        } else setHealthScan(prev => ({ ...prev, status: 'done' }));
+      } catch { setHealthScan(prev => ({ ...prev, status: 'done' })); }
+    })();
+
+    (async () => {
+      try {
+        const res = await fetch(`${API}/api/clara-test/rack-scan`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          setRackScan({ status: 'done', issues: data.issues || [], summary: data.summary });
+        } else setRackScan(prev => ({ ...prev, status: 'done' }));
+      } catch { setRackScan(prev => ({ ...prev, status: 'done' })); }
+    })();
+  }, [token]);
+
   /* auto-dismiss when all OK */
   useEffect(() => {
     if (allDone && totalIssues === 0 && view !== 'dismissed') {
@@ -402,7 +436,8 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
   const [autoFixInput, setAutoFixInput] = useState({});
   const [autoFixNeedsInput, setAutoFixNeedsInput] = useState(false);
 
-  const AUTO_FIXABLE = ['enable_firewall', 'enable_2fa'];
+  const AUTO_FIXABLE = ['enable_firewall'];
+  const CONFIRM_FIXABLE = ['enable_2fa'];
   const NEEDS_INPUT = ['configure_wordpress', 'configure_zerotier', 'configure_rds'];
 
   const INPUT_FIELDS = {
@@ -421,14 +456,17 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
     ],
   };
 
+  const [autoFixNeedsConfirm, setAutoFixNeedsConfirm] = useState(false);
+
   const startAutoFix = useCallback(() => {
-    const queue = rackScan.issues.filter(i => AUTO_FIXABLE.includes(i.action) || NEEDS_INPUT.includes(i.action));
+    const queue = rackScan.issues.filter(i => AUTO_FIXABLE.includes(i.action) || CONFIRM_FIXABLE.includes(i.action) || NEEDS_INPUT.includes(i.action));
     if (queue.length === 0) return;
     setAutoFixQueue(queue);
     setAutoFixIdx(0);
     setAutoFixStatuses({});
     setAutoFixMode(true);
     setAutoFixNeedsInput(false);
+    setAutoFixNeedsConfirm(false);
   }, [rackScan.issues]);
 
   const runAutoFix = useCallback(async (issue, idx) => {
@@ -458,11 +496,15 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
     if (!autoFixMode || autoFixQueue.length === 0) return;
     if (autoFixIdx >= autoFixQueue.length) return;
     if (autoFixNeedsInput) return;
+    if (autoFixNeedsConfirm) return;
     const issue = autoFixQueue[autoFixIdx];
     if (AUTO_FIXABLE.includes(issue.action)) {
       runAutoFix(issue, autoFixIdx).then(() => {
         setTimeout(() => setAutoFixIdx(prev => prev + 1), 600);
       });
+    } else if (CONFIRM_FIXABLE.includes(issue.action)) {
+      setAutoFixNeedsConfirm(true);
+      setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'confirm' }));
     } else if (NEEDS_INPUT.includes(issue.action)) {
       setAutoFixNeedsInput(true);
       setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'input' }));
@@ -472,7 +514,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
       setTimeout(() => setAutoFixIdx(prev => prev + 1), 300);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoFixMode, autoFixIdx, autoFixNeedsInput]);
+  }, [autoFixMode, autoFixIdx, autoFixNeedsInput, autoFixNeedsConfirm]);
 
   const submitAutoFixInput = useCallback(() => {
     setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'done' }));
@@ -485,6 +527,20 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
     setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'skipped' }));
     setAutoFixNeedsInput(false);
     setAutoFixInput({});
+    setTimeout(() => setAutoFixIdx(prev => prev + 1), 300);
+  }, [autoFixIdx]);
+
+  const confirmAutoFix = useCallback(() => {
+    const issue = autoFixQueue[autoFixIdx];
+    setAutoFixNeedsConfirm(false);
+    runAutoFix(issue, autoFixIdx).then(() => {
+      setTimeout(() => setAutoFixIdx(prev => prev + 1), 600);
+    });
+  }, [autoFixIdx, autoFixQueue, runAutoFix]);
+
+  const skipAutoFixConfirm = useCallback(() => {
+    setAutoFixStatuses(prev => ({ ...prev, [autoFixIdx]: 'skipped' }));
+    setAutoFixNeedsConfirm(false);
     setTimeout(() => setAutoFixIdx(prev => prev + 1), 300);
   }, [autoFixIdx]);
 
@@ -799,6 +855,7 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                 {status === 'fixing' && <Loader2 size={16} className="animate-spin text-orange-500 flex-shrink-0" />}
                 {status === 'error' && <XCircle size={16} className="text-red-500 flex-shrink-0" />}
                 {status === 'input' && <Sparkles size={16} className="text-orange-500 flex-shrink-0" />}
+                {status === 'confirm' && <Shield size={16} className="text-orange-500 flex-shrink-0" />}
                 {status === 'skipped' && <ArrowRight size={16} className="text-zinc-300 flex-shrink-0" />}
                 {!status && <div className="w-4 h-4 rounded-full bg-zinc-200 flex-shrink-0" />}
                 <div className="flex-1 min-w-0">
@@ -842,6 +899,35 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
                 className="flex-1 text-xs py-2 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors shadow-sm"
               >
                 Save & Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Confirmation prompt (e.g. 2FA) */}
+        {autoFixNeedsConfirm && currentIssue && (
+          <div className="px-5 py-4 border-t border-orange-100 bg-orange-50/50">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield size={14} className="text-orange-500" />
+              <p className="text-xs font-semibold text-zinc-700">
+                {currentIssue.title}
+              </p>
+            </div>
+            <p className="text-[11px] text-zinc-500 mb-3">
+              Enable two-factor authentication for <strong>{currentIssue.site_name}</strong>? You can skip this if you don't want to enforce 2FA.
+            </p>
+            <div className="flex gap-2">
+              <button onClick={skipAutoFixConfirm}
+                className="flex-1 text-xs py-2 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-100 transition-colors"
+                data-testid="autofix-skip-2fa"
+              >
+                Skip
+              </button>
+              <button onClick={confirmAutoFix}
+                className="flex-1 text-xs py-2 rounded-lg bg-orange-500 text-white font-semibold hover:bg-orange-600 transition-colors shadow-sm"
+                data-testid="autofix-confirm-2fa"
+              >
+                Enable 2FA
               </button>
             </div>
           </div>
@@ -897,6 +983,15 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
           </div>
         </div>
         <div className="flex items-center gap-0.5">
+          {allDone && (
+            <button onClick={rerunScans}
+              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-zinc-100 transition-colors"
+              data-testid="clara-scan-rerun"
+              title="Re-run scans"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-zinc-400" />
+            </button>
+          )}
           <button onClick={() => setView('minimized')}
             className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-zinc-100 transition-colors"
             data-testid="clara-scan-exp-minimize"
@@ -1045,8 +1140,18 @@ export default function ClaraScanWidget({ token, isAdmin, userPreferences }) {
         </section>
       </div>
 
-      {/* Footer with Fix All */}
+      {/* Footer with Fix All + Re-run */}
       <div className="px-4 py-3 border-t border-zinc-100 flex items-center gap-2 flex-shrink-0">
+        {allDone && (
+          <button
+            onClick={rerunScans}
+            className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-zinc-200 text-zinc-600 text-xs font-semibold hover:bg-zinc-50 transition-colors"
+            data-testid="clara-scan-rerun-footer"
+          >
+            <RotateCcw size={13} />
+            Re-run
+          </button>
+        )}
         {rDone && rackIssueCount > 0 && (
           <button
             onClick={startAutoFix}
