@@ -249,6 +249,7 @@ const MainSiteDashboardContent = () => {
   const searchInputRef = useCallback(node => { if (node) node.focus(); }, []);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
   const [firewallActive, setFirewallActive] = useState(false);
+  const [hasStations, setHasStations] = useState(false);
   const { voiceCallRequested, clearVoiceCallRequest } = useClaraAssistant();
 
   // Handle voice call request from ClaraAssistant
@@ -294,6 +295,18 @@ const MainSiteDashboardContent = () => {
       console.error('Failed to fetch menu counts:', error);
     }
   }, []);
+
+  // Check if RDS stations exist for this site
+  const fetchHasStations = useCallback(async () => {
+    if (!mainSite?.id) return;
+    try {
+      const response = await axios.get(`${API}/rds-stations/${mainSite.id}`);
+      const stations = response.data?.stations || [];
+      setHasStations(stations.length > 0);
+    } catch {
+      setHasStations(false);
+    }
+  }, [mainSite?.id]);
 
   // Search within current main site
   useEffect(() => {
@@ -393,6 +406,7 @@ const MainSiteDashboardContent = () => {
       fetchMenuCounts();
       fetchSites();
       fetchMyMainSites();
+      fetchHasStations();
       // Check license status
       const checkLicense = async () => {
         try {
@@ -608,12 +622,16 @@ const MainSiteDashboardContent = () => {
     
     const enabledFeatures = mainSite.enabled_features || [];
 
+    // Hide RDS features if no stations configured
+    const rdsFeatures = ['rds', 'stream_monitor'];
+
     const groups = NAV_GROUPS.map(group => {
       // Server group is only for server site types
       if (group.id === 'server' && mainSite.site_type !== 'server') return null;
       
       const items = group.features
         .filter(featureId => {
+          if (!hasStations && rdsFeatures.includes(featureId)) return false;
           return enabledFeatures.includes(featureId);
         })
         .map(featureId => {
