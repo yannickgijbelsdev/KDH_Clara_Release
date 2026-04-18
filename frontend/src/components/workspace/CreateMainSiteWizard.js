@@ -330,7 +330,7 @@ const StepStations = ({ stations, onStationsChange }) => {
               <Input
                 value={station.stream_url}
                 onChange={(e) => updateStation(idx, 'stream_url', e.target.value)}
-                placeholder="http://stream.example.com:9010/stats?sid=1"
+                placeholder="http://stream.example.com:8000/stats"
                 className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm font-mono"
                 data-testid={`station-stream-url-${idx}`}
               />
@@ -342,7 +342,7 @@ const StepStations = ({ stations, onStationsChange }) => {
                 <Input
                   value={station.default_text}
                   onChange={(e) => updateStation(idx, 'default_text', e.target.value)}
-                  placeholder="e.g. altijd dichtbij"
+                  placeholder="e.g. your favorite hits"
                   className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm"
                   data-testid={`station-default-text-${idx}`}
                 />

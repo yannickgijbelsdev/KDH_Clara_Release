@@ -545,7 +545,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Name</Label>
-                        <Input value={station.name} onChange={(e) => updateStation(idx, 'name', e.target.value)} placeholder="e.g. Radio MFY" className="h-8 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid={`edit-station-name-${idx}`} />
+                        <Input value={station.name} onChange={(e) => updateStation(idx, 'name', e.target.value)} placeholder="e.g. Sunshine FM" className="h-8 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid={`edit-station-name-${idx}`} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Stream Type</Label>
@@ -563,7 +563,7 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
                         <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Default Text</Label>
-                        <Input value={station.default_text} onChange={(e) => updateStation(idx, 'default_text', e.target.value)} placeholder="e.g. altijd dichtbij" className="h-8 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid={`edit-station-default-${idx}`} />
+                        <Input value={station.default_text} onChange={(e) => updateStation(idx, 'default_text', e.target.value)} placeholder="e.g. your favorite hits" className="h-8 bg-zinc-50 border-zinc-200 rounded-lg text-sm" data-testid={`edit-station-default-${idx}`} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-[11px] text-zinc-400 uppercase tracking-wider">Color</Label>
