@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { Radio, Settings, Activity, Wand2, Calendar } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import RDSSettingsPage from './RDSSettingsPage';
@@ -25,16 +25,22 @@ const TAB_COMPONENTS = {
 
 export default function RDSPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { token, mainSiteId } = useAuth();
+  const { mainSiteSlug } = useParams();
+  const { token } = useAuth();
   const initialTab = TABS.find(t => t.id === searchParams.get('tab'))?.id || 'settings';
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [hasStations, setHasStations] = useState(null); // null = loading
+  const [hasStations, setHasStations] = useState(null);
 
   useEffect(() => {
-    if (!mainSiteId || !token) return;
+    if (!mainSiteSlug || !token) return;
     (async () => {
       try {
-        const res = await fetch(`${API}/api/rds-stations/${mainSiteId}`, {
+        const siteRes = await fetch(`${API}/api/main-sites/by-slug/${mainSiteSlug}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!siteRes.ok) { setHasStations(false); return; }
+        const siteData = await siteRes.json();
+        const res = await fetch(`${API}/api/rds-stations/${siteData.id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -47,7 +53,7 @@ export default function RDSPage() {
         setHasStations(false);
       }
     })();
-  }, [mainSiteId, token]);
+  }, [mainSiteSlug, token]);
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
