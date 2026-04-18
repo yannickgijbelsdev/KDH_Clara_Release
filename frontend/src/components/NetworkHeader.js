@@ -148,7 +148,7 @@ export default function NetworkHeader({
     <TooltipProvider delayDuration={0}>
       {/* ─── Top Navigation Bar ─── */}
       <nav
-        className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-transparent z-50 overflow-x-hidden"
+        className="h-[64px] flex-shrink-0 flex items-center px-3 sm:px-5 gap-2 sm:gap-4 bg-transparent z-50 overflow-x-hidden"
         data-testid="workspace-topbar"
       >
         {/* Mobile menu button */}
@@ -174,7 +174,7 @@ export default function NetworkHeader({
             <><Network className="w-4 h-4" /><span className="hidden sm:inline">{brandName}</span></>
           )}
         </Link>
-        <span className="hidden sm:inline text-sm text-zinc-400 font-medium flex-shrink-0" data-testid="enterprise-global-label">Enterprise Global</span>
+        <span className="hidden lg:inline text-sm text-zinc-400 font-medium flex-shrink-0" data-testid="enterprise-global-label">Enterprise Global</span>
 
         {/* Environment switcher */}
         {environments.length > 0 && (
@@ -187,7 +187,7 @@ export default function NetworkHeader({
                 data-testid="env-switcher"
               >
                 <Server className="w-3 h-3" />
-                <span className="hidden md:inline">
+                <span className="hidden lg:inline">
                   {environments.find(e => e.id === selectedEnvId)?.name || 'Environment'}
                 </span>
                 <ChevronDown className="w-3 h-3 opacity-50" />
@@ -353,11 +353,11 @@ export default function NetworkHeader({
       >
         <div className="p-5 h-full flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <div className="bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold">
+            <div className="flex items-center">
               {brandLogoUrl ? (
-                <img src={brandLogoUrl} alt={brandName} className="h-5 object-contain" />
+                <img src={brandLogoUrl} alt={brandName} className="h-7 object-contain" />
               ) : (
-                <><Network className="w-4 h-4" />{brandName}</>
+                <span className="text-sm font-bold text-zinc-900">{brandName}</span>
               )}
             </div>
             <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="text-zinc-400 hover:text-zinc-700">
