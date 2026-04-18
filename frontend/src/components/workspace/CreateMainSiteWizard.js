@@ -5,7 +5,8 @@ import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield,
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
   Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast,
-  Plus, Trash2, GripVertical, Music, Globe, Eye, EyeOff
+  Plus, Trash2, GripVertical, Music, Globe, Eye, EyeOff,
+  CheckCircle2, XCircle
 } from 'lucide-react';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -842,12 +843,249 @@ const StepZeroTier = ({ ztConfig, onZtConfigChange }) => {
   );
 };
 
+/* ── Step 0: Choose mode — New or Import ── */
+const StepChooseMode = ({ onChooseNew, onChooseImport }) => (
+  <div>
+    <h2 className="text-xl font-bold text-zinc-900 mb-1">New server</h2>
+    <p className="text-sm text-zinc-500 mb-5">Create a new server or import from a Clara dataset export.</p>
+    <div className="grid grid-cols-2 gap-3">
+      <button
+        onClick={onChooseNew}
+        data-testid="mode-new"
+        className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-zinc-200 hover:border-zinc-900 hover:shadow-lg transition-all text-center group"
+      >
+        <div className="w-14 h-14 rounded-2xl bg-zinc-100 group-hover:bg-zinc-900 flex items-center justify-center transition-colors">
+          <Plus className="w-6 h-6 text-zinc-500 group-hover:text-white transition-colors" />
+        </div>
+        <div>
+          <div className="text-sm font-bold text-zinc-800">Create New</div>
+          <div className="text-[11px] text-zinc-400 mt-0.5">Start from scratch</div>
+        </div>
+      </button>
+      <button
+        onClick={onChooseImport}
+        data-testid="mode-import"
+        className="flex flex-col items-center gap-3 p-6 rounded-2xl border-2 border-zinc-200 hover:border-zinc-900 hover:shadow-lg transition-all text-center group"
+      >
+        <div className="w-14 h-14 rounded-2xl bg-zinc-100 group-hover:bg-zinc-900 flex items-center justify-center transition-colors">
+          <Upload className="w-6 h-6 text-zinc-500 group-hover:text-white transition-colors" />
+        </div>
+        <div>
+          <div className="text-sm font-bold text-zinc-800">Import Dataset</div>
+          <div className="text-[11px] text-zinc-400 mt-0.5">From Clara export file</div>
+        </div>
+      </button>
+    </div>
+  </div>
+);
+
+/* ── Import Flow: Upload + Site selection + Import ── */
+const StepImportDataset = ({ token, onDone, onBack }) => {
+  const [phase, setPhase] = useState('upload'); // upload | sites | importing | done
+  const [uploading, setUploading] = useState(false);
+  const [fileId, setFileId] = useState(null);
+  const [sites, setSites] = useState([]);
+  const [selectedSites, setSelectedSites] = useState(new Set());
+  const [importProgress, setImportProgress] = useState([]);
+  const [currentImport, setCurrentImport] = useState('');
+  const fileInputRef = useRef(null);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch(`${API}/api/data-transfer/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFileId(data.file_id);
+        setSites(data.sites || []);
+        setPhase('sites');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        claraToast.error(err.detail || 'Upload failed');
+      }
+    } catch {
+      claraToast.error('Connection error');
+    }
+    setUploading(false);
+  };
+
+  const toggleSite = (siteId) => {
+    setSelectedSites(prev => {
+      const next = new Set(prev);
+      if (next.has(siteId)) next.delete(siteId);
+      else next.add(siteId);
+      return next;
+    });
+  };
+
+  const startImport = async () => {
+    setPhase('importing');
+    const results = [];
+    for (const siteId of selectedSites) {
+      const site = sites.find(s => s.id === siteId);
+      setCurrentImport(site?.name || siteId);
+      try {
+        const res = await fetch(`${API}/api/data-transfer/import-site`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file_id: fileId, site_id: siteId }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          results.push({ name: site?.name, status: 'success', imported: data.total_imported, skipped: data.total_skipped });
+        } else {
+          results.push({ name: site?.name, status: 'error', error: 'Import failed' });
+        }
+      } catch {
+        results.push({ name: site?.name, status: 'error', error: 'Connection error' });
+      }
+    }
+    // Cleanup
+    try {
+      await fetch(`${API}/api/data-transfer/cleanup`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_id: fileId }),
+      });
+    } catch {}
+    setImportProgress(results);
+    setPhase('done');
+  };
+
+  if (phase === 'upload') {
+    return (
+      <div>
+        <h2 className="text-xl font-bold text-zinc-900 mb-1">Import dataset</h2>
+        <p className="text-sm text-zinc-500 mb-5">Upload a Clara JSON export file to import servers with all their data.</p>
+        <input ref={fileInputRef} type="file" accept=".json" onChange={handleUpload} className="hidden" data-testid="import-file-input" />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="w-full flex flex-col items-center gap-3 p-10 rounded-2xl border-2 border-dashed border-zinc-300 hover:border-zinc-500 transition-colors cursor-pointer"
+          data-testid="import-upload-area"
+        >
+          {uploading ? (
+            <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
+          ) : (
+            <Upload className="w-8 h-8 text-zinc-400" />
+          )}
+          <div className="text-sm font-medium text-zinc-600">
+            {uploading ? 'Parsing file...' : 'Click to select .json export file'}
+          </div>
+        </button>
+      </div>
+    );
+  }
+
+  if (phase === 'sites') {
+    return (
+      <div>
+        <h2 className="text-xl font-bold text-zinc-900 mb-1">Select sites to import</h2>
+        <p className="text-sm text-zinc-500 mb-4">{sites.length} site{sites.length !== 1 ? 's' : ''} found in the export. Select which ones to import.</p>
+        <div className="space-y-1.5 max-h-[340px] overflow-y-auto">
+          {sites.map(site => {
+            const isSelected = selectedSites.has(site.id);
+            return (
+              <button
+                key={site.id}
+                onClick={() => toggleSite(site.id)}
+                data-testid={`import-site-${site.slug}`}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                  isSelected ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-100 hover:border-zinc-300'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-zinc-900' : 'bg-zinc-100'}`}>
+                  <HardDrive className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-zinc-400'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-zinc-800 truncate">{site.name}</div>
+                  <div className="text-[11px] text-zinc-400">{site.user_count} users &middot; {site.total_documents} docs &middot; {site.collection_count} collections</div>
+                </div>
+                {isSelected && (
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Check className="w-3.5 h-3.5 text-white" />
+                  </motion.div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-zinc-100">
+          <button onClick={() => { setSelectedSites(prev => prev.size === sites.length ? new Set() : new Set(sites.map(s => s.id))); }}
+            className="text-xs font-medium text-zinc-500 hover:text-zinc-800 transition-colors"
+          >
+            {selectedSites.size === sites.length ? 'Deselect all' : 'Select all'}
+          </button>
+          <Button
+            onClick={startImport}
+            disabled={selectedSites.size === 0}
+            className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-full px-5 gap-2"
+            data-testid="import-start-btn"
+          >
+            <Upload className="w-4 h-4" />
+            Import {selectedSites.size} site{selectedSites.size !== 1 ? 's' : ''}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'importing') {
+    return (
+      <div className="text-center py-8">
+        <Loader2 className="w-10 h-10 text-zinc-400 animate-spin mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-zinc-900 mb-1">Importing data...</h2>
+        <p className="text-sm text-zinc-500">Importing {currentImport}...</p>
+      </div>
+    );
+  }
+
+  // done
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-zinc-900 mb-1">Import complete</h2>
+      <p className="text-sm text-zinc-500 mb-4">{importProgress.filter(r => r.status === 'success').length} of {importProgress.length} sites imported successfully.</p>
+      <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
+        {importProgress.map((result, i) => (
+          <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-zinc-50">
+            {result.status === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+            ) : (
+              <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-zinc-800 truncate">{result.name}</div>
+              <div className="text-[11px] text-zinc-400">
+                {result.status === 'success' ? `${result.imported} imported, ${result.skipped} skipped` : result.error}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 pt-3 border-t border-zinc-100 flex justify-end">
+        <Button onClick={onDone} className="bg-zinc-900 hover:bg-zinc-800 text-white rounded-full px-5 gap-2" data-testid="import-done-btn">
+          <Check className="w-4 h-4" /> Done
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 /* ════════════════════════════════════════════════════
    MAIN WIZARD COMPONENT
    ════════════════════════════════════════════════════ */
 export default function CreateMainSiteWizard({ open, onClose, onCreated, token, environments, selectedEnvId }) {
   const { user } = useAuth();
   const isSystemAdmin = user?.is_system_admin === true;
+  const [mode, setMode] = useState(null); // null = choosing, 'new' = normal wizard, 'import' = import flow
   const [step, setStep] = useState(0);
   const [siteType, setSiteType] = useState('radio');
   const [selectedOptionalFeatures, setSelectedOptionalFeatures] = useState([]);
@@ -1037,7 +1275,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   };
 
   const handleClose = () => {
-    setStep(0); setSiteType('radio'); setName(''); setSlug('');
+    setMode(null); setStep(0); setSiteType('radio'); setName(''); setSlug('');
     setAdminId(''); setRequire2FA(false); setClaraEnterprise(false); setDeployStatus(0);
     setDeploying(false); setDeployDone(false); setDeployError(null);
     setSelectedOptionalFeatures([]); setRdsStations([]);
@@ -1065,6 +1303,47 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v && !deploying) handleClose(); }}>
       <DialogContent hideClose className="bg-white border-zinc-200 max-w-3xl max-h-[92vh] overflow-hidden p-0 rounded-[24px] flex flex-col shadow-[0_8px_40px_rgba(0,0,0,0.1)]" data-testid="create-wizard-dialog">
+
+        {/* Mode: Choose between New or Import */}
+        {mode === null && (
+          <>
+            <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+              <div />
+              <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+                <X className="w-4 h-4 text-zinc-400" />
+              </button>
+            </div>
+            <div className="px-8 pt-2 pb-8">
+              <StepChooseMode
+                onChooseNew={() => setMode('new')}
+                onChooseImport={() => setMode('import')}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Mode: Import flow */}
+        {mode === 'import' && (
+          <>
+            <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
+              <div className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Import Dataset</div>
+              <button onClick={handleClose} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-zinc-100 transition-colors">
+                <X className="w-4 h-4 text-zinc-400" />
+              </button>
+            </div>
+            <div className="px-8 pt-2 pb-8 flex-1 overflow-y-auto min-h-0">
+              <StepImportDataset
+                token={token}
+                onDone={() => { onCreated?.(); handleClose(); }}
+                onBack={() => setMode(null)}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Mode: Normal create wizard */}
+        {mode === 'new' && (
+          <>
         {/* Header with close */}
         <div className="flex items-center justify-between px-8 pt-6 pb-0 flex-shrink-0">
           <WizardStepIndicator currentStep={step} steps={actualSteps} />
@@ -1108,11 +1387,11 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
           <div className="flex items-center justify-between px-8 py-4 border-t border-zinc-100 flex-shrink-0">
             <Button
               variant="ghost"
-              onClick={() => step === 0 ? handleClose() : setStep(s => s - 1)}
+              onClick={() => step === 0 ? setMode(null) : setStep(s => s - 1)}
               className="gap-2 text-zinc-500"
             >
               <ChevronLeft className="w-4 h-4" />
-              {step === 0 ? 'Cancel' : 'Back'}
+              {step === 0 ? 'Back' : 'Back'}
             </Button>
             <Button
               onClick={handleNext}
@@ -1131,6 +1410,8 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               )}
             </Button>
           </div>
+        )}
+          </>
         )}
       </DialogContent>
     </Dialog>
