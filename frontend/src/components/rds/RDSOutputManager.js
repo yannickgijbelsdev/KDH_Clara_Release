@@ -43,7 +43,6 @@ const ITEM_TYPES = [
   { value: 'show_name', label: 'Show Name', icon: Mic, description: 'Name of the current live show (or default)' },
   { value: 'presenter_name', label: 'Presenter', icon: Users, description: 'Presenter(s) of the current live show' },
   { value: 'now_playing', label: 'Now Playing', icon: Music, description: 'Current track from the stream' },
-  { value: 'audio_trigger', label: 'Audio Trigger', icon: Volume2, description: 'Text from detected audio (news, ads)' },
   { value: 'custom_text', label: 'Custom Text', icon: Type, description: 'Custom text of your choice' },
 ];
 
@@ -124,7 +123,6 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
     { type: 'show_name', enabled: true, content: null, duration: 10 },
     { type: 'presenter_name', enabled: false, content: null, duration: 10 },
     { type: 'now_playing', enabled: true, content: null, duration: 5 },
-    { type: 'audio_trigger', enabled: false, content: null, duration: 10 },
     { type: 'custom_text', enabled: false, content: '', duration: 5 },
   ]);
   const [saving, setSaving] = useState(false);
@@ -151,7 +149,6 @@ const OutputDialog = ({ isOpen, onClose, onSave, output, station }) => {
         { type: 'show_name', enabled: true, content: null, duration: 10 },
         { type: 'presenter_name', enabled: false, content: null, duration: 10 },
         { type: 'now_playing', enabled: true, content: null, duration: 5 },
-        { type: 'audio_trigger', enabled: false, content: null, duration: 10 },
         { type: 'custom_text', enabled: false, content: '', duration: 5 },
       ]);
     }

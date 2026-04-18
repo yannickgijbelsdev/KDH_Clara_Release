@@ -22,7 +22,6 @@ const PAGE_TITLES = {
   'rds-builder': 'RDS Builder',
   'rds-scheduler': 'RDS Scheduler',
   'rds-monitor': 'RDS Monitor',
-  'audio-triggers': 'Audio Triggers',
   'streams': 'Streams',
   'sites': 'Sites',
   'firewall': 'Firewall',

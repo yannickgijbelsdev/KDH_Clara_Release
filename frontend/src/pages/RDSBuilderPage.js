@@ -666,13 +666,6 @@ const RDSBuilderPage = () => {
       {/* Header */}
       <div className="flex items-center justify-end mb-6">
         <div className="flex gap-2">
-          <Button
-            onClick={() => navigate(navTo('/audio-triggers'))}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Volume2 className="w-4 h-4 mr-2" />
-            Audio Triggers
-          </Button>
         </div>
       </div>
 

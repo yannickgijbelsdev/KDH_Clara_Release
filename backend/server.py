@@ -43,7 +43,6 @@ from routers.folders import folders_router
 from routers.rds import rds_router
 from routers.rds_builder import rds_builder_router
 from routers.stream_proxy import stream_proxy_router
-from routers.audio_trigger import audio_trigger_router
 from routers.sites import sites_router
 from routers.main_sites import main_sites_router
 from routers.migration import router as migration_router
@@ -129,7 +128,6 @@ api_router.include_router(rds_builder_router)
 api_router.include_router(rds_stations_router)
 api_router.include_router(clara_test_router)
 api_router.include_router(stream_proxy_router)
-api_router.include_router(audio_trigger_router)
 api_router.include_router(sites_router)
 api_router.include_router(main_sites_router)
 api_router.include_router(proradio_router)
@@ -1251,13 +1249,6 @@ async def startup_db_client():
     # Start the Radioplayer auto-sync scheduler
     await radioplayer_scheduler.start()
     logger.info("Radioplayer scheduler started (NP: 60s, Schedule: 30min)")
-    
-    # Start the Audio Trigger scheduler for sound detection
-    from services.audio_trigger import AudioTriggerScheduler
-    global audio_trigger_scheduler
-    audio_trigger_scheduler = AudioTriggerScheduler(db)
-    await audio_trigger_scheduler.start()
-    logger.info("Audio Trigger scheduler started (3s interval)")
 
     # Start daily backup scheduler
     from services.backup_scheduler import start_backup_scheduler
@@ -1437,11 +1428,5 @@ async def shutdown_db_client():
     # Stop the Radioplayer scheduler
     await radioplayer_scheduler.stop()
     logger.info("Radioplayer scheduler stopped")
-    
-    # Stop the Audio Trigger scheduler
-    global audio_trigger_scheduler
-    if audio_trigger_scheduler:
-        await audio_trigger_scheduler.stop()
-        logger.info("Audio Trigger scheduler stopped")
     
     client.close()

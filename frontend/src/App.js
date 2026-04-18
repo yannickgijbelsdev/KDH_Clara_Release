@@ -36,7 +36,6 @@ import { fetchSubdomainConfig, buildLoginRedirectUrl } from './services/subdomai
 import RDSPage from './pages/RDSPage';
 import RDSMonitorPage from './pages/RDSMonitorPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
-import AudioTriggersPage from './pages/AudioTriggersPage';
 import SitesListPage from './pages/Sites/SitesListPage';
 import SiteDashboard from './pages/Sites/SiteDashboard';
 import PublicSitePage from './pages/Sites/PublicSitePage';
@@ -205,7 +204,6 @@ const AppRoutes = () => {
         <Route path="logs" element={<LogsPage />} />
         <Route path="wordpress" element={<WordPressSettingsPage />} />
         <Route path="rds" element={<RDSPage />} />
-        <Route path="audio-triggers" element={<AudioTriggersPage />} />
         <Route path="streams" element={<StreamMonitorPage />} />
         <Route path="sites" element={<SitesListPage />} />
         <Route path="sites/:siteId" element={<SiteDashboard />} />
@@ -240,7 +238,6 @@ const AppRoutes = () => {
         <Route path="logs" element={<LogsPage />} />
         <Route path="wordpress" element={<WordPressSettingsPage />} />
         <Route path="rds" element={<RDSPage />} />
-        <Route path="audio-triggers" element={<AudioTriggersPage />} />
         <Route path="streams" element={<StreamMonitorPage />} />
         <Route path="sites" element={<SitesListPage />} />
         <Route path="sites/:siteId" element={<SiteDashboard />} />
