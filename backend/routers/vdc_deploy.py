@@ -7,9 +7,9 @@ import os
 import io
 import tarfile
 import base64
-import tempfile
 import logging
 import asyncio
+import time
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -20,7 +20,6 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
 from database import db
 from services.auth import get_current_user
@@ -41,15 +40,7 @@ EXCLUDE_DIRS = {
 }
 EXCLUDE_EXTENSIONS = {".pyc", ".pyo", ".log"}
 
-
-# ── In-memory deploy status per user ──
 _deploy_status: dict[str, dict] = {}
-
-
-class DeployResponse(BaseModel):
-    status: str
-    message: str
-    deployment_id: str | None = None
 
 
 def _require_system_admin(user: dict):
@@ -61,23 +52,90 @@ def _status_key(user_id: str) -> str:
     return f"deploy_{user_id}"
 
 
-def _set_status(user_id: str, phase: str, progress: int = 0, detail: str = "", error: str = "", done: bool = False, deployment_id: str = ""):
+def _fmt_size(b: int) -> str:
+    if b < 1024:
+        return f"{b} B"
+    if b < 1024 * 1024:
+        return f"{b / 1024:.1f} KB"
+    return f"{b / (1024 * 1024):.1f} MB"
+
+
+def _init_status(user_id: str):
     _deploy_status[_status_key(user_id)] = {
-        "phase": phase,
-        "progress": progress,
-        "detail": detail,
-        "error": error,
-        "done": done,
-        "deployment_id": deployment_id,
+        "phase": "starting",
+        "progress": 0,
+        "detail": "Initiating deployment...",
+        "error": "",
+        "done": False,
+        "deployment_id": "",
+        "started_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
+        "log": [],
+        "stats": {},
     }
+
+
+def _log(user_id: str, phase: str, progress: int, message: str, level: str = "info", **extra):
+    key = _status_key(user_id)
+    status = _deploy_status.get(key)
+    if not status:
+        return
+    now = datetime.now(timezone.utc).isoformat()
+    entry = {"ts": now, "phase": phase, "message": message, "level": level}
+    entry.update(extra)
+    status["log"].append(entry)
+    status["phase"] = phase
+    status["progress"] = progress
+    status["detail"] = message
+    status["updated_at"] = now
+
+
+def _set_error(user_id: str, phase: str, progress: int, error: str):
+    key = _status_key(user_id)
+    status = _deploy_status.get(key)
+    if status:
+        status["error"] = error
+        status["phase"] = phase
+        status["progress"] = progress
+        status["updated_at"] = datetime.now(timezone.utc).isoformat()
+        status["log"].append({
+            "ts": status["updated_at"], "phase": phase,
+            "message": error, "level": "error",
+        })
+
+
+def _set_done(user_id: str, deployment_id: str, message: str):
+    key = _status_key(user_id)
+    status = _deploy_status.get(key)
+    if status:
+        now = datetime.now(timezone.utc).isoformat()
+        status["phase"] = "complete"
+        status["progress"] = 100
+        status["detail"] = message
+        status["done"] = True
+        status["deployment_id"] = deployment_id
+        status["updated_at"] = now
+        status["log"].append({
+            "ts": now, "phase": "complete",
+            "message": message, "level": "success",
+        })
+
+
+def _update_stats(user_id: str, **kwargs):
+    key = _status_key(user_id)
+    status = _deploy_status.get(key)
+    if status:
+        status["stats"].update(kwargs)
 
 
 @vdc_deploy_router.get("/status")
 async def get_deploy_status(user: dict = Depends(get_current_user)):
     _require_system_admin(user)
     key = _status_key(user["id"])
-    return _deploy_status.get(key, {"phase": "idle", "progress": 0, "detail": "", "error": "", "done": False})
+    return _deploy_status.get(key, {
+        "phase": "idle", "progress": 0, "detail": "", "error": "",
+        "done": False, "log": [], "stats": {},
+    })
 
 
 @vdc_deploy_router.post("/start")
@@ -90,7 +148,7 @@ async def start_deploy(user: dict = Depends(get_current_user)):
     if current.get("phase") not in ("idle", "", None) and not current.get("done") and not current.get("error"):
         raise HTTPException(409, "A deployment is already in progress")
 
-    _set_status(user_id, "starting", 0, "Initiating deployment...")
+    _init_status(user_id)
     asyncio.create_task(_run_deploy(user_id))
     return {"status": "started", "message": "Deployment started in background"}
 
@@ -98,11 +156,12 @@ async def start_deploy(user: dict = Depends(get_current_user)):
 async def _run_deploy(user_id: str):
     """Full deploy pipeline running in background."""
     headers = {"X-API-Key": VDC_API_KEY, "Content-Type": "application/json"}
+    t_start = time.monotonic()
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
             # ── Step 1: Handshake ──
-            _set_status(user_id, "handshake", 5, "Connecting to Koodh VDC...")
+            _log(user_id, "handshake", 5, "Connecting to Koodh VDC...")
             challenge = base64.b64encode(os.urandom(32)).decode()
             hs_resp = await client.post(f"{VDC_BASE}/api/clara/handshake", headers=headers, json={
                 "client_name": "Koodh Clara",
@@ -110,31 +169,62 @@ async def _run_deploy(user_id: str):
                 "challenge": challenge,
             })
             if hs_resp.status_code != 200:
-                _set_status(user_id, "handshake", 5, error=f"Handshake failed: {hs_resp.status_code} — {hs_resp.text}")
+                _set_error(user_id, "handshake", 5, f"Handshake failed: HTTP {hs_resp.status_code}")
+                _log(user_id, "handshake", 5, f"Response: {hs_resp.text[:200]}", "debug")
                 return
             hs_data = hs_resp.json()
             if hs_data.get("status") != "online":
-                _set_status(user_id, "handshake", 5, error="Koodh VDC is offline")
+                _set_error(user_id, "handshake", 5, "Koodh VDC is offline")
                 return
+            server_name = hs_data.get("server_name", "Unknown")
+            capabilities = hs_data.get("capabilities", [])
+            limits = hs_data.get("limits", {})
+            _log(user_id, "handshake", 8, f"Connected to {server_name}", "success",
+                 server=server_name, capabilities=capabilities)
+            _update_stats(user_id, server_name=server_name,
+                          max_chunk_mb=limits.get("max_chunk_size_mb"),
+                          max_total_gb=limits.get("max_total_size_gb"))
 
             # ── Step 2: Get public key ──
-            _set_status(user_id, "keys", 10, "Fetching encryption keys...")
+            _log(user_id, "keys", 10, "Fetching RSA-4096 public key...")
             pk_resp = await client.get(f"{VDC_BASE}/api/clara/public-key", headers=headers)
             if pk_resp.status_code != 200:
-                _set_status(user_id, "keys", 10, error=f"Failed to get public key: {pk_resp.status_code}")
+                _set_error(user_id, "keys", 10, f"Failed to get public key: HTTP {pk_resp.status_code}")
                 return
-            pem_key = pk_resp.json()["public_key"]
+            pk_data = pk_resp.json()
+            pem_key = pk_data["public_key"]
+            algorithm = pk_data.get("algorithm", "RSA-OAEP-SHA256")
             rsa_public = serialization.load_pem_public_key(pem_key.encode())
+            fingerprint = hs_data.get("rsa_key_fingerprint", "")[:16]
+            _log(user_id, "keys", 12, f"Public key loaded ({algorithm}, fingerprint: {fingerprint}...)", "success")
 
             # ── Step 3: Prepare data ──
-            _set_status(user_id, "preparing", 15, "Creating source archive...")
+            _log(user_id, "preparing", 15, "Creating source archive (tar.gz)...")
+            t_archive = time.monotonic()
             source_bytes = await asyncio.to_thread(_create_source_archive)
+            archive_time = time.monotonic() - t_archive
+            _log(user_id, "preparing", 20,
+                 f"Source archive: {_fmt_size(len(source_bytes))} ({archive_time:.1f}s)", "success",
+                 source_size=len(source_bytes))
+            _update_stats(user_id, source_size=len(source_bytes), source_size_fmt=_fmt_size(len(source_bytes)))
 
-            _set_status(user_id, "preparing", 25, "Dumping database...")
+            _log(user_id, "preparing", 22, "Dumping MongoDB database...")
+            t_db = time.monotonic()
             db_bytes = await _dump_database()
+            db_time = time.monotonic() - t_db
+            collections_count = await db.list_collection_names()
+            _log(user_id, "preparing", 28,
+                 f"Database dump: {_fmt_size(len(db_bytes))} ({len(collections_count)} collections, {db_time:.1f}s)", "success",
+                 db_size=len(db_bytes), collections=len(collections_count))
+            _update_stats(user_id, db_size=len(db_bytes), db_size_fmt=_fmt_size(len(db_bytes)),
+                          collections=len(collections_count))
+
+            total_size = len(source_bytes) + len(db_bytes)
+            _update_stats(user_id, total_size=total_size, total_size_fmt=_fmt_size(total_size))
 
             # Generate AES key
-            aes_key = AESGCM.generate_key(bit_length=256)  # 32 bytes
+            _log(user_id, "encrypting", 30, "Generating AES-256 session key...")
+            aes_key = AESGCM.generate_key(bit_length=256)
             encrypted_aes_key = rsa_public.encrypt(
                 aes_key,
                 asym_padding.OAEP(
@@ -144,16 +234,19 @@ async def _run_deploy(user_id: str):
                 ),
             )
             encrypted_aes_key_b64 = base64.b64encode(encrypted_aes_key).decode()
+            _log(user_id, "encrypting", 32, "AES key encrypted with RSA-4096 OAEP", "success")
 
             # Split into chunks
-            _set_status(user_id, "encrypting", 35, "Encrypting data...")
             source_chunks = _split_bytes(source_bytes, CHUNK_SIZE)
             db_chunks = _split_bytes(db_bytes, CHUNK_SIZE)
             total_chunks = len(source_chunks) + len(db_chunks)
-            total_size = len(source_bytes) + len(db_bytes)
+            _log(user_id, "encrypting", 35,
+                 f"Data split into {total_chunks} chunks ({len(source_chunks)} source + {len(db_chunks)} database)")
+            _update_stats(user_id, total_chunks=total_chunks,
+                          source_chunks=len(source_chunks), db_chunks=len(db_chunks))
 
             # ── Step 4: Init session ──
-            _set_status(user_id, "init_session", 40, "Starting upload session...")
+            _log(user_id, "init_session", 40, "Initializing upload session...")
             init_resp = await client.post(f"{VDC_BASE}/api/clara/deploy/init", headers=headers, json={
                 "project_name": "Koodh Clara",
                 "encrypted_aes_key": encrypted_aes_key_b64,
@@ -164,17 +257,26 @@ async def _run_deploy(user_id: str):
                 "metadata": {"branch": "main", "timestamp": datetime.now(timezone.utc).isoformat()},
             })
             if init_resp.status_code != 200:
-                _set_status(user_id, "init_session", 40, error=f"Init failed: {init_resp.status_code} — {init_resp.text}")
+                _set_error(user_id, "init_session", 40, f"Session init failed: HTTP {init_resp.status_code}")
+                _log(user_id, "init_session", 40, f"Response: {init_resp.text[:200]}", "debug")
                 return
             session_id = init_resp.json()["session_id"]
+            _log(user_id, "init_session", 42, f"Session created: {session_id[:12]}...", "success",
+                 session_id=session_id)
+            _update_stats(user_id, session_id=session_id)
 
             # ── Step 5: Upload chunks ──
             aesgcm = AESGCM(aes_key)
             uploaded = 0
+            bytes_uploaded = 0
+            t_upload_start = time.monotonic()
+
+            _log(user_id, "uploading", 45, f"Starting encrypted upload ({total_chunks} chunks)...")
 
             for i, chunk in enumerate(source_chunks):
-                pct = 45 + int((uploaded / total_chunks) * 50)
-                _set_status(user_id, "uploading", pct, f"Uploading source chunk {i + 1}/{len(source_chunks)}...")
+                pct = 45 + int((uploaded / total_chunks) * 48)
+                chunk_size = len(chunk)
+                t_chunk = time.monotonic()
                 enc_data = _encrypt_chunk(aesgcm, chunk)
                 resp = await client.post(f"{VDC_BASE}/api/clara/deploy/chunk", headers=headers, json={
                     "session_id": session_id,
@@ -182,14 +284,20 @@ async def _run_deploy(user_id: str):
                     "encrypted_data": enc_data,
                     "chunk_type": "source",
                 })
+                chunk_time = time.monotonic() - t_chunk
                 if resp.status_code != 200:
-                    _set_status(user_id, "uploading", pct, error=f"Source chunk {i + 1} failed: {resp.status_code}")
+                    _set_error(user_id, "uploading", pct, f"Source chunk {i + 1}/{len(source_chunks)} failed: HTTP {resp.status_code}")
                     return
+                bytes_uploaded += chunk_size
                 uploaded += 1
+                speed = bytes_uploaded / (time.monotonic() - t_upload_start) if (time.monotonic() - t_upload_start) > 0 else 0
+                _log(user_id, "uploading", pct,
+                     f"Source {i + 1}/{len(source_chunks)} — {_fmt_size(chunk_size)} ({chunk_time:.1f}s, {_fmt_size(int(speed))}/s)")
 
             for i, chunk in enumerate(db_chunks):
-                pct = 45 + int((uploaded / total_chunks) * 50)
-                _set_status(user_id, "uploading", pct, f"Uploading database chunk {i + 1}/{len(db_chunks)}...")
+                pct = 45 + int((uploaded / total_chunks) * 48)
+                chunk_size = len(chunk)
+                t_chunk = time.monotonic()
                 enc_data = _encrypt_chunk(aesgcm, chunk)
                 resp = await client.post(f"{VDC_BASE}/api/clara/deploy/chunk", headers=headers, json={
                     "session_id": session_id,
@@ -197,45 +305,56 @@ async def _run_deploy(user_id: str):
                     "encrypted_data": enc_data,
                     "chunk_type": "database",
                 })
+                chunk_time = time.monotonic() - t_chunk
                 if resp.status_code != 200:
-                    _set_status(user_id, "uploading", pct, error=f"Database chunk {i + 1} failed: {resp.status_code}")
+                    _set_error(user_id, "uploading", pct, f"Database chunk {i + 1}/{len(db_chunks)} failed: HTTP {resp.status_code}")
                     return
+                bytes_uploaded += chunk_size
                 uploaded += 1
+                speed = bytes_uploaded / (time.monotonic() - t_upload_start) if (time.monotonic() - t_upload_start) > 0 else 0
+                _log(user_id, "uploading", pct,
+                     f"Database {i + 1}/{len(db_chunks)} — {_fmt_size(chunk_size)} ({chunk_time:.1f}s, {_fmt_size(int(speed))}/s)")
+
+            upload_time = time.monotonic() - t_upload_start
+            _log(user_id, "uploading", 93,
+                 f"Upload complete: {_fmt_size(bytes_uploaded)} in {upload_time:.1f}s ({_fmt_size(int(bytes_uploaded / upload_time))}/s)", "success")
+            _update_stats(user_id, upload_time=f"{upload_time:.1f}s",
+                          avg_speed=_fmt_size(int(bytes_uploaded / upload_time)) + "/s")
 
             # ── Step 6: Finalize ──
-            _set_status(user_id, "finalizing", 95, "Finalizing deployment...")
+            _log(user_id, "finalizing", 95, "Finalizing deployment...")
             fin_resp = await client.post(f"{VDC_BASE}/api/clara/deploy/finalize", headers=headers, json={
                 "session_id": session_id,
             })
             if fin_resp.status_code != 200:
-                _set_status(user_id, "finalizing", 95, error=f"Finalize failed: {fin_resp.status_code}")
+                _set_error(user_id, "finalizing", 95, f"Finalize failed: HTTP {fin_resp.status_code}")
                 return
 
             fin_data = fin_resp.json()
-            # Wipe AES key from memory
-            aes_key = None
+            aes_key = None  # Wipe from memory
 
-            _set_status(
-                user_id, "complete", 100,
-                detail=fin_data.get("message", "Deployment complete"),
-                done=True,
-                deployment_id=fin_data.get("deployment_id", ""),
-            )
+            total_time = time.monotonic() - t_start
+            _update_stats(user_id, total_time=f"{total_time:.1f}s")
+            _set_done(user_id,
+                      fin_data.get("deployment_id", ""),
+                      fin_data.get("message", "Deployment complete"))
+            _log(user_id, "complete", 100,
+                 f"Total deployment time: {total_time:.1f}s", "success")
 
     except httpx.ConnectError:
-        _set_status(user_id, "error", 0, error="Cannot reach Koodh VDC. Check your connection.")
+        _set_error(user_id, "error", 0, "Cannot reach Koodh VDC. Check your connection.")
     except httpx.ReadError:
-        _set_status(user_id, "error", 0, error="Connection to Koodh VDC was interrupted. The server may be temporarily unavailable.")
+        _set_error(user_id, "error", 0, "Connection to Koodh VDC was interrupted.")
     except httpx.TimeoutException:
-        _set_status(user_id, "error", 0, error="Connection to Koodh VDC timed out. Try again later.")
+        _set_error(user_id, "error", 0, "Connection to Koodh VDC timed out.")
     except Exception as e:
         logger.exception("VDC deploy error")
-        _set_status(user_id, "error", 0, error=str(e) or "An unexpected error occurred during deployment.")
+        _set_error(user_id, "error", 0, str(e) or "An unexpected error occurred.")
 
 
 def _create_source_archive() -> bytes:
-    """Create a tar.gz of the project directory, excluding unnecessary files."""
     buf = io.BytesIO()
+    file_count = 0
     with tarfile.open(fileobj=buf, mode="w:gz") as tar:
         for root, dirs, files in os.walk(str(PROJECT_ROOT)):
             dirs[:] = [d for d in dirs if d not in EXCLUDE_DIRS]
@@ -246,6 +365,7 @@ def _create_source_archive() -> bytes:
                 arcname = os.path.relpath(fpath, str(PROJECT_ROOT))
                 try:
                     tar.add(fpath, arcname=arcname)
+                    file_count += 1
                 except (PermissionError, OSError):
                     continue
     buf.seek(0)
@@ -253,7 +373,6 @@ def _create_source_archive() -> bytes:
 
 
 async def _dump_database() -> bytes:
-    """Dump all MongoDB collections as JSON."""
     collections = await db.list_collection_names()
     dump = {}
     for coll_name in collections:
