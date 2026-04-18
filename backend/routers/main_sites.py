@@ -455,26 +455,37 @@ async def delete_main_site(
     main_site_id: str,
     current_user: dict = Depends(require_network_admin)
 ):
-    """Delete a main site. Network admin only."""
+    """Delete a main site and all related data. Network admin only."""
     main_site = await db.main_sites.find_one({"id": main_site_id})
     if not main_site:
         raise HTTPException(status_code=404, detail="Main site not found")
-    
-    # Check if there are mini sites
-    site_count = await db.sites.count_documents({"main_site_id": main_site_id})
-    if site_count > 0:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Cannot delete main site with {site_count} mini sites. Delete mini sites first."
-        )
-    
-    # Delete main site and its user assignments
-    await db.main_sites.delete_one({"id": main_site_id})
-    await db.main_site_users.delete_many({"main_site_id": main_site_id})
-    
-    logger.info(f"Main site deleted: {main_site['name']} by {current_user['email']}")
 
-    # Log and notify system admin
+    # Cascade delete all related data
+    related_collections = [
+        "sites", "shows", "show_series", "show_titles", "show_occurrences",
+        "series_assignments", "occurrence_assignments", "rundowns", "rundown_items",
+        "content_items", "content_item_publishes", "content_item_featured_images",
+        "media_assets", "media_folders", "wordpress_sites", "rds_settings",
+        "rds_sequences", "rds_scheduled_texts", "rds_outputs", "rds_stations",
+        "firewall_settings", "task_boards", "task_columns", "tasks",
+        "studios", "categories",
+    ]
+    for coll in related_collections:
+        await db[coll].delete_many({"main_site_id": main_site_id})
+
+    # Delete user assignments and teams linked to this site
+    site_user_ids = set()
+    async for doc in db.main_site_users.find({"main_site_id": main_site_id}):
+        uid = doc.get("user_id")
+        if uid:
+            site_user_ids.add(uid)
+    await db.main_site_users.delete_many({"main_site_id": main_site_id})
+
+    # Delete the main site itself
+    await db.main_sites.delete_one({"id": main_site_id})
+
+    logger.info(f"Main site deleted (cascade): {main_site['name']} by {current_user['email']}")
+
     type_label = {"server": "Server Site", "technical": "Technical Site"}.get(main_site.get("site_type", ""), "Main Site")
     asyncio.create_task(log_action(
         action=f"{type_label} Deleted",
@@ -487,7 +498,7 @@ async def delete_main_site(
         target_name=main_site.get("name", ""),
     ))
 
-    return {"status": "success", "message": "Main site deleted"}
+    return {"status": "success", "message": "Main site and all related data deleted"}
 
 
 
