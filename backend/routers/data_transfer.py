@@ -190,12 +190,29 @@ async def import_site(body: dict, current_user: dict = Depends(require_system_ad
     results = []
     total_imported = 0
     total_skipped = 0
+
+    # Get existing environment IDs and default env for remapping
+    existing_env_ids = set()
+    default_env_id = None
+    async for env in db.environments.find({}, {"_id": 0, "id": 1, "is_default": 1}):
+        existing_env_ids.add(env["id"])
+        if env.get("is_default"):
+            default_env_id = env["id"]
+    if not default_env_id and existing_env_ids:
+        default_env_id = next(iter(existing_env_ids))
+
     for coll_name, docs in filtered.items():
         inserted = 0
         updated = 0
         skipped = 0
         for doc in docs:
             doc.pop("_id", None)
+
+            # Remap environment_id on main_sites if it doesn't exist locally
+            if coll_name == "main_sites" and default_env_id:
+                if doc.get("environment_id") not in existing_env_ids:
+                    doc["environment_id"] = default_env_id
+
             doc_id = doc.get("id")
             if doc_id:
                 try:
