@@ -269,6 +269,11 @@ export default function EnvironmentManager() {
                       <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px] rounded-lg" onClick={(e) => { e.stopPropagation(); openCopyDialog(env.id, env.name); }}>
                         <Copy className="w-3 h-3 mr-0.5" /> Copy
                       </Button>
+                      {!env.is_default && (
+                        <Button size="sm" variant="outline" className="h-6 text-[10px] rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200" onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, id: env.id, name: env.name }); }}>
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -407,7 +412,7 @@ export default function EnvironmentManager() {
           <AlertDialogHeader>
             <AlertDialogTitle className="text-zinc-900">Delete Environment?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{deleteDialog.name}". All sites must be removed first.
+              This will permanently delete "{deleteDialog.name}". Sites in this environment will be moved to Production.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -454,7 +454,7 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                               <div className="text-sm font-semibold text-zinc-800 group-hover:text-zinc-950 truncate">{site.name}</div>
                               <div className="text-[11px] text-zinc-400">/{site.slug} &middot; {site.user_count || 0} users &middot; {site.site_count || 0} sites</div>
                             </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                            <div className="flex items-center gap-1 flex-shrink-0">
                               {onEditSite && (
                                 <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEditSite(site); }} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-zinc-100 transition-colors" data-testid={`edit-site-${site.slug}`}>
                                   <Pencil className="w-3.5 h-3.5 text-zinc-400" />
