@@ -249,9 +249,13 @@ async def delete_environment(env_id: str, current_user: dict = Depends(require_s
     if env.get("is_default"):
         raise HTTPException(status_code=400, detail="Cannot delete the default environment")
 
-    site_count = await db.main_sites.count_documents({"environment_id": env_id})
-    if site_count > 0:
-        raise HTTPException(status_code=400, detail=f"Cannot delete: {site_count} site(s) still in this environment. Remove or move them first.")
+    # Move any sites in this environment to the default environment
+    default_env = await db.environments.find_one({"is_default": True})
+    if default_env:
+        await db.main_sites.update_many(
+            {"environment_id": env_id},
+            {"$set": {"environment_id": default_env["id"]}}
+        )
 
     await db.environments.delete_one({"id": env_id})
     await db.environment_admins.delete_many({"environment_id": env_id})
