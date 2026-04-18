@@ -269,11 +269,6 @@ export default function EnvironmentManager() {
                       <Button size="sm" variant="outline" className="flex-1 h-6 text-[10px] rounded-lg" onClick={(e) => { e.stopPropagation(); openCopyDialog(env.id, env.name); }}>
                         <Copy className="w-3 h-3 mr-0.5" /> Copy
                       </Button>
-                      {!env.is_default && (
-                        <Button size="sm" variant="outline" className="h-6 text-[10px] rounded-lg text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200" onClick={(e) => { e.stopPropagation(); setDeleteDialog({ open: true, id: env.id, name: env.name }); }}>
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      )}
                     </div>
                   )}
                 </div>
@@ -345,9 +340,16 @@ export default function EnvironmentManager() {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEnvDialog(false)}>Cancel</Button>
-            <Button onClick={saveEnv} disabled={!envForm.name || !envForm.slug} data-testid="save-env-btn">Update</Button>
+          <DialogFooter className="flex !justify-between">
+            {editingEnv && !editingEnv.is_default ? (
+              <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 gap-1.5" onClick={() => { setEnvDialog(false); setDeleteDialog({ open: true, id: editingEnv.id, name: editingEnv.name }); }} data-testid="env-delete-btn">
+                <Trash2 className="w-4 h-4" /> Delete
+              </Button>
+            ) : <div />}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setEnvDialog(false)}>Cancel</Button>
+              <Button onClick={saveEnv} disabled={!envForm.name || !envForm.slug} data-testid="save-env-btn">Update</Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
