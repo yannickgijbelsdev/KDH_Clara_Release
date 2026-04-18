@@ -7,7 +7,7 @@ import { Button } from '../ui/button';
 import {
   Upload, Check, ChevronRight, Globe, Users, CreditCard,
   Shield, UserPlus, Trash2, Crown, Pencil, Eye, Mic, Sparkles,
-  Plus, Music, ExternalLink, Zap, Loader2, X
+  Plus, Music, ExternalLink, Zap, Loader2, X, Network
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ const BASE_STEPS = [
   { id: 'general', label: 'General', icon: Globe },
   { id: 'stations', label: 'Stations', icon: Music },
   { id: 'wordpress', label: 'WordPress', icon: ExternalLink },
+  { id: 'zerotier', label: 'ZeroTier', icon: Network },
   { id: 'license', label: 'License', icon: CreditCard },
   { id: 'admin', label: 'Admin', icon: Users },
 ];
@@ -69,20 +70,27 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
 
   // WordPress
   const [wpSites, setWpSites] = useState([]);
-  const [wpEditing, setWpEditing] = useState(null); // index or 'new'
+  const [wpEditing, setWpEditing] = useState(null);
   const [wpForm, setWpForm] = useState({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
   const [wpSaving, setWpSaving] = useState(false);
-  const [wpTestLoading, setWpTestLoading] = useState(null); // index being tested
+  const [wpTestLoading, setWpTestLoading] = useState(null);
   const [wpTestResult, setWpTestResult] = useState(null);
-  const [rdsTestLoading, setRdsTestLoading] = useState(null); // station index
+  const [rdsTestLoading, setRdsTestLoading] = useState(null);
   const [rdsTestResult, setRdsTestResult] = useState(null);
+
+  // ZeroTier
+  const [ztConfig, setZtConfig] = useState({ api_token: '', network_id: '' });
+  const [ztMasked, setZtMasked] = useState('');
+  const [ztSaving, setZtSaving] = useState(false);
 
   const isRadioType = site?.site_type === 'radio';
   const hasWordPress = site?.site_type === 'radio' || site?.site_type === 'external_host';
+  const hasZeroTier = (site?.enabled_features || []).includes('zerotier') || site?.site_type === 'technical';
   const STEPS = useMemo(() => BASE_STEPS.filter(s =>
     (s.id !== 'stations' || isRadioType) &&
-    (s.id !== 'wordpress' || hasWordPress)
-  ), [isRadioType, hasWordPress]);
+    (s.id !== 'wordpress' || hasWordPress) &&
+    (s.id !== 'zerotier' || hasZeroTier)
+  ), [isRadioType, hasWordPress, hasZeroTier]);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -151,15 +159,51 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     } catch (e) { console.error(e); }
   }, [site?.id, token]);
 
+  const loadZtConfig = useCallback(async () => {
+    if (!site?.id) return;
+    try {
+      const res = await fetch(`${API}/api/zerotier/${site.id}/config`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setZtMasked(data.api_token_masked || '');
+        setZtConfig({ api_token: '', network_id: data.network_id || '' });
+      }
+    } catch (e) { console.error(e); }
+  }, [site?.id, token]);
+
   useEffect(() => {
     const stepId = STEPS[step]?.id;
     if (stepId === 'license' && open) loadLicenseData();
     if (stepId === 'admin' && open) loadUserData();
     if (stepId === 'stations' && open) loadStations();
     if (stepId === 'wordpress' && open) loadWpSites();
+    if (stepId === 'zerotier' && open) loadZtConfig();
   }, [step, open, loadLicenseData, loadUserData, loadStations, loadWpSites, STEPS]);
 
   // Handlers
+  const handleSaveZtConfig = async () => {
+    setZtSaving(true);
+    try {
+      const body = {};
+      if (ztConfig.api_token) body.api_token = ztConfig.api_token;
+      if (ztConfig.network_id !== undefined) body.network_id = ztConfig.network_id;
+      const res = await fetch(`${API}/api/zerotier/${site.id}/config`, {
+        method: 'PUT', headers, body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        toast.success('ZeroTier config saved');
+        await loadZtConfig();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || 'Failed to save');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to save ZeroTier config');
+    }
+    setZtSaving(false);
+  };
+
   const handleSaveGeneral = async () => {
     setSaving(true);
     try {
@@ -719,6 +763,54 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
             </motion.div>
           )}
 
+
+          {/* Step: ZeroTier */}
+          {currentStepId === 'zerotier' && (
+            <motion.div key="zerotier" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-bold text-zinc-900">ZeroTier Configuration</h3>
+                <p className="text-sm text-zinc-500 mt-0.5">Connect this site to your ZeroTier network.</p>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">API Token</Label>
+                  <Input
+                    type="password"
+                    value={ztConfig.api_token}
+                    onChange={(e) => setZtConfig(prev => ({ ...prev, api_token: e.target.value }))}
+                    placeholder={ztMasked || 'Paste your ZeroTier API token'}
+                    className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm font-mono"
+                    data-testid="zt-api-token"
+                  />
+                  {ztMasked && !ztConfig.api_token && (
+                    <p className="text-[11px] text-zinc-400 mt-1">Current: {ztMasked} (leave empty to keep)</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Network ID</Label>
+                  <Input
+                    value={ztConfig.network_id}
+                    onChange={(e) => setZtConfig(prev => ({ ...prev, network_id: e.target.value }))}
+                    placeholder="e.g. a1b2c3d4e5f6g7h8"
+                    className="h-9 bg-zinc-50 border-zinc-200 rounded-lg text-sm font-mono"
+                    data-testid="zt-network-id"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => setStep(s => s - 1)} className="flex-1">Back</Button>
+                <Button onClick={handleSaveZtConfig} disabled={ztSaving} className="flex-1" data-testid="save-zt-btn">
+                  {ztSaving ? 'Saving...' : 'Save ZeroTier'}
+                </Button>
+                <Button variant="outline" onClick={() => setStep(s => s + 1)} className="gap-1">
+                  Next <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Step: License */}
           {currentStepId === 'license' && (
