@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
 import { Input } from '../ui/input';
@@ -78,10 +78,10 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
 
   const isRadioType = site?.site_type === 'radio';
   const hasWordPress = site?.site_type === 'radio' || site?.site_type === 'external_host';
-  const STEPS = BASE_STEPS.filter(s =>
+  const STEPS = useMemo(() => BASE_STEPS.filter(s =>
     (s.id !== 'stations' || isRadioType) &&
     (s.id !== 'wordpress' || hasWordPress)
-  );
+  ), [isRadioType, hasWordPress]);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
