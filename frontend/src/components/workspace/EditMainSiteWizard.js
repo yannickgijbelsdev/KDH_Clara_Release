@@ -10,6 +10,7 @@ import {
   Plus, Music, ExternalLink, Zap, Loader2, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -162,11 +163,20 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const handleSaveGeneral = async () => {
     setSaving(true);
     try {
-      await fetch(`${API}/api/main-sites/${site.id}`, {
+      const res = await fetch(`${API}/api/main-sites/${site.id}`, {
         method: 'PUT', headers, body: JSON.stringify({ name, slug, logo_url: logoUrl, require_2fa: require2fa, clara_enterprise: claraEnterprise }),
       });
-      onUpdated?.();
-    } catch (e) { console.error(e); }
+      if (res.ok) {
+        toast.success('Settings saved');
+        onUpdated?.();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || 'Failed to save');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to save');
+    }
     setSaving(false);
   };
 
@@ -265,11 +275,20 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const handleSaveStations = async () => {
     setStationsSaving(true);
     try {
-      await fetch(`${API}/api/rds-stations/${site.id}/bulk-sync`, {
+      const res = await fetch(`${API}/api/rds-stations/${site.id}/bulk-sync`, {
         method: 'PUT', headers, body: JSON.stringify({ stations: rdsStations }),
       });
-      await loadStations();
-    } catch (e) { console.error(e); }
+      if (res.ok) {
+        toast.success('Stations saved');
+        await loadStations();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || 'Failed to save stations');
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to save stations');
+    }
     setStationsSaving(false);
   };
 
