@@ -55,6 +55,9 @@ AVAILABLE_FEATURES = [
     {"id": "wp_waf_rules", "name": "WAF Rules", "group": "wp_security"},
     {"id": "wp_ip_blocklist", "name": "IP Blocklist", "group": "wp_security"},
     {"id": "wp_login_protection", "name": "Login Protection", "group": "wp_security"},
+
+    # Code Studio group
+    {"id": "code_studio", "name": "Code Studio", "group": "code_studio"},
 ]
 
 

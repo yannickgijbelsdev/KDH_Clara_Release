@@ -22,7 +22,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Code2
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -110,6 +110,7 @@ const FEATURE_NAV_ITEMS = {
   wp_ip_blocklist: { to: 'wp-blocklist', icon: Ban, label: 'IP Blocklist', adminOnly: true },
   wp_login_protection: { to: 'wp-login-protect', icon: Lock, label: 'Login Protection', adminOnly: true },
   enterprise_assistant: { to: 'enterprise-assistant', icon: Sparkles, label: 'Enterprise Assistant' },
+  code_studio: { to: 'code-studio', icon: Code2, label: 'Code Studio' },
   radio_automation: { to: 'radio-automation', icon: Disc3, label: 'Radio Automation', adminOnly: true },
 };
 
@@ -617,6 +618,19 @@ const MainSiteDashboardContent = () => {
         icon: Shield,
         items
       }];
+    }
+
+    // Code Studio sites show the builder
+    if (mainSite.site_type === 'code_studio') {
+      const studioItem = FEATURE_NAV_ITEMS['code_studio'];
+      const teamItem = FEATURE_NAV_ITEMS['team_settings'];
+      const items = [];
+      if (studioItem) items.push({ ...studioItem, to: `/${mainSiteSlug}/${studioItem.to}`, featureId: 'code_studio' });
+      const adminItems = [];
+      if (teamItem && userIsAdmin) adminItems.push({ ...teamItem, to: `/${mainSiteSlug}/${teamItem.to}`, featureId: 'team_settings' });
+      const groups = [{ id: 'studio', label: 'Code Studio', icon: Code2, items }];
+      if (adminItems.length > 0) groups.push({ id: 'admin', label: 'Administration', icon: Settings, items: adminItems });
+      return groups;
     }
 
     

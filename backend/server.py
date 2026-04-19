@@ -78,6 +78,7 @@ from routers.rds_stations import rds_stations_router
 from routers.clara_test_agent import clara_test_router
 from routers.vdc_deploy import vdc_deploy_router
 from routers.data_transfer import data_transfer_router
+from routers.code_studio import code_studio_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -159,6 +160,7 @@ api_router.include_router(voice_support_router)
 api_router.include_router(radio_router)
 api_router.include_router(vdc_deploy_router)
 api_router.include_router(data_transfer_router)
+api_router.include_router(code_studio_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============

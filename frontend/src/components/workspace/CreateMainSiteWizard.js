@@ -6,7 +6,7 @@ import {
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
   Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast,
   Plus, Trash2, GripVertical, Music, Globe, Eye, EyeOff,
-  CheckCircle2, XCircle
+  CheckCircle2, XCircle, Code2
 } from 'lucide-react';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -44,6 +44,7 @@ const SITE_TYPES = [
   { id: 'task_scheduler', icon: LayoutGrid,  label: 'Task Manager',      desc: 'Task boards, project management',          color: '#8b5cf6', features: ['task_boards', 'team_settings'], optionalFeatures: [] },
   { id: 'technical',      icon: Network,     label: 'Data Connection',   desc: 'ZeroTier networking, data connections',     color: '#10b981', features: ['zerotier', 'team_settings'], optionalFeatures: [] },
   { id: 'wp_security',    icon: Shield,      label: 'WP Security',       desc: 'WordPress firewall & security scanning',    color: '#ef4444', features: ['wp_security', 'team_settings'], optionalFeatures: [] },
+  { id: 'code_studio',    icon: Code2,       label: 'Code Studio',       desc: 'Low-code web builder with drag & drop',     color: '#7c1ac8', features: ['code_studio', 'team_settings'], optionalFeatures: [] },
 ];
 
 /* ── Optional feature details for the server type ── */
