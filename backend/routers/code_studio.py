@@ -3,6 +3,7 @@
 Manages sites, pages, templates, components, and publishing.
 """
 import uuid
+import re
 import logging
 from datetime import datetime, timezone
 from typing import Optional
@@ -996,15 +997,106 @@ async def get_dns_info(site_id: str, current_user: dict = Depends(get_current_us
         raise HTTPException(404, "Site not found")
     clara_domain = f"{site['slug']}.clara.koodh.com"
     records = [
-        {"type": "CNAME", "name": site.get("custom_domain", ""), "value": clara_domain, "ttl": 3600},
+        {"type": "CNAME", "name": site.get("custom_domain", "") or "(your domain)", "value": clara_domain, "ttl": 3600},
     ]
     if site.get("custom_domain"):
-        records.append({"type": "TXT", "name": site["custom_domain"], "value": f"clara-verify={site['id'][:12]}", "ttl": 3600})
+        records.append({"type": "TXT", "name": f"_clara-verify.{site['custom_domain']}", "value": f"clara-verify={site['id'][:12]}", "ttl": 3600})
     return {
         "clara_url": f"https://{clara_domain}",
         "custom_domain": site.get("custom_domain", ""),
+        "domain_verified": site.get("domain_verified", False),
         "dns_records": records,
-        "verified": False,
+        "verified": site.get("domain_verified", False),
+    }
+
+
+class SetCustomDomainBody(BaseModel):
+    custom_domain: str
+
+
+@code_studio_router.post("/sites/{site_id}/custom-domain")
+async def set_custom_domain(site_id: str, body: SetCustomDomainBody, current_user: dict = Depends(get_current_user)):
+    site = await db.code_studio_sites.find_one({"id": site_id}, {"_id": 0})
+    if not site:
+        raise HTTPException(404, "Site not found")
+    domain = (body.custom_domain or "").strip().lower().replace("https://", "").replace("http://", "").rstrip("/")
+    if domain and not re.match(r"^[a-z0-9]([a-z0-9\-\.]*[a-z0-9])?\.[a-z]{2,}$", domain):
+        raise HTTPException(400, "Invalid domain format")
+    # Unique check across code studio + main sites
+    if domain:
+        conflict_cs = await db.code_studio_sites.find_one({"custom_domain": domain, "id": {"$ne": site_id}})
+        if conflict_cs:
+            raise HTTPException(400, "Domain already linked to another Code Studio site")
+    await db.code_studio_sites.update_one(
+        {"id": site_id},
+        {"$set": {"custom_domain": domain, "domain_verified": False, "updated_at": _now()}}
+    )
+    return {"status": "ok", "custom_domain": domain}
+
+
+@code_studio_router.post("/sites/{site_id}/custom-domain/verify")
+async def verify_custom_domain(site_id: str, current_user: dict = Depends(get_current_user)):
+    site = await db.code_studio_sites.find_one({"id": site_id}, {"_id": 0})
+    if not site:
+        raise HTTPException(404, "Site not found")
+    domain = site.get("custom_domain")
+    if not domain:
+        raise HTTPException(400, "No custom domain set")
+
+    import dns.resolver  # type: ignore
+    clara_domain = f"{site['slug']}.clara.koodh.com"
+    expected_txt = f"clara-verify={site['id'][:12]}"
+
+    cname_ok = False
+    cname_target = None
+    try:
+        answers = dns.resolver.resolve(domain, "CNAME")
+        for rdata in answers:
+            target = str(rdata.target).rstrip(".").lower()
+            cname_target = target
+            if "koodh.com" in target or target == clara_domain.lower():
+                cname_ok = True
+                break
+    except Exception:
+        # Fallback: try A records for Cloudflare-proxied apex domains
+        try:
+            a_answers = dns.resolver.resolve(domain, "A")
+            ips = [str(r) for r in a_answers]
+            cf_ranges = ("104.", "172.64.", "172.65.", "172.66.", "172.67.", "162.158.", "173.245.",
+                         "141.101.", "108.162.", "190.93.", "188.114.", "197.234.240.", "198.41.",
+                         "103.21.244.", "103.22.200.", "103.31.4.")
+            if any(ip.startswith(r) for ip in ips for r in cf_ranges):
+                cname_ok = True
+                cname_target = ",".join(ips[:3]) + " (Cloudflare)"
+        except Exception:
+            pass
+
+    txt_ok = False
+    txt_error = None
+    try:
+        txt_answers = dns.resolver.resolve(f"_clara-verify.{domain}", "TXT")
+        for rdata in txt_answers:
+            values = [s.decode("utf-8", errors="ignore") if isinstance(s, bytes) else str(s) for s in rdata.strings]
+            joined = " ".join(values)
+            if expected_txt in joined:
+                txt_ok = True
+                break
+    except Exception as e:
+        txt_error = str(e)
+
+    verified = cname_ok and txt_ok
+    await db.code_studio_sites.update_one(
+        {"id": site_id},
+        {"$set": {"domain_verified": verified, "updated_at": _now()}}
+    )
+    return {
+        "verified": verified,
+        "cname_ok": cname_ok,
+        "cname_target": cname_target,
+        "txt_ok": txt_ok,
+        "expected_txt": expected_txt,
+        "txt_error": txt_error,
+        "expected_cname_target": clara_domain,
     }
 
 

@@ -11,6 +11,7 @@ import {
   Megaphone, Grid3X3, Loader2, Copy, Award, Columns,
   Pencil, ArrowUp, ArrowDown, Save, Settings, Link2,
   Monitor, Tablet, Smartphone,
+  CheckCircle, XCircle, Clock, RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -863,6 +864,10 @@ export default function CodeStudioPage() {
   const [saving, setSaving] = useState(false);
   const [showDns, setShowDns] = useState(null);
   const [dnsInfo, setDnsInfo] = useState(null);
+  const [customDomainInput, setCustomDomainInput] = useState('');
+  const [savingDomain, setSavingDomain] = useState(false);
+  const [verifyingDomain, setVerifyingDomain] = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null);
   const [showComponentLib, setShowComponentLib] = useState(false);
   const [showNewPage, setShowNewPage] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState('');
@@ -1090,8 +1095,51 @@ export default function CodeStudioPage() {
   };
 
   const fetchDns = async (siteId) => {
-    try { const r = await fetch(`${API}/api/code-studio/sites/${siteId}/dns`, { headers: { Authorization: `Bearer ${token}` } }); if (r.ok) setDnsInfo(await r.json()); } catch {}
+    try {
+      const r = await fetch(`${API}/api/code-studio/sites/${siteId}/dns`, { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) {
+        const data = await r.json();
+        setDnsInfo(data);
+        setCustomDomainInput(data.custom_domain || '');
+        setVerifyResult(null);
+      }
+    } catch {}
     setShowDns(siteId);
+  };
+
+  const saveCustomDomain = async () => {
+    if (!showDns) return;
+    setSavingDomain(true);
+    try {
+      const res = await fetch(`${API}/api/code-studio/sites/${showDns}/custom-domain`, {
+        method: 'POST', headers, body: JSON.stringify({ custom_domain: customDomainInput.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(customDomainInput.trim() ? 'Domain saved' : 'Domain removed');
+        await fetchDns(showDns);
+      } else {
+        toast.error(data.detail || 'Failed to save domain');
+      }
+    } catch { toast.error('Error saving domain'); }
+    setSavingDomain(false);
+  };
+
+  const verifyCustomDomain = async () => {
+    if (!showDns) return;
+    setVerifyingDomain(true);
+    setVerifyResult(null);
+    try {
+      const res = await fetch(`${API}/api/code-studio/sites/${showDns}/custom-domain/verify`, {
+        method: 'POST', headers,
+      });
+      const data = await res.json();
+      setVerifyResult(data);
+      if (data.verified) toast.success('Domain verified!');
+      else if (data.cname_ok && !data.txt_ok) toast.warning('CNAME OK, waiting for TXT verification record');
+      else if (!data.cname_ok) toast.warning('CNAME not found yet — DNS can take up to 24 hours');
+    } catch { toast.error('Verification failed'); }
+    setVerifyingDomain(false);
   };
 
   // ── EDITOR VIEW ──
@@ -1396,20 +1444,111 @@ export default function CodeStudioPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!showDns} onOpenChange={() => { setShowDns(null); setDnsInfo(null); }}>
-        <DialogContent className="bg-white max-w-md">
+      <Dialog open={!!showDns} onOpenChange={() => { setShowDns(null); setDnsInfo(null); setVerifyResult(null); }}>
+        <DialogContent className="bg-white max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Domain & DNS</DialogTitle></DialogHeader>
           {dnsInfo && (
-            <div className="space-y-4 py-2">
-              <div><label className="text-xs font-semibold text-zinc-500 uppercase">Clara URL</label><div className="flex items-center gap-2 mt-1 bg-zinc-50 rounded-lg px-3 py-2"><code className="text-xs text-zinc-700 flex-1">{dnsInfo.clara_url}</code><button onClick={() => { navigator.clipboard.writeText(dnsInfo.clara_url); toast.success('Copied'); }}><Copy className="w-3.5 h-3.5 text-zinc-400" /></button></div></div>
-              <div><label className="text-xs font-semibold text-zinc-500 uppercase">DNS Records</label><p className="text-[11px] text-zinc-400 mt-0.5 mb-2">Add these at your DNS provider.</p>
-                {(dnsInfo.dns_records || []).map((r, i) => (
-                  <div key={i} className="bg-zinc-50 rounded-lg p-3 text-xs font-mono mb-2">
-                    <span className="bg-zinc-200 text-zinc-600 px-1.5 py-0.5 rounded text-[10px] font-bold mr-2">{r.type}</span>
-                    <span className="text-zinc-400">Name:</span> {r.name || '(domain)'} &middot; <span className="text-zinc-400">Value:</span> {r.value}
-                  </div>
-                ))}
+            <div className="space-y-5 py-2">
+              <div>
+                <label className="text-xs font-semibold text-zinc-500 uppercase">Clara URL</label>
+                <div className="flex items-center gap-2 mt-1 bg-zinc-50 rounded-lg px-3 py-2">
+                  <code className="text-xs text-zinc-700 flex-1">{dnsInfo.clara_url}</code>
+                  <button onClick={() => { navigator.clipboard.writeText(dnsInfo.clara_url); toast.success('Copied'); }}><Copy className="w-3.5 h-3.5 text-zinc-400" /></button>
+                </div>
+                <p className="text-[11px] text-zinc-400 mt-1">Your site is always reachable at this URL — no setup required.</p>
               </div>
+
+              {/* Custom domain section */}
+              <div className="border-t border-zinc-100 pt-5">
+                <label className="text-xs font-semibold text-zinc-500 uppercase">Custom Domain</label>
+                <p className="text-[11px] text-zinc-400 mt-0.5 mb-2">Use your own domain (e.g. creativeyannick.com) to serve this site.</p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={customDomainInput}
+                    onChange={e => setCustomDomainInput(e.target.value)}
+                    placeholder="creativeyannick.com"
+                    className="flex-1 font-mono text-xs"
+                    data-testid="cs-custom-domain-input"
+                  />
+                  <Button
+                    onClick={saveCustomDomain}
+                    disabled={savingDomain || customDomainInput.trim() === (dnsInfo.custom_domain || '')}
+                    size="sm"
+                    className="bg-zinc-900 hover:bg-zinc-800 !text-white [&>svg]:text-white"
+                    data-testid="cs-custom-domain-save-btn"
+                  >
+                    {savingDomain ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Save'}
+                  </Button>
+                </div>
+                {dnsInfo.custom_domain && (
+                  <div className="mt-2 flex items-center gap-2 text-[11px]">
+                    {dnsInfo.domain_verified ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 font-medium"><CheckCircle className="w-3 h-3" /> Verified & live</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-amber-600 font-medium"><Clock className="w-3 h-3" /> Not yet verified</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* DNS records — only show when custom domain is set */}
+              {dnsInfo.custom_domain && (
+                <div className="border-t border-zinc-100 pt-5">
+                  <label className="text-xs font-semibold text-zinc-500 uppercase">DNS Records</label>
+                  <p className="text-[11px] text-zinc-400 mt-0.5 mb-3">Add these at your DNS provider (Cloudflare, GoDaddy, etc.).</p>
+                  {(dnsInfo.dns_records || []).map((r, i) => (
+                    <div key={i} className="bg-zinc-50 rounded-lg p-3 text-xs font-mono mb-2 relative group">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="bg-zinc-900 text-white px-2 py-0.5 rounded text-[10px] font-bold">{r.type}</span>
+                        <button
+                          onClick={() => { navigator.clipboard.writeText(`${r.name} ${r.type} ${r.value}`); toast.success('Copied'); }}
+                          className="ml-auto text-zinc-400 hover:text-zinc-700"
+                          title="Copy record"
+                        ><Copy className="w-3 h-3" /></button>
+                      </div>
+                      <div className="space-y-0.5 break-all">
+                        <div><span className="text-zinc-400">Name:</span> <span className="text-zinc-800">{r.name}</span></div>
+                        <div><span className="text-zinc-400">Value:</span> <span className="text-zinc-800">{r.value}</span></div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Apex warning */}
+                  {dnsInfo.custom_domain.split('.').length === 2 && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-[11px] text-amber-700 leading-relaxed">
+                      <span className="font-semibold">Apex domain tip:</span> DNS standards don't allow a pure CNAME on root domains. Use Cloudflare (auto-flattens the CNAME), or an <strong>ALIAS</strong>/<strong>ANAME</strong> record at your provider.
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={verifyCustomDomain}
+                    disabled={verifyingDomain}
+                    className="w-full mt-3 bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&>svg]:text-white"
+                    data-testid="cs-verify-domain-btn"
+                  >
+                    {verifyingDomain ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Verifying...</> : <><RefreshCw className="w-4 h-4 mr-2" /> Verify Domain</>}
+                  </Button>
+
+                  {verifyResult && (
+                    <div className="mt-3 space-y-1.5" data-testid="cs-verify-result">
+                      <div className={`rounded-lg border p-2 flex items-start gap-2 text-[11px] ${verifyResult.cname_ok ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                        {verifyResult.cname_ok ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" /> : <XCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />}
+                        <div>
+                          <div className="font-semibold text-zinc-700">CNAME → {verifyResult.expected_cname_target}</div>
+                          {verifyResult.cname_target ? <div className="text-zinc-500">Found: {verifyResult.cname_target}</div> : <div className="text-zinc-500">Not resolved yet</div>}
+                        </div>
+                      </div>
+                      <div className={`rounded-lg border p-2 flex items-start gap-2 text-[11px] ${verifyResult.txt_ok ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                        {verifyResult.txt_ok ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" /> : <XCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 flex-shrink-0" />}
+                        <div>
+                          <div className="font-semibold text-zinc-700">Verification TXT</div>
+                          <div className="text-zinc-500">{verifyResult.txt_ok ? 'Found' : (verifyResult.txt_error ? 'Not found' : 'Missing')}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
