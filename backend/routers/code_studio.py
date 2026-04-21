@@ -649,15 +649,51 @@ def _new_id():
     return str(uuid.uuid4())
 
 
+def _default_news_feed_section():
+    return {
+        "id": "news_feed_auto",
+        "type": "news_feed",
+        "order": 99,
+        "props": {
+            "headline": "Latest news",
+            "subheadline": "Fresh from our content library",
+            "columns": 3,
+            "max_items": 6,
+            "section_bg_color": "#ffffff",
+            "heading_color": "#18181b",
+            "text_color": "#71717a",
+            "accent_color": "#dd0c51",
+            "padding_top": "80px",
+            "padding_bottom": "80px",
+        },
+    }
+
+
 def _get_template_pages(template):
     """Normalize a template to a list of page dicts.
 
     Supports both new-style templates with `pages` and legacy templates with a single `sections` list.
+    Injects a default News Feed section into the home page of every template (just before the footer)
+    unless one is already present.
     """
     if template.get("pages"):
-        return template["pages"]
-    # Legacy single-page template → wrap in one Home page
-    return [{"title": "Home", "slug": "index", "sections": template.get("sections", [])}]
+        pages = [dict(p, sections=list(p.get("sections") or [])) for p in template["pages"]]
+    else:
+        pages = [{"title": "Home", "slug": "index", "sections": list(template.get("sections", []))}]
+
+    # Inject News Feed into the home page (first page) if it doesn't already have one
+    if pages:
+        home = pages[0]
+        section_types = [s.get("type") for s in home["sections"]]
+        if "news_feed" not in section_types:
+            # Find footer index; insert before it. If no footer, append at end.
+            footer_idx = next((i for i, s in enumerate(home["sections"]) if s.get("type") == "footer"), None)
+            nf_section = _default_news_feed_section()
+            if footer_idx is not None:
+                home["sections"] = home["sections"][:footer_idx] + [nf_section] + home["sections"][footer_idx:]
+            else:
+                home["sections"].append(nf_section)
+    return pages
 
 
 def _serialize_template(template):

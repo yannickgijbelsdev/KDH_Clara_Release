@@ -1044,15 +1044,22 @@ export default function CodeStudioPage() {
               <div>
                 <Label className="text-xs font-semibold text-zinc-500 uppercase">Linked Content Library</Label>
                 <p className="text-[11px] text-zinc-400 mt-0.5 mb-2">Connect a main site to pull articles into news feed sections.</p>
-                <select value={linkedSiteId} onChange={e => setLinkedSiteId(e.target.value)} className="w-full h-9 rounded-lg border border-zinc-200 bg-zinc-50 text-sm px-3 text-zinc-700">
+                <select value={linkedSiteId} onChange={e => setLinkedSiteId(e.target.value)} className="w-full h-9 rounded-lg border border-zinc-200 bg-zinc-50 text-sm px-3 text-zinc-700" data-testid="linked-cl-select">
                   <option value="">No content library</option>
-                  {mainSites.filter(s => s.site_type !== 'code_studio').map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
+                  {parentMainSite && (parentMainSite.enabled_features || []).includes('content_library') && (
+                    <option value={parentMainSite.id}>
+                      {parentMainSite.name} · this site (built-in)
+                    </option>
+                  )}
+                  {mainSites
+                    .filter(s => (s.enabled_features || []).includes('content_library') && s.id !== parentMainSite?.id)
+                    .map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
                 </select>
                 {linkedSiteId && (
                   <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-600">
-                    <Link2 className="w-3 h-3" /> Linked to: {mainSites.find(s => s.id === linkedSiteId)?.name || linkedSiteId}
+                    <Link2 className="w-3 h-3" /> Linked to: {linkedSiteId === parentMainSite?.id ? `${parentMainSite.name} (built-in)` : (mainSites.find(s => s.id === linkedSiteId)?.name || linkedSiteId)}
                   </div>
                 )}
               </div>
@@ -1077,7 +1084,17 @@ export default function CodeStudioPage() {
           <div className="p-2 bg-[#7c1ac8]/10 rounded-xl"><Code2 className="w-6 h-6 text-[#7c1ac8]" /></div>
           <div><h1 className="text-2xl font-bold text-zinc-900">Code Studio</h1><p className="text-sm text-zinc-500">Build modern websites with drag & drop</p></div>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="bg-[#dd0c51] hover:bg-[#c40a47] !text-white rounded-full gap-2 [&>svg]:text-white" data-testid="create-studio-site"><Plus className="w-4 h-4" /> New Site</Button>
+        <Button onClick={() => {
+          // Auto-preselect parent main site's content library if it has one enabled
+          if (parentMainSite && (parentMainSite.enabled_features || []).includes('content_library')) {
+            setLinkedSiteId(parentMainSite.id);
+          } else if (parentMainSite?.linked_main_site_id) {
+            setLinkedSiteId(parentMainSite.linked_main_site_id);
+          } else {
+            setLinkedSiteId('');
+          }
+          setShowCreate(true);
+        }} className="bg-[#dd0c51] hover:bg-[#c40a47] !text-white rounded-full gap-2 [&>svg]:text-white" data-testid="create-studio-site"><Plus className="w-4 h-4" /> New Site</Button>
       </div>
 
       {sites.length === 0 ? (
@@ -1085,7 +1102,16 @@ export default function CodeStudioPage() {
           <Code2 className="w-14 h-14 text-zinc-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-zinc-600 mb-1">No sites yet</h3>
           <p className="text-sm text-zinc-400 mb-6">Create your first website with a template or start from scratch.</p>
-          <Button onClick={() => setShowCreate(true)} className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white"><Plus className="w-4 h-4" /> Create Your First Site</Button>
+          <Button onClick={() => {
+            if (parentMainSite && (parentMainSite.enabled_features || []).includes('content_library')) {
+              setLinkedSiteId(parentMainSite.id);
+            } else if (parentMainSite?.linked_main_site_id) {
+              setLinkedSiteId(parentMainSite.linked_main_site_id);
+            } else {
+              setLinkedSiteId('');
+            }
+            setShowCreate(true);
+          }} className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white"><Plus className="w-4 h-4" /> Create Your First Site</Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1145,11 +1171,18 @@ export default function CodeStudioPage() {
             <div>
               <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">Link Content Library (optional)</label>
               <p className="text-[11px] text-zinc-400 mb-2">Connect a main site's content library to show articles on your website.</p>
-              <select value={linkedSiteId} onChange={e => setLinkedSiteId(e.target.value)} className="w-full h-9 rounded-lg border border-zinc-200 bg-zinc-50 text-sm px-3 text-zinc-700">
+              <select value={linkedSiteId} onChange={e => setLinkedSiteId(e.target.value)} className="w-full h-9 rounded-lg border border-zinc-200 bg-zinc-50 text-sm px-3 text-zinc-700" data-testid="create-linked-cl-select">
                 <option value="">No content library</option>
-                {mainSites.filter(s => s.site_type !== 'code_studio').map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
+                {parentMainSite && (parentMainSite.enabled_features || []).includes('content_library') && (
+                  <option value={parentMainSite.id}>
+                    {parentMainSite.name} · this site (built-in)
+                  </option>
+                )}
+                {mainSites
+                  .filter(s => (s.enabled_features || []).includes('content_library') && s.id !== parentMainSite?.id)
+                  .map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
               </select>
             </div>
           </div>
