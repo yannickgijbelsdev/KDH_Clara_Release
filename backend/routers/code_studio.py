@@ -171,7 +171,82 @@ NAVBAR_SECTION = {
     }
 }
 
+LOGOS_SECTION = {
+    "id": "logos", "type": "logos", "order": 1,
+    "props": {
+        "headline": "Backed by the best",
+        "logos": ["Lightspeed", "NEA", "Menlo Ventures", "Brex", "SVB", "Coatue"],
+    }
+}
+
+IMAGE_TEXT_SECTION = {
+    "id": "image_text", "type": "image_text", "order": 2,
+    "props": {
+        "headline": "Your investments on auto-pilot",
+        "subheadline": "Investments shaped by your emotion, goals, and values.",
+        "bullets": ["Personal AI advisor", "Adaptive portfolio", "Free investment matching"],
+        "image_url": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop",
+        "image_position": "right",
+        "bg_color": "bg-lime-300",
+        "text_color": "dark",
+    }
+}
+
 TEMPLATES = {
+    "fintech": {
+        "id": "fintech",
+        "name": "Fintech / AI Product",
+        "description": "Bold dark hero with product image, logo bar, and modern cards",
+        "category": "business",
+        "thumbnail": "https://images.unsplash.com/photo-1563986768609-322da13575f2?w=400&h=260&fit=crop",
+        "sections": [
+            {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Pointo", "links": [{"label": "Products", "url": "#"}, {"label": "Resources", "url": "#"}, {"label": "Pricing", "url": "#pricing"}], "cta_text": "Sign up", "style": "dark"}},
+            {**HERO_SECTION, "id": "hero", "props": {
+                "headline": "Let AI handle your money game",
+                "subheadline": "Automated investing that adapts to your lifestyle.",
+                "cta_text": "Get started",
+                "cta_url": "#",
+                "bg_style": "solid",
+                "bg_gradient": "from-zinc-950 to-zinc-900",
+                "text_color": "white",
+                "layout": "left",
+                "badge": "Over 1k thriving customers",
+                "hero_image": "https://images.unsplash.com/photo-1563986768609-322da13575f2?w=500&h=600&fit=crop",
+            }},
+            LOGOS_SECTION,
+            {**FEATURES_SECTION, "props": {
+                "headline": "Crafts a portfolio that fits you perfectly",
+                "subheadline": "Investments shaped by your emotion, goals, and values",
+                "columns": 3,
+                "features": [
+                    {"icon": "wallet", "title": "Spending", "description": "Tracks all your spending to keep your finances healthy", "image_url": "https://images.unsplash.com/photo-1554244933-d876deb6b2ff?w=400&h=300&fit=crop"},
+                    {"icon": "target", "title": "Goals", "description": "Your portfolio seamlessly shapes itself around your goals", "image_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop"},
+                    {"icon": "leaf", "title": "Values", "description": "Whether it's carbon-neutral companies or social impact", "image_url": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=300&fit=crop"},
+                ],
+            }},
+            IMAGE_TEXT_SECTION,
+            {**IMAGE_TEXT_SECTION, "id": "image_text_2", "props": {
+                "headline": "Free investment matching",
+                "subheadline": "We'll match 1% of your spending every month as an investing bonus account.",
+                "bullets": [],
+                "image_url": "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop",
+                "image_position": "left",
+                "bg_color": "bg-white",
+                "text_color": "dark",
+                "cta_text": "Explore our product",
+                "cta_url": "#",
+            }},
+            {**TESTIMONIALS_SECTION, "props": {
+                "headline": "Ace is fuelling futures",
+                "items": [
+                    {"name": "Anton", "role": "Startup Founder", "quote": "The best investment tool I've ever used. My portfolio grew 40% in the first year.", "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop"},
+                    {"name": "Emmy", "role": "Freelance Designer", "quote": "I love how it adapts to my spending habits. Investing on autopilot is a game changer.", "avatar": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=200&h=200&fit=crop"},
+                ],
+            }},
+            {**CTA_SECTION, "props": {"headline": "Pointo your finances", "subheadline": "Free for 14 days. No credit card required.", "cta_text": "Get Started", "cta_url": "#", "bg_style": "solid", "bg_gradient": "from-zinc-950 to-zinc-900"}},
+            {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Pointo", "tagline": "Smart investing for everyone."}},
+        ],
+    },
     "saas_landing": {
         "id": "saas_landing",
         "name": "SaaS Landing Page",
@@ -260,6 +335,8 @@ COMPONENT_LIBRARY = [
     {"type": "gallery", "label": "Image Gallery", "icon": "image", "category": "media"},
     {"type": "contact", "label": "Contact Form", "icon": "mail", "category": "forms"},
     {"type": "cta", "label": "Call to Action", "icon": "megaphone", "category": "content"},
+    {"type": "logos", "label": "Logo Bar", "icon": "award", "category": "content"},
+    {"type": "image_text", "label": "Image + Text", "icon": "columns", "category": "content"},
     {"type": "footer", "label": "Footer", "icon": "minus", "category": "layout"},
     {"type": "text", "label": "Text Block", "icon": "type", "category": "content"},
     {"type": "image", "label": "Image", "icon": "image", "category": "media"},
