@@ -1263,7 +1263,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   // Build final feature set; inject content_library when Code Studio user chose 'built_in'
   const baseFeatures = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
   const features = isCodeStudioType && clMode === 'built_in' && !baseFeatures.includes('content_library')
-    ? [...baseFeatures, 'content_library', 'media_library']
+    ? [...baseFeatures, 'content_library', 'media_library', 'content_approval', 'trash']
     : baseFeatures;
 
   // Dynamic step mapping

@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 import { motion } from 'framer-motion';
 import ImageResizeDialog from '../components/ImageResizeDialog';
+import MainSiteContext from '../context/MainSiteContext';
 import { isImageFile, isOversized } from '../utils/imageResize';
 import {
   ArrowLeft,
@@ -98,6 +99,12 @@ const syncStatusConfig = {
 const ContentDetailPage = () => {
   const { contentId, mainSiteSlug } = useParams();
   const navigate = useNavigate();
+  const mainSiteCtx = useContext(MainSiteContext);
+  const parentMainSite = mainSiteCtx?.mainSite || null;
+  const isCodeStudioMainSite = parentMainSite?.site_type === 'code_studio';
+  const [csSites, setCsSites] = useState([]);
+  const [selectedCsSiteId, setSelectedCsSiteId] = useState('');
+  const [publishingToCs, setPublishingToCs] = useState(false);
   const { isEditor: legacyIsEditor, isAdmin } = useAuth();
   const { canEdit, canDelete, canCreate } = usePermissions();
   const { registerEditor, unregisterEditor, openClara } = useClaraAssistant();
@@ -157,7 +164,34 @@ const ContentDetailPage = () => {
     fetchContent();
     fetchWpSites();
     fetchCategories();
-  }, [contentId]);
+    if (isCodeStudioMainSite) fetchCsSites();
+  }, [contentId, isCodeStudioMainSite]);
+
+  const fetchCsSites = async () => {
+    try {
+      const response = await axios.get(`${API}/code-studio/sites`);
+      setCsSites(Array.isArray(response.data) ? response.data : []);
+    } catch {
+      setCsSites([]);
+    }
+  };
+
+  const publishToCsSite = async () => {
+    if (!selectedCsSiteId) {
+      toast.error('Select a site to publish to');
+      return;
+    }
+    const target = csSites.find(s => s.id === selectedCsSiteId);
+    setPublishingToCs(true);
+    try {
+      await axios.put(`${API}/content/${contentId}`, { status: 'ready' });
+      toast.success(`Published to ${target?.name || 'site'}`);
+      fetchContent();
+    } catch {
+      toast.error('Publish failed');
+    }
+    setPublishingToCs(false);
+  };
 
   const fetchCategories = async () => {
     try {
@@ -576,8 +610,42 @@ const ContentDetailPage = () => {
           </div>
         </div>
         
-        {/* WordPress Publish Button */}
-        {isEditor && wpSites.length > 0 && (
+        {/* Publish Button — Code Studio main site variant */}
+        {isEditor && isCodeStudioMainSite && (
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedCsSiteId}
+                onChange={e => setSelectedCsSiteId(e.target.value)}
+                disabled={csSites.length === 0 || isPublishBlocked}
+                className="h-10 rounded-full bg-zinc-100 border border-zinc-200 text-sm px-4 text-zinc-700 min-w-[180px] disabled:opacity-50"
+                data-testid="cs-publish-site-select"
+              >
+                <option value="">{csSites.length === 0 ? 'No Code Studio sites yet' : 'Select a site to publish'}</option>
+                {csSites.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <Button
+                data-testid="publish-cs-btn"
+                onClick={publishToCsSite}
+                disabled={!selectedCsSiteId || publishingToCs || isPublishBlocked}
+                className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] text-white rounded-full px-5 disabled:opacity-50"
+              >
+                {publishingToCs ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                {selectedCsSiteId
+                  ? `Publish to ${csSites.find(s => s.id === selectedCsSiteId)?.name || 'site'}`
+                  : 'Select a site to publish'}
+              </Button>
+            </div>
+            {isPublishBlocked && (
+              <span className="text-xs text-amber-500">Requires admin approval</span>
+            )}
+          </div>
+        )}
+
+        {/* WordPress Publish Button — only on non-Code-Studio main sites */}
+        {isEditor && !isCodeStudioMainSite && wpSites.length > 0 && (
           <div className="flex flex-col items-end gap-1">
             <Button
               data-testid="publish-wp-btn"
