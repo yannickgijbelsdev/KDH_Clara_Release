@@ -196,27 +196,36 @@ async def get_content_items(
             {"_id": 0}
         ).to_list(2000)
         
-        # Build lookup dicts
+        # Build lookup dicts — resolve both WordPress and Code Studio sites
         wp_site_ids = list(set(
             p.get("wordpress_site_id") for p in all_publishes if p.get("wordpress_site_id")
         ))
-        wp_sites = {}
+        site_names = {}
         if wp_site_ids:
-            sites = await db.wordpress_sites.find(
+            wp_site_docs = await db.wordpress_sites.find(
                 {"id": {"$in": wp_site_ids}}, {"_id": 0, "id": 1, "name": 1}
             ).to_list(100)
-            wp_sites = {s["id"]: s["name"] for s in sites}
-        
+            site_names = {s["id"]: s["name"] for s in wp_site_docs}
+            # Any IDs not found in wordpress_sites → try code_studio_sites
+            missing_ids = [sid for sid in wp_site_ids if sid not in site_names]
+            if missing_ids:
+                cs_site_docs = await db.code_studio_sites.find(
+                    {"id": {"$in": missing_ids}}, {"_id": 0, "id": 1, "name": 1}
+                ).to_list(100)
+                for s in cs_site_docs:
+                    site_names[s["id"]] = s["name"]
+
         fi_lookup = {}
         for fi in all_featured_imgs:
             key = (fi["content_item_id"], fi.get("wordpress_site_id"))
             fi_lookup[key] = fi
-        
+
         pub_lookup = {}
         for p in all_publishes:
             cid = p["content_item_id"]
             wp_sid = p.get("wordpress_site_id")
-            p["wordpress_site_name"] = wp_sites.get(wp_sid, "Unknown")
+            # Prefer stored wordpress_site_name (filled in by CS publish endpoint), fall back to lookup
+            p["wordpress_site_name"] = p.get("wordpress_site_name") or site_names.get(wp_sid, "Unknown")
             fi = fi_lookup.get((cid, wp_sid))
             if fi:
                 fi["wordpress_site_name"] = p["wordpress_site_name"]
