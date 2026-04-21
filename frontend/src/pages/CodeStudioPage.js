@@ -13,6 +13,7 @@ import {
   Monitor, Tablet, Smartphone,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -133,6 +134,34 @@ function sectionStyles(p) {
   };
 }
 
+// ── Animation wrapper (framer-motion whileInView) ──
+const ANIMATION_VARIANTS = {
+  none: { initial: {}, animate: {}, transition: {} },
+  fade_up: { initial: { opacity: 0, y: 40 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.6, ease: 'easeOut' } },
+  fade_in: { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.8 } },
+  slide_left: { initial: { opacity: 0, x: -60 }, animate: { opacity: 1, x: 0 }, transition: { duration: 0.6, ease: 'easeOut' } },
+  slide_right: { initial: { opacity: 0, x: 60 }, animate: { opacity: 1, x: 0 }, transition: { duration: 0.6, ease: 'easeOut' } },
+  zoom_in: { initial: { opacity: 0, scale: 0.92 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+function AnimatedSection({ animation = 'none', children }) {
+  const variant = ANIMATION_VARIANTS[animation] || ANIMATION_VARIANTS.none;
+  if (animation === 'none' || animation === undefined) {
+    return <>{children}</>;
+  }
+  return (
+    <motion.div
+      initial={variant.initial}
+      whileInView={variant.animate}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={variant.transition}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+
 // ── Section Preview Renderer ──
 function SectionPreview({ section }) {
   const p = section.props || {};
@@ -140,12 +169,12 @@ function SectionPreview({ section }) {
   switch (section.type) {
     case 'navbar':
       content = (
-        <div className={`flex items-center justify-between px-8 py-4 ${p.style === 'dark' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-900 border-b border-zinc-100'}`}>
+        <div className={`flex items-center justify-between px-5 sm:px-8 py-4 flex-wrap gap-y-2 ${p.style === 'dark' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-900 border-b border-zinc-100'}`}>
           <div className="flex items-center gap-2">
             {p.logo_url && <img src={p.logo_url} alt="" className="h-6 object-contain" />}
             <span className="font-bold text-sm">{p.brand || 'Brand'}</span>
           </div>
-          <div className="flex items-center gap-5 text-xs">
+          <div className="flex items-center gap-3 sm:gap-5 text-xs flex-wrap">
             {(p.links || []).map((l, i) => <span key={i} className="opacity-60 hover:opacity-100 cursor-pointer">{l.label}</span>)}
             {p.cta_text && <span className={`px-4 py-1.5 rounded-full font-semibold text-xs ${p.style === 'dark' ? 'bg-white text-zinc-900' : 'bg-zinc-900 text-white'}`}>{p.cta_text}</span>}
           </div>
@@ -154,15 +183,15 @@ function SectionPreview({ section }) {
       return content; // navbar doesn't get wrapper
     case 'hero':
       content = (
-        <div className={`relative px-10 ${p.layout === 'left' ? 'py-16' : 'py-20 text-center'} text-white overflow-hidden`}>
+        <div className={`relative px-5 sm:px-10 ${p.layout === 'left' ? 'py-12 sm:py-16' : 'py-14 sm:py-20 text-center'} text-white overflow-hidden`}>
           {p.badge && <div className="inline-block bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[10px] font-medium mb-4">{p.badge}</div>}
-          <div className={p.layout === 'left' ? 'max-w-[55%]' : ''}>
-            <h1 className="font-bold mb-3 leading-tight" style={{ fontSize: p.heading_size || '36px', color: p.heading_color || 'white' }}>{p.headline || 'Headline'}</h1>
+          <div className={p.layout === 'left' ? 'sm:max-w-[55%]' : ''}>
+            <h1 className="font-bold mb-3 leading-tight text-3xl sm:text-5xl" style={{ fontSize: p.heading_size, color: p.heading_color || 'white' }}>{p.headline || 'Headline'}</h1>
             <p className="mb-6 max-w-md" style={{ fontSize: p.text_size || '14px', color: p.text_color || 'rgba(255,255,255,0.6)' }}>{p.subheadline || ''}</p>
             {p.cta_text && <span className="inline-block px-5 py-2.5 rounded-full font-semibold text-sm" style={{ backgroundColor: p.accent_color || '#a3e635', color: '#18181b' }}>{p.cta_text}</span>}
           </div>
           {p.hero_image && p.layout === 'left' && (
-            <div className="absolute right-8 top-1/2 -translate-y-1/2 w-[35%] h-[80%] rounded-2xl overflow-hidden opacity-80">
+            <div className="hidden sm:block absolute right-8 top-1/2 -translate-y-1/2 w-[35%] h-[80%] rounded-2xl overflow-hidden opacity-80">
               <img src={p.hero_image} alt="" className="w-full h-full object-cover" />
             </div>
           )}
@@ -183,9 +212,9 @@ function SectionPreview({ section }) {
       break;
     case 'image_text':
       content = (
-        <div className={`flex items-stretch ${p.image_position === 'left' ? 'flex-row-reverse' : ''} ${p.bg_color || 'bg-lime-300'} overflow-hidden`}>
-          <div className="flex-1 p-10 flex flex-col justify-center">
-            <h2 className="text-2xl font-bold text-zinc-900 mb-2">{p.headline || 'Headline'}</h2>
+        <div className={`flex flex-col sm:flex-row items-stretch ${p.image_position === 'left' ? 'sm:flex-row-reverse' : ''} ${p.bg_color || 'bg-lime-300'} overflow-hidden`}>
+          <div className="flex-1 p-6 sm:p-10 flex flex-col justify-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-zinc-900 mb-2">{p.headline || 'Headline'}</h2>
             <p className="text-sm text-zinc-600 mb-3">{p.subheadline || ''}</p>
             {(p.bullets || []).length > 0 && (
               <ul className="space-y-1.5 mb-4">
@@ -202,10 +231,10 @@ function SectionPreview({ section }) {
       break;
     case 'features':
       content = (
-        <div className="px-10 py-14 bg-white">
-          <h2 className="font-bold text-center mb-2" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || '#18181b' }}>{p.headline || 'Features'}</h2>
-          <p className="text-center mb-10" style={{ fontSize: p.text_size || '14px', color: p.text_color || '#71717a' }}>{p.subheadline || ''}</p>
-          <div className="grid grid-cols-3 gap-5">
+        <div className="px-5 sm:px-10 py-10 sm:py-14 bg-white">
+          <h2 className="font-bold text-center mb-2 text-2xl sm:text-3xl" style={{ fontSize: p.heading_size, color: p.heading_color || '#18181b' }}>{p.headline || 'Features'}</h2>
+          <p className="text-center mb-8 sm:mb-10" style={{ fontSize: p.text_size || '14px', color: p.text_color || '#71717a' }}>{p.subheadline || ''}</p>
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${(p.columns || 3) >= 3 ? 'lg:grid-cols-3' : ''} ${(p.columns || 3) >= 4 ? 'xl:grid-cols-4' : ''} gap-4 sm:gap-5`}>
             {(p.features || []).map((f, i) => (
               <div key={i} className="rounded-2xl overflow-hidden bg-zinc-50">
                 {f.image_url && <img src={f.image_url} alt="" className="w-full h-36 object-cover" />}
@@ -221,12 +250,12 @@ function SectionPreview({ section }) {
       break;
     case 'pricing':
       content = (
-        <div className="px-10 py-14 bg-zinc-50">
-          <h2 className="font-bold text-center mb-2" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || '#18181b' }}>{p.headline || 'Pricing'}</h2>
-          <p className="text-center mb-10" style={{ fontSize: p.text_size || '14px', color: p.text_color || '#71717a' }}>{p.subheadline || ''}</p>
-          <div className="flex gap-5 justify-center">
+        <div className="px-5 sm:px-10 py-10 sm:py-14 bg-zinc-50">
+          <h2 className="font-bold text-center mb-2 text-2xl sm:text-3xl" style={{ fontSize: p.heading_size, color: p.heading_color || '#18181b' }}>{p.headline || 'Pricing'}</h2>
+          <p className="text-center mb-8 sm:mb-10" style={{ fontSize: p.text_size || '14px', color: p.text_color || '#71717a' }}>{p.subheadline || ''}</p>
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center">
             {(p.plans || []).map((plan, i) => (
-              <div key={i} className={`p-5 rounded-2xl border flex-1 max-w-[200px] ${plan.highlighted ? 'border-2 bg-white shadow-xl' : 'border-zinc-200 bg-white'}`} style={plan.highlighted ? { borderColor: p.accent_color || '#dd0c51' } : {}}>
+              <div key={i} className={`p-5 rounded-2xl border flex-1 w-full sm:max-w-[220px] ${plan.highlighted ? 'border-2 bg-white shadow-xl' : 'border-zinc-200 bg-white'}`} style={plan.highlighted ? { borderColor: p.accent_color || '#dd0c51' } : {}}>
                 <h3 className="text-sm font-bold" style={{ color: p.heading_color || '#18181b' }}>{plan.name}</h3>
                 <p className="text-3xl font-bold my-3" style={{ color: p.heading_color || '#18181b' }}>${plan.price}<span className="text-xs font-normal" style={{ color: p.text_color || '#a1a1aa' }}>/{plan.period}</span></p>
                 <div className="space-y-1.5 mb-4">{(plan.features || []).map((f, j) => <p key={j} className="text-xs flex items-center gap-1.5" style={{ color: p.text_color || '#71717a' }}><span className="w-1 h-1 rounded-full" style={{ backgroundColor: p.accent_color || '#34d399' }} />{f}</p>)}</div>
@@ -239,11 +268,11 @@ function SectionPreview({ section }) {
       break;
     case 'testimonials':
       content = (
-        <div className="px-10 py-14 bg-zinc-900 text-white">
-          <h2 className="font-bold text-center mb-10" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || 'white' }}>{p.headline || 'Testimonials'}</h2>
-          <div className="flex gap-5 justify-center">
+        <div className="px-5 sm:px-10 py-10 sm:py-14 bg-zinc-900 text-white">
+          <h2 className="font-bold text-center mb-8 sm:mb-10 text-2xl sm:text-3xl" style={{ fontSize: p.heading_size, color: p.heading_color || 'white' }}>{p.headline || 'Testimonials'}</h2>
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center">
             {(p.items || []).map((t, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden bg-zinc-800 flex-1 max-w-[260px]">
+              <div key={i} className="rounded-2xl overflow-hidden bg-zinc-800 flex-1 w-full sm:max-w-[280px]">
                 {t.avatar && <img src={t.avatar} alt="" className="w-full h-48 object-cover" />}
                 <div className="p-5">
                   <p className="text-sm font-bold">{t.name}</p>
@@ -257,16 +286,16 @@ function SectionPreview({ section }) {
       break;
     case 'gallery':
       content = (
-        <div className="px-10 py-14 bg-white">
-          <h2 className="font-bold text-center mb-8" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || '#18181b' }}>{p.headline || 'Gallery'}</h2>
-          <div className="grid grid-cols-3 gap-4">{(p.images || []).map((img, i) => <div key={i} className="aspect-video rounded-xl bg-zinc-200 overflow-hidden"><img src={img.url} alt={img.alt} className="w-full h-full object-cover" /></div>)}</div>
+        <div className="px-5 sm:px-10 py-10 sm:py-14 bg-white">
+          <h2 className="font-bold text-center mb-8 text-2xl sm:text-3xl" style={{ fontSize: p.heading_size, color: p.heading_color || '#18181b' }}>{p.headline || 'Gallery'}</h2>
+          <div className={`grid grid-cols-2 ${(p.columns || 3) >= 3 ? 'sm:grid-cols-3' : ''} ${(p.columns || 3) >= 4 ? 'lg:grid-cols-4' : ''} gap-3 sm:gap-4`}>{(p.images || []).map((img, i) => <div key={i} className="aspect-video rounded-xl bg-zinc-200 overflow-hidden"><img src={img.url} alt={img.alt} className="w-full h-full object-cover" /></div>)}</div>
         </div>
       );
       break;
     case 'cta':
       content = (
-        <div className="px-10 py-14 text-center text-white">
-          <h2 className="font-bold mb-2" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || 'white' }}>{p.headline || 'CTA'}</h2>
+        <div className="px-5 sm:px-10 py-10 sm:py-14 text-center text-white">
+          <h2 className="font-bold mb-2 text-2xl sm:text-3xl" style={{ fontSize: p.heading_size, color: p.heading_color || 'white' }}>{p.headline || 'CTA'}</h2>
           <p className="mb-5" style={{ fontSize: p.text_size || '14px', color: p.text_color || 'rgba(255,255,255,0.6)' }}>{p.subheadline || ''}</p>
           {p.cta_text && <span className="inline-block px-6 py-2.5 rounded-full font-semibold text-sm" style={{ backgroundColor: p.accent_color || '#a3e635', color: '#18181b' }}>{p.cta_text}</span>}
         </div>
@@ -274,8 +303,8 @@ function SectionPreview({ section }) {
       break;
     case 'contact':
       content = (
-        <div className="px-10 py-14 bg-zinc-50">
-          <h2 className="font-bold text-center mb-2" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || '#18181b' }}>{p.headline || 'Contact'}</h2>
+        <div className="px-5 sm:px-10 py-10 sm:py-14 bg-zinc-50">
+          <h2 className="font-bold text-center mb-2 text-2xl sm:text-3xl" style={{ fontSize: p.heading_size, color: p.heading_color || '#18181b' }}>{p.headline || 'Contact'}</h2>
           <p className="text-center mb-8" style={{ fontSize: p.text_size || '14px', color: p.text_color || '#71717a' }}>{p.subheadline || ''}</p>
           <div className="max-w-sm mx-auto space-y-2.5">
             {(p.fields || []).map((f, i) => <div key={i} className={`bg-white border border-zinc-200 rounded-xl px-4 ${f === 'message' ? 'py-8' : 'py-2.5'} text-xs text-zinc-400`}>{f}</div>)}
@@ -286,10 +315,10 @@ function SectionPreview({ section }) {
       break;
     case 'footer':
       content = (
-        <div className="px-10 py-8 bg-zinc-950 text-white">
-          <div className="flex items-center justify-between text-xs">
+        <div className="px-5 sm:px-10 py-8 bg-zinc-950 text-white">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-xs gap-3">
             <span className="font-bold">{p.company_name || 'Company'}</span>
-            <div className="flex gap-4 text-zinc-400">{(p.links || []).map((l, i) => <span key={i} className="hover:text-white cursor-pointer">{l.label}</span>)}</div>
+            <div className="flex gap-4 text-zinc-400 flex-wrap">{(p.links || []).map((l, i) => <span key={i} className="hover:text-white cursor-pointer">{l.label}</span>)}</div>
           </div>
           <p className="text-[10px] text-zinc-600 mt-3">{p.copyright || ''}</p>
         </div>
@@ -323,7 +352,11 @@ function SectionPreview({ section }) {
       content = <div className="px-8 py-10 bg-zinc-100 text-center text-sm text-zinc-400 rounded-lg">{section.type} section</div>;
       break;
   }
-  return <SectionWrapper section={section}>{content}</SectionWrapper>;
+  return (
+    <AnimatedSection animation={p.animation}>
+      <SectionWrapper section={section}>{content}</SectionWrapper>
+    </AnimatedSection>
+  );
 }
 
 // ── Image Upload Field ──
@@ -460,6 +493,27 @@ function PropertiesSidebar({ section, onChange, token, linkedMainSiteId }) {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Scroll animation */}
+      {section.type !== 'navbar' && (
+        <div>
+          <Label className="text-[10px] font-semibold text-zinc-400 uppercase">Load Animation</Label>
+          <select
+            data-testid="section-animation-select"
+            value={p.animation || 'none'}
+            onChange={e => update('animation', e.target.value)}
+            className="w-full h-8 text-xs mt-1 border border-zinc-200 rounded-lg px-2 bg-white focus:outline-none focus:border-zinc-400"
+          >
+            <option value="none">None</option>
+            <option value="fade_up">Fade up</option>
+            <option value="fade_in">Fade in</option>
+            <option value="slide_left">Slide from left</option>
+            <option value="slide_right">Slide from right</option>
+            <option value="zoom_in">Zoom in</option>
+          </select>
+          <p className="text-[10px] text-zinc-400 mt-1">Animates when the section scrolls into view.</p>
         </div>
       )}
 
