@@ -75,22 +75,60 @@ function SizeField({ label, value, onChange, min = 0, max = 200, unit = 'px' }) 
   );
 }
 
-// ── Section wrapper for background image/color ──
+// ── Helpers: decide default bg_mode + gradient defaults per section type ──
+function defaultBgMode(type) {
+  return type === 'hero' || type === 'cta' ? 'gradient' : 'solid';
+}
+function defaultGradient(type) {
+  if (type === 'cta') return { from: '#dd0c51', to: '#7c1ac8', direction: 'to right' };
+  if (type === 'hero') return { from: '#18181b', to: '#27272a', direction: 'to bottom right' };
+  return { from: '#ffffff', to: '#f4f4f5', direction: 'to bottom' };
+}
+function resolveBgMode(section) {
+  const p = section.props || {};
+  return p.bg_mode || defaultBgMode(section.type);
+}
+
+// ── Section wrapper for background image/color + sizing ──
 function SectionWrapper({ section, children }) {
   const p = section.props || {};
   const style = {};
+  const bgMode = resolveBgMode(section);
+  const g = defaultGradient(section.type);
+
   if (p.bg_image) {
+    // Background image wins over everything
     style.backgroundImage = `url(${p.bg_image})`;
     style.backgroundSize = 'cover';
     style.backgroundPosition = 'center';
+  } else if (bgMode === 'gradient') {
+    const from = p.gradient_from || g.from;
+    const to = p.gradient_to || g.to;
+    const dir = p.gradient_direction || g.direction;
+    style.backgroundImage = `linear-gradient(${dir}, ${from}, ${to})`;
+  } else if (p.section_bg_color) {
+    style.backgroundColor = p.section_bg_color;
   }
+
+  if (p.padding_top) style.paddingTop = p.padding_top;
+  if (p.padding_bottom) style.paddingBottom = p.padding_bottom;
+  if (p.border_radius) style.borderRadius = p.border_radius;
   const overlayClass = p.bg_image && p.bg_overlay ? 'relative' : '';
   return (
     <div style={style} className={overlayClass}>
-      {p.bg_image && p.bg_overlay && <div className="absolute inset-0 bg-black/50" />}
+      {p.bg_image && p.bg_overlay && <div className="absolute inset-0 bg-black/50" style={{ borderRadius: p.border_radius || 0 }} />}
       <div className={p.bg_image ? 'relative z-10' : ''}>{children}</div>
     </div>
   );
+}
+
+// ── Extract inline styles from section props ──
+function sectionStyles(p) {
+  return {
+    heading: { color: p.heading_color || undefined, fontSize: p.heading_size || undefined },
+    text: { color: p.text_color || undefined, fontSize: p.text_size || undefined },
+    accent: p.accent_color || '#dd0c51',
+  };
 }
 
 // ── Section Preview Renderer ──
@@ -114,12 +152,12 @@ function SectionPreview({ section }) {
       return content; // navbar doesn't get wrapper
     case 'hero':
       content = (
-        <div className={`relative px-10 ${p.layout === 'left' ? 'py-16' : 'py-20 text-center'} bg-gradient-to-br ${p.bg_gradient || 'from-zinc-900 to-zinc-800'} text-white overflow-hidden`}>
+        <div className={`relative px-10 ${p.layout === 'left' ? 'py-16' : 'py-20 text-center'} text-white overflow-hidden`}>
           {p.badge && <div className="inline-block bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[10px] font-medium mb-4">{p.badge}</div>}
           <div className={p.layout === 'left' ? 'max-w-[55%]' : ''}>
-            <h1 className="text-4xl font-bold mb-3 leading-tight">{p.headline || 'Headline'}</h1>
-            <p className="text-sm text-white/60 mb-6 max-w-md">{p.subheadline || ''}</p>
-            {p.cta_text && <span className="inline-block bg-lime-400 text-zinc-900 px-5 py-2.5 rounded-full font-semibold text-sm">{p.cta_text}</span>}
+            <h1 className="font-bold mb-3 leading-tight" style={{ fontSize: p.heading_size || '36px', color: p.heading_color || 'white' }}>{p.headline || 'Headline'}</h1>
+            <p className="mb-6 max-w-md" style={{ fontSize: p.text_size || '14px', color: p.text_color || 'rgba(255,255,255,0.6)' }}>{p.subheadline || ''}</p>
+            {p.cta_text && <span className="inline-block px-5 py-2.5 rounded-full font-semibold text-sm" style={{ backgroundColor: p.accent_color || '#a3e635', color: '#18181b' }}>{p.cta_text}</span>}
           </div>
           {p.hero_image && p.layout === 'left' && (
             <div className="absolute right-8 top-1/2 -translate-y-1/2 w-[35%] h-[80%] rounded-2xl overflow-hidden opacity-80">
@@ -163,15 +201,15 @@ function SectionPreview({ section }) {
     case 'features':
       content = (
         <div className="px-10 py-14 bg-white">
-          <h2 className="text-2xl font-bold text-zinc-900 text-center mb-2">{p.headline || 'Features'}</h2>
-          <p className="text-sm text-zinc-500 text-center mb-10">{p.subheadline || ''}</p>
+          <h2 className="font-bold text-center mb-2" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || '#18181b' }}>{p.headline || 'Features'}</h2>
+          <p className="text-center mb-10" style={{ fontSize: p.text_size || '14px', color: p.text_color || '#71717a' }}>{p.subheadline || ''}</p>
           <div className="grid grid-cols-3 gap-5">
             {(p.features || []).map((f, i) => (
               <div key={i} className="rounded-2xl overflow-hidden bg-zinc-50">
                 {f.image_url && <img src={f.image_url} alt="" className="w-full h-36 object-cover" />}
                 <div className="p-4">
-                  <h3 className="text-sm font-bold text-zinc-800">{f.title}</h3>
-                  <p className="text-xs text-zinc-500 mt-1">{f.description}</p>
+                  <h3 className="text-sm font-bold" style={{ color: p.heading_color || '#18181b' }}>{f.title}</h3>
+                  <p className="text-xs mt-1" style={{ color: p.text_color || '#71717a' }}>{f.description}</p>
                 </div>
               </div>
             ))}
@@ -182,15 +220,15 @@ function SectionPreview({ section }) {
     case 'pricing':
       content = (
         <div className="px-10 py-14 bg-zinc-50">
-          <h2 className="text-2xl font-bold text-zinc-900 text-center mb-2">{p.headline || 'Pricing'}</h2>
-          <p className="text-sm text-zinc-500 text-center mb-10">{p.subheadline || ''}</p>
+          <h2 className="font-bold text-center mb-2" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || '#18181b' }}>{p.headline || 'Pricing'}</h2>
+          <p className="text-center mb-10" style={{ fontSize: p.text_size || '14px', color: p.text_color || '#71717a' }}>{p.subheadline || ''}</p>
           <div className="flex gap-5 justify-center">
             {(p.plans || []).map((plan, i) => (
-              <div key={i} className={`p-5 rounded-2xl border flex-1 max-w-[200px] ${plan.highlighted ? 'border-[#dd0c51] bg-white shadow-xl' : 'border-zinc-200 bg-white'}`}>
-                <h3 className="text-sm font-bold text-zinc-800">{plan.name}</h3>
-                <p className="text-3xl font-bold text-zinc-900 my-3">${plan.price}<span className="text-xs text-zinc-400 font-normal">/{plan.period}</span></p>
-                <div className="space-y-1.5 mb-4">{(plan.features || []).map((f, j) => <p key={j} className="text-xs text-zinc-500 flex items-center gap-1.5"><span className="w-1 h-1 bg-emerald-400 rounded-full" />{f}</p>)}</div>
-                <span className={`block text-center text-xs font-semibold py-2 rounded-full ${plan.highlighted ? 'bg-[#dd0c51] text-white' : 'bg-zinc-100 text-zinc-700'}`}>{plan.cta}</span>
+              <div key={i} className={`p-5 rounded-2xl border flex-1 max-w-[200px] ${plan.highlighted ? 'border-2 bg-white shadow-xl' : 'border-zinc-200 bg-white'}`} style={plan.highlighted ? { borderColor: p.accent_color || '#dd0c51' } : {}}>
+                <h3 className="text-sm font-bold" style={{ color: p.heading_color || '#18181b' }}>{plan.name}</h3>
+                <p className="text-3xl font-bold my-3" style={{ color: p.heading_color || '#18181b' }}>${plan.price}<span className="text-xs font-normal" style={{ color: p.text_color || '#a1a1aa' }}>/{plan.period}</span></p>
+                <div className="space-y-1.5 mb-4">{(plan.features || []).map((f, j) => <p key={j} className="text-xs flex items-center gap-1.5" style={{ color: p.text_color || '#71717a' }}><span className="w-1 h-1 rounded-full" style={{ backgroundColor: p.accent_color || '#34d399' }} />{f}</p>)}</div>
+                <span className="block text-center text-xs font-semibold py-2 rounded-full" style={plan.highlighted ? { backgroundColor: p.accent_color || '#dd0c51', color: 'white' } : { backgroundColor: '#f4f4f5', color: '#3f3f46' }}>{plan.cta}</span>
               </div>
             ))}
           </div>
@@ -200,14 +238,14 @@ function SectionPreview({ section }) {
     case 'testimonials':
       content = (
         <div className="px-10 py-14 bg-zinc-900 text-white">
-          <h2 className="text-2xl font-bold text-center mb-10">{p.headline || 'Testimonials'}</h2>
+          <h2 className="font-bold text-center mb-10" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || 'white' }}>{p.headline || 'Testimonials'}</h2>
           <div className="flex gap-5 justify-center">
             {(p.items || []).map((t, i) => (
               <div key={i} className="rounded-2xl overflow-hidden bg-zinc-800 flex-1 max-w-[260px]">
                 {t.avatar && <img src={t.avatar} alt="" className="w-full h-48 object-cover" />}
                 <div className="p-5">
                   <p className="text-sm font-bold">{t.name}</p>
-                  <p className="text-xs text-zinc-400 mt-1">"{t.quote}"</p>
+                  <p className="text-xs mt-1" style={{ color: p.text_color || '#a1a1aa' }}>"{t.quote}"</p>
                 </div>
               </div>
             ))}
@@ -218,28 +256,28 @@ function SectionPreview({ section }) {
     case 'gallery':
       content = (
         <div className="px-10 py-14 bg-white">
-          <h2 className="text-2xl font-bold text-zinc-900 text-center mb-8">{p.headline || 'Gallery'}</h2>
+          <h2 className="font-bold text-center mb-8" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || '#18181b' }}>{p.headline || 'Gallery'}</h2>
           <div className="grid grid-cols-3 gap-4">{(p.images || []).map((img, i) => <div key={i} className="aspect-video rounded-xl bg-zinc-200 overflow-hidden"><img src={img.url} alt={img.alt} className="w-full h-full object-cover" /></div>)}</div>
         </div>
       );
       break;
     case 'cta':
       content = (
-        <div className={`px-10 py-14 text-center bg-gradient-to-r ${p.bg_gradient || 'from-[#dd0c51] to-[#7c1ac8]'} text-white`}>
-          <h2 className="text-2xl font-bold mb-2">{p.headline || 'CTA'}</h2>
-          <p className="text-sm text-white/60 mb-5">{p.subheadline || ''}</p>
-          {p.cta_text && <span className="inline-block bg-lime-400 text-zinc-900 px-6 py-2.5 rounded-full font-semibold text-sm">{p.cta_text}</span>}
+        <div className="px-10 py-14 text-center text-white">
+          <h2 className="font-bold mb-2" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || 'white' }}>{p.headline || 'CTA'}</h2>
+          <p className="mb-5" style={{ fontSize: p.text_size || '14px', color: p.text_color || 'rgba(255,255,255,0.6)' }}>{p.subheadline || ''}</p>
+          {p.cta_text && <span className="inline-block px-6 py-2.5 rounded-full font-semibold text-sm" style={{ backgroundColor: p.accent_color || '#a3e635', color: '#18181b' }}>{p.cta_text}</span>}
         </div>
       );
       break;
     case 'contact':
       content = (
         <div className="px-10 py-14 bg-zinc-50">
-          <h2 className="text-2xl font-bold text-zinc-900 text-center mb-2">{p.headline || 'Contact'}</h2>
-          <p className="text-sm text-zinc-500 text-center mb-8">{p.subheadline || ''}</p>
+          <h2 className="font-bold text-center mb-2" style={{ fontSize: p.heading_size || '24px', color: p.heading_color || '#18181b' }}>{p.headline || 'Contact'}</h2>
+          <p className="text-center mb-8" style={{ fontSize: p.text_size || '14px', color: p.text_color || '#71717a' }}>{p.subheadline || ''}</p>
           <div className="max-w-sm mx-auto space-y-2.5">
             {(p.fields || []).map((f, i) => <div key={i} className={`bg-white border border-zinc-200 rounded-xl px-4 ${f === 'message' ? 'py-8' : 'py-2.5'} text-xs text-zinc-400`}>{f}</div>)}
-            <div className="bg-zinc-900 text-white text-center text-sm font-semibold py-2.5 rounded-xl">{p.submit_text || 'Submit'}</div>
+            <div className="text-center text-sm font-semibold py-2.5 rounded-xl text-white" style={{ backgroundColor: p.accent_color || '#18181b' }}>{p.submit_text || 'Submit'}</div>
           </div>
         </div>
       );
@@ -257,7 +295,7 @@ function SectionPreview({ section }) {
       break;
     case 'news_feed':
       content = (
-        <div className="px-10 py-14" style={{ backgroundColor: p.section_bg_color || '#ffffff' }}>
+        <div className="px-10 py-14">
           <h2 className="text-2xl font-bold text-center mb-2" style={{ color: p.heading_color || '#18181b', fontSize: p.heading_size || '24px' }}>{p.headline || 'Latest News'}</h2>
           <p className="text-sm text-center mb-10" style={{ color: p.text_color || '#71717a' }}>{p.subheadline || 'Stay up to date with our latest articles'}</p>
           <div className={`grid gap-5`} style={{ gridTemplateColumns: `repeat(${p.columns || 3}, 1fr)` }}>
@@ -388,9 +426,25 @@ function PropertiesSidebar({ section, onChange, token, linkedMainSiteId }) {
       {p.company_name !== undefined && <Field label="Company Name" value={p.company_name} onChange={v => update('company_name', v)} />}
       {p.copyright !== undefined && <Field label="Copyright" value={p.copyright} onChange={v => update('copyright', v)} />}
 
-      {/* Background */}
-      {p.bg_gradient !== undefined && <Field label="Background Gradient" value={p.bg_gradient} onChange={v => update('bg_gradient', v)} />}
-      {p.bg_color !== undefined && <Field label="Background Class" value={p.bg_color} onChange={v => update('bg_color', v)} />}
+      {/* Background: Solid vs Gradient toggle */}
+      {section.type !== 'navbar' && (
+        <div>
+          <Label className="text-[10px] font-semibold text-zinc-400 uppercase">Background Type</Label>
+          <div className="flex gap-1 mt-1">
+            {['solid', 'gradient'].map(m => {
+              const active = (p.bg_mode || defaultBgMode(section.type)) === m;
+              return (
+                <button
+                  key={m}
+                  data-testid={`bg-mode-${m}-btn`}
+                  onClick={() => update('bg_mode', m)}
+                  className={`flex-1 text-xs py-1.5 rounded-lg font-medium capitalize ${active ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500'}`}
+                >{m}</button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Universal background image (for all sections) */}
       {section.type !== 'navbar' && (
@@ -522,7 +576,37 @@ function PropertiesSidebar({ section, onChange, token, linkedMainSiteId }) {
         <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-3">Styling</h4>
         <ColorField label="Text Color" value={p.text_color || ''} onChange={v => update('text_color', v)} />
         <ColorField label="Heading Color" value={p.heading_color || ''} onChange={v => update('heading_color', v)} />
-        <ColorField label="Background Color" value={p.section_bg_color || ''} onChange={v => update('section_bg_color', v)} />
+        {section.type !== 'navbar' && (() => {
+          const mode = p.bg_mode || defaultBgMode(section.type);
+          const g = defaultGradient(section.type);
+          if (mode === 'gradient') {
+            return (
+              <>
+                <ColorField label="Gradient Color 1" value={p.gradient_from || g.from} onChange={v => update('gradient_from', v)} />
+                <ColorField label="Gradient Color 2" value={p.gradient_to || g.to} onChange={v => update('gradient_to', v)} />
+                <div>
+                  <Label className="text-[10px] font-semibold text-zinc-400 uppercase">Gradient Direction</Label>
+                  <select
+                    data-testid="gradient-direction-select"
+                    value={p.gradient_direction || g.direction}
+                    onChange={e => update('gradient_direction', e.target.value)}
+                    className="w-full h-8 text-xs mt-1 border border-zinc-200 rounded-lg px-2 bg-white focus:outline-none focus:border-zinc-400"
+                  >
+                    <option value="to right">→ Left to Right</option>
+                    <option value="to left">← Right to Left</option>
+                    <option value="to bottom">↓ Top to Bottom</option>
+                    <option value="to top">↑ Bottom to Top</option>
+                    <option value="to bottom right">↘ Diagonal ↘</option>
+                    <option value="to bottom left">↙ Diagonal ↙</option>
+                    <option value="to top right">↗ Diagonal ↗</option>
+                    <option value="to top left">↖ Diagonal ↖</option>
+                  </select>
+                </div>
+              </>
+            );
+          }
+          return <ColorField label="Background Color" value={p.section_bg_color || ''} onChange={v => update('section_bg_color', v)} />;
+        })()}
         <ColorField label="Accent / Button Color" value={p.accent_color || ''} onChange={v => update('accent_color', v)} />
         <SizeField label="Heading Size" value={p.heading_size || '24px'} onChange={v => update('heading_size', v)} min={12} max={72} />
         <SizeField label="Text Size" value={p.text_size || '14px'} onChange={v => update('text_size', v)} min={10} max={32} />
