@@ -163,6 +163,71 @@ function AnimatedSection({ animation = 'none', children }) {
 }
 
 
+// ── News Feed Section (auto-fetches articles from linked content library) ──
+function NewsFeedSection({ section }) {
+  const p = section.props || {};
+  const mainSiteId = p.main_site_id;
+  const maxItems = p.max_items || 6;
+  const [items, setItems] = useState(null);
+
+  useEffect(() => {
+    if (!mainSiteId) { setItems([]); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API}/api/code-studio/content-feed/${mainSiteId}?limit=${maxItems}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setItems(Array.isArray(data) ? data : []);
+        } else if (!cancelled) setItems([]);
+      } catch { if (!cancelled) setItems([]); }
+    })();
+    return () => { cancelled = true; };
+  }, [mainSiteId, maxItems]);
+
+  const placeholders = [
+    { title: 'Article Title', excerpt: 'Preview of your content library articles will appear here once you link a content library and publish articles.', category: 'News' },
+    { title: 'Another Article', excerpt: 'All published content items from the linked main site will be shown automatically.', category: 'Updates' },
+    { title: 'Latest Update', excerpt: 'Link a content library in Site Settings and publish articles to populate this feed.', category: 'Blog' },
+  ];
+  const display = items === null ? placeholders : (items.length > 0 ? items : placeholders);
+  const isEmpty = items !== null && items.length === 0;
+
+  const content = (
+    <div className="px-5 sm:px-10 py-10 sm:py-14">
+      <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2" style={{ color: p.heading_color || '#18181b', fontSize: p.heading_size }}>{p.headline || 'Latest News'}</h2>
+      <p className="text-sm text-center mb-8 sm:mb-10" style={{ color: p.text_color || '#71717a' }}>{p.subheadline || 'Stay up to date with our latest articles'}</p>
+      {isEmpty && mainSiteId && (
+        <div className="max-w-md mx-auto mb-6 p-3 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-700 text-center">
+          No articles published yet — create one in the Content Library and publish it here.
+        </div>
+      )}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${(p.columns || 3) >= 3 ? 'lg:grid-cols-3' : ''} ${(p.columns || 3) >= 4 ? 'xl:grid-cols-4' : ''} gap-4 sm:gap-5`}>
+        {display.slice(0, maxItems).map((item, i) => (
+          <div key={item.id || i} className="rounded-2xl overflow-hidden border border-zinc-100 bg-white shadow-sm">
+            {item.featured_image_url ? (
+              <img src={item.featured_image_url} alt="" className="w-full h-40 object-cover" />
+            ) : (
+              <div className="w-full h-40 bg-gradient-to-br from-zinc-100 to-zinc-200 flex items-center justify-center"><Grid3X3 className="w-8 h-8 text-zinc-300" /></div>
+            )}
+            <div className="p-4">
+              {item.category && <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: p.accent_color || '#dd0c51' }}>{typeof item.category === 'string' ? item.category : item.category?.name}</span>}
+              <h3 className="text-sm font-bold mt-1" style={{ color: p.heading_color || '#18181b' }}>{item.title}</h3>
+              <p className="text-xs mt-1 line-clamp-2" style={{ color: p.text_color || '#71717a' }}>{item.excerpt || ''}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  return (
+    <AnimatedSection animation={p.animation}>
+      <SectionWrapper section={section}>{content}</SectionWrapper>
+    </AnimatedSection>
+  );
+}
+
+
 // ── Section Preview Renderer ──
 function SectionPreview({ section }) {
   const p = section.props || {};
@@ -326,29 +391,7 @@ function SectionPreview({ section }) {
       );
       break;
     case 'news_feed':
-      content = (
-        <div className="px-10 py-14">
-          <h2 className="text-2xl font-bold text-center mb-2" style={{ color: p.heading_color || '#18181b', fontSize: p.heading_size || '24px' }}>{p.headline || 'Latest News'}</h2>
-          <p className="text-sm text-center mb-10" style={{ color: p.text_color || '#71717a' }}>{p.subheadline || 'Stay up to date with our latest articles'}</p>
-          <div className={`grid gap-5`} style={{ gridTemplateColumns: `repeat(${p.columns || 3}, 1fr)` }}>
-            {(p._preview_items || [{ title: 'Article Title', excerpt: 'Preview of your content library articles will appear here...', category: 'News' }, { title: 'Another Article', excerpt: 'All published content items will be shown automatically.', category: 'Updates' }, { title: 'Latest Update', excerpt: 'Connect this section to your content library.', category: 'Blog' }]).slice(0, p.max_items || 6).map((item, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden border border-zinc-100 bg-white shadow-sm">
-                {item.featured_image_url ? (
-                  <img src={item.featured_image_url} alt="" className="w-full h-40 object-cover" />
-                ) : (
-                  <div className="w-full h-40 bg-gradient-to-br from-zinc-100 to-zinc-200 flex items-center justify-center"><Grid3X3 className="w-8 h-8 text-zinc-300" /></div>
-                )}
-                <div className="p-4">
-                  {item.category && <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: p.accent_color || '#dd0c51' }}>{item.category}</span>}
-                  <h3 className="text-sm font-bold mt-1" style={{ color: p.heading_color || '#18181b' }}>{item.title}</h3>
-                  <p className="text-xs mt-1 line-clamp-2" style={{ color: p.text_color || '#71717a' }}>{item.excerpt || ''}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-      break;
+      return <NewsFeedSection section={section} />;
     default:
       content = <div className="px-8 py-10 bg-zinc-100 text-center text-sm text-zinc-400 rounded-lg">{section.type} section</div>;
       break;
@@ -950,7 +993,33 @@ export default function CodeStudioPage() {
       });
       if (res.ok) {
         setEditingSite(prev => ({ ...prev, linked_main_site_id: linkedSiteId }));
-        toast.success('Settings saved');
+
+        // Propagate main_site_id to all news_feed sections on all pages
+        try {
+          const pagesRes = await fetch(`${API}/api/code-studio/sites/${editingSite.id}/pages`, { headers: { Authorization: `Bearer ${token}` } });
+          if (pagesRes.ok) {
+            const allPages = await pagesRes.json();
+            for (const pg of allPages) {
+              const updatedSecs = (pg.sections || []).map(s => {
+                if (s.type === 'news_feed') {
+                  return { ...s, props: { ...(s.props || {}), main_site_id: linkedSiteId || '' } };
+                }
+                return s;
+              });
+              if (JSON.stringify(updatedSecs) !== JSON.stringify(pg.sections)) {
+                await fetch(`${API}/api/code-studio/sites/${editingSite.id}/pages/${pg.id}`, {
+                  method: 'PUT', headers, body: JSON.stringify({ sections: updatedSecs }),
+                });
+                // Also update local state if this is the page currently being edited
+                if (editingPage && pg.id === editingPage.id) {
+                  setSections(updatedSecs);
+                }
+              }
+            }
+          }
+        } catch (e) { console.error('Propagate link failed', e); }
+
+        toast.success('Settings saved · News feed linked to content library');
         setShowSiteSettings(false);
       } else toast.error('Failed to save');
     } catch { toast.error('Error'); }

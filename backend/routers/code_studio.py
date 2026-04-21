@@ -896,12 +896,21 @@ async def create_site(body: CreateSiteBody, current_user: dict = Depends(get_cur
         if idx == 0:
             home_page_id = page_id
         page_slug = p_def.get("slug") or (f"page-{idx}" if idx > 0 else "index")
+
+        # Inject linked_main_site_id onto any news_feed sections so the feed auto-populates
+        sections_with_link = []
+        for s in p_def.get("sections", []):
+            s_copy = dict(s)
+            if s_copy.get("type") == "news_feed" and body.linked_main_site_id:
+                s_copy["props"] = {**(s_copy.get("props") or {}), "main_site_id": body.linked_main_site_id}
+            sections_with_link.append(s_copy)
+
         page = {
             "id": page_id,
             "site_id": site_id,
             "title": p_def.get("title") or f"Page {idx + 1}",
             "slug": page_slug,
-            "sections": p_def.get("sections", []),
+            "sections": sections_with_link,
             "custom_css": "",
             "custom_html_head": "",
             "is_published": True,
@@ -1142,14 +1151,113 @@ async def serve_file(file_id: str):
     return Response(content=data, media_type=record.get("content_type", content_type))
 
 
-@code_studio_router.get("/content-feed/{main_site_id}")
-async def get_content_feed(main_site_id: str, limit: int = 20, current_user: dict = Depends(get_current_user)):
-    """Fetch published content items for the news feed section."""
+class CsPublishBody(BaseModel):
+    site_id: str
+    featured_image_url: Optional[str] = None
+
+
+@code_studio_router.post("/content/{content_id}/publish")
+async def publish_content_to_cs_site(content_id: str, body: CsPublishBody, current_user: dict = Depends(get_current_user)):
+    """Publish a content item to a Code Studio site with optional featured image.
+
+    Creates/updates an entry in content_item_publishes so the Content Library list
+    shows the site name next to the published content.
+    """
+    content = await db.content_items.find_one({"id": content_id}, {"_id": 0})
+    if not content:
+        raise HTTPException(404, "Content not found")
+    site = await db.code_studio_sites.find_one({"id": body.site_id}, {"_id": 0})
+    if not site:
+        raise HTTPException(404, "Code Studio site not found")
+
+    # Mark content as ready (published)
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {"status": "ready", "updated_at": _now()}}
+    )
+
+    # Upsert publish status entry
+    existing = await db.content_item_publishes.find_one({
+        "content_item_id": content_id,
+        "wordpress_site_id": body.site_id,
+    })
+    if existing:
+        await db.content_item_publishes.update_one(
+            {"id": existing["id"]},
+            {"$set": {
+                "sync_status": "synced",
+                "target_type": "code_studio",
+                "wordpress_site_name": site["name"],
+                "last_synced_at": _now(),
+                "updated_at": _now(),
+            }}
+        )
+    else:
+        await db.content_item_publishes.insert_one({
+            "id": _new_id(),
+            "content_item_id": content_id,
+            "wordpress_site_id": body.site_id,
+            "wordpress_site_name": site["name"],
+            "target_type": "code_studio",
+            "wp_status": "publish",
+            "sync_status": "synced",
+            "last_synced_at": _now(),
+            "created_at": _now(),
+            "updated_at": _now(),
+        })
+
+    # Featured image (optional) — upsert site-specific entry
+    if body.featured_image_url:
+        fi_existing = await db.content_item_featured_images.find_one({
+            "content_item_id": content_id,
+            "wordpress_site_id": body.site_id,
+        })
+        fi_doc = {
+            "content_item_id": content_id,
+            "wordpress_site_id": body.site_id,
+            "wordpress_site_name": site["name"],
+            "target_type": "code_studio",
+            "s3_url": body.featured_image_url,
+            "file_storage_key": body.featured_image_url,
+            "file_name": body.featured_image_url.rsplit("/", 1)[-1][:120],
+            "mime_type": "image/jpeg",
+            "size": 0,
+            "sync_status": "synced",
+            "updated_at": _now(),
+        }
+        if fi_existing:
+            await db.content_item_featured_images.update_one({"id": fi_existing["id"]}, {"$set": fi_doc})
+        else:
+            fi_doc.update({"id": _new_id(), "created_at": _now()})
+            await db.content_item_featured_images.insert_one(fi_doc)
+
+        # Also set content-level featured_image_url so the news feed can easily find it
+        if not content.get("featured_image_url"):
+            await db.content_items.update_one(
+                {"id": content_id},
+                {"$set": {"featured_image_url": body.featured_image_url}}
+            )
+
+    return {"status": "ok", "site_name": site["name"]}
+
+
+
+async def get_content_feed(main_site_id: str, limit: int = 20):
+    """Fetch published content items for the news feed section. Public endpoint."""
     items = []
     cursor = db.content_items.find(
-        {"main_site_id": main_site_id, "is_deleted": {"$ne": True}},
-        {"_id": 0, "id": 1, "title": 1, "slug": 1, "excerpt": 1, "featured_image_url": 1, "category": 1, "status": 1, "created_at": 1, "author_name": 1},
+        {
+            "main_site_id": main_site_id,
+            "is_deleted": {"$ne": True},
+            "status": {"$in": ["ready", "published"]},
+        },
+        {"_id": 0, "id": 1, "title": 1, "slug": 1, "excerpt": 1, "featured_image_url": 1, "category": 1, "status": 1, "created_at": 1, "author_name": 1, "body": 1},
     ).sort("created_at", -1).limit(limit)
     async for doc in cursor:
+        # Fall back to first 160 chars of body as excerpt if missing
+        if not doc.get("excerpt") and doc.get("body"):
+            text = re.sub(r"<[^>]+>", "", doc.get("body") or "")
+            doc["excerpt"] = text.strip()[:180]
+        doc.pop("body", None)
         items.append(doc)
     return items

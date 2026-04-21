@@ -105,6 +105,9 @@ const ContentDetailPage = () => {
   const [csSites, setCsSites] = useState([]);
   const [selectedCsSiteId, setSelectedCsSiteId] = useState('');
   const [publishingToCs, setPublishingToCs] = useState(false);
+  const [csPublishDialog, setCsPublishDialog] = useState(false);
+  const [csFeaturedImage, setCsFeaturedImage] = useState(null); // { url, file_name }
+  const [uploadingCsImage, setUploadingCsImage] = useState(false);
   const { isEditor: legacyIsEditor, isAdmin } = useAuth();
   const { canEdit, canDelete, canCreate } = usePermissions();
   const { registerEditor, unregisterEditor, openClara } = useClaraAssistant();
@@ -184,13 +187,37 @@ const ContentDetailPage = () => {
     const target = csSites.find(s => s.id === selectedCsSiteId);
     setPublishingToCs(true);
     try {
-      await axios.put(`${API}/content/${contentId}`, { status: 'ready' });
+      await axios.post(`${API}/code-studio/content/${contentId}/publish`, {
+        site_id: selectedCsSiteId,
+        featured_image_url: csFeaturedImage?.url || null,
+      });
       toast.success(`Published to ${target?.name || 'site'}`);
+      setCsPublishDialog(false);
+      setCsFeaturedImage(null);
       fetchContent();
-    } catch {
-      toast.error('Publish failed');
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || 'Publish failed');
     }
     setPublishingToCs(false);
+  };
+
+  const uploadCsFeaturedImage = async (file) => {
+    if (!file) return;
+    setUploadingCsImage(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await axios.post(`${API}/code-studio/upload`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.data?.url) {
+        setCsFeaturedImage({ url: res.data.url, file_name: file.name });
+        toast.success('Image uploaded');
+      }
+    } catch {
+      toast.error('Upload failed');
+    }
+    setUploadingCsImage(false);
   };
 
   const fetchCategories = async () => {
@@ -628,7 +655,7 @@ const ContentDetailPage = () => {
               </select>
               <Button
                 data-testid="publish-cs-btn"
-                onClick={publishToCsSite}
+                onClick={() => { setCsFeaturedImage(null); setCsPublishDialog(true); }}
                 disabled={!selectedCsSiteId || publishingToCs || isPublishBlocked}
                 className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&>svg]:text-white rounded-full px-5 disabled:opacity-50"
               >
@@ -1183,6 +1210,45 @@ const ContentDetailPage = () => {
       )}
 
       {/* Multi-site Publish Dialog - Wizard with Deploy Animation */}
+      {/* Code Studio Publish Dialog */}
+      <Dialog open={csPublishDialog} onOpenChange={(v) => { if (!publishingToCs) setCsPublishDialog(v); }}>
+        <DialogContent className="bg-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>Publish to {csSites.find(s => s.id === selectedCsSiteId)?.name || 'site'}</DialogTitle>
+            <DialogDescription>Optionally add a featured image that will show on the website.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <label className="text-xs font-semibold text-zinc-500 uppercase">Featured Image (optional)</label>
+            {csFeaturedImage?.url ? (
+              <div className="relative group">
+                <img src={csFeaturedImage.url} alt="" className="w-full h-44 object-cover rounded-xl border border-zinc-200" />
+                <button
+                  onClick={() => setCsFeaturedImage(null)}
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                  data-testid="cs-remove-featured-image"
+                ><X className="w-3.5 h-3.5" /></button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-zinc-200 rounded-xl cursor-pointer hover:border-[#7c1ac8] hover:bg-[#7c1ac8]/5 transition" data-testid="cs-upload-featured-dropzone">
+                <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && uploadCsFeaturedImage(e.target.files[0])} disabled={uploadingCsImage} />
+                {uploadingCsImage ? (
+                  <><Loader2 className="w-5 h-5 animate-spin text-zinc-400 mb-1" /><p className="text-xs text-zinc-400">Uploading...</p></>
+                ) : (
+                  <><Upload className="w-5 h-5 text-zinc-400 mb-1" /><p className="text-xs text-zinc-500 font-medium">Click or drop image to upload</p><p className="text-[10px] text-zinc-400 mt-0.5">JPG, PNG · max 10MB</p></>
+                )}
+              </label>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={() => setCsPublishDialog(false)} disabled={publishingToCs}>Cancel</Button>
+            <Button onClick={publishToCsSite} disabled={publishingToCs} className="bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&>svg]:text-white gap-2" data-testid="cs-confirm-publish-btn">
+              {publishingToCs ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              Publish
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={publishDialogOpen} onOpenChange={(v) => { if (!publishing) setPublishDialogOpen(v); }}>
         <DialogContent hideClose className="bg-white border-zinc-200 max-w-[700px] max-h-[85vh] overflow-hidden p-0 rounded-[24px] flex flex-col">
           {/* Header */}
