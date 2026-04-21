@@ -1461,12 +1461,12 @@ export default function CodeStudioPage() {
               {/* Custom domain section */}
               <div className="border-t border-zinc-100 pt-5">
                 <label className="text-xs font-semibold text-zinc-500 uppercase">Custom Domain</label>
-                <p className="text-[11px] text-zinc-400 mt-0.5 mb-2">Use your own domain (e.g. creativeyannick.com) to serve this site.</p>
+                <p className="text-[11px] text-zinc-400 mt-0.5 mb-2">Use your own domain (e.g. mycustomclaradomain.com) to serve this site.</p>
                 <div className="flex items-center gap-2">
                   <Input
                     value={customDomainInput}
                     onChange={e => setCustomDomainInput(e.target.value)}
-                    placeholder="creativeyannick.com"
+                    placeholder="mycustomclaradomain.com"
                     className="flex-1 font-mono text-xs"
                     data-testid="cs-custom-domain-input"
                   />
