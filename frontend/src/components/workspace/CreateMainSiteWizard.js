@@ -169,6 +169,102 @@ const StepFeatures = ({ siteType, selectedFeatures, onToggleFeature }) => {
   );
 };
 
+/* ── Step: Content Library (Code Studio only) ── */
+const StepContentLibrary = ({ linkedMainSiteId, onChange, token }) => {
+  const [sites, setSites] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSites = async () => {
+      try {
+        const res = await fetch(`${API}/api/main-sites`, { headers: { Authorization: `Bearer ${token}` } });
+        if (res.ok) {
+          const data = await res.json();
+          // Only show sites that actually have content_library enabled (radio sites typically)
+          const withCL = (Array.isArray(data) ? data : []).filter(s =>
+            (s.enabled_features || []).includes('content_library')
+          );
+          setSites(withCL);
+        }
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    if (token) fetchSites();
+  }, [token]);
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold text-zinc-900 mb-1">Content Library (optional)</h2>
+      <p className="text-sm text-zinc-500 mb-4">
+        Link a radio site's content library to this Code Studio so you can pull news articles into your website via the News Feed block.
+      </p>
+
+      <div className="space-y-2">
+        {/* Skip option */}
+        <button
+          onClick={() => onChange('')}
+          data-testid="cl-skip-btn"
+          className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
+            !linkedMainSiteId ? 'border-zinc-900 bg-zinc-50 shadow-md' : 'border-zinc-200 hover:border-zinc-400'
+          }`}
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: !linkedMainSiteId ? '#18181b15' : '#f4f4f5' }}>
+            <XCircle className="w-5 h-5" style={{ color: !linkedMainSiteId ? '#18181b' : '#a1a1aa' }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className={`text-sm font-semibold ${!linkedMainSiteId ? 'text-zinc-900' : 'text-zinc-600'}`}>No content library</div>
+            <div className="text-[11px] text-zinc-400 leading-snug">Skip — you can link one later from Code Studio settings</div>
+          </div>
+          {!linkedMainSiteId && (
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center flex-shrink-0">
+              <Check className="w-3.5 h-3.5 text-white" />
+            </motion.div>
+          )}
+        </button>
+
+        {loading && (
+          <div className="flex items-center justify-center py-8 text-zinc-400 text-sm">
+            <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading available sites...
+          </div>
+        )}
+
+        {!loading && sites.length === 0 && (
+          <div className="text-center py-6 px-4 rounded-xl bg-amber-50 border border-amber-200">
+            <p className="text-[11px] text-amber-700">No sites with a content library are available yet. Create a Radio Station first to enable linking.</p>
+          </div>
+        )}
+
+        {!loading && sites.map(site => {
+          const isActive = linkedMainSiteId === site.id;
+          return (
+            <button
+              key={site.id}
+              onClick={() => onChange(site.id)}
+              data-testid={`cl-site-${site.id}`}
+              className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
+                isActive ? 'border-zinc-900 bg-zinc-50 shadow-md' : 'border-zinc-200 hover:border-zinc-400'
+              }`}
+            >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#dd0c5120' : '#f4f4f5' }}>
+                <Radio className="w-5 h-5" style={{ color: isActive ? '#dd0c51' : '#a1a1aa' }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className={`text-sm font-semibold ${isActive ? 'text-zinc-900' : 'text-zinc-600'}`}>{site.name}</div>
+                <div className="text-[11px] text-zinc-400 font-mono">/{site.slug}</div>
+              </div>
+              {isActive && (
+                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3.5 h-3.5 text-white" />
+                </motion.div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 /* ── Step 3: Details ── */
 const StepDetails = ({ name, slug, onNameChange, onSlugChange, siteType }) => {
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
@@ -1108,6 +1204,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     default_post_type: 'post', default_publish_status: 'draft',
   });
   const [ztConfig, setZtConfig] = useState({ api_token: '', network_id: '' });
+  const [linkedMainSiteId, setLinkedMainSiteId] = useState('');
 
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const hasOptionalFeatures = (typeConfig?.optionalFeatures || []).length > 0;
@@ -1116,6 +1213,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   const features = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
 
   const isTechnicalType = siteType === 'technical';
+  const isCodeStudioType = siteType === 'code_studio';
 
   // Dynamic step mapping
   const getActualSteps = () => {
@@ -1125,6 +1223,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     if (isRadioType) steps.push('Stations');
     if (isTechnicalType) steps.push('ZeroTier');
     if (hasWordPress) steps.push('WordPress');
+    if (isCodeStudioType) steps.push('Content Library');
     steps.push('Admin', 'Security', 'Deploying');
     return steps;
   };
@@ -1179,6 +1278,9 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       require_2fa: require2FA,
       clara_enterprise: claraEnterprise,
     };
+    if (isCodeStudioType && linkedMainSiteId) {
+      body.linked_main_site_id = linkedMainSiteId;
+    }
     const apiPromise = fetch(`${API}/api/main-sites`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -1282,6 +1384,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     setAdminId(''); setRequire2FA(false); setClaraEnterprise(false); setDeployStatus(0);
     setDeploying(false); setDeployDone(false); setDeployError(null);
     setSelectedOptionalFeatures([]); setRdsStations([]);
+    setLinkedMainSiteId('');
     setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
     onClose();
   };
@@ -1293,6 +1396,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     if (stepName === 'Stations') return true; // stations are optional
     if (stepName === 'WordPress') return true; // wordpress is optional
     if (stepName === 'ZeroTier') return true; // zerotier is optional
+    if (stepName === 'Content Library') return true; // content library is optional
     if (stepName === 'Admin') return true;
     if (stepName === 'Security') return true;
     return false;
@@ -1372,12 +1476,13 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-              {stepName === 'Choosing a server' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
+              {stepName === 'Choosing a server' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setLinkedMainSiteId(''); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
               {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
               {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
               {stepName === 'Stations' && <StepStations stations={rdsStations} onStationsChange={setRdsStations} />}
               {stepName === 'ZeroTier' && <StepZeroTier ztConfig={ztConfig} onZtConfigChange={setZtConfig} />}
               {stepName === 'WordPress' && <StepWordPress wpConfig={wpConfig} onWpConfigChange={setWpConfig} />}
+              {stepName === 'Content Library' && <StepContentLibrary linkedMainSiteId={linkedMainSiteId} onChange={setLinkedMainSiteId} token={token} />}
               {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
               {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} isSystemAdmin={isSystemAdmin} />}
               {stepName === 'Deploying' && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import { useAuth } from '../context/AuthContext';
+import MainSiteContext from '../context/MainSiteContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -673,6 +674,8 @@ function Field({ label, value, onChange, multiline }) {
 // ── Main Component ──
 export default function CodeStudioPage() {
   const { token } = useAuth();
+  const mainSiteCtx = useContext(MainSiteContext);
+  const parentMainSite = mainSiteCtx?.mainSite || null;
   const [sites, setSites] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [components, setComponents] = useState([]);
@@ -724,8 +727,10 @@ export default function CodeStudioPage() {
   const handleCreate = async () => {
     if (!createName || !createSlug) return;
     setCreating(true);
+    // Prefer explicitly chosen link; fall back to the parent main_site's configured library
+    const effectiveLink = linkedSiteId || parentMainSite?.linked_main_site_id || null;
     try {
-      const res = await fetch(`${API}/api/code-studio/sites`, { method: 'POST', headers, body: JSON.stringify({ name: createName, slug: createSlug, template_id: createTemplate, linked_main_site_id: linkedSiteId || null }) });
+      const res = await fetch(`${API}/api/code-studio/sites`, { method: 'POST', headers, body: JSON.stringify({ name: createName, slug: createSlug, template_id: createTemplate, linked_main_site_id: effectiveLink }) });
       if (res.ok) {
         const data = await res.json();
         toast.success('Site created');
