@@ -61,6 +61,7 @@ const SITE_TYPE_BACKGROUNDS = {
   task_scheduler: '/images/env_task_scheduler.jpg',
   technical: '/images/env_technical.jpg',
   wp_security: '/images/env_wp_security.jpg',
+  code_studio: '/images/env_code_studio.jpg',
 };
 
 const roleIcons = {

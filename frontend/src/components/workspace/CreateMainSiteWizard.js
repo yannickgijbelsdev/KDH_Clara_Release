@@ -27,6 +27,7 @@ const SITE_TYPE_BACKGROUNDS = {
   task_scheduler: '/images/env_task_scheduler.jpg',
   technical: '/images/env_technical.jpg',
   wp_security: '/images/env_wp_security.jpg',
+  code_studio: '/images/env_code_studio.jpg',
 };
 const WIZARD_THUMBNAILS = {
   radio: '/images/wiz_radio.jpg',
@@ -35,6 +36,7 @@ const WIZARD_THUMBNAILS = {
   task_scheduler: '/images/wiz_task_scheduler.jpg',
   technical: '/images/wiz_technical.jpg',
   wp_security: '/images/wiz_wp_security.jpg',
+  code_studio: '/images/wiz_code_studio.jpg',
 };
 
 const SITE_TYPES = [

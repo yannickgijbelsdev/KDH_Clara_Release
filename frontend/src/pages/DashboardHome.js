@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Radio, Users, FileText, Calendar, ArrowRight, Search, Mic,
-  HardDrive, Network, LayoutGrid, Shield, ExternalLink,
+  HardDrive, Network, LayoutGrid, Shield, ExternalLink, Code2,
   Layers, Server, CheckCircle, Monitor, Wifi, WifiOff
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -19,6 +19,7 @@ const SITE_TYPE_THEMES = {
   technical:      { img: '/images/env_technical.jpg', accent: '#10b981', label: 'Data Connection',  icon: Network },
   task_scheduler: { img: '/images/env_task_scheduler.jpg', accent: '#8b5cf6', label: 'Task Manager',     icon: LayoutGrid },
   wp_security:    { img: '/images/env_wp_security.jpg', accent: '#ef4444', label: 'WP Security',      icon: Shield },
+  code_studio:    { img: '/images/env_code_studio.jpg', accent: '#7c1ac8', label: 'Code Studio',      icon: Code2 },
 };
 
 const Panel = ({ children, className = '', delay = 0, testId }) => (

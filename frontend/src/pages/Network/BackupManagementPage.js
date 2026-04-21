@@ -9,7 +9,7 @@ import {
   ArrowLeft, Download, RefreshCw, Trash2, Copy, Clock,
   CheckCircle, XCircle, Loader2, HardDrive, Shield, AlertTriangle,
   Database, FolderArchive, RotateCcw, Server, Search, X,
-  Radio, Network, LayoutGrid, ExternalLink, Zap, Plus,
+  Radio, Network, LayoutGrid, ExternalLink, Zap, Plus, Code2,
 } from 'lucide-react';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -50,6 +50,7 @@ const SITE_TYPE_CONFIG = {
   task_scheduler: { icon: LayoutGrid,   color: '#8b5cf6', label: 'Tasks',       bg: '/images/env_task_scheduler.jpg' },
   external_host:  { icon: ExternalLink, color: '#06b6d4', label: 'Ext. Host',   bg: '/images/env_external_host.jpg' },
   wp_security:    { icon: Shield,       color: '#ef4444', label: 'WP Security', bg: '/images/env_wp_security.jpg' },
+  code_studio:    { icon: Code2,        color: '#7c1ac8', label: 'Code Studio', bg: '/images/env_code_studio.jpg' },
 };
 
 const STATUS_CONFIG = {
