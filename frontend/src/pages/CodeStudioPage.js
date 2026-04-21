@@ -722,6 +722,55 @@ function Field({ label, value, onChange, multiline }) {
 
 
 // ── Main Component ──
+/* ── Site Preview Thumbnail: renders home page at ~22% scale ── */
+function SitePreviewThumb({ siteId, token }) {
+  const [sections, setSections] = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API}/api/code-studio/sites/${siteId}/pages`, { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) { if (!cancelled) setError(true); return; }
+        const pages = await res.json();
+        if (cancelled) return;
+        const home = pages.find(p => p.is_home) || pages.sort((a, b) => (a.order || 0) - (b.order || 0))[0];
+        setSections(home?.sections || []);
+      } catch { if (!cancelled) setError(true); }
+    })();
+    return () => { cancelled = true; };
+  }, [siteId, token]);
+
+  if (error || (sections && sections.length === 0)) {
+    return (
+      <div className="h-full w-full bg-gradient-to-br from-[#7c1ac8]/10 to-[#dd0c51]/10 flex items-center justify-center">
+        <Code2 className="w-10 h-10 text-[#7c1ac8]/30" />
+      </div>
+    );
+  }
+  if (!sections) {
+    return (
+      <div className="h-full w-full bg-zinc-50 flex items-center justify-center">
+        <Loader2 className="w-4 h-4 animate-spin text-zinc-300" />
+      </div>
+    );
+  }
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-white">
+      <div
+        className="absolute top-0 left-0 origin-top-left pointer-events-none select-none"
+        style={{ width: '1280px', transform: 'scale(0.22)', transformOrigin: 'top left' }}
+      >
+        {sections.map((section, i) => (
+          <SectionPreview key={section.id || i} section={section} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
 export default function CodeStudioPage() {
   const { token } = useAuth();
   const mainSiteCtx = useContext(MainSiteContext);
@@ -1167,7 +1216,10 @@ export default function CodeStudioPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sites.map(site => (
             <div key={site.id} className="rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg transition-shadow" data-testid={`studio-site-${site.slug}`}>
-              <div className="h-32 bg-gradient-to-br from-[#7c1ac8]/10 to-[#dd0c51]/10 flex items-center justify-center"><Code2 className="w-10 h-10 text-[#7c1ac8]/30" /></div>
+              <div className="h-40 bg-white border-b border-zinc-100 relative">
+                <SitePreviewThumb siteId={site.id} token={token} />
+                <div className="absolute inset-0 cursor-pointer" onClick={() => openEditor(site.id)} title="Open editor" />
+              </div>
               <div className="p-4">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="text-sm font-bold text-zinc-800">{site.name}</h3>
