@@ -345,6 +345,7 @@ COMPONENT_LIBRARY = [
     {"type": "divider", "label": "Divider", "icon": "minus", "category": "layout"},
     {"type": "spacer", "label": "Spacer", "icon": "move-vertical", "category": "layout"},
     {"type": "html", "label": "Custom HTML", "icon": "code", "category": "advanced"},
+    {"type": "news_feed", "label": "News / Blog Feed", "icon": "newspaper", "category": "content"},
 ]
 
 
@@ -557,3 +558,16 @@ async def serve_file(file_id: str):
         raise HTTPException(404, "File not found")
     data, content_type = get_object(record["storage_path"])
     return Response(content=data, media_type=record.get("content_type", content_type))
+
+
+@code_studio_router.get("/content-feed/{main_site_id}")
+async def get_content_feed(main_site_id: str, limit: int = 20, current_user: dict = Depends(get_current_user)):
+    """Fetch published content items for the news feed section."""
+    items = []
+    cursor = db.content_items.find(
+        {"main_site_id": main_site_id, "is_deleted": {"$ne": True}},
+        {"_id": 0, "id": 1, "title": 1, "slug": 1, "excerpt": 1, "featured_image_url": 1, "category": 1, "status": 1, "created_at": 1, "author_name": 1},
+    ).sort("created_at", -1).limit(limit)
+    async for doc in cursor:
+        items.append(doc)
+    return items

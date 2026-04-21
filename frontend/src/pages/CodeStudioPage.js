@@ -19,8 +19,61 @@ const SECTION_ICONS = {
   testimonials: MessageCircle, gallery: Image, contact: Mail,
   cta: Megaphone, footer: Minus, text: Type, image: Image,
   video: Play, divider: Minus, spacer: MoveVertical, html: Code2,
-  logos: Award, image_text: Columns,
+  logos: Award, image_text: Columns, news_feed: Grid3X3,
 };
+
+// ── Color Picker Field ──
+function ColorField({ label, value, onChange }) {
+  const [mode, setMode] = useState('hex');
+  const hexVal = value || '#000000';
+
+  const hexToRgb = (hex) => {
+    const h = hex.replace('#', '');
+    if (h.length !== 6) return { r: 0, g: 0, b: 0 };
+    return { r: parseInt(h.substring(0, 2), 16), g: parseInt(h.substring(2, 4), 16), b: parseInt(h.substring(4, 6), 16) };
+  };
+  const rgbToHex = (r, g, b) => '#' + [r, g, b].map(x => Math.max(0, Math.min(255, x)).toString(16).padStart(2, '0')).join('');
+  const rgb = hexToRgb(hexVal);
+
+  return (
+    <div>
+      <Label className="text-[10px] font-semibold text-zinc-400 uppercase">{label}</Label>
+      <div className="mt-1 flex items-center gap-1.5">
+        <input type="color" value={hexVal} onChange={e => onChange(e.target.value)} className="w-8 h-8 rounded-lg border border-zinc-200 cursor-pointer p-0.5" />
+        <div className="flex-1">
+          <div className="flex gap-0.5 mb-1">
+            {['hex', 'rgb'].map(m => (
+              <button key={m} onClick={() => setMode(m)} className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase ${mode === m ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500'}`}>{m}</button>
+            ))}
+          </div>
+          {mode === 'hex' ? (
+            <Input value={hexVal} onChange={e => { const v = e.target.value; if (/^#?[0-9a-fA-F]{0,6}$/.test(v.replace('#', ''))) onChange(v.startsWith('#') ? v : '#' + v); }} className="h-7 text-xs font-mono" />
+          ) : (
+            <div className="flex gap-1">
+              <Input type="number" min={0} max={255} value={rgb.r} onChange={e => onChange(rgbToHex(+e.target.value, rgb.g, rgb.b))} className="h-7 text-xs w-14 text-center" placeholder="R" />
+              <Input type="number" min={0} max={255} value={rgb.g} onChange={e => onChange(rgbToHex(rgb.r, +e.target.value, rgb.b))} className="h-7 text-xs w-14 text-center" placeholder="G" />
+              <Input type="number" min={0} max={255} value={rgb.b} onChange={e => onChange(rgbToHex(rgb.r, rgb.g, +e.target.value))} className="h-7 text-xs w-14 text-center" placeholder="B" />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Size Field (px) ──
+function SizeField({ label, value, onChange, min = 0, max = 200, unit = 'px' }) {
+  const numVal = parseInt(value) || min;
+  return (
+    <div>
+      <Label className="text-[10px] font-semibold text-zinc-400 uppercase">{label}</Label>
+      <div className="mt-1 flex items-center gap-2">
+        <input type="range" min={min} max={max} value={numVal} onChange={e => onChange(`${e.target.value}${unit}`)} className="flex-1 h-1.5 bg-zinc-200 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-zinc-900 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none" />
+        <Input value={value || ''} onChange={e => onChange(e.target.value)} className="h-7 text-xs w-16 text-center font-mono" />
+      </div>
+    </div>
+  );
+}
 
 // ── Section wrapper for background image/color ──
 function SectionWrapper({ section, children }) {
@@ -199,6 +252,30 @@ function SectionPreview({ section }) {
             <div className="flex gap-4 text-zinc-400">{(p.links || []).map((l, i) => <span key={i} className="hover:text-white cursor-pointer">{l.label}</span>)}</div>
           </div>
           <p className="text-[10px] text-zinc-600 mt-3">{p.copyright || ''}</p>
+        </div>
+      );
+      break;
+    case 'news_feed':
+      content = (
+        <div className="px-10 py-14" style={{ backgroundColor: p.section_bg_color || '#ffffff' }}>
+          <h2 className="text-2xl font-bold text-center mb-2" style={{ color: p.heading_color || '#18181b', fontSize: p.heading_size || '24px' }}>{p.headline || 'Latest News'}</h2>
+          <p className="text-sm text-center mb-10" style={{ color: p.text_color || '#71717a' }}>{p.subheadline || 'Stay up to date with our latest articles'}</p>
+          <div className={`grid gap-5`} style={{ gridTemplateColumns: `repeat(${p.columns || 3}, 1fr)` }}>
+            {(p._preview_items || [{ title: 'Article Title', excerpt: 'Preview of your content library articles will appear here...', category: 'News' }, { title: 'Another Article', excerpt: 'All published content items will be shown automatically.', category: 'Updates' }, { title: 'Latest Update', excerpt: 'Connect this section to your content library.', category: 'Blog' }]).slice(0, p.max_items || 6).map((item, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden border border-zinc-100 bg-white shadow-sm">
+                {item.featured_image_url ? (
+                  <img src={item.featured_image_url} alt="" className="w-full h-40 object-cover" />
+                ) : (
+                  <div className="w-full h-40 bg-gradient-to-br from-zinc-100 to-zinc-200 flex items-center justify-center"><Grid3X3 className="w-8 h-8 text-zinc-300" /></div>
+                )}
+                <div className="p-4">
+                  {item.category && <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: p.accent_color || '#dd0c51' }}>{item.category}</span>}
+                  <h3 className="text-sm font-bold mt-1" style={{ color: p.heading_color || '#18181b' }}>{item.title}</h3>
+                  <p className="text-xs mt-1 line-clamp-2" style={{ color: p.text_color || '#71717a' }}>{item.excerpt || ''}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       );
       break;
@@ -437,6 +514,52 @@ function PropertiesSidebar({ section, onChange, token }) {
               <Input value={t.quote} onChange={e => updateTestimonial(i, 'quote', e.target.value)} className="h-7 text-xs" placeholder="Quote" />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Styling: Colors & Sizes (universal) ── */}
+      <div className="border-t border-zinc-100 pt-3 mt-3">
+        <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-3">Styling</h4>
+        <ColorField label="Text Color" value={p.text_color || ''} onChange={v => update('text_color', v)} />
+        <ColorField label="Heading Color" value={p.heading_color || ''} onChange={v => update('heading_color', v)} />
+        <ColorField label="Background Color" value={p.section_bg_color || ''} onChange={v => update('section_bg_color', v)} />
+        <ColorField label="Accent / Button Color" value={p.accent_color || ''} onChange={v => update('accent_color', v)} />
+        <SizeField label="Heading Size" value={p.heading_size || '24px'} onChange={v => update('heading_size', v)} min={12} max={72} />
+        <SizeField label="Text Size" value={p.text_size || '14px'} onChange={v => update('text_size', v)} min={10} max={32} />
+        <SizeField label="Padding Top" value={p.padding_top || '48px'} onChange={v => update('padding_top', v)} min={0} max={200} />
+        <SizeField label="Padding Bottom" value={p.padding_bottom || '48px'} onChange={v => update('padding_bottom', v)} min={0} max={200} />
+        <SizeField label="Border Radius" value={p.border_radius || '0px'} onChange={v => update('border_radius', v)} min={0} max={48} />
+      </div>
+
+      {/* ── News Feed Config ── */}
+      {section.type === 'news_feed' && (
+        <div className="border-t border-zinc-100 pt-3 mt-3">
+          <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-3">Content Library</h4>
+          <Field label="Main Site ID (auto)" value={p.main_site_id || ''} onChange={v => update('main_site_id', v)} />
+          <SizeField label="Max Articles" value={String(p.max_items || 6)} onChange={v => update('max_items', parseInt(v) || 6)} min={1} max={24} unit="" />
+          <div>
+            <Label className="text-[10px] font-semibold text-zinc-400 uppercase">Columns</Label>
+            <div className="flex gap-1 mt-1">
+              {[2, 3, 4].map(n => (
+                <button key={n} onClick={() => update('columns', n)} className={`flex-1 text-xs py-1.5 rounded-lg font-medium ${(p.columns || 3) === n ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500'}`}>{n}</button>
+              ))}
+            </div>
+          </div>
+          <button onClick={async () => {
+            if (!p.main_site_id) { toast.error('Set a Main Site ID first'); return; }
+            try {
+              const res = await fetch(`${API}/api/code-studio/content-feed/${p.main_site_id}?limit=${p.max_items || 6}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (res.ok) {
+                const items = await res.json();
+                update('_preview_items', items);
+                toast.success(`Loaded ${items.length} articles`);
+              } else { toast.error('Failed to load content'); }
+            } catch { toast.error('Error'); }
+          }} className="w-full mt-2 text-xs py-2 rounded-lg bg-zinc-900 text-white font-semibold hover:bg-zinc-800 transition-colors">
+            Load Content Preview
+          </button>
         </div>
       )}
     </div>
