@@ -170,7 +170,7 @@ const StepFeatures = ({ siteType, selectedFeatures, onToggleFeature }) => {
 };
 
 /* ── Step: Content Library (Code Studio only) ── */
-const StepContentLibrary = ({ linkedMainSiteId, onChange, token }) => {
+const StepContentLibrary = ({ mode, linkedMainSiteId, onModeChange, onLinkChange, token }) => {
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -192,74 +192,120 @@ const StepContentLibrary = ({ linkedMainSiteId, onChange, token }) => {
     if (token) fetchSites();
   }, [token]);
 
+  const selectMode = (m) => {
+    onModeChange(m);
+    if (m !== 'linked') onLinkChange('');
+  };
+
   return (
     <div>
       <h2 className="text-xl font-bold text-zinc-900 mb-1">Content Library (optional)</h2>
       <p className="text-sm text-zinc-500 mb-4">
-        Link a radio site's content library to this Code Studio so you can pull news articles into your website via the News Feed block.
+        Choose how your Code Studio gets news articles for the News Feed block.
       </p>
 
       <div className="space-y-2">
-        {/* Skip option */}
+        {/* Option 1: Skip */}
         <button
-          onClick={() => onChange('')}
+          onClick={() => selectMode('none')}
           data-testid="cl-skip-btn"
           className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
-            !linkedMainSiteId ? 'border-zinc-900 bg-zinc-50 shadow-md' : 'border-zinc-200 hover:border-zinc-400'
+            mode === 'none' ? 'border-zinc-900 bg-zinc-50 shadow-md' : 'border-zinc-200 hover:border-zinc-400'
           }`}
         >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: !linkedMainSiteId ? '#18181b15' : '#f4f4f5' }}>
-            <XCircle className="w-5 h-5" style={{ color: !linkedMainSiteId ? '#18181b' : '#a1a1aa' }} />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: mode === 'none' ? '#18181b15' : '#f4f4f5' }}>
+            <XCircle className="w-5 h-5" style={{ color: mode === 'none' ? '#18181b' : '#a1a1aa' }} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className={`text-sm font-semibold ${!linkedMainSiteId ? 'text-zinc-900' : 'text-zinc-600'}`}>No content library</div>
-            <div className="text-[11px] text-zinc-400 leading-snug">Skip — you can link one later from Code Studio settings</div>
+            <div className={`text-sm font-semibold ${mode === 'none' ? 'text-zinc-900' : 'text-zinc-600'}`}>No content library</div>
+            <div className="text-[11px] text-zinc-400 leading-snug">Skip — you can add one later from settings</div>
           </div>
-          {!linkedMainSiteId && (
+          {mode === 'none' && (
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center flex-shrink-0">
               <Check className="w-3.5 h-3.5 text-white" />
             </motion.div>
           )}
         </button>
 
-        {loading && (
-          <div className="flex items-center justify-center py-8 text-zinc-400 text-sm">
-            <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading available sites...
+        {/* Option 2: Built-in content library */}
+        <button
+          onClick={() => selectMode('built_in')}
+          data-testid="cl-builtin-btn"
+          className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
+            mode === 'built_in' ? 'border-[#7c1ac8] bg-[#7c1ac8]/5 shadow-md' : 'border-zinc-200 hover:border-zinc-400'
+          }`}
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: mode === 'built_in' ? '#7c1ac820' : '#f4f4f5' }}>
+            <FileCode className="w-5 h-5" style={{ color: mode === 'built_in' ? '#7c1ac8' : '#a1a1aa' }} />
           </div>
-        )}
-
-        {!loading && sites.length === 0 && (
-          <div className="text-center py-6 px-4 rounded-xl bg-amber-50 border border-amber-200">
-            <p className="text-[11px] text-amber-700">No sites with a content library are available yet. Create a Radio Station first to enable linking.</p>
+          <div className="flex-1 min-w-0">
+            <div className={`text-sm font-semibold ${mode === 'built_in' ? 'text-zinc-900' : 'text-zinc-600'}`}>Built-in content library</div>
+            <div className="text-[11px] text-zinc-400 leading-snug">Create your own articles directly inside this Code Studio — no external site needed</div>
           </div>
-        )}
+          {mode === 'built_in' && (
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-[#7c1ac8] rounded-full flex items-center justify-center flex-shrink-0">
+              <Check className="w-3.5 h-3.5 text-white" />
+            </motion.div>
+          )}
+        </button>
 
-        {!loading && sites.map(site => {
-          const isActive = linkedMainSiteId === site.id;
-          return (
-            <button
-              key={site.id}
-              onClick={() => onChange(site.id)}
-              data-testid={`cl-site-${site.id}`}
-              className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
-                isActive ? 'border-zinc-900 bg-zinc-50 shadow-md' : 'border-zinc-200 hover:border-zinc-400'
-              }`}
-            >
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#dd0c5120' : '#f4f4f5' }}>
-                <Radio className="w-5 h-5" style={{ color: isActive ? '#dd0c51' : '#a1a1aa' }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className={`text-sm font-semibold ${isActive ? 'text-zinc-900' : 'text-zinc-600'}`}>{site.name}</div>
-                <div className="text-[11px] text-zinc-400 font-mono">/{site.slug}</div>
-              </div>
-              {isActive && (
-                <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Check className="w-3.5 h-3.5 text-white" />
-                </motion.div>
+        {/* Option 3: Link external radio site */}
+        <div className={`rounded-2xl border-2 transition-all overflow-hidden ${mode === 'linked' ? 'border-[#dd0c51] bg-[#dd0c51]/5' : 'border-zinc-200'}`}>
+          <button
+            onClick={() => selectMode('linked')}
+            data-testid="cl-linked-btn"
+            className="w-full flex items-center gap-3 p-4 text-left"
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: mode === 'linked' ? '#dd0c5120' : '#f4f4f5' }}>
+              <Radio className="w-5 h-5" style={{ color: mode === 'linked' ? '#dd0c51' : '#a1a1aa' }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className={`text-sm font-semibold ${mode === 'linked' ? 'text-zinc-900' : 'text-zinc-600'}`}>Link an existing radio site</div>
+              <div className="text-[11px] text-zinc-400 leading-snug">Pull articles from another main site's content library</div>
+            </div>
+            {mode === 'linked' && (
+              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-[#dd0c51] rounded-full flex items-center justify-center flex-shrink-0">
+                <Check className="w-3.5 h-3.5 text-white" />
+              </motion.div>
+            )}
+          </button>
+
+          {/* Radio site picker — only visible when 'linked' is selected */}
+          {mode === 'linked' && (
+            <div className="border-t border-zinc-200 bg-white p-3 space-y-2">
+              {loading && (
+                <div className="flex items-center justify-center py-4 text-zinc-400 text-xs">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> Loading sites...
+                </div>
               )}
-            </button>
-          );
-        })}
+              {!loading && sites.length === 0 && (
+                <div className="text-center py-3 px-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <p className="text-[11px] text-amber-700">No sites with a content library available yet. Create a Radio Station first.</p>
+                </div>
+              )}
+              {!loading && sites.map(site => {
+                const isActive = linkedMainSiteId === site.id;
+                return (
+                  <button
+                    key={site.id}
+                    onClick={() => onLinkChange(site.id)}
+                    data-testid={`cl-site-${site.id}`}
+                    className={`w-full flex items-center gap-2.5 p-2.5 rounded-lg border transition-all text-left ${
+                      isActive ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-400'
+                    }`}
+                  >
+                    <Radio className="w-4 h-4 flex-shrink-0" style={{ color: isActive ? '#dd0c51' : '#a1a1aa' }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-zinc-800">{site.name}</div>
+                      <div className="text-[10px] text-zinc-400 font-mono">/{site.slug}</div>
+                    </div>
+                    {isActive && <Check className="w-3.5 h-3.5 text-zinc-900 flex-shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1205,15 +1251,20 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
   });
   const [ztConfig, setZtConfig] = useState({ api_token: '', network_id: '' });
   const [linkedMainSiteId, setLinkedMainSiteId] = useState('');
+  const [clMode, setClMode] = useState('none'); // 'none' | 'built_in' | 'linked'
 
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const hasOptionalFeatures = (typeConfig?.optionalFeatures || []).length > 0;
   const isRadioType = siteType === 'radio';
   const hasWordPress = siteType === 'radio' || siteType === 'external_host';
-  const features = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
-
   const isTechnicalType = siteType === 'technical';
   const isCodeStudioType = siteType === 'code_studio';
+
+  // Build final feature set; inject content_library when Code Studio user chose 'built_in'
+  const baseFeatures = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
+  const features = isCodeStudioType && clMode === 'built_in' && !baseFeatures.includes('content_library')
+    ? [...baseFeatures, 'content_library', 'media_library']
+    : baseFeatures;
 
   // Dynamic step mapping
   const getActualSteps = () => {
@@ -1278,7 +1329,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       require_2fa: require2FA,
       clara_enterprise: claraEnterprise,
     };
-    if (isCodeStudioType && linkedMainSiteId) {
+    if (isCodeStudioType && clMode === 'linked' && linkedMainSiteId) {
       body.linked_main_site_id = linkedMainSiteId;
     }
     const apiPromise = fetch(`${API}/api/main-sites`, {
@@ -1384,7 +1435,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     setAdminId(''); setRequire2FA(false); setClaraEnterprise(false); setDeployStatus(0);
     setDeploying(false); setDeployDone(false); setDeployError(null);
     setSelectedOptionalFeatures([]); setRdsStations([]);
-    setLinkedMainSiteId('');
+    setLinkedMainSiteId(''); setClMode('none');
     setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
     onClose();
   };
@@ -1396,7 +1447,11 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     if (stepName === 'Stations') return true; // stations are optional
     if (stepName === 'WordPress') return true; // wordpress is optional
     if (stepName === 'ZeroTier') return true; // zerotier is optional
-    if (stepName === 'Content Library') return true; // content library is optional
+    if (stepName === 'Content Library') {
+      // If user chose 'linked', require a site selection; otherwise any valid choice passes
+      if (clMode === 'linked') return !!linkedMainSiteId;
+      return true;
+    }
     if (stepName === 'Admin') return true;
     if (stepName === 'Security') return true;
     return false;
@@ -1476,13 +1531,13 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-              {stepName === 'Choosing a server' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setLinkedMainSiteId(''); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
+              {stepName === 'Choosing a server' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setLinkedMainSiteId(''); setClMode('none'); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
               {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
               {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
               {stepName === 'Stations' && <StepStations stations={rdsStations} onStationsChange={setRdsStations} />}
               {stepName === 'ZeroTier' && <StepZeroTier ztConfig={ztConfig} onZtConfigChange={setZtConfig} />}
               {stepName === 'WordPress' && <StepWordPress wpConfig={wpConfig} onWpConfigChange={setWpConfig} />}
-              {stepName === 'Content Library' && <StepContentLibrary linkedMainSiteId={linkedMainSiteId} onChange={setLinkedMainSiteId} token={token} />}
+              {stepName === 'Content Library' && <StepContentLibrary mode={clMode} linkedMainSiteId={linkedMainSiteId} onModeChange={setClMode} onLinkChange={setLinkedMainSiteId} token={token} />}
               {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
               {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} isSystemAdmin={isSystemAdmin} />}
               {stepName === 'Deploying' && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}
