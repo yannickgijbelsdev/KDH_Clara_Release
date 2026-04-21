@@ -10,6 +10,7 @@ import {
   Mail, Layout, Menu as MenuIcon, Minus, MoveVertical, Play,
   Megaphone, Grid3X3, Loader2, Copy, Award, Columns,
   Pencil, ArrowUp, ArrowDown, Save, Settings, Link2,
+  Monitor, Tablet, Smartphone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -814,6 +815,7 @@ export default function CodeStudioPage() {
   const [mainSites, setMainSites] = useState([]);
   const [linkedSiteId, setLinkedSiteId] = useState('');
   const [showSiteSettings, setShowSiteSettings] = useState(false);
+  const [device, setDevice] = useState('desktop'); // 'desktop' | 'tablet' | 'mobile'
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -1050,6 +1052,29 @@ export default function CodeStudioPage() {
             <span className="text-sm font-semibold text-zinc-800">{editingSite.name}</span>
             <span className="text-xs text-zinc-400 font-mono">/{editingSite.slug}</span>
           </div>
+
+          {/* Device switcher */}
+          <div className="flex items-center gap-0.5 bg-zinc-100 rounded-lg p-0.5" data-testid="device-switcher">
+            {[
+              { id: 'desktop', Icon: Monitor, label: 'Desktop' },
+              { id: 'tablet', Icon: Tablet, label: 'Tablet' },
+              { id: 'mobile', Icon: Smartphone, label: 'Mobile' },
+            ].map(({ id, Icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setDevice(id)}
+                data-testid={`device-${id}-btn`}
+                title={label}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  device === id ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500 hover:text-zinc-700'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{label}</span>
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setShowSiteSettings(true)} className="gap-1.5 text-xs"><Settings className="w-3.5 h-3.5" /> Settings</Button>
             <Button variant="outline" size="sm" onClick={() => setShowComponentLib(true)} className="gap-1.5 text-xs"><Plus className="w-3.5 h-3.5" /> Add Section</Button>
@@ -1077,7 +1102,13 @@ export default function CodeStudioPage() {
           <div className="flex-1 flex overflow-hidden">
           {/* Canvas */}
           <div className="flex-1 overflow-y-auto bg-zinc-100 p-6">
-            <div className="max-w-4xl mx-auto">
+            <div
+              className={`mx-auto transition-all duration-300 ${device !== 'desktop' ? 'bg-white rounded-2xl shadow-2xl overflow-hidden border border-zinc-300' : ''}`}
+              style={{
+                maxWidth: device === 'mobile' ? '390px' : device === 'tablet' ? '820px' : '1280px',
+              }}
+              data-testid={`canvas-${device}`}
+            >
               {sections.map((section, index) => {
                 const isSelected = selectedIdx === index;
                 return (
