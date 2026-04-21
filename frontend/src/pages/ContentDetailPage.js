@@ -630,7 +630,7 @@ const ContentDetailPage = () => {
                 data-testid="publish-cs-btn"
                 onClick={publishToCsSite}
                 disabled={!selectedCsSiteId || publishingToCs || isPublishBlocked}
-                className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] text-white rounded-full px-5 disabled:opacity-50"
+                className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&>svg]:text-white rounded-full px-5 disabled:opacity-50"
               >
                 {publishingToCs ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                 {selectedCsSiteId
