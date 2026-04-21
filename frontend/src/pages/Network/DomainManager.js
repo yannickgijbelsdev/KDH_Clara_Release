@@ -240,13 +240,24 @@ export default function DomainManager() {
     setDeleteDialog({ open: false, type: '', id: '', name: '' });
   };
 
+  const [verifyResult, setVerifyResult] = useState(null);
+
   const verifyDomain = async (mainSiteId) => {
     setVerifying(mainSiteId);
+    setVerifyResult(null);
     try {
       const res = await fetch(`${API}/api/domains/configs/${mainSiteId}/verify`, { method: 'POST', headers });
       const data = await res.json();
-      if (data.verified) toast.success('Domain verified successfully!');
-      else toast.error(data.error || 'Verification failed');
+      setVerifyResult(data);
+      if (data.verified && data.worker_status === 'ok') {
+        toast.success('Domain fully verified — DNS, verification and Worker routing all OK');
+      } else if (data.verified && data.main_cname_ok) {
+        toast.success('Verification OK. Waiting for SSL / Worker (can take a few minutes)');
+      } else if (data.verified) {
+        toast.warning('Verification CNAME OK, but main CNAME is missing or incorrect');
+      } else {
+        toast.error(data.error || 'Verification failed');
+      }
       fetchData();
     } catch { toast.error('Verification failed'); }
     setVerifying(null);
@@ -1309,13 +1320,31 @@ export default function DomainManager() {
           )}
 
           {/* Step 2 (custom only): DNS records instructions */}
-          {domainStep === 2 && domainForm.domain_type === 'custom' && (
+          {domainStep === 2 && domainForm.domain_type === 'custom' && (() => {
+            const isApex = domainForm.custom_domain && domainForm.custom_domain.split('.').length === 2;
+            return (
             <div className="space-y-4">
               <p className="text-xs text-zinc-400">Add the following DNS records at your domain provider or Cloudflare.</p>
+
+              {isApex && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-2" data-testid="apex-domain-warning">
+                  <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-[11px] text-amber-700 leading-relaxed">
+                    <div className="font-semibold mb-1">Apex/root domain gedetecteerd</div>
+                    <p>DNS-standaarden laten geen CNAME toe op een apex-domein (<code className="font-mono">{domainForm.custom_domain}</code>). Kies een van deze opties:</p>
+                    <ul className="list-disc pl-4 mt-1 space-y-0.5">
+                      <li><strong>Cloudflare</strong> (aanbevolen): voeg gewoon de CNAME toe — Cloudflare "flattent" hem automatisch.</li>
+                      <li><strong>Andere provider</strong>: gebruik een <strong>ALIAS</strong> of <strong>ANAME</strong> record met dezelfde waarde.</li>
+                      <li><strong>Redirect</strong>: stel <code className="font-mono">{domainForm.custom_domain}</code> in als redirect naar <code className="font-mono">www.{domainForm.custom_domain}</code> en koppel het <code className="font-mono">www</code> subdomein.</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <div className="bg-zinc-50 rounded-lg p-3 border border-zinc-200">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-zinc-500 uppercase">CNAME Record (required)</span>
+                    <span className="text-[10px] text-zinc-500 uppercase">{isApex ? 'CNAME / ALIAS / ANAME (required)' : 'CNAME Record (required)'}</span>
                     <button onClick={() => copyToClipboard(`${domainForm.custom_domain} CNAME clara.${baseDomain}`)} className="text-zinc-500 hover:text-zinc-600"><Copy className="w-3 h-3" /></button>
                   </div>
                   <code className="text-xs text-emerald-400 font-mono">{domainForm.custom_domain} &rarr; clara.{baseDomain}</code>
@@ -1336,20 +1365,56 @@ export default function DomainManager() {
                 <Button onClick={() => setDomainStep(3)} className="flex-1">I've added the records</Button>
               </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* Step 3 (custom): Verify / Done */}
           {domainStep === 3 && domainForm.domain_type === 'custom' && (
             <div className="space-y-4">
-              <div className="flex flex-col items-center py-4">
-                <Clock className="w-8 h-8 text-amber-400 mb-2" />
-                <p className="text-sm text-zinc-700 font-medium">Waiting for DNS propagation</p>
-                <p className="text-xs text-zinc-400 mt-1 text-center">DNS changes can take up to 24 hours to propagate. You can verify the connection at any time.</p>
-              </div>
+              {!verifyResult ? (
+                <div className="flex flex-col items-center py-4">
+                  <Clock className="w-8 h-8 text-amber-400 mb-2" />
+                  <p className="text-sm text-zinc-700 font-medium">Waiting for DNS propagation</p>
+                  <p className="text-xs text-zinc-400 mt-1 text-center">DNS changes can take up to 24 hours to propagate. You can verify the connection at any time.</p>
+                </div>
+              ) : (
+                <div className="space-y-2" data-testid="verify-result-details">
+                  {/* Verification CNAME */}
+                  <div className={`rounded-lg border p-2.5 flex items-start gap-2 ${verifyResult.verified ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                    {verifyResult.verified ? <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" /> : <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />}
+                    <div className="text-[11px] leading-relaxed">
+                      <div className="font-semibold text-zinc-700">Verification CNAME</div>
+                      <p className="text-zinc-600">{verifyResult.verified ? `Verified: _clara-verify → ${verifyResult.expected_target}` : (verifyResult.error || 'CNAME not found or does not match')}</p>
+                    </div>
+                  </div>
+                  {/* Main CNAME / A */}
+                  <div className={`rounded-lg border p-2.5 flex items-start gap-2 ${verifyResult.main_cname_ok ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
+                    {verifyResult.main_cname_ok ? <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />}
+                    <div className="text-[11px] leading-relaxed">
+                      <div className="font-semibold text-zinc-700">Main {verifyResult.main_dns_mode === 'a' ? 'A Record' : 'CNAME'} {verifyResult.is_apex ? '(apex)' : ''}</div>
+                      <p className="text-zinc-600">{verifyResult.main_cname_target ? `→ ${verifyResult.main_cname_target}` : 'No record found — add the main CNAME (or ALIAS/ANAME for apex)'}</p>
+                    </div>
+                  </div>
+                  {/* Worker routing */}
+                  <div className={`rounded-lg border p-2.5 flex items-start gap-2 ${verifyResult.worker_status === 'ok' ? 'bg-emerald-50 border-emerald-200' : verifyResult.worker_status === 'missing' ? 'bg-red-50 border-red-200' : 'bg-zinc-50 border-zinc-200'}`}>
+                    {verifyResult.worker_status === 'ok' ? <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" /> : verifyResult.worker_status === 'missing' ? <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" /> : <Clock className="w-4 h-4 text-zinc-400 flex-shrink-0 mt-0.5" />}
+                    <div className="text-[11px] leading-relaxed">
+                      <div className="font-semibold text-zinc-700">Cloudflare Worker &amp; HTTP</div>
+                      <p className="text-zinc-600">
+                        {verifyResult.worker_status === 'ok' && `Reachable (HTTP ${verifyResult.http_code || 'OK'})`}
+                        {verifyResult.worker_status === 'missing' && 'Worker heeft dit domein nog niet in de route-tabel'}
+                        {verifyResult.worker_status === 'ssl_pending' && 'SSL wordt nog uitgegeven door Cloudflare (kan enkele minuten duren)'}
+                        {verifyResult.worker_status === 'unreachable' && 'Niet bereikbaar — DNS nog niet gepropageerd?'}
+                        {verifyResult.worker_status === 'unknown' && 'Niet getest (hoofd-record ontbreekt)'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <Button onClick={() => { verifyDomain(editingSite?.id); }} disabled={verifying === editingSite?.id} className="w-full" data-testid="verify-domain-wizard-btn">
-                {verifying === editingSite?.id ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Verifying...</> : <><RefreshCw className="w-4 h-4 mr-2" />Verify Now</>}
+                {verifying === editingSite?.id ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Verifying...</> : <><RefreshCw className="w-4 h-4 mr-2" />{verifyResult ? 'Re-check' : 'Verify Now'}</>}
               </Button>
-              <Button variant="outline" onClick={() => setDomainDialog(false)} className="w-full">Close</Button>
+              <Button variant="outline" onClick={() => { setDomainDialog(false); setVerifyResult(null); }} className="w-full">Close</Button>
             </div>
           )}
 

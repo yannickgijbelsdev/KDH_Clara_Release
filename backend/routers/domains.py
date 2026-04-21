@@ -110,11 +110,20 @@ DEFAULT_SUBDOMAIN_ROUTES = [
         "is_active": False,
         "is_system": True,
     },
+    {
+        "subdomain": "verify",
+        "label": "Domain Verification",
+        "description": "Target record for custom domain CNAME verification (_clara-verify.<domain> → verify.koodh.com)",
+        "route_type": "app",
+        "target_path": "/verify",
+        "is_active": True,
+        "is_system": True,
+    },
 ]
 
 
 async def seed_subdomain_routes():
-    """Seed default subdomain routes if none exist."""
+    """Seed default subdomain routes if none exist, and backfill missing system routes."""
     count = await db.subdomain_routes.count_documents({})
     if count == 0:
         for route in DEFAULT_SUBDOMAIN_ROUTES:
@@ -123,6 +132,17 @@ async def seed_subdomain_routes():
             route["updated_at"] = _now()
             await db.subdomain_routes.insert_one(route)
         logger.info(f"Seeded {len(DEFAULT_SUBDOMAIN_ROUTES)} default subdomain routes")
+        return
+
+    # Backfill: add any system subdomains that aren't yet present (e.g. 'verify' on older installs)
+    for route in DEFAULT_SUBDOMAIN_ROUTES:
+        if not route.get("is_system"):
+            continue
+        existing = await db.subdomain_routes.find_one({"subdomain": route["subdomain"]})
+        if not existing:
+            new_route = {**route, "id": str(uuid.uuid4()), "created_at": _now(), "updated_at": _now()}
+            await db.subdomain_routes.insert_one(new_route)
+            logger.info(f"Backfilled missing system subdomain route: {route['subdomain']}")
 
 
 # ---------- Cloudflare Config ----------
@@ -906,22 +926,76 @@ async def verify_custom_domain(
         dns_error = f"DNS lookup failed: {str(e)}"
 
     # Also check main CNAME pointing to Clara
+    # Apex domains (e.g. example.com) typically cannot have a CNAME — fall back to A record lookup.
+    is_apex = custom_domain.count(".") == 1  # naive but works for most TLDs: example.com → True, www.example.com → False
     main_cname_ok = False
+    main_cname_target = None
+    main_dns_mode = "none"  # 'cname' | 'a' | 'none'
     try:
         answers = dns.resolver.resolve(custom_domain, "CNAME")
         for rdata in answers:
             target = str(rdata.target).rstrip(".")
+            main_cname_target = target
+            main_dns_mode = "cname"
             if "koodh.com" in target or "emergentagent.com" in target:
                 main_cname_ok = True
                 break
     except Exception:
-        pass
+        # No CNAME — for apex this is expected; try A record (Cloudflare flattened CNAME / ALIAS / ANAME)
+        try:
+            a_answers = dns.resolver.resolve(custom_domain, "A")
+            ips = [str(r) for r in a_answers]
+            if ips:
+                main_dns_mode = "a"
+                main_cname_target = ",".join(ips[:3])
+                # Cloudflare proxy IPs: 104.16.0.0/12, 104.24.0.0/14, 172.64.0.0/13, 162.158.0.0/15, 173.245.48.0/20, 103.21.244.0/22
+                cf_ranges = ("104.", "172.64.", "172.65.", "172.66.", "172.67.", "162.158.", "173.245.", "103.21.244.", "103.22.200.", "103.31.4.", "141.101.", "108.162.", "190.93.", "188.114.", "197.234.240.", "198.41.")
+                if any(ip.startswith(r) for ip in ips for r in cf_ranges):
+                    main_cname_ok = True  # Cloudflare-proxied A record → treat as OK (CNAME flattening / ALIAS)
+        except Exception:
+            pass
+
+    # Worker routing & HTTP reachability check
+    worker_status = "unknown"
+    http_status = "unknown"
+    http_code = None
+    if main_cname_ok:
+        try:
+            async with httpx.AsyncClient(timeout=8, follow_redirects=False) as client:
+                resp = await client.get(f"https://{custom_domain}/")
+                http_code = resp.status_code
+                if resp.status_code in (200, 301, 302, 304):
+                    http_status = "ok"
+                    worker_status = "ok"
+                elif resp.status_code == 404:
+                    body = resp.text[:500]
+                    if "niet geconfigureerd" in body or "not configured" in body.lower():
+                        http_status = "not_in_worker"
+                        worker_status = "missing"
+                    else:
+                        http_status = "ok"
+                        worker_status = "ok"
+                elif resp.status_code in (525, 526, 495, 496):
+                    http_status = "ssl_pending"
+                    worker_status = "ssl_pending"
+                else:
+                    http_status = f"http_{resp.status_code}"
+                    worker_status = "unknown"
+        except Exception as e:
+            http_status = "unreachable"
+            worker_status = "unreachable"
+            logger.warning(f"Worker check failed for {custom_domain}: {e}")
 
     update = {"updated_at": _now()}
     if verified:
         update["verification_status"] = "verified"
         update["dns_status"] = "active" if main_cname_ok else "cname_missing"
-        update["ssl_status"] = "pending_issuance"
+        if worker_status == "ok":
+            update["ssl_status"] = "active"
+        elif worker_status in ("missing", "ssl_pending"):
+            update["ssl_status"] = "pending_issuance"
+        else:
+            update["ssl_status"] = "pending_issuance"
     else:
         update["verification_status"] = "failed"
         update["dns_error"] = dns_error
@@ -934,6 +1008,12 @@ async def verify_custom_domain(
     return {
         "verified": verified,
         "main_cname_ok": main_cname_ok,
+        "main_cname_target": main_cname_target,
+        "main_dns_mode": main_dns_mode,
+        "is_apex": is_apex,
+        "worker_status": worker_status,
+        "http_status": http_status,
+        "http_code": http_code,
         "error": dns_error,
         "verify_domain": verify_domain,
         "expected_target": expected_target,
