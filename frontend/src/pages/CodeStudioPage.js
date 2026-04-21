@@ -8,7 +8,7 @@ import {
   Plus, Globe, Code2, Trash2, X, Type, Image, CreditCard, MessageCircle,
   Mail, Layout, Menu as MenuIcon, Minus, MoveVertical, Play,
   Megaphone, Grid3X3, Loader2, Copy, Award, Columns,
-  Pencil, ArrowUp, ArrowDown, Save,
+  Pencil, ArrowUp, ArrowDown, Save, Settings, Link2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -335,7 +335,7 @@ function ImageField({ label, value, onChange, token }) {
 }
 
 // ── Properties Sidebar ──
-function PropertiesSidebar({ section, onChange, token }) {
+function PropertiesSidebar({ section, onChange, token, linkedMainSiteId }) {
   const p = section.props || {};
   const update = (key, val) => onChange({ ...section, props: { ...p, [key]: val } });
 
@@ -535,7 +535,11 @@ function PropertiesSidebar({ section, onChange, token }) {
       {section.type === 'news_feed' && (
         <div className="border-t border-zinc-100 pt-3 mt-3">
           <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-3">Content Library</h4>
-          <Field label="Main Site ID (auto)" value={p.main_site_id || ''} onChange={v => update('main_site_id', v)} />
+          {linkedMainSiteId ? (
+            <div className="flex items-center gap-2 text-[11px] text-emerald-600 mb-2"><Link2 className="w-3 h-3" /> Linked to content library</div>
+          ) : (
+            <p className="text-[11px] text-amber-600 mb-2">No content library linked. Go to Settings to connect one.</p>
+          )}
           <SizeField label="Max Articles" value={String(p.max_items || 6)} onChange={v => update('max_items', parseInt(v) || 6)} min={1} max={24} unit="" />
           <div>
             <Label className="text-[10px] font-semibold text-zinc-400 uppercase">Columns</Label>
@@ -546,14 +550,16 @@ function PropertiesSidebar({ section, onChange, token }) {
             </div>
           </div>
           <button onClick={async () => {
-            if (!p.main_site_id) { toast.error('Set a Main Site ID first'); return; }
+            const siteId = linkedMainSiteId;
+            if (!siteId) { toast.error('No content library linked'); return; }
             try {
-              const res = await fetch(`${API}/api/code-studio/content-feed/${p.main_site_id}?limit=${p.max_items || 6}`, {
+              const res = await fetch(`${API}/api/code-studio/content-feed/${siteId}?limit=${p.max_items || 6}`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (res.ok) {
                 const items = await res.json();
                 update('_preview_items', items);
+                update('main_site_id', siteId);
                 toast.success(`Loaded ${items.length} articles`);
               } else { toast.error('Failed to load content'); }
             } catch { toast.error('Error'); }
@@ -603,19 +609,27 @@ export default function CodeStudioPage() {
   const [showComponentLib, setShowComponentLib] = useState(false);
   const [showNewPage, setShowNewPage] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState('');
+  const [mainSites, setMainSites] = useState([]);
+  const [linkedSiteId, setLinkedSiteId] = useState('');
+  const [showSiteSettings, setShowSiteSettings] = useState(false);
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   const fetchData = useCallback(async () => {
     try {
-      const [s, t, c] = await Promise.all([
+      const [s, t, c, ms] = await Promise.all([
         fetch(`${API}/api/code-studio/sites`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API}/api/code-studio/templates`),
         fetch(`${API}/api/code-studio/components`),
+        fetch(`${API}/api/main-sites`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       if (s.ok) setSites(await s.json());
       if (t.ok) setTemplates(await t.json());
       if (c.ok) setComponents(await c.json());
+      if (ms.ok) {
+        const msData = await ms.json();
+        setMainSites(Array.isArray(msData) ? msData : msData.sites || []);
+      }
     } catch (e) { console.error(e); }
     setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -627,7 +641,7 @@ export default function CodeStudioPage() {
     if (!createName || !createSlug) return;
     setCreating(true);
     try {
-      const res = await fetch(`${API}/api/code-studio/sites`, { method: 'POST', headers, body: JSON.stringify({ name: createName, slug: createSlug, template_id: createTemplate }) });
+      const res = await fetch(`${API}/api/code-studio/sites`, { method: 'POST', headers, body: JSON.stringify({ name: createName, slug: createSlug, template_id: createTemplate, linked_main_site_id: linkedSiteId || null }) });
       if (res.ok) {
         const data = await res.json();
         toast.success('Site created');
@@ -649,7 +663,11 @@ export default function CodeStudioPage() {
         fetch(`${API}/api/code-studio/sites/${siteId}`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API}/api/code-studio/sites/${siteId}/pages`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
-      if (sR.ok) setEditingSite(await sR.json());
+      if (sR.ok) {
+        const siteData = await sR.json();
+        setEditingSite(siteData);
+        setLinkedSiteId(siteData.linked_main_site_id || '');
+      }
       if (pagesR.ok) {
         const allPages = await pagesR.json();
         setPages(allPages);
@@ -657,6 +675,20 @@ export default function CodeStudioPage() {
         if (target) { setEditingPage(target); setSections(target.sections || []); }
       }
     } catch (e) { console.error(e); }
+  };
+
+  const saveSiteSettings = async () => {
+    if (!editingSite) return;
+    try {
+      const res = await fetch(`${API}/api/code-studio/sites/${editingSite.id}`, {
+        method: 'PUT', headers, body: JSON.stringify({ linked_main_site_id: linkedSiteId }),
+      });
+      if (res.ok) {
+        setEditingSite(prev => ({ ...prev, linked_main_site_id: linkedSiteId }));
+        toast.success('Settings saved');
+        setShowSiteSettings(false);
+      } else toast.error('Failed to save');
+    } catch { toast.error('Error'); }
   };
 
   const switchPage = async (page) => {
@@ -815,6 +847,7 @@ export default function CodeStudioPage() {
             <span className="text-xs text-zinc-400 font-mono">/{editingSite.slug}</span>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setShowSiteSettings(true)} className="gap-1.5 text-xs"><Settings className="w-3.5 h-3.5" /> Settings</Button>
             <Button variant="outline" size="sm" onClick={() => setShowComponentLib(true)} className="gap-1.5 text-xs"><Plus className="w-3.5 h-3.5" /> Add Section</Button>
             <Button variant="outline" size="sm" onClick={savePage} disabled={saving} className="gap-1.5 text-xs"><Save className="w-3.5 h-3.5" /> {saving ? 'Saving...' : 'Save'}</Button>
             <Button size="sm" onClick={publishSite} className="gap-1.5 text-xs bg-[#dd0c51] hover:bg-[#c40a47] !text-white [&>svg]:text-white"><Globe className="w-3.5 h-3.5" /> Publish</Button>
@@ -876,7 +909,7 @@ export default function CodeStudioPage() {
                 <h4 className="text-sm font-bold text-zinc-800 capitalize">{selectedSection.type}</h4>
                 <button onClick={() => setSelectedIdx(null)} className="text-zinc-400 hover:text-zinc-600"><X className="w-4 h-4" /></button>
               </div>
-              <PropertiesSidebar section={selectedSection} onChange={updated => updateSection(selectedIdx, updated)} token={token} />
+              <PropertiesSidebar section={selectedSection} onChange={updated => updateSection(selectedIdx, updated)} token={token} linkedMainSiteId={editingSite?.linked_main_site_id || linkedSiteId} />
             </div>
           )}
         </div>
@@ -910,6 +943,34 @@ export default function CodeStudioPage() {
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowNewPage(false)}>Cancel</Button>
               <Button onClick={createPage} disabled={!newPageTitle} className="bg-zinc-900 hover:bg-zinc-800 text-white" data-testid="create-page-btn">Create Page</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Site Settings Dialog */}
+        <Dialog open={showSiteSettings} onOpenChange={setShowSiteSettings}>
+          <DialogContent className="bg-white max-w-md">
+            <DialogHeader><DialogTitle>Site Settings</DialogTitle></DialogHeader>
+            <div className="space-y-4 py-2">
+              <div>
+                <Label className="text-xs font-semibold text-zinc-500 uppercase">Linked Content Library</Label>
+                <p className="text-[11px] text-zinc-400 mt-0.5 mb-2">Connect a main site to pull articles into news feed sections.</p>
+                <select value={linkedSiteId} onChange={e => setLinkedSiteId(e.target.value)} className="w-full h-9 rounded-lg border border-zinc-200 bg-zinc-50 text-sm px-3 text-zinc-700">
+                  <option value="">No content library</option>
+                  {mainSites.filter(s => s.site_type !== 'code_studio').map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                {linkedSiteId && (
+                  <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-600">
+                    <Link2 className="w-3 h-3" /> Linked to: {mainSites.find(s => s.id === linkedSiteId)?.name || linkedSiteId}
+                  </div>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSiteSettings(false)}>Cancel</Button>
+              <Button onClick={saveSiteSettings} className="bg-zinc-900 hover:bg-zinc-800 text-white">Save Settings</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -979,6 +1040,18 @@ export default function CodeStudioPage() {
                 ))}
               </div>
             </div>
+
+            {/* Content Library Link */}
+            <div>
+              <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">Link Content Library (optional)</label>
+              <p className="text-[11px] text-zinc-400 mb-2">Connect a main site's content library to show articles on your website.</p>
+              <select value={linkedSiteId} onChange={e => setLinkedSiteId(e.target.value)} className="w-full h-9 rounded-lg border border-zinc-200 bg-zinc-50 text-sm px-3 text-zinc-700">
+                <option value="">No content library</option>
+                {mainSites.filter(s => s.site_type !== 'code_studio').map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
@@ -987,7 +1060,6 @@ export default function CodeStudioPage() {
         </DialogContent>
       </Dialog>
 
-      {/* DNS Dialog */}
       <Dialog open={!!showDns} onOpenChange={() => { setShowDns(null); setDnsInfo(null); }}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader><DialogTitle>Domain & DNS</DialogTitle></DialogHeader>

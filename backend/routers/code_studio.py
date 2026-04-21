@@ -27,6 +27,7 @@ class CreateSiteBody(BaseModel):
     slug: str
     custom_domain: Optional[str] = None
     template_id: Optional[str] = None
+    linked_main_site_id: Optional[str] = None
 
 
 class UpdateSiteBody(BaseModel):
@@ -38,6 +39,7 @@ class UpdateSiteBody(BaseModel):
     custom_css: Optional[str] = None
     custom_js: Optional[str] = None
     published: Optional[bool] = None
+    linked_main_site_id: Optional[str] = None
 
 
 class SavePageBody(BaseModel):
@@ -400,6 +402,7 @@ async def create_site(body: CreateSiteBody, current_user: dict = Depends(get_cur
         "custom_css": "",
         "custom_js": "",
         "published": False,
+        "linked_main_site_id": body.linked_main_site_id or "",
         "main_site_id": current_user.get("main_site_id", ""),
         "created_by": current_user["id"],
         "created_at": _now(),
