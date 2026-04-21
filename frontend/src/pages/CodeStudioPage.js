@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useCallback, useContext, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import MainSiteContext from '../context/MainSiteContext';
 import { Button } from '../components/ui/button';
@@ -722,10 +722,12 @@ function Field({ label, value, onChange, multiline }) {
 
 
 // ── Main Component ──
-/* ── Site Preview Thumbnail: renders home page at ~22% scale ── */
+/* ── Site Preview Thumbnail: renders home page at container-width scale ── */
 function SitePreviewThumb({ siteId, token }) {
   const [sections, setSections] = useState(null);
   const [error, setError] = useState(false);
+  const wrapRef = useRef(null);
+  const [scale, setScale] = useState(0.25);
 
   useEffect(() => {
     let cancelled = false;
@@ -742,6 +744,20 @@ function SitePreviewThumb({ siteId, token }) {
     return () => { cancelled = true; };
   }, [siteId, token]);
 
+  // Measure container width and compute scale so the 1280px canvas fills the card exactly
+  useEffect(() => {
+    if (!wrapRef.current) return;
+    const el = wrapRef.current;
+    const update = () => {
+      const w = el.offsetWidth;
+      if (w > 0) setScale(w / 1280);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [sections]);
+
   if (error || (sections && sections.length === 0)) {
     return (
       <div className="h-full w-full bg-gradient-to-br from-[#7c1ac8]/10 to-[#dd0c51]/10 flex items-center justify-center">
@@ -757,10 +773,10 @@ function SitePreviewThumb({ siteId, token }) {
     );
   }
   return (
-    <div className="relative h-full w-full overflow-hidden bg-white">
+    <div ref={wrapRef} className="relative h-full w-full overflow-hidden bg-white">
       <div
         className="absolute top-0 left-0 origin-top-left pointer-events-none select-none"
-        style={{ width: '1280px', transform: 'scale(0.22)', transformOrigin: 'top left' }}
+        style={{ width: '1280px', transform: `scale(${scale})`, transformOrigin: 'top left' }}
       >
         {sections.map((section, i) => (
           <SectionPreview key={section.id || i} section={section} />
@@ -1213,10 +1229,10 @@ export default function CodeStudioPage() {
           }} className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white"><Plus className="w-4 h-4" /> Create Your First Site</Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {sites.map(site => (
-            <div key={site.id} className="rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg transition-shadow" data-testid={`studio-site-${site.slug}`}>
-              <div className="h-40 bg-white border-b border-zinc-100 relative">
+            <div key={site.id} className="rounded-xl border border-zinc-200 bg-white overflow-hidden hover:shadow-lg hover:border-zinc-300 transition-all" data-testid={`studio-site-${site.slug}`}>
+              <div className="relative w-full border-b border-zinc-100 bg-white overflow-hidden" style={{ aspectRatio: '16 / 10' }}>
                 <SitePreviewThumb siteId={site.id} token={token} />
                 <div className="absolute inset-0 cursor-pointer" onClick={() => openEditor(site.id)} title="Open editor" />
               </div>
