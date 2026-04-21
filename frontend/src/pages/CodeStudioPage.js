@@ -404,6 +404,21 @@ function PropertiesSidebar({ section, onChange, token, linkedMainSiteId }) {
     update('items', items);
   };
 
+  const updateImage = (idx, key, val) => {
+    const images = [...(p.images || [])];
+    images[idx] = { ...images[idx], [key]: val };
+    update('images', images);
+  };
+  const addImage = () => update('images', [...(p.images || []), { url: '', alt: '', caption: '' }]);
+  const removeImage = (idx) => update('images', (p.images || []).filter((_, i) => i !== idx));
+  const moveImage = (idx, dir) => {
+    const images = [...(p.images || [])];
+    const j = idx + dir;
+    if (j < 0 || j >= images.length) return;
+    [images[idx], images[j]] = [images[j], images[idx]];
+    update('images', images);
+  };
+
   const updateBullet = (idx, val) => {
     const bullets = [...(p.bullets || [])];
     bullets[idx] = val;
@@ -526,6 +541,41 @@ function PropertiesSidebar({ section, onChange, token, linkedMainSiteId }) {
               <button onClick={() => update('bullets', p.bullets.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600"><X className="w-3.5 h-3.5" /></button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Gallery Images */}
+      {p.images !== undefined && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <Label className="text-[10px] font-semibold text-zinc-400 uppercase">Gallery Images ({(p.images || []).length})</Label>
+            <button onClick={addImage} data-testid="gallery-add-image-btn" className="text-[10px] font-semibold text-[#dd0c51] hover:underline">+ Add Image</button>
+          </div>
+          <div className="space-y-2">
+            {(p.images || []).map((img, i) => (
+              <div key={i} className="border border-zinc-200 rounded-lg p-2 space-y-1.5 bg-zinc-50/50">
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-zinc-400 w-6">#{i + 1}</span>
+                  {img.url && (
+                    <div className="w-10 h-10 rounded-md bg-zinc-100 overflow-hidden flex-shrink-0 border border-zinc-200">
+                      <img src={img.url} alt={img.alt || ''} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="flex gap-0.5 ml-auto">
+                    <button onClick={() => moveImage(i, -1)} disabled={i === 0} className="p-1 text-zinc-400 hover:text-zinc-700 disabled:opacity-30" title="Move up"><ArrowUp className="w-3 h-3" /></button>
+                    <button onClick={() => moveImage(i, 1)} disabled={i === (p.images || []).length - 1} className="p-1 text-zinc-400 hover:text-zinc-700 disabled:opacity-30" title="Move down"><ArrowDown className="w-3 h-3" /></button>
+                    <button onClick={() => removeImage(i)} className="p-1 text-red-400 hover:text-red-600" title="Remove"><Trash2 className="w-3 h-3" /></button>
+                  </div>
+                </div>
+                <ImageField label="Image URL" value={img.url || ''} onChange={v => updateImage(i, 'url', v)} token={token} />
+                <Input value={img.caption || ''} onChange={e => updateImage(i, 'caption', e.target.value)} className="h-7 text-xs" placeholder="Caption (optional)" />
+                <Input value={img.alt || ''} onChange={e => updateImage(i, 'alt', e.target.value)} className="h-7 text-xs" placeholder="Alt text (SEO)" />
+              </div>
+            ))}
+            {(p.images || []).length === 0 && (
+              <p className="text-[11px] text-zinc-400 text-center py-2 italic">No images yet — click "+ Add Image"</p>
+            )}
+          </div>
         </div>
       )}
 
