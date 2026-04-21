@@ -22,22 +22,45 @@ const SECTION_ICONS = {
   logos: Award, image_text: Columns,
 };
 
+// ── Section wrapper for background image/color ──
+function SectionWrapper({ section, children }) {
+  const p = section.props || {};
+  const style = {};
+  if (p.bg_image) {
+    style.backgroundImage = `url(${p.bg_image})`;
+    style.backgroundSize = 'cover';
+    style.backgroundPosition = 'center';
+  }
+  const overlayClass = p.bg_image && p.bg_overlay ? 'relative' : '';
+  return (
+    <div style={style} className={overlayClass}>
+      {p.bg_image && p.bg_overlay && <div className="absolute inset-0 bg-black/50" />}
+      <div className={p.bg_image ? 'relative z-10' : ''}>{children}</div>
+    </div>
+  );
+}
+
 // ── Section Preview Renderer ──
 function SectionPreview({ section }) {
   const p = section.props || {};
+  let content;
   switch (section.type) {
     case 'navbar':
-      return (
+      content = (
         <div className={`flex items-center justify-between px-8 py-4 ${p.style === 'dark' ? 'bg-zinc-950 text-white' : 'bg-white text-zinc-900 border-b border-zinc-100'}`}>
-          <span className="font-bold text-sm">{p.brand || 'Brand'}</span>
+          <div className="flex items-center gap-2">
+            {p.logo_url && <img src={p.logo_url} alt="" className="h-6 object-contain" />}
+            <span className="font-bold text-sm">{p.brand || 'Brand'}</span>
+          </div>
           <div className="flex items-center gap-5 text-xs">
             {(p.links || []).map((l, i) => <span key={i} className="opacity-60 hover:opacity-100 cursor-pointer">{l.label}</span>)}
             {p.cta_text && <span className={`px-4 py-1.5 rounded-full font-semibold text-xs ${p.style === 'dark' ? 'bg-white text-zinc-900' : 'bg-zinc-900 text-white'}`}>{p.cta_text}</span>}
           </div>
         </div>
       );
+      return content; // navbar doesn't get wrapper
     case 'hero':
-      return (
+      content = (
         <div className={`relative px-10 ${p.layout === 'left' ? 'py-16' : 'py-20 text-center'} bg-gradient-to-br ${p.bg_gradient || 'from-zinc-900 to-zinc-800'} text-white overflow-hidden`}>
           {p.badge && <div className="inline-block bg-white/10 border border-white/20 rounded-full px-3 py-1 text-[10px] font-medium mb-4">{p.badge}</div>}
           <div className={p.layout === 'left' ? 'max-w-[55%]' : ''}>
@@ -52,8 +75,9 @@ function SectionPreview({ section }) {
           )}
         </div>
       );
+      break;
     case 'logos':
-      return (
+      content = (
         <div className="px-10 py-8 bg-white border-t border-zinc-100">
           {p.headline && <p className="text-xs text-zinc-400 text-center mb-4 font-medium">{p.headline}</p>}
           <div className="flex items-center justify-center gap-8">
@@ -63,8 +87,9 @@ function SectionPreview({ section }) {
           </div>
         </div>
       );
+      break;
     case 'image_text':
-      return (
+      content = (
         <div className={`flex items-stretch ${p.image_position === 'left' ? 'flex-row-reverse' : ''} ${p.bg_color || 'bg-lime-300'} overflow-hidden`}>
           <div className="flex-1 p-10 flex flex-col justify-center">
             <h2 className="text-2xl font-bold text-zinc-900 mb-2">{p.headline || 'Headline'}</h2>
@@ -81,8 +106,9 @@ function SectionPreview({ section }) {
           </div>
         </div>
       );
+      break;
     case 'features':
-      return (
+      content = (
         <div className="px-10 py-14 bg-white">
           <h2 className="text-2xl font-bold text-zinc-900 text-center mb-2">{p.headline || 'Features'}</h2>
           <p className="text-sm text-zinc-500 text-center mb-10">{p.subheadline || ''}</p>
@@ -99,8 +125,9 @@ function SectionPreview({ section }) {
           </div>
         </div>
       );
+      break;
     case 'pricing':
-      return (
+      content = (
         <div className="px-10 py-14 bg-zinc-50">
           <h2 className="text-2xl font-bold text-zinc-900 text-center mb-2">{p.headline || 'Pricing'}</h2>
           <p className="text-sm text-zinc-500 text-center mb-10">{p.subheadline || ''}</p>
@@ -116,8 +143,9 @@ function SectionPreview({ section }) {
           </div>
         </div>
       );
+      break;
     case 'testimonials':
-      return (
+      content = (
         <div className="px-10 py-14 bg-zinc-900 text-white">
           <h2 className="text-2xl font-bold text-center mb-10">{p.headline || 'Testimonials'}</h2>
           <div className="flex gap-5 justify-center">
@@ -133,23 +161,26 @@ function SectionPreview({ section }) {
           </div>
         </div>
       );
+      break;
     case 'gallery':
-      return (
+      content = (
         <div className="px-10 py-14 bg-white">
           <h2 className="text-2xl font-bold text-zinc-900 text-center mb-8">{p.headline || 'Gallery'}</h2>
           <div className="grid grid-cols-3 gap-4">{(p.images || []).map((img, i) => <div key={i} className="aspect-video rounded-xl bg-zinc-200 overflow-hidden"><img src={img.url} alt={img.alt} className="w-full h-full object-cover" /></div>)}</div>
         </div>
       );
+      break;
     case 'cta':
-      return (
+      content = (
         <div className={`px-10 py-14 text-center bg-gradient-to-r ${p.bg_gradient || 'from-[#dd0c51] to-[#7c1ac8]'} text-white`}>
           <h2 className="text-2xl font-bold mb-2">{p.headline || 'CTA'}</h2>
           <p className="text-sm text-white/60 mb-5">{p.subheadline || ''}</p>
           {p.cta_text && <span className="inline-block bg-lime-400 text-zinc-900 px-6 py-2.5 rounded-full font-semibold text-sm">{p.cta_text}</span>}
         </div>
       );
+      break;
     case 'contact':
-      return (
+      content = (
         <div className="px-10 py-14 bg-zinc-50">
           <h2 className="text-2xl font-bold text-zinc-900 text-center mb-2">{p.headline || 'Contact'}</h2>
           <p className="text-sm text-zinc-500 text-center mb-8">{p.subheadline || ''}</p>
@@ -159,8 +190,9 @@ function SectionPreview({ section }) {
           </div>
         </div>
       );
+      break;
     case 'footer':
-      return (
+      content = (
         <div className="px-10 py-8 bg-zinc-950 text-white">
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold">{p.company_name || 'Company'}</span>
@@ -169,9 +201,12 @@ function SectionPreview({ section }) {
           <p className="text-[10px] text-zinc-600 mt-3">{p.copyright || ''}</p>
         </div>
       );
+      break;
     default:
-      return <div className="px-8 py-10 bg-zinc-100 text-center text-sm text-zinc-400 rounded-lg">{section.type} section</div>;
+      content = <div className="px-8 py-10 bg-zinc-100 text-center text-sm text-zinc-400 rounded-lg">{section.type} section</div>;
+      break;
   }
+  return <SectionWrapper section={section}>{content}</SectionWrapper>;
 }
 
 // ── Image Upload Field ──
@@ -265,6 +300,7 @@ function PropertiesSidebar({ section, onChange, token }) {
 
       {/* Common text fields */}
       {p.brand !== undefined && <Field label="Brand Name" value={p.brand} onChange={v => update('brand', v)} />}
+      {p.brand !== undefined && <ImageField label="Logo" value={p.logo_url || ''} onChange={v => update('logo_url', v)} token={token} />}
       {p.headline !== undefined && <Field label="Headline" value={p.headline} onChange={v => update('headline', v)} />}
       {p.subheadline !== undefined && <Field label="Subheadline" value={p.subheadline} onChange={v => update('subheadline', v)} multiline />}
       {p.badge !== undefined && <Field label="Badge" value={p.badge} onChange={v => update('badge', v)} />}
@@ -278,6 +314,21 @@ function PropertiesSidebar({ section, onChange, token }) {
       {/* Background */}
       {p.bg_gradient !== undefined && <Field label="Background Gradient" value={p.bg_gradient} onChange={v => update('bg_gradient', v)} />}
       {p.bg_color !== undefined && <Field label="Background Class" value={p.bg_color} onChange={v => update('bg_color', v)} />}
+
+      {/* Universal background image (for all sections) */}
+      {section.type !== 'navbar' && (
+        <>
+          <ImageField label="Background Image" value={p.bg_image || ''} onChange={v => update('bg_image', v)} token={token} />
+          {p.bg_image && (
+            <div className="flex items-center gap-2">
+              <Label className="text-[10px] font-semibold text-zinc-400 uppercase">Dark Overlay</Label>
+              <button onClick={() => update('bg_overlay', !p.bg_overlay)} className={`w-8 h-5 rounded-full transition-colors ${p.bg_overlay ? 'bg-zinc-900' : 'bg-zinc-200'}`}>
+                <div className={`w-3.5 h-3.5 bg-white rounded-full transition-transform ${p.bg_overlay ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Layout */}
       {p.layout !== undefined && (
@@ -420,12 +471,15 @@ export default function CodeStudioPage() {
   const [creating, setCreating] = useState(false);
   const [editingSite, setEditingSite] = useState(null);
   const [editingPage, setEditingPage] = useState(null);
+  const [pages, setPages] = useState([]);
   const [sections, setSections] = useState([]);
   const [selectedIdx, setSelectedIdx] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showDns, setShowDns] = useState(null);
   const [dnsInfo, setDnsInfo] = useState(null);
   const [showComponentLib, setShowComponentLib] = useState(false);
+  const [showNewPage, setShowNewPage] = useState(false);
+  const [newPageTitle, setNewPageTitle] = useState('');
 
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
@@ -468,18 +522,63 @@ export default function CodeStudioPage() {
 
   const openEditor = async (siteId, pageId) => {
     try {
-      const [sR, pR] = await Promise.all([
+      const [sR, pagesR] = await Promise.all([
         fetch(`${API}/api/code-studio/sites/${siteId}`, { headers: { Authorization: `Bearer ${token}` } }),
-        pageId ? fetch(`${API}/api/code-studio/sites/${siteId}/pages/${pageId}`, { headers: { Authorization: `Bearer ${token}` } })
-               : fetch(`${API}/api/code-studio/sites/${siteId}/pages`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API}/api/code-studio/sites/${siteId}/pages`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       if (sR.ok) setEditingSite(await sR.json());
-      if (pR.ok) {
-        const d = await pR.json();
-        const page = Array.isArray(d) ? d[0] : d;
-        if (page) { setEditingPage(page); setSections(page.sections || []); }
+      if (pagesR.ok) {
+        const allPages = await pagesR.json();
+        setPages(allPages);
+        const target = pageId ? allPages.find(p => p.id === pageId) : allPages[0];
+        if (target) { setEditingPage(target); setSections(target.sections || []); }
       }
     } catch (e) { console.error(e); }
+  };
+
+  const switchPage = async (page) => {
+    // Save current page first
+    if (editingSite && editingPage) {
+      await fetch(`${API}/api/code-studio/sites/${editingSite.id}/pages/${editingPage.id}`, { method: 'PUT', headers, body: JSON.stringify({ sections }) });
+    }
+    setEditingPage(page);
+    setSections(page.sections || []);
+    setSelectedIdx(null);
+  };
+
+  const createPage = async () => {
+    if (!newPageTitle || !editingSite) return;
+    const slug = newPageTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    try {
+      const res = await fetch(`${API}/api/code-studio/sites/${editingSite.id}/pages`, {
+        method: 'POST', headers,
+        body: JSON.stringify({ title: newPageTitle, slug, sections: [], is_published: true }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const newPage = { id: data.id, title: newPageTitle, slug, sections: [], is_published: true };
+        setPages(prev => [...prev, newPage]);
+        switchPage(newPage);
+        setShowNewPage(false);
+        setNewPageTitle('');
+        toast.success('Page created');
+      }
+    } catch { toast.error('Error creating page'); }
+  };
+
+  const deletePage = async (pageId) => {
+    if (!editingSite) return;
+    if (pages.length <= 1) { toast.error('Cannot delete the last page'); return; }
+    try {
+      await fetch(`${API}/api/code-studio/sites/${editingSite.id}/pages/${pageId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      const remaining = pages.filter(p => p.id !== pageId);
+      setPages(remaining);
+      if (editingPage?.id === pageId) {
+        setEditingPage(remaining[0]);
+        setSections(remaining[0]?.sections || []);
+      }
+      toast.success('Page deleted');
+    } catch { toast.error('Error'); }
   };
 
   const savePage = async () => {
@@ -550,7 +649,23 @@ export default function CodeStudioPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Page tabs */}
+          <div className="flex items-center gap-1 px-4 py-1.5 bg-zinc-50 border-b border-zinc-200 flex-shrink-0">
+            {pages.map(page => (
+              <div key={page.id} className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors group ${editingPage?.id === page.id ? 'bg-white shadow-sm text-zinc-800 border border-zinc-200' : 'text-zinc-500 hover:text-zinc-700 hover:bg-white/60'}`}>
+                <span onClick={() => switchPage(page)}>{page.title || page.slug}</span>
+                {pages.length > 1 && (
+                  <button onClick={e => { e.stopPropagation(); deletePage(page.id); }} className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-500 ml-0.5"><X className="w-3 h-3" /></button>
+                )}
+              </div>
+            ))}
+            <button onClick={() => setShowNewPage(true)} className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-zinc-600 hover:bg-white/60" data-testid="add-page-btn">
+              <Plus className="w-3 h-3" /> Page
+            </button>
+          </div>
+
+          <div className="flex-1 flex overflow-hidden">
           {/* Canvas */}
           <div className="flex-1 overflow-y-auto bg-zinc-100 p-6">
             <div className="max-w-4xl mx-auto">
@@ -593,6 +708,7 @@ export default function CodeStudioPage() {
             </div>
           )}
         </div>
+        </div>
 
         {/* Component Library */}
         <Dialog open={showComponentLib} onOpenChange={setShowComponentLib}>
@@ -608,6 +724,21 @@ export default function CodeStudioPage() {
                 );
               })}
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* New Page Dialog */}
+        <Dialog open={showNewPage} onOpenChange={setShowNewPage}>
+          <DialogContent className="bg-white max-w-sm">
+            <DialogHeader><DialogTitle>New Page</DialogTitle></DialogHeader>
+            <div className="py-2">
+              <Label className="text-xs font-semibold text-zinc-500 uppercase">Page Title</Label>
+              <Input value={newPageTitle} onChange={e => setNewPageTitle(e.target.value)} placeholder="e.g. About, Contact, Blog" className="mt-1" data-testid="new-page-title" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowNewPage(false)}>Cancel</Button>
+              <Button onClick={createPage} disabled={!newPageTitle} className="bg-zinc-900 hover:bg-zinc-800 text-white" data-testid="create-page-btn">Create Page</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

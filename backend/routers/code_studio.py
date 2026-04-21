@@ -489,6 +489,15 @@ async def create_page(site_id: str, body: SavePageBody, current_user: dict = Dep
     return {"id": page_id}
 
 
+@code_studio_router.delete("/sites/{site_id}/pages/{page_id}")
+async def delete_page(site_id: str, page_id: str, current_user: dict = Depends(get_current_user)):
+    count = await db.code_studio_pages.count_documents({"site_id": site_id})
+    if count <= 1:
+        raise HTTPException(400, "Cannot delete the last page")
+    await db.code_studio_pages.delete_one({"id": page_id, "site_id": site_id})
+    return {"status": "ok"}
+
+
 @code_studio_router.get("/sites/{site_id}/dns")
 async def get_dns_info(site_id: str, current_user: dict = Depends(get_current_user)):
     site = await db.code_studio_sites.find_one({"id": site_id}, {"_id": 0})
