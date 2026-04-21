@@ -64,6 +64,17 @@ const SITE_TYPE_BACKGROUNDS = {
   code_studio: '/images/env_code_studio.jpg',
 };
 
+/* Auto-include implicit features that should always show alongside their parent.
+   Rule: if Content Library is enabled, Approval + Trash are always available. */
+function withImplicitFeatures(enabledFeatures) {
+  const set = new Set(enabledFeatures || []);
+  if (set.has('content_library')) {
+    set.add('content_approval');
+    set.add('trash');
+  }
+  return Array.from(set);
+}
+
 const roleIcons = {
   admin: Crown,
   network_admin: Network,
@@ -204,7 +215,7 @@ const MainSiteDashboardContent = () => {
     const subPath = currentPath.replace(basePath, '').replace(/^\//, '').split('/')[0];
     if (!subPath || subPath === 'settings' || subPath === 'radio-automation') return; // always valid routes
     
-    const enabledFeatures = mainSite.enabled_features || [];
+    const enabledFeatures = withImplicitFeatures(mainSite.enabled_features);
     const validRoutes = new Set(['dashboard', 'settings']);
     enabledFeatures.forEach(f => {
       const nav = FEATURE_NAV_ITEMS[f];
@@ -547,7 +558,7 @@ const MainSiteDashboardContent = () => {
 
     // External Host sites: content + wordpress + admin
     if (mainSite.site_type === 'external_host') {
-      const enabledFeatures = mainSite.enabled_features || [];
+      const enabledFeatures = withImplicitFeatures(mainSite.enabled_features);
       const contentItems = ['content_library', 'media_library', 'content_approval', 'trash']
         .filter(f => enabledFeatures.includes(f))
         .map(featureId => {
@@ -623,7 +634,7 @@ const MainSiteDashboardContent = () => {
 
     // Code Studio sites show the builder + optional content library
     if (mainSite.site_type === 'code_studio') {
-      const enabledFeatures = mainSite.enabled_features || [];
+      const enabledFeatures = withImplicitFeatures(mainSite.enabled_features);
       const studioItem = FEATURE_NAV_ITEMS['code_studio'];
       const teamItem = FEATURE_NAV_ITEMS['team_settings'];
 
@@ -656,7 +667,7 @@ const MainSiteDashboardContent = () => {
     }
 
     
-    const enabledFeatures = mainSite.enabled_features || [];
+    const enabledFeatures = withImplicitFeatures(mainSite.enabled_features);
 
     // Hide RDS features if no stations configured
     const rdsFeatures = ['rds', 'stream_monitor'];
