@@ -621,16 +621,37 @@ const MainSiteDashboardContent = () => {
       }];
     }
 
-    // Code Studio sites show the builder
+    // Code Studio sites show the builder + optional content library
     if (mainSite.site_type === 'code_studio') {
+      const enabledFeatures = mainSite.enabled_features || [];
       const studioItem = FEATURE_NAV_ITEMS['code_studio'];
       const teamItem = FEATURE_NAV_ITEMS['team_settings'];
-      const items = [];
-      if (studioItem) items.push({ ...studioItem, to: `/${mainSiteSlug}/${studioItem.to}`, featureId: 'code_studio' });
+
+      const groups = [];
+
+      // Studio group
+      const studioItems = [];
+      if (studioItem) studioItems.push({ ...studioItem, to: `/${mainSiteSlug}/${studioItem.to}`, featureId: 'code_studio' });
+      if (studioItems.length > 0) groups.push({ id: 'studio', label: 'Code Studio', icon: Code2, items: studioItems });
+
+      // Content group (built-in library)
+      const contentFeatures = ['content_library', 'media_library', 'content_approval', 'trash'];
+      const contentItems = contentFeatures
+        .filter(f => enabledFeatures.includes(f))
+        .map(f => {
+          const navItem = FEATURE_NAV_ITEMS[f];
+          if (!navItem) return null;
+          if (!userIsAdmin && !canView(f)) return null;
+          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId: f };
+        })
+        .filter(Boolean);
+      if (contentItems.length > 0) groups.push({ id: 'content', label: 'Content', icon: FileText, items: contentItems });
+
+      // Admin group
       const adminItems = [];
       if (teamItem && userIsAdmin) adminItems.push({ ...teamItem, to: `/${mainSiteSlug}/${teamItem.to}`, featureId: 'team_settings' });
-      const groups = [{ id: 'studio', label: 'Code Studio', icon: Code2, items }];
       if (adminItems.length > 0) groups.push({ id: 'admin', label: 'Administration', icon: Settings, items: adminItems });
+
       return groups;
     }
 
