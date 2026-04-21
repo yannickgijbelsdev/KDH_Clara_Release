@@ -260,7 +260,7 @@ const StepContentLibrary = ({ mode, linkedMainSiteId, onModeChange, onLinkChange
               <Radio className="w-5 h-5" style={{ color: mode === 'linked' ? '#dd0c51' : '#a1a1aa' }} />
             </div>
             <div className="flex-1 min-w-0">
-              <div className={`text-sm font-semibold ${mode === 'linked' ? 'text-zinc-900' : 'text-zinc-600'}`}>Link an existing radio site</div>
+              <div className={`text-sm font-semibold ${mode === 'linked' ? 'text-zinc-900' : 'text-zinc-600'}`}>Link to another content library</div>
               <div className="text-[11px] text-zinc-400 leading-snug">Pull articles from another main site's content library</div>
             </div>
             {mode === 'linked' && (
