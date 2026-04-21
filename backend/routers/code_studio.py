@@ -5,6 +5,7 @@ Manages sites, pages, templates, components, and publishing.
 import uuid
 import re
 import logging
+import os
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -1149,6 +1150,175 @@ async def serve_file(file_id: str):
         raise HTTPException(404, "File not found")
     data, content_type = get_object(record["storage_path"])
     return Response(content=data, media_type=record.get("content_type", content_type))
+
+
+class AiCreateSiteBody(BaseModel):
+    name: str
+    slug: str
+    pages: list
+    linked_main_site_id: Optional[str] = None
+
+
+@code_studio_router.post("/sites-from-ai")
+async def create_site_from_ai(body: AiCreateSiteBody, current_user: dict = Depends(get_current_user)):
+    """Create a Code Studio site from AI-generated pages (bypasses templates)."""
+    existing = await db.code_studio_sites.find_one({"slug": body.slug})
+    if existing:
+        raise HTTPException(400, "A site with this slug already exists")
+    site_id = _new_id()
+    site = {
+        "id": site_id,
+        "name": body.name,
+        "slug": body.slug,
+        "custom_domain": "",
+        "favicon_url": "",
+        "meta_title": body.name,
+        "meta_description": "",
+        "custom_css": "",
+        "custom_js": "",
+        "published": False,
+        "linked_main_site_id": body.linked_main_site_id or "",
+        "main_site_id": current_user.get("main_site_id", ""),
+        "created_by": current_user["id"],
+        "created_at": _now(),
+        "updated_at": _now(),
+    }
+    await db.code_studio_sites.insert_one(site)
+
+    home_page_id = None
+    for idx, p_def in enumerate(body.pages):
+        page_id = _new_id()
+        if idx == 0:
+            home_page_id = page_id
+        page_slug = p_def.get("slug") or (f"page-{idx}" if idx > 0 else "index")
+        # Inject content library link onto news_feed sections
+        sections = []
+        for s in p_def.get("sections", []):
+            s_copy = dict(s)
+            if s_copy.get("type") == "news_feed" and body.linked_main_site_id:
+                s_copy["props"] = {**(s_copy.get("props") or {}), "main_site_id": body.linked_main_site_id}
+            sections.append(s_copy)
+
+        await db.code_studio_pages.insert_one({
+            "id": page_id,
+            "site_id": site_id,
+            "title": p_def.get("title") or f"Page {idx + 1}",
+            "slug": page_slug,
+            "sections": sections,
+            "custom_css": "",
+            "custom_html_head": "",
+            "is_published": True,
+            "is_home": idx == 0,
+            "order": idx,
+            "created_at": _now(),
+            "updated_at": _now(),
+        })
+
+    return {"id": site_id, "page_id": home_page_id, "slug": body.slug, "pages_created": len(body.pages)}
+
+
+
+
+
+class AiGenerateBody(BaseModel):
+    prompt: str
+
+
+AI_SITE_SYSTEM_PROMPT = """You are a world-class web designer generating multi-page websites for a drag-and-drop builder called Code Studio.
+
+You output ONLY valid JSON — no markdown, no code fences, no commentary. Just a raw JSON object.
+
+The JSON schema is:
+{
+  "name": "<Short site name, 2-4 words>",
+  "theme": {"accent_color": "<hex>", "heading_color": "<hex>", "text_color": "<hex>", "section_bg_color": "<hex>"},
+  "pages": [ { "title": "<Page title>", "slug": "<url-slug or 'index' for home>", "sections": [ <section objects> ] } ]
+}
+
+Each section object: {"id": "<unique>", "type": "<type>", "order": <int>, "props": { ... }}
+
+Allowed section types and their props:
+- navbar: { brand, style: "light"|"dark", links: [{label, url}], cta_text }
+- hero: { headline, subheadline, cta_text, cta_url, badge?, hero_image? (Unsplash URL), layout: "left"|"center", bg_mode: "solid"|"gradient", gradient_from?, gradient_to?, gradient_direction?, section_bg_color?, heading_color, text_color, accent_color, heading_size (like "64px"), padding_top? }
+- features: { headline, subheadline, columns: 2|3|4, features: [{title, description, image_url?}], section_bg_color, heading_color, text_color, accent_color }
+- image_text: { headline, subheadline, bullets: [string], image_url (Unsplash), image_position: "left"|"right", cta_text, cta_url, section_bg_color, heading_color, text_color, accent_color }
+- pricing: { headline, subheadline, plans: [{name, price, period, features: [string], cta, highlighted?}], section_bg_color, heading_color, text_color, accent_color }
+- testimonials: { headline, items: [{name, role?, quote, avatar?}], section_bg_color, heading_color, text_color }
+- gallery: { headline, subheadline, columns: 2|3|4, images: [{url (Unsplash), alt, caption}] }
+- cta: { headline, subheadline, cta_text, cta_url, bg_mode: "gradient"|"solid", gradient_from, gradient_to, gradient_direction, heading_color, text_color, accent_color }
+- contact: { headline, subheadline, fields: ["name","email","message"], submit_text, section_bg_color, heading_color, text_color, accent_color }
+- news_feed: { headline, subheadline, columns, max_items, section_bg_color, heading_color, text_color, accent_color }
+- footer: { company_name, links: [{label, url}], copyright }
+
+DESIGN RULES:
+- Every page starts with a navbar and ends with a footer.
+- Home page: navbar + hero + 1-3 content sections + optional news_feed + cta + footer.
+- Use real Unsplash URLs: https://images.unsplash.com/photo-XXXXXXXXX?w=700&h=700&fit=crop
+- Cohesive color palette (hex values) matching the industry.
+- Animations on content sections: "animation" prop = "fade_up" | "fade_in" | "slide_left" | "slide_right" | "zoom_in".
+- Return 3-5 pages: Home + contextually relevant pages (About, Services, Contact, Shop, Work, Menu, Pricing, etc.).
+- Section IDs unique, orders sequential starting from 0 per page.
+
+OUTPUT ONLY THE RAW JSON OBJECT."""
+
+
+@code_studio_router.post("/ai-generate")
+async def ai_generate_site(body: AiGenerateBody, current_user: dict = Depends(get_current_user)):
+    """Generate a multi-page site structure from a natural-language prompt via Claude Sonnet 4.5."""
+    emergent_key = os.environ.get("EMERGENT_LLM_KEY")
+    if not emergent_key:
+        raise HTTPException(503, "AI generation is not configured (EMERGENT_LLM_KEY missing).")
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+    except ImportError:
+        raise HTTPException(503, "AI generation requires emergentintegrations.")
+
+    session_id = f"cs-ai-{current_user['id']}-{uuid.uuid4().hex[:8]}"
+    chat = LlmChat(
+        api_key=emergent_key,
+        session_id=session_id,
+        system_message=AI_SITE_SYSTEM_PROMPT,
+    ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+
+    try:
+        reply = await chat.send_message(UserMessage(text=body.prompt[:4000]))
+    except Exception as e:
+        logger.exception("AI generate failed")
+        raise HTTPException(502, f"LLM error: {str(e)[:160]}")
+
+    text = str(reply).strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+
+    import json as _json
+    try:
+        result = _json.loads(text)
+    except Exception:
+        m = re.search(r"\{.*\}", text, re.DOTALL)
+        if not m:
+            raise HTTPException(502, "AI response was not valid JSON")
+        try:
+            result = _json.loads(m.group(0))
+        except Exception as e:
+            raise HTTPException(502, f"Could not parse AI output: {e}")
+
+    pages = result.get("pages") or []
+    if not pages:
+        raise HTTPException(502, "AI did not return any pages")
+    for idx, p in enumerate(pages):
+        p.setdefault("title", f"Page {idx + 1}")
+        p.setdefault("slug", "index" if idx == 0 else f"page-{idx}")
+        for s_idx, s in enumerate(p.get("sections", []) or []):
+            s.setdefault("id", f"{s.get('type', 'section')}-{idx}-{s_idx}-{uuid.uuid4().hex[:6]}")
+            s.setdefault("order", s_idx)
+            s.setdefault("props", {})
+
+    return {
+        "name": result.get("name", "AI Website"),
+        "theme": result.get("theme", {}),
+        "pages": pages,
+    }
 
 
 class CsPublishBody(BaseModel):

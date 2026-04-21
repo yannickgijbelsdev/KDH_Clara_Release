@@ -12,6 +12,7 @@ import {
   Pencil, ArrowUp, ArrowDown, Save, Settings, Link2,
   Monitor, Tablet, Smartphone,
   CheckCircle, XCircle, Clock, RefreshCw,
+  LayoutGrid, Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -898,6 +899,9 @@ export default function CodeStudioPage() {
   const [createName, setCreateName] = useState('');
   const [createSlug, setCreateSlug] = useState('');
   const [createTemplate, setCreateTemplate] = useState('fintech');
+  const [createMode, setCreateMode] = useState('template'); // 'template' | 'ai'
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiGenerating, setAiGenerating] = useState(false);
   const [creating, setCreating] = useState(false);
   const [editingSite, setEditingSite] = useState(null);
   const [editingPage, setEditingPage] = useState(null);
@@ -946,22 +950,52 @@ export default function CodeStudioPage() {
   const handleCreate = async () => {
     if (!createName || !createSlug) return;
     setCreating(true);
-    // Prefer explicitly chosen link; fall back to the parent main_site's configured library
     const effectiveLink = linkedSiteId || parentMainSite?.linked_main_site_id || null;
+
     try {
-      const res = await fetch(`${API}/api/code-studio/sites`, { method: 'POST', headers, body: JSON.stringify({ name: createName, slug: createSlug, template_id: createTemplate, linked_main_site_id: effectiveLink }) });
-      if (res.ok) {
-        const data = await res.json();
-        toast.success('Site created');
-        setShowCreate(false);
-        setCreateName(''); setCreateSlug('');
-        await fetchData();
-        openEditor(data.id, data.page_id);
+      if (createMode === 'ai') {
+        if (!aiPrompt.trim()) { toast.error('Describe the website you want'); setCreating(false); return; }
+        setAiGenerating(true);
+        const genRes = await fetch(`${API}/api/code-studio/ai-generate`, {
+          method: 'POST', headers, body: JSON.stringify({ prompt: aiPrompt.trim() }),
+        });
+        setAiGenerating(false);
+        if (!genRes.ok) {
+          const err = await genRes.json().catch(() => ({}));
+          toast.error(err.detail || 'AI generation failed');
+          setCreating(false);
+          return;
+        }
+        const ai = await genRes.json();
+        const createRes = await fetch(`${API}/api/code-studio/sites-from-ai`, {
+          method: 'POST', headers,
+          body: JSON.stringify({ name: createName, slug: createSlug, pages: ai.pages, linked_main_site_id: effectiveLink }),
+        });
+        if (createRes.ok) {
+          const data = await createRes.json();
+          toast.success(`AI generated ${data.pages_created} pages for ${createName}`);
+          setShowCreate(false); setCreateName(''); setCreateSlug(''); setAiPrompt('');
+          await fetchData();
+          await openEditor(data.id);
+        } else {
+          const err = await createRes.json().catch(() => ({}));
+          toast.error(err.detail || 'Failed to create site');
+        }
       } else {
-        const err = await res.json().catch(() => ({}));
-        toast.error(err.detail || 'Failed');
+        const res = await fetch(`${API}/api/code-studio/sites`, { method: 'POST', headers, body: JSON.stringify({ name: createName, slug: createSlug, template_id: createTemplate, linked_main_site_id: effectiveLink }) });
+        if (res.ok) {
+          const data = await res.json();
+          toast.success('Site created');
+          setShowCreate(false); setCreateName(''); setCreateSlug('');
+          await fetchData();
+          await openEditor(data.id);
+        } else {
+          toast.error('Failed to create site');
+        }
       }
-    } catch { toast.error('Error'); }
+    } catch (e) {
+      toast.error('Error creating site');
+    }
     setCreating(false);
   };
 
@@ -1464,28 +1498,69 @@ export default function CodeStudioPage() {
               <div><label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Site Name</label><Input value={createName} onChange={e => { setCreateName(e.target.value); setCreateSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')); }} placeholder="My Website" className="mt-1" /></div>
               <div><label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Slug</label><Input value={createSlug} onChange={e => setCreateSlug(e.target.value)} placeholder="my-website" className="mt-1 font-mono" /></div>
             </div>
-            <div>
-              <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">Choose Template</label>
-              <div className="grid grid-cols-3 gap-3">
-                {templates.map(tmpl => (
-                  <button key={tmpl.id} onClick={() => setCreateTemplate(tmpl.id)} className={`rounded-xl border-2 overflow-hidden transition-all text-left ${createTemplate === tmpl.id ? 'border-[#7c1ac8] shadow-lg' : 'border-zinc-200 hover:border-zinc-400'}`} data-testid={`template-${tmpl.id}`}>
-                    {tmpl.thumbnail ? <img src={tmpl.thumbnail} alt={tmpl.name} className="w-full h-20 object-cover" /> : <div className="w-full h-20 bg-zinc-100 flex items-center justify-center"><Code2 className="w-6 h-6 text-zinc-300" /></div>}
-                    <div className="p-2">
-                      <p className="text-xs font-semibold text-zinc-800">{tmpl.name}</p>
-                      <p className="text-[10px] text-zinc-400 leading-tight">{tmpl.description}</p>
-                      {tmpl.page_count > 0 && (
-                        <div className="mt-1.5 flex items-center gap-1 flex-wrap">
-                          <span className="text-[9px] font-semibold uppercase tracking-wider text-[#7c1ac8]">{tmpl.page_count} page{tmpl.page_count > 1 ? 's' : ''}</span>
-                          {tmpl.page_titles && tmpl.page_titles.length > 1 && (
-                            <span className="text-[9px] text-zinc-400 truncate" title={tmpl.page_titles.join(' · ')}>· {tmpl.page_titles.slice(0, 3).join(' · ')}{tmpl.page_titles.length > 3 ? '...' : ''}</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
+
+            {/* Mode tabs: Template vs AI */}
+            <div className="flex gap-1 bg-zinc-100 rounded-xl p-1">
+              <button onClick={() => setCreateMode('template')} data-testid="create-mode-template" className={`flex-1 text-sm py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition ${createMode === 'template' ? 'bg-white shadow-sm text-zinc-900' : 'text-zinc-500'}`}>
+                <LayoutGrid className="w-4 h-4" /> Use a template
+              </button>
+              <button onClick={() => setCreateMode('ai')} data-testid="create-mode-ai" className={`flex-1 text-sm py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition ${createMode === 'ai' ? 'bg-gradient-to-r from-[#7c1ac8] to-[#dd0c51] text-white shadow-md' : 'text-zinc-500'}`}>
+                <Sparkles className="w-4 h-4" /> Design with AI
+              </button>
             </div>
+
+            {createMode === 'template' ? (
+              <div>
+                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 block">Choose Template</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {templates.map(tmpl => (
+                    <button key={tmpl.id} onClick={() => setCreateTemplate(tmpl.id)} className={`rounded-xl border-2 overflow-hidden transition-all text-left ${createTemplate === tmpl.id ? 'border-[#7c1ac8] shadow-lg' : 'border-zinc-200 hover:border-zinc-400'}`} data-testid={`template-${tmpl.id}`}>
+                      {tmpl.thumbnail ? <img src={tmpl.thumbnail} alt={tmpl.name} className="w-full h-20 object-cover" /> : <div className="w-full h-20 bg-zinc-100 flex items-center justify-center"><Code2 className="w-6 h-6 text-zinc-300" /></div>}
+                      <div className="p-2">
+                        <p className="text-xs font-semibold text-zinc-800">{tmpl.name}</p>
+                        <p className="text-[10px] text-zinc-400 leading-tight">{tmpl.description}</p>
+                        {tmpl.page_count > 0 && (
+                          <div className="mt-1.5 flex items-center gap-1 flex-wrap">
+                            <span className="text-[9px] font-semibold uppercase tracking-wider text-[#7c1ac8]">{tmpl.page_count} page{tmpl.page_count > 1 ? 's' : ''}</span>
+                            {tmpl.page_titles && tmpl.page_titles.length > 1 && (
+                              <span className="text-[9px] text-zinc-400 truncate" title={tmpl.page_titles.join(' · ')}>· {tmpl.page_titles.slice(0, 3).join(' · ')}{tmpl.page_titles.length > 3 ? '...' : ''}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-xl border-2 border-dashed border-[#7c1ac8]/30 bg-gradient-to-br from-[#7c1ac8]/5 to-[#dd0c51]/5 p-4">
+                <label className="text-xs font-semibold text-[#7c1ac8] uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                  <Sparkles className="w-3.5 h-3.5" /> Describe your website
+                </label>
+                <textarea
+                  value={aiPrompt}
+                  onChange={e => setAiPrompt(e.target.value)}
+                  data-testid="ai-prompt-input"
+                  rows={5}
+                  className="w-full text-sm p-3 rounded-lg border border-zinc-200 bg-white focus:outline-none focus:border-[#7c1ac8] resize-none"
+                  placeholder="e.g. A modern Italian restaurant called 'La Nonna' with warm cream and burgundy colors. Needs a menu page, reservation form, team page, and stunning food photography throughout."
+                />
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {[
+                    'Minimalist law firm with rich typography',
+                    'Fruit juice e-commerce, vibrant greens and oranges',
+                    'Pilates studio landing page with booking form',
+                    'Indie game studio portfolio, dark retro vibes',
+                  ].map(s => (
+                    <button key={s} onClick={() => setAiPrompt(s)} className="text-[10px] px-2 py-1 rounded-full bg-white border border-zinc-200 text-zinc-600 hover:border-[#7c1ac8] hover:text-[#7c1ac8] transition">{s}</button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-2 flex items-start gap-1.5">
+                  <Sparkles className="w-3 h-3 mt-0.5 flex-shrink-0 text-[#7c1ac8]" />
+                  Claude Sonnet 4.5 will design a multi-page site with coherent colors, copy, layouts and Unsplash imagery. Takes about 20-40 seconds.
+                </p>
+              </div>
+            )}
 
             {/* Content Library Link */}
             <div>
@@ -1507,8 +1582,10 @@ export default function CodeStudioPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button onClick={handleCreate} disabled={creating || !createName || !createSlug} className="bg-zinc-900 hover:bg-zinc-800 text-white gap-1.5">{creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Create Site</Button>
+            <Button variant="outline" onClick={() => setShowCreate(false)} disabled={creating}>Cancel</Button>
+            <Button onClick={handleCreate} disabled={creating || !createName || !createSlug || (createMode === 'ai' && !aiPrompt.trim())} className={`gap-1.5 !text-white [&>svg]:text-white ${createMode === 'ai' ? 'bg-gradient-to-r from-[#7c1ac8] to-[#dd0c51] hover:from-[#6b14b0] hover:to-[#c40a47]' : 'bg-zinc-900 hover:bg-zinc-800'}`} data-testid="create-site-btn">
+              {aiGenerating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating website...</> : creating ? <Loader2 className="w-4 h-4 animate-spin" /> : createMode === 'ai' ? <><Sparkles className="w-4 h-4" /> Generate with AI</> : <><Plus className="w-4 h-4" /> Create Site</>}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
