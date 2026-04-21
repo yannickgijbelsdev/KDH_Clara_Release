@@ -196,6 +196,289 @@ IMAGE_TEXT_SECTION = {
 }
 
 TEMPLATES = {
+    "fresh_market": {
+        "id": "fresh_market",
+        "name": "Fresh Market",
+        "description": "Bright, vibrant e-commerce for organic produce, juice bars & food stores",
+        "category": "ecommerce",
+        "thumbnail": "https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=400&h=260&fit=crop",
+        "pages": [
+            {
+                "title": "Home",
+                "slug": "index",
+                "sections": [
+                    {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Freshly", "links": [
+                        {"label": "Shop", "url": "#/shop"},
+                        {"label": "About", "url": "#/about"},
+                        {"label": "Recipes", "url": "#/recipes"},
+                        {"label": "Contact", "url": "#/contact"},
+                    ], "cta_text": "Order now", "style": "light"}},
+                    {"id": "hero", "type": "hero", "order": 0, "props": {
+                        "headline": "Fresh fruits, delivered daily.",
+                        "subheadline": "Hand-picked, locally-sourced organic produce — from farm to your table in under 24 hours.",
+                        "cta_text": "Shop the market",
+                        "cta_url": "#/shop",
+                        "badge": "Always organic · Always fresh",
+                        "hero_image": "https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=700&h=700&fit=crop",
+                        "layout": "left",
+                        "bg_mode": "gradient",
+                        "gradient_from": "#d9f99d",
+                        "gradient_to": "#fde68a",
+                        "gradient_direction": "to bottom right",
+                        "heading_color": "#14532d",
+                        "text_color": "#3f6212",
+                        "accent_color": "#65a30d",
+                        "heading_size": "56px",
+                    }},
+                    {"id": "categories", "type": "features", "order": 1, "props": {
+                        "headline": "Shop by category",
+                        "subheadline": "Everything you need for a healthy kitchen",
+                        "columns": 4,
+                        "heading_color": "#14532d",
+                        "text_color": "#4d7c0f",
+                        "section_bg_color": "#ffffff",
+                        "padding_top": "80px",
+                        "padding_bottom": "80px",
+                        "features": [
+                            {"title": "Fresh Fruits", "description": "Seasonal · Organic", "image_url": "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400&h=400&fit=crop"},
+                            {"title": "Green Veggies", "description": "Locally farmed", "image_url": "https://images.unsplash.com/photo-1557844352-761f2565b576?w=400&h=400&fit=crop"},
+                            {"title": "Cold Pressed Juice", "description": "Made daily", "image_url": "https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=400&h=400&fit=crop"},
+                            {"title": "Healthy Snacks", "description": "Guilt-free", "image_url": "https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=400&h=400&fit=crop"},
+                        ],
+                    }},
+                    {"id": "image_text_1", "type": "image_text", "order": 2, "props": {
+                        "headline": "Farm-to-table in 24 hours",
+                        "subheadline": "We partner with local farmers to bring you produce that's never more than a day old.",
+                        "bullets": ["100% organic certified", "Same-day harvest to doorstep", "Zero waste packaging"],
+                        "image_url": "https://images.unsplash.com/photo-1506617420156-8e4536971650?w=700&h=500&fit=crop",
+                        "image_position": "right",
+                        "cta_text": "Meet our farmers",
+                        "cta_url": "#/about",
+                        "bg_color": "bg-lime-100",
+                        "section_bg_color": "#ecfccb",
+                        "heading_color": "#14532d",
+                        "text_color": "#4d7c0f",
+                        "accent_color": "#65a30d",
+                    }},
+                    {"id": "gallery", "type": "gallery", "order": 3, "props": {
+                        "headline": "This week's picks",
+                        "subheadline": "Hand-selected just for you",
+                        "columns": 3,
+                        "heading_color": "#14532d",
+                        "text_color": "#4d7c0f",
+                        "section_bg_color": "#ffffff",
+                        "padding_top": "80px",
+                        "padding_bottom": "80px",
+                        "images": [
+                            {"url": "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=600&h=600&fit=crop", "alt": "Avocados", "caption": "Avocados · €3.50"},
+                            {"url": "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&h=600&fit=crop", "alt": "Strawberries", "caption": "Strawberries · €4.20"},
+                            {"url": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&h=600&fit=crop", "alt": "Peaches", "caption": "Peaches · €3.80"},
+                        ],
+                    }},
+                    {"id": "testimonials", "type": "testimonials", "order": 4, "props": {
+                        "headline": "Loved by foodies everywhere",
+                        "section_bg_color": "#fef3c7",
+                        "heading_color": "#7c2d12",
+                        "text_color": "#9a3412",
+                        "padding_top": "80px",
+                        "padding_bottom": "80px",
+                        "items": [
+                            {"name": "Sophie L.", "role": "Home chef", "quote": "The strawberries tasted like actual strawberries — I'd forgotten what that was like."},
+                            {"name": "Tom V.", "role": "Restaurant owner", "quote": "We source 80% of our produce from Freshly. Consistent, beautiful, fresh."},
+                        ],
+                    }},
+                    {"id": "cta", "type": "cta", "order": 5, "props": {
+                        "headline": "Try your first box free",
+                        "subheadline": "No subscription, no strings. Just a box of fresh goodness.",
+                        "cta_text": "Claim your free box",
+                        "cta_url": "#/shop",
+                        "bg_mode": "gradient",
+                        "gradient_from": "#65a30d",
+                        "gradient_to": "#84cc16",
+                        "gradient_direction": "to right",
+                        "accent_color": "#fef3c7",
+                        "heading_color": "#ffffff",
+                        "text_color": "#ecfccb",
+                    }},
+                    {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Freshly", "section_bg_color": "#14532d",
+                        "links": [{"label": "Shop", "url": "#/shop"}, {"label": "About", "url": "#/about"}, {"label": "Contact", "url": "#/contact"}, {"label": "FAQ", "url": "#"}]}},
+                ],
+            },
+            {
+                "title": "Shop",
+                "slug": "shop",
+                "sections": [
+                    {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Freshly", "links": [
+                        {"label": "Home", "url": "#/"}, {"label": "About", "url": "#/about"}, {"label": "Contact", "url": "#/contact"},
+                    ], "cta_text": "Cart (0)", "style": "light"}},
+                    {"id": "hero", "type": "hero", "order": 0, "props": {
+                        "headline": "Shop the market",
+                        "subheadline": "All products · Fresh this week",
+                        "layout": "center",
+                        "bg_mode": "solid", "section_bg_color": "#ecfccb",
+                        "heading_color": "#14532d", "text_color": "#4d7c0f",
+                        "padding_top": "100px", "padding_bottom": "80px",
+                    }},
+                    {"id": "products", "type": "gallery", "order": 1, "props": {
+                        "headline": "Fresh Produce",
+                        "subheadline": "Pick what you love",
+                        "columns": 4,
+                        "section_bg_color": "#ffffff",
+                        "heading_color": "#14532d", "text_color": "#65a30d",
+                        "images": [
+                            {"url": "https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=500&h=500&fit=crop", "alt": "Avocados", "caption": "Avocados · €3.50"},
+                            {"url": "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&h=500&fit=crop", "alt": "Strawberries", "caption": "Strawberries · €4.20"},
+                            {"url": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=500&h=500&fit=crop", "alt": "Peaches", "caption": "Peaches · €3.80"},
+                            {"url": "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=500&h=500&fit=crop", "alt": "Citrus mix", "caption": "Citrus · €5.10"},
+                            {"url": "https://images.unsplash.com/photo-1557844352-761f2565b576?w=500&h=500&fit=crop", "alt": "Greens", "caption": "Kale bundle · €2.90"},
+                            {"url": "https://images.unsplash.com/photo-1546470427-e26264be0b0d?w=500&h=500&fit=crop", "alt": "Tomatoes", "caption": "Tomatoes · €3.20"},
+                        ],
+                    }},
+                    {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Freshly", "section_bg_color": "#14532d"}},
+                ],
+            },
+            {
+                "title": "About",
+                "slug": "about",
+                "sections": [
+                    {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Freshly", "style": "light",
+                        "links": [{"label": "Home", "url": "#/"}, {"label": "Shop", "url": "#/shop"}, {"label": "Contact", "url": "#/contact"}]}},
+                    {"id": "hero", "type": "hero", "order": 0, "props": {
+                        "headline": "Small farms, big flavours",
+                        "subheadline": "We started Freshly because we were tired of tasteless supermarket produce. Five years and 200+ farmer partners later, we're still obsessed.",
+                        "layout": "left",
+                        "hero_image": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=700&h=700&fit=crop",
+                        "bg_mode": "solid", "section_bg_color": "#fef3c7",
+                        "heading_color": "#7c2d12", "text_color": "#9a3412",
+                    }},
+                    {"id": "features", "type": "features", "order": 1, "props": {
+                        "headline": "Our values",
+                        "columns": 3,
+                        "section_bg_color": "#ffffff", "heading_color": "#14532d", "text_color": "#4d7c0f",
+                        "features": [
+                            {"title": "Local first", "description": "We source from farms within 100km whenever possible."},
+                            {"title": "Zero waste", "description": "Compostable packaging and donated surplus."},
+                            {"title": "Fair pay", "description": "Our farmers earn 3x the market average."},
+                        ],
+                    }},
+                    {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Freshly", "section_bg_color": "#14532d"}},
+                ],
+            },
+            {
+                "title": "Contact",
+                "slug": "contact",
+                "sections": [
+                    {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Freshly", "style": "light",
+                        "links": [{"label": "Home", "url": "#/"}, {"label": "Shop", "url": "#/shop"}, {"label": "About", "url": "#/about"}]}},
+                    {**CONTACT_SECTION, "props": {**CONTACT_SECTION["props"], "headline": "Questions? Want to partner?",
+                        "subheadline": "Drop us a note — we answer within 24 hours.",
+                        "section_bg_color": "#ecfccb", "heading_color": "#14532d", "text_color": "#4d7c0f",
+                        "accent_color": "#65a30d", "padding_top": "100px", "padding_bottom": "100px"}},
+                    {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Freshly", "section_bg_color": "#14532d"}},
+                ],
+            },
+        ],
+    },
+    "modern_ecommerce": {
+        "id": "modern_ecommerce",
+        "name": "Modern E-commerce",
+        "description": "Clean, minimal product store with pastel accents",
+        "category": "ecommerce",
+        "thumbnail": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=400&h=260&fit=crop",
+        "pages": [
+            {
+                "title": "Home",
+                "slug": "index",
+                "sections": [
+                    {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Atelier", "style": "light",
+                        "links": [{"label": "Shop", "url": "#/shop"}, {"label": "Collections", "url": "#/collections"}, {"label": "Journal", "url": "#/journal"}, {"label": "Contact", "url": "#/contact"}],
+                        "cta_text": "Cart"}},
+                    {"id": "hero", "type": "hero", "order": 0, "props": {
+                        "headline": "Considered objects for everyday living.",
+                        "subheadline": "Timeless pieces made slowly, in small batches, by makers we know by name.",
+                        "cta_text": "Explore the collection", "cta_url": "#/shop",
+                        "hero_image": "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&h=800&fit=crop",
+                        "layout": "left",
+                        "bg_mode": "solid", "section_bg_color": "#f5f5f4",
+                        "heading_color": "#1c1917", "text_color": "#57534e",
+                        "accent_color": "#78716c", "heading_size": "64px",
+                    }},
+                    {"id": "features", "type": "features", "order": 1, "props": {
+                        "headline": "Featured",
+                        "columns": 3,
+                        "section_bg_color": "#ffffff",
+                        "heading_color": "#1c1917", "text_color": "#78716c",
+                        "padding_top": "100px", "padding_bottom": "100px",
+                        "features": [
+                            {"title": "Linen Throw", "description": "€89", "image_url": "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?w=500&h=600&fit=crop"},
+                            {"title": "Ceramic Vase", "description": "€65", "image_url": "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=500&h=600&fit=crop"},
+                            {"title": "Wool Pillow", "description": "€45", "image_url": "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=500&h=600&fit=crop"},
+                        ],
+                    }},
+                    {"id": "image_text_1", "type": "image_text", "order": 2, "props": {
+                        "headline": "Made to last decades, not seasons",
+                        "subheadline": "Every piece in our collection is designed to outlive trends — and most of us.",
+                        "bullets": ["Hand-finished", "Lifetime repair guarantee", "Ethically sourced"],
+                        "image_url": "https://images.unsplash.com/photo-1556228578-dd6e8ea1a95e?w=700&h=500&fit=crop",
+                        "image_position": "left",
+                        "cta_text": "Our philosophy", "cta_url": "#/about",
+                        "section_bg_color": "#fafaf9", "heading_color": "#1c1917", "text_color": "#57534e",
+                        "accent_color": "#78716c",
+                    }},
+                    {**CTA_SECTION, "props": {"headline": "Join the studio", "subheadline": "Early access, behind-the-scenes, and 10% off your first order.",
+                        "cta_text": "Subscribe", "bg_mode": "solid", "section_bg_color": "#1c1917",
+                        "heading_color": "#ffffff", "text_color": "#d6d3d1", "accent_color": "#f5f5f4"}},
+                    {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Atelier"}},
+                ],
+            },
+            {
+                "title": "Shop",
+                "slug": "shop",
+                "sections": [
+                    {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Atelier", "style": "light"}},
+                    {"id": "products", "type": "gallery", "order": 0, "props": {
+                        "headline": "All products", "subheadline": "Shop the full collection",
+                        "columns": 4, "section_bg_color": "#ffffff",
+                        "padding_top": "100px", "padding_bottom": "100px",
+                        "heading_color": "#1c1917", "text_color": "#78716c",
+                        "images": [
+                            {"url": "https://images.unsplash.com/photo-1567016376408-0226e4d0c1ea?w=500&h=600&fit=crop", "caption": "Linen Throw · €89"},
+                            {"url": "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=500&h=600&fit=crop", "caption": "Ceramic Vase · €65"},
+                            {"url": "https://images.unsplash.com/photo-1540574163026-643ea20ade25?w=500&h=600&fit=crop", "caption": "Wool Pillow · €45"},
+                            {"url": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=500&h=600&fit=crop", "caption": "Oak Stool · €180"},
+                        ],
+                    }},
+                    {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Atelier"}},
+                ],
+            },
+            {
+                "title": "Journal",
+                "slug": "journal",
+                "sections": [
+                    {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Atelier", "style": "light"}},
+                    {"id": "feed", "type": "news_feed", "order": 0, "props": {
+                        "headline": "From the studio", "subheadline": "Stories, interviews, and slow-made inspiration",
+                        "columns": 3, "max_items": 9,
+                        "section_bg_color": "#fafaf9", "heading_color": "#1c1917", "text_color": "#78716c",
+                        "accent_color": "#78716c", "padding_top": "100px", "padding_bottom": "100px",
+                    }},
+                    {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Atelier"}},
+                ],
+            },
+            {
+                "title": "Contact",
+                "slug": "contact",
+                "sections": [
+                    {**NAVBAR_SECTION, "props": {**NAVBAR_SECTION["props"], "brand": "Atelier", "style": "light"}},
+                    {**CONTACT_SECTION, "props": {**CONTACT_SECTION["props"], "headline": "Say hello",
+                        "subheadline": "Studio visits by appointment. Email us anytime.",
+                        "section_bg_color": "#f5f5f4", "heading_color": "#1c1917", "text_color": "#57534e",
+                        "accent_color": "#1c1917", "padding_top": "100px", "padding_bottom": "100px"}},
+                    {**FOOTER_SECTION, "props": {**FOOTER_SECTION["props"], "company_name": "Atelier"}},
+                ],
+            },
+        ],
+    },
     "fintech": {
         "id": "fintech",
         "name": "Fintech / AI Product",
@@ -256,7 +539,11 @@ TEMPLATES = {
         "description": "Modern landing page for software products",
         "category": "business",
         "thumbnail": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=260&fit=crop",
-        "sections": [NAVBAR_SECTION, HERO_SECTION, FEATURES_SECTION, PRICING_SECTION, TESTIMONIALS_SECTION, CTA_SECTION, FOOTER_SECTION],
+        "pages": [
+            {"title": "Home", "slug": "index", "sections": [NAVBAR_SECTION, HERO_SECTION, FEATURES_SECTION, PRICING_SECTION, TESTIMONIALS_SECTION, CTA_SECTION, FOOTER_SECTION]},
+            {"title": "Pricing", "slug": "pricing", "sections": [NAVBAR_SECTION, PRICING_SECTION, TESTIMONIALS_SECTION, FOOTER_SECTION]},
+            {"title": "Contact", "slug": "contact", "sections": [NAVBAR_SECTION, CONTACT_SECTION, FOOTER_SECTION]},
+        ],
     },
     "portfolio": {
         "id": "portfolio",
@@ -264,13 +551,16 @@ TEMPLATES = {
         "description": "Showcase your work beautifully",
         "category": "creative",
         "thumbnail": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400&h=260&fit=crop",
-        "sections": [
-            NAVBAR_SECTION,
-            {**HERO_SECTION, "props": {**HERO_SECTION["props"], "headline": "Hi, I'm a designer", "subheadline": "I create beautiful digital experiences that make people smile.", "layout": "left"}},
-            GALLERY_SECTION,
-            TESTIMONIALS_SECTION,
-            CONTACT_SECTION,
-            FOOTER_SECTION,
+        "pages": [
+            {"title": "Home", "slug": "index", "sections": [
+                NAVBAR_SECTION,
+                {**HERO_SECTION, "props": {**HERO_SECTION["props"], "headline": "Hi, I'm a designer", "subheadline": "I create beautiful digital experiences that make people smile.", "layout": "left"}},
+                GALLERY_SECTION,
+                TESTIMONIALS_SECTION,
+                FOOTER_SECTION,
+            ]},
+            {"title": "Work", "slug": "work", "sections": [NAVBAR_SECTION, GALLERY_SECTION, FOOTER_SECTION]},
+            {"title": "Contact", "slug": "contact", "sections": [NAVBAR_SECTION, CONTACT_SECTION, FOOTER_SECTION]},
         ],
     },
     "agency": {
@@ -359,11 +649,36 @@ def _new_id():
     return str(uuid.uuid4())
 
 
+def _get_template_pages(template):
+    """Normalize a template to a list of page dicts.
+
+    Supports both new-style templates with `pages` and legacy templates with a single `sections` list.
+    """
+    if template.get("pages"):
+        return template["pages"]
+    # Legacy single-page template → wrap in one Home page
+    return [{"title": "Home", "slug": "index", "sections": template.get("sections", [])}]
+
+
+def _serialize_template(template):
+    """Public view of a template (used by the list endpoint)."""
+    pages = _get_template_pages(template)
+    return {
+        "id": template["id"],
+        "name": template["name"],
+        "description": template.get("description", ""),
+        "category": template.get("category", "other"),
+        "thumbnail": template.get("thumbnail", ""),
+        "page_count": len(pages),
+        "page_titles": [p.get("title", "Untitled") for p in pages],
+    }
+
+
 # ── API Endpoints ──
 
 @code_studio_router.get("/templates")
 async def list_templates():
-    return list(TEMPLATES.values())
+    return [_serialize_template(t) for t in TEMPLATES.values()]
 
 
 @code_studio_router.get("/components")
@@ -388,7 +703,6 @@ async def create_site(body: CreateSiteBody, current_user: dict = Depends(get_cur
         raise HTTPException(400, "A site with this slug already exists")
 
     template = TEMPLATES.get(body.template_id, TEMPLATES["blank"])
-    page_id = _new_id()
     site_id = _new_id()
 
     site = {
@@ -410,21 +724,31 @@ async def create_site(body: CreateSiteBody, current_user: dict = Depends(get_cur
     }
     await db.code_studio_sites.insert_one(site)
 
-    page = {
-        "id": page_id,
-        "site_id": site_id,
-        "title": "Home",
-        "slug": "index",
-        "sections": template["sections"],
-        "custom_css": "",
-        "custom_html_head": "",
-        "is_published": True,
-        "created_at": _now(),
-        "updated_at": _now(),
-    }
-    await db.code_studio_pages.insert_one(page)
+    # Create all pages from the template
+    template_pages = _get_template_pages(template)
+    home_page_id = None
+    for idx, p_def in enumerate(template_pages):
+        page_id = _new_id()
+        if idx == 0:
+            home_page_id = page_id
+        page_slug = p_def.get("slug") or (f"page-{idx}" if idx > 0 else "index")
+        page = {
+            "id": page_id,
+            "site_id": site_id,
+            "title": p_def.get("title") or f"Page {idx + 1}",
+            "slug": page_slug,
+            "sections": p_def.get("sections", []),
+            "custom_css": "",
+            "custom_html_head": "",
+            "is_published": True,
+            "is_home": idx == 0,
+            "order": idx,
+            "created_at": _now(),
+            "updated_at": _now(),
+        }
+        await db.code_studio_pages.insert_one(page)
 
-    return {"id": site_id, "page_id": page_id, "name": body.name, "slug": body.slug}
+    return {"id": site_id, "page_id": home_page_id, "name": body.name, "slug": body.slug, "pages_created": len(template_pages)}
 
 
 @code_studio_router.get("/sites/{site_id}")

@@ -1124,7 +1124,18 @@ export default function CodeStudioPage() {
                 {templates.map(tmpl => (
                   <button key={tmpl.id} onClick={() => setCreateTemplate(tmpl.id)} className={`rounded-xl border-2 overflow-hidden transition-all text-left ${createTemplate === tmpl.id ? 'border-[#7c1ac8] shadow-lg' : 'border-zinc-200 hover:border-zinc-400'}`} data-testid={`template-${tmpl.id}`}>
                     {tmpl.thumbnail ? <img src={tmpl.thumbnail} alt={tmpl.name} className="w-full h-20 object-cover" /> : <div className="w-full h-20 bg-zinc-100 flex items-center justify-center"><Code2 className="w-6 h-6 text-zinc-300" /></div>}
-                    <div className="p-2"><p className="text-xs font-semibold text-zinc-800">{tmpl.name}</p><p className="text-[10px] text-zinc-400">{tmpl.description}</p></div>
+                    <div className="p-2">
+                      <p className="text-xs font-semibold text-zinc-800">{tmpl.name}</p>
+                      <p className="text-[10px] text-zinc-400 leading-tight">{tmpl.description}</p>
+                      {tmpl.page_count > 0 && (
+                        <div className="mt-1.5 flex items-center gap-1 flex-wrap">
+                          <span className="text-[9px] font-semibold uppercase tracking-wider text-[#7c1ac8]">{tmpl.page_count} page{tmpl.page_count > 1 ? 's' : ''}</span>
+                          {tmpl.page_titles && tmpl.page_titles.length > 1 && (
+                            <span className="text-[9px] text-zinc-400 truncate" title={tmpl.page_titles.join(' · ')}>· {tmpl.page_titles.slice(0, 3).join(' · ')}{tmpl.page_titles.length > 3 ? '...' : ''}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
