@@ -557,11 +557,46 @@ export default function CodeStudioPage() {
       if (res.ok) {
         const data = await res.json();
         const newPage = { id: data.id, title: newPageTitle, slug, sections: [], is_published: true };
+
+        // Add the new page as a link to every navbar section on the current page
+        const pageUrl = `/${slug}`;
+        const updatedSections = sections.map(s => {
+          if (s.type === 'navbar' && s.props?.links) {
+            return { ...s, props: { ...s.props, links: [...s.props.links, { label: newPageTitle, url: pageUrl }] } };
+          }
+          return s;
+        });
+        setSections(updatedSections);
+
+        // Save current page with updated navbar
+        if (editingPage) {
+          await fetch(`${API}/api/code-studio/sites/${editingSite.id}/pages/${editingPage.id}`, {
+            method: 'PUT', headers, body: JSON.stringify({ sections: updatedSections }),
+          });
+        }
+
+        // Also update navbar on all other existing pages
+        for (const page of pages) {
+          if (page.id === editingPage?.id) continue;
+          const pageSections = page.sections || [];
+          const updated = pageSections.map(s => {
+            if (s.type === 'navbar' && s.props?.links) {
+              return { ...s, props: { ...s.props, links: [...s.props.links, { label: newPageTitle, url: pageUrl }] } };
+            }
+            return s;
+          });
+          if (JSON.stringify(updated) !== JSON.stringify(pageSections)) {
+            await fetch(`${API}/api/code-studio/sites/${editingSite.id}/pages/${page.id}`, {
+              method: 'PUT', headers, body: JSON.stringify({ sections: updated }),
+            });
+          }
+        }
+
         setPages(prev => [...prev, newPage]);
         switchPage(newPage);
         setShowNewPage(false);
         setNewPageTitle('');
-        toast.success('Page created');
+        toast.success('Page created & added to menu');
       }
     } catch { toast.error('Error creating page'); }
   };
@@ -569,10 +604,24 @@ export default function CodeStudioPage() {
   const deletePage = async (pageId) => {
     if (!editingSite) return;
     if (pages.length <= 1) { toast.error('Cannot delete the last page'); return; }
+    const pageToDelete = pages.find(p => p.id === pageId);
+    const pageUrl = pageToDelete ? `/${pageToDelete.slug}` : null;
     try {
       await fetch(`${API}/api/code-studio/sites/${editingSite.id}/pages/${pageId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       const remaining = pages.filter(p => p.id !== pageId);
       setPages(remaining);
+
+      // Remove the link from the current page's navbar
+      if (pageUrl) {
+        const updatedSections = sections.map(s => {
+          if (s.type === 'navbar' && s.props?.links) {
+            return { ...s, props: { ...s.props, links: s.props.links.filter(l => l.url !== pageUrl) } };
+          }
+          return s;
+        });
+        setSections(updatedSections);
+      }
+
       if (editingPage?.id === pageId) {
         setEditingPage(remaining[0]);
         setSections(remaining[0]?.sections || []);
