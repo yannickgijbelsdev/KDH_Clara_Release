@@ -7,12 +7,13 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
+from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel
 
 from database import db
 from services.auth import get_current_user
+from services.object_storage import upload_file, get_object
 
 logger = logging.getLogger(__name__)
 
@@ -511,3 +512,39 @@ async def get_dns_info(site_id: str, current_user: dict = Depends(get_current_us
 async def publish_site(site_id: str, current_user: dict = Depends(get_current_user)):
     await db.code_studio_sites.update_one({"id": site_id}, {"$set": {"published": True, "published_at": _now(), "updated_at": _now()}})
     return {"status": "published"}
+
+
+ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"}
+MAX_SIZE = 10 * 1024 * 1024  # 10 MB
+
+
+@code_studio_router.post("/upload")
+async def upload_image(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(400, f"File type not allowed: {file.content_type}")
+    data = await file.read()
+    if len(data) > MAX_SIZE:
+        raise HTTPException(400, "File too large (max 10 MB)")
+    result = upload_file(data, file.filename, file.content_type, folder="code-studio")
+    doc = {
+        "id": result["file_id"],
+        "storage_path": result["storage_path"],
+        "original_filename": result["original_filename"],
+        "content_type": result["content_type"],
+        "size": result["size"],
+        "uploaded_by": current_user["id"],
+        "created_at": _now(),
+        "is_deleted": False,
+    }
+    await db.code_studio_files.insert_one(doc)
+    serve_url = f"/api/code-studio/files/{result['file_id']}"
+    return {"id": result["file_id"], "url": serve_url, "filename": file.filename, "size": result["size"]}
+
+
+@code_studio_router.get("/files/{file_id}")
+async def serve_file(file_id: str):
+    record = await db.code_studio_files.find_one({"id": file_id, "is_deleted": False}, {"_id": 0})
+    if not record:
+        raise HTTPException(404, "File not found")
+    data, content_type = get_object(record["storage_path"])
+    return Response(content=data, media_type=record.get("content_type", content_type))

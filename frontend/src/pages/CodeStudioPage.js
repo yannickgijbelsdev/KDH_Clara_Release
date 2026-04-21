@@ -174,8 +174,56 @@ function SectionPreview({ section }) {
   }
 }
 
+// ── Image Upload Field ──
+function ImageField({ label, value, onChange, token }) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch(`${API}/api/code-studio/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        onChange(`${API}${data.url}`);
+        toast.success('Image uploaded');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.detail || 'Upload failed');
+      }
+    } catch { toast.error('Upload error'); }
+    setUploading(false);
+    e.target.value = '';
+  };
+
+  return (
+    <div>
+      <Label className="text-[10px] font-semibold text-zinc-400 uppercase">{label}</Label>
+      <div className="mt-1 space-y-1.5">
+        <Input value={value || ''} onChange={e => onChange(e.target.value)} className="h-8 text-xs font-mono" placeholder="https://..." />
+        <label className={`flex items-center justify-center gap-1.5 h-8 rounded-lg border border-dashed border-zinc-300 text-xs font-medium cursor-pointer hover:bg-zinc-50 transition-colors ${uploading ? 'text-zinc-400' : 'text-zinc-500'}`}>
+          {uploading ? <><Loader2 className="w-3 h-3 animate-spin" /> Uploading...</> : <><Image className="w-3 h-3" /> Upload Image</>}
+          <input type="file" accept="image/*" onChange={handleUpload} className="hidden" disabled={uploading} />
+        </label>
+        {value && (
+          <div className="rounded-lg overflow-hidden border border-zinc-200 h-16">
+            <img src={value} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Properties Sidebar ──
-function PropertiesSidebar({ section, onChange }) {
+function PropertiesSidebar({ section, onChange, token }) {
   const p = section.props || {};
   const update = (key, val) => onChange({ ...section, props: { ...p, [key]: val } });
 
@@ -222,8 +270,8 @@ function PropertiesSidebar({ section, onChange }) {
       {p.badge !== undefined && <Field label="Badge" value={p.badge} onChange={v => update('badge', v)} />}
       {p.cta_text !== undefined && <Field label="Button Text" value={p.cta_text} onChange={v => update('cta_text', v)} />}
       {p.cta_url !== undefined && <Field label="Button URL" value={p.cta_url} onChange={v => update('cta_url', v)} />}
-      {p.hero_image !== undefined && <Field label="Hero Image URL" value={p.hero_image} onChange={v => update('hero_image', v)} />}
-      {p.image_url !== undefined && <Field label="Image URL" value={p.image_url} onChange={v => update('image_url', v)} />}
+      {p.hero_image !== undefined && <ImageField label="Hero Image" value={p.hero_image} onChange={v => update('hero_image', v)} token={token} />}
+      {p.image_url !== undefined && <ImageField label="Image" value={p.image_url} onChange={v => update('image_url', v)} token={token} />}
       {p.company_name !== undefined && <Field label="Company Name" value={p.company_name} onChange={v => update('company_name', v)} />}
       {p.copyright !== undefined && <Field label="Copyright" value={p.copyright} onChange={v => update('copyright', v)} />}
 
@@ -306,7 +354,7 @@ function PropertiesSidebar({ section, onChange }) {
             <div key={i} className="border border-zinc-200 rounded-lg p-2 mb-2 space-y-1">
               <Input value={f.title} onChange={e => updateFeature(i, 'title', e.target.value)} className="h-7 text-xs" placeholder="Title" />
               <Input value={f.description} onChange={e => updateFeature(i, 'description', e.target.value)} className="h-7 text-xs" placeholder="Description" />
-              {f.image_url !== undefined && <Input value={f.image_url} onChange={e => updateFeature(i, 'image_url', e.target.value)} className="h-7 text-xs font-mono" placeholder="Image URL" />}
+              {f.image_url !== undefined && <ImageField label="Image" value={f.image_url} onChange={v => updateFeature(i, 'image_url', v)} token={token} />}
             </div>
           ))}
         </div>
@@ -541,7 +589,7 @@ export default function CodeStudioPage() {
                 <h4 className="text-sm font-bold text-zinc-800 capitalize">{selectedSection.type}</h4>
                 <button onClick={() => setSelectedIdx(null)} className="text-zinc-400 hover:text-zinc-600"><X className="w-4 h-4" /></button>
               </div>
-              <PropertiesSidebar section={selectedSection} onChange={updated => updateSection(selectedIdx, updated)} />
+              <PropertiesSidebar section={selectedSection} onChange={updated => updateSection(selectedIdx, updated)} token={token} />
             </div>
           )}
         </div>
