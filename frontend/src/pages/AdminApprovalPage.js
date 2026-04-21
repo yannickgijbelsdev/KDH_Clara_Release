@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
+import MainSiteContext from '../context/MainSiteContext';
 import {
   CheckCircle,
   XCircle,
@@ -65,6 +66,8 @@ const AdminApprovalPage = () => {
   const { canApproveContent: globalCanApprove } = useAuth();
   const { mainSiteSlug } = useParams();
   const navigate = useNavigate();
+  const mainSiteCtx = useContext(MainSiteContext);
+  const mainSiteName = mainSiteCtx?.mainSite?.name || 'the site';
   const [allContent, setAllContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -242,7 +245,7 @@ const AdminApprovalPage = () => {
                 {pendingCount} item{pendingCount !== 1 ? 's' : ''} pending your approval
               </span>
             ) : (
-              'Review and approve content before WordPress publishing'
+              'Review and approve content before publishing'
             )}
           </p>
         </div>
@@ -527,7 +530,7 @@ const AdminApprovalPage = () => {
             {approvalAction === 'approved' && (
               <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
                 <p className="text-sm text-green-400">
-                  This content will be approved for WordPress publishing. Editors will be able to publish it.
+                  This content will be approved for publishing to {mainSiteName}. Editors will be able to publish it.
                 </p>
               </div>
             )}
