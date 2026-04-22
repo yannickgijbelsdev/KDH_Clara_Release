@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Clock,
   User,
+  Check,
   CalendarDays,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -467,13 +468,19 @@ const ContentLibraryPage = () => {
                       </div>
                     )}
                     <div>
-                      <div className="flex items-center gap-3 mb-1">
+                      <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-rose-400 transition-colors">
                           {item.title}
                         </h3>
-                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[item.status]}`}>
-                          {statusLabels[item.status]}
-                        </span>
+                        {item.status === 'ready' ? (
+                          <span title="Ready" style={{ color: '#ffffff' }} className="w-5 h-5 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0">
+                            <Check className="w-3 h-3" strokeWidth={2.5} />
+                          </span>
+                        ) : (
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[item.status]}`}>
+                            {statusLabels[item.status]}
+                          </span>
+                        )}
                       </div>
                       
                       {item.excerpt && (

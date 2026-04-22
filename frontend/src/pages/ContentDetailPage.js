@@ -636,8 +636,8 @@ const ContentDetailPage = () => {
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900">{content.title}</h1>
             {/* Ready check (purple) */}
             {content.status === 'ready' && (
-              <span title="Ready" data-testid="ready-check" className="w-6 h-6 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0">
-                <Check className="w-3.5 h-3.5 text-white" strokeWidth={2} />
+              <span title="Ready" data-testid="ready-check" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0">
+                <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
               </span>
             )}
             {/* Approval state */}
@@ -647,8 +647,8 @@ const ContentDetailPage = () => {
                 data-testid="approved-check"
                 className="inline-flex items-center gap-1 group cursor-default"
               >
-                <span className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                  <Check className="w-3.5 h-3.5 text-white" strokeWidth={2} />
+                <span style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
                 </span>
                 {/* Tooltip */}
                 <span className="hidden group-hover:inline-flex items-center gap-1.5 bg-zinc-900 text-white text-xs px-2 py-1 rounded-lg shadow-lg ml-1">
@@ -664,13 +664,13 @@ const ContentDetailPage = () => {
               </span>
             )}
             {content.status === 'ready' && isRejected && (
-              <span title="Rejected" className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
-                <X className="w-3.5 h-3.5 text-white" strokeWidth={2} />
+              <span title="Rejected" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                <X className="w-3.5 h-3.5" strokeWidth={2.5} />
               </span>
             )}
             {content.status === 'ready' && !isApproved && !isRejected && (
-              <span title="Pending approval" className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
-                <Clock className="w-3.5 h-3.5 text-white" strokeWidth={2} />
+              <span title="Pending approval" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-3.5 h-3.5" strokeWidth={2.5} />
               </span>
             )}
             {/* Non-ready status pill */}
