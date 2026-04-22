@@ -626,11 +626,23 @@ const ContentDetailPage = () => {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4 text-sm text-zinc-500">
+          <div className="flex items-center gap-x-4 gap-y-1 text-sm text-zinc-500 flex-wrap">
             <span className="flex items-center gap-1">
               <TypeIcon className="w-4 h-4" />
               {content.type.charAt(0).toUpperCase() + content.type.slice(1)}
             </span>
+            {content.category?.name && (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: content.category.color || '#dd0c51' }} />
+                <span className="text-zinc-700 font-semibold">{content.category.name}</span>
+              </span>
+            )}
+            {content.created_by_name && (
+              <span>Created by <span className="text-zinc-700 font-semibold">{content.created_by_name}</span></span>
+            )}
+            {content.last_edited_by_name && content.last_edited_by_name !== content.created_by_name && (
+              <span>Last edited by <span className="text-zinc-700 font-semibold">{content.last_edited_by_name}</span></span>
+            )}
             <span>Updated {format(parseISO(content.updated_at), 'MMM d, yyyy')}</span>
             {content.approved_by_name && (
               <span className="text-green-400">Approved by {content.approved_by_name}</span>

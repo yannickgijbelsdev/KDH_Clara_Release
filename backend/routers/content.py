@@ -344,6 +344,11 @@ async def update_content_item(
     changes = get_field_changes(content, update_dict)
     
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+    # Track who made the last edit (only when actual content fields change, not e.g. automatic status flips)
+    if changes:
+        update_dict["last_edited_by"] = current_user['id']
+        update_dict["last_edited_by_name"] = current_user.get('name') or current_user.get('email') or 'Unknown'
+        update_dict["last_edited_at"] = update_dict["updated_at"]
     
     # If status is changing to "ready", reset approval status to pending
     if update_dict.get('status') == 'ready' and content.get('status') != 'ready':

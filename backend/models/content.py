@@ -111,6 +111,9 @@ class ContentItemResponse(BaseModel):
     created_by_name: Optional[str] = None  # Creator's display name
     created_at: str
     updated_at: str
+    last_edited_by: Optional[str] = None
+    last_edited_by_name: Optional[str] = None
+    last_edited_at: Optional[str] = None
     featured_image: Optional[ContentFeaturedImage] = None
     external_featured_image: Optional[str] = None  # URL from imported WordPress articles
     source: Optional[str] = None  # Source site name (e.g., "MFY", "GRK")
