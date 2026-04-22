@@ -143,6 +143,7 @@ const ContentDetailPage = () => {
   // Audit log state
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditLogsExpanded, setAuditLogsExpanded] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   
@@ -634,6 +635,16 @@ const ContentDetailPage = () => {
             {content.approved_by_name && (
               <span className="text-green-400">Approved by {content.approved_by_name}</span>
             )}
+            {isAdmin && (
+              <button
+                onClick={() => { if (auditLogs.length === 0) fetchAuditLogs(); setHistoryDialogOpen(true); }}
+                data-testid="edit-history-btn"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 hover:bg-zinc-200 text-xs font-medium text-zinc-700 transition"
+              >
+                <History className="w-3.5 h-3.5" /> Edit history
+                {auditLogs.length > 0 && <span className="ml-0.5 text-[10px] text-zinc-500">· {auditLogs.length}</span>}
+              </button>
+            )}
           </div>
         </div>
         
@@ -1088,107 +1099,85 @@ const ContentDetailPage = () => {
         )}
       </div>
 
-      {/* Audit Log Section - Admin Only */}
+      {/* Edit History Dialog (admin only) */}
       {isAdmin && (
-        <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
-          <button
-            onClick={toggleAuditLogs}
-            className="w-full flex items-center justify-between p-4 hover:bg-zinc-100/70 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <History className="w-5 h-5 text-orange-400" />
-              <span className="font-semibold text-zinc-900">Edit History</span>
-              {auditLogs.length > 0 && (
-                <span className="px-2 py-0.5 bg-zinc-200 rounded-full text-xs text-zinc-600">
-                  {auditLogs.length} entries
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              {auditLogsExpanded && auditLogs.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleExportPdf();
-                  }}
-                  disabled={exportingPdf}
-                  className="bg-transparent border-zinc-300 text-zinc-600 hover:bg-zinc-200 gap-2"
-                >
-                  {exportingPdf ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Download className="w-4 h-4" />
+        <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+          <DialogContent className="bg-white max-w-3xl max-h-[85vh] flex flex-col p-0">
+            <DialogHeader className="p-5 border-b border-zinc-200">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <History className="w-5 h-5 text-orange-500" />
+                  <DialogTitle>Edit History</DialogTitle>
+                  {auditLogs.length > 0 && (
+                    <span className="px-2 py-0.5 bg-zinc-100 rounded-full text-xs text-zinc-600">{auditLogs.length} {auditLogs.length === 1 ? 'entry' : 'entries'}</span>
                   )}
-                  Export PDF
-                </Button>
-              )}
-              {auditLogsExpanded ? (
-                <ChevronUp className="w-5 h-5 text-zinc-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-zinc-400" />
-              )}
-            </div>
-          </button>
-          
-          {auditLogsExpanded && (
-            <div className="border-t border-zinc-200">
+                </div>
+                {auditLogs.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportPdf}
+                    disabled={exportingPdf}
+                    className="gap-2"
+                    data-testid="export-history-pdf-btn"
+                  >
+                    {exportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    Export PDF
+                  </Button>
+                )}
+              </div>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto min-h-0">
               {loadingAuditLogs ? (
-                <div className="p-8 text-center">
+                <div className="p-10 text-center">
                   <Loader2 className="w-6 h-6 animate-spin text-orange-400 mx-auto" />
-                  <p className="text-zinc-400 mt-2">Loading history...</p>
+                  <p className="text-zinc-500 mt-3 text-sm">Loading history...</p>
                 </div>
               ) : auditLogs.length === 0 ? (
-                <div className="p-8 text-center">
-                  <History className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
-                  <p className="text-zinc-400">No edit history yet</p>
-                  <p className="text-zinc-500 text-sm">Changes will be logged when content is edited</p>
+                <div className="p-10 text-center">
+                  <History className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+                  <p className="text-zinc-500 font-medium">No edit history yet</p>
+                  <p className="text-zinc-400 text-sm mt-1">Changes will be logged when someone edits this article</p>
                 </div>
               ) : (
-                <div className="divide-y divide-zinc-800 max-h-[400px] overflow-y-auto">
+                <div className="divide-y divide-zinc-100">
                   {auditLogs.map((log, index) => (
-                    <div key={log.id || index} className="p-4 hover:bg-zinc-100/30">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                            log.action === 'updated' ? 'bg-blue-500/20 text-blue-400' :
-                            log.action === 'deleted' ? 'bg-red-500/20 text-red-400' :
-                            log.action === 'created' ? 'bg-green-500/20 text-green-400' :
-                            'bg-zinc-500/20 text-zinc-400'
+                    <div key={log.id || index} className="p-4 hover:bg-zinc-50/70">
+                      <div className="flex items-start justify-between mb-2 gap-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            log.action === 'updated' ? 'bg-blue-100 text-blue-700' :
+                            log.action === 'deleted' ? 'bg-red-100 text-red-700' :
+                            log.action === 'created' ? 'bg-green-100 text-green-700' :
+                            'bg-zinc-100 text-zinc-700'
                           }`}>
-                            {log.action?.toUpperCase()}
+                            {log.action}
                           </span>
-                          <span className="text-zinc-600 font-medium">{log.user_name}</span>
+                          <span className="text-sm font-semibold text-zinc-800">{log.user_name || 'Unknown user'}</span>
                         </div>
-                        <div className="text-right">
-                          <p className="text-zinc-400 text-sm">
-                            {format(parseISO(log.timestamp), 'MMM d, yyyy HH:mm')}
-                          </p>
-                          {log.ip_address && (
-                            <p className="text-zinc-500 text-xs">IP: {log.ip_address}</p>
-                          )}
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs font-medium text-zinc-700">{format(parseISO(log.timestamp), 'MMM d, yyyy')}</p>
+                          <p className="text-[11px] text-zinc-400">{format(parseISO(log.timestamp), 'HH:mm:ss')}{log.ip_address ? ` · ${log.ip_address}` : ''}</p>
                         </div>
                       </div>
-                      
+
                       {log.changes && log.changes.length > 0 && (
                         <div className="mt-3 space-y-2">
                           {log.changes.map((change, changeIdx) => (
-                            <div key={changeIdx} className="bg-zinc-100/70 rounded-lg p-3">
-                              <p className="text-orange-400 text-xs font-medium uppercase mb-1">
-                                {change.field}
-                              </p>
-                              <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div key={changeIdx} className="bg-zinc-50 border border-zinc-100 rounded-lg p-3">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-[#dd0c51] mb-2">{change.field}</p>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                                 <div>
-                                  <p className="text-zinc-500 text-xs mb-1">Before:</p>
-                                  <p className="text-zinc-400 break-words">
-                                    {change.old_value || <span className="italic text-zinc-600">(empty)</span>}
+                                  <p className="text-[10px] text-zinc-400 uppercase mb-1">Before</p>
+                                  <p className="text-zinc-600 break-words text-xs">
+                                    {change.old_value || <span className="italic text-zinc-400">(empty)</span>}
                                   </p>
                                 </div>
                                 <div>
-                                  <p className="text-zinc-500 text-xs mb-1">After:</p>
-                                  <p className="text-zinc-600 break-words">
-                                    {change.new_value || <span className="italic text-zinc-600">(empty)</span>}
+                                  <p className="text-[10px] text-zinc-400 uppercase mb-1">After</p>
+                                  <p className="text-zinc-800 break-words text-xs">
+                                    {change.new_value || <span className="italic text-zinc-400">(empty)</span>}
                                   </p>
                                 </div>
                               </div>
@@ -1196,17 +1185,17 @@ const ContentDetailPage = () => {
                           ))}
                         </div>
                       )}
-                      
+
                       {log.details && (
-                        <p className="text-zinc-400 text-sm mt-2 italic">{log.details}</p>
+                        <p className="text-zinc-500 text-xs mt-2 italic">{log.details}</p>
                       )}
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          )}
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       {/* Multi-site Publish Dialog - Wizard with Deploy Animation */}
