@@ -137,12 +137,22 @@ async def enrich_content_item(item: dict) -> dict:
         if category:
             item["category"] = category
     
-    # Add creator name
+    # Add creator name + avatar
     if item.get("created_by"):
-        creator = await db.users.find_one({"id": item["created_by"]}, {"_id": 0, "name": 1})
+        creator = await db.users.find_one({"id": item["created_by"]}, {"_id": 0, "name": 1, "avatar": 1})
         if creator:
             item["created_by_name"] = creator.get("name", "Unknown")
-    
+            avatar = creator.get("avatar") or {}
+            item["created_by_avatar"] = avatar.get("s3_url") or (f"/api/uploads/avatars/{avatar['file_key']}" if avatar.get("file_key") else None)
+
+    # Add last editor avatar
+    if item.get("last_edited_by"):
+        editor = await db.users.find_one({"id": item["last_edited_by"]}, {"_id": 0, "name": 1, "avatar": 1})
+        if editor:
+            item["last_edited_by_name"] = editor.get("name") or item.get("last_edited_by_name") or "Unknown"
+            avatar = editor.get("avatar") or {}
+            item["last_edited_by_avatar"] = avatar.get("s3_url") or (f"/api/uploads/avatars/{avatar['file_key']}" if avatar.get("file_key") else None)
+
     return item
 
 
