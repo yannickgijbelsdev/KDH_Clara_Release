@@ -104,6 +104,7 @@ class ContentItemResponse(BaseModel):
     approval_notes: Optional[str] = None
     approved_by: Optional[str] = None
     approved_by_name: Optional[str] = None
+    approved_by_avatar: Optional[str] = None
     approved_at: Optional[str] = None
     # Other fields
     team_id: Optional[str] = None

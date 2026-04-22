@@ -113,15 +113,26 @@ async def get_content_with_publish_statuses(content_id: str, team_id: str = None
     
     # Add creator name
     if content.get("created_by"):
-        creator = await db.users.find_one({"id": content["created_by"]}, {"_id": 0, "name": 1})
+        creator = await db.users.find_one({"id": content["created_by"]}, {"_id": 0, "name": 1, "avatar": 1})
         if creator:
             content["created_by_name"] = creator.get("name", "Unknown")
-    
-    # Add approver name
+            _av = creator.get("avatar") or {}
+            content["created_by_avatar"] = _av.get("s3_url") or (f"/api/uploads/avatars/{_av['file_key']}" if _av.get("file_key") else None)
+
+    if content.get("last_edited_by"):
+        editor = await db.users.find_one({"id": content["last_edited_by"]}, {"_id": 0, "name": 1, "avatar": 1})
+        if editor:
+            content["last_edited_by_name"] = editor.get("name") or content.get("last_edited_by_name") or "Unknown"
+            _av = editor.get("avatar") or {}
+            content["last_edited_by_avatar"] = _av.get("s3_url") or (f"/api/uploads/avatars/{_av['file_key']}" if _av.get("file_key") else None)
+
+    # Add approver name + avatar
     if content.get("approved_by"):
-        approver = await db.users.find_one({"id": content["approved_by"]}, {"_id": 0, "name": 1})
+        approver = await db.users.find_one({"id": content["approved_by"]}, {"_id": 0, "name": 1, "avatar": 1})
         if approver:
             content["approved_by_name"] = approver.get("name", "Unknown")
+            _av = approver.get("avatar") or {}
+            content["approved_by_avatar"] = _av.get("s3_url") or (f"/api/uploads/avatars/{_av['file_key']}" if _av.get("file_key") else None)
     
     publish_statuses = await db.content_item_publishes.find(
         {"content_item_id": content_id},

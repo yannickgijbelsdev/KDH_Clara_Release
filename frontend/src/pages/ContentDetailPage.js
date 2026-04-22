@@ -33,6 +33,7 @@ import {
   ChevronUp,
   Calendar,
   Sparkles,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -610,72 +611,98 @@ const ContentDetailPage = () => {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900">{content.title}</h1>
-            <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[content.status]}`}>
-              {statusLabels[content.status]}
-            </span>
-            {/* Approval Status Badge */}
+            {/* Ready check (purple) */}
             {content.status === 'ready' && (
-              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                isApproved ? 'bg-green-500/20 text-green-400' :
-                isRejected ? 'bg-red-500/20 text-red-400' :
-                'bg-yellow-500/20 text-yellow-400'
-              }`}>
-                {isApproved ? 'Approved' : isRejected ? 'Rejected' : 'Pending Approval'}
+              <span title="Ready" data-testid="ready-check" className="w-5 h-5 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0">
+                <Check className="w-3 h-3 text-white" strokeWidth={3} />
+              </span>
+            )}
+            {/* Approval state */}
+            {content.status === 'ready' && isApproved && (
+              <span
+                title={`Approved by ${content.approved_by_name || 'Unknown'}`}
+                data-testid="approved-check"
+                className="inline-flex items-center gap-1 group cursor-default"
+              >
+                <span className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                </span>
+                {/* Tooltip */}
+                <span className="hidden group-hover:inline-flex items-center gap-1.5 bg-zinc-900 text-white text-xs px-2 py-1 rounded-lg shadow-lg ml-1">
+                  {content.approved_by_avatar ? (
+                    <img src={content.approved_by_avatar} alt="" className="w-4 h-4 rounded-full object-cover" />
+                  ) : (
+                    <span className="w-4 h-4 rounded-full bg-zinc-700 flex items-center justify-center text-[8px] font-bold text-zinc-200">
+                      {(content.approved_by_name || '?').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                  Approved by {content.approved_by_name || 'Unknown'}
+                </span>
+              </span>
+            )}
+            {content.status === 'ready' && isRejected && (
+              <span title="Rejected" className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                <X className="w-3 h-3 text-white" strokeWidth={3} />
+              </span>
+            )}
+            {content.status === 'ready' && !isApproved && !isRejected && (
+              <span title="Pending approval" className="w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-3 h-3 text-white" />
+              </span>
+            )}
+            {/* Non-ready status pill */}
+            {content.status !== 'ready' && (
+              <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[content.status]}`}>
+                {statusLabels[content.status]}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-x-4 gap-y-1 text-sm text-zinc-500 flex-wrap">
+          <div className="flex items-center gap-x-3 gap-y-1 text-xs text-zinc-500 flex-wrap">
             <span className="flex items-center gap-1">
-              <TypeIcon className="w-4 h-4" />
+              <TypeIcon className="w-3.5 h-3.5" />
               {content.type.charAt(0).toUpperCase() + content.type.slice(1)}
             </span>
             {content.category?.name && (
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: content.category.color || '#dd0c51' }} />
-                <span className="text-zinc-700 font-semibold">{content.category.name}</span>
+                <span className="text-zinc-700 font-medium">{content.category.name}</span>
               </span>
             )}
             {content.created_by_name && (
-              <span className="inline-flex items-center gap-1.5">Created by
-                <span className="inline-flex items-center gap-1.5 ml-1">
-                  {content.created_by_avatar ? (
-                    <img src={content.created_by_avatar} alt="" className="w-5 h-5 rounded-full object-cover border border-zinc-200" />
-                  ) : (
-                    <span className="w-5 h-5 rounded-full bg-zinc-200 flex items-center justify-center text-[9px] font-bold text-zinc-600">
-                      {content.created_by_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
-                  <span className="text-zinc-700 font-semibold">{content.created_by_name}</span>
-                </span>
+              <span className="inline-flex items-center gap-1" title={`Created by ${content.created_by_name}`}>
+                {content.created_by_avatar ? (
+                  <img src={content.created_by_avatar} alt="" className="w-4 h-4 rounded-full object-cover border border-zinc-200" />
+                ) : (
+                  <span className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center text-[8px] font-bold text-zinc-600">
+                    {content.created_by_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+                <span className="text-zinc-700 font-medium">{content.created_by_name}</span>
               </span>
             )}
             {content.last_edited_by_name && content.last_edited_by_name !== content.created_by_name && (
-              <span className="inline-flex items-center gap-1.5">Last edited by
-                <span className="inline-flex items-center gap-1.5 ml-1">
-                  {content.last_edited_by_avatar ? (
-                    <img src={content.last_edited_by_avatar} alt="" className="w-5 h-5 rounded-full object-cover border border-zinc-200" />
-                  ) : (
-                    <span className="w-5 h-5 rounded-full bg-zinc-200 flex items-center justify-center text-[9px] font-bold text-zinc-600">
-                      {content.last_edited_by_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
-                  <span className="text-zinc-700 font-semibold">{content.last_edited_by_name}</span>
-                </span>
+              <span className="inline-flex items-center gap-1" title={`Last edited by ${content.last_edited_by_name}`}>
+                <Pencil className="w-3 h-3 text-zinc-400" />
+                {content.last_edited_by_avatar ? (
+                  <img src={content.last_edited_by_avatar} alt="" className="w-4 h-4 rounded-full object-cover border border-zinc-200" />
+                ) : (
+                  <span className="w-4 h-4 rounded-full bg-zinc-200 flex items-center justify-center text-[8px] font-bold text-zinc-600">
+                    {content.last_edited_by_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+                <span className="text-zinc-700 font-medium">{content.last_edited_by_name}</span>
               </span>
             )}
-            <span>Updated {format(parseISO(content.updated_at), 'MMM d, yyyy')}</span>
-            {content.approved_by_name && (
-              <span className="text-green-400">Approved by {content.approved_by_name}</span>
-            )}
+            <span>{format(parseISO(content.updated_at), 'MMM d, yyyy')}</span>
             {isAdmin && (
               <button
                 onClick={() => { if (auditLogs.length === 0) fetchAuditLogs(); setHistoryDialogOpen(true); }}
                 data-testid="edit-history-btn"
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 hover:bg-zinc-200 text-xs font-medium text-zinc-700 transition"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-zinc-100 hover:bg-zinc-200 text-[11px] font-medium text-zinc-700 transition"
               >
-                <History className="w-3.5 h-3.5" /> Edit history
+                <History className="w-3 h-3" /> History
                 {auditLogs.length > 0 && <span className="ml-0.5 text-[10px] text-zinc-500">· {auditLogs.length}</span>}
               </button>
             )}
