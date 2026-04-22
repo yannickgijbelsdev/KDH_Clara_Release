@@ -1432,7 +1432,6 @@ export default function CodeStudioPage() {
     <div data-testid="code-studio-page">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-[#7c1ac8]/10 rounded-xl"><Code2 className="w-6 h-6 text-[#7c1ac8]" /></div>
           <div><h1 className="text-2xl font-bold text-zinc-900">Code Studio</h1><p className="text-sm text-zinc-500">Build modern websites with drag & drop</p></div>
         </div>
         <Button onClick={() => {
