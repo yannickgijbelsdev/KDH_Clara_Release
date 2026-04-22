@@ -306,22 +306,35 @@ const RichTextEditor = ({
       <style>{`
         .rich-text-editor-wrapper .tox-tinymce {
           border-radius: 8px !important;
-          border: 1px solid #3f3f46 !important;
+          border: 1px solid #e4e4e7 !important;
+          background-color: #ffffff !important;
         }
         .rich-text-editor-wrapper .tox .tox-edit-area::before {
           border: none !important;
         }
         .rich-text-editor-wrapper .tox .tox-toolbar__primary {
-          background-color: #18181b !important;
-          border-bottom: 1px solid #3f3f46 !important;
+          background-color: #fafafa !important;
+          border-bottom: 1px solid #e4e4e7 !important;
         }
         .rich-text-editor-wrapper .tox .tox-menubar {
-          background-color: #18181b !important;
-          border-bottom: 1px solid #3f3f46 !important;
+          background-color: #fafafa !important;
+          border-bottom: 1px solid #e4e4e7 !important;
+        }
+        .rich-text-editor-wrapper .tox .tox-mbtn {
+          color: #3f3f46 !important;
+        }
+        .rich-text-editor-wrapper .tox .tox-mbtn:hover {
+          background-color: #f4f4f5 !important;
+        }
+        .rich-text-editor-wrapper .tox .tox-tbtn {
+          color: #3f3f46 !important;
+        }
+        .rich-text-editor-wrapper .tox .tox-tbtn:hover {
+          background-color: #f4f4f5 !important;
         }
         .rich-text-editor-wrapper .tox .tox-statusbar {
-          background-color: #18181b !important;
-          border-top: 1px solid #3f3f46 !important;
+          background-color: #fafafa !important;
+          border-top: 1px solid #e4e4e7 !important;
           color: #71717a !important;
         }
         .rich-text-editor-wrapper .tox .tox-statusbar__text-container {
@@ -329,32 +342,34 @@ const RichTextEditor = ({
         }
         /* Style the link dialog */
         .tox .tox-dialog {
-          background-color: #18181b !important;
-          border: 1px solid #3f3f46 !important;
+          background-color: #ffffff !important;
+          border: 1px solid #e4e4e7 !important;
         }
         .tox .tox-dialog__header {
-          background-color: #18181b !important;
-          border-bottom: 1px solid #3f3f46 !important;
+          background-color: #ffffff !important;
+          border-bottom: 1px solid #e4e4e7 !important;
+          color: #18181b !important;
         }
-        .tox .tox-dialog__body {
-          background-color: #18181b !important;
+        .tox .tox-dialog__body, .tox .tox-dialog__body-content {
+          background-color: #ffffff !important;
+          color: #3f3f46 !important;
         }
         .tox .tox-dialog__footer {
-          background-color: #18181b !important;
-          border-top: 1px solid #3f3f46 !important;
+          background-color: #fafafa !important;
+          border-top: 1px solid #e4e4e7 !important;
         }
-        .tox .tox-textfield, .tox .tox-listboxfield .tox-listbox--select {
-          background-color: #27272a !important;
-          border-color: #3f3f46 !important;
-          color: #e4e4e7 !important;
+        .tox .tox-textfield, .tox .tox-listboxfield .tox-listbox--select, .tox .tox-textarea {
+          background-color: #ffffff !important;
+          border-color: #e4e4e7 !important;
+          color: #18181b !important;
         }
         .tox .tox-label {
-          color: #a1a1aa !important;
+          color: #52525b !important;
         }
         .tox .tox-button--secondary {
-          background-color: #27272a !important;
-          border-color: #3f3f46 !important;
-          color: #e4e4e7 !important;
+          background-color: #f4f4f5 !important;
+          border-color: #e4e4e7 !important;
+          color: #3f3f46 !important;
         }
         .tox .tox-button {
           background-color: #dd0c51 !important;
