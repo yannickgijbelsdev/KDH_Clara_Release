@@ -26,7 +26,11 @@ content_router = APIRouter(prefix="/content", tags=["Content Library"])
 # ============== AUDIT LOG HELPERS ==============
 
 def get_field_changes(old_data: dict, new_data: dict) -> List[dict]:
-    """Compare old and new data and return list of changes."""
+    """Compare old and new data and return list of changes.
+    
+    Full values are stored so we can rollback reliably. Frontend truncates
+    long bodies for display only.
+    """
     changes = []
     fields_to_track = ['title', 'body', 'excerpt', 'external_url', 'category_id', 'status', 'type']
     
@@ -35,18 +39,10 @@ def get_field_changes(old_data: dict, new_data: dict) -> List[dict]:
         new_value = new_data.get(field)
         
         if new_value is not None and old_value != new_value:
-            # For body field, truncate for display
-            if field == 'body':
-                old_display = (old_value[:100] + '...') if old_value and len(old_value) > 100 else old_value
-                new_display = (new_value[:100] + '...') if new_value and len(new_value) > 100 else new_value
-            else:
-                old_display = old_value
-                new_display = new_value
-            
             changes.append({
                 "field": field,
-                "old_value": old_display,
-                "new_value": new_display
+                "old_value": old_value,
+                "new_value": new_value,
             })
     
     return changes
@@ -852,6 +848,105 @@ async def get_content_audit_logs(
     ).sort("timestamp", -1).to_list(500)
     
     return logs
+
+
+@content_router.post("/{content_id}/rollback/{log_id}", response_model=ContentItemResponse)
+async def rollback_content_item(
+    content_id: str,
+    log_id: str,
+    request: Request,
+    current_user: dict = Depends(require_editor_or_admin)
+):
+    """Rollback a content item to the state BEFORE a specific audit log entry.
+    
+    Applies each change's `old_value` to the corresponding field on the item,
+    then records a new audit log entry documenting the rollback.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        query["team_id"] = current_user.get('team_id')
+    
+    content = await db.content_items.find_one(query)
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    log = await db.content_audit_logs.find_one(
+        {"id": log_id, "content_id": content_id},
+        {"_id": 0}
+    )
+    if not log:
+        raise HTTPException(status_code=404, detail="Audit log entry not found")
+    
+    if log.get("action") != "updated" or not log.get("changes"):
+        raise HTTPException(status_code=400, detail="This history entry has no field changes to rollback")
+    
+    # Build rollback update: restore old_value for each tracked change
+    rollback_update = {}
+    rollback_changes = []
+    allowed_fields = {'title', 'body', 'excerpt', 'external_url', 'category_id', 'status', 'type'}
+    for change in log.get("changes", []):
+        field = change.get("field")
+        if field not in allowed_fields:
+            continue
+        target_value = change.get("old_value")
+        current_value = content.get(field)
+        if current_value != target_value:
+            rollback_update[field] = target_value
+            rollback_changes.append({
+                "field": field,
+                "old_value": current_value,
+                "new_value": target_value,
+            })
+    
+    if not rollback_update:
+        raise HTTPException(status_code=400, detail="Nothing to rollback — values already match")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    rollback_update["updated_at"] = now
+    rollback_update["last_edited_by"] = current_user['id']
+    rollback_update["last_edited_by_name"] = current_user.get('name') or current_user.get('email') or 'Unknown'
+    rollback_update["last_edited_at"] = now
+    
+    # If status is being rolled back to 'ready', reset approval to pending
+    if rollback_update.get('status') == 'ready' and content.get('status') != 'ready':
+        rollback_update["approval_status"] = "pending"
+        rollback_update["approved_by"] = None
+        rollback_update["approved_at"] = None
+        rollback_update["approval_notes"] = None
+    
+    await db.content_items.update_one({"id": content_id}, {"$set": rollback_update})
+    
+    ip_address = request.client.host if request.client else None
+    await create_content_audit_log(
+        content_id=content_id,
+        action="updated",
+        user_id=current_user['id'],
+        user_name=current_user.get('name', 'Unknown'),
+        changes=rollback_changes,
+        details=f"Rolled back to state before log {log_id[:8]} ({log.get('timestamp', '')})",
+        ip_address=ip_address,
+    )
+    
+    await log_action(
+        action=f"Rolled back Content: {content.get('title', 'Unknown')}",
+        category="content",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user.get('team_id'),
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="content_item",
+        target_id=content_id,
+        target_name=content.get('title'),
+        details={"rollback_log_id": log_id, "changes": rollback_changes},
+    )
+    
+    return await get_content_with_publish_statuses(content_id, current_user.get('team_id'))
 
 
 @content_router.get("/{content_id}/audit-logs/export-pdf")

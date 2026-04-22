@@ -34,6 +34,7 @@ import {
   Calendar,
   Sparkles,
   Pencil,
+  Undo2,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -147,6 +148,9 @@ const ContentDetailPage = () => {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [loadingAuditLogs, setLoadingAuditLogs] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  // Rollback state
+  const [rollbackTarget, setRollbackTarget] = useState(null); // holds the log entry to rollback
+  const [rollingBack, setRollingBack] = useState(false);
   
   // Helper for context-aware navigation - uses URL param directly
   const navTo = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
@@ -272,6 +276,23 @@ const ContentDetailPage = () => {
       fetchAuditLogs();
     }
     setAuditLogsExpanded(!auditLogsExpanded);
+  };
+
+  const handleRollback = async () => {
+    if (!rollbackTarget) return;
+    setRollingBack(true);
+    try {
+      await axios.post(`${API}/content/${contentId}/rollback/${rollbackTarget.id}`);
+      toast.success('Rolled back successfully');
+      setRollbackTarget(null);
+      await fetchContent();
+      await fetchAuditLogs();
+    } catch (error) {
+      const detail = error.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Rollback failed');
+    } finally {
+      setRollingBack(false);
+    }
   };
 
   const fetchContent = async () => {
@@ -1181,7 +1202,16 @@ const ContentDetailPage = () => {
                 </div>
               ) : (
                 <div className="divide-y divide-zinc-100">
-                  {auditLogs.map((log, index) => (
+                  {auditLogs.map((log, index) => {
+                    const isRollbackable = isEditor && log.action === 'updated' && Array.isArray(log.changes) && log.changes.length > 0;
+                    const truncate = (v) => {
+                      if (v == null) return v;
+                      const s = String(v);
+                      // Strip HTML tags for readable preview
+                      const plain = s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                      return plain.length > 180 ? plain.slice(0, 180) + '…' : plain;
+                    };
+                    return (
                     <div key={log.id || index} className="p-4 hover:bg-zinc-50/70">
                       <div className="flex items-start justify-between mb-2 gap-3">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -1195,9 +1225,22 @@ const ContentDetailPage = () => {
                           </span>
                           <span className="text-sm font-semibold text-zinc-800">{log.user_name || 'Unknown user'}</span>
                         </div>
-                        <div className="text-right flex-shrink-0">
-                          <p className="text-xs font-medium text-zinc-700">{format(parseISO(log.timestamp), 'MMM d, yyyy')}</p>
-                          <p className="text-[11px] text-zinc-400">{format(parseISO(log.timestamp), 'HH:mm:ss')}{log.ip_address ? ` · ${log.ip_address}` : ''}</p>
+                        <div className="flex items-start gap-2 flex-shrink-0">
+                          <div className="text-right">
+                            <p className="text-xs font-medium text-zinc-700">{format(parseISO(log.timestamp), 'MMM d, yyyy')}</p>
+                            <p className="text-[11px] text-zinc-400">{format(parseISO(log.timestamp), 'HH:mm:ss')}{log.ip_address ? ` · ${log.ip_address}` : ''}</p>
+                          </div>
+                          {isRollbackable && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setRollbackTarget(log)}
+                              className="h-7 gap-1 text-[11px] text-zinc-700 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-700"
+                              data-testid={`rollback-btn-${log.id}`}
+                            >
+                              <Undo2 className="w-3 h-3" /> Rollback
+                            </Button>
+                          )}
                         </div>
                       </div>
 
@@ -1210,13 +1253,13 @@ const ContentDetailPage = () => {
                                 <div>
                                   <p className="text-[10px] text-zinc-400 uppercase mb-1">Before</p>
                                   <p className="text-zinc-600 break-words text-xs">
-                                    {change.old_value || <span className="italic text-zinc-400">(empty)</span>}
+                                    {change.old_value ? truncate(change.old_value) : <span className="italic text-zinc-400">(empty)</span>}
                                   </p>
                                 </div>
                                 <div>
                                   <p className="text-[10px] text-zinc-400 uppercase mb-1">After</p>
                                   <p className="text-zinc-800 break-words text-xs">
-                                    {change.new_value || <span className="italic text-zinc-400">(empty)</span>}
+                                    {change.new_value ? truncate(change.new_value) : <span className="italic text-zinc-400">(empty)</span>}
                                   </p>
                                 </div>
                               </div>
@@ -1229,13 +1272,52 @@ const ContentDetailPage = () => {
                         <p className="text-zinc-500 text-xs mt-2 italic">{log.details}</p>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Rollback Confirmation Dialog */}
+      <AlertDialog open={!!rollbackTarget} onOpenChange={(open) => { if (!open && !rollingBack) setRollbackTarget(null); }}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Undo2 className="w-5 h-5 text-amber-500" />
+              Rollback this change?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will restore the article fields to the state <strong>before</strong> this edit.
+              A new history entry will be added so the rollback itself is traceable.
+              {rollbackTarget?.user_name && (
+                <span className="block mt-2 text-xs text-zinc-500">
+                  Undoing edit by <span className="font-semibold">{rollbackTarget.user_name}</span>
+                  {rollbackTarget?.timestamp && <> on {format(parseISO(rollbackTarget.timestamp), 'MMM d, yyyy HH:mm')}</>}
+                </span>
+              )}
+              {rollbackTarget?.changes?.length > 0 && (
+                <span className="block mt-2 text-xs text-zinc-600">
+                  Fields: <span className="font-medium">{rollbackTarget.changes.map(c => c.field).join(', ')}</span>
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={rollingBack} data-testid="rollback-cancel-btn">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRollback}
+              disabled={rollingBack}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+              data-testid="rollback-confirm-btn"
+            >
+              {rollingBack ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Rolling back...</> : 'Confirm rollback'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Multi-site Publish Dialog - Wizard with Deploy Animation */}
       {/* Code Studio Publish Dialog */}

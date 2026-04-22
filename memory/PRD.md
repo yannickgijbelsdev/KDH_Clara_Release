@@ -98,3 +98,11 @@ Multi-environment SaaS platform for radio station management built with React fr
 ### P2
 - Payment Gateway (Stripe/Mollie), Stream Monitor VU Meters
 - React Hook warnings (45+ files), MainSiteDashboardLayout refactoring
+- Split massive components (CodeStudioPage.js, ContentDetailPage.js — both >1500 lines)
+
+## 2026-04-22 — Content History Rollback + Login BG Fix
+- **Rollback feature** (P0): Added `POST /api/content/{content_id}/rollback/{log_id}` in `backend/routers/content.py`. Restores field values from a specific audit log entry's `old_value` (full values now stored; not truncated) and records a traceable rollback audit entry.
+- **UI**: In `ContentDetailPage.js`, each updated history row shows a "Rollback" button; clicking opens an AlertDialog confirmation. Frontend truncates long HTML previews to 180 chars for display only.
+- **Login page**: Switched `ROOMS_IMG` to `clara_rooms.png` (transparent PNG) and removed `mixBlendMode: 'multiply'` to eliminate the visible white box behind the isometric rooms. Cleaned up leftover duplicate JSX at end of file.
+- Tested: backend curl (edit → rollback → verify title reverted), frontend Playwright (history dialog opens, Rollback btn triggers AlertDialog, confirm executes rollback successfully).
+
