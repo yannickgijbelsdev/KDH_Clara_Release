@@ -46,6 +46,8 @@ export default function DashboardHome() {
 
   const siteType = mainSite?.site_type || 'radio';
   const isRadio = siteType === 'radio';
+  const isSinglePurpose = ['task_scheduler', 'code_studio', 'wp_security'].includes(siteType);
+  const showFeaturesPanel = !isRadio && !isSinglePurpose; // only relevant for network/sites/external_host/technical
   const theme = SITE_TYPE_THEMES[siteType] || SITE_TYPE_THEMES.radio;
   const Icon = theme.icon;
   const features = mainSite?.enabled_features || [];
@@ -105,26 +107,47 @@ export default function DashboardHome() {
   const brusselsHours = Number(now.toLocaleString('en-US', { timeZone: 'Europe/Brussels', hour: 'numeric', hour12: false }));
   const greeting = brusselsHours < 4 ? 'Good night' : brusselsHours < 12 ? 'Good morning' : brusselsHours < 18 ? 'Good afternoon' : 'Good evening';
 
-  const navItems = [];
-  if (!isRadio) {
-    if (features.includes('sites')) navItems.push({ label: 'Sites', icon: Layers, to: 'sites', color: 'text-blue-500 bg-blue-50' });
-    if (features.includes('zerotier')) navItems.push({ label: 'ZeroTier', icon: Network, to: 'zerotier', color: 'text-emerald-500 bg-emerald-50' });
-    if (features.includes('wp_security')) navItems.push({ label: 'Firewall', icon: Shield, to: 'firewall', color: 'text-red-500 bg-red-50' });
-    if (features.includes('task_boards')) navItems.push({ label: 'Task Boards', icon: LayoutGrid, to: 'task-boards', color: 'text-violet-500 bg-violet-50' });
-    if (features.includes('xml_imports')) navItems.push({ label: 'XML Imports', icon: Server, to: 'xml-imports', color: 'text-blue-500 bg-blue-50' });
-    if (features.includes('team_settings')) navItems.push({ label: 'Team', icon: Users, to: 'team', color: 'text-emerald-500 bg-emerald-50' });
-    if (features.includes('content_library')) navItems.push({ label: 'Content', icon: FileText, to: 'content', color: 'text-violet-500 bg-violet-50' });
-    if (features.includes('calendar')) navItems.push({ label: 'Calendar', icon: Calendar, to: 'calendar', color: 'text-blue-500 bg-blue-50' });
+  // Build Quick Nav: mirror the sidebar logic — only show what's actually accessible.
+  // Same implicit rule as sidebar: content_library implies approvals + trash.
+  const effectiveFeatures = new Set(features);
+  if (effectiveFeatures.has('content_library')) {
+    effectiveFeatures.add('content_approval');
+    effectiveFeatures.add('trash');
   }
+  // Single-purpose site types always have their core route
+  if (mainSite?.site_type === 'task_scheduler') effectiveFeatures.add('task_boards');
+  if (mainSite?.site_type === 'code_studio') effectiveFeatures.add('code_studio');
+  if (mainSite?.site_type === 'wp_security') effectiveFeatures.add('wp_security_dashboard');
+  if (mainSite?.site_type === 'technical') { effectiveFeatures.add('zerotier'); effectiveFeatures.add('team_settings'); }
 
-  const quickNav = isRadio
-    ? [
-        { label: 'Shows', icon: Radio, to: 'shows', color: 'text-orange-500 bg-orange-50' },
-        { label: 'Calendar', icon: Calendar, to: 'calendar', color: 'text-blue-500 bg-blue-50' },
-        { label: 'Content', icon: FileText, to: 'content', color: 'text-violet-500 bg-violet-50' },
-        { label: 'Team', icon: Users, to: 'team', color: 'text-emerald-500 bg-emerald-50' },
-      ]
-    : navItems;
+  // Feature → nav-item mapping (kept in sync with MainSiteDashboardLayout sidebar).
+  // We pick the most-used/top-level features to avoid a huge list.
+  const QUICK_NAV_MAP = {
+    shows:             { label: 'Shows',          icon: Radio,      to: 'shows',          color: 'text-orange-500 bg-orange-50' },
+    calendar:          { label: 'Calendar',       icon: Calendar,   to: 'calendar',       color: 'text-blue-500 bg-blue-50' },
+    content_library:   { label: 'Content',        icon: FileText,   to: 'content',        color: 'text-violet-500 bg-violet-50' },
+    content_approval:  { label: 'Approvals',      icon: CheckCircle,to: 'approvals',      color: 'text-amber-500 bg-amber-50' },
+    media_library:     { label: 'Media',          icon: Layers,     to: 'media',          color: 'text-cyan-500 bg-cyan-50' },
+    team_chat:         { label: 'Team Chat',      icon: Users,      to: 'chat',           color: 'text-emerald-500 bg-emerald-50' },
+    team_settings:     { label: 'Team',           icon: Users,      to: 'team',           color: 'text-emerald-500 bg-emerald-50' },
+    task_boards:       { label: 'Task Boards',    icon: LayoutGrid, to: 'task-boards',    color: 'text-violet-500 bg-violet-50' },
+    code_studio:       { label: 'Code Studio',    icon: Layers,     to: 'code-studio',    color: 'text-fuchsia-500 bg-fuchsia-50' },
+    zerotier:          { label: 'ZeroTier',       icon: Network,    to: 'zerotier',       color: 'text-emerald-500 bg-emerald-50' },
+    sites:             { label: 'Sites',          icon: Layers,     to: 'sites',          color: 'text-blue-500 bg-blue-50' },
+    wordpress:         { label: 'WordPress',      icon: Server,     to: 'wordpress',      color: 'text-blue-500 bg-blue-50' },
+    xml_imports:       { label: 'XML Imports',    icon: Server,     to: 'xml-imports',    color: 'text-blue-500 bg-blue-50' },
+    wp_security_dashboard: { label: 'Security',   icon: Shield,     to: 'wp-security',    color: 'text-red-500 bg-red-50' },
+    rds:               { label: 'RDS',            icon: Radio,      to: 'rds',            color: 'text-orange-500 bg-orange-50' },
+    activity_logs:     { label: 'Activity Logs',  icon: FileText,   to: 'logs',           color: 'text-zinc-500 bg-zinc-100' },
+  };
+
+  // Order items by sidebar priority
+  const QUICK_NAV_ORDER = ['shows', 'calendar', 'content_library', 'content_approval', 'media_library', 'task_boards', 'code_studio', 'wp_security_dashboard', 'rds', 'zerotier', 'sites', 'wordpress', 'xml_imports', 'team_chat', 'team_settings', 'activity_logs'];
+
+  const quickNav = QUICK_NAV_ORDER
+    .filter(f => effectiveFeatures.has(f) && QUICK_NAV_MAP[f])
+    .slice(0, 8) // dashboard panel stays compact
+    .map(f => QUICK_NAV_MAP[f]);
 
   return (
     <>
@@ -142,9 +165,9 @@ export default function DashboardHome() {
           <NavPanel items={quickNav} navigate={navigate} mainSiteSlug={mainSiteSlug} />
           {isRadio ? (
             <MetricsPanel shows={shows} contentCount={contentCount} teamMembers={teamMembers} />
-          ) : (
+          ) : showFeaturesPanel ? (
             <FeaturesPanel features={features} theme={theme} ztMembers={ztMembers} />
-          )}
+          ) : null}
           <TeamPanel teamMembers={teamMembers} loading={loading} navigate={navigate} mainSiteSlug={mainSiteSlug} />
           <TimePanel now={now} />
         </div>
@@ -175,9 +198,9 @@ export default function DashboardHome() {
               <NavPanel items={quickNav} navigate={navigate} mainSiteSlug={mainSiteSlug} />
               {isRadio ? (
                 <MetricsPanel shows={shows} contentCount={contentCount} teamMembers={teamMembers} />
-              ) : (
+              ) : showFeaturesPanel ? (
                 <FeaturesPanel features={features} theme={theme} ztMembers={ztMembers} />
-              )}
+              ) : null}
             </div>
           </div>
 
