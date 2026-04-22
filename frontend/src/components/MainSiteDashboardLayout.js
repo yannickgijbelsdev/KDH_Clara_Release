@@ -229,6 +229,18 @@ const MainSiteDashboardContent = () => {
       validRoutes.add('zerotier');
       validRoutes.add('team');
     }
+    // Task Scheduler sites always have task-boards
+    if (mainSite.site_type === 'task_scheduler') {
+      validRoutes.add('task-boards');
+    }
+    // Code Studio sites always have code-studio
+    if (mainSite.site_type === 'code_studio') {
+      validRoutes.add('code-studio');
+    }
+    // WP Security sites always have the security dashboard
+    if (mainSite.site_type === 'wp_security') {
+      validRoutes.add('wp-security');
+    }
     
     if (!validRoutes.has(subPath)) {
       navigate(`/${mainSiteSlug}`, { replace: true });
