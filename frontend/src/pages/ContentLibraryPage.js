@@ -520,23 +520,24 @@ const ContentLibraryPage = () => {
                     {/* Published destinations — show actual site names */}
                     {item.publish_statuses && item.publish_statuses.length > 0 && (
                       <div className="flex items-center gap-1 flex-wrap justify-end max-w-[260px]" title="Published destinations">
-                        {item.publish_statuses.map((ps, i) => {
-                          const synced = ps.sync_status === 'synced' || ps.sync_status === 'ok';
-                          const failed = ps.sync_status === 'failed' || ps.sync_status === 'error';
-                          return (
-                            <span
-                              key={i}
-                              className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border ${
-                                synced ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                                : failed ? 'bg-red-50 border-red-200 text-red-700'
-                                : 'bg-zinc-50 border-zinc-200 text-zinc-600'
-                              }`}
-                            >
-                              {synced ? <CheckCircle className="w-2.5 h-2.5" /> : failed ? <AlertCircle className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
-                              {ps.wordpress_site_name || 'Unknown'}
-                            </span>
-                          );
-                        })}
+                        {item.publish_statuses
+                          .filter(ps => ps.wordpress_site_name && ps.wordpress_site_name !== 'Unknown')
+                          .map((ps, i) => {
+                            const synced = ps.sync_status === 'synced' || ps.sync_status === 'ok';
+                            const failed = ps.sync_status === 'failed' || ps.sync_status === 'error';
+                            return (
+                              <span
+                                key={i}
+                                className={`inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-full border ${
+                                  synced ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                  : failed ? 'bg-red-50 border-red-200 text-red-700'
+                                  : 'bg-zinc-50 border-zinc-200 text-zinc-600'
+                                }`}
+                              >
+                                {ps.wordpress_site_name}
+                              </span>
+                            );
+                          })}
                       </div>
                     )}
                     <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-rose-400 transition-colors" />
