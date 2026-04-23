@@ -21,10 +21,10 @@ const ROOMS_IMG = '/images/clara_rooms.png'; // legacy hero fallback — kept fo
 // Fullscreen rotating scenes with features per room.
 const SCENES = [
   {
-    src: '/images/env_radio_hd.jpg',
+    src: '/images/env_radio_v2.jpg',
     title: 'Radio Management',
     titleIcon: Radio,
-    objectPosition: '50% 55%',
+    objectPosition: '50% 50%',
     accent: '#dd0c51',
     features: [
       { icon: Mic2,      label: 'Live Shows' },
@@ -34,10 +34,10 @@ const SCENES = [
     ],
   },
   {
-    src: '/images/env_task_scheduler_hd.jpg',
+    src: '/images/env_task_scheduler_v2.jpg',
     title: 'Smart Scheduling',
     titleIcon: Calendar,
-    objectPosition: '50% 55%',
+    objectPosition: '50% 50%',
     accent: '#7c1ac8',
     features: [
       { icon: ListChecks, label: 'Clara Tasks' },
@@ -47,7 +47,7 @@ const SCENES = [
     ],
   },
   {
-    src: '/images/env_external_host_hd.jpg',
+    src: '/images/env_external_host_v2.jpg',
     title: 'Multi-Site Hosting',
     titleIcon: Cloud,
     objectPosition: '50% 50%',
@@ -60,10 +60,10 @@ const SCENES = [
     ],
   },
   {
-    src: '/images/env_technical_hd.jpg',
+    src: '/images/env_technical_v2.jpg',
     title: 'AI-Powered Intelligence',
     titleIcon: Sparkles,
-    objectPosition: '50% 52%',
+    objectPosition: '50% 50%',
     accent: '#10b981',
     features: [
       { icon: Search,     label: 'Clara Scan' },
@@ -225,7 +225,7 @@ const LoginPage = () => {
                 style={{
                   objectFit: 'cover',
                   objectPosition: scene.objectPosition,
-                  transform: `scale(1.18) translate3d(${mousePos.x * -14}px, ${mousePos.y * -10}px, 0)`,
+                  transform: `scale(1.02) translate3d(${mousePos.x * -14}px, ${mousePos.y * -10}px, 0)`,
                   transition: 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
                   imageRendering: 'auto',
                   filter: 'saturate(1.04) brightness(0.98) contrast(1.04)',
