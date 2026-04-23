@@ -236,8 +236,17 @@ const LoginPage = () => {
                   <img
                     src={room.src}
                     alt={room.alt}
-                    className="w-full h-auto object-contain select-none drop-shadow-[0_18px_24px_rgba(80,40,120,0.12)]"
+                    className="w-full h-auto object-contain select-none"
                     draggable={false}
+                    style={{
+                      WebkitMaskImage:
+                        'linear-gradient(to bottom, black 78%, transparent 100%), linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
+                      WebkitMaskComposite: 'source-in',
+                      maskImage:
+                        'linear-gradient(to bottom, black 78%, transparent 100%), linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
+                      maskComposite: 'intersect',
+                      filter: 'drop-shadow(0 24px 30px rgba(80,40,120,0.18))',
+                    }}
                   />
                   {/* Attached pill */}
                   <motion.div
