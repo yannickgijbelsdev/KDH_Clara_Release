@@ -21,10 +21,9 @@ const ROOMS_IMG = '/images/clara_rooms.png'; // legacy hero fallback — kept fo
 // Fullscreen rotating scenes with features per room.
 const SCENES = [
   {
-    src: '/images/env_radio.png',
+    src: '/images/env_radio_hd.jpg',
     title: 'Radio Management',
     titleIcon: Radio,
-    // CSS object-position zooms IN on the interior of the room
     objectPosition: '50% 55%',
     accent: '#dd0c51',
     features: [
@@ -35,7 +34,7 @@ const SCENES = [
     ],
   },
   {
-    src: '/images/env_task_scheduler.png',
+    src: '/images/env_task_scheduler_hd.jpg',
     title: 'Smart Scheduling',
     titleIcon: Calendar,
     objectPosition: '50% 55%',
@@ -48,7 +47,7 @@ const SCENES = [
     ],
   },
   {
-    src: '/images/env_external_host.png',
+    src: '/images/env_external_host_hd.jpg',
     title: 'Multi-Site Hosting',
     titleIcon: Cloud,
     objectPosition: '50% 50%',
@@ -61,7 +60,7 @@ const SCENES = [
     ],
   },
   {
-    src: '/images/env_technical.png',
+    src: '/images/env_technical_hd.jpg',
     title: 'AI-Powered Intelligence',
     titleIcon: Sparkles,
     objectPosition: '50% 52%',
@@ -226,10 +225,10 @@ const LoginPage = () => {
                 style={{
                   objectFit: 'cover',
                   objectPosition: scene.objectPosition,
-                  transform: `scale(${1.25 + Math.abs(mousePos.x) * 0.02}) translate3d(${mousePos.x * -30}px, ${mousePos.y * -20}px, 0)`,
+                  transform: `translate3d(${mousePos.x * -18}px, ${mousePos.y * -12}px, 0)`,
                   transition: 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
                   imageRendering: 'auto',
-                  filter: 'saturate(1.02) brightness(0.96) contrast(1.03)',
+                  filter: 'saturate(1.04) brightness(0.98) contrast(1.04)',
                 }}
               />
               {/* Gradient vignette for text legibility */}
@@ -246,13 +245,7 @@ const LoginPage = () => {
 
       {/* Left side: scene info + pills */}
       <div className="hidden lg:flex flex-col justify-between relative z-10 flex-1 p-12 xl:p-16">
-        <div>
-          {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="h-8 object-contain drop-shadow-lg" data-testid="login-logo" />
-          ) : (
-            <span className="text-2xl font-bold text-white tracking-tight drop-shadow-lg" data-testid="login-logo-text">{platformName}</span>
-          )}
-        </div>
+        <div />
 
         {/* Scene title + feature pills */}
         <div className="max-w-xl">
@@ -325,16 +318,17 @@ const LoginPage = () => {
       {false && <img src={ROOMS_IMG} alt="" style={{ display: 'none' }} />}
 
       {/* Right side: login form */}
-      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white/80 backdrop-blur-2xl border-l border-zinc-200/40">
-        {/* Mobile logo */}
-        <div className="lg:hidden mb-8 text-center">
+      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center p-8 lg:p-12 bg-white/80 backdrop-blur-2xl border-l border-zinc-200/40">
+        {/* Logo — top of the white panel */}
+        <div className="w-full flex items-center mb-10 pt-2">
           {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="h-7 object-contain mx-auto mb-4" />
+            <img src={logoUrl} alt={platformName} className="h-8 object-contain" data-testid="login-logo" />
           ) : (
-            <span className="text-xl font-bold text-zinc-800 tracking-tight">{platformName}</span>
+            <span className="text-2xl font-bold text-zinc-900 tracking-tight" data-testid="login-logo-text">{platformName}</span>
           )}
         </div>
 
+        <div className="w-full flex-1 flex flex-col items-center justify-center">
         <div className="w-full max-w-[380px]">
         {showForgotPassword ? (
           <>
@@ -520,6 +514,7 @@ const LoginPage = () => {
             </form>
           </>
         )}
+        </div>
         </div>
       </div>
     </div>
