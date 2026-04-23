@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useBranding } from '../context/BrandingContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import { Shield, ArrowLeft, KeyRound, Mail, Loader2 } from 'lucide-react';
+import { Shield, ArrowLeft, KeyRound, Mail, Loader2, Radio, Code2, Newspaper, Cloud, Calendar, Sparkles, Globe, BarChart3 } from 'lucide-react';
 import { getRedirectParam, createExchangeToken, buildAppRedirectUrl, fetchSubdomainConfig } from '../services/subdomainAuth';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -15,7 +16,60 @@ const resolveUrl = (url) => {
   return url.startsWith('/') ? `${API}${url}` : url;
 };
 
-const ROOMS_IMG = '/images/clara_rooms.jpg';
+const ROOMS_IMG = '/images/clara_rooms.png'; // legacy hero fallback — kept for reference
+
+// Floating isometric rooms with their pill metadata.
+// depth (0..1+) controls parallax strength (higher = moves more).
+const ROOMS = [
+  {
+    src: '/images/env_radio.png',
+    alt: 'Radio Management',
+    icon: Radio,
+    label: 'Radio Management',
+    top: '3%', left: '2%', width: '34%',
+    depth: 0.55,
+    delay: 0.1,
+    pillTop: '0%', pillLeft: '30%',
+  },
+  {
+    src: '/images/env_task_scheduler.png',
+    alt: 'Smart Scheduling',
+    icon: Calendar,
+    label: 'Smart Scheduling',
+    top: '2%', left: '54%', width: '36%',
+    depth: 0.75,
+    delay: 0.25,
+    pillTop: '6%', pillLeft: '6%',
+  },
+  {
+    src: '/images/env_external_host.png',
+    alt: 'Multi-Site Hosting',
+    icon: Cloud,
+    label: 'Multi-Site Hosting',
+    top: '48%', left: '10%', width: '32%',
+    depth: 0.35,
+    delay: 0.4,
+    pillTop: '10%', pillLeft: '60%',
+  },
+  {
+    src: '/images/env_technical.png',
+    alt: 'AI-Powered Scan',
+    icon: Sparkles,
+    label: 'AI-Powered Scan',
+    top: '46%', left: '58%', width: '34%',
+    depth: 0.9,
+    delay: 0.55,
+    pillTop: '6%', pillLeft: '4%',
+  },
+];
+
+// Extra floating keyword pills (no room attached)
+const EXTRA_PILLS = [
+  { icon: Code2,     label: 'Code Studio',        top: '40%', left: '43%', depth: 1.1,  delay: 0.7 },
+  { icon: Newspaper, label: 'Content Publishing', top: '76%', left: '42%', depth: 0.55, delay: 0.85 },
+  { icon: Globe,     label: 'Custom Domains',     top: '22%', left: '38%', depth: 0.45, delay: 1.0 },
+  { icon: BarChart3, label: 'Data Analytics',     top: '84%', left: '12%', depth: 0.85, delay: 1.15 },
+];
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -151,40 +205,112 @@ const LoginPage = () => {
           )}
         </div>
 
-        {/* Floating rooms with parallax */}
-        <div className="flex flex-col items-center flex-1 justify-center" style={{ perspective: '1200px' }}>
+        {/* Floating rooms + animated keyword pills */}
+        <div className="relative flex-1 flex items-center justify-center" style={{ perspective: '1400px' }}>
           <div
-            className="w-full flex items-center justify-center"
+            className="relative w-full aspect-[4/3] max-w-[1100px]"
             style={{
-              transform: `translate3d(${imgX}px, ${imgY}px, 0) rotateY(${imgRotateY}deg) rotateX(${imgRotateX}deg)`,
-              transition: 'transform 0.15s cubic-bezier(0.25, 0.1, 0.25, 1)',
-              willChange: 'transform',
-            }}
-          >
-            <img
-              src={ROOMS_IMG}
-              alt="Clara Platform — Radio & Data Intelligence"
-              className="w-[90%] max-w-[1100px] object-contain select-none"
-              draggable={false}
-              data-testid="login-hero-rooms"
-            />
-          </div>
-          <div
-            className="text-center mt-4 max-w-lg"
-            style={{
-              transform: `translate3d(${mousePos.x * 6}px, ${mousePos.y * 4}px, 0)`,
+              transform: `rotateY(${imgRotateY * 0.4}deg) rotateX(${imgRotateX * 0.4}deg)`,
               transition: 'transform 0.2s ease-out',
+              transformStyle: 'preserve-3d',
             }}
+            data-testid="login-hero-rooms"
           >
-            <h1 className="text-2xl xl:text-3xl font-bold text-zinc-800 leading-tight mb-1">
-              Data intelligence for media & radio
-            </h1>
-            <p className="text-sm text-zinc-500 leading-relaxed">
-              Collect, manage, and distribute data across your radio stations,
-              WordPress sites, and business operations.
-            </p>
+            {/* Room images with parallax + fade-in */}
+            {ROOMS.map((room, idx) => {
+              const Icon = room.icon;
+              return (
+                <motion.div
+                  key={room.label}
+                  initial={{ opacity: 0, y: 30, scale: 0.94 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: room.delay, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+                  className="absolute"
+                  style={{
+                    top: room.top,
+                    left: room.left,
+                    width: room.width,
+                    transform: `translate3d(${mousePos.x * 28 * room.depth}px, ${mousePos.y * 18 * room.depth}px, ${room.depth * 40}px)`,
+                    transition: 'transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                    willChange: 'transform',
+                  }}
+                >
+                  <img
+                    src={room.src}
+                    alt={room.alt}
+                    className="w-full h-auto object-contain select-none drop-shadow-[0_18px_24px_rgba(80,40,120,0.12)]"
+                    draggable={false}
+                  />
+                  {/* Attached pill */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: room.delay + 0.35, duration: 0.5 }}
+                    className="absolute"
+                    style={{ top: room.pillTop, left: room.pillLeft }}
+                  >
+                    <motion.span
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ repeat: Infinity, duration: 4 + idx * 0.7, ease: 'easeInOut' }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 border border-[#dd0c51]/15 shadow-[0_6px_20px_rgba(124,26,200,0.14)] backdrop-blur-sm text-xs font-semibold text-zinc-800 whitespace-nowrap"
+                    >
+                      <Icon className="w-3.5 h-3.5 text-[#dd0c51]" strokeWidth={2.4} />
+                      {room.label}
+                    </motion.span>
+                  </motion.div>
+                </motion.div>
+              );
+            })}
+
+            {/* Free-floating keyword pills (no attached room) */}
+            {EXTRA_PILLS.map((pill, idx) => {
+              const Icon = pill.icon;
+              return (
+                <motion.div
+                  key={pill.label}
+                  initial={{ opacity: 0, y: 10, scale: 0.85 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: pill.delay, duration: 0.5 }}
+                  className="absolute"
+                  style={{
+                    top: pill.top,
+                    left: pill.left,
+                    transform: `translate3d(${mousePos.x * 24 * pill.depth}px, ${mousePos.y * 16 * pill.depth}px, ${pill.depth * 50}px)`,
+                    transition: 'transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                    willChange: 'transform',
+                  }}
+                >
+                  <motion.span
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ repeat: Infinity, duration: 3.5 + idx * 0.5, ease: 'easeInOut' }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-br from-white to-zinc-50 border border-[#7c1ac8]/20 shadow-[0_8px_28px_rgba(124,26,200,0.18)] backdrop-blur-sm text-xs font-semibold text-zinc-800 whitespace-nowrap"
+                  >
+                    <Icon className="w-3.5 h-3.5 text-[#7c1ac8]" strokeWidth={2.4} />
+                    {pill.label}
+                  </motion.span>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.6 }}
+          className="text-left max-w-lg"
+          style={{
+            transform: `translate3d(${mousePos.x * 4}px, ${mousePos.y * 3}px, 0)`,
+            transition: 'transform 0.2s ease-out',
+          }}
+        >
+          <h1 className="text-2xl xl:text-3xl font-bold text-zinc-800 leading-tight mb-1">
+            Data intelligence for media & radio
+          </h1>
+          <p className="text-sm text-zinc-500 leading-relaxed">
+            One platform for your radio stations, websites, content, and data — all connected.
+          </p>
+        </motion.div>
 
         <div className="flex items-center gap-8 text-sm text-zinc-400">
           <span>Radio Management</span>
