@@ -315,7 +315,7 @@ const LoginPage = () => {
       {false && <img src={ROOMS_IMG} alt="" style={{ display: 'none' }} />}
 
       {/* Right side: login form */}
-      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white/80 backdrop-blur-2xl border-l border-zinc-200/40">
+      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white border-l border-zinc-200/60">
 
         <div className="w-full max-w-[380px] flex flex-col items-center">
           {/* Logo — horizontally & vertically centered above the form */}
