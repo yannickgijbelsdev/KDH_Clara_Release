@@ -239,12 +239,9 @@ const LoginPage = () => {
                     className="w-full h-auto object-contain select-none"
                     draggable={false}
                     style={{
+                      clipPath: 'polygon(50% 3%, 97% 28%, 97% 72%, 50% 97%, 3% 72%, 3% 28%)',
                       mixBlendMode: 'multiply',
-                      WebkitMaskImage:
-                        'linear-gradient(to bottom, black 78%, transparent 92%)',
-                      maskImage:
-                        'linear-gradient(to bottom, black 78%, transparent 92%)',
-                      filter: 'saturate(0.92) brightness(1.05) contrast(1.02)',
+                      filter: 'saturate(0.95) brightness(1.04) contrast(1.03)',
                     }}
                   />
                   {/* Attached pill */}
