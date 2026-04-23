@@ -26,49 +26,49 @@ const ROOMS = [
     alt: 'Radio Management',
     icon: Radio,
     label: 'Radio Management',
-    top: '3%', left: '2%', width: '34%',
+    top: '0%', left: '0%', width: '46%',
     depth: 0.55,
     delay: 0.1,
-    pillTop: '0%', pillLeft: '30%',
+    pillTop: '2%', pillLeft: '28%',
   },
   {
     src: '/images/env_task_scheduler.png',
     alt: 'Smart Scheduling',
     icon: Calendar,
     label: 'Smart Scheduling',
-    top: '2%', left: '54%', width: '36%',
+    top: '-1%', left: '52%', width: '48%',
     depth: 0.75,
     delay: 0.25,
-    pillTop: '6%', pillLeft: '6%',
+    pillTop: '4%', pillLeft: '8%',
   },
   {
     src: '/images/env_external_host.png',
     alt: 'Multi-Site Hosting',
     icon: Cloud,
     label: 'Multi-Site Hosting',
-    top: '48%', left: '10%', width: '32%',
+    top: '50%', left: '0%', width: '44%',
     depth: 0.35,
     delay: 0.4,
-    pillTop: '10%', pillLeft: '60%',
+    pillTop: '6%', pillLeft: '60%',
   },
   {
     src: '/images/env_technical.png',
     alt: 'AI-Powered Scan',
     icon: Sparkles,
     label: 'AI-Powered Scan',
-    top: '46%', left: '58%', width: '34%',
+    top: '50%', left: '54%', width: '46%',
     depth: 0.9,
     delay: 0.55,
-    pillTop: '6%', pillLeft: '4%',
+    pillTop: '4%', pillLeft: '6%',
   },
 ];
 
 // Extra floating keyword pills (no room attached)
 const EXTRA_PILLS = [
-  { icon: Code2,     label: 'Code Studio',        top: '40%', left: '43%', depth: 1.1,  delay: 0.7 },
-  { icon: Newspaper, label: 'Content Publishing', top: '76%', left: '42%', depth: 0.55, delay: 0.85 },
-  { icon: Globe,     label: 'Custom Domains',     top: '22%', left: '38%', depth: 0.45, delay: 1.0 },
-  { icon: BarChart3, label: 'Data Analytics',     top: '84%', left: '12%', depth: 0.85, delay: 1.15 },
+  { icon: Code2,     label: 'Code Studio',        top: '44%', left: '45%', depth: 1.1,  delay: 0.7 },
+  { icon: Newspaper, label: 'Content Publishing', top: '82%', left: '44%', depth: 0.55, delay: 0.85 },
+  { icon: Globe,     label: 'Custom Domains',     top: '18%', left: '44%', depth: 0.45, delay: 1.0 },
+  { icon: BarChart3, label: 'Data Analytics',     top: '94%', left: '20%', depth: 0.85, delay: 1.15 },
 ];
 
 const LoginPage = () => {
@@ -239,9 +239,7 @@ const LoginPage = () => {
                     className="w-full h-auto object-contain select-none"
                     draggable={false}
                     style={{
-                      clipPath: 'polygon(50% 3%, 97% 28%, 97% 72%, 50% 97%, 3% 72%, 3% 28%)',
-                      mixBlendMode: 'multiply',
-                      filter: 'saturate(0.95) brightness(1.04) contrast(1.03)',
+                      filter: 'saturate(0.98) brightness(1.03) contrast(1.02)',
                     }}
                   />
                   {/* Attached pill */}
