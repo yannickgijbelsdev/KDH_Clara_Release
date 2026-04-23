@@ -318,18 +318,19 @@ const LoginPage = () => {
       {false && <img src={ROOMS_IMG} alt="" style={{ display: 'none' }} />}
 
       {/* Right side: login form */}
-      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center p-8 lg:p-12 bg-white/80 backdrop-blur-2xl border-l border-zinc-200/40">
-        {/* Logo — top of the white panel */}
-        <div className="w-full flex items-center mb-10 pt-2">
-          {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="h-8 object-contain" data-testid="login-logo" />
-          ) : (
-            <span className="text-2xl font-bold text-zinc-900 tracking-tight" data-testid="login-logo-text">{platformName}</span>
-          )}
-        </div>
+      <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white/80 backdrop-blur-2xl border-l border-zinc-200/40">
 
-        <div className="w-full flex-1 flex flex-col items-center justify-center">
-        <div className="w-full max-w-[380px]">
+        <div className="w-full max-w-[380px] flex flex-col items-center">
+          {/* Logo — horizontally & vertically centered above the form */}
+          <div className="mb-10 flex justify-center" data-testid="login-logo-wrapper">
+            {logoUrl ? (
+              <img src={logoUrl} alt={platformName} className="h-10 object-contain" data-testid="login-logo" />
+            ) : (
+              <span className="text-2xl font-bold text-zinc-900 tracking-tight" data-testid="login-logo-text">{platformName}</span>
+            )}
+          </div>
+
+          <div className="w-full">
         {showForgotPassword ? (
           <>
             <button
