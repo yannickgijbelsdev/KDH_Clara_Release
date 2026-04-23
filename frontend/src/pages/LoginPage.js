@@ -190,7 +190,7 @@ const LoginPage = () => {
     >
       {/* Subtle radial glow */}
       <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 70% 60% at 35% 50%, rgba(124,26,200,0.10) 0%, transparent 70%)'
+        background: 'radial-gradient(ellipse 70% 60% at 35% 50%, rgba(124,26,200,0.04) 0%, transparent 70%)'
       }} />
 
       {/* Left side: floating rooms & tagline */}
@@ -240,11 +240,11 @@ const LoginPage = () => {
                     draggable={false}
                     style={{
                       WebkitMaskImage:
-                        'radial-gradient(ellipse 78% 72% at 50% 42%, black 35%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.25) 82%, transparent 100%)',
+                        'linear-gradient(to bottom, black 0%, black 65%, transparent 82%)',
                       maskImage:
-                        'radial-gradient(ellipse 78% 72% at 50% 42%, black 35%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.25) 82%, transparent 100%)',
-                      filter: 'saturate(0.78) brightness(1.04) drop-shadow(0 30px 36px rgba(80,40,120,0.06))',
-                      opacity: 0.92,
+                        'linear-gradient(to bottom, black 0%, black 65%, transparent 82%)',
+                      filter: 'saturate(0.82) brightness(1.05)',
+                      opacity: 0.96,
                     }}
                   />
                   {/* Attached pill */}
@@ -258,7 +258,7 @@ const LoginPage = () => {
                     <motion.span
                       animate={{ y: [0, -5, 0] }}
                       transition={{ repeat: Infinity, duration: 4 + idx * 0.7, ease: 'easeInOut' }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 border border-[#dd0c51]/15 shadow-[0_6px_20px_rgba(124,26,200,0.14)] backdrop-blur-sm text-xs font-semibold text-zinc-800 whitespace-nowrap"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 border border-[#dd0c51]/15 backdrop-blur-sm text-xs font-semibold text-zinc-800 whitespace-nowrap"
                     >
                       <Icon className="w-3.5 h-3.5 text-[#dd0c51]" strokeWidth={2.4} />
                       {room.label}
