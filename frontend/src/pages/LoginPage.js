@@ -184,7 +184,7 @@ const LoginPage = () => {
 
   return (
     <div
-      className="min-h-screen flex relative overflow-hidden bg-[#f5f2ed]"
+      className="min-h-screen flex relative overflow-hidden bg-[#d4d3cf]"
       onMouseMove={handleMouseMove}
       data-testid="login-page"
     >
