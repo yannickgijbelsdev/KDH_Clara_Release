@@ -197,7 +197,7 @@ const LoginPage = () => {
 
   return (
     <div
-      className="min-h-screen flex relative overflow-hidden bg-[#1a1a1a]"
+      className="min-h-screen flex relative overflow-hidden bg-zinc-300"
       onMouseMove={handleMouseMove}
       data-testid="login-page"
     >
@@ -225,18 +225,15 @@ const LoginPage = () => {
                 style={{
                   objectFit: 'cover',
                   objectPosition: scene.objectPosition,
-                  transform: `translate3d(${mousePos.x * -18}px, ${mousePos.y * -12}px, 0)`,
+                  transform: `scale(1.18) translate3d(${mousePos.x * -14}px, ${mousePos.y * -10}px, 0)`,
                   transition: 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
                   imageRendering: 'auto',
                   filter: 'saturate(1.04) brightness(0.98) contrast(1.04)',
                 }}
               />
-              {/* Gradient vignette for text legibility */}
+              {/* Gradient vignette for text legibility — kept subtle, no hard black bars */}
               <div className="absolute inset-0 pointer-events-none" style={{
-                background: `
-                  linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 35%, transparent 55%),
-                  linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.45) 100%)
-                `,
+                background: 'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 30%, transparent 55%)',
               }} />
             </motion.div>
           );
