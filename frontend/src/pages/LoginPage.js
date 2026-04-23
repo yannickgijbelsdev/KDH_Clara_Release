@@ -239,12 +239,12 @@ const LoginPage = () => {
                     className="w-full h-auto object-contain select-none"
                     draggable={false}
                     style={{
+                      mixBlendMode: 'multiply',
                       WebkitMaskImage:
-                        'linear-gradient(to bottom, black 0%, black 65%, transparent 82%)',
+                        'linear-gradient(to bottom, black 78%, transparent 92%)',
                       maskImage:
-                        'linear-gradient(to bottom, black 0%, black 65%, transparent 82%)',
-                      filter: 'saturate(0.82) brightness(1.05)',
-                      opacity: 0.96,
+                        'linear-gradient(to bottom, black 78%, transparent 92%)',
+                      filter: 'saturate(0.92) brightness(1.05) contrast(1.02)',
                     }}
                   />
                   {/* Attached pill */}
