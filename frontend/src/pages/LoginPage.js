@@ -53,10 +53,10 @@ const SCENES = [
     objectPosition: '50% 50%',
     accent: '#0ea5e9',
     features: [
-      { icon: Server,    label: 'VDC Deploy' },
       { icon: Globe,     label: 'Custom Domains' },
       { icon: Lock,      label: 'DNS + SSL' },
       { icon: Code2,     label: 'Code Studio' },
+      { icon: Server,    label: 'Managed Hosting' },
     ],
   },
   {
