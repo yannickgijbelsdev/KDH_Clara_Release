@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import { Shield, ArrowLeft, KeyRound, Mail, Loader2, Radio, Code2, Newspaper, Cloud, Calendar, Sparkles, Globe, BarChart3 } from 'lucide-react';
+import { Shield, ArrowLeft, KeyRound, Mail, Loader2, Radio, Code2, Newspaper, Cloud, Calendar, Sparkles, Globe, BarChart3, Activity, Mic2, Server, Shield as ShieldIcon, Gauge, Waves, ListChecks, FileCheck2, Lock, Search, Wand2, HeartPulse } from 'lucide-react';
 import { getRedirectParam, createExchangeToken, buildAppRedirectUrl, fetchSubdomainConfig } from '../services/subdomainAuth';
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -18,57 +18,61 @@ const resolveUrl = (url) => {
 
 const ROOMS_IMG = '/images/clara_rooms.png'; // legacy hero fallback — kept for reference
 
-// Floating isometric rooms with their pill metadata.
-// depth (0..1+) controls parallax strength (higher = moves more).
-const ROOMS = [
+// Fullscreen rotating scenes with features per room.
+const SCENES = [
   {
     src: '/images/env_radio.png',
-    alt: 'Radio Management',
-    icon: Radio,
-    label: 'Radio Management',
-    top: '0%', left: '0%', width: '46%',
-    depth: 0.55,
-    delay: 0.1,
-    pillTop: '2%', pillLeft: '28%',
+    title: 'Radio Management',
+    titleIcon: Radio,
+    // CSS object-position zooms IN on the interior of the room
+    objectPosition: '50% 55%',
+    accent: '#dd0c51',
+    features: [
+      { icon: Mic2,      label: 'Live Shows' },
+      { icon: Waves,     label: 'RDS Builder' },
+      { icon: Activity,  label: 'Stream Monitor' },
+      { icon: Calendar,  label: 'Show Scheduler' },
+    ],
   },
   {
     src: '/images/env_task_scheduler.png',
-    alt: 'Smart Scheduling',
-    icon: Calendar,
-    label: 'Smart Scheduling',
-    top: '-1%', left: '52%', width: '48%',
-    depth: 0.75,
-    delay: 0.25,
-    pillTop: '4%', pillLeft: '8%',
+    title: 'Smart Scheduling',
+    titleIcon: Calendar,
+    objectPosition: '50% 55%',
+    accent: '#7c1ac8',
+    features: [
+      { icon: ListChecks, label: 'Clara Tasks' },
+      { icon: Calendar,   label: 'Google Calendar' },
+      { icon: FileCheck2, label: 'Approval Flow' },
+      { icon: Gauge,      label: 'Kanban Board' },
+    ],
   },
   {
     src: '/images/env_external_host.png',
-    alt: 'Multi-Site Hosting',
-    icon: Cloud,
-    label: 'Multi-Site Hosting',
-    top: '50%', left: '0%', width: '44%',
-    depth: 0.35,
-    delay: 0.4,
-    pillTop: '6%', pillLeft: '60%',
+    title: 'Multi-Site Hosting',
+    titleIcon: Cloud,
+    objectPosition: '50% 50%',
+    accent: '#0ea5e9',
+    features: [
+      { icon: Server,    label: 'VDC Deploy' },
+      { icon: Globe,     label: 'Custom Domains' },
+      { icon: Lock,      label: 'DNS + SSL' },
+      { icon: Code2,     label: 'Code Studio' },
+    ],
   },
   {
     src: '/images/env_technical.png',
-    alt: 'AI-Powered Scan',
-    icon: Sparkles,
-    label: 'AI-Powered Scan',
-    top: '50%', left: '54%', width: '46%',
-    depth: 0.9,
-    delay: 0.55,
-    pillTop: '4%', pillLeft: '6%',
+    title: 'AI-Powered Intelligence',
+    titleIcon: Sparkles,
+    objectPosition: '50% 52%',
+    accent: '#10b981',
+    features: [
+      { icon: Search,     label: 'Clara Scan' },
+      { icon: Wand2,      label: 'Auto-Fix' },
+      { icon: HeartPulse, label: 'Health Reports' },
+      { icon: BarChart3,  label: 'Data Analytics' },
+    ],
   },
-];
-
-// Extra floating keyword pills (no room attached)
-const EXTRA_PILLS = [
-  { icon: Code2,     label: 'Code Studio',        top: '44%', left: '45%', depth: 1.1,  delay: 0.7 },
-  { icon: Newspaper, label: 'Content Publishing', top: '82%', left: '44%', depth: 0.55, delay: 0.85 },
-  { icon: Globe,     label: 'Custom Domains',     top: '18%', left: '44%', depth: 0.45, delay: 1.0 },
-  { icon: BarChart3, label: 'Data Analytics',     top: '94%', left: '20%', depth: 0.85, delay: 1.15 },
 ];
 
 const LoginPage = () => {
@@ -82,10 +86,20 @@ const LoginPage = () => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   useEffect(() => { document.title = 'Clara | Login'; }, []);
+
+  // Auto-rotate scenes
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSceneIndex((prev) => (prev + 1) % SCENES.length);
+    }, 6500);
+    return () => clearInterval(id);
+  }, []);
+
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [sceneIndex, setSceneIndex] = useState(0);
   const rafRef = useRef(null);
   const { login } = useAuth();
   const { branding } = useBranding();
@@ -184,124 +198,131 @@ const LoginPage = () => {
 
   return (
     <div
-      className="min-h-screen flex relative overflow-hidden bg-[#bfbeb9]"
+      className="min-h-screen flex relative overflow-hidden bg-[#1a1a1a]"
       onMouseMove={handleMouseMove}
       data-testid="login-page"
     >
-      {/* Subtle radial glow */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 70% 60% at 35% 50%, rgba(124,26,200,0.04) 0%, transparent 70%)'
-      }} />
+      {/* Fullscreen rotating scene background */}
+      <div className="absolute inset-0 z-0 overflow-hidden" data-testid="login-hero-rooms">
+        {SCENES.map((scene, idx) => {
+          const active = idx === sceneIndex;
+          return (
+            <motion.div
+              key={scene.title}
+              initial={false}
+              animate={{
+                opacity: active ? 1 : 0,
+                scale: active ? 1 : 1.06,
+              }}
+              transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="absolute inset-0"
+              style={{ willChange: 'opacity, transform' }}
+            >
+              <img
+                src={scene.src}
+                alt={scene.title}
+                className="w-full h-full select-none"
+                draggable={false}
+                style={{
+                  objectFit: 'cover',
+                  objectPosition: scene.objectPosition,
+                  transform: `scale(${1.25 + Math.abs(mousePos.x) * 0.02}) translate3d(${mousePos.x * -30}px, ${mousePos.y * -20}px, 0)`,
+                  transition: 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                  imageRendering: 'auto',
+                  filter: 'saturate(1.02) brightness(0.96) contrast(1.03)',
+                }}
+              />
+              {/* Gradient vignette for text legibility */}
+              <div className="absolute inset-0 pointer-events-none" style={{
+                background: `
+                  linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 35%, transparent 55%),
+                  linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.45) 100%)
+                `,
+              }} />
+            </motion.div>
+          );
+        })}
+      </div>
 
-      {/* Left side: floating rooms & tagline */}
+      {/* Left side: scene info + pills */}
       <div className="hidden lg:flex flex-col justify-between relative z-10 flex-1 p-12 xl:p-16">
         <div>
           {logoUrl ? (
-            <img src={logoUrl} alt={platformName} className="h-7 object-contain" data-testid="login-logo" />
+            <img src={logoUrl} alt={platformName} className="h-8 object-contain drop-shadow-lg" data-testid="login-logo" />
           ) : (
-            <span className="text-2xl font-bold text-zinc-800 tracking-tight" data-testid="login-logo-text">{platformName}</span>
+            <span className="text-2xl font-bold text-white tracking-tight drop-shadow-lg" data-testid="login-logo-text">{platformName}</span>
           )}
         </div>
 
-        {/* Floating rooms + animated keyword pills */}
-        <div className="relative flex-1 flex items-center justify-center" style={{ perspective: '1400px' }}>
-          <div
-            className="relative w-full aspect-[4/3] max-w-[1100px]"
-            style={{
-              transform: `rotateY(${imgRotateY * 0.7}deg) rotateX(${imgRotateX * 0.7}deg)`,
-              transition: 'transform 0.25s ease-out',
-              transformStyle: 'preserve-3d',
-            }}
-            data-testid="login-hero-rooms"
+        {/* Scene title + feature pills */}
+        <div className="max-w-xl">
+          <motion.div
+            key={`title-${sceneIndex}`}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className="mb-6"
           >
-            {/* Room images with parallax + fade-in */}
-            {ROOMS.map((room, idx) => {
-              const Icon = room.icon;
-              return (
-                <motion.div
-                  key={room.label}
-                  initial={{ opacity: 0, y: 30, scale: 0.94 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: room.delay, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="absolute"
-                  style={{
-                    top: room.top,
-                    left: room.left,
-                    width: room.width,
-                    transform: `translate3d(${mousePos.x * 70 * room.depth}px, ${mousePos.y * 48 * room.depth}px, ${room.depth * 80}px)`,
-                    transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
-                    willChange: 'transform',
-                  }}
-                >
-                  <img
-                    src={room.src}
-                    alt={room.alt}
-                    className="w-full h-auto object-contain select-none"
-                    draggable={false}
-                    style={{
-                      filter: 'saturate(0.98) brightness(1.03) contrast(1.02)',
-                    }}
-                  />
-                  {/* Attached pill */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: room.delay + 0.35, duration: 0.5 }}
-                    className="absolute"
-                    style={{ top: room.pillTop, left: room.pillLeft }}
-                  >
-                    <motion.span
-                      animate={{ y: [0, -5, 0] }}
-                      transition={{ repeat: Infinity, duration: 4 + idx * 0.7, ease: 'easeInOut' }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 border border-[#dd0c51]/15 backdrop-blur-sm text-xs font-semibold text-zinc-800 whitespace-nowrap"
-                    >
-                      <Icon className="w-3.5 h-3.5 text-[#dd0c51]" strokeWidth={2.4} />
-                      {room.label}
-                    </motion.span>
-                  </motion.div>
-                </motion.div>
-              );
-            })}
+            <div className="flex items-center gap-2 mb-3">
+              <span
+                className="inline-flex items-center justify-center w-9 h-9 rounded-full"
+                style={{ backgroundColor: SCENES[sceneIndex].accent }}
+              >
+                {(() => {
+                  const T = SCENES[sceneIndex].titleIcon;
+                  return <T className="w-4 h-4 text-white" strokeWidth={2.4} />;
+                })()}
+              </span>
+              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/70">
+                Clara Platform
+              </span>
+            </div>
+            <h1 className="text-4xl xl:text-5xl font-black text-white leading-[1.05] drop-shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+              {SCENES[sceneIndex].title}
+            </h1>
+          </motion.div>
 
-            {/* Free-floating keyword pills (no attached room) */}
-            {EXTRA_PILLS.map((pill, idx) => {
-              const Icon = pill.icon;
+          {/* Feature pills for the active scene */}
+          <div className="flex flex-wrap gap-2">
+            {SCENES[sceneIndex].features.map((f, i) => {
+              const Icon = f.icon;
               return (
-                <motion.div
-                  key={pill.label}
-                  initial={{ opacity: 0, y: 10, scale: 0.85 }}
+                <motion.span
+                  key={`${SCENES[sceneIndex].title}-${f.label}`}
+                  initial={{ opacity: 0, y: 10, scale: 0.92 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: pill.delay, duration: 0.5 }}
-                  className="absolute"
-                  style={{
-                    top: pill.top,
-                    left: pill.left,
-                    transform: `translate3d(${mousePos.x * 65 * pill.depth}px, ${mousePos.y * 42 * pill.depth}px, ${pill.depth * 100}px)`,
-                    transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
-                    willChange: 'transform',
-                  }}
+                  transition={{ delay: 0.15 + i * 0.08, duration: 0.5 }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/12 border border-white/25 backdrop-blur-md text-[13px] font-semibold text-white whitespace-nowrap"
+                  style={{ boxShadow: '0 6px 16px rgba(0,0,0,0.18)' }}
                 >
-                  <motion.span
-                    animate={{ y: [0, -6, 0] }}
-                    transition={{ repeat: Infinity, duration: 3.5 + idx * 0.5, ease: 'easeInOut' }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-br from-white to-zinc-50 border border-[#7c1ac8]/20 shadow-[0_8px_28px_rgba(124,26,200,0.18)] backdrop-blur-sm text-xs font-semibold text-zinc-800 whitespace-nowrap"
-                  >
-                    <Icon className="w-3.5 h-3.5 text-[#7c1ac8]" strokeWidth={2.4} />
-                    {pill.label}
-                  </motion.span>
-                </motion.div>
+                  <Icon className="w-3.5 h-3.5" style={{ color: SCENES[sceneIndex].accent }} strokeWidth={2.4} />
+                  {f.label}
+                </motion.span>
               );
             })}
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.6 }}
-          className="h-2"
-        />
+        {/* Scene progress dots */}
+        <div className="flex items-center gap-2">
+          {SCENES.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setSceneIndex(idx)}
+              aria-label={`Go to ${SCENES[idx].title}`}
+              data-testid={`scene-dot-${idx}`}
+              className="group relative h-1.5 rounded-full overflow-hidden transition-all duration-500"
+              style={{
+                width: idx === sceneIndex ? 56 : 24,
+                backgroundColor: idx === sceneIndex ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.25)',
+              }}
+            />
+          ))}
+        </div>
       </div>
+
+      {/* Legacy fallback reference (not rendered) */}
+      {false && <img src={ROOMS_IMG} alt="" style={{ display: 'none' }} />}
 
       {/* Right side: login form */}
       <div className="relative z-10 w-full lg:w-[460px] xl:w-[500px] flex flex-col items-center justify-center p-8 lg:p-12 bg-white/80 backdrop-blur-2xl border-l border-zinc-200/40">
