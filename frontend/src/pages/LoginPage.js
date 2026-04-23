@@ -240,12 +240,11 @@ const LoginPage = () => {
                     draggable={false}
                     style={{
                       WebkitMaskImage:
-                        'linear-gradient(to bottom, black 78%, transparent 100%), linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
-                      WebkitMaskComposite: 'source-in',
+                        'radial-gradient(ellipse 78% 72% at 50% 42%, black 35%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.25) 82%, transparent 100%)',
                       maskImage:
-                        'linear-gradient(to bottom, black 78%, transparent 100%), linear-gradient(to right, transparent 0%, black 6%, black 94%, transparent 100%)',
-                      maskComposite: 'intersect',
-                      filter: 'drop-shadow(0 24px 30px rgba(80,40,120,0.18))',
+                        'radial-gradient(ellipse 78% 72% at 50% 42%, black 35%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0.25) 82%, transparent 100%)',
+                      filter: 'saturate(0.78) brightness(1.04) drop-shadow(0 30px 36px rgba(80,40,120,0.06))',
+                      opacity: 0.92,
                     }}
                   />
                   {/* Attached pill */}
