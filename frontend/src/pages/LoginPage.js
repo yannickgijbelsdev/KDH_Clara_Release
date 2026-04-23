@@ -179,10 +179,8 @@ const LoginPage = () => {
   };
 
   /* Parallax values */
-  const imgX = mousePos.x * 18;
-  const imgY = mousePos.y * 12;
-  const imgRotateY = mousePos.x * 3;
-  const imgRotateX = -mousePos.y * 2;
+  const imgRotateY = mousePos.x * 6;
+  const imgRotateX = -mousePos.y * 4;
 
   return (
     <div
@@ -210,8 +208,8 @@ const LoginPage = () => {
           <div
             className="relative w-full aspect-[4/3] max-w-[1100px]"
             style={{
-              transform: `rotateY(${imgRotateY * 0.4}deg) rotateX(${imgRotateX * 0.4}deg)`,
-              transition: 'transform 0.2s ease-out',
+              transform: `rotateY(${imgRotateY * 0.7}deg) rotateX(${imgRotateX * 0.7}deg)`,
+              transition: 'transform 0.25s ease-out',
               transformStyle: 'preserve-3d',
             }}
             data-testid="login-hero-rooms"
@@ -230,8 +228,8 @@ const LoginPage = () => {
                     top: room.top,
                     left: room.left,
                     width: room.width,
-                    transform: `translate3d(${mousePos.x * 28 * room.depth}px, ${mousePos.y * 18 * room.depth}px, ${room.depth * 40}px)`,
-                    transition: 'transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                    transform: `translate3d(${mousePos.x * 70 * room.depth}px, ${mousePos.y * 48 * room.depth}px, ${room.depth * 80}px)`,
+                    transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
                     willChange: 'transform',
                   }}
                 >
@@ -275,8 +273,8 @@ const LoginPage = () => {
                   style={{
                     top: pill.top,
                     left: pill.left,
-                    transform: `translate3d(${mousePos.x * 24 * pill.depth}px, ${mousePos.y * 16 * pill.depth}px, ${pill.depth * 50}px)`,
-                    transition: 'transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                    transform: `translate3d(${mousePos.x * 65 * pill.depth}px, ${mousePos.y * 42 * pill.depth}px, ${pill.depth * 100}px)`,
+                    transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
                     willChange: 'transform',
                   }}
                 >
@@ -298,27 +296,8 @@ const LoginPage = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.2, duration: 0.6 }}
-          className="text-left max-w-lg"
-          style={{
-            transform: `translate3d(${mousePos.x * 4}px, ${mousePos.y * 3}px, 0)`,
-            transition: 'transform 0.2s ease-out',
-          }}
-        >
-          <h1 className="text-2xl xl:text-3xl font-bold text-zinc-800 leading-tight mb-1">
-            Data intelligence for media & radio
-          </h1>
-          <p className="text-sm text-zinc-500 leading-relaxed">
-            One platform for your radio stations, websites, content, and data — all connected.
-          </p>
-        </motion.div>
-
-        <div className="flex items-center gap-8 text-sm text-zinc-400">
-          <span>Radio Management</span>
-          <span className="w-1 h-1 rounded-full bg-zinc-300" />
-          <span>Content Publishing</span>
-          <span className="w-1 h-1 rounded-full bg-zinc-300" />
-          <span>Data Analytics</span>
-        </div>
+          className="h-2"
+        />
       </div>
 
       {/* Right side: login form */}
