@@ -654,3 +654,108 @@ async def send_task_status_notification(task_title: str, board_name: str, old_st
     for email in notify_emails:
         await send_email_with_config(smtp_config, email, subject, html)
     await _send_admin_copy(subject, html)
+
+
+# ── BROADCAST / LAYOUT-DRIVEN NOTIFICATIONS ───────────────────
+
+DEFAULT_LAYOUT = {
+    "show_main_site_logo": True,
+    "show_clara_logo": True,
+    "banner_gradient_from": "#7c1ac8",
+    "banner_gradient_to": "#dd0c51",
+    "footer_text": "You received this because you're a member of this site. Manage your preferences in your dashboard.",
+}
+
+SEVERITY_STYLES = {
+    "info":        {"label": "Info",        "color": "#0ea5e9", "icon": "&#9432;"},
+    "success":     {"label": "Success",     "color": "#10b981", "icon": "&#10003;"},
+    "warning":     {"label": "Warning",     "color": "#f59e0b", "icon": "&#9888;"},
+    "maintenance": {"label": "Maintenance", "color": "#dc2626", "icon": "&#128295;"},
+}
+
+
+async def get_site_notification_layout(main_site_id: str = "") -> dict:
+    """Get layout config for a site (banner, logos, footer). Falls back to defaults."""
+    from database import db
+    layout = None
+    if main_site_id:
+        layout = await db.notification_config.find_one(
+            {"type": "layout", "main_site_id": main_site_id}, {"_id": 0}
+        )
+    if not layout:
+        layout = await db.notification_config.find_one(
+            {"type": "layout", "main_site_id": "global"}, {"_id": 0}
+        )
+    merged = {**DEFAULT_LAYOUT}
+    if layout:
+        for k in DEFAULT_LAYOUT:
+            if layout.get(k) is not None:
+                merged[k] = layout[k]
+    return merged
+
+
+async def _get_site_logo(main_site_id: str = "") -> str:
+    """Resolve the main site's logo URL (best effort)."""
+    if not main_site_id:
+        return ""
+    from database import db
+    site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "logo_url": 1, "name": 1})
+    if not site:
+        return ""
+    return site.get("logo_url") or ""
+
+
+def build_broadcast_html(
+    title: str,
+    body_html: str,
+    severity: str = "info",
+    site_name: str = "",
+    sender_name: str = "",
+    layout: dict = None,
+    site_logo_url: str = "",
+    clara_logo_url: str = "",
+) -> str:
+    """Build HTML email body for a broadcast / announcement / maintenance message."""
+    cfg = {**DEFAULT_LAYOUT, **(layout or {})}
+    sev = SEVERITY_STYLES.get(severity, SEVERITY_STYLES["info"])
+    now = datetime.now(BRUSSELS_TZ).strftime("%d-%m-%Y %H:%M")
+
+    gradient = f"linear-gradient(135deg, {cfg['banner_gradient_from']}, {cfg['banner_gradient_to']})"
+    logos = []
+    if cfg.get("show_main_site_logo") and site_logo_url:
+        logos.append(f'<img src="{site_logo_url}" alt="{site_name}" style="max-height:34px;max-width:160px;display:block;" />')
+    if cfg.get("show_clara_logo") and clara_logo_url:
+        logos.append(f'<img src="{clara_logo_url}" alt="Koodh Clara" style="max-height:30px;max-width:140px;display:block;opacity:.92;" />')
+    if not logos:
+        logos.append(f'<h1 style="margin:0;font-size:18px;color:#fff;">{site_name or "Notification"}</h1>')
+    logo_row = '<div style="display:flex;align-items:center;gap:18px;">' + "".join(logos) + '</div>'
+
+    severity_pill = (
+        f'<span style="display:inline-block;background:{sev["color"]};color:#fff;'
+        f'padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em;'
+        f'text-transform:uppercase;">{sev["icon"]} {sev["label"]}</span>'
+    )
+
+    sender_line = f'<p style="margin:0;font-size:12px;color:#71717a;">From <strong>{sender_name}</strong></p>' if sender_name else ""
+
+    return f"""
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:640px;margin:0 auto;background:#ffffff;border-radius:14px;overflow:hidden;border:1px solid #e4e4e7;">
+        <div style="background:{gradient};padding:22px 28px;">
+            {logo_row}
+        </div>
+        <div style="padding:28px 32px;">
+            <div style="margin-bottom:14px;">{severity_pill}</div>
+            <h2 style="margin:0 0 14px;font-size:22px;color:#18181b;line-height:1.3;">{title}</h2>
+            <div style="font-size:15px;line-height:1.65;color:#3f3f46;">
+                {body_html}
+            </div>
+            <div style="margin-top:28px;padding-top:18px;border-top:1px solid #f4f4f5;display:flex;justify-content:space-between;align-items:center;">
+                <div>{sender_line}</div>
+                <div style="font-size:11px;color:#a1a1aa;">{now}</div>
+            </div>
+        </div>
+        <div style="padding:14px 28px;background:#fafafa;text-align:center;font-size:11px;color:#71717a;">
+            {cfg.get("footer_text", "")}
+        </div>
+    </div>"""
+

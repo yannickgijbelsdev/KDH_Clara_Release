@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTopLoader } from '../../components/TopLoader';
 import NetworkHeader from '../../components/NetworkHeader';
+import MaintenanceBanner from '../../components/MaintenanceBanner';
 import SetupWizard from '../../components/SetupWizard';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -791,6 +792,8 @@ export default function NetworkDashboard() {
   return (
     <TooltipProvider delayDuration={0}>
     <div className="h-screen flex flex-col overflow-hidden bg-[#F0F0F2]" style={{ height: '100dvh' }}>
+
+        <MaintenanceBanner />
 
         <NetworkHeader
           activePage="network"

@@ -42,6 +42,7 @@ import SiteDashboard from './pages/Sites/SiteDashboard';
 import PublicSitePage from './pages/Sites/PublicSitePage';
 import StatisticsPage from './pages/Network/StatisticsPage';
 import BackupManagementPage from './pages/Network/BackupManagementPage';
+import NotificationBroadcast from './pages/Network/NotificationBroadcast';
 import CallPage from './pages/CallPage';
 import PublicCallPage from './pages/PublicCallPage';
 import { JourneyProvider } from './context/JourneyContext';
@@ -169,6 +170,16 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <BackupManagementPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Notification Broadcast / Preview Composer - System Admin only */}
+      <Route
+        path="/preview"
+        element={
+          <ProtectedRoute>
+            <NotificationBroadcast />
           </ProtectedRoute>
         }
       />

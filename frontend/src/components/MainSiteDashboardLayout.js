@@ -14,6 +14,7 @@ import ClaraCLI from './ClaraCLI';
 import ClaraAssistant from './ClaraAssistant';
 import VoiceCallWidget from './VoiceCallWidget';
 import LicenseBlockedOverlay from './LicenseBlockedOverlay';
+import MaintenanceBanner from './MaintenanceBanner';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
 // ClaraAssistantProvider is now at the App root level
 import { 
@@ -1103,6 +1104,8 @@ const MainSiteDashboardContent = () => {
     <TooltipProvider delayDuration={0}>
       {/* Outer shell: banners + workspace */}
       <div className="h-screen flex flex-col overflow-hidden bg-white" style={{ height: '100dvh' }}>
+        {/* Maintenance/announcement banners (active broadcasts) */}
+        <MaintenanceBanner mainSiteId={mainSite?.id || ''} />
         {/* Banners */}
         {isClone && (
           <div className="flex-shrink-0 bg-cyan-600 text-white px-4 py-1.5 z-[60]" data-testid="clone-banner">
