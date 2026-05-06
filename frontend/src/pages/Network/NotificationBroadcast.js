@@ -275,10 +275,12 @@ export default function NotificationBroadcast() {
                       type="button"
                       onClick={() => setSeverity(s.id)}
                       data-testid={`severity-${s.id}-btn`}
-                      className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border transition-all text-zinc-700 ${
-                        active ? 'border-transparent text-white' : 'border-zinc-200 hover:border-zinc-300 bg-white'
+                      className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border transition-all ${
+                        active
+                          ? 'border-transparent text-white'
+                          : 'border-zinc-200 hover:border-zinc-300 bg-white text-zinc-700'
                       }`}
-                      style={active ? { backgroundColor: s.color } : {}}
+                      style={active ? { backgroundColor: s.color, color: '#ffffff' } : {}}
                     >
                       <Icon className="w-4 h-4" />
                       <span className="text-xs font-semibold">{s.label}</span>
