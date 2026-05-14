@@ -98,11 +98,29 @@ Multi-environment SaaS platform for radio station management built with React fr
 ### P2
 - Payment Gateway (Stripe/Mollie), Stream Monitor VU Meters
 - React Hook warnings (45+ files), MainSiteDashboardLayout refactoring
-- Split massive components (CodeStudioPage.js, ContentDetailPage.js — both >1500 lines)
+- Split massive ContentDetailPage.js (>1600 lines)
+- Wrap Radix DialogContent with VisuallyHidden DialogTitle (a11y warning, low priority)
+- Align `/api/notifications/broadcast` field names between preview (`subject`/`message`) and send (`title`/`body`)
 
 ## 2026-04-22 — Content History Rollback + Login BG Fix
 - **Rollback feature** (P0): Added `POST /api/content/{content_id}/rollback/{log_id}` in `backend/routers/content.py`. Restores field values from a specific audit log entry's `old_value` (full values now stored; not truncated) and records a traceable rollback audit entry.
 - **UI**: In `ContentDetailPage.js`, each updated history row shows a "Rollback" button; clicking opens an AlertDialog confirmation. Frontend truncates long HTML previews to 180 chars for display only.
 - **Login page**: Switched `ROOMS_IMG` to `clara_rooms.png` (transparent PNG) and removed `mixBlendMode: 'multiply'` to eliminate the visible white box behind the isometric rooms. Cleaned up leftover duplicate JSX at end of file.
 - Tested: backend curl (edit → rollback → verify title reverted), frontend Playwright (history dialog opens, Rollback btn triggers AlertDialog, confirm executes rollback successfully).
+
+## 2026-05 — Code Studio → Clara Custom Pivot + Notification Broadcast
+- **Code Studio REMOVED entirely**: Dropped MongoDB collections `code_studio_sites`, `code_studio_pages`, `code_studio_files`. Deleted `backend/routers/code_studio.py` and `frontend/src/pages/CodeStudioPage.js`.
+- **Clara Custom (NEW)**: New `main_site` type for monitoring 3rd-party API health.
+  - Backend: `backend/routers/clara_custom.py` — `POST /api/clara-custom/check-all?main_site_id=...`, `POST /api/clara-custom/apis/{api_id}/check` async pings external endpoints with timeout and returns status/latency.
+  - Model: `backend/models/main_sites.py` adds `custom_apis: List[Dict]` field with `{name, url, headers}`.
+  - Wizard: `CreateMainSiteWizard.js` step "Clara Custom APIs" (`StepClaraCustom`) for adding/editing endpoint rows during site creation.
+  - Dashboard: `frontend/src/pages/ClaraCustomPage.js` — lists APIs with live connectivity badges (green/red/yellow).
+- **Notification Broadcast System**: `/preview` page (`Network/NotificationBroadcast.js`) for composing network-wide alerts with severity styling and a live maintenance banner / email layout preview. Endpoints: `POST /api/notifications/broadcast`, preview helpers in `routers/notifications.py`. `MaintenanceBanner.js` component renders site-wide banners.
+- **Login Page redesign**: 4 HD fullscreen Nano Banana-generated animated scenes, centered logo, exact background colors. White background, no black edges, no "VDC Deploy" text.
+- **Status icon styling**: White/outlined status icons in `ContentDetailPage.js` & content library replaced legacy color badges.
+
+## 2026-05-14 — Wizard Runtime Error Fix
+- **Bug**: `ReferenceError: setLinkedMainSiteId is not defined` thrown by `handleClose` and `StepEnvironment.onSelect` in `CreateMainSiteWizard.js` — orphaned references to deleted Code Studio state.
+- **Fix**: Removed `setLinkedMainSiteId('')` and `setClMode('none')` from both call sites (lines 1394 & 1486); replaced with `setCustomApis([])` reset for Clara Custom flow.
+- **Tested** (`testing_agent_v3_fork` iteration_150): Backend 10/10 (Clara Custom, notifications broadcast, content rollback). Frontend smoke 100% — login → LoginWizard → Enter Clara → "New Server" wizard opens without `ReferenceError`. Regression suite saved to `/app/backend/tests/test_clara_custom_and_recent_fixes.py`.
 
