@@ -5,7 +5,7 @@ import pathlib
 import shutil
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 
 from database import db
 from models.main_sites import (
@@ -181,6 +181,7 @@ async def get_all_main_sites(current_user: dict = Depends(get_current_user)):
 @main_sites_router.post("", response_model=MainSiteResponse)
 async def create_main_site(
     data: MainSiteCreate,
+    request: Request,
     current_user: dict = Depends(require_network_admin)
 ):
     """Create a new main site. Network admin only."""
@@ -230,6 +231,36 @@ async def create_main_site(
     main_site_doc.pop("_id", None)
     main_site_doc["site_count"] = 0
     main_site_doc["user_count"] = 0
+
+    # If this is a Clara Custom site and the wizard passed initial APIs, register them now.
+    try:
+        body_json = await request.json()
+    except Exception:
+        body_json = {}
+    initial_apis = body_json.get("clara_custom_apis") if isinstance(body_json, dict) else None
+    if data.site_type == "clara_custom" and isinstance(initial_apis, list):
+        for entry in initial_apis:
+            if not isinstance(entry, dict) or not entry.get("base_url"):
+                continue
+            try:
+                await db.clara_custom_apis.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "main_site_id": main_site_id,
+                    "name": entry.get("name") or entry["base_url"],
+                    "base_url": (entry["base_url"] or "").rstrip("/"),
+                    "method": (entry.get("method") or "GET").upper(),
+                    "health_check_path": entry.get("health_check_path") or "/",
+                    "expected_status": int(entry.get("expected_status") or 200),
+                    "expected_schema": entry.get("expected_schema") or None,
+                    "auth_header": entry.get("auth_header") or "",
+                    "extra_headers": entry.get("extra_headers") or [],
+                    "tags": ["wizard"],
+                    "created_at": now,
+                    "created_by": current_user.get("id"),
+                    "last_health_check": None,
+                })
+            except Exception as e:
+                logger.warning(f"Failed to insert Clara Custom API for {main_site_id}: {e}")
     
     logger.info(f"Main site created: {data.name} ({slug}) by {current_user['email']}")
 

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio, HardDrive, Network, LayoutGrid, ExternalLink, Shield, ShieldCheck,
   Layers, Users, Plus, Server, ChevronLeft, ChevronRight, X, Zap, Pencil, Trash2,
-  ShieldOff, Loader2, Code2
+  ShieldOff, Loader2, Plug
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import RackFirewallPanel from './RackFirewallPanel';
@@ -16,7 +16,7 @@ const SITE_TYPE_CONFIG = {
   task_scheduler: { icon: LayoutGrid,   color: '#8b5cf6', label: 'Tasks' },
   external_host:  { icon: ExternalLink, color: '#06b6d4', label: 'Ext. Host' },
   wp_security:    { icon: Shield,       color: '#ef4444', label: 'WP Security' },
-  code_studio:    { icon: Code2,        color: '#7c1ac8', label: 'Code Studio' },
+  clara_custom:   { icon: Plug,         color: '#7c1ac8', label: 'Clara Custom' },
 };
 
 const SERVERS_PER_RACK = 5;

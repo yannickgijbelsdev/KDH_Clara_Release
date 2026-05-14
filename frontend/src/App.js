@@ -34,7 +34,7 @@ import TrashPage from './pages/TrashPage';
 import PersonalSettingsPage from './pages/PersonalSettingsPage';
 import { fetchSubdomainConfig, buildLoginRedirectUrl } from './services/subdomainAuth';
 import RDSPage from './pages/RDSPage';
-import CodeStudioPage from './pages/CodeStudioPage';
+import ClaraCustomPage from './pages/ClaraCustomPage';
 import RDSMonitorPage from './pages/RDSMonitorPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
 import SitesListPage from './pages/Sites/SitesListPage';
@@ -217,7 +217,7 @@ const AppRoutes = () => {
         <Route path="wordpress" element={<WordPressSettingsPage />} />
         <Route path="rds" element={<RDSPage />} />
         <Route path="streams" element={<StreamMonitorPage />} />
-        <Route path="code-studio" element={<CodeStudioPage />} />
+        <Route path="clara-custom" element={<ClaraCustomPage />} />
         <Route path="sites" element={<SitesListPage />} />
         <Route path="sites/:siteId" element={<SiteDashboard />} />
       </Route>
@@ -252,6 +252,7 @@ const AppRoutes = () => {
         <Route path="wordpress" element={<WordPressSettingsPage />} />
         <Route path="rds" element={<RDSPage />} />
         <Route path="streams" element={<StreamMonitorPage />} />
+        <Route path="clara-custom" element={<ClaraCustomPage />} />
         <Route path="sites" element={<SitesListPage />} />
         <Route path="sites/:siteId" element={<SiteDashboard />} />
         <Route path="call-studio" element={<CallPage />} />
@@ -263,7 +264,6 @@ const AppRoutes = () => {
         <Route path="api-keys" element={<ApiKeysPage />} />
         <Route path="canva" element={<CanvaDirectorPage />} />
         <Route path="vmix-director" element={<VmixDirector />} />
-        <Route path="code-studio" element={<CodeStudioPage />} />
         <Route path="wp-security" element={<WpSecurityPage />} />
         <Route path="wp-waf" element={<WpSecurityPage />} />
         <Route path="wp-blocklist" element={<WpSecurityPage />} />

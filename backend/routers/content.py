@@ -212,14 +212,6 @@ async def get_content_items(
                 {"id": {"$in": wp_site_ids}}, {"_id": 0, "id": 1, "name": 1}
             ).to_list(100)
             site_names = {s["id"]: s["name"] for s in wp_site_docs}
-            # Any IDs not found in wordpress_sites → try code_studio_sites
-            missing_ids = [sid for sid in wp_site_ids if sid not in site_names]
-            if missing_ids:
-                cs_site_docs = await db.code_studio_sites.find(
-                    {"id": {"$in": missing_ids}}, {"_id": 0, "id": 1, "name": 1}
-                ).to_list(100)
-                for s in cs_site_docs:
-                    site_names[s["id"]] = s["name"]
 
         fi_lookup = {}
         for fi in all_featured_imgs:

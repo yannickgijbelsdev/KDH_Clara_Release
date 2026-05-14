@@ -23,7 +23,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Code2
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -62,7 +62,7 @@ const SITE_TYPE_BACKGROUNDS = {
   task_scheduler: '/images/env_task_scheduler.jpg',
   technical: '/images/env_technical.jpg',
   wp_security: '/images/env_wp_security.jpg',
-  code_studio: '/images/env_code_studio.jpg',
+  code_studio: '/images/env_code_studio.jpg', // legacy mapping kept for back-compat; will not render
 };
 
 /* Auto-include implicit features that should always show alongside their parent.
@@ -123,7 +123,7 @@ const FEATURE_NAV_ITEMS = {
   wp_ip_blocklist: { to: 'wp-blocklist', icon: Ban, label: 'IP Blocklist', adminOnly: true },
   wp_login_protection: { to: 'wp-login-protect', icon: Lock, label: 'Login Protection', adminOnly: true },
   enterprise_assistant: { to: 'enterprise-assistant', icon: Sparkles, label: 'Enterprise Assistant' },
-  code_studio: { to: 'code-studio', icon: Code2, label: 'Code Studio' },
+  clara_custom: { to: 'clara-custom', icon: Plug, label: 'Clara Custom' },
   radio_automation: { to: 'radio-automation', icon: Disc3, label: 'Radio Automation', adminOnly: true },
 };
 
@@ -234,9 +234,9 @@ const MainSiteDashboardContent = () => {
     if (mainSite.site_type === 'task_scheduler') {
       validRoutes.add('task-boards');
     }
-    // Code Studio sites always have code-studio
-    if (mainSite.site_type === 'code_studio') {
-      validRoutes.add('code-studio');
+    // Clara Custom sites always have clara-custom
+    if (mainSite.site_type === 'clara_custom') {
+      validRoutes.add('clara-custom');
     }
     // WP Security sites always have the security dashboard
     if (mainSite.site_type === 'wp_security') {
@@ -645,33 +645,16 @@ const MainSiteDashboardContent = () => {
       }];
     }
 
-    // Code Studio sites show the builder + optional content library
-    if (mainSite.site_type === 'code_studio') {
-      const enabledFeatures = withImplicitFeatures(mainSite.enabled_features);
-      const studioItem = FEATURE_NAV_ITEMS['code_studio'];
+    // Clara Custom sites: just the dashboard + admin settings
+    if (mainSite.site_type === 'clara_custom') {
+      const customItem = FEATURE_NAV_ITEMS['clara_custom'];
       const teamItem = FEATURE_NAV_ITEMS['team_settings'];
-
       const groups = [];
 
-      // Studio group
-      const studioItems = [];
-      if (studioItem) studioItems.push({ ...studioItem, to: `/${mainSiteSlug}/${studioItem.to}`, featureId: 'code_studio' });
-      if (studioItems.length > 0) groups.push({ id: 'studio', label: 'Code Studio', icon: Code2, items: studioItems });
+      const customItems = [];
+      if (customItem) customItems.push({ ...customItem, to: `/${mainSiteSlug}/${customItem.to}`, featureId: 'clara_custom' });
+      if (customItems.length > 0) groups.push({ id: 'custom', label: 'Clara Custom', icon: Plug, items: customItems });
 
-      // Content group (built-in library)
-      const contentFeatures = ['content_library', 'media_library', 'content_approval', 'trash'];
-      const contentItems = contentFeatures
-        .filter(f => enabledFeatures.includes(f))
-        .map(f => {
-          const navItem = FEATURE_NAV_ITEMS[f];
-          if (!navItem) return null;
-          if (!userIsAdmin && !canView(f)) return null;
-          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId: f };
-        })
-        .filter(Boolean);
-      if (contentItems.length > 0) groups.push({ id: 'content', label: 'Content', icon: FileText, items: contentItems });
-
-      // Admin group
       const adminItems = [];
       if (teamItem && userIsAdmin) adminItems.push({ ...teamItem, to: `/${mainSiteSlug}/${teamItem.to}`, featureId: 'team_settings' });
       if (adminItems.length > 0) groups.push({ id: 'admin', label: 'Administration', icon: Settings, items: adminItems });

@@ -103,13 +103,6 @@ const ContentDetailPage = () => {
   const navigate = useNavigate();
   const mainSiteCtx = useContext(MainSiteContext);
   const parentMainSite = mainSiteCtx?.mainSite || null;
-  const isCodeStudioMainSite = parentMainSite?.site_type === 'code_studio';
-  const [csSites, setCsSites] = useState([]);
-  const [selectedCsSiteId, setSelectedCsSiteId] = useState('');
-  const [publishingToCs, setPublishingToCs] = useState(false);
-  const [csPublishDialog, setCsPublishDialog] = useState(false);
-  const [csFeaturedImage, setCsFeaturedImage] = useState(null); // { url, file_name }
-  const [uploadingCsImage, setUploadingCsImage] = useState(false);
   const { isEditor: legacyIsEditor, isAdmin } = useAuth();
   const { canEdit, canDelete, canCreate } = usePermissions();
   const { registerEditor, unregisterEditor, openClara } = useClaraAssistant();
@@ -173,58 +166,7 @@ const ContentDetailPage = () => {
     fetchContent();
     fetchWpSites();
     fetchCategories();
-    if (isCodeStudioMainSite) fetchCsSites();
-  }, [contentId, isCodeStudioMainSite]);
-
-  const fetchCsSites = async () => {
-    try {
-      const response = await axios.get(`${API}/code-studio/sites`);
-      setCsSites(Array.isArray(response.data) ? response.data : []);
-    } catch {
-      setCsSites([]);
-    }
-  };
-
-  const publishToCsSite = async () => {
-    if (!selectedCsSiteId) {
-      toast.error('Select a site to publish to');
-      return;
-    }
-    const target = csSites.find(s => s.id === selectedCsSiteId);
-    setPublishingToCs(true);
-    try {
-      await axios.post(`${API}/code-studio/content/${contentId}/publish`, {
-        site_id: selectedCsSiteId,
-        featured_image_url: csFeaturedImage?.url || null,
-      });
-      toast.success(`Published to ${target?.name || 'site'}`);
-      setCsPublishDialog(false);
-      setCsFeaturedImage(null);
-      fetchContent();
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || 'Publish failed');
-    }
-    setPublishingToCs(false);
-  };
-
-  const uploadCsFeaturedImage = async (file) => {
-    if (!file) return;
-    setUploadingCsImage(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await axios.post(`${API}/code-studio/upload`, fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      if (res.data?.url) {
-        setCsFeaturedImage({ url: res.data.url, file_name: file.name });
-        toast.success('Image uploaded');
-      }
-    } catch {
-      toast.error('Upload failed');
-    }
-    setUploadingCsImage(false);
-  };
+  }, [contentId]);
 
   const fetchCategories = async () => {
     try {
@@ -730,42 +672,8 @@ const ContentDetailPage = () => {
           </div>
         </div>
         
-        {/* Publish Button — Code Studio main site variant */}
-        {isEditor && isCodeStudioMainSite && (
-          <div className="flex flex-col items-end gap-1">
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedCsSiteId}
-                onChange={e => setSelectedCsSiteId(e.target.value)}
-                disabled={csSites.length === 0 || isPublishBlocked}
-                className="h-10 rounded-full bg-zinc-100 border border-zinc-200 text-sm px-4 text-zinc-700 min-w-[180px] disabled:opacity-50"
-                data-testid="cs-publish-site-select"
-              >
-                <option value="">{csSites.length === 0 ? 'No Code Studio sites yet' : 'Select a site to publish'}</option>
-                {csSites.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <Button
-                data-testid="publish-cs-btn"
-                onClick={() => { setCsFeaturedImage(null); setCsPublishDialog(true); }}
-                disabled={!selectedCsSiteId || publishingToCs || isPublishBlocked}
-                className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&>svg]:text-white rounded-full px-5 disabled:opacity-50"
-              >
-                {publishingToCs ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                {selectedCsSiteId
-                  ? `Publish to ${csSites.find(s => s.id === selectedCsSiteId)?.name || 'site'}`
-                  : 'Select a site to publish'}
-              </Button>
-            </div>
-            {isPublishBlocked && (
-              <span className="text-xs text-amber-500">Requires admin approval</span>
-            )}
-          </div>
-        )}
-
-        {/* WordPress Publish Button — only on non-Code-Studio main sites */}
-        {isEditor && !isCodeStudioMainSite && wpSites.length > 0 && (
+        {/* WordPress Publish Button */}
+        {isEditor && wpSites.length > 0 && (
           <div className="flex flex-col items-end gap-1">
             <Button
               data-testid="publish-wp-btn"
@@ -1320,45 +1228,6 @@ const ContentDetailPage = () => {
       </AlertDialog>
 
       {/* Multi-site Publish Dialog - Wizard with Deploy Animation */}
-      {/* Code Studio Publish Dialog */}
-      <Dialog open={csPublishDialog} onOpenChange={(v) => { if (!publishingToCs) setCsPublishDialog(v); }}>
-        <DialogContent className="bg-white max-w-md">
-          <DialogHeader>
-            <DialogTitle>Publish to {csSites.find(s => s.id === selectedCsSiteId)?.name || 'site'}</DialogTitle>
-            <DialogDescription>Optionally add a featured image that will show on the website.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <label className="text-xs font-semibold text-zinc-500 uppercase">Featured Image (optional)</label>
-            {csFeaturedImage?.url ? (
-              <div className="relative group">
-                <img src={csFeaturedImage.url} alt="" className="w-full h-44 object-cover rounded-xl border border-zinc-200" />
-                <button
-                  onClick={() => setCsFeaturedImage(null)}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                  data-testid="cs-remove-featured-image"
-                ><X className="w-3.5 h-3.5" /></button>
-              </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-zinc-200 rounded-xl cursor-pointer hover:border-[#7c1ac8] hover:bg-[#7c1ac8]/5 transition" data-testid="cs-upload-featured-dropzone">
-                <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && uploadCsFeaturedImage(e.target.files[0])} disabled={uploadingCsImage} />
-                {uploadingCsImage ? (
-                  <><Loader2 className="w-5 h-5 animate-spin text-zinc-400 mb-1" /><p className="text-xs text-zinc-400">Uploading...</p></>
-                ) : (
-                  <><Upload className="w-5 h-5 text-zinc-400 mb-1" /><p className="text-xs text-zinc-500 font-medium">Click or drop image to upload</p><p className="text-[10px] text-zinc-400 mt-0.5">JPG, PNG · max 10MB</p></>
-                )}
-              </label>
-            )}
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => setCsPublishDialog(false)} disabled={publishingToCs}>Cancel</Button>
-            <Button onClick={publishToCsSite} disabled={publishingToCs} className="bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&>svg]:text-white gap-2" data-testid="cs-confirm-publish-btn">
-              {publishingToCs ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              Publish
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={publishDialogOpen} onOpenChange={(v) => { if (!publishing) setPublishDialogOpen(v); }}>
         <DialogContent hideClose className="bg-white border-zinc-200 max-w-[700px] max-h-[85vh] overflow-hidden p-0 rounded-[24px] flex flex-col">
           {/* Header */}

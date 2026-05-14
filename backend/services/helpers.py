@@ -141,14 +141,9 @@ async def get_content_with_publish_statuses(content_id: str, team_id: str = None
     
     for ps in publish_statuses:
         wp_site_id = ps.get("wordpress_site_id")
-        target_type = ps.get("target_type", "wordpress")
         if wp_site_id:
-            if target_type == "code_studio":
-                cs_site = await db.code_studio_sites.find_one({"id": wp_site_id}, {"_id": 0, "name": 1})
-                ps["wordpress_site_name"] = cs_site.get("name", "Unknown") if cs_site else (ps.get("wordpress_site_name") or "Unknown")
-            else:
-                site = await db.wordpress_sites.find_one({"id": wp_site_id}, {"_id": 0})
-                ps["wordpress_site_name"] = site.get("name", "Unknown") if site else "Unknown"
+            site = await db.wordpress_sites.find_one({"id": wp_site_id}, {"_id": 0})
+            ps["wordpress_site_name"] = site.get("name", "Unknown") if site else "Unknown"
 
             featured_image = await db.content_item_featured_images.find_one(
                 {"content_item_id": content_id, "wordpress_site_id": wp_site_id},

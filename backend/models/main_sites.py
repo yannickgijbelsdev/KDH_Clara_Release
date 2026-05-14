@@ -56,8 +56,11 @@ AVAILABLE_FEATURES = [
     {"id": "wp_ip_blocklist", "name": "IP Blocklist", "group": "wp_security"},
     {"id": "wp_login_protection", "name": "Login Protection", "group": "wp_security"},
 
-    # Code Studio group
-    {"id": "code_studio", "name": "Code Studio", "group": "code_studio"},
+    # Show Planner group
+    {"id": "show_planner", "name": "Show Planner", "group": "show_planner"},
+
+    # Clara Custom group
+    {"id": "clara_custom", "name": "Clara Custom", "group": "clara_custom"},
 ]
 
 

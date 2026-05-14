@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Radio, Users, FileText, Calendar, ArrowRight, Search, Mic,
-  HardDrive, Network, LayoutGrid, Shield, ExternalLink, Code2,
+  HardDrive, Network, LayoutGrid, Shield, ExternalLink, Plug,
   Layers, Server, CheckCircle, Monitor, Wifi, WifiOff
 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -19,7 +19,8 @@ const SITE_TYPE_THEMES = {
   technical:      { img: '/images/env_technical.jpg', accent: '#10b981', label: 'Data Connection',  icon: Network },
   task_scheduler: { img: '/images/env_task_scheduler.jpg', accent: '#8b5cf6', label: 'Task Manager',     icon: LayoutGrid },
   wp_security:    { img: '/images/env_wp_security.jpg', accent: '#ef4444', label: 'WP Security',      icon: Shield },
-  code_studio:    { img: '/images/env_code_studio.jpg', accent: '#7c1ac8', label: 'Code Studio',      icon: Code2 },
+  code_studio:    { img: '/images/env_code_studio.jpg', accent: '#7c1ac8', label: 'Code Studio',      icon: Plug },
+  clara_custom:   { img: '/images/env_technical.jpg', accent: '#7c1ac8', label: 'Clara Custom',     icon: Plug },
 };
 
 const Panel = ({ children, className = '', delay = 0, testId }) => (
@@ -46,7 +47,7 @@ export default function DashboardHome() {
 
   const siteType = mainSite?.site_type || 'radio';
   const isRadio = siteType === 'radio';
-  const isSinglePurpose = ['task_scheduler', 'code_studio', 'wp_security'].includes(siteType);
+  const isSinglePurpose = ['task_scheduler', 'clara_custom', 'wp_security'].includes(siteType);
   const showFeaturesPanel = !isRadio && !isSinglePurpose; // only relevant for network/sites/external_host/technical
   const theme = SITE_TYPE_THEMES[siteType] || SITE_TYPE_THEMES.radio;
   const Icon = theme.icon;
@@ -116,7 +117,7 @@ export default function DashboardHome() {
   }
   // Single-purpose site types always have their core route
   if (mainSite?.site_type === 'task_scheduler') effectiveFeatures.add('task_boards');
-  if (mainSite?.site_type === 'code_studio') effectiveFeatures.add('code_studio');
+  if (mainSite?.site_type === 'clara_custom') effectiveFeatures.add('clara_custom');
   if (mainSite?.site_type === 'wp_security') effectiveFeatures.add('wp_security_dashboard');
   if (mainSite?.site_type === 'technical') { effectiveFeatures.add('zerotier'); effectiveFeatures.add('team_settings'); }
 
@@ -131,7 +132,7 @@ export default function DashboardHome() {
     team_chat:         { label: 'Team Chat',      icon: Users,      to: 'chat',           color: 'text-emerald-500 bg-emerald-50' },
     team_settings:     { label: 'Team',           icon: Users,      to: 'team',           color: 'text-emerald-500 bg-emerald-50' },
     task_boards:       { label: 'Task Boards',    icon: LayoutGrid, to: 'task-boards',    color: 'text-violet-500 bg-violet-50' },
-    code_studio:       { label: 'Code Studio',    icon: Layers,     to: 'code-studio',    color: 'text-fuchsia-500 bg-fuchsia-50' },
+    clara_custom:      { label: 'Clara Custom',   icon: Plug,       to: 'clara-custom',   color: 'text-fuchsia-500 bg-fuchsia-50' },
     zerotier:          { label: 'ZeroTier',       icon: Network,    to: 'zerotier',       color: 'text-emerald-500 bg-emerald-50' },
     sites:             { label: 'Sites',          icon: Layers,     to: 'sites',          color: 'text-blue-500 bg-blue-50' },
     wordpress:         { label: 'WordPress',      icon: Server,     to: 'wordpress',      color: 'text-blue-500 bg-blue-50' },
@@ -403,3 +404,4 @@ function TeamPanel({ teamMembers, loading, navigate, mainSiteSlug }) {
     </Panel>
   );
 }
+

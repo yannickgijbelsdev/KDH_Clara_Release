@@ -6,7 +6,7 @@ import {
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
   Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast,
   Plus, Trash2, GripVertical, Music, Globe, Eye, EyeOff,
-  CheckCircle2, XCircle, Code2
+  CheckCircle2, XCircle, Plug
 } from 'lucide-react';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -27,7 +27,7 @@ const SITE_TYPE_BACKGROUNDS = {
   task_scheduler: '/images/env_task_scheduler.jpg',
   technical: '/images/env_technical.jpg',
   wp_security: '/images/env_wp_security.jpg',
-  code_studio: '/images/env_code_studio.jpg',
+  clara_custom: '/images/env_technical.jpg',
 };
 const WIZARD_THUMBNAILS = {
   radio: '/images/wiz_radio.jpg',
@@ -36,7 +36,7 @@ const WIZARD_THUMBNAILS = {
   task_scheduler: '/images/wiz_task_scheduler.jpg',
   technical: '/images/wiz_technical.jpg',
   wp_security: '/images/wiz_wp_security.jpg',
-  code_studio: '/images/wiz_code_studio.jpg',
+  clara_custom: '/images/wiz_technical.jpg',
 };
 
 const SITE_TYPES = [
@@ -46,7 +46,7 @@ const SITE_TYPES = [
   { id: 'task_scheduler', icon: LayoutGrid,  label: 'Task Manager',      desc: 'Task boards, project management',          color: '#8b5cf6', features: ['task_boards', 'team_settings'], optionalFeatures: [] },
   { id: 'technical',      icon: Network,     label: 'Data Connection',   desc: 'ZeroTier networking, data connections',     color: '#10b981', features: ['zerotier', 'team_settings'], optionalFeatures: [] },
   { id: 'wp_security',    icon: Shield,      label: 'WP Security',       desc: 'WordPress firewall & security scanning',    color: '#ef4444', features: ['wp_security', 'team_settings'], optionalFeatures: [] },
-  { id: 'code_studio',    icon: Code2,       label: 'Code Studio',       desc: 'Low-code web builder with drag & drop',     color: '#7c1ac8', features: ['code_studio', 'team_settings'], optionalFeatures: [] },
+  { id: 'clara_custom',   icon: Plug,        label: 'Clara Custom',      desc: 'Connect & monitor any external API set',    color: '#7c1ac8', features: ['clara_custom', 'team_settings'], optionalFeatures: [] },
 ];
 
 /* ── Optional feature details for the server type ── */
@@ -169,143 +169,103 @@ const StepFeatures = ({ siteType, selectedFeatures, onToggleFeature }) => {
   );
 };
 
-/* ── Step: Content Library (Code Studio only) ── */
-const StepContentLibrary = ({ mode, linkedMainSiteId, onModeChange, onLinkChange, token }) => {
-  const [sites, setSites] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchSites = async () => {
-      try {
-        const res = await fetch(`${API}/api/main-sites`, { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) {
-          const data = await res.json();
-          // Only show sites that actually have content_library enabled (radio sites typically)
-          const withCL = (Array.isArray(data) ? data : []).filter(s =>
-            (s.enabled_features || []).includes('content_library')
-          );
-          setSites(withCL);
-        }
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    if (token) fetchSites();
-  }, [token]);
-
-  const selectMode = (m) => {
-    onModeChange(m);
-    if (m !== 'linked') onLinkChange('');
+/* ── Step: Clara Custom APIs config (Clara Custom only) ── */
+const StepClaraCustom = ({ apis, onChange }) => {
+  const updateApi = (idx, field, value) => {
+    const next = [...apis];
+    next[idx] = { ...next[idx], [field]: value };
+    onChange(next);
+  };
+  const addApi = () => {
+    onChange([...apis, { name: '', base_url: '', auth_header: '', health_check_path: '/health', expected_status: 200 }]);
+  };
+  const removeApi = (idx) => {
+    onChange(apis.filter((_, i) => i !== idx));
   };
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-zinc-900 mb-1">Content Library (optional)</h2>
+      <h2 className="text-xl font-bold text-zinc-900 mb-1">Connect your APIs</h2>
       <p className="text-sm text-zinc-500 mb-4">
-        Choose how your Code Studio gets news articles for the News Feed block.
+        Register external services. We'll run a health check on each one after the site is deployed.
+        You can also paste OpenAPI/Postman specs and AI prompts later from the Clara Custom dashboard.
       </p>
 
-      <div className="space-y-2">
-        {/* Option 1: Skip */}
-        <button
-          onClick={() => selectMode('none')}
-          data-testid="cl-skip-btn"
-          className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
-            mode === 'none' ? 'border-zinc-900 bg-zinc-50 shadow-md' : 'border-zinc-200 hover:border-zinc-400'
-          }`}
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: mode === 'none' ? '#18181b15' : '#f4f4f5' }}>
-            <XCircle className="w-5 h-5" style={{ color: mode === 'none' ? '#18181b' : '#a1a1aa' }} />
+      <div className="space-y-3">
+        {apis.length === 0 && (
+          <div className="text-center py-6 px-4 rounded-2xl border-2 border-dashed border-zinc-200">
+            <Plug className="w-7 h-7 text-zinc-300 mx-auto mb-2" />
+            <p className="text-xs text-zinc-500">No APIs yet — you can add some now or skip and configure later.</p>
           </div>
-          <div className="flex-1 min-w-0">
-            <div className={`text-sm font-semibold ${mode === 'none' ? 'text-zinc-900' : 'text-zinc-600'}`}>No content library</div>
-            <div className="text-[11px] text-zinc-400 leading-snug">Skip — you can add one later from settings</div>
-          </div>
-          {mode === 'none' && (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-zinc-900 rounded-full flex items-center justify-center flex-shrink-0">
-              <Check className="w-3.5 h-3.5 text-white" />
-            </motion.div>
-          )}
-        </button>
+        )}
 
-        {/* Option 2: Built-in content library */}
-        <button
-          onClick={() => selectMode('built_in')}
-          data-testid="cl-builtin-btn"
-          className={`w-full flex items-center gap-3 p-4 rounded-2xl border-2 transition-all text-left ${
-            mode === 'built_in' ? 'border-[#7c1ac8] bg-[#7c1ac8]/5 shadow-md' : 'border-zinc-200 hover:border-zinc-400'
-          }`}
-        >
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: mode === 'built_in' ? '#7c1ac820' : '#f4f4f5' }}>
-            <FileCode className="w-5 h-5" style={{ color: mode === 'built_in' ? '#7c1ac8' : '#a1a1aa' }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className={`text-sm font-semibold ${mode === 'built_in' ? 'text-zinc-900' : 'text-zinc-600'}`}>Built-in content library</div>
-            <div className="text-[11px] text-zinc-400 leading-snug">Create your own articles directly inside this Code Studio — no external site needed</div>
-          </div>
-          {mode === 'built_in' && (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-[#7c1ac8] rounded-full flex items-center justify-center flex-shrink-0">
-              <Check className="w-3.5 h-3.5 text-white" />
-            </motion.div>
-          )}
-        </button>
-
-        {/* Option 3: Link external radio site */}
-        <div className={`rounded-2xl border-2 transition-all overflow-hidden ${mode === 'linked' ? 'border-[#dd0c51] bg-[#dd0c51]/5' : 'border-zinc-200'}`}>
-          <button
-            onClick={() => selectMode('linked')}
-            data-testid="cl-linked-btn"
-            className="w-full flex items-center gap-3 p-4 text-left"
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: mode === 'linked' ? '#dd0c5120' : '#f4f4f5' }}>
-              <Radio className="w-5 h-5" style={{ color: mode === 'linked' ? '#dd0c51' : '#a1a1aa' }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className={`text-sm font-semibold ${mode === 'linked' ? 'text-zinc-900' : 'text-zinc-600'}`}>Link to another content library</div>
-              <div className="text-[11px] text-zinc-400 leading-snug">Pull articles from another main site's content library</div>
-            </div>
-            {mode === 'linked' && (
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-6 h-6 bg-[#dd0c51] rounded-full flex items-center justify-center flex-shrink-0">
-                <Check className="w-3.5 h-3.5 text-white" />
-              </motion.div>
-            )}
-          </button>
-
-          {/* Radio site picker — only visible when 'linked' is selected */}
-          {mode === 'linked' && (
-            <div className="border-t border-zinc-200 bg-white p-3 space-y-2">
-              {loading && (
-                <div className="flex items-center justify-center py-4 text-zinc-400 text-xs">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> Loading sites...
+        {apis.map((api, idx) => (
+          <div key={idx} className="rounded-2xl border border-zinc-200 bg-white p-3 space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-[#7c1ac8]/10 flex items-center justify-center flex-shrink-0">
+                  <Plug className="w-3.5 h-3.5 text-[#7c1ac8]" />
                 </div>
-              )}
-              {!loading && sites.length === 0 && (
-                <div className="text-center py-3 px-3 rounded-lg bg-amber-50 border border-amber-200">
-                  <p className="text-[11px] text-amber-700">No sites with a content library available yet. Create a Radio Station first.</p>
-                </div>
-              )}
-              {!loading && sites.map(site => {
-                const isActive = linkedMainSiteId === site.id;
-                return (
-                  <button
-                    key={site.id}
-                    onClick={() => onLinkChange(site.id)}
-                    data-testid={`cl-site-${site.id}`}
-                    className={`w-full flex items-center gap-2.5 p-2.5 rounded-lg border transition-all text-left ${
-                      isActive ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200 hover:border-zinc-400'
-                    }`}
-                  >
-                    <Radio className="w-4 h-4 flex-shrink-0" style={{ color: isActive ? '#dd0c51' : '#a1a1aa' }} />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-zinc-800">{site.name}</div>
-                      <div className="text-[10px] text-zinc-400 font-mono">/{site.slug}</div>
-                    </div>
-                    {isActive && <Check className="w-3.5 h-3.5 text-zinc-900 flex-shrink-0" />}
-                  </button>
-                );
-              })}
+                <span className="text-xs font-semibold text-zinc-700">API #{idx + 1}</span>
+              </div>
+              <button
+                onClick={() => removeApi(idx)}
+                className="p-1.5 rounded-lg hover:bg-red-50 text-zinc-400 hover:text-red-600"
+                data-testid={`api-remove-${idx}`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             </div>
-          )}
-        </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                value={api.name}
+                onChange={(e) => updateApi(idx, 'name', e.target.value)}
+                placeholder="Name (e.g. CRM)"
+                className="text-xs"
+                data-testid={`api-name-${idx}`}
+              />
+              <Input
+                value={api.base_url}
+                onChange={(e) => updateApi(idx, 'base_url', e.target.value)}
+                placeholder="Base URL"
+                className="text-xs font-mono"
+                data-testid={`api-url-${idx}`}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <Input
+                value={api.health_check_path}
+                onChange={(e) => updateApi(idx, 'health_check_path', e.target.value)}
+                placeholder="/health"
+                className="text-xs font-mono col-span-1"
+                data-testid={`api-path-${idx}`}
+              />
+              <Input
+                value={api.expected_status}
+                onChange={(e) => updateApi(idx, 'expected_status', parseInt(e.target.value) || 200)}
+                placeholder="200"
+                type="number"
+                className="text-xs col-span-1"
+                data-testid={`api-status-${idx}`}
+              />
+              <Input
+                value={api.auth_header || ''}
+                onChange={(e) => updateApi(idx, 'auth_header', e.target.value)}
+                placeholder="Bearer ... (optional)"
+                className="text-xs col-span-1"
+                data-testid={`api-auth-${idx}`}
+              />
+            </div>
+          </div>
+        ))}
+
+        <button
+          onClick={addApi}
+          className="w-full py-2.5 rounded-2xl border-2 border-dashed border-zinc-200 hover:border-[#7c1ac8] hover:bg-[#7c1ac8]/5 text-zinc-500 hover:text-[#7c1ac8] transition-all flex items-center justify-center gap-2 text-xs font-semibold"
+          data-testid="api-add-btn"
+        >
+          <Plus className="w-3.5 h-3.5" /> Add API
+        </button>
       </div>
     </div>
   );
@@ -1250,21 +1210,17 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     default_post_type: 'post', default_publish_status: 'draft',
   });
   const [ztConfig, setZtConfig] = useState({ api_token: '', network_id: '' });
-  const [linkedMainSiteId, setLinkedMainSiteId] = useState('');
-  const [clMode, setClMode] = useState('none'); // 'none' | 'built_in' | 'linked'
+  const [customApis, setCustomApis] = useState([]);
 
   const typeConfig = SITE_TYPES.find(t => t.id === siteType);
   const hasOptionalFeatures = (typeConfig?.optionalFeatures || []).length > 0;
   const isRadioType = siteType === 'radio';
   const hasWordPress = siteType === 'radio' || siteType === 'external_host';
   const isTechnicalType = siteType === 'technical';
-  const isCodeStudioType = siteType === 'code_studio';
+  const isClaraCustomType = siteType === 'clara_custom';
 
-  // Build final feature set; inject content_library when Code Studio user chose 'built_in'
   const baseFeatures = [...(typeConfig?.features || []), ...selectedOptionalFeatures];
-  const features = isCodeStudioType && clMode === 'built_in' && !baseFeatures.includes('content_library')
-    ? [...baseFeatures, 'content_library', 'media_library', 'content_approval', 'trash']
-    : baseFeatures;
+  const features = baseFeatures;
 
   // Dynamic step mapping
   const getActualSteps = () => {
@@ -1274,7 +1230,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     if (isRadioType) steps.push('Stations');
     if (isTechnicalType) steps.push('ZeroTier');
     if (hasWordPress) steps.push('WordPress');
-    if (isCodeStudioType) steps.push('Content Library');
+    if (isClaraCustomType) steps.push('Clara Custom APIs');
     steps.push('Admin', 'Security', 'Deploying');
     return steps;
   };
@@ -1329,8 +1285,8 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
       require_2fa: require2FA,
       clara_enterprise: claraEnterprise,
     };
-    if (isCodeStudioType && clMode === 'linked' && linkedMainSiteId) {
-      body.linked_main_site_id = linkedMainSiteId;
+    if (isClaraCustomType && customApis.length > 0) {
+      body.clara_custom_apis = customApis;
     }
     const apiPromise = fetch(`${API}/api/main-sites`, {
       method: 'POST',
@@ -1447,11 +1403,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     if (stepName === 'Stations') return true; // stations are optional
     if (stepName === 'WordPress') return true; // wordpress is optional
     if (stepName === 'ZeroTier') return true; // zerotier is optional
-    if (stepName === 'Content Library') {
-      // If user chose 'linked', require a site selection; otherwise any valid choice passes
-      if (clMode === 'linked') return !!linkedMainSiteId;
-      return true;
-    }
+    if (stepName === 'Clara Custom APIs') return true; // APIs are optional
     if (stepName === 'Admin') return true;
     if (stepName === 'Security') return true;
     return false;
@@ -1537,7 +1489,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               {stepName === 'Stations' && <StepStations stations={rdsStations} onStationsChange={setRdsStations} />}
               {stepName === 'ZeroTier' && <StepZeroTier ztConfig={ztConfig} onZtConfigChange={setZtConfig} />}
               {stepName === 'WordPress' && <StepWordPress wpConfig={wpConfig} onWpConfigChange={setWpConfig} />}
-              {stepName === 'Content Library' && <StepContentLibrary mode={clMode} linkedMainSiteId={linkedMainSiteId} onModeChange={setClMode} onLinkChange={setLinkedMainSiteId} token={token} />}
+              {stepName === 'Clara Custom APIs' && <StepClaraCustom apis={customApis} onChange={setCustomApis} />}
               {stepName === 'Admin' && <StepAdmin adminId={adminId} onAdminChange={setAdminId} users={users} token={token} />}
               {stepName === 'Security' && <StepSecurity require2FA={require2FA} onToggle2FA={setRequire2FA} claraEnterprise={claraEnterprise} onToggleEnterprise={setClaraEnterprise} siteType={siteType} isSystemAdmin={isSystemAdmin} />}
               {stepName === 'Deploying' && <StepDeploying siteName={name} siteType={siteType} require2FA={require2FA} features={features} deployStatus={deployStatus} deployError={deployError} />}
