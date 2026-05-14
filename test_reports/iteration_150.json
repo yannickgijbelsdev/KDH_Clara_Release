@@ -1,0 +1,39 @@
+{
+  "summary": "Tested Clara Custom + recent fixes (notifications broadcast, content rollback) and the regression of CreateMainSiteWizard 'setLinkedMainSiteId is not defined' bug. All 10 backend pytest cases passed (1 skipped due to no eligible content). Frontend smoke test passed end-to-end: login → LoginWizard → Enter Clara → New Server wizard opens cleanly. No setLinkedMainSiteId / setClMode / ReferenceError errors observed in console during wizard open/close cycles.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/notifications/broadcast", "issue": "Field naming inconsistency: send-broadcast expects title/body, while /preview accepts subject/message — initial test using subject/message returned 400. Consider unifying field names across preview/send."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "CreateMainSiteWizard + several Dialogs", "issues": ["Radix DialogContent missing DialogTitle (a11y warning, repeats 4x in console). Wrap with VisuallyHidden DialogTitle to comply with screen-reader requirements."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_clara_custom_and_recent_fixes.py",
+    "/app/test_reports/pytest/clara_custom_recent.xml"
+  ],
+  "action_items": [
+    "(Optional, low priority) Wrap Radix DialogContent components with a VisuallyHidden DialogTitle to remove the a11y console warning.",
+    "(Optional) Align /api/notifications/broadcast field names between preview (subject/message) and send (title/body) for consistency."
+  ],
+  "critical_code_review_comments": [
+    "Review request mentions endpoint GET /api/clara-custom/health/{main_site_id}, but actual implementation uses POST /api/clara-custom/check-all?main_site_id=... and POST /api/clara-custom/apis/{api_id}/check. If the documented contract is intentional, consider adding a thin GET alias.",
+    "main_sites create endpoint reads request.json() AFTER pydantic parsing to pick up clara_custom_apis (a non-model field). Works but is fragile — consider adding clara_custom_apis to MainSiteCreate model for clarity & validation.",
+    "clara_custom router uses require_network_admin as 'system admin gate' via aliasing — comment clarifies intent but a dedicated require_system_admin dependency would be safer for the future."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_clara_custom_and_recent_fixes.py (new)"
+  ],
+  "success_rate": {"backend": "100% (10/10 executed, 1 skipped)", "frontend": "100% smoke pass"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (System Administrator)",
+  "seed_data_creation": "Created TEST_ClaraCustom main site (auto-cleaned in fixture teardown) with 1 httpbin.org API entry. Created+deleted one extra clara_custom_apis row.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend test file /app/backend/tests/test_clara_custom_and_recent_fixes.py is the regression suite for Clara Custom + notifications broadcast + content rollback. Loads REACT_APP_BACKEND_URL from /app/frontend/.env if env var is empty. Content rollback full-flow test is currently skipped because the helper couldn't locate a sub-site with permissive content creation; the endpoint itself responds with proper 404 for invalid IDs, confirming it is registered.",
+  "rca_of_the_issue": "Original bug: handleClose & StepEnvironment onSelect in CreateMainSiteWizard.js still called setLinkedMainSiteId('') and setClMode('none') after Code Studio state was removed. Fix removed the orphan setters. Verified by opening wizard, clicking Create New, navigating steps, and closing — no ReferenceError captured by pageerror / console.error listeners across multiple wizard cycles."
+}

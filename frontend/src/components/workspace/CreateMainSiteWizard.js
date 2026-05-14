@@ -1391,7 +1391,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
     setAdminId(''); setRequire2FA(false); setClaraEnterprise(false); setDeployStatus(0);
     setDeploying(false); setDeployDone(false); setDeployError(null);
     setSelectedOptionalFeatures([]); setRdsStations([]);
-    setLinkedMainSiteId(''); setClMode('none');
+    setCustomApis([]);
     setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' });
     onClose();
   };
@@ -1483,7 +1483,7 @@ export default function CreateMainSiteWizard({ open, onClose, onCreated, token, 
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.25 }}
             >
-              {stepName === 'Choosing a server' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setLinkedMainSiteId(''); setClMode('none'); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
+              {stepName === 'Choosing a server' && <StepEnvironment selected={siteType} onSelect={(type) => { setSiteType(type); setSelectedOptionalFeatures([]); setRdsStations([]); setCustomApis([]); setZtConfig({ api_token: '', network_id: '' }); setWpConfig({ name: '', wp_base_url: '', username: '', app_password: '', default_post_type: 'post', default_publish_status: 'draft' }); }} />}
               {stepName === 'Features' && <StepFeatures siteType={siteType} selectedFeatures={selectedOptionalFeatures} onToggleFeature={toggleOptionalFeature} />}
               {stepName === 'Details' && <StepDetails name={name} slug={slug} onNameChange={setName} onSlugChange={setSlug} siteType={siteType} />}
               {stepName === 'Stations' && <StepStations stations={rdsStations} onStationsChange={setRdsStations} />}
