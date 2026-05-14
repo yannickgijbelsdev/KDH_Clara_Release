@@ -213,7 +213,7 @@ export default function ClaraCustomPage() {
             </Button>
             <Button
               onClick={() => setAddOpen(true)}
-              className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] text-white"
+              className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&_svg]:!text-white"
               data-testid="add-api-btn"
             >
               <Plus className="w-4 h-4" /> Add API
@@ -254,7 +254,7 @@ export default function ClaraCustomPage() {
             </div>
             <h3 className="text-base font-semibold text-zinc-900 mb-1">No APIs registered yet</h3>
             <p className="text-sm text-zinc-500 mb-4">Add external services to monitor their connectivity from Clara.</p>
-            <Button onClick={() => setAddOpen(true)} className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] text-white"><Plus className="w-4 h-4" /> Add first API</Button>
+            <Button onClick={() => setAddOpen(true)} className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&_svg]:!text-white"><Plus className="w-4 h-4" /> Add first API</Button>
           </div>
         )}
 
@@ -436,7 +436,7 @@ export default function ClaraCustomPage() {
 
             <div className="flex justify-end gap-2 mt-4">
               <Button variant="outline" onClick={() => setAddOpen(false)} disabled={importing}>Cancel</Button>
-              <Button onClick={submitImport} disabled={importing} className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] text-white" data-testid="submit-import-btn">
+              <Button onClick={submitImport} disabled={importing} className="gap-2 bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&_svg]:!text-white" data-testid="submit-import-btn">
                 {importing ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</> : (activeTab === 'manual' ? 'Add API' : 'Import')}
               </Button>
             </div>
