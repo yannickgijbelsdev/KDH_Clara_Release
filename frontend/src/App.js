@@ -43,6 +43,7 @@ import PublicSitePage from './pages/Sites/PublicSitePage';
 import StatisticsPage from './pages/Network/StatisticsPage';
 import BackupManagementPage from './pages/Network/BackupManagementPage';
 import NotificationBroadcast from './pages/Network/NotificationBroadcast';
+import DiscoveryTokensPage from './pages/Network/DiscoveryTokensPage';
 import CallPage from './pages/CallPage';
 import PublicCallPage from './pages/PublicCallPage';
 import { JourneyProvider } from './context/JourneyContext';
@@ -180,6 +181,15 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <NotificationBroadcast />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/discovery-tokens"
+        element={
+          <ProtectedRoute>
+            <DiscoveryTokensPage />
           </ProtectedRoute>
         }
       />

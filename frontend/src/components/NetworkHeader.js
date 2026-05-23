@@ -7,7 +7,7 @@ import usePageTitle from '../hooks/usePageTitle';
 import {
   Globe, Crown, Network, Shield, Bell, Paintbrush,
   Server, ChevronDown, LogOut, ShieldAlert, UserCog,
-  HardDrive, Code, Menu, X, LifeBuoy, Upload,
+  HardDrive, Code, Menu, X, LifeBuoy, Upload, Key,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -107,6 +107,7 @@ export default function NetworkHeader({
   const LINK_ITEMS = [
     { id: 'backups', icon: HardDrive, label: 'Backups', path: '/backups' },
     { id: 'explorer', icon: Code, label: 'API Explorer', path: '/explorer' },
+    ...(isSystemAdmin ? [{ id: 'discovery-tokens', icon: Key, label: 'Discovery Tokens', path: '/discovery-tokens' }] : []),
   ];
 
   // Only fetch environments internally if not provided externally

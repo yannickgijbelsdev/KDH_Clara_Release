@@ -218,7 +218,65 @@ In `frontend/src/App.js`:
 4. Nieuws-sectie haalt `/api/public/news` op en rendert kaarten met `featured_image_url`, `title`, `excerpt`, `published_at`.
 5. Detail-pagina op route `/nieuws/:slug` fetcht `/api/public/news/:slug`.
 
-### ✅ Acceptatiecriteria
+### 📡 Auto-discovery (zelf-registratie bij Clara)
+
+Bij FastAPI startup roept de backend Clara's discovery-endpoint aan, zodat dit project automatisch verschijnt in het Clara-dashboard met een 🟠 "setup incomplete" badge. De admin hoeft daarna alleen nog naam + endpoints te bevestigen.
+
+**Env vars** (in `backend/.env`):
+```
+CLARA_DISCOVERY_URL=https://[clara-host]/api/clara-custom/discover
+CLARA_DISCOVERY_TOKEN=[token-die-clara-admin-genereert]
+CLARA_API_SECRET=[same-shared-secret-als-hierboven]
+SITE_PUBLIC_URL=https://[your-site].preview.emergentagent.com
+SITE_NAME=Koodh Media Group
+```
+
+**Implementeer dit in `backend/server.py`** (FastAPI startup event):
+
+```python
+import os
+import httpx
+from fastapi import FastAPI
+
+app = FastAPI(title="Koodh Media Site")  # of de huidige naam
+
+@app.on_event("startup")
+async def register_with_clara():
+    """Self-register dit project bij Clara Custom (idempotent)."""
+    discovery_url = os.getenv("CLARA_DISCOVERY_URL")
+    discovery_token = os.getenv("CLARA_DISCOVERY_TOKEN")
+    site_url = os.getenv("SITE_PUBLIC_URL")
+    if not (discovery_url and discovery_token and site_url):
+        return  # discovery niet geconfigureerd — overslaan
+
+    payload = {
+        "discovery_token": discovery_token,
+        "site_url": site_url,
+        "site_name_suggestion": os.getenv("SITE_NAME") or "",
+        "openapi_url": f"{site_url}/api/openapi.json",
+        "shared_secret": os.getenv("CLARA_API_SECRET", ""),
+        "version": "1.0.0",
+        "service_name": "koodh-media-site",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            r = await client.post(discovery_url, json=payload)
+            if r.status_code < 400:
+                print(f"[clara-discovery] OK: {r.json().get('status')} (main_site_id={r.json().get('main_site_id')})")
+            else:
+                print(f"[clara-discovery] Failed: {r.status_code} {r.text[:200]}")
+    except Exception as e:
+        # Niet kritisch — site blijft draaien zonder Clara
+        print(f"[clara-discovery] Skipped: {type(e).__name__}: {str(e)[:120]}")
+```
+
+**Belangrijk:**
+- Discovery is **idempotent** op `site_url`. Bij elke restart wordt het bestaande Clara-record bijgewerkt, niet gedupliceerd.
+- Discovery faalt nooit hard — als Clara onbereikbaar is logt het project alleen een waarschuwing en draait gewoon door.
+- Het `openapi_url` veld zorgt dat Clara **alle endpoints automatisch importeert** in het Clara Custom dashboard.
+
+
 
 - [ ] `GET /api/clara/health` werkt zonder auth en returnt status 200 met `mongo: connected`.
 - [ ] `PATCH /api/clara/config` met body `{"branding": {"primary_color": "#ff0000"}}` past **alleen** die kleur aan, niet de hele branding sectie.
@@ -227,6 +285,7 @@ In `frontend/src/App.js`:
 - [ ] Frontend toont de juiste kleur **direct** na een Clara update (refresh van pagina is voldoende; geen rebuild nodig).
 - [ ] OpenAPI docs op `/api/docs` tonen alle `/api/clara/*` endpoints met correcte schemas.
 - [ ] CORS staat aan voor de Clara Custom origin.
+- [ ] Bij backend startup wordt automatisch een POST naar `CLARA_DISCOVERY_URL` verstuurd met het `CLARA_DISCOVERY_TOKEN` — bij succes zichtbaar in de logs als `[clara-discovery] OK: registered`.
 
 ### 🧪 Test endpoints achteraf met curl
 

@@ -447,6 +447,22 @@ async def update_main_site(
         else:
             update_data["clara_enterprise"] = data.clara_enterprise
 
+    if data.environment_id is not None:
+        # Only network/system admins can move sites between environments
+        if not is_network_admin:
+            raise HTTPException(status_code=403, detail="Only network admins can move sites between environments")
+        # Verify target environment exists
+        target_env = await db.environments.find_one({"id": data.environment_id}, {"_id": 0, "id": 1})
+        if not target_env:
+            raise HTTPException(status_code=404, detail="Target environment not found")
+        update_data["environment_id"] = data.environment_id
+
+    if data.pending_setup is not None:
+        update_data["pending_setup"] = data.pending_setup
+
+    if data.pending_setup_steps is not None:
+        update_data["pending_setup_steps"] = data.pending_setup_steps
+
     await db.main_sites.update_one(
         {"id": main_site_id},
         {"$set": update_data}

@@ -469,3 +469,271 @@ async def get_health_log(
     async for entry in cursor:
         log.append(entry)
     return log
+
+
+# ───────────────────── Discovery (auto-registration) ─────────────────────
+
+import secrets
+import hashlib
+
+
+def _generate_discovery_token() -> str:
+    """Generate a URL-safe 48-char hex token (192 bits of entropy)."""
+    return secrets.token_hex(24)
+
+
+def _hash_site_url(url: str) -> str:
+    """Stable hash of a site URL for idempotent discovery."""
+    return hashlib.sha256(url.strip().rstrip('/').lower().encode()).hexdigest()[:16]
+
+
+@clara_custom_router.post("/discovery-tokens")
+async def create_discovery_token(
+    data: dict,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Generate a new discovery token scoped to an environment.
+
+    Body: { environment_id, label?: str }
+    Returns the raw token ONCE — store it on the external project.
+    """
+    environment_id = data.get("environment_id")
+    if not environment_id:
+        raise HTTPException(status_code=400, detail="environment_id is required")
+    env = await db.environments.find_one({"id": environment_id}, {"_id": 0, "id": 1, "name": 1})
+    if not env:
+        raise HTTPException(status_code=404, detail="Environment not found")
+
+    token = _generate_discovery_token()
+    doc = {
+        "id": str(uuid.uuid4()),
+        "token": token,
+        "environment_id": environment_id,
+        "environment_name": env.get("name"),
+        "label": (data.get("label") or "").strip() or f"Token for {env.get('name')}",
+        "created_at": _now_iso(),
+        "created_by": current_user.get("id"),
+        "revoked": False,
+        "last_used_at": None,
+        "use_count": 0,
+    }
+    await db.clara_discovery_tokens.insert_one(dict(doc))
+    return _strip_id(doc)
+
+
+@clara_custom_router.get("/discovery-tokens")
+async def list_discovery_tokens(current_user: dict = Depends(require_system_admin)):
+    cursor = db.clara_discovery_tokens.find({}, {"_id": 0}).sort("created_at", -1)
+    tokens = []
+    async for t in cursor:
+        # Mask token after creation — show only last 6 chars
+        t["token_masked"] = "•" * 18 + t["token"][-6:]
+        t.pop("token", None)
+        tokens.append(t)
+    return tokens
+
+
+@clara_custom_router.delete("/discovery-tokens/{token_id}")
+async def revoke_discovery_token(token_id: str, current_user: dict = Depends(require_system_admin)):
+    res = await db.clara_discovery_tokens.update_one({"id": token_id}, {"$set": {"revoked": True, "revoked_at": _now_iso()}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Token not found")
+    return {"status": "revoked", "id": token_id}
+
+
+@clara_custom_router.post("/discover")
+async def discover(data: dict, background: BackgroundTasks):
+    """Self-registration endpoint called by external Emergent projects.
+
+    PUBLIC endpoint — auth is via the discovery_token in the body.
+
+    Body:
+      {
+        discovery_token: str (required),
+        site_url: str (required, e.g. https://my-site.preview.emergentagent.com),
+        site_name_suggestion?: str,
+        openapi_url?: str (e.g. https://my-site/api/openapi.json),
+        shared_secret?: str (the Bearer secret the external site expects),
+        version?: str,
+        service_name?: str
+      }
+
+    Behaviour:
+      - Validates token (not revoked) and looks up environment_id.
+      - Idempotent: if a main_site with the same discovered_url_hash exists, updates it.
+        Otherwise creates a new pending main_site.
+      - Auto-imports OpenAPI endpoints if openapi_url provided.
+      - Auto-runs health checks in the background.
+    """
+    token = (data.get("discovery_token") or "").strip()
+    site_url = (data.get("site_url") or "").strip().rstrip("/")
+    if not token:
+        raise HTTPException(status_code=400, detail="discovery_token is required")
+    if not site_url:
+        raise HTTPException(status_code=400, detail="site_url is required")
+
+    token_doc = await db.clara_discovery_tokens.find_one({"token": token, "revoked": {"$ne": True}}, {"_id": 0})
+    if not token_doc:
+        raise HTTPException(status_code=401, detail="Invalid or revoked discovery token")
+
+    environment_id = token_doc["environment_id"]
+    url_hash = _hash_site_url(site_url)
+    now = _now_iso()
+
+    # Bump token usage stats
+    await db.clara_discovery_tokens.update_one(
+        {"id": token_doc["id"]},
+        {"$set": {"last_used_at": now}, "$inc": {"use_count": 1}},
+    )
+
+    # Idempotent upsert: find by discovered_url_hash
+    existing = await db.main_sites.find_one({"discovered_url_hash": url_hash}, {"_id": 0})
+
+    suggested_name = (data.get("site_name_suggestion") or "").strip()
+    shared_secret = data.get("shared_secret") or ""
+
+    if existing:
+        update = {
+            "updated_at": now,
+            "discovered_at": existing.get("discovered_at") or now,
+            "discovered_url": site_url,
+            "discovery_metadata": {
+                "openapi_url": data.get("openapi_url"),
+                "version": data.get("version"),
+                "service_name": data.get("service_name"),
+                "site_name_suggestion": suggested_name,
+            },
+        }
+        if shared_secret:
+            update["clara_custom_shared_secret"] = shared_secret
+        # Don't move existing sites between environments automatically.
+        await db.main_sites.update_one({"id": existing["id"]}, {"$set": update})
+        main_site_id = existing["id"]
+        created = False
+    else:
+        # Generate a unique slug from suggested name or hash
+        base_slug = (suggested_name or f"clara-custom-{url_hash}").lower()
+        slug = "".join(c if c.isalnum() or c == "-" else "-" for c in base_slug)[:60].strip("-") or f"clara-custom-{url_hash}"
+        # Ensure uniqueness
+        suffix = 0
+        final_slug = slug
+        while await db.main_sites.find_one({"slug": final_slug}, {"_id": 0, "id": 1}):
+            suffix += 1
+            final_slug = f"{slug}-{suffix}"
+
+        main_site_id = str(uuid.uuid4())
+        doc = {
+            "id": main_site_id,
+            "name": suggested_name or "Untitled Clara Custom Site",
+            "slug": final_slug,
+            "description": f"Auto-discovered from {site_url}",
+            "site_type": "clara_custom",
+            "environment_id": environment_id,
+            "enabled_features": ["clara_custom"],
+            "is_demo": False,
+            "require_2fa": False,
+            "clara_enterprise": False,
+            "created_at": now,
+            "updated_at": now,
+            "discovered_at": now,
+            "discovered_url": site_url,
+            "discovered_url_hash": url_hash,
+            "discovery_token_id": token_doc["id"],
+            "discovery_metadata": {
+                "openapi_url": data.get("openapi_url"),
+                "version": data.get("version"),
+                "service_name": data.get("service_name"),
+                "site_name_suggestion": suggested_name,
+            },
+            "clara_custom_shared_secret": shared_secret,
+            "pending_setup": True,
+            "pending_setup_steps": (["name"] if not suggested_name else []) + ["verify_endpoints"],
+        }
+        await db.main_sites.insert_one(dict(doc))
+        created = True
+
+    # Auto-import OpenAPI in background
+    openapi_url = data.get("openapi_url")
+    if openapi_url:
+        background.add_task(_auto_import_openapi_after_discovery, main_site_id, openapi_url, shared_secret)
+
+    # Auto-run health checks shortly after
+    background.add_task(_auto_check_after_discovery, main_site_id)
+
+    return {
+        "status": "registered" if created else "updated",
+        "main_site_id": main_site_id,
+        "environment_id": environment_id,
+        "pending_setup": True if created else (existing or {}).get("pending_setup", False),
+        "message": "Auto-discovery complete. Endpoints will be imported and health-checked in background.",
+    }
+
+
+async def _auto_import_openapi_after_discovery(main_site_id: str, openapi_url: str, shared_secret: str = ""):
+    """Background task: fetch the external project's OpenAPI and import endpoints."""
+    try:
+        headers = {}
+        if shared_secret:
+            headers["Authorization"] = f"Bearer {shared_secret}"
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            r = await client.get(openapi_url, headers=headers)
+            if r.status_code >= 400:
+                return
+            try:
+                payload = r.json()
+            except Exception:
+                return
+        # Derive a default base_url from the openapi_url origin
+        from urllib.parse import urlsplit
+        u = urlsplit(openapi_url)
+        base_default = f"{u.scheme}://{u.netloc}"
+        parsed = _parse_openapi_payload(payload, base_url_default=base_default)
+        if not parsed:
+            return
+        now = _now_iso()
+        for entry in parsed:
+            # Avoid duplicates on retry
+            existing = await db.clara_custom_apis.find_one(
+                {"main_site_id": main_site_id, "base_url": entry.get("base_url"), "health_check_path": entry.get("health_check_path")},
+                {"_id": 0, "id": 1},
+            )
+            if existing:
+                continue
+            doc = {
+                "id": str(uuid.uuid4()),
+                "main_site_id": main_site_id,
+                **entry,
+                "auth_header": (f"Bearer {shared_secret}" if shared_secret else ""),
+                "extra_headers": [],
+                "expected_schema": None,
+                "tags": ["auto-discovery"],
+                "created_at": now,
+                "created_by": "system",
+                "last_health_check": None,
+            }
+            await db.clara_custom_apis.insert_one(dict(doc))
+    except Exception:
+        # Silent fail — discovery itself already succeeded
+        pass
+
+
+async def _auto_check_after_discovery(main_site_id: str):
+    """Background task: small delay then run health checks on all registered APIs."""
+    try:
+        await asyncio.sleep(2)  # give openapi import a moment
+        apis = await db.clara_custom_apis.find({"main_site_id": main_site_id}, {"_id": 0}).to_list(500)
+        if not apis:
+            return
+        results = await asyncio.gather(*[run_health_check(a) for a in apis], return_exceptions=True)
+        for api, res in zip(apis, results):
+            if isinstance(res, Exception):
+                continue
+            await db.clara_custom_apis.update_one({"id": api["id"]}, {"$set": {"last_health_check": res}})
+            await db.clara_custom_health_log.insert_one({
+                "id": str(uuid.uuid4()),
+                "api_id": api["id"],
+                "main_site_id": main_site_id,
+                **res,
+            })
+    except Exception:
+        pass

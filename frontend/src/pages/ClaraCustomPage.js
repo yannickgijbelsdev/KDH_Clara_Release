@@ -20,6 +20,7 @@ import {
   Plug, Plus, RefreshCw, Trash2, CheckCircle2, XCircle, Clock, Loader2,
   Upload, Sparkles, FileJson, FormInput, Lock, Activity, AlertTriangle,
 } from 'lucide-react';
+import PendingSetupBanner from '../components/ClaraCustom/PendingSetupBanner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -220,6 +221,17 @@ export default function ClaraCustomPage() {
             </Button>
           </div>
         </div>
+
+        {/* Pending setup banner — shown for auto-discovered sites awaiting admin completion */}
+        {mainSite?.pending_setup && (
+          <PendingSetupBanner
+            mainSite={mainSite}
+            token={token}
+            headers={headers}
+            apis={apis}
+            onRefresh={fetchApis}
+          />
+        )}
 
         {/* Health overview cards */}
         {apis.length > 0 && (

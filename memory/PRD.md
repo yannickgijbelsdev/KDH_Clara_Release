@@ -102,6 +102,19 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Wrap Radix DialogContent with VisuallyHidden DialogTitle (a11y warning, low priority)
 - Align `/api/notifications/broadcast` field names between preview (`subject`/`message`) and send (`title`/`body`)
 
+## 2026-05-23 — Clara Custom Auto-Discovery
+- **Discovery tokens** per environment: nieuwe `clara_discovery_tokens` collectie. Admins genereren een token via `/discovery-tokens` (system-admin only). Token wordt eenmalig getoond met copy-actie en de juiste `.env` snippet voor het externe project.
+- **Self-registration endpoint** `POST /api/clara-custom/discover` (publiek, auth via token in body). Idempotent op `discovered_url_hash` (sha256 van site_url). Bij eerste call: maakt pending main_site aan met `pending_setup: true`, `pending_setup_steps: ["name","verify_endpoints"]`, slug auto-genereerd, environment = token's environment. Bij vervolgcalls: update bestaande entry (geen duplicates).
+- **Auto-import OpenAPI**: discover body bevat `openapi_url` → background task haalt spec op en importeert alle endpoints in `clara_custom_apis` met `Authorization: Bearer {shared_secret}` voorgevuld.
+- **Auto-health-check**: 2s na discovery worden alle geregistreerde endpoints geverifieerd.
+- **Pending badge (!)** op auto-discovered sites in `ServerRackView.js` (beide render-paths). Klikbaar → opent Clara Custom dashboard.
+- **PendingSetupBanner** (`components/ClaraCustom/PendingSetupBanner.js`) op Clara Custom dashboard: 3-stappen checklist (naam, environment, verify endpoints) + Save/Finalize knoppen.
+- **Environment-move**: `PUT /api/main-sites/{id}` accepteert nu `environment_id` (network admins only) zodat sites tussen racks verplaatst kunnen worden — gebruikt door de PendingSetupBanner en algemeen voor reorganisatie.
+- **Discovery Tokens UI**: nieuwe pagina `/discovery-tokens` (system admin only) — list met masked tokens, copy/revoke, "How it works" uitleg.
+- **NetworkHeader**: extra link in LINK_ITEMS naar Discovery Tokens (Key icoon, system admin only).
+- **Prompt update**: `/app/memory/CLARA_CUSTOM_SITE_PROMPT.md` bevat nu een `Auto-discovery (zelf-registratie bij Clara)` sectie met FastAPI startup-event code en env vars (`CLARA_DISCOVERY_URL`, `CLARA_DISCOVERY_TOKEN`).
+- **Smoke tested**: token genereren ✅ → discover (registered) ✅ → discover opnieuw zelfde URL (updated, idempotent) ✅ → pending_setup correct gezet ✅ → masked token in list ✅ → revoke ✅.
+
 ## 2026-04-22 — Content History Rollback + Login BG Fix
 - **Rollback feature** (P0): Added `POST /api/content/{content_id}/rollback/{log_id}` in `backend/routers/content.py`. Restores field values from a specific audit log entry's `old_value` (full values now stored; not truncated) and records a traceable rollback audit entry.
 - **UI**: In `ContentDetailPage.js`, each updated history row shows a "Rollback" button; clicking opens an AlertDialog confirmation. Frontend truncates long HTML previews to 180 chars for display only.

@@ -120,7 +120,12 @@ const ServerRack3D = ({ rackIndex, sites, isSelected, onClick, width = 320, fire
                   style={{ backgroundColor: cfg.color, boxShadow: `0 0 4px ${cfg.color}60` }}
                 />
                 <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: cfg.color }} />
-                <span className="text-xs font-semibold text-zinc-700 truncate flex-1">{site.name}</span>
+                <span className="text-xs font-semibold text-zinc-700 truncate flex-1 flex items-center gap-1">
+                  {site.name}
+                  {site.pending_setup && (
+                    <span title="Setup incomplete" className="inline-flex w-3.5 h-3.5 rounded-full bg-amber-500 text-white items-center justify-center text-[9px] font-bold leading-none flex-shrink-0">!</span>
+                  )}
+                </span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold flex-shrink-0" style={{ backgroundColor: `${cfg.color}10`, color: cfg.color }}>{cfg.label}</span>
               </div>
             );
@@ -452,7 +457,12 @@ export default function ServerRackView({ sites, onCreateSite, onEditSite, onDele
                               <Icon className="w-4.5 h-4.5" style={{ color: cfg.color }} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-sm font-semibold text-zinc-800 group-hover:text-zinc-950 truncate">{site.name}</div>
+                              <div className="text-sm font-semibold text-zinc-800 group-hover:text-zinc-950 truncate flex items-center gap-1.5">
+                                {site.name}
+                                {site.pending_setup && (
+                                  <span title="Setup incomplete" className="inline-flex w-4 h-4 rounded-full bg-amber-500 text-white items-center justify-center text-[10px] font-bold leading-none flex-shrink-0" data-testid={`pending-badge-${site.slug}`}>!</span>
+                                )}
+                              </div>
                               <div className="text-[11px] text-zinc-400">/{site.slug} &middot; {site.user_count || 0} users &middot; {site.site_count || 0} sites</div>
                             </div>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">

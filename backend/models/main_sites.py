@@ -89,6 +89,9 @@ class MainSiteUpdate(BaseModel):
     is_demo: Optional[bool] = None
     require_2fa: Optional[bool] = None
     clara_enterprise: Optional[bool] = None
+    environment_id: Optional[str] = None
+    pending_setup: Optional[bool] = None
+    pending_setup_steps: Optional[List[str]] = None
 
 
 class MainSiteResponse(BaseModel):
@@ -113,6 +116,8 @@ class MainSiteResponse(BaseModel):
     environment_color: Optional[str] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+    pending_setup: bool = False
+    pending_setup_steps: List[str] = []
 
 
 class MainSiteListResponse(BaseModel):
@@ -134,6 +139,8 @@ class MainSiteListResponse(BaseModel):
     environment_id: Optional[str] = None
     environment_name: Optional[str] = None
     environment_color: Optional[str] = None
+    pending_setup: bool = False
+    pending_setup_steps: List[str] = []
 
 
 class MainSiteUserCreate(BaseModel):
