@@ -248,11 +248,11 @@ const LoginPage = () => {
                 }}
               />
               {/* Gradient vignette for text legibility — kept subtle, no hard black bars */}
-              <div className="absolute inset-0 pointer-events-none" style={{
-                background: scene.isBrand
-                  ? 'linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,0.05) 60%, transparent 80%)'
-                  : 'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 30%, transparent 55%)',
-              }} />
+              {!scene.isBrand && (
+                <div className="absolute inset-0 pointer-events-none" style={{
+                  background: 'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 30%, transparent 55%)',
+                }} />
+              )}
             </motion.div>
           );
         })}
@@ -262,7 +262,8 @@ const LoginPage = () => {
       <div className="hidden lg:flex flex-col justify-between relative z-10 flex-1 p-12 xl:p-16">
         <div />
 
-        {/* Scene title + feature pills */}
+        {/* Scene title + feature pills — hidden for pure-brand scenes (e.g. CLR stripes) */}
+        {!SCENES[sceneIndex].isBrand && (
         <div className="max-w-xl">
           <motion.div
             key={`title-${sceneIndex}`}
@@ -310,6 +311,7 @@ const LoginPage = () => {
             })}
           </div>
         </div>
+        )}
 
         {/* Scene progress dots */}
         <div className="flex items-center gap-2">
