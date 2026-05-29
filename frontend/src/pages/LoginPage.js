@@ -18,8 +18,24 @@ const resolveUrl = (url) => {
 
 const ROOMS_IMG = '/images/clara_rooms.png'; // legacy hero fallback — kept for reference
 
+import { Layers } from 'lucide-react';
+
 // Fullscreen rotating scenes with features per room.
 const SCENES = [
+  {
+    src: '/koodh_clr_stripes.png',
+    title: 'Koodh Clara — One platform, every site',
+    titleIcon: Layers,
+    objectPosition: '50% 50%',
+    accent: '#dd0c51',
+    isBrand: true,
+    features: [
+      { icon: Radio,     label: 'Radio' },
+      { icon: Cloud,     label: 'Hosting' },
+      { icon: Sparkles,  label: 'AI Insights' },
+      { icon: Globe,     label: 'Clara Custom' },
+    ],
+  },
   {
     src: '/images/env_radio_v2.jpg',
     title: 'Radio Management',
@@ -228,12 +244,14 @@ const LoginPage = () => {
                   transform: `scale(1.02) translate3d(${mousePos.x * -14}px, ${mousePos.y * -10}px, 0)`,
                   transition: 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
                   imageRendering: 'auto',
-                  filter: 'saturate(1.04) brightness(0.98) contrast(1.04)',
+                  filter: scene.isBrand ? 'none' : 'saturate(1.04) brightness(0.98) contrast(1.04)',
                 }}
               />
               {/* Gradient vignette for text legibility — kept subtle, no hard black bars */}
               <div className="absolute inset-0 pointer-events-none" style={{
-                background: 'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 30%, transparent 55%)',
+                background: scene.isBrand
+                  ? 'linear-gradient(90deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,0.05) 60%, transparent 80%)'
+                  : 'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 30%, transparent 55%)',
               }} />
             </motion.div>
           );
