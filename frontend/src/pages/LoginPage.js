@@ -231,7 +231,7 @@ const LoginPage = () => {
               }}
               transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
               className="absolute inset-0"
-              style={{ willChange: 'opacity, transform' }}
+              style={{ willChange: 'opacity, transform', backgroundColor: scene.isBrand ? '#ffffff' : 'transparent' }}
             >
               <img
                 src={scene.src}
