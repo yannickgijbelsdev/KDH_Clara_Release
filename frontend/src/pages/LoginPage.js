@@ -28,10 +28,10 @@ const BRAND_BG = '/koodh_clr_stripes.png';
 const FEATURE_BUBBLES = [
   { icon: Radio,      title: 'Radio Management',     desc: 'Live shows, RDS builder, stream monitor & scheduling — all in one place.',  top: '10%', left: '6%',  accent: '#dd0c51' },
   { icon: Calendar,   title: 'Smart Scheduling',     desc: 'Clara Tasks with Google Calendar sync, approval flows & a kanban board.', top: '8%',  left: '40%', accent: '#7c1ac8' },
-  { icon: Mic2,       title: 'On-Air Studio',        desc: 'Voice tracking, jingle decks and Wheel automation for hands-free shows.', top: '24%', left: '64%', accent: '#ef4444' },
+  { icon: Waves,      title: 'RDS Builder',          desc: 'Compose station name, PS, RT+ and traffic flags — pushed live to your encoder.', top: '24%', left: '64%', accent: '#ef4444' },
   { icon: FileText,   title: 'Content Library',      desc: 'Articles, social posts and shows in one editorial workspace with audit trails.', top: '36%', left: '8%', accent: '#0ea5e9' },
   { icon: Sparkles,   title: 'AI-Powered Insights',  desc: 'Clara Scan, auto-fix, health reports and predictive analytics.',          top: '38%', left: '46%', accent: '#10b981' },
-  { icon: Cloud,      title: 'Multi-Site Hosting',   desc: 'Custom domains, automatic DNS + SSL and managed deployments via VDC.',   top: '54%', left: '70%', accent: '#0284c7' },
+  { icon: Cloud,      title: 'Multi-Site Hosting',   desc: 'Custom domains, automatic DNS + SSL and managed deployments.',   top: '54%', left: '70%', accent: '#0284c7' },
   { icon: Globe,      title: 'Clara Custom',         desc: 'Connect external sites and push content from Clara via auto-detected APIs.', top: '62%', left: '12%', accent: '#f59e0b' },
   { icon: ListChecks, title: 'Team Collaboration',   desc: 'Roles, approval workflows and team chat right next to your work.',         top: '70%', left: '42%', accent: '#a855f7' },
   { icon: BarChart3,  title: 'Analytics & KPIs',     desc: 'Audience trends, content reach and listener engagement at a glance.',     top: '78%', left: '68%', accent: '#14b8a6' },
