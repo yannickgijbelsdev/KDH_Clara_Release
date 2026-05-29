@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   Plug, Plus, RefreshCw, Trash2, Newspaper, Copy, Loader2, CheckCircle2,
-  XCircle, Clock, AlertTriangle, Power, FileCode2, Send,
+  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -36,6 +36,7 @@ export default function IntegrationsTab({ mainSite, token }) {
   const [templates, setTemplates] = useState([]);
   const [integrations, setIntegrations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [promoteConfig, setPromoteConfig] = useState({ enabled: false, target_url: null });
 
   const [pickTemplateOpen, setPickTemplateOpen] = useState(false);
   const [promptDialog, setPromptDialog] = useState(null); // {prompt_markdown, integration_id, template, integration_token}
@@ -46,12 +47,14 @@ export default function IntegrationsTab({ mainSite, token }) {
     if (!headers || !mainSite?.id) return;
     setLoading(true);
     try {
-      const [t, list] = await Promise.all([
+      const [t, list, pc] = await Promise.all([
         axios.get(`${API}/api/clara-custom/integrations/templates`, { headers }),
         axios.get(`${API}/api/clara-custom/integrations/by-site/${mainSite.id}`, { headers }),
+        axios.get(`${API}/api/clara-custom/integrations/promote-config`, { headers }).catch(() => ({ data: { enabled: false } })),
       ]);
       setTemplates(Array.isArray(t.data) ? t.data : []);
       setIntegrations(Array.isArray(list.data) ? list.data : []);
+      setPromoteConfig(pc.data || { enabled: false });
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Failed to load integrations');
     } finally {
@@ -122,6 +125,16 @@ export default function IntegrationsTab({ mainSite, token }) {
       load();
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Check failed');
+    } finally { setBusyId(null); }
+  };
+
+  const promote = async (integ) => {
+    setBusyId(integ.id);
+    try {
+      const r = await axios.post(`${API}/api/clara-custom/integrations/${integ.id}/promote`, null, { headers });
+      toast.success(`Promoted to ${r.data.target_url} (${r.data.status})`);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Promote failed');
     } finally { setBusyId(null); }
   };
 
@@ -203,6 +216,11 @@ export default function IntegrationsTab({ mainSite, token }) {
                 </div>
 
                 <div className="flex items-center gap-1 flex-shrink-0">
+                  {promoteConfig.enabled && it.status !== 'pending_registration' && (
+                    <Button size="sm" variant="outline" onClick={() => promote(it)} disabled={busyId === it.id} className="gap-1.5 text-violet-700 border-violet-200 hover:bg-violet-50" data-testid={`promote-${it.id}`} title={`Copy to ${promoteConfig.target_url}`}>
+                      {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Rocket className="w-3.5 h-3.5" />} Promote
+                    </Button>
+                  )}
                   {it.status === 'pending_approval' && (
                     <Button size="sm" onClick={() => approve(it)} disabled={busyId === it.id} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 !text-white [&_svg]:!text-white" data-testid={`approve-${it.id}`}>
                       {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />} Approve

@@ -12,9 +12,10 @@ Flow:
   5. Admin can: publish individual items, disconnect, manual health check
   6. Background poller checks connected integrations every 30s
 """
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
 from datetime import datetime, timezone
 from typing import Optional, List
+import os
 import uuid
 import secrets
 import asyncio
@@ -337,6 +338,115 @@ async def delete_integration(integration_id: str, current_user: dict = Depends(r
     if res.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Integration not found")
     return {"status": "deleted"}
+
+
+# ───────────────────── Promote preview → production ─────────────────────
+
+@clara_integrations_router.get("/promote-config")
+async def promote_config(current_user: dict = Depends(require_system_admin)):
+    """Frontend uses this to know whether to show the Promote button.
+
+    Promote is enabled only when both env vars are set:
+      - PROMOTE_TARGET_URL  (e.g. https://clr.koodh.com)
+      - CLARA_PROMOTE_SECRET (same value as on the production instance)
+    """
+    target = os.environ.get("PROMOTE_TARGET_URL")
+    secret = os.environ.get("CLARA_PROMOTE_SECRET")
+    return {
+        "enabled": bool(target and secret),
+        "target_url": target if target else None,
+    }
+
+
+@clara_integrations_router.post("/{integration_id}/promote")
+async def promote_to_production(
+    integration_id: str,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Copy this integration row to the production Clara instance.
+
+    The production instance must have the SAME CLARA_PROMOTE_SECRET in its .env.
+    """
+    target_url = os.environ.get("PROMOTE_TARGET_URL")
+    secret = os.environ.get("CLARA_PROMOTE_SECRET")
+    if not (target_url and secret):
+        raise HTTPException(status_code=503, detail="Promote feature not configured. Set PROMOTE_TARGET_URL and CLARA_PROMOTE_SECRET in this instance's .env.")
+
+    integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0})
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    site = await db.main_sites.find_one({"id": integ["main_site_id"]}, {"_id": 0})
+    if not site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+
+    payload = {
+        "integration": integ,
+        "main_site_slug": site.get("slug"),
+        "main_site_name": site.get("name"),
+    }
+    headers = {"X-Promote-Secret": secret, "Content-Type": "application/json"}
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            r = await client.post(
+                f"{target_url.rstrip('/')}/api/clara-custom/integrations/accept-promotion",
+                json=payload,
+                headers=headers,
+            )
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Failed to reach production: {type(e).__name__}: {str(e)[:140]}")
+    if r.status_code >= 400:
+        raise HTTPException(status_code=r.status_code, detail=f"Production refused: {r.text[:200]}")
+    body = r.json()
+    return {
+        "status": body.get("status", "ok"),
+        "target_url": target_url,
+        "production_integration_id": body.get("integration_id"),
+        "matched_main_site": body.get("main_site_slug"),
+        "message": "Integration promoted to production. The external project does not need to be reconfigured — the same token now works on both Clara instances.",
+    }
+
+
+@clara_integrations_router.post("/accept-promotion")
+async def accept_promotion(data: dict, request: Request):
+    """Production-side receiver — authenticated by X-Promote-Secret header.
+
+    NEVER call this directly from external projects; it bypasses 2FA and is
+    intended only for trusted preview → production promotion.
+    """
+    expected = os.environ.get("CLARA_PROMOTE_SECRET")
+    if not expected:
+        raise HTTPException(status_code=503, detail="Promote receiver not enabled on this instance")
+    if request.headers.get("X-Promote-Secret") != expected:
+        raise HTTPException(status_code=401, detail="Invalid promote secret")
+
+    src_integ = data.get("integration") or {}
+    if not src_integ.get("id") or not src_integ.get("integration_token"):
+        raise HTTPException(status_code=400, detail="integration payload incomplete")
+
+    slug = data.get("main_site_slug")
+    if not slug:
+        raise HTTPException(status_code=400, detail="main_site_slug required for matching")
+    target_site = await db.main_sites.find_one({"slug": slug}, {"_id": 0, "id": 1, "name": 1})
+    if not target_site:
+        raise HTTPException(status_code=404, detail=f"No main_site with slug='{slug}' in this instance. Create it first.")
+
+    src_integ["main_site_id"] = target_site["id"]
+    src_integ["promoted_at"] = _now_iso()
+
+    # Idempotent: match on integration_token (stable identifier)
+    existing = await db.clara_integrations.find_one(
+        {"integration_token": src_integ["integration_token"]},
+        {"_id": 0, "id": 1},
+    )
+    if existing:
+        await db.clara_integrations.update_one(
+            {"id": existing["id"]},
+            {"$set": src_integ},
+        )
+        return {"status": "updated", "integration_id": existing["id"], "main_site_slug": slug}
+
+    await db.clara_integrations.insert_one(dict(src_integ))
+    return {"status": "created", "integration_id": src_integ["id"], "main_site_slug": slug}
 
 
 @clara_integrations_router.post("/{integration_id}/check")
