@@ -1419,6 +1419,18 @@ async def startup_db_client():
     except Exception as e:
         logger.warning(f"S3 URL restoration failed: {e}")
 
+    # Migrate content_items where 'category' is a string (legacy import bug) → 'category_label'
+    # Idempotent: only matches docs where category is a string instead of a dict/None.
+    try:
+        res = await db.content_items.update_many(
+            {"category": {"$type": "string"}},
+            [{"$set": {"category_label": "$category", "category": None}}],
+        )
+        if res.modified_count > 0:
+            logger.info(f"content_items category-string migration: fixed {res.modified_count} records")
+    except Exception as e:
+        logger.warning(f"content_items category migration failed: {e}")
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
