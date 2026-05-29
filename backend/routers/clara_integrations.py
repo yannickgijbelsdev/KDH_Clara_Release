@@ -316,9 +316,17 @@ async def approve_integration(
         {"id": integration_id},
         {"$set": {"status": "connected", "approved_at": now, "approved_by": current_user.get("id"), "updated_at": now}},
     )
-    # Full sync of existing content items
-    background.add_task(_full_sync_news_blog, integration_id)
-    return {"status": "connected", "message": "Approved. Existing items will be synced in background."}
+
+    # Auto-enable content_library feature on the parent main_site (for news_blog template)
+    if integ.get("template") == "news_blog":
+        await db.main_sites.update_one(
+            {"id": integ["main_site_id"]},
+            {"$addToSet": {"enabled_features": {"$each": ["content_library", "media_library"]}}},
+        )
+
+    # Initial bidirectional sync: pull existing remote items in first, then push everything
+    background.add_task(_initial_sync_news_blog, integration_id)
+    return {"status": "connected", "message": "Approved. Existing remote items will be imported and synced in background."}
 
 
 @clara_integrations_router.post("/{integration_id}/disconnect")
@@ -455,6 +463,22 @@ async def manual_health_check(integration_id: str, current_user: dict = Depends(
     return result or {"status": "error", "message": "Could not run check"}
 
 
+@clara_integrations_router.post("/{integration_id}/import-remote")
+async def import_remote(integration_id: str, current_user: dict = Depends(require_system_admin)):
+    """Pull existing items from the external site into Clara's content library."""
+    integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0})
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    if integ.get("status") != "connected":
+        raise HTTPException(status_code=400, detail="Integration must be connected to import")
+    result = await _import_existing_remote_items(integ)
+    await db.clara_integrations.update_one(
+        {"id": integration_id},
+        {"$set": {"last_import_result": result, "last_import_at": _now_iso()}},
+    )
+    return result
+
+
 @clara_integrations_router.post("/{integration_id}/publish/{content_id}")
 async def publish_content_item(
     integration_id: str,
@@ -587,6 +611,97 @@ async def _full_sync_news_blog(integration_id: str):
         {"id": integration_id},
         {"$set": {"last_synced_at": _now_iso(), "last_sync_result": {"synced": synced, "failed": failed, "total": len(items)}}},
     )
+
+
+async def _import_existing_remote_items(integ: dict) -> dict:
+    """Pull existing items from the external site into Clara's content_items.
+    Used so that after approval, the editor sees what's already published on
+    the external website and can edit it via Clara's Content Library.
+    Idempotent: skips items that already exist (matched on slug or remote id).
+    """
+    if integ.get("template") != "news_blog":
+        return {"imported": 0, "skipped": 0, "failed": 0}
+    eps = integ.get("endpoints_map") or {}
+    list_path = eps.get("list") or "/api/clara-feature/news"
+    url = _build_url(integ["base_url"], list_path)
+    headers = {}
+    if integ.get("shared_secret"):
+        headers["Authorization"] = f"Bearer {integ['shared_secret']}"
+    try:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
+            r = await client.get(url, headers=headers)
+            if r.status_code >= 400:
+                return {"imported": 0, "skipped": 0, "failed": 0, "error": f"list endpoint returned {r.status_code}"}
+            data = r.json() if r.text else []
+            # Accept both bare list and {items: [...]} envelope
+            remote_items = data if isinstance(data, list) else (data.get("items") or data.get("data") or [])
+    except Exception as e:
+        return {"imported": 0, "skipped": 0, "failed": 0, "error": f"{type(e).__name__}: {str(e)[:120]}"}
+
+    main_site_id = integ["main_site_id"]
+    imported = skipped = failed = 0
+    now = _now_iso()
+    for ri in remote_items:
+        try:
+            remote_id = ri.get("clara_content_id") or ri.get("id")
+            slug = (ri.get("slug") or "").strip()
+            title = (ri.get("title") or "").strip() or "Untitled"
+            # Match on remote id first (if Clara had previously synced), then slug
+            existing = None
+            if remote_id:
+                existing = await db.content_items.find_one(
+                    {"main_site_id": main_site_id, "id": remote_id},
+                    {"_id": 0, "id": 1},
+                )
+            if not existing and slug:
+                existing = await db.content_items.find_one(
+                    {"main_site_id": main_site_id, "slug": slug},
+                    {"_id": 0, "id": 1},
+                )
+            if existing:
+                skipped += 1
+                continue
+            new_doc = {
+                "id": remote_id or str(uuid.uuid4()),
+                "title": title,
+                "slug": slug,
+                "type": "article",
+                "body": ri.get("body_html") or ri.get("body") or "",
+                "excerpt": ri.get("excerpt") or "",
+                "external_url": ri.get("external_url") or "",
+                "featured_image_url": ri.get("featured_image_url") or "",
+                "category": ri.get("category") or "",
+                "tags": ri.get("tags") or [],
+                "status": ri.get("status") or "published",
+                "main_site_id": main_site_id,
+                "team_id": "",
+                "created_by": "clara-integration-import",
+                "imported_from_integration_id": integ["id"],
+                "imported_from_url": integ.get("base_url"),
+                "created_at": ri.get("created_at") or now,
+                "updated_at": ri.get("updated_at") or now,
+                "published_at": ri.get("published_at") or now,
+            }
+            await db.content_items.insert_one(dict(new_doc))
+            imported += 1
+        except Exception:
+            failed += 1
+    return {"imported": imported, "skipped": skipped, "failed": failed, "total_remote": len(remote_items)}
+
+
+async def _initial_sync_news_blog(integration_id: str):
+    """Approval flow: first import existing remote items, then push everything back."""
+    integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0})
+    if not integ:
+        return
+    import_result = await _import_existing_remote_items(integ)
+    await db.clara_integrations.update_one(
+        {"id": integration_id},
+        {"$set": {"last_import_result": import_result, "last_import_at": _now_iso()}},
+    )
+    # After import, push everything (this also re-saves the freshly imported ones,
+    # ensuring the external site has Clara-canonical fields like clara_content_id).
+    await _full_sync_news_blog(integration_id)
 
 
 # ───────────────────── Background poller ─────────────────────

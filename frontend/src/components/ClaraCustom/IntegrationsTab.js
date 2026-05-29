@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   Plug, Plus, RefreshCw, Trash2, Newspaper, Copy, Loader2, CheckCircle2,
-  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket,
+  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket, Download,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -21,6 +21,22 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const TEMPLATE_ICONS = {
   news_blog: Newspaper,
 };
+
+/** Hide internal Emergent preview URLs from the UI — show a friendly label instead.
+ *  On production (clr.koodh.com) and external-facing dashboards this prevents
+ *  exposing internal *.preview.emergentagent.com URLs to end users. */
+function displayBaseUrl(url) {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.hostname.endsWith('.preview.emergentagent.com')) {
+      return 'External site (linked)';
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
 
 const STATUS_META = {
   pending_registration: { color: '#a1a1aa', label: 'Awaiting prompt response', icon: Clock },
@@ -138,6 +154,18 @@ export default function IntegrationsTab({ mainSite, token }) {
     } finally { setBusyId(null); }
   };
 
+  const importRemote = async (integ) => {
+    setBusyId(integ.id);
+    try {
+      const r = await axios.post(`${API}/api/clara-custom/integrations/${integ.id}/import-remote`, null, { headers });
+      const { imported = 0, skipped = 0, failed = 0, total_remote = 0 } = r.data || {};
+      toast.success(`Import done — ${imported} new, ${skipped} skipped, ${failed} failed (of ${total_remote})`);
+      load();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Import failed');
+    } finally { setBusyId(null); }
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard');
@@ -200,12 +228,18 @@ export default function IntegrationsTab({ mainSite, token }) {
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-500 mt-0.5">
-                    {it.base_url ? <code className="text-zinc-700">{it.base_url}</code> : <span>Awaiting external project registration…</span>}
+                    {it.base_url ? <code className="text-zinc-700">{displayBaseUrl(it.base_url)}</code> : <span>Awaiting external project registration…</span>}
                   </p>
                   {it.last_synced_at && (
                     <p className="text-[10px] text-zinc-400 mt-1">
                       Last full sync: {new Date(it.last_synced_at).toLocaleString()}
                       {it.last_sync_result && <> · {it.last_sync_result.synced}/{it.last_sync_result.total} items</>}
+                    </p>
+                  )}
+                  {it.last_import_at && (
+                    <p className="text-[10px] text-zinc-400 mt-0.5">
+                      Last import: {new Date(it.last_import_at).toLocaleString()}
+                      {it.last_import_result && <> · {it.last_import_result.imported} new, {it.last_import_result.skipped} skipped</>}
                     </p>
                   )}
                   {it.last_health_check && (
@@ -228,6 +262,9 @@ export default function IntegrationsTab({ mainSite, token }) {
                   )}
                   {it.status === 'connected' && (
                     <>
+                      <Button size="sm" variant="outline" onClick={() => importRemote(it)} disabled={busyId === it.id} className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50" data-testid={`import-${it.id}`} title="Pull existing articles from the external site into Clara">
+                        {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} Import
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => check(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`check-${it.id}`}>
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Check
                       </Button>
