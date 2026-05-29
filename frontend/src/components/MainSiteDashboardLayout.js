@@ -277,6 +277,7 @@ const MainSiteDashboardContent = () => {
   const [searchExpanded, setSearchExpanded] = useState(false);
   const cliTriggerRef = useRef(null);
   const pillNavRef = useRef(null);
+  const flatNavItemsRef = useRef([]);
   const [visibleNavCount, setVisibleNavCount] = useState(4);
   const searchInputRef = useCallback(node => { if (node) node.focus(); }, []);
   const [showVoiceCall, setShowVoiceCall] = useState(false);
@@ -375,24 +376,36 @@ const MainSiteDashboardContent = () => {
   }, [mainSite?.id]);
 
 
-  // Dynamically calculate how many nav items fit in the pill bar
+  // Dynamically calculate how many nav items fit in the pill bar.
+  // Strategy: estimate width per item from its label length (px per character),
+  // recompute on resize. Falls back to a conservative average.
   useEffect(() => {
     const container = pillNavRef.current;
     if (!container) return;
-    const ITEM_AVG_WIDTH = 160; // generous average px per pill
-    const DASHBOARD_WIDTH = 140; // Dashboard pill + gap
-    const MORE_WIDTH = 90; // More button
-    const RIGHT_SECTION = 200; // icons on the right side (search, avatar, etc.)
+    const DASHBOARD_WIDTH = 130; // Dashboard pill + gap
+    const MORE_WIDTH = 90;        // "More ▾" button
+    const PILL_PADDING = 44;      // px:py-2.5 + gap per pill
+    const PX_PER_CHAR = 7.2;      // approximate at text-sm/medium
+
     const calculate = () => {
       const totalWidth = container.offsetWidth;
-      const availableWidth = totalWidth - DASHBOARD_WIDTH - RIGHT_SECTION;
-      const maxFit = Math.max(1, Math.floor((availableWidth - MORE_WIDTH) / ITEM_AVG_WIDTH));
-      setVisibleNavCount(maxFit);
+      const available = Math.max(0, totalWidth - DASHBOARD_WIDTH - MORE_WIDTH);
+      let used = 0;
+      let count = 0;
+      for (const item of flatNavItemsRef.current) {
+        const w = (item.label?.length || 6) * PX_PER_CHAR + PILL_PADDING;
+        if (used + w > available) break;
+        used += w;
+        count += 1;
+      }
+      setVisibleNavCount(count);
     };
+    calculate();
     const observer = new ResizeObserver(calculate);
     observer.observe(container);
     return () => observer.disconnect();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navGroups.length, mainSiteSlug]);
 
 
   // Fetch sites for navigation
@@ -939,6 +952,7 @@ const MainSiteDashboardContent = () => {
 
   // Build flat nav items array for icon sidebar
   const flatNavItems = navGroups.flatMap(group => group.items || []);
+  flatNavItemsRef.current = flatNavItems;
 
   // Check if site access is blocked (no license and not demo) - System admins always bypass
   const isSystemAdmin = user?.is_system_admin === true;
@@ -1251,7 +1265,7 @@ const MainSiteDashboardContent = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <div ref={pillNavRef} className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent flex-1 min-w-0 justify-center overflow-hidden" data-testid="pill-nav">
+          <div ref={pillNavRef} className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent flex-1 min-w-0 justify-center" data-testid="pill-nav">
             <LayoutGroup>
             {[{ label: 'Dashboard', to: `/${mainSiteSlug}` }, ...flatNavItems.slice(0, visibleNavCount).map(i => ({ label: i.label, to: i.to }))].map(tab => {
               const isTabActive = !isLicenseBlocked && (tab.to === `/${mainSiteSlug}` ? isDashboardHome : (location.pathname === tab.to || location.pathname.startsWith(tab.to + '/')));

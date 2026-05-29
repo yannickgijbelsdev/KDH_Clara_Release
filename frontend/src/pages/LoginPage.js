@@ -20,74 +20,17 @@ const ROOMS_IMG = '/images/clara_rooms.png'; // legacy hero fallback — kept fo
 
 import { Layers } from 'lucide-react';
 
-// Fullscreen rotating scenes with features per room.
-const SCENES = [
-  {
-    src: '/koodh_clr_stripes.png',
-    title: 'Koodh Clara — One platform, every site',
-    titleIcon: Layers,
-    objectPosition: '50% 50%',
-    accent: '#dd0c51',
-    isBrand: true,
-    features: [
-      { icon: Radio,     label: 'Radio' },
-      { icon: Cloud,     label: 'Hosting' },
-      { icon: Sparkles,  label: 'AI Insights' },
-      { icon: Globe,     label: 'Clara Custom' },
-    ],
-  },
-  {
-    src: '/images/env_radio_v2.jpg',
-    title: 'Radio Management',
-    titleIcon: Radio,
-    objectPosition: '50% 50%',
-    accent: '#dd0c51',
-    features: [
-      { icon: Mic2,      label: 'Live Shows' },
-      { icon: Waves,     label: 'RDS Builder' },
-      { icon: Activity,  label: 'Stream Monitor' },
-      { icon: Calendar,  label: 'Show Scheduler' },
-    ],
-  },
-  {
-    src: '/images/env_task_scheduler_v2.jpg',
-    title: 'Smart Scheduling',
-    titleIcon: Calendar,
-    objectPosition: '50% 50%',
-    accent: '#7c1ac8',
-    features: [
-      { icon: ListChecks, label: 'Clara Tasks' },
-      { icon: Calendar,   label: 'Google Calendar' },
-      { icon: FileCheck2, label: 'Approval Flow' },
-      { icon: Gauge,      label: 'Kanban Board' },
-    ],
-  },
-  {
-    src: '/images/env_external_host_v2.jpg',
-    title: 'Multi-Site Hosting',
-    titleIcon: Cloud,
-    objectPosition: '50% 50%',
-    accent: '#0ea5e9',
-    features: [
-      { icon: Globe,     label: 'Custom Domains' },
-      { icon: Lock,      label: 'DNS + SSL' },
-      { icon: Code2,     label: 'Code Studio' },
-      { icon: Server,    label: 'Managed Hosting' },
-    ],
-  },
-  {
-    src: '/images/env_technical_v2.jpg',
-    title: 'AI-Powered Intelligence',
-    titleIcon: Sparkles,
-    objectPosition: '50% 50%',
-    accent: '#10b981',
-    features: [
-      { icon: Search,     label: 'Clara Scan' },
-      { icon: Wand2,      label: 'Auto-Fix' },
-      { icon: HeartPulse, label: 'Health Reports' },
-      { icon: BarChart3,  label: 'Data Analytics' },
-    ],
-  },
+// Static brand background — CLR stripes on white
+const BRAND_BG = '/koodh_clr_stripes.png';
+
+// Feature speech bubbles that pop up at fixed positions on the brand background.
+// Each bubble has a position (% from left/top) and a short description.
+const FEATURE_BUBBLES = [
+  { icon: Radio,      title: 'Radio Management',     desc: 'Live shows, RDS builder, stream monitor & scheduling — all in one place.',  top: '12%', left: '8%',  accent: '#dd0c51' },
+  { icon: Calendar,   title: 'Smart Scheduling',     desc: 'Clara Tasks with Google Calendar sync, approval flows & a kanban board.', top: '22%', left: '42%', accent: '#7c1ac8' },
+  { icon: Cloud,      title: 'Multi-Site Hosting',   desc: 'Custom domains, automatic DNS + SSL and managed deployments via VDC.',   top: '58%', left: '10%', accent: '#0ea5e9' },
+  { icon: Sparkles,   title: 'AI-Powered Insights',  desc: 'Clara Scan, auto-fix, health reports and predictive analytics.',          top: '38%', left: '60%', accent: '#10b981' },
+  { icon: Globe,      title: 'Clara Custom',         desc: 'Connect external sites and push content from Clara via auto-detected APIs.', top: '72%', left: '48%', accent: '#f59e0b' },
 ];
 
 const LoginPage = () => {
@@ -102,11 +45,11 @@ const LoginPage = () => {
 
   useEffect(() => { document.title = 'Clara | Login'; }, []);
 
-  // Auto-rotate scenes
+  // Cycle through feature bubbles on the brand background
   useEffect(() => {
     const id = setInterval(() => {
-      setSceneIndex((prev) => (prev + 1) % SCENES.length);
-    }, 6500);
+      setBubbleIndex((prev) => (prev + 1) % FEATURE_BUBBLES.length);
+    }, 4500);
     return () => clearInterval(id);
   }, []);
 
@@ -114,7 +57,7 @@ const LoginPage = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [sceneIndex, setSceneIndex] = useState(0);
+  const [bubbleIndex, setBubbleIndex] = useState(0);
   const rafRef = useRef(null);
   const { login } = useAuth();
   const { branding } = useBranding();
@@ -217,118 +160,59 @@ const LoginPage = () => {
       onMouseMove={handleMouseMove}
       data-testid="login-page"
     >
-      {/* Fullscreen rotating scene background */}
-      <div className="absolute inset-0 z-0 overflow-hidden" data-testid="login-hero-rooms">
-        {SCENES.map((scene, idx) => {
-          const active = idx === sceneIndex;
+      {/* Fullscreen brand background — CLR stripes on white */}
+      <div className="absolute inset-0 z-0 overflow-hidden bg-white" data-testid="login-hero-rooms">
+        <img
+          src={BRAND_BG}
+          alt=""
+          className="w-full h-full select-none"
+          draggable={false}
+          style={{
+            objectFit: 'cover',
+            objectPosition: '50% 50%',
+            transform: `scale(1.02) translate3d(${mousePos.x * -10}px, ${mousePos.y * -7}px, 0)`,
+            transition: 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
+          }}
+        />
+      </div>
+
+      {/* Popping feature bubbles overlaid on the brand background */}
+      <div className="hidden lg:block absolute inset-0 z-10 pointer-events-none">
+        {FEATURE_BUBBLES.map((b, idx) => {
+          const active = idx === bubbleIndex;
+          const Icon = b.icon;
           return (
             <motion.div
-              key={scene.title}
+              key={b.title}
               initial={false}
               animate={{
                 opacity: active ? 1 : 0,
-                scale: active ? 1 : 1.06,
+                y: active ? 0 : 8,
+                scale: active ? 1 : 0.96,
               }}
-              transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="absolute inset-0"
-              style={{ willChange: 'opacity, transform', backgroundColor: scene.isBrand ? '#ffffff' : 'transparent' }}
+              transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
+              className="absolute max-w-[280px] pointer-events-auto"
+              style={{ top: b.top, left: b.left, willChange: 'opacity, transform' }}
             >
-              <img
-                src={scene.src}
-                alt={scene.title}
-                className="w-full h-full select-none"
-                draggable={false}
-                style={{
-                  objectFit: 'cover',
-                  objectPosition: scene.objectPosition,
-                  transform: `scale(1.02) translate3d(${mousePos.x * -14}px, ${mousePos.y * -10}px, 0)`,
-                  transition: 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
-                  imageRendering: 'auto',
-                  filter: scene.isBrand ? 'none' : 'saturate(1.04) brightness(0.98) contrast(1.04)',
-                }}
-              />
-              {/* Gradient vignette for text legibility — kept subtle, no hard black bars */}
-              {!scene.isBrand && (
-                <div className="absolute inset-0 pointer-events-none" style={{
-                  background: 'linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.08) 30%, transparent 55%)',
-                }} />
-              )}
+              <div className="relative bg-white/95 backdrop-blur-md rounded-2xl border border-zinc-200 px-4 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+                <div className="flex items-start gap-3">
+                  <span
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-xl flex-shrink-0"
+                    style={{ backgroundColor: `${b.accent}15`, color: b.accent }}
+                  >
+                    <Icon className="w-4 h-4" strokeWidth={2.4} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-bold text-zinc-900 leading-tight">{b.title}</p>
+                    <p className="text-[11px] text-zinc-600 leading-snug mt-1">{b.desc}</p>
+                  </div>
+                </div>
+                {/* Speech-bubble tail */}
+                <div className="absolute -bottom-2 left-6 w-3 h-3 rotate-45 bg-white/95 border-r border-b border-zinc-200" />
+              </div>
             </motion.div>
           );
         })}
-      </div>
-
-      {/* Left side: scene info + pills */}
-      <div className="hidden lg:flex flex-col justify-between relative z-10 flex-1 p-12 xl:p-16">
-        <div />
-
-        {/* Scene title + feature pills — hidden for pure-brand scenes (e.g. CLR stripes) */}
-        {!SCENES[sceneIndex].isBrand && (
-        <div className="max-w-xl">
-          <motion.div
-            key={`title-${sceneIndex}`}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="mb-6"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <span
-                className="inline-flex items-center justify-center w-9 h-9 rounded-full"
-                style={{ backgroundColor: SCENES[sceneIndex].accent }}
-              >
-                {(() => {
-                  const T = SCENES[sceneIndex].titleIcon;
-                  return <T className="w-4 h-4 text-white" strokeWidth={2.4} />;
-                })()}
-              </span>
-              <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-white/70">
-                Clara Platform
-              </span>
-            </div>
-            <h1 className="text-4xl xl:text-5xl font-black text-white leading-[1.05] drop-shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-              {SCENES[sceneIndex].title}
-            </h1>
-          </motion.div>
-
-          {/* Feature pills for the active scene */}
-          <div className="flex flex-wrap gap-2">
-            {SCENES[sceneIndex].features.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <motion.span
-                  key={`${SCENES[sceneIndex].title}-${f.label}`}
-                  initial={{ opacity: 0, y: 10, scale: 0.92 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: 0.15 + i * 0.08, duration: 0.5 }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/12 border border-white/25 backdrop-blur-md text-[13px] font-semibold text-white whitespace-nowrap"
-                  style={{ boxShadow: '0 6px 16px rgba(0,0,0,0.18)' }}
-                >
-                  <Icon className="w-3.5 h-3.5" style={{ color: SCENES[sceneIndex].accent }} strokeWidth={2.4} />
-                  {f.label}
-                </motion.span>
-              );
-            })}
-          </div>
-        </div>
-        )}
-
-        {/* Scene progress dots */}
-        <div className="flex items-center gap-2">
-          {SCENES.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setSceneIndex(idx)}
-              aria-label={`Go to ${SCENES[idx].title}`}
-              data-testid={`scene-dot-${idx}`}
-              className="group relative h-1.5 rounded-full overflow-hidden transition-all duration-500"
-              style={{
-                width: idx === sceneIndex ? 56 : 24,
-                backgroundColor: idx === sceneIndex ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.25)',
-              }}
-            />
-          ))}
-        </div>
       </div>
 
       {/* Legacy fallback reference (not rendered) */}
