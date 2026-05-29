@@ -33,7 +33,7 @@ export const WorkspaceSidebar = ({
   const { branding } = useBranding();
   const brandLogoUrl = branding.logo_type === 'image' && branding.logo_url
     ? (branding.logo_url.startsWith('/') ? `${process.env.REACT_APP_BACKEND_URL}${branding.logo_url}` : branding.logo_url)
-    : null;
+    : '/koodh_clara_logo.png';
 
   return (
     <aside

@@ -63,8 +63,8 @@ export default function NetworkHeader({
   const isSystemAdmin = user?.is_system_admin === true;
   const brandLogoUrl = branding.logo_type === 'image' && branding.logo_url
     ? (branding.logo_url.startsWith('/') ? `${API}${branding.logo_url}` : branding.logo_url)
-    : null;
-  const brandName = branding.platform_name || 'Clara';
+    : '/koodh_clara_logo.png';
+  const brandName = branding.platform_name || 'Koodh Clara';
 
   useEffect(() => {
     if (!token) return;
