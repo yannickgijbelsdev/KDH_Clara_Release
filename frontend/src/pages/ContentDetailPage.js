@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import { motion } from 'framer-motion';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import MainSiteContext from '../context/MainSiteContext';
+import PublishToButton from '../components/ClaraCustom/PublishToButton';
 import { isImageFile, isOversized } from '../utils/imageResize';
 import {
   ArrowLeft,
@@ -103,7 +104,7 @@ const ContentDetailPage = () => {
   const navigate = useNavigate();
   const mainSiteCtx = useContext(MainSiteContext);
   const parentMainSite = mainSiteCtx?.mainSite || null;
-  const { isEditor: legacyIsEditor, isAdmin } = useAuth();
+  const { isEditor: legacyIsEditor, isAdmin, token } = useAuth();
   const { canEdit, canDelete, canCreate } = usePermissions();
   const { registerEditor, unregisterEditor, openClara } = useClaraAssistant();
   const isEditor = canEdit('content_library') || canCreate('content_library') || legacyIsEditor;
@@ -808,6 +809,7 @@ const ContentDetailPage = () => {
           {!isEditing ? (
             isEditor && (
               <div className="flex gap-2">
+                <PublishToButton contentId={content?.id} mainSiteId={content?.main_site_id || mainSiteCtx?.mainSite?.id} token={token} />
                 <Button
                   variant="outline"
                   size="sm"

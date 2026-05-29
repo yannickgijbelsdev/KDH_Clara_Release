@@ -21,6 +21,7 @@ import {
   Upload, Sparkles, FileJson, FormInput, Lock, Activity, AlertTriangle,
 } from 'lucide-react';
 import PendingSetupBanner from '../components/ClaraCustom/PendingSetupBanner';
+import IntegrationsTab from '../components/ClaraCustom/IntegrationsTab';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -62,6 +63,7 @@ export default function ClaraCustomPage() {
   const [loading, setLoading] = useState(true);
   const [checkingAll, setCheckingAll] = useState(false);
   const [checkingIds, setCheckingIds] = useState(new Set());
+  const [activeSection, setActiveSection] = useState('apis');
 
   // Add dialog state
   const [addOpen, setAddOpen] = useState(false);
@@ -233,6 +235,33 @@ export default function ClaraCustomPage() {
           />
         )}
 
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-4 border-b border-zinc-200">
+          {[
+            { id: 'apis', label: 'API Endpoints' },
+            { id: 'integrations', label: 'Feature Integrations' },
+          ].map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setActiveSection(t.id)}
+              data-testid={`tab-${t.id}`}
+              className={`px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${
+                activeSection === t.id
+                  ? 'border-[#7c1ac8] text-[#7c1ac8]'
+                  : 'border-transparent text-zinc-500 hover:text-zinc-800'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {activeSection === 'integrations' && (
+          <IntegrationsTab mainSite={mainSite} token={token} />
+        )}
+
+        {activeSection === 'apis' && (
+          <>
         {/* Health overview cards */}
         {apis.length > 0 && (
           <div className="grid grid-cols-4 gap-3 mb-6">
@@ -329,6 +358,8 @@ export default function ClaraCustomPage() {
               ))}
             </AnimatePresence>
           </div>
+        )}
+          </>
         )}
 
         {/* Add API dialog */}
