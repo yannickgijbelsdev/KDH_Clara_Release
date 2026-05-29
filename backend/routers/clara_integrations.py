@@ -898,7 +898,7 @@ async def _import_existing_remote_items(integ: dict) -> dict:
                 "excerpt": ri.get("excerpt") or "",
                 "external_url": ri.get("external_url") or "",
                 "featured_image_url": ri.get("featured_image_url") or "",
-                "category": ri.get("category") or "",
+                "category_label": ri.get("category") or "",
                 "tags": ri.get("tags") or [],
                 "status": ri.get("status") or "published",
                 "main_site_id": main_site_id,
