@@ -18,6 +18,9 @@ const PwaInstallPrompt = () => {
   const [show, setShow] = useState(false);
   const deferredPrompt = useRef(null);
   const browser = useRef(getBrowserInfo());
+  const dismissedRef = useRef(
+    typeof window !== 'undefined' && sessionStorage.getItem('pwa_prompt_dismissed') === '1'
+  );
 
   useEffect(() => {
     const handler = (e) => {
@@ -32,9 +35,16 @@ const PwaInstallPrompt = () => {
     if (!user) return;
     if (browser.current.isStandalone) return;
     if (user.preferences?.show_pwa_prompt === false) return;
+    if (dismissedRef.current) return; // user already closed it this session
     const timer = setTimeout(() => setShow(true), 3000);
     return () => clearTimeout(timer);
   }, [user]);
+
+  const dismissForSession = useCallback(() => {
+    dismissedRef.current = true;
+    try { sessionStorage.setItem('pwa_prompt_dismissed', '1'); } catch { /* ignore */ }
+    setShow(false);
+  }, []);
 
   const handleInstall = useCallback(async () => {
     if (deferredPrompt.current) {
@@ -42,11 +52,13 @@ const PwaInstallPrompt = () => {
       const { outcome } = await deferredPrompt.current.userChoice;
       deferredPrompt.current = null;
       if (outcome === 'accepted') saveDismiss();
-      else setShow(false);
+      else dismissForSession();
     }
-  }, []);
+  }, [dismissForSession]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveDismiss = useCallback(() => {
+    dismissedRef.current = true;
+    try { sessionStorage.setItem('pwa_prompt_dismissed', '1'); } catch { /* ignore */ }
     setShow(false);
     if (updateUserPreferences) updateUserPreferences({ show_pwa_prompt: false });
     try {
@@ -72,7 +84,7 @@ const PwaInstallPrompt = () => {
 
         <div className="p-6">
           {/* Close */}
-          <button data-testid="pwa-install-dismiss" onClick={() => setShow(false)} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-600 transition-colors">
+          <button data-testid="pwa-install-dismiss" onClick={dismissForSession} className="absolute top-4 right-4 text-zinc-500 hover:text-zinc-600 transition-colors">
             <X className="w-5 h-5" />
           </button>
 
