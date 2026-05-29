@@ -405,7 +405,7 @@ const MainSiteDashboardContent = () => {
     observer.observe(container);
     return () => observer.disconnect();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navGroups.length, mainSiteSlug]);
+  }, [mainSiteSlug]);
 
 
   // Fetch sites for navigation
