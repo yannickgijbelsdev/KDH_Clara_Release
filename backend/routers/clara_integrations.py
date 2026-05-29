@@ -545,6 +545,86 @@ async def import_remote(integration_id: str, current_user: dict = Depends(requir
     return result
 
 
+@clara_integrations_router.post("/{integration_id}/diagnose")
+async def diagnose_external(integration_id: str, current_user: dict = Depends(require_system_admin)):
+    """Inspect the actual response of the external site's list endpoint.
+    Returns the raw HTTP status, headers, response body (truncated) and a
+    classification of why import might be returning 0 items.
+    """
+    integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0})
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    if not integ.get("base_url"):
+        raise HTTPException(status_code=400, detail="Integration has not registered yet")
+
+    eps = integ.get("endpoints_map") or {}
+    list_path = eps.get("list") or "/api/clara-feature/news"
+    url = _build_url(integ["base_url"], list_path)
+    headers = {}
+    if integ.get("shared_secret"):
+        headers["Authorization"] = f"Bearer {integ['shared_secret']}"
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            r = await client.get(url, headers=headers)
+            raw_body = (r.text or "")[:2000]
+            try:
+                parsed = r.json()
+            except Exception:
+                parsed = None
+    except Exception as e:
+        return {
+            "ok": False,
+            "url": url,
+            "error": f"{type(e).__name__}: {str(e)[:200]}",
+            "diagnosis": "Could not reach the external site. Check that it is deployed and the base URL is correct.",
+        }
+
+    # Classify outcome
+    item_count = 0
+    if isinstance(parsed, list):
+        item_count = len(parsed)
+    elif isinstance(parsed, dict):
+        item_count = len(parsed.get("items") or parsed.get("data") or [])
+
+    diagnosis = ""
+    if r.status_code == 401 or r.status_code == 403:
+        diagnosis = (
+            "AUTH FAILURE — the external site rejected the bearer token. The shared_secret "
+            "stored in Clara does not match the CLARA_FEATURE_SECRET on the external project. "
+            "Have the external project re-register, or update its secret."
+        )
+    elif r.status_code == 404:
+        diagnosis = (
+            f"ENDPOINT NOT FOUND — `{list_path}` does not exist on the external site. "
+            "The external project may not have implemented the 'list' endpoint of this template."
+        )
+    elif r.status_code >= 500:
+        diagnosis = f"EXTERNAL SITE ERROR — {r.status_code}. Check the external project's logs."
+    elif r.status_code >= 400:
+        diagnosis = f"HTTP {r.status_code} — unexpected response from external site."
+    elif item_count == 0:
+        diagnosis = (
+            "EMPTY RESPONSE — the external site returned 200 OK but with 0 items. "
+            "Likely causes:\n"
+            "• The blog data exists on the external site but is NOT stored in the collection "
+            "that backs this endpoint (e.g. static frontend content, hard-coded JSON, or a different DB collection).\n"
+            "• The endpoint filters out articles that are not yet imported from Clara.\n"
+            "Ask the external project to verify that GET " + list_path + " returns the existing blog articles."
+        )
+    else:
+        diagnosis = f"OK — {item_count} item(s) returned. Import should work."
+
+    return {
+        "ok": r.status_code < 400,
+        "url": url,
+        "http_status": r.status_code,
+        "item_count": item_count,
+        "diagnosis": diagnosis,
+        "response_body_preview": raw_body,
+    }
+
+
 @clara_integrations_router.get("/{integration_id}/setup-steps")
 async def get_setup_steps(integration_id: str, current_user: dict = Depends(require_system_admin)):
     """Return a contextual step-by-step setup guide for this integration.

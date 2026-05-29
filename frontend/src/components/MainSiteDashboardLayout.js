@@ -651,11 +651,24 @@ const MainSiteDashboardContent = () => {
       }];
     }
 
-    // Clara Custom sites: just the dashboard + admin settings
+    // Clara Custom sites: Content + Clara Custom + admin settings
     if (mainSite.site_type === 'clara_custom') {
       const customItem = FEATURE_NAV_ITEMS['clara_custom'];
       const teamItem = FEATURE_NAV_ITEMS['team_settings'];
+      const enabledFeatures = withImplicitFeatures(mainSite.enabled_features, mainSite.site_type);
       const groups = [];
+
+      // Content group — Content Library, Media Library, Approval, Trash
+      const contentItems = ['content_library', 'media_library', 'content_approval', 'trash']
+        .filter((fid) => enabledFeatures.includes(fid))
+        .map((fid) => {
+          const navItem = FEATURE_NAV_ITEMS[fid];
+          if (!navItem) return null;
+          if (!userIsAdmin && !canView(fid)) return null;
+          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId: fid };
+        })
+        .filter(Boolean);
+      if (contentItems.length > 0) groups.push({ id: 'content', label: 'Content', icon: FileText, items: contentItems });
 
       const customItems = [];
       if (customItem) customItems.push({ ...customItem, to: `/${mainSiteSlug}/${customItem.to}`, featureId: 'clara_custom' });

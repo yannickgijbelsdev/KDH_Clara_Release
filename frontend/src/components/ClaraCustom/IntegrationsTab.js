@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   Plug, Plus, RefreshCw, Trash2, Newspaper, Copy, Loader2, CheckCircle2,
-  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket, Download,
+  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket, Download, Stethoscope,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -59,6 +59,7 @@ export default function IntegrationsTab({ mainSite, token }) {
   const [promptDialog, setPromptDialog] = useState(null); // {prompt_markdown, integration_id, template, integration_token}
   const [busyId, setBusyId] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null); // {action, integ}
+  const [diagnoseResult, setDiagnoseResult] = useState(null);
 
   const load = useCallback(async () => {
     if (!headers || !mainSite?.id) return;
@@ -160,10 +161,24 @@ export default function IntegrationsTab({ mainSite, token }) {
     try {
       const r = await axios.post(`${API}/api/clara-custom/integrations/${integ.id}/import-remote`, null, { headers });
       const { imported = 0, skipped = 0, failed = 0, total_remote = 0 } = r.data || {};
-      toast.success(`Import done — ${imported} new, ${skipped} skipped, ${failed} failed (of ${total_remote})`);
+      if (total_remote === 0) {
+        toast.warning('External site returned 0 items — click "Diagnose" to see why');
+      } else {
+        toast.success(`Import done — ${imported} new, ${skipped} skipped, ${failed} failed (of ${total_remote})`);
+      }
       load();
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Import failed');
+    } finally { setBusyId(null); }
+  };
+
+  const diagnose = async (integ) => {
+    setBusyId(integ.id);
+    try {
+      const r = await axios.post(`${API}/api/clara-custom/integrations/${integ.id}/diagnose`, null, { headers });
+      setDiagnoseResult({ integ, ...r.data });
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Diagnose failed');
     } finally { setBusyId(null); }
   };
 
@@ -266,6 +281,9 @@ export default function IntegrationsTab({ mainSite, token }) {
                       <Button size="sm" variant="outline" onClick={() => importRemote(it)} disabled={busyId === it.id} className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50" data-testid={`import-${it.id}`} title="Pull existing articles from the external site into Clara">
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} Import
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => diagnose(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`diagnose-${it.id}`} title="Inspect what the external site is returning">
+                        {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Stethoscope className="w-3.5 h-3.5" />} Diagnose
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => check(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`check-${it.id}`}>
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Check
                       </Button>
@@ -349,6 +367,41 @@ export default function IntegrationsTab({ mainSite, token }) {
           </div>
           <div className="flex justify-end pt-3 border-t">
             <Button onClick={() => setPromptDialog(null)} data-testid="close-prompt-btn">Done</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diagnose result dialog */}
+      <Dialog open={!!diagnoseResult} onOpenChange={(v) => !v && setDiagnoseResult(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Stethoscope className="w-5 h-5 text-violet-600" /> External site diagnosis
+            </DialogTitle>
+            <DialogDescription>What the external site returned when Clara called its list endpoint.</DialogDescription>
+          </DialogHeader>
+          {diagnoseResult && (
+            <div className="space-y-3 py-2 overflow-auto">
+              <div className={`rounded-lg p-3 text-sm font-medium ${diagnoseResult.ok && diagnoseResult.item_count > 0 ? 'bg-emerald-50 text-emerald-900 border border-emerald-200' : 'bg-amber-50 text-amber-900 border border-amber-200'}`}>
+                {diagnoseResult.diagnosis?.split('\n').map((line, i) => <p key={i} className={i > 0 ? 'mt-1.5' : ''}>{line}</p>)}
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded-lg bg-zinc-50 p-2"><p className="text-zinc-500">HTTP status</p><p className="font-bold text-zinc-900">{diagnoseResult.http_status}</p></div>
+                <div className="rounded-lg bg-zinc-50 p-2"><p className="text-zinc-500">Items returned</p><p className="font-bold text-zinc-900">{diagnoseResult.item_count}</p></div>
+                <div className="rounded-lg bg-zinc-50 p-2"><p className="text-zinc-500">Reachable</p><p className="font-bold text-zinc-900">{diagnoseResult.ok ? 'Yes' : 'No'}</p></div>
+              </div>
+              <div>
+                <p className="text-xs text-zinc-500 mb-1">URL called</p>
+                <code className="block text-[11px] bg-zinc-50 p-2 rounded break-all">{diagnoseResult.url}</code>
+              </div>
+              <div>
+                <p className="text-xs text-zinc-500 mb-1">Response body (first 2KB)</p>
+                <pre className="text-[10px] bg-zinc-900 text-zinc-100 p-3 rounded max-h-60 overflow-auto whitespace-pre-wrap">{diagnoseResult.response_body_preview || '(empty)'}</pre>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end pt-2 border-t">
+            <Button onClick={() => setDiagnoseResult(null)} data-testid="close-diagnose-btn">Close</Button>
           </div>
         </DialogContent>
       </Dialog>
