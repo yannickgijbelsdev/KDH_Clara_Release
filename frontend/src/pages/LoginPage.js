@@ -45,19 +45,10 @@ const LoginPage = () => {
 
   useEffect(() => { document.title = 'Clara | Login'; }, []);
 
-  // Cycle through feature bubbles on the brand background
-  useEffect(() => {
-    const id = setInterval(() => {
-      setBubbleIndex((prev) => (prev + 1) % FEATURE_BUBBLES.length);
-    }, 4500);
-    return () => clearInterval(id);
-  }, []);
-
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotSent, setForgotSent] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [bubbleIndex, setBubbleIndex] = useState(0);
   const rafRef = useRef(null);
   const { login } = useAuth();
   const { branding } = useBranding();
@@ -176,21 +167,20 @@ const LoginPage = () => {
         />
       </div>
 
-      {/* Popping feature bubbles overlaid on the brand background */}
+      {/* Popping feature bubbles overlaid on the brand background — all shown together with gentle float */}
       <div className="hidden lg:block absolute inset-0 z-10 pointer-events-none">
         {FEATURE_BUBBLES.map((b, idx) => {
-          const active = idx === bubbleIndex;
           const Icon = b.icon;
           return (
             <motion.div
               key={b.title}
-              initial={false}
-              animate={{
-                opacity: active ? 1 : 0,
-                y: active ? 0 : 8,
-                scale: active ? 1 : 0.96,
+              initial={{ opacity: 0, y: 12, scale: 0.94 }}
+              animate={{ opacity: 1, y: [0, -6, 0], scale: 1 }}
+              transition={{
+                opacity: { duration: 0.6, delay: idx * 0.18, ease: 'easeOut' },
+                scale:   { duration: 0.6, delay: idx * 0.18, ease: 'easeOut' },
+                y:       { duration: 4 + idx * 0.4, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.3 },
               }}
-              transition={{ duration: 0.55, ease: [0.25, 0.1, 0.25, 1] }}
               className="absolute max-w-[280px] pointer-events-auto"
               style={{ top: b.top, left: b.left, willChange: 'opacity, transform' }}
             >
