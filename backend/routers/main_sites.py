@@ -200,7 +200,15 @@ async def create_main_site(
     for feature_id in data.enabled_features:
         if feature_id not in valid_feature_ids:
             raise HTTPException(status_code=400, detail=f"Invalid feature: {feature_id}")
-    
+
+    # Auto-include content_library + media_library for Clara Custom sites
+    # so admins can immediately manage content for external integrations.
+    effective_features = list(data.enabled_features)
+    if data.site_type == "clara_custom":
+        for f in ("content_library", "media_library"):
+            if f not in effective_features:
+                effective_features.append(f)
+
     now = datetime.now(timezone.utc).isoformat()
     main_site_id = str(uuid.uuid4())
     
@@ -210,7 +218,7 @@ async def create_main_site(
         "slug": slug,
         "description": data.description,
         "logo_url": None,
-        "enabled_features": data.enabled_features,
+        "enabled_features": effective_features,
         "site_type": data.site_type,
         "linked_main_site_id": data.linked_main_site_id,
         "is_demo": data.is_demo,

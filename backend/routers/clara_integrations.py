@@ -56,6 +56,60 @@ TEMPLATES = {
             "clara_content_id": "str (UUID from Clara — used for upsert)",
         },
     },
+    "site_branding": {
+        "id": "site_branding",
+        "name": "Site Branding & Content",
+        "description": "Push colors, logo, hero text, contact info and SEO meta to the external site.",
+        "icon": "palette",
+        "endpoints": {
+            "health":  {"method": "GET",   "path": "/api/clara-feature/branding/health", "auth": False},
+            "get":     {"method": "GET",   "path": "/api/clara-feature/branding",        "auth": True},
+            "update":  {"method": "PATCH", "path": "/api/clara-feature/branding",        "auth": True},
+        },
+        "schema": {
+            "site_name": "str", "logo_url": "str", "favicon_url": "str",
+            "primary_color": "hex", "secondary_color": "hex", "accent_color": "hex",
+            "background_color": "hex", "text_color": "hex", "font_family": "str",
+            "hero_headline": "str", "hero_subheadline": "str", "hero_cta_label": "str", "hero_cta_url": "str",
+            "about_title": "str", "about_body": "str (HTML)", "footer_tagline": "str",
+            "contact_email": "str", "contact_phone": "str", "contact_address": "str",
+            "social_facebook": "url", "social_instagram": "url", "social_linkedin": "url",
+            "social_twitter": "url", "social_youtube": "url",
+            "meta_title": "str", "meta_description": "str", "og_image_url": "url",
+        },
+    },
+    "site_menu": {
+        "id": "site_menu",
+        "name": "Navigation Menu",
+        "description": "Manage the navigation menu (header/footer) of the external site from Clara.",
+        "icon": "menu",
+        "endpoints": {
+            "health":  {"method": "GET",  "path": "/api/clara-feature/menu/health", "auth": False},
+            "list":    {"method": "GET",  "path": "/api/clara-feature/menu",        "auth": True},
+            "replace": {"method": "PUT",  "path": "/api/clara-feature/menu",        "auth": True},
+        },
+        "schema": {
+            "items": "list[{label, url, order, target, location: 'header'|'footer', children: [...]}]",
+        },
+    },
+    "pages": {
+        "id": "pages",
+        "name": "Static Pages",
+        "description": "Manage static pages (About, Privacy, Terms, custom landing pages) from Clara.",
+        "icon": "file",
+        "endpoints": {
+            "health":             {"method": "GET",    "path": "/api/clara-feature/pages/health", "auth": False},
+            "list":               {"method": "GET",    "path": "/api/clara-feature/pages",        "auth": True},
+            "upsert_by_clara_id": {"method": "POST",   "path": "/api/clara-feature/pages/by-clara-id/{clara_content_id}", "auth": True},
+            "delete_by_clara_id": {"method": "DELETE", "path": "/api/clara-feature/pages/by-clara-id/{clara_content_id}", "auth": True},
+        },
+        "schema": {
+            "title": "str", "slug": "str", "body_html": "str",
+            "meta_title": "str", "meta_description": "str", "og_image_url": "str",
+            "status": "draft | published",
+            "clara_content_id": "str (UUID)",
+        },
+    },
 }
 
 
@@ -81,6 +135,26 @@ def _build_prompt(template_id: str, token: str, callback_url: str, site_name: st
         f"| `{spec['method']}` | `{spec['path']}` | {'Bearer token' if spec['auth'] else 'public'} |"
         for spec in eps.values()
     )
+    # Build endpoints_map literal for the registration snippet
+    endpoints_map_lines = "\n".join(
+        f'            "{key}": "{spec["path"]}",'
+        for key, spec in eps.items()
+    )
+    # Friendly public-route hint per template
+    public_hint = ""
+    if template_id == "news_blog":
+        public_hint = "Also expose `GET /api/public/news` + `GET /api/public/news/{slug}` (no auth) so the public website can read articles."
+    elif template_id == "site_branding":
+        public_hint = "Apply branding values to CSS variables / meta tags at request time so the public site reflects changes within one refresh."
+    elif template_id == "site_menu":
+        public_hint = "Render the menu items from your DB on every page render (server-side or client-side fetch from `/api/public/menu`)."
+    elif template_id == "pages":
+        public_hint = "Expose `GET /api/public/pages/{slug}` (no auth) for the public website to render static pages by slug."
+
+    upsert_note = ""
+    if "upsert_by_clara_id" in eps:
+        upsert_note = "\n`clara_content_id` is the stable UUID — store it on every record. The endpoint must **upsert** (create if missing, replace if exists) based on this id.\n"
+
     return f"""# Clara Integration — {tpl['name']}
 
 You are building a **{tpl['name']}** integration for the Koodh Clara platform.
@@ -109,16 +183,13 @@ Authorization: Bearer ${{CLARA_FEATURE_SECRET}}
 |---|---|---|
 {ep_rows}
 
-**Payload schema** (the body Clara will send on upsert):
+**Payload schema:**
 {schema_rows}
+{upsert_note}
 
-`clara_content_id` is the stable UUID — store it on every record. The endpoint
-must **upsert** (create if missing, replace if exists) based on this id.
+## 🌐 Public site rendering
 
-## 🌐 Public site rendering (recommended)
-
-Also expose a `GET /api/public/news` and `GET /api/public/news/{{slug}}` for
-the website frontend to read published articles. These do NOT need auth.
+{public_hint}
 
 ## 🚀 Auto-registration (mandatory)
 
@@ -144,10 +215,7 @@ async def register_clara_integration():
         "base_url": base_url,
         "shared_secret": secret,
         "endpoints_map": {{
-            "health": "/api/clara-feature/health",
-            "list": "/api/clara-feature/news",
-            "upsert_by_clara_id": "/api/clara-feature/news/by-clara-id/{{clara_content_id}}",
-            "delete_by_clara_id": "/api/clara-feature/news/by-clara-id/{{clara_content_id}}",
+{endpoints_map_lines}
         }},
         "schema_version": 1,
     }}
@@ -161,15 +229,13 @@ async def register_clara_integration():
 
 ## ✅ Acceptance
 
-- [ ] `GET /api/clara-feature/health` returns `200 OK` without auth.
-- [ ] `POST /api/clara-feature/news/by-clara-id/abc123` with a full article body
-      either creates or updates that article and returns the saved object.
+- [ ] Health endpoint returns 200 OK without auth.
+- [ ] All other endpoints accept `Authorization: Bearer ${{CLARA_FEATURE_SECRET}}`.
 - [ ] On startup, you see `[clara-integration] 200` in the logs.
 - [ ] In Clara, the integration for **{site_name}** moves to "pending approval".
 
 Build all of this end-to-end and confirm by checking that Clara shows the
-integration as pending-approval. The Clara admin will then click Approve and
-existing articles will be synced automatically.
+integration as pending-approval. The Clara admin will then click Approve.
 """
 
 
@@ -477,6 +543,88 @@ async def import_remote(integration_id: str, current_user: dict = Depends(requir
         {"$set": {"last_import_result": result, "last_import_at": _now_iso()}},
     )
     return result
+
+
+@clara_integrations_router.get("/{integration_id}/setup-steps")
+async def get_setup_steps(integration_id: str, current_user: dict = Depends(require_system_admin)):
+    """Return a contextual step-by-step setup guide for this integration.
+    Each step has: id, title, description, status (done|current|todo), action (optional),
+    and crucial=True if a step requires Clara Support involvement.
+    """
+    integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0, "shared_secret": 0, "integration_token": 0})
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    status = integ.get("status", "pending_registration")
+    tpl_id = integ.get("template", "news_blog")
+    template = TEMPLATES.get(tpl_id, {})
+
+    def step(sid, title, desc, st, action=None, crucial=False, support_topic=None):
+        return {"id": sid, "title": title, "description": desc, "status": st,
+                "action": action, "crucial": crucial, "support_topic": support_topic}
+
+    # Compute step statuses
+    has_registered = bool(integ.get("base_url"))
+    is_connected = status == "connected"
+    healthy = (integ.get("last_health_check") or {}).get("status") == "ok"
+    imported = bool(integ.get("last_import_at"))
+
+    steps = [
+        step(
+            "generate_prompt",
+            "1. Generate the integration prompt",
+            f"Click 'Add integration' and pick '{template.get('name', tpl_id)}'. Clara creates the row and shows the markdown prompt.",
+            "done",  # always done — this endpoint exists because the integration was created
+        ),
+        step(
+            "paste_in_external",
+            "2. Paste the prompt into the external Emergent project",
+            "Open the OTHER Emergent project, start a new chat, paste the entire markdown prompt as the first message. The agent there will build the required endpoints.",
+            "done" if has_registered else "current",
+        ),
+        step(
+            "external_registers",
+            "3. External project registers itself",
+            "After deploying the new code, the external backend automatically POSTs to Clara on startup. You'll see logs `[clara-integration] 200` in the external project.",
+            "done" if has_registered else ("current" if status == "pending_registration" else "todo"),
+        ),
+        step(
+            "verify_health",
+            "4. Verify the health endpoint",
+            f"Clara pings `{template.get('endpoints', {}).get('health', {}).get('path', '/api/clara-feature/health')}` automatically. It should return HTTP 200 within 500ms.",
+            "done" if healthy else ("current" if has_registered else "todo"),
+            action={"type": "check", "label": "Check now"} if has_registered else None,
+        ),
+        step(
+            "approve",
+            "5. Approve the integration",
+            "Once health is OK, approve the integration. Clara starts the initial sync (pull remote items + push Clara items).",
+            "done" if is_connected else ("current" if status == "pending_approval" else "todo"),
+            action={"type": "approve", "label": "Approve"} if status == "pending_approval" else None,
+        ),
+        step(
+            "import_existing",
+            "6. Import existing content from the external site (optional)",
+            "If the external site already has content, click Import to pull it into the Clara Content Library so you can edit it here.",
+            "done" if imported else ("current" if is_connected else "todo"),
+            action={"type": "import", "label": "Import now"} if is_connected else None,
+        ),
+        step(
+            "promote_to_prod",
+            "7. Promote to production (optional)",
+            "Copy this integration to the production Clara so the same token works on https://clr.koodh.com.",
+            "todo" if is_connected else "todo",
+            action={"type": "promote", "label": "Promote"} if is_connected else None,
+            crucial=True,
+            support_topic="Production rollout — Clara Promote feature needs CLARA_PROMOTE_SECRET set on production. Contact Clara Support if you need help configuring this.",
+        ),
+    ]
+    return {
+        "integration_id": integration_id,
+        "template": template,
+        "status": status,
+        "steps": steps,
+        "support_email": "support@koodh.com",
+    }
 
 
 @clara_integrations_router.post("/{integration_id}/publish/{content_id}")

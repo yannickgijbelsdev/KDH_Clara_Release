@@ -66,9 +66,15 @@ const SITE_TYPE_BACKGROUNDS = {
 };
 
 /* Auto-include implicit features that should always show alongside their parent.
-   Rule: if Content Library is enabled, Approval + Trash are always available. */
-function withImplicitFeatures(enabledFeatures) {
+   Rule: if Content Library is enabled, Approval + Trash are always available.
+   Rule: Clara Custom sites always get content_library + media_library so admins
+   can manage feature-integrations (news/blog, pages, etc.) from day one. */
+function withImplicitFeatures(enabledFeatures, siteType) {
   const set = new Set(enabledFeatures || []);
+  if (siteType === 'clara_custom') {
+    set.add('content_library');
+    set.add('media_library');
+  }
   if (set.has('content_library')) {
     set.add('content_approval');
     set.add('trash');
@@ -216,7 +222,7 @@ const MainSiteDashboardContent = () => {
     const subPath = currentPath.replace(basePath, '').replace(/^\//, '').split('/')[0];
     if (!subPath || subPath === 'settings' || subPath === 'radio-automation') return; // always valid routes
     
-    const enabledFeatures = withImplicitFeatures(mainSite.enabled_features);
+    const enabledFeatures = withImplicitFeatures(mainSite.enabled_features, mainSite.site_type);
     const validRoutes = new Set(['dashboard', 'settings']);
     enabledFeatures.forEach(f => {
       const nav = FEATURE_NAV_ITEMS[f];
@@ -571,8 +577,8 @@ const MainSiteDashboardContent = () => {
 
     // External Host sites: content + wordpress + admin
     if (mainSite.site_type === 'external_host') {
-      const enabledFeatures = withImplicitFeatures(mainSite.enabled_features);
-      const contentItems = ['content_library', 'media_library', 'content_approval', 'trash']
+    const enabledFeatures = withImplicitFeatures(mainSite.enabled_features, mainSite.site_type);
+    const contentItems = ['content_library', 'media_library', 'content_approval', 'trash']
         .filter(f => enabledFeatures.includes(f))
         .map(featureId => {
           const navItem = FEATURE_NAV_ITEMS[featureId];
@@ -663,7 +669,7 @@ const MainSiteDashboardContent = () => {
     }
 
     
-    const enabledFeatures = withImplicitFeatures(mainSite.enabled_features);
+    const enabledFeatures = withImplicitFeatures(mainSite.enabled_features, mainSite.site_type);
 
     // Hide RDS features if no stations configured
     const rdsFeatures = ['rds', 'stream_monitor'];

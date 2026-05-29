@@ -15,6 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
 } from '../ui/alert-dialog';
 import { toast } from 'sonner';
+import SetupStepsCard from './SetupStepsCard';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -280,6 +281,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                   )}
                 </div>
               </div>
+              <SetupStepsCard integrationId={it.id} token={token} onActionDone={load} />
             </div>
           );
         })}
