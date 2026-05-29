@@ -87,11 +87,11 @@ export default function NetworkHeader({
   const setSelectedEnvId = onEnvChange || setInternalEnvId;
 
   const NAV_ITEMS = [
-    { id: 'sites', icon: Globe, label: 'Sites Overview' },
-    ...(isSystemAdmin ? [{ id: 'admins', icon: Crown, label: 'Network Admins' }] : []),
+    { id: 'sites', icon: Globe, label: 'Sites', longLabel: 'Sites Overview' },
+    ...(isSystemAdmin ? [{ id: 'admins', icon: Crown, label: 'Admins', longLabel: 'Network Admins' }] : []),
     { id: 'environments', icon: Server, label: 'Environments' },
-    ...(isSystemAdmin ? [{ id: 'domains', icon: Globe, label: 'Domain Manager' }] : []),
-    ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'License Manager' }] : []),
+    ...(isSystemAdmin ? [{ id: 'domains', icon: Globe, label: 'Domains', longLabel: 'Domain Manager' }] : []),
+    ...(isSystemAdmin ? [{ id: 'licenses', icon: Shield, label: 'Licenses', longLabel: 'License Manager' }] : []),
   ];
 
   const OVERFLOW_ITEMS = [
@@ -160,7 +160,7 @@ export default function NetworkHeader({
       />
       {/* ─── Top Navigation Bar ─── */}
       <nav
-        className="h-[64px] flex-shrink-0 flex items-center px-3 sm:px-5 gap-2 sm:gap-4 bg-transparent z-50 overflow-x-hidden"
+        className="h-[64px] flex-shrink-0 flex flex-nowrap items-center px-3 sm:px-5 gap-2 sm:gap-4 bg-transparent z-50 overflow-x-hidden whitespace-nowrap"
         data-testid="workspace-topbar"
       >
         {/* Mobile menu button */}
@@ -238,7 +238,7 @@ export default function NetworkHeader({
 
         {/* Pill Tabs (desktop) */}
         <div
-          className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent"
+          className="hidden lg:flex items-center gap-1 mx-auto rounded-[28px] p-1.5 bg-transparent flex-1 min-w-0 justify-center"
           data-testid="pill-nav"
         >
           {NAV_ITEMS.slice(0, 5).map(tab => {
@@ -247,7 +247,7 @@ export default function NetworkHeader({
               <button
                 key={tab.id}
                 onClick={() => handleNavClick(tab)}
-                className={`relative px-5 py-2.5 rounded-[20px] text-sm font-medium transition-colors duration-200 z-[1] ${active ? 'text-white' : 'text-zinc-500 hover:text-zinc-700'}`}
+                className={`relative px-3 xl:px-5 py-2.5 rounded-[20px] text-sm font-medium transition-colors duration-200 z-[1] whitespace-nowrap flex-shrink-0 ${active ? 'text-white' : 'text-zinc-500 hover:text-zinc-700'}`}
                 data-testid={`pill-${tab.id}`}
               >
                 {active && (
@@ -258,7 +258,12 @@ export default function NetworkHeader({
                     style={{ zIndex: -1 }}
                   />
                 )}
-                {tab.label}
+                {tab.longLabel ? (
+                  <>
+                    <span className="2xl:hidden">{tab.label}</span>
+                    <span className="hidden 2xl:inline">{tab.longLabel}</span>
+                  </>
+                ) : tab.label}
                 {tab.badge > 0 && (
                   <span className="ml-1.5 min-w-[18px] h-[18px] inline-flex items-center justify-center text-[10px] font-bold bg-red-500 text-white rounded-full px-1">{tab.badge}</span>
                 )}
