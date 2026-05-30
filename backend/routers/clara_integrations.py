@@ -805,14 +805,28 @@ async def _push_content_item(integ: dict, item: dict) -> dict:
             r = await client.post(url, json=payload, headers=headers)
             elapsed_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
             ok = r.status_code < 400
-            return {
-                "status": "synced" if ok else "failed",
-                "http_status": r.status_code,
-                "elapsed_ms": elapsed_ms,
-                "response": (r.text or "")[:400],
-            }
+            if not ok:
+                if r.status_code == 404:
+                    hint = f"The external site does not have endpoint {upsert_path}. The integration may need to be rebuilt with the new prompt template."
+                elif r.status_code in (401, 403):
+                    hint = "Authentication failed. The shared_secret in Clara does not match the external site's CLARA_FEATURE_SECRET."
+                else:
+                    hint = f"External site returned HTTP {r.status_code}."
+                return {
+                    "status": "failed",
+                    "http_status": r.status_code,
+                    "elapsed_ms": elapsed_ms,
+                    "url": url,
+                    "hint": hint,
+                    "response": (r.text or "")[:400],
+                }
+            return {"status": "synced", "http_status": r.status_code, "elapsed_ms": elapsed_ms, "url": url}
+    except httpx.ConnectTimeout:
+        return {"status": "error", "url": url, "hint": "Connection timed out. The external site's backend may be offline or sleeping. Try waking it up (open the URL in a browser) or check that its server is running."}
+    except httpx.ReadTimeout:
+        return {"status": "error", "url": url, "hint": "External site took longer than 12s to respond. Backend may be overloaded or stuck."}
     except Exception as e:
-        return {"status": "error", "message": f"{type(e).__name__}: {str(e)[:120]}"}
+        return {"status": "error", "url": url, "hint": f"{type(e).__name__}: {str(e)[:160]}"}
 
 
 async def _run_health_check(integration_id: str) -> dict:
