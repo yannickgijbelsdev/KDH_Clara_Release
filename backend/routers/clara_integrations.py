@@ -365,6 +365,52 @@ async def register_integration(data: dict, background: BackgroundTasks):
     }
 
 
+@clara_integrations_router.get("/{integration_id}/prompt")
+async def get_existing_prompt(
+    integration_id: str,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Regenerate the markdown prompt for an EXISTING integration.
+
+    Use case: external Emergent project lost its /api/clara-feature/* endpoints
+    (e.g. after a rebuild or rollback). Admin can re-fetch the same prompt with
+    the SAME integration_token so re-registration is idempotent.
+    """
+    integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0})
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+
+    template_id = integ.get("template")
+    if template_id not in TEMPLATES:
+        raise HTTPException(status_code=400, detail=f"Unknown template on integration: {template_id}")
+
+    site = await db.main_sites.find_one({"id": integ["main_site_id"]}, {"_id": 0, "name": 1})
+    site_name = (site or {}).get("name", "this site")
+
+    backend_base = os.environ.get("REACT_APP_BACKEND_URL") or ""
+    if not backend_base:
+        try:
+            with open("/app/frontend/.env", "r") as f:
+                for line in f:
+                    if line.startswith("REACT_APP_BACKEND_URL="):
+                        backend_base = line.split("=", 1)[1].strip()
+                        break
+        except Exception:
+            pass
+    callback_url = f"{backend_base}/api/clara-custom/integrations/register"
+
+    prompt = _build_prompt(template_id, integ["integration_token"], callback_url, site_name)
+    return {
+        "integration_id": integ["id"],
+        "integration_token": integ["integration_token"],
+        "callback_url": callback_url,
+        "template": TEMPLATES[template_id],
+        "prompt_markdown": prompt,
+        "current_base_url": integ.get("base_url"),
+        "current_shared_secret_set": bool(integ.get("shared_secret")),
+    }
+
+
 @clara_integrations_router.post("/{integration_id}/approve")
 async def approve_integration(
     integration_id: str,

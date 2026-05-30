@@ -102,6 +102,13 @@ Multi-environment SaaS platform for radio station management built with React fr
 - Wrap Radix DialogContent with VisuallyHidden DialogTitle (a11y warning, low priority)
 - Align `/api/notifications/broadcast` field names between preview (`subject`/`message`) and send (`title`/`body`)
 
+## 2026-05-29 — Feature Integration "Show prompt" + Restore Guide
+- **New endpoint** `GET /api/clara-custom/integrations/{id}/prompt` — regenerates the markdown prompt for an EXISTING integration using its existing `integration_token`. Idempotent: external project re-registers without re-approval and stays `connected`.
+- **UI**: "Prompt" button on every integration row (connected / pending / disconnected) in `IntegrationsTab.js`. Reuses the same dialog (with a "♻️ Re-using existing token" banner instead of the one-time warning).
+- **Hand-off file**: `/app/memory/RESTORE_KOODH_MEDIA_INTEGRATION.md` — ready-to-paste prompt for the user's media-group-web project (token `b9059dc8…` already filled in, callback URL set to current Clara preview).
+- **Why**: media-group-web's backend lost the `/api/clara-feature/*` routes (all return 404 while root is 200). The restore prompt + Show-prompt button lets the user fix the external project at any time without needing the main agent.
+- **Smoke tested**: 200 with auth, 403 without, 404 for unknown id, token preserved across calls.
+
 ## 2026-05-23 — Clara Custom Auto-Discovery
 - **Discovery tokens** per environment: nieuwe `clara_discovery_tokens` collectie. Admins genereren een token via `/discovery-tokens` (system-admin only). Token wordt eenmalig getoond met copy-actie en de juiste `.env` snippet voor het externe project.
 - **Self-registration endpoint** `POST /api/clara-custom/discover` (publiek, auth via token in body). Idempotent op `discovered_url_hash` (sha256 van site_url). Bij eerste call: maakt pending main_site aan met `pending_setup: true`, `pending_setup_steps: ["name","verify_endpoints"]`, slug auto-genereerd, environment = token's environment. Bij vervolgcalls: update bestaande entry (geen duplicates).

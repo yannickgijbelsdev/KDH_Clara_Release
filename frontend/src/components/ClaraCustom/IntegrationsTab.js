@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   Plug, Plus, RefreshCw, Trash2, Newspaper, Copy, Loader2, CheckCircle2,
-  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket, Download, Stethoscope, Edit3,
+  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket, Download, Stethoscope, Edit3, FileText,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -184,6 +184,16 @@ export default function IntegrationsTab({ mainSite, token }) {
     } finally { setBusyId(null); }
   };
 
+  const showPrompt = async (integ) => {
+    setBusyId(integ.id);
+    try {
+      const r = await axios.get(`${API}/api/clara-custom/integrations/${integ.id}/prompt`, { headers });
+      setPromptDialog({ ...r.data, _reused: true });
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Could not fetch prompt');
+    } finally { setBusyId(null); }
+  };
+
   const saveEdit = async () => {
     if (!editTarget) return;
     setBusyId(editTarget.integ.id);
@@ -304,6 +314,9 @@ export default function IntegrationsTab({ mainSite, token }) {
                   )}
                   {it.status === 'connected' && (
                     <>
+                      <Button size="sm" variant="outline" onClick={() => showPrompt(it)} disabled={busyId === it.id} className="gap-1.5 text-violet-700 border-violet-200 hover:bg-violet-50" data-testid={`prompt-${it.id}`} title="Show the prompt again (useful if the external project lost its endpoints)">
+                        {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />} Prompt
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => importRemote(it)} disabled={busyId === it.id} className="gap-1.5 text-emerald-700 border-emerald-200 hover:bg-emerald-50" data-testid={`import-${it.id}`} title="Pull existing articles from the external site into Clara">
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} Import
                       </Button>
@@ -320,6 +333,11 @@ export default function IntegrationsTab({ mainSite, token }) {
                         <Power className="w-3.5 h-3.5" /> Disconnect
                       </Button>
                     </>
+                  )}
+                  {(it.status === 'pending_registration' || it.status === 'pending_approval' || it.status === 'disconnected') && (
+                    <Button size="sm" variant="outline" onClick={() => showPrompt(it)} disabled={busyId === it.id} className="gap-1.5 text-violet-700 border-violet-200 hover:bg-violet-50" data-testid={`prompt-${it.id}`} title="Show the integration prompt again">
+                      {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />} Prompt
+                    </Button>
                   )}
                   {(it.status === 'pending_registration' || it.status === 'disconnected') && (
                     <Button size="sm" variant="outline" onClick={() => setConfirmTarget({ action: 'delete', integ: it })} className="gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50" data-testid={`delete-${it.id}`}>
@@ -375,12 +393,16 @@ export default function IntegrationsTab({ mainSite, token }) {
               <FileCode2 className="w-5 h-5 text-[#7c1ac8]" /> Integration prompt generated
             </DialogTitle>
             <DialogDescription>
-              Copy this entire prompt and paste it into the other Emergent project. When that project starts up, this integration will move to "pending approval".
+              {promptDialog?._reused
+                ? 'This is the same prompt as when the integration was created — the existing token still works. Paste it into the other Emergent project to restore the endpoints.'
+                : 'Copy this entire prompt and paste it into the other Emergent project. When that project starts up, this integration will move to "pending approval".'}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-auto space-y-3 py-2">
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
-              ⚠️ The integration token below is only shown once. The external project needs it in <code>CLARA_INTEGRATION_TOKEN</code>.
+              {promptDialog?._reused
+                ? <>♻️ Re-using existing token. The external project will re-register on startup and stay <strong>connected</strong> (no re-approval needed).</>
+                : <>⚠️ The integration token below is only shown once. The external project needs it in <code>CLARA_INTEGRATION_TOKEN</code>.</>}
             </div>
             <div className="flex justify-end">
               <Button onClick={() => copyToClipboard(promptDialog?.prompt_markdown || '')} className="gap-2" data-testid="copy-prompt-btn">
