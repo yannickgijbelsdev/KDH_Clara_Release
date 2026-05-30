@@ -1431,6 +1431,22 @@ async def startup_db_client():
     except Exception as e:
         logger.warning(f"content_items category migration failed: {e}")
 
+    # Migrate clara-imported content_items with non-enum type/status values to valid enums.
+    # Idempotent: skips records that already have a valid enum.
+    try:
+        type_map = {"article": "text", "post": "text", "news": "text"}
+        for old, new in type_map.items():
+            r = await db.content_items.update_many({"type": old}, {"$set": {"type": new}})
+            if r.modified_count:
+                logger.info(f"content_items type '{old}' → '{new}': fixed {r.modified_count} records")
+        status_map = {"published": "ready", "archived": "draft", "scheduled": "ready"}
+        for old, new in status_map.items():
+            r = await db.content_items.update_many({"status": old}, {"$set": {"status": new}})
+            if r.modified_count:
+                logger.info(f"content_items status '{old}' → '{new}': fixed {r.modified_count} records")
+    except Exception as e:
+        logger.warning(f"content_items type/status migration failed: {e}")
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

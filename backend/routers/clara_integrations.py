@@ -910,18 +910,21 @@ async def _import_existing_remote_items(integ: dict) -> dict:
             if existing:
                 skipped += 1
                 continue
+            # Map external statuses to Clara's enum
+            ext_status = (ri.get("status") or "published").lower()
+            clara_status = {"published": "ready", "draft": "draft", "archived": "draft"}.get(ext_status, "ready")
             new_doc = {
                 "id": remote_id or str(uuid.uuid4()),
                 "title": title,
                 "slug": slug,
-                "type": "article",
+                "type": "text",
                 "body": ri.get("body_html") or ri.get("body") or "",
                 "excerpt": ri.get("excerpt") or "",
                 "external_url": ri.get("external_url") or "",
                 "featured_image_url": ri.get("featured_image_url") or "",
                 "category_label": ri.get("category") or "",
                 "tags": ri.get("tags") or [],
-                "status": ri.get("status") or "published",
+                "status": clara_status,
                 "main_site_id": main_site_id,
                 "team_id": "",
                 "created_by": "clara-integration-import",
