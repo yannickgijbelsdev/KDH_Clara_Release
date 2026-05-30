@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   Plug, Plus, RefreshCw, Trash2, Newspaper, Copy, Loader2, CheckCircle2,
-  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket, Download, Stethoscope,
+  XCircle, Clock, AlertTriangle, Power, FileCode2, Send, Rocket, Download, Stethoscope, Edit3,
 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import {
@@ -60,6 +61,7 @@ export default function IntegrationsTab({ mainSite, token }) {
   const [busyId, setBusyId] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null); // {action, integ}
   const [diagnoseResult, setDiagnoseResult] = useState(null);
+  const [editTarget, setEditTarget] = useState(null); // {integ, base_url, shared_secret}
 
   const load = useCallback(async () => {
     if (!headers || !mainSite?.id) return;
@@ -182,6 +184,30 @@ export default function IntegrationsTab({ mainSite, token }) {
     } finally { setBusyId(null); }
   };
 
+  const saveEdit = async () => {
+    if (!editTarget) return;
+    setBusyId(editTarget.integ.id);
+    try {
+      const payload = {};
+      if (editTarget.base_url !== editTarget.integ.base_url) payload.base_url = editTarget.base_url;
+      if (editTarget.shared_secret) payload.shared_secret = editTarget.shared_secret;
+      if (Object.keys(payload).length === 0) {
+        toast.info('Nothing to save');
+        setEditTarget(null);
+        setBusyId(null);
+        return;
+      }
+      await axios.patch(`${API}/api/clara-custom/integrations/${editTarget.integ.id}`, payload, { headers });
+      toast.success('Integration updated — health check running');
+      setEditTarget(null);
+      // Re-run health check after URL change
+      await axios.post(`${API}/api/clara-custom/integrations/${editTarget.integ.id}/check`, null, { headers }).catch(() => {});
+      load();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Update failed');
+    } finally { setBusyId(null); }
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard');
@@ -284,6 +310,9 @@ export default function IntegrationsTab({ mainSite, token }) {
                       <Button size="sm" variant="outline" onClick={() => diagnose(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`diagnose-${it.id}`} title="Inspect what the external site is returning">
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Stethoscope className="w-3.5 h-3.5" />} Diagnose
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditTarget({ integ: it, base_url: it.base_url || '', shared_secret: '' })} className="gap-1.5" data-testid={`edit-${it.id}`} title="Change base URL or shared secret">
+                        <Edit3 className="w-3.5 h-3.5" /> Edit
+                      </Button>
                       <Button size="sm" variant="outline" onClick={() => check(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`check-${it.id}`}>
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Check
                       </Button>
@@ -367,6 +396,51 @@ export default function IntegrationsTab({ mainSite, token }) {
           </div>
           <div className="flex justify-end pt-3 border-t">
             <Button onClick={() => setPromptDialog(null)} data-testid="close-prompt-btn">Done</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit integration dialog */}
+      <Dialog open={!!editTarget} onOpenChange={(v) => !v && setEditTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-violet-600" /> Edit integration
+            </DialogTitle>
+            <DialogDescription>
+              Use this to swap the external base URL (e.g. from a preview URL to the production URL) without re-registering.
+            </DialogDescription>
+          </DialogHeader>
+          {editTarget && (
+            <div className="space-y-4 py-2">
+              <div>
+                <Label className="text-xs">Base URL</Label>
+                <Input
+                  value={editTarget.base_url}
+                  onChange={(e) => setEditTarget({ ...editTarget, base_url: e.target.value })}
+                  placeholder="https://your-production-domain.com"
+                  className="font-mono text-xs"
+                  data-testid="edit-base-url"
+                />
+                <p className="text-[11px] text-zinc-500 mt-1">All push/pull calls go to this URL. Change it to point Clara at production instead of preview.</p>
+              </div>
+              <div>
+                <Label className="text-xs">Shared secret (optional)</Label>
+                <Input
+                  value={editTarget.shared_secret}
+                  onChange={(e) => setEditTarget({ ...editTarget, shared_secret: e.target.value })}
+                  placeholder="Leave blank to keep current"
+                  type="password"
+                  data-testid="edit-shared-secret"
+                />
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-2 border-t">
+            <Button variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
+            <Button onClick={saveEdit} disabled={busyId === editTarget?.integ?.id} className="gap-1.5 bg-[#7c1ac8] hover:bg-[#6b14b0] !text-white [&_svg]:!text-white" data-testid="edit-save-btn">
+              {busyId === editTarget?.integ?.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Save & re-check
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

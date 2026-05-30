@@ -414,6 +414,27 @@ async def delete_integration(integration_id: str, current_user: dict = Depends(r
     return {"status": "deleted"}
 
 
+@clara_integrations_router.patch("/{integration_id}")
+async def patch_integration(
+    integration_id: str,
+    data: dict,
+    current_user: dict = Depends(require_system_admin),
+):
+    """Manually override fields on an integration (e.g. swap base_url from preview to production)."""
+    integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0, "id": 1})
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    allowed = {"base_url", "shared_secret"}
+    update = {k: v for k, v in data.items() if k in allowed and v is not None}
+    if "base_url" in update:
+        update["base_url"] = str(update["base_url"]).rstrip("/")
+    if not update:
+        raise HTTPException(status_code=400, detail="No editable fields provided")
+    update["updated_at"] = _now_iso()
+    await db.clara_integrations.update_one({"id": integration_id}, {"$set": update})
+    return {"status": "updated", "updated_fields": list(update.keys())}
+
+
 # ───────────────────── Promote preview → production ─────────────────────
 
 @clara_integrations_router.get("/promote-config")
