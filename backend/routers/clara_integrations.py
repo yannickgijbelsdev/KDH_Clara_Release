@@ -387,6 +387,14 @@ async def register_integration(data: dict, background: BackgroundTasks):
     }
     await db.clara_integrations.update_one({"id": integ["id"]}, {"$set": update})
 
+    await _log_activity(
+        integ["id"],
+        "register",
+        f"External project registered at {base_url} (status: {new_status})",
+        "success",
+        {"base_url": base_url, "status": new_status},
+    )
+
     # Run an initial health check in background
     background.add_task(_run_health_check, integ["id"])
 
@@ -494,6 +502,8 @@ async def approve_integration(
             {"id": integ["main_site_id"]},
             {"$addToSet": {"enabled_features": {"$each": ["content_library", "media_library"]}}},
         )
+
+    await _log_activity(integration_id, "approve", "Integration approved — starting initial bidirectional sync…", "success")
 
     # Initial bidirectional sync: pull existing remote items in first, then push everything
     background.add_task(_initial_sync_news_blog, integration_id)
@@ -775,6 +785,17 @@ async def get_setup_steps(integration_id: str, current_user: dict = Depends(requ
     is_connected = status == "connected"
     healthy = (integ.get("last_health_check") or {}).get("status") == "ok"
     imported = bool(integ.get("last_import_at"))
+    health_in_flight = bool(integ.get("health_in_flight"))
+
+    # Step 4 status: "current" while a check is in flight, even if previously healthy
+    if health_in_flight:
+        verify_health_status = "current"
+    elif healthy:
+        verify_health_status = "done"
+    elif has_registered:
+        verify_health_status = "current"
+    else:
+        verify_health_status = "todo"
 
     steps = [
         step(
@@ -799,7 +820,7 @@ async def get_setup_steps(integration_id: str, current_user: dict = Depends(requ
             "verify_health",
             "4. Verify the health endpoint",
             f"Clara pings `{template.get('endpoints', {}).get('health', {}).get('path', '/api/clara-feature/health')}` automatically. It should return HTTP 200 within 500ms.",
-            "done" if healthy else ("current" if has_registered else "todo"),
+            verify_health_status,
             action={"type": "check", "label": "Check now"} if has_registered else None,
         ),
         step(
@@ -826,11 +847,16 @@ async def get_setup_steps(integration_id: str, current_user: dict = Depends(requ
             support_topic="Production rollout — Clara Promote feature needs CLARA_PROMOTE_SECRET set on production. Contact Clara Support if you need help configuring this.",
         ),
     ]
+    # Last 12 activity events (most recent last)
+    activity_log = (integ.get("activity_log") or [])[-12:]
     return {
         "integration_id": integration_id,
         "template": template,
         "status": status,
         "steps": steps,
+        "health_in_flight": health_in_flight,
+        "health_in_flight_url": integ.get("health_in_flight_url"),
+        "activity_log": activity_log,
         "support_email": "support@koodh.com",
     }
 
@@ -907,6 +933,7 @@ async def _push_content_item(integ: dict, item: dict) -> dict:
         headers["Authorization"] = f"Bearer {integ['shared_secret']}"
     payload = _content_to_payload(item)
     started = datetime.now(timezone.utc)
+    await _log_activity(integ["id"], "push_start", f"Pushing '{item.get('title', '')[:60]}' → {url}", "info")
     try:
         async with httpx.AsyncClient(timeout=12.0) as client:
             r = await client.post(url, json=payload, headers=headers)
@@ -919,6 +946,7 @@ async def _push_content_item(integ: dict, item: dict) -> dict:
                     hint = "Authentication failed. The shared_secret in Clara does not match the external site's CLARA_FEATURE_SECRET."
                 else:
                     hint = f"External site returned HTTP {r.status_code}."
+                await _log_activity(integ["id"], "push_done", f"Push FAILED → HTTP {r.status_code} in {elapsed_ms}ms — {hint}", "error", {"http_status": r.status_code})
                 return {
                     "status": "failed",
                     "http_status": r.status_code,
@@ -927,13 +955,40 @@ async def _push_content_item(integ: dict, item: dict) -> dict:
                     "hint": hint,
                     "response": (r.text or "")[:400],
                 }
+            await _log_activity(integ["id"], "push_done", f"Pushed '{item.get('title', '')[:60]}' → HTTP {r.status_code} in {elapsed_ms}ms", "success", {"http_status": r.status_code, "elapsed_ms": elapsed_ms})
             return {"status": "synced", "http_status": r.status_code, "elapsed_ms": elapsed_ms, "url": url}
     except httpx.ConnectTimeout:
+        await _log_activity(integ["id"], "push_done", f"Push TIMEOUT — external site offline at {url}", "error")
         return {"status": "error", "url": url, "hint": "Connection timed out. The external site's backend may be offline or sleeping. Try waking it up (open the URL in a browser) or check that its server is running."}
     except httpx.ReadTimeout:
+        await _log_activity(integ["id"], "push_done", f"Push READ-TIMEOUT >12s at {url}", "error")
         return {"status": "error", "url": url, "hint": "External site took longer than 12s to respond. Backend may be overloaded or stuck."}
     except Exception as e:
+        await _log_activity(integ["id"], "push_done", f"Push ERROR: {type(e).__name__}: {str(e)[:140]}", "error")
         return {"status": "error", "url": url, "hint": f"{type(e).__name__}: {str(e)[:160]}"}
+
+
+async def _log_activity(integration_id: str, kind: str, message: str, level: str = "info", meta: Optional[dict] = None) -> None:
+    """Append an activity event to a per-integration ring buffer (last 30 events).
+
+    `kind` is a short machine label like 'health_start', 'health_done', 'push',
+    'import', 'register', 'approve', 'promote'. `level` is one of
+    info | success | warn | error and is used by the frontend for colour.
+    """
+    event = {
+        "ts": _now_iso(),
+        "kind": kind,
+        "level": level,
+        "message": message,
+        "meta": meta or {},
+    }
+    try:
+        await db.clara_integrations.update_one(
+            {"id": integration_id},
+            {"$push": {"activity_log": {"$each": [event], "$slice": -30}}},
+        )
+    except Exception:
+        pass
 
 
 async def _run_health_check(integration_id: str) -> dict:
@@ -943,6 +998,12 @@ async def _run_health_check(integration_id: str) -> dict:
     eps = integ.get("endpoints_map") or {}
     health_path = eps.get("health") or "/api/clara-feature/health"
     url = _build_url(integ["base_url"], health_path)
+    # Mark as in-flight so the UI can show a spinner on step 4
+    await db.clara_integrations.update_one(
+        {"id": integration_id},
+        {"$set": {"health_in_flight": True, "health_in_flight_started_at": _now_iso(), "health_in_flight_url": url}},
+    )
+    await _log_activity(integration_id, "health_start", f"Pinging {url}…", "info", {"url": url})
     started = datetime.now(timezone.utc)
     try:
         async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
@@ -955,11 +1016,23 @@ async def _run_health_check(integration_id: str) -> dict:
                 "elapsed_ms": elapsed_ms,
                 "checked_at": _now_iso(),
             }
+            await _log_activity(
+                integration_id,
+                "health_done",
+                f"Health check {'OK' if ok else 'FAILED'} → HTTP {r.status_code} in {elapsed_ms}ms",
+                "success" if ok else "error",
+                {"http_status": r.status_code, "elapsed_ms": elapsed_ms},
+            )
     except httpx.TimeoutException:
         result = {"status": "timeout", "message": "Timed out", "checked_at": _now_iso()}
+        await _log_activity(integration_id, "health_done", f"Health check TIMEOUT after 8s for {url}", "error")
     except Exception as e:
         result = {"status": "error", "message": f"{type(e).__name__}: {str(e)[:120]}", "checked_at": _now_iso()}
-    await db.clara_integrations.update_one({"id": integration_id}, {"$set": {"last_health_check": result}})
+        await _log_activity(integration_id, "health_done", f"Health check ERROR: {type(e).__name__}: {str(e)[:140]}", "error")
+    await db.clara_integrations.update_one(
+        {"id": integration_id},
+        {"$set": {"last_health_check": result, "health_in_flight": False}},
+    )
     return result
 
 
@@ -997,15 +1070,18 @@ async def _import_existing_remote_items(integ: dict) -> dict:
     headers = {}
     if integ.get("shared_secret"):
         headers["Authorization"] = f"Bearer {integ['shared_secret']}"
+    await _log_activity(integ["id"], "import_start", f"Importing remote items from {url}…", "info")
     try:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
             r = await client.get(url, headers=headers)
             if r.status_code >= 400:
+                await _log_activity(integ["id"], "import_done", f"Import FAILED — list endpoint returned HTTP {r.status_code}", "error")
                 return {"imported": 0, "skipped": 0, "failed": 0, "error": f"list endpoint returned {r.status_code}"}
             data = r.json() if r.text else []
             # Accept both bare list and {items: [...]} envelope
             remote_items = data if isinstance(data, list) else (data.get("items") or data.get("data") or [])
     except Exception as e:
+        await _log_activity(integ["id"], "import_done", f"Import ERROR: {type(e).__name__}: {str(e)[:140]}", "error")
         return {"imported": 0, "skipped": 0, "failed": 0, "error": f"{type(e).__name__}: {str(e)[:120]}"}
 
     main_site_id = integ["main_site_id"]
@@ -1059,6 +1135,7 @@ async def _import_existing_remote_items(integ: dict) -> dict:
             imported += 1
         except Exception:
             failed += 1
+    await _log_activity(integ["id"], "import_done", f"Import done — {imported} new, {skipped} skipped, {failed} failed (of {len(remote_items)} remote)", "success" if not failed else "warn", {"imported": imported, "skipped": skipped, "failed": failed})
     return {"imported": imported, "skipped": skipped, "failed": failed, "total_remote": len(remote_items)}
 
 

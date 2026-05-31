@@ -3,11 +3,71 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Check, ArrowRight, LifeBuoy, ChevronDown, ChevronUp, Sparkles, RefreshCw,
+  Activity, CheckCircle2, AlertTriangle, XCircle,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+
+const LEVEL_META = {
+  info:    { color: 'text-violet-600',  bg: 'bg-violet-50',  border: 'border-violet-200',  Icon: Activity },
+  success: { color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', Icon: CheckCircle2 },
+  warn:    { color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-200',   Icon: AlertTriangle },
+  error:   { color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-200',    Icon: XCircle },
+};
+
+function _fmtTs(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  } catch { return iso?.slice(11, 19) || ''; }
+}
+
+/** Compact live activity feed (last N events) shown under the step that's spinning. */
+const LiveActivityFeed = ({ events, healthInFlight, healthInFlightUrl }) => {
+  if ((!events || events.length === 0) && !healthInFlight) return null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      transition={{ duration: 0.25 }}
+      className="mt-2 rounded-lg border border-zinc-200 bg-zinc-50/80 overflow-hidden"
+    >
+      <div className="flex items-center gap-2 px-2.5 py-1.5 border-b border-zinc-200 bg-zinc-100/60">
+        <Activity className="w-3 h-3 text-violet-600" />
+        <p className="text-[10px] uppercase tracking-wide font-semibold text-zinc-600">Live activity</p>
+        {healthInFlight && (
+          <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-violet-700 font-semibold">
+            <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" /> pinging…
+          </span>
+        )}
+      </div>
+      <div className="px-2.5 py-1.5 max-h-44 overflow-y-auto font-mono text-[10.5px] leading-snug space-y-0.5">
+        {healthInFlight && healthInFlightUrl && (
+          <div className="flex items-start gap-2 text-zinc-700">
+            <span className="text-zinc-400 tabular-nums shrink-0">{_fmtTs(new Date().toISOString())}</span>
+            <span className="text-violet-600 shrink-0">→ GET</span>
+            <span className="truncate text-zinc-800">{healthInFlightUrl}</span>
+          </div>
+        )}
+        {(events || []).slice().reverse().map((ev, i) => {
+          const meta = LEVEL_META[ev.level] || LEVEL_META.info;
+          return (
+            <div key={i} className={`flex items-start gap-2 ${meta.color}`}>
+              <span className="text-zinc-400 tabular-nums shrink-0">{_fmtTs(ev.ts)}</span>
+              <span className="shrink-0 uppercase text-[9px] font-bold opacity-70">[{ev.kind}]</span>
+              <span className="text-zinc-800 break-words">{ev.message}</span>
+            </div>
+          );
+        })}
+        {(!events || events.length === 0) && !healthInFlight && (
+          <p className="text-zinc-400 italic">No activity yet — Clara will log every ping, push and import here.</p>
+        )}
+      </div>
+    </motion.div>
+  );
+};
 
 /**
  * Step row in the LoginWizard popup style:
@@ -15,7 +75,7 @@ const API = process.env.REACT_APP_BACKEND_URL;
  *   - current → spinning ring (zinc base, dark top)
  *   - todo    → empty bordered circle
  */
-const StepRow = ({ step, busy, onAction, supportEmail, delay = 0 }) => {
+const StepRow = ({ step, busy, onAction, supportEmail, delay = 0, extraSlot }) => {
   const status = busy ? 'loading' : step.status === 'done' ? 'done' : step.status === 'current' ? 'loading' : 'todo';
   return (
     <motion.div
@@ -66,6 +126,8 @@ const StepRow = ({ step, busy, onAction, supportEmail, delay = 0 }) => {
             </div>
           </div>
         )}
+
+        {extraSlot}
       </div>
 
       {step.action && step.status !== 'done' && (
@@ -97,6 +159,7 @@ export default function SetupStepsCard({ integrationId, token, onActionDone }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(true);
+  const [logOpen, setLogOpen] = useState(false);
   const [busyAction, setBusyAction] = useState(null);
   const lastSnapshotRef = useRef('');
 
@@ -104,8 +167,13 @@ export default function SetupStepsCard({ integrationId, token, onActionDone }) {
     if (!headers || !integrationId) return;
     try {
       const r = await axios.get(`${API}/api/clara-custom/integrations/${integrationId}/setup-steps`, { headers });
-      // Only re-render if something actually changed (prevents flicker on polling)
-      const snapshot = JSON.stringify(r.data?.steps?.map((s) => [s.id, s.status]) || []);
+      // Re-render when steps, health_in_flight, OR activity_log changes
+      const snapshot = JSON.stringify({
+        steps: r.data?.steps?.map((s) => [s.id, s.status]) || [],
+        in_flight: !!r.data?.health_in_flight,
+        log_count: (r.data?.activity_log || []).length,
+        last_log_ts: (r.data?.activity_log || []).slice(-1)[0]?.ts || '',
+      });
       if (snapshot !== lastSnapshotRef.current) {
         lastSnapshotRef.current = snapshot;
         setData(r.data);
@@ -119,12 +187,15 @@ export default function SetupStepsCard({ integrationId, token, onActionDone }) {
 
   useEffect(() => { load(); }, [load]);
 
-  // Auto-poll every 6s for live status updates (cheap GET, no full-page refresh)
+  // Auto-poll for live status updates.
+  // - 2s while a health check is in flight (so the spinner stops promptly when done)
+  // - 6s otherwise (cheap GET, no full-page refresh)
   useEffect(() => {
     if (!integrationId) return;
-    const i = setInterval(() => load({ silent: true }), 6000);
+    const interval = data?.health_in_flight ? 2000 : 6000;
+    const i = setInterval(() => load({ silent: true }), interval);
     return () => clearInterval(i);
-  }, [integrationId, load]);
+  }, [integrationId, load, data?.health_in_flight]);
 
   const runAction = async (step) => {
     if (!step.action) return;
@@ -212,9 +283,50 @@ export default function SetupStepsCard({ integrationId, token, onActionDone }) {
                   onAction={runAction}
                   supportEmail={data.support_email}
                   delay={idx * 0.04}
+                  extraSlot={
+                    step.id === 'verify_health' && (step.status === 'current' || data.health_in_flight) ? (
+                      <LiveActivityFeed
+                        events={(data.activity_log || []).filter((e) => e.kind?.startsWith('health'))}
+                        healthInFlight={data.health_in_flight}
+                        healthInFlightUrl={data.health_in_flight_url}
+                      />
+                    ) : null
+                  }
                 />
               ))}
             </div>
+
+            {/* Persistent "All activity" feed at the bottom — collapsible */}
+            {(data.activity_log || []).length > 0 && (
+              <div className="px-4 pt-2 pb-3 border-t border-violet-100/60 bg-white/40">
+                <button
+                  onClick={() => setLogOpen((v) => !v)}
+                  className="w-full flex items-center gap-2 text-left py-1 hover:opacity-80 transition"
+                  data-testid={`activity-toggle-${integrationId}`}
+                >
+                  <Activity className="w-3.5 h-3.5 text-violet-600" />
+                  <p className="text-[11px] font-semibold text-zinc-700">All Clara activity</p>
+                  <span className="text-[10px] text-zinc-500">({(data.activity_log || []).length} events)</span>
+                  {logOpen ? <ChevronUp className="w-3 h-3 text-zinc-400 ml-auto" /> : <ChevronDown className="w-3 h-3 text-zinc-400 ml-auto" />}
+                </button>
+                <AnimatePresence initial={false}>
+                  {logOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <LiveActivityFeed
+                        events={data.activity_log || []}
+                        healthInFlight={false}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
