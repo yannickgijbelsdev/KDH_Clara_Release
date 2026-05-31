@@ -184,11 +184,11 @@ export default function IntegrationsTab({ mainSite, token }) {
     } finally { setBusyId(null); }
   };
 
-  const showPrompt = async (integ) => {
+  const showPrompt = async (integ, target = 'preview') => {
     setBusyId(integ.id);
     try {
-      const r = await axios.get(`${API}/api/clara-custom/integrations/${integ.id}/prompt`, { headers });
-      setPromptDialog({ ...r.data, _reused: true });
+      const r = await axios.get(`${API}/api/clara-custom/integrations/${integ.id}/prompt?target=${target}`, { headers });
+      setPromptDialog({ ...r.data, _reused: true, _integ: integ });
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Could not fetch prompt');
     } finally { setBusyId(null); }
@@ -404,6 +404,37 @@ export default function IntegrationsTab({ mainSite, token }) {
                 ? <>♻️ Re-using existing token. The external project will re-register on startup and stay <strong>connected</strong> (no re-approval needed).</>
                 : <>⚠️ The integration token below is only shown once. The external project needs it in <code>CLARA_INTEGRATION_TOKEN</code>.</>}
             </div>
+
+            {/* Preview/Production target toggle (only meaningful for reused prompts) */}
+            {promptDialog?._reused && promptDialog?._integ && (
+              <div className="rounded-lg border border-zinc-200 p-3 bg-zinc-50">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-900">Callback target</p>
+                    <p className="text-[11px] text-zinc-500">Which Clara instance the external project will register against.</p>
+                  </div>
+                  <div className="inline-flex rounded-md border border-zinc-300 overflow-hidden text-xs" data-testid="target-toggle">
+                    <button
+                      onClick={() => showPrompt(promptDialog._integ, 'preview')}
+                      className={`px-3 py-1.5 ${promptDialog.target === 'preview' ? 'bg-[#7c1ac8] text-white' : 'bg-white text-zinc-700 hover:bg-zinc-100'}`}
+                      data-testid="target-preview-btn"
+                    >🧪 Preview</button>
+                    <button
+                      onClick={() => showPrompt(promptDialog._integ, 'production')}
+                      className={`px-3 py-1.5 border-l border-zinc-300 ${promptDialog.target === 'production' ? 'bg-[#dd0c51] text-white' : 'bg-white text-zinc-700 hover:bg-zinc-100'}`}
+                      data-testid="target-production-btn"
+                    >🚀 Production</button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-zinc-600 mt-2 font-mono break-all">{promptDialog.callback_url}</p>
+                {promptDialog.promote_warning && (
+                  <div className="mt-2 rounded bg-rose-50 border border-rose-200 p-2 text-[11px] text-rose-900">
+                    ⚠️ {promptDialog.promote_warning}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex justify-end">
               <Button onClick={() => copyToClipboard(promptDialog?.prompt_markdown || '')} className="gap-2" data-testid="copy-prompt-btn">
                 <Copy className="w-4 h-4" /> Copy entire prompt

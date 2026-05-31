@@ -126,7 +126,30 @@ def _generate_integration_token() -> str:
     return secrets.token_hex(24)
 
 
-def _build_prompt(template_id: str, token: str, callback_url: str, site_name: str) -> str:
+def _resolve_callback_base(target: str) -> str:
+    """Return the public Clara base URL for the chosen target.
+
+    - `preview`    → REACT_APP_BACKEND_URL (this instance's external URL)
+    - `production` → PROMOTE_TARGET_URL (e.g. https://clr.koodh.com)
+    """
+    if target == "production":
+        url = os.environ.get("PROMOTE_TARGET_URL", "").strip()
+        return url.rstrip("/") if url else ""
+    # preview / default
+    url = os.environ.get("REACT_APP_BACKEND_URL", "").strip()
+    if not url:
+        try:
+            with open("/app/frontend/.env", "r") as f:
+                for line in f:
+                    if line.startswith("REACT_APP_BACKEND_URL="):
+                        url = line.split("=", 1)[1].strip()
+                        break
+        except Exception:
+            pass
+    return url.rstrip("/") if url else ""
+
+
+def _build_prompt(template_id: str, token: str, callback_url: str, site_name: str, target: str = "preview") -> str:
     """Render a markdown prompt to paste into the external Emergent project."""
     tpl = TEMPLATES[template_id]
     eps = tpl["endpoints"]
@@ -155,8 +178,18 @@ def _build_prompt(template_id: str, token: str, callback_url: str, site_name: st
     if "upsert_by_clara_id" in eps:
         upsert_note = "\n`clara_content_id` is the stable UUID — store it on every record. The endpoint must **upsert** (create if missing, replace if exists) based on this id.\n"
 
-    return f"""# Clara Integration — {tpl['name']}
+    target_banner = (
+        "\n> 🚀 **Target**: this prompt registers against **PRODUCTION Clara** "
+        f"({callback_url.split('/api/')[0]}). Make sure the external project is also "
+        "the production deployment (not a preview).\n"
+        if target == "production"
+        else "\n> 🧪 **Target**: this prompt registers against **PREVIEW Clara** "
+             f"({callback_url.split('/api/')[0]}). Use this for development/testing. "
+             "Switch to the production prompt before going live.\n"
+    )
 
+    return f"""# Clara Integration — {tpl['name']}
+{target_banner}
 You are building a **{tpl['name']}** integration for the Koodh Clara platform.
 Clara will be the master editor for this feature; this project just exposes a
 small REST contract so Clara can push content into it.
@@ -263,28 +296,24 @@ async def generate_prompt(data: dict, current_user: dict = Depends(require_syste
     """Create a pending integration row and return the markdown prompt + raw token."""
     main_site_id = data.get("main_site_id")
     template_id = data.get("template")
+    target = (data.get("target") or "preview").lower()  # 'preview' or 'production'
     if not main_site_id:
         raise HTTPException(status_code=400, detail="main_site_id required")
     if template_id not in TEMPLATES:
         raise HTTPException(status_code=400, detail=f"Unknown template: {template_id}")
+    if target not in ("preview", "production"):
+        raise HTTPException(status_code=400, detail="target must be 'preview' or 'production'")
 
     site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0, "id": 1, "name": 1})
     if not site:
         raise HTTPException(status_code=404, detail="Main site not found")
 
-    import os
-    backend_base = os.environ.get("REACT_APP_BACKEND_URL") or os.environ.get("VDC_BASE_URL") or ""
-    # Prefer the externally reachable URL — discovered_url of the site is also OK
+    backend_base = _resolve_callback_base(target)
     if not backend_base:
-        # Best-effort: read from frontend .env
-        try:
-            with open("/app/frontend/.env", "r") as f:
-                for line in f:
-                    if line.startswith("REACT_APP_BACKEND_URL="):
-                        backend_base = line.split("=", 1)[1].strip()
-                        break
-        except Exception:
-            pass
+        raise HTTPException(
+            status_code=503,
+            detail="Production callback URL not configured. Set PROMOTE_TARGET_URL in backend/.env to enable production prompts.",
+        )
 
     token = _generate_integration_token()
     callback_url = f"{backend_base}/api/clara-custom/integrations/register"
@@ -308,11 +337,12 @@ async def generate_prompt(data: dict, current_user: dict = Depends(require_syste
     }
     await db.clara_integrations.insert_one(dict(doc))
 
-    prompt = _build_prompt(template_id, token, callback_url, site.get("name", "this site"))
+    prompt = _build_prompt(template_id, token, callback_url, site.get("name", "this site"), target=target)
     return {
         "integration_id": doc["id"],
         "integration_token": token,
         "callback_url": callback_url,
+        "target": target,
         "template": TEMPLATES[template_id],
         "prompt_markdown": prompt,
     }
@@ -368,13 +398,18 @@ async def register_integration(data: dict, background: BackgroundTasks):
 @clara_integrations_router.get("/{integration_id}/prompt")
 async def get_existing_prompt(
     integration_id: str,
+    target: str = "preview",
     current_user: dict = Depends(require_system_admin),
 ):
     """Regenerate the markdown prompt for an EXISTING integration.
 
-    Use case: external Emergent project lost its /api/clara-feature/* endpoints
-    (e.g. after a rebuild or rollback). Admin can re-fetch the same prompt with
-    the SAME integration_token so re-registration is idempotent.
+    `target` selects which Clara instance the external project will register
+    against:
+      - `preview`    → this instance (default; useful during dev)
+      - `production` → https://clr.koodh.com (requires PROMOTE_TARGET_URL set)
+
+    Important: the integration_token only exists in THIS instance's DB. To use
+    the same token on production, click "Promote" first to copy the row.
     """
     integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0})
     if not integ:
@@ -384,30 +419,43 @@ async def get_existing_prompt(
     if template_id not in TEMPLATES:
         raise HTTPException(status_code=400, detail=f"Unknown template on integration: {template_id}")
 
+    target = (target or "preview").lower()
+    if target not in ("preview", "production"):
+        raise HTTPException(status_code=400, detail="target must be 'preview' or 'production'")
+
     site = await db.main_sites.find_one({"id": integ["main_site_id"]}, {"_id": 0, "name": 1})
     site_name = (site or {}).get("name", "this site")
 
-    backend_base = os.environ.get("REACT_APP_BACKEND_URL") or ""
+    backend_base = _resolve_callback_base(target)
     if not backend_base:
-        try:
-            with open("/app/frontend/.env", "r") as f:
-                for line in f:
-                    if line.startswith("REACT_APP_BACKEND_URL="):
-                        backend_base = line.split("=", 1)[1].strip()
-                        break
-        except Exception:
-            pass
+        raise HTTPException(
+            status_code=503,
+            detail="Production callback URL not configured. Set PROMOTE_TARGET_URL in backend/.env to enable production prompts.",
+        )
     callback_url = f"{backend_base}/api/clara-custom/integrations/register"
 
-    prompt = _build_prompt(template_id, integ["integration_token"], callback_url, site_name)
+    # Check if production has been promoted yet (warn if not)
+    promote_warning = None
+    if target == "production":
+        promoted = bool(integ.get("promoted_at"))
+        if not promoted:
+            promote_warning = (
+                "This integration has not been promoted to production yet. "
+                "The external project will get HTTP 401 (Invalid integration token) "
+                "when it tries to register against production. Click 'Promote' first."
+            )
+
+    prompt = _build_prompt(template_id, integ["integration_token"], callback_url, site_name, target=target)
     return {
         "integration_id": integ["id"],
         "integration_token": integ["integration_token"],
         "callback_url": callback_url,
+        "target": target,
         "template": TEMPLATES[template_id],
         "prompt_markdown": prompt,
         "current_base_url": integ.get("base_url"),
         "current_shared_secret_set": bool(integ.get("shared_secret")),
+        "promote_warning": promote_warning,
     }
 
 
