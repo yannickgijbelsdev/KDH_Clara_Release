@@ -63,9 +63,9 @@ export default function IntegrationsTab({ mainSite, token }) {
   const [diagnoseResult, setDiagnoseResult] = useState(null);
   const [editTarget, setEditTarget] = useState(null); // {integ, base_url, shared_secret}
 
-  const load = useCallback(async () => {
+  const load = useCallback(async ({ silent = false } = {}) => {
     if (!headers || !mainSite?.id) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
       const [t, list, pc] = await Promise.all([
         axios.get(`${API}/api/clara-custom/integrations/templates`, { headers }),
@@ -76,9 +76,9 @@ export default function IntegrationsTab({ mainSite, token }) {
       setIntegrations(Array.isArray(list.data) ? list.data : []);
       setPromoteConfig(pc.data || { enabled: false });
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Failed to load integrations');
+      if (!silent) toast.error(e.response?.data?.detail || 'Failed to load integrations');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [token, mainSite?.id]); // eslint-disable-line
 
@@ -87,7 +87,7 @@ export default function IntegrationsTab({ mainSite, token }) {
   // Auto-refresh every 10s so pending_approval flips to connected without manual reload
   useEffect(() => {
     if (!headers || !mainSite?.id) return;
-    const i = setInterval(load, 10000);
+    const i = setInterval(() => load({ silent: true }), 10000);
     return () => clearInterval(i);
   }, [load]); // eslint-disable-line
 
@@ -354,7 +354,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                   )}
                 </div>
               </div>
-              <SetupStepsCard integrationId={it.id} token={token} onActionDone={load} />
+              <SetupStepsCard integrationId={it.id} token={token} onActionDone={(opts) => load(opts || { silent: true })} />
             </div>
           );
         })}
