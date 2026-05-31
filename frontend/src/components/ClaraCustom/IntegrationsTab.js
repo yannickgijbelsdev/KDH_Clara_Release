@@ -201,6 +201,7 @@ export default function IntegrationsTab({ mainSite, token }) {
       const payload = {};
       if (editTarget.base_url !== editTarget.integ.base_url) payload.base_url = editTarget.base_url;
       if (editTarget.shared_secret) payload.shared_secret = editTarget.shared_secret;
+      if (editTarget.production_url !== (editTarget.integ.production_url || '')) payload.production_url = editTarget.production_url;
       if (Object.keys(payload).length === 0) {
         toast.info('Nothing to save');
         setEditTarget(null);
@@ -210,8 +211,10 @@ export default function IntegrationsTab({ mainSite, token }) {
       await axios.patch(`${API}/api/clara-custom/integrations/${editTarget.integ.id}`, payload, { headers });
       toast.success('Integration updated — health check running');
       setEditTarget(null);
-      // Re-run health check after URL change
-      await axios.post(`${API}/api/clara-custom/integrations/${editTarget.integ.id}/check`, null, { headers }).catch(() => {});
+      // Re-run health check after URL change (only if base_url changed)
+      if (payload.base_url) {
+        await axios.post(`${API}/api/clara-custom/integrations/${editTarget.integ.id}/check`, null, { headers }).catch(() => {});
+      }
       load();
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Update failed');
@@ -282,6 +285,11 @@ export default function IntegrationsTab({ mainSite, token }) {
                   <p className="text-[11px] text-zinc-500 mt-0.5">
                     {it.base_url ? <code className="text-zinc-700">{displayBaseUrl(it.base_url)}</code> : <span>Awaiting external project registration…</span>}
                   </p>
+                  {it.production_url && (
+                    <p className="text-[11px] text-zinc-500 mt-0.5">
+                      🚀 Production: <code className="text-zinc-700">{it.production_url}</code>
+                    </p>
+                  )}
                   {it.last_synced_at && (
                     <p className="text-[10px] text-zinc-400 mt-1">
                       Last full sync: {new Date(it.last_synced_at).toLocaleString()}
@@ -323,7 +331,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                       <Button size="sm" variant="outline" onClick={() => diagnose(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`diagnose-${it.id}`} title="Inspect what the external site is returning">
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Stethoscope className="w-3.5 h-3.5" />} Diagnose
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditTarget({ integ: it, base_url: it.base_url || '', shared_secret: '' })} className="gap-1.5" data-testid={`edit-${it.id}`} title="Change base URL or shared secret">
+                      <Button size="sm" variant="outline" onClick={() => setEditTarget({ integ: it, base_url: it.base_url || '', shared_secret: '', production_url: it.production_url || '' })} className="gap-1.5" data-testid={`edit-${it.id}`} title="Change base URL, production URL or shared secret">
                         <Edit3 className="w-3.5 h-3.5" /> Edit
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => check(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`check-${it.id}`}>
@@ -467,7 +475,7 @@ export default function IntegrationsTab({ mainSite, token }) {
           {editTarget && (
             <div className="space-y-4 py-2">
               <div>
-                <Label className="text-xs">Base URL</Label>
+                <Label className="text-xs">Base URL (current/preview)</Label>
                 <Input
                   value={editTarget.base_url}
                   onChange={(e) => setEditTarget({ ...editTarget, base_url: e.target.value })}
@@ -475,7 +483,18 @@ export default function IntegrationsTab({ mainSite, token }) {
                   className="font-mono text-xs"
                   data-testid="edit-base-url"
                 />
-                <p className="text-[11px] text-zinc-500 mt-1">All push/pull calls go to this URL. Change it to point Clara at production instead of preview.</p>
+                <p className="text-[11px] text-zinc-500 mt-1">All push/pull calls go to this URL. This is where the external project currently lives (e.g. its preview URL).</p>
+              </div>
+              <div>
+                <Label className="text-xs">Production URL <span className="text-zinc-400">(optional)</span></Label>
+                <Input
+                  value={editTarget.production_url}
+                  onChange={(e) => setEditTarget({ ...editTarget, production_url: e.target.value })}
+                  placeholder="https://koodh.com"
+                  className="font-mono text-xs"
+                  data-testid="edit-production-url"
+                />
+                <p className="text-[11px] text-zinc-500 mt-1">The final public domain of the external site. Used as <code>SITE_PUBLIC_URL</code> when generating the production prompt.</p>
               </div>
               <div>
                 <Label className="text-xs">Shared secret (optional)</Label>

@@ -149,7 +149,7 @@ def _resolve_callback_base(target: str) -> str:
     return url.rstrip("/") if url else ""
 
 
-def _build_prompt(template_id: str, token: str, callback_url: str, site_name: str, target: str = "preview") -> str:
+def _build_prompt(template_id: str, token: str, callback_url: str, site_name: str, target: str = "preview", site_public_url: str = "") -> str:
     """Render a markdown prompt to paste into the external Emergent project."""
     tpl = TEMPLATES[template_id]
     eps = tpl["endpoints"]
@@ -188,6 +188,8 @@ def _build_prompt(template_id: str, token: str, callback_url: str, site_name: st
              "Switch to the production prompt before going live.\n"
     )
 
+    site_public_url_value = site_public_url or "<https://your-public-url>"
+
     return f"""# Clara Integration — {tpl['name']}
 {target_banner}
 You are building a **{tpl['name']}** integration for the Koodh Clara platform.
@@ -202,7 +204,7 @@ The integration uses a shared secret in `backend/.env`:
 CLARA_FEATURE_SECRET=<choose-a-long-random-string-you-set-yourself>
 CLARA_INTEGRATION_TOKEN={token}
 CLARA_INTEGRATION_CALLBACK={callback_url}
-SITE_PUBLIC_URL=<https://your-public-url>
+SITE_PUBLIC_URL={site_public_url_value}
 ```
 
 All endpoints below (except `/health`) require:
@@ -445,7 +447,14 @@ async def get_existing_prompt(
                 "when it tries to register against production. Click 'Promote' first."
             )
 
-    prompt = _build_prompt(template_id, integ["integration_token"], callback_url, site_name, target=target)
+    # SITE_PUBLIC_URL hint: preview = currently-registered base_url; production = explicit production_url if set
+    site_public_url = ""
+    if target == "production":
+        site_public_url = (integ.get("production_url") or "").rstrip("/")
+    else:
+        site_public_url = (integ.get("base_url") or "").rstrip("/")
+
+    prompt = _build_prompt(template_id, integ["integration_token"], callback_url, site_name, target=target, site_public_url=site_public_url)
     return {
         "integration_id": integ["id"],
         "integration_token": integ["integration_token"],
@@ -455,6 +464,8 @@ async def get_existing_prompt(
         "prompt_markdown": prompt,
         "current_base_url": integ.get("base_url"),
         "current_shared_secret_set": bool(integ.get("shared_secret")),
+        "production_url": integ.get("production_url"),
+        "site_public_url_in_prompt": site_public_url or None,
         "promote_warning": promote_warning,
     }
 
@@ -518,10 +529,12 @@ async def patch_integration(
     integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0, "id": 1})
     if not integ:
         raise HTTPException(status_code=404, detail="Integration not found")
-    allowed = {"base_url", "shared_secret"}
+    allowed = {"base_url", "shared_secret", "production_url"}
     update = {k: v for k, v in data.items() if k in allowed and v is not None}
     if "base_url" in update:
         update["base_url"] = str(update["base_url"]).rstrip("/")
+    if "production_url" in update:
+        update["production_url"] = str(update["production_url"]).rstrip("/")
     if not update:
         raise HTTPException(status_code=400, detail="No editable fields provided")
     update["updated_at"] = _now_iso()
