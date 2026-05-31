@@ -147,17 +147,6 @@ export default function NetworkHeader({
 
   return (
     <TooltipProvider delayDuration={0}>
-      {/* Brand strip — CLR stripes pattern as subtle brand marker */}
-      <div
-        aria-hidden
-        className="h-1 flex-shrink-0 w-full bg-black"
-        style={{
-          backgroundImage: 'url(/koodh_clr_stripes.png)',
-          backgroundSize: '320px auto',
-          backgroundRepeat: 'repeat-x',
-          backgroundPosition: 'center',
-        }}
-      />
       {/* ─── Top Navigation Bar ─── */}
       <nav
         className="h-[64px] flex-shrink-0 flex flex-nowrap items-center px-3 sm:px-5 gap-2 sm:gap-4 bg-transparent z-50 overflow-x-hidden whitespace-nowrap"
@@ -180,18 +169,6 @@ export default function NetworkHeader({
             : "relative bg-zinc-900 text-white rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold hover:bg-zinc-800 transition-colors flex-shrink-0 group overflow-hidden"}
           data-testid="logo-pill"
         >
-          {/* CLR stripe accent shimmer behind logo */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-60 transition-opacity duration-500 rounded-full"
-            style={{
-              backgroundImage: 'url(/koodh_clr_stripes.png)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              mixBlendMode: 'screen',
-              filter: 'blur(1px)',
-            }}
-          />
           {brandLogoUrl ? (
             <img src={brandLogoUrl} alt={brandName} className="h-7 object-contain relative z-10" />
           ) : (

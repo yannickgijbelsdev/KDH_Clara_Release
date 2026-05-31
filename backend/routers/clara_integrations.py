@@ -849,6 +849,7 @@ async def get_setup_steps(integration_id: str, current_user: dict = Depends(requ
     ]
     # Last 12 activity events (most recent last)
     activity_log = (integ.get("activity_log") or [])[-12:]
+    last_health = integ.get("last_health_check") or {}
     return {
         "integration_id": integration_id,
         "template": template,
@@ -858,6 +859,10 @@ async def get_setup_steps(integration_id: str, current_user: dict = Depends(requ
         "health_in_flight_url": integ.get("health_in_flight_url"),
         "activity_log": activity_log,
         "support_email": "support@koodh.com",
+        "health_diagnosis": last_health.get("diagnosis"),
+        "health_fix_for_external": last_health.get("fix_for_external"),
+        "health_attempts": last_health.get("attempts"),
+        "last_health_status": last_health.get("status"),
     }
 
 
@@ -992,48 +997,250 @@ async def _log_activity(integration_id: str, kind: str, message: str, level: str
 
 
 async def _run_health_check(integration_id: str) -> dict:
+    """Probe the external integration's /health endpoint.
+
+    Strategy:
+      - 3 attempts with increasing per-request timeouts: 3s, 5s, 8s.
+      - Stop early on the first 2xx/3xx response.
+      - Capture both connect-phase and total elapsed durations so we can
+        distinguish slow DNS/TLS handshake from slow application code.
+      - On final failure return a structured diagnosis that the UI shows
+        verbatim, plus an *actionable code fix* the admin can forward to
+        the external Emergent project.
+    """
     integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0})
     if not integ or not integ.get("base_url"):
         return {"status": "error", "message": "Integration not registered"}
     eps = integ.get("endpoints_map") or {}
     health_path = eps.get("health") or "/api/clara-feature/health"
     url = _build_url(integ["base_url"], health_path)
-    # Mark as in-flight so the UI can show a spinner on step 4
     await db.clara_integrations.update_one(
         {"id": integration_id},
         {"$set": {"health_in_flight": True, "health_in_flight_started_at": _now_iso(), "health_in_flight_url": url}},
     )
     await _log_activity(integration_id, "health_start", f"Pinging {url}…", "info", {"url": url})
-    started = datetime.now(timezone.utc)
-    try:
-        async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
-            r = await client.get(url)
-            elapsed_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
-            ok = r.status_code < 400
-            result = {
-                "status": "ok" if ok else "failed",
-                "http_status": r.status_code,
-                "elapsed_ms": elapsed_ms,
-                "checked_at": _now_iso(),
-            }
-            await _log_activity(
-                integration_id,
-                "health_done",
-                f"Health check {'OK' if ok else 'FAILED'} → HTTP {r.status_code} in {elapsed_ms}ms",
-                "success" if ok else "error",
-                {"http_status": r.status_code, "elapsed_ms": elapsed_ms},
-            )
-    except httpx.TimeoutException:
-        result = {"status": "timeout", "message": "Timed out", "checked_at": _now_iso()}
-        await _log_activity(integration_id, "health_done", f"Health check TIMEOUT after 8s for {url}", "error")
-    except Exception as e:
-        result = {"status": "error", "message": f"{type(e).__name__}: {str(e)[:120]}", "checked_at": _now_iso()}
-        await _log_activity(integration_id, "health_done", f"Health check ERROR: {type(e).__name__}: {str(e)[:140]}", "error")
+
+    attempts = []
+    last_exception_type = None
+    result = None
+    for idx, timeout in enumerate([3.0, 5.0, 8.0], start=1):
+        attempt_started = datetime.now(timezone.utc)
+        try:
+            # Separate connect timeout (so slow TLS shows up distinctly)
+            t = httpx.Timeout(timeout, connect=min(2.5, timeout))
+            async with httpx.AsyncClient(timeout=t, follow_redirects=True) as client:
+                r = await client.get(url)
+                elapsed_ms = int((datetime.now(timezone.utc) - attempt_started).total_seconds() * 1000)
+                attempts.append({"attempt": idx, "timeout_s": timeout, "http_status": r.status_code, "elapsed_ms": elapsed_ms})
+                if r.status_code < 400:
+                    result = {
+                        "status": "ok",
+                        "http_status": r.status_code,
+                        "elapsed_ms": elapsed_ms,
+                        "attempts": attempts,
+                        "checked_at": _now_iso(),
+                    }
+                    await _log_activity(
+                        integration_id, "health_done",
+                        f"Health check OK → HTTP {r.status_code} in {elapsed_ms}ms (attempt {idx}/3)",
+                        "success", {"http_status": r.status_code, "elapsed_ms": elapsed_ms, "attempt": idx},
+                    )
+                    break
+                # 4xx/5xx — log and stop (retry won't change result)
+                await _log_activity(
+                    integration_id, "health_attempt",
+                    f"Attempt {idx}/3 returned HTTP {r.status_code} in {elapsed_ms}ms — not retrying",
+                    "error", {"http_status": r.status_code, "attempt": idx},
+                )
+                result = {
+                    "status": "failed",
+                    "http_status": r.status_code,
+                    "elapsed_ms": elapsed_ms,
+                    "attempts": attempts,
+                    "checked_at": _now_iso(),
+                }
+                break
+        except httpx.ConnectTimeout:
+            elapsed_ms = int((datetime.now(timezone.utc) - attempt_started).total_seconds() * 1000)
+            attempts.append({"attempt": idx, "timeout_s": timeout, "error": "connect_timeout", "elapsed_ms": elapsed_ms})
+            last_exception_type = "connect_timeout"
+            await _log_activity(integration_id, "health_attempt", f"Attempt {idx}/3 CONNECT TIMEOUT after {timeout}s", "warn", {"attempt": idx})
+        except httpx.ReadTimeout:
+            elapsed_ms = int((datetime.now(timezone.utc) - attempt_started).total_seconds() * 1000)
+            attempts.append({"attempt": idx, "timeout_s": timeout, "error": "read_timeout", "elapsed_ms": elapsed_ms})
+            last_exception_type = "read_timeout"
+            await _log_activity(integration_id, "health_attempt", f"Attempt {idx}/3 READ TIMEOUT after {timeout}s (backend too slow)", "warn", {"attempt": idx})
+        except httpx.TimeoutException:
+            elapsed_ms = int((datetime.now(timezone.utc) - attempt_started).total_seconds() * 1000)
+            attempts.append({"attempt": idx, "timeout_s": timeout, "error": "timeout", "elapsed_ms": elapsed_ms})
+            last_exception_type = "timeout"
+            await _log_activity(integration_id, "health_attempt", f"Attempt {idx}/3 TIMEOUT after {timeout}s", "warn", {"attempt": idx})
+        except Exception as e:
+            elapsed_ms = int((datetime.now(timezone.utc) - attempt_started).total_seconds() * 1000)
+            attempts.append({"attempt": idx, "timeout_s": timeout, "error": f"{type(e).__name__}: {str(e)[:120]}", "elapsed_ms": elapsed_ms})
+            last_exception_type = type(e).__name__
+            await _log_activity(integration_id, "health_attempt", f"Attempt {idx}/3 ERROR: {type(e).__name__}: {str(e)[:140]}", "error", {"attempt": idx})
+            # DNS / connection refused etc → don't retry
+            if "DNS" in type(e).__name__ or "Resolution" in str(e):
+                break
+
+    if result is None:
+        # All attempts failed with exceptions
+        result = {
+            "status": last_exception_type or "error",
+            "attempts": attempts,
+            "checked_at": _now_iso(),
+        }
+        await _log_activity(
+            integration_id, "health_done",
+            f"Health check FAILED after {len(attempts)} attempts ({last_exception_type})",
+            "error", {"attempts": attempts},
+        )
+
+    # Generate actionable diagnosis when not OK
+    if result["status"] != "ok":
+        result["diagnosis"] = _diagnose_health_failure(result, url, health_path)
+        result["fix_for_external"] = _fix_instructions_for_external(result, url, health_path)
+
     await db.clara_integrations.update_one(
         {"id": integration_id},
         {"$set": {"last_health_check": result, "health_in_flight": False}},
     )
     return result
+
+
+def _diagnose_health_failure(result: dict, url: str, path: str) -> str:
+    """Plain-English explanation of why the health check failed."""
+    status = result.get("status")
+    attempts = result.get("attempts", [])
+    if status == "ok":
+        return ""
+    if result.get("http_status") == 404:
+        return (
+            f"The external site responded 404 — the path `{path}` does not exist. "
+            "FastAPI is up but the Clara router is not registered, or the path is wrong."
+        )
+    if result.get("http_status") in (401, 403):
+        return (
+            "The external site rejected the bearer token. The shared_secret in Clara "
+            "does not match CLARA_FEATURE_SECRET on the external project."
+        )
+    if (result.get("http_status") or 500) >= 500:
+        return f"The external backend crashed with HTTP {result.get('http_status')}. Inspect the project's server logs."
+    if status in ("connect_timeout",):
+        return (
+            "TCP connection to the external host timed out before responding. "
+            "Either the hostname does not resolve, the port is closed, or a firewall/CDN is blocking the request."
+        )
+    if status in ("read_timeout", "timeout"):
+        slowest = max((a.get("elapsed_ms", 0) for a in attempts), default=0)
+        return (
+            f"The external backend took longer than 8s to respond after 3 attempts (slowest: {slowest}ms). "
+            "This is almost always caused by the `/api/clara-feature/health` handler doing real work "
+            "(querying MongoDB, calling another service, blocking on a cold start). "
+            "A health endpoint must return in under 200ms with no I/O."
+        )
+    return f"Unhandled failure mode: {status}. See activity log for raw exception."
+
+
+def _fix_instructions_for_external(result: dict, url: str, path: str) -> str:
+    """Return a copy-pasteable instruction block the admin can hand to the external project."""
+    status = result.get("status")
+    http_status = result.get("http_status")
+
+    base_header = (
+        "📌 **Action required in the external Emergent project**\n\n"
+        f"Clara is calling: `GET {url}`\n"
+    )
+
+    if http_status == 404:
+        return base_header + (
+            f"\n**Problem**: 404 — route `{path}` is not registered.\n\n"
+            "**Required fix in `backend/server.py`** of the external project:\n"
+            "```python\n"
+            "from fastapi import APIRouter, FastAPI, Depends, HTTPException\n"
+            "import os\n\n"
+            "app = FastAPI()\n"
+            "clara_router = APIRouter(prefix=\"/api/clara-feature\", tags=[\"clara\"])\n\n"
+            "@clara_router.get(\"/health\")\n"
+            "async def clara_health():\n"
+            "    return {\"status\": \"ok\", \"service\": \"koodh\", \"mongo\": \"connected\"}\n\n"
+            "app.include_router(clara_router)  # NO extra prefix\n"
+            "```\n"
+            "Verify in startup logs that the route is registered:\n"
+            "```python\n"
+            "@app.on_event(\"startup\")\n"
+            "async def _print_clara_routes():\n"
+            "    paths = [r.path for r in app.routes if \"/clara-feature\" in getattr(r, \"path\", \"\")]\n"
+            "    print(f\"[clara-integration] routes registered ({len(paths)}): {paths}\")\n"
+            "```"
+        )
+
+    if http_status in (401, 403):
+        return base_header + (
+            f"\n**Problem**: HTTP {http_status} — bearer token rejected. The `Authorization: Bearer <secret>` header Clara sends does not match the external `CLARA_FEATURE_SECRET`.\n\n"
+            "**Required fix**:\n"
+            "1. In Clara → Feature Integrations → Edit → paste the SAME secret used in the external project's `backend/.env`.\n"
+            "2. OR have the external project re-register on startup so Clara stores the new secret.\n\n"
+            "**Note**: the `/health` endpoint should NOT require auth at all — only authenticated endpoints should. Update the external code:\n"
+            "```python\n"
+            "@clara_router.get(\"/health\")  # no Depends()\n"
+            "async def clara_health(): return {\"status\": \"ok\"}\n"
+            "```"
+        )
+
+    if status in ("connect_timeout",):
+        return base_header + (
+            "\n**Problem**: TCP connection refused / DNS failure. The Kubernetes ingress for the external preview/production URL is not reachable from Clara's cluster.\n\n"
+            "**Things to verify on the external project**:\n"
+            "1. `curl -v https://koodh.com/api/clara-feature/health` from **another network** (not Emergent's). Does it work?\n"
+            "2. Check that supervisor reports `backend: RUNNING` (not crashing on startup).\n"
+            "3. Check Cloudflare / CDN does NOT have a Bot-Fight challenge on `/api/clara-feature/*` — Clara's request would fail a JS challenge.\n"
+            "4. If on a custom domain (`koodh.com`), make sure the DNS A/CNAME points to the live Emergent preview, not a parked page."
+        )
+
+    if status in ("read_timeout", "timeout"):
+        return base_header + (
+            "\n**Problem**: external backend takes longer than 8s to answer `/health`. This is the #1 cause of integration instability.\n\n"
+            "**Root cause** (almost always): the health handler is doing real work instead of returning immediately.\n\n"
+            "**Required fix in the external project** — make `/health` instant:\n"
+            "```python\n"
+            "# ❌ WRONG — does I/O\n"
+            "@clara_router.get(\"/health\")\n"
+            "async def health():\n"
+            "    n = await db.news_articles.count_documents({})  # <-- blocks\n"
+            "    return {\"status\": \"ok\", \"news_count\": n}\n\n"
+            "# ✅ RIGHT — synchronous, no I/O, < 50ms\n"
+            "import time\n"
+            "START = time.time()\n\n"
+            "@clara_router.get(\"/health\")\n"
+            "async def health():\n"
+            "    return {\n"
+            "        \"status\": \"ok\",\n"
+            "        \"service\": \"koodh\",\n"
+            "        \"version\": \"1.0.0\",\n"
+            "        \"uptime_seconds\": int(time.time() - START),\n"
+            "    }\n"
+            "```\n"
+            "**Additional checks**:\n"
+            "1. Confirm the app is not in cold-start: `curl -s -o /dev/null -w '%{time_total}\\n' https://<external>/api/clara-feature/health` repeatedly. First call >2s but subsequent <0.2s → cold start. Solution: keep at least 1 worker warm (uvicorn workers=2) or add a 30s warm-up ping.\n"
+            "2. Confirm no synchronous code in async handler (no `requests.get`, no `time.sleep`, no `pymongo` — use `motor` for Mongo).\n"
+            "3. If using Cloudflare: disable 'Under Attack Mode' for `/api/clara-feature/*`."
+        )
+
+    if (http_status or 0) >= 500:
+        return base_header + (
+            f"\n**Problem**: HTTP {http_status} — server-side error in the external project.\n\n"
+            "**What to do**:\n"
+            "1. Tail backend logs of the external project for the traceback.\n"
+            "2. Most common cause: MongoDB connection failure on startup — check `MONGO_URL` env var.\n"
+            "3. The health endpoint should never return 5xx — wrap it in a try/except that always returns 200 OK with a `mongo: 'disconnected'` flag if needed.\n"
+        )
+
+    return base_header + "\nUnclassified failure — please share the activity log with Clara Support."
+
+
+# (Legacy: previous version was a simpler one-shot health check; replaced above.)
 
 
 async def _full_sync_news_blog(integration_id: str):

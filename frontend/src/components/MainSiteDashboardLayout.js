@@ -1149,18 +1149,6 @@ const MainSiteDashboardContent = () => {
           </div>
         )}
 
-        {/* CLR brand strip — subtle 4px stripes pattern repeating horizontally */}
-        <div
-          aria-hidden
-          className="h-1 flex-shrink-0 w-full bg-black opacity-90"
-          style={{
-            backgroundImage: 'url(/koodh_clr_stripes.png)',
-            backgroundSize: '320px auto',
-            backgroundRepeat: 'repeat-x',
-            backgroundPosition: 'center',
-          }}
-        />
-
         {/* ─── Horizontal Top Navigation ─── */}
         <nav className="h-[64px] flex-shrink-0 flex items-center px-5 gap-4 bg-transparent z-50" data-testid="workspace-topbar">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn" className="lg:hidden w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-black/5 transition-colors">

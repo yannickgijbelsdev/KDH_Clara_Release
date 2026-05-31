@@ -3,12 +3,59 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Check, ArrowRight, LifeBuoy, ChevronDown, ChevronUp, Sparkles, RefreshCw,
-  Activity, CheckCircle2, AlertTriangle, XCircle,
+  Activity, CheckCircle2, AlertTriangle, XCircle, Copy, Wrench,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+
+/** Health failure diagnosis + copy-pasteable fix instructions. */
+const HealthFailureCard = ({ diagnosis, fix, attempts }) => {
+  if (!diagnosis && !fix) return null;
+  const copyFix = () => {
+    if (!fix) return;
+    navigator.clipboard.writeText(fix).then(() => toast.success('Fix instructions copied — paste into the external Emergent project chat'));
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      transition={{ duration: 0.25 }}
+      className="mt-2 rounded-lg border border-rose-200 bg-rose-50 overflow-hidden"
+      data-testid="health-failure-card"
+    >
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-rose-200 bg-rose-100/60">
+        <Wrench className="w-4 h-4 text-rose-600" />
+        <p className="text-[11px] uppercase tracking-wide font-bold text-rose-700">Health check failed — action required</p>
+      </div>
+      <div className="px-3 py-2 space-y-2">
+        <p className="text-[11.5px] text-rose-900 leading-relaxed">{diagnosis}</p>
+        {attempts && attempts.length > 0 && (
+          <div className="text-[10px] font-mono text-rose-700 bg-white/60 rounded px-2 py-1 border border-rose-200">
+            {attempts.map((a, i) => (
+              <div key={i}>
+                attempt {a.attempt}: {a.error || `HTTP ${a.http_status}`} ({a.elapsed_ms}ms, timeout {a.timeout_s}s)
+              </div>
+            ))}
+          </div>
+        )}
+        {fix && (
+          <div className="rounded-md bg-white border border-rose-200 overflow-hidden">
+            <div className="flex items-center justify-between px-2.5 py-1.5 bg-rose-50/80 border-b border-rose-200">
+              <p className="text-[10px] font-bold text-rose-800 uppercase tracking-wide">Required fix for external project</p>
+              <Button size="sm" variant="ghost" onClick={copyFix} className="h-6 px-2 gap-1 text-rose-700 hover:bg-rose-100" data-testid="copy-fix-btn">
+                <Copy className="w-3 h-3" /> Copy
+              </Button>
+            </div>
+            <pre className="px-3 py-2 text-[10.5px] leading-relaxed text-zinc-800 whitespace-pre-wrap max-h-72 overflow-y-auto">{fix}</pre>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
 
 const LEVEL_META = {
   info:    { color: 'text-violet-600',  bg: 'bg-violet-50',  border: 'border-violet-200',  Icon: Activity },
@@ -173,6 +220,7 @@ export default function SetupStepsCard({ integrationId, token, onActionDone }) {
         in_flight: !!r.data?.health_in_flight,
         log_count: (r.data?.activity_log || []).length,
         last_log_ts: (r.data?.activity_log || []).slice(-1)[0]?.ts || '',
+        health_status: r.data?.last_health_status || '',
       });
       if (snapshot !== lastSnapshotRef.current) {
         lastSnapshotRef.current = snapshot;
@@ -284,12 +332,23 @@ export default function SetupStepsCard({ integrationId, token, onActionDone }) {
                   supportEmail={data.support_email}
                   delay={idx * 0.04}
                   extraSlot={
-                    step.id === 'verify_health' && (step.status === 'current' || data.health_in_flight) ? (
-                      <LiveActivityFeed
-                        events={(data.activity_log || []).filter((e) => e.kind?.startsWith('health'))}
-                        healthInFlight={data.health_in_flight}
-                        healthInFlightUrl={data.health_in_flight_url}
-                      />
+                    step.id === 'verify_health' ? (
+                      <>
+                        {(step.status === 'current' || data.health_in_flight) && (
+                          <LiveActivityFeed
+                            events={(data.activity_log || []).filter((e) => e.kind?.startsWith('health'))}
+                            healthInFlight={data.health_in_flight}
+                            healthInFlightUrl={data.health_in_flight_url}
+                          />
+                        )}
+                        {data.last_health_status && data.last_health_status !== 'ok' && (data.health_diagnosis || data.health_fix_for_external) && (
+                          <HealthFailureCard
+                            diagnosis={data.health_diagnosis}
+                            fix={data.health_fix_for_external}
+                            attempts={data.health_attempts}
+                          />
+                        )}
+                      </>
                     ) : null
                   }
                 />
