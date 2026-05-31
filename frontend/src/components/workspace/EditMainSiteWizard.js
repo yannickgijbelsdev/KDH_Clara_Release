@@ -215,11 +215,13 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
         onUpdated?.();
       } else {
         const err = await res.json().catch(() => ({}));
-        toast.error(err.detail || 'Failed to save');
+        const detail = err.detail || `${res.status} ${res.statusText}`;
+        console.error('[handleSaveGeneral] save failed:', res.status, err);
+        toast.error(`Save failed: ${detail}`);
       }
     } catch (e) {
-      console.error(e);
-      toast.error('Failed to save');
+      console.error('[handleSaveGeneral] exception:', e);
+      toast.error(`Failed to save: ${e?.message || 'network error'}`);
     }
     setSaving(false);
   };
