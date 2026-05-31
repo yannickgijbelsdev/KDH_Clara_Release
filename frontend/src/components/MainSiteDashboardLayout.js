@@ -1178,11 +1178,15 @@ const MainSiteDashboardContent = () => {
 
           {/* Status Icons */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            {/* Clara Global Protect — only show when firewall is active */}
+            {/* Clara Global Protect — only show when firewall is active (icon-only, like Clara Enterprise) */}
             {firewallActive && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20" data-testid="global-protect-icon">
-                <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="text-[11px] font-semibold text-emerald-600 whitespace-nowrap">Clara Global Protect</span>
+              <div className="relative group" data-testid="global-protect-icon">
+                <div className="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center cursor-default">
+                  <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                </div>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2.5 py-1 bg-zinc-900 text-white text-[10px] font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg">
+                  Clara Global Protect
+                </div>
               </div>
             )}
             {/* Clara Enterprise */}
