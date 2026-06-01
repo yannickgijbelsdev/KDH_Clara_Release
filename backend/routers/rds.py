@@ -198,6 +198,18 @@ async def get_rds_endpoints(request: Request, current_user: dict = Depends(requi
                 "station_color": st.get("color", "#f97316"),
             },
             {
+                "name": f"{name} - Presenter(s)",
+                "description": f"Name(s) of the current {name} live show presenter(s), joined with ' & ' (plain text)",
+                "path": f"/api/rds/{code}/presenter",
+                "full_url": f"{base_url}/api/rds/{code}/presenter",
+                "method": "GET",
+                "auth_required": False,
+                "response_type": "text/plain",
+                "station": code,
+                "station_name": name,
+                "station_color": st.get("color", "#f97316"),
+            },
+            {
                 "name": f"{name} - Now Playing",
                 "description": f"Current track from {name} Shoutcast (plain text)",
                 "path": f"/api/rds/{code}/now-playing.txt",
@@ -242,6 +254,18 @@ async def get_rds_endpoints(request: Request, current_user: dict = Depends(requi
             "description": "Title of any current live show (plain text)",
             "path": "/api/rds/live",
             "full_url": f"{base_url}/api/rds/live",
+            "method": "GET",
+            "auth_required": False,
+            "response_type": "text/plain",
+            "station": "all",
+            "station_name": "All Stations",
+            "station_color": "#71717a",
+        },
+        {
+            "name": "All Stations - Presenter(s)",
+            "description": "Presenter name(s) for any currently-live show, joined with ' & ' (plain text)",
+            "path": "/api/rds/presenter",
+            "full_url": f"{base_url}/api/rds/presenter",
             "method": "GET",
             "auth_required": False,
             "response_type": "text/plain",
@@ -502,6 +526,40 @@ async def get_live_show_title_for_station(station: str) -> str:
     return DEFAULT_STATION_NAMES.get(station, "")
 
 
+async def get_live_show_presenters_for_station(station: str) -> str:
+    """Get the current live show presenter name(s) for a specific station.
+
+    Returns an `" & "`-joined string of presenter names for the show that is
+    currently live on this station (or `"both"`). Returns empty string when
+    no show is live or the show has no presenters assigned.
+    """
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_id": 1, "presenter_names": 1},
+    )
+    if not cached:
+        return ""
+    # Prefer cached presenter_names if already resolved by the builder
+    names_cached = cached.get("presenter_names") or []
+    if isinstance(names_cached, list) and any(n for n in names_cached):
+        return " & ".join([n for n in names_cached if n])
+    # Fallback: resolve from show.presenter_ids → users.name
+    if cached.get("show_id"):
+        show = await db.shows.find_one(
+            {"id": cached["show_id"]},
+            {"_id": 0, "presenter_ids": 1},
+        )
+        if show and show.get("presenter_ids"):
+            presenters = await db.users.find(
+                {"id": {"$in": show["presenter_ids"]}},
+                {"_id": 0, "name": 1},
+            ).to_list(10)
+            names = [p.get("name", "") for p in presenters if p.get("name")]
+            if names:
+                return " & ".join(names)
+    return ""
+
+
 @rds_router.get("/mfy/live")
 async def get_mfy_live_show_title():
     """Public endpoint: Get the title of the current MFY live show as plain text."""
@@ -536,6 +594,62 @@ async def get_grk_live_show_title_txt():
     
     title = await get_live_show_title_for_station("grk")
     return PlainTextResponse(content=title, media_type="text/plain")
+
+
+# ─── Presenter name endpoints (per station + global fallback) ───────────────
+@rds_router.get("/mfy/presenter")
+async def get_mfy_presenter():
+    """Public endpoint: Current MFY live show presenter(s), `" & "`-joined plain text."""
+    from fastapi.responses import PlainTextResponse
+    names = await get_live_show_presenters_for_station("mfy")
+    return PlainTextResponse(content=names, media_type="text/plain")
+
+
+@rds_router.get("/mfy/presenter.txt")
+async def get_mfy_presenter_txt():
+    """Public endpoint: Same as /mfy/presenter with .txt extension."""
+    from fastapi.responses import PlainTextResponse
+    names = await get_live_show_presenters_for_station("mfy")
+    return PlainTextResponse(content=names, media_type="text/plain")
+
+
+@rds_router.get("/grk/presenter")
+async def get_grk_presenter():
+    """Public endpoint: Current GRK live show presenter(s), `" & "`-joined plain text."""
+    from fastapi.responses import PlainTextResponse
+    names = await get_live_show_presenters_for_station("grk")
+    return PlainTextResponse(content=names, media_type="text/plain")
+
+
+@rds_router.get("/grk/presenter.txt")
+async def get_grk_presenter_txt():
+    """Public endpoint: Same as /grk/presenter with .txt extension."""
+    from fastapi.responses import PlainTextResponse
+    names = await get_live_show_presenters_for_station("grk")
+    return PlainTextResponse(content=names, media_type="text/plain")
+
+
+@rds_router.get("/presenter")
+async def get_any_presenter():
+    """Public endpoint: Presenter(s) for any currently-live show on either station."""
+    from fastapi.responses import PlainTextResponse
+    # Try MFY first, then GRK, then "both"-shows fall through naturally
+    for st in ("mfy", "grk"):
+        names = await get_live_show_presenters_for_station(st)
+        if names:
+            return PlainTextResponse(content=names, media_type="text/plain")
+    return PlainTextResponse(content="", media_type="text/plain")
+
+
+@rds_router.get("/presenter.txt")
+async def get_any_presenter_txt():
+    """Public endpoint: Same as /presenter with .txt extension."""
+    from fastapi.responses import PlainTextResponse
+    for st in ("mfy", "grk"):
+        names = await get_live_show_presenters_for_station(st)
+        if names:
+            return PlainTextResponse(content=names, media_type="text/plain")
+    return PlainTextResponse(content="", media_type="text/plain")
 
 
 @rds_router.get("/mfy/now-playing")
