@@ -979,7 +979,42 @@ async def publish_content_to_wordpress(
                                 media_data = media_response.json()
                                 wp_media_id = media_data.get('id')
                                 wp_media_url = media_data.get('source_url')
-                                
+
+                                # If we have copyright/credit info, push it to WP
+                                # as the media caption + alt_text + description.
+                                credit = (
+                                    image_to_upload.get("photo_credit")
+                                    or featured_image and featured_image.get("photo_credit")
+                                )
+                                copy_holder = (
+                                    image_to_upload.get("photo_copyright")
+                                    or featured_image and featured_image.get("photo_copyright")
+                                )
+                                src_url = (
+                                    image_to_upload.get("photo_source_url")
+                                    or featured_image and featured_image.get("photo_source_url")
+                                )
+                                if wp_media_id and (credit or copy_holder or src_url):
+                                    parts = []
+                                    if credit:
+                                        parts.append(f"Photo: {credit}")
+                                    if copy_holder:
+                                        parts.append(f"© {copy_holder}")
+                                    caption_text = " — ".join(parts)
+                                    try:
+                                        await client.post(
+                                            f"{wp_base_url.rstrip('/')}/wp-json/wp/v2/media/{wp_media_id}",
+                                            headers=headers,
+                                            json={
+                                                "caption": caption_text,
+                                                "alt_text": credit or "",
+                                                "description": src_url or caption_text,
+                                            },
+                                            timeout=15.0,
+                                        )
+                                    except Exception:
+                                        pass
+
                                 # Update sync status if it's a site-specific image
                                 if featured_image and featured_image.get("id"):
                                     await db.content_item_featured_images.update_one(

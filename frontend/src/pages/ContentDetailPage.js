@@ -4,6 +4,7 @@ import axios from 'axios';
 import { format, parseISO } from 'date-fns';
 import { motion } from 'framer-motion';
 import ImageResizeDialog from '../components/ImageResizeDialog';
+import ImageCopyrightDialog from '../components/ImageCopyrightDialog';
 import MainSiteContext from '../context/MainSiteContext';
 import PublishToButton from '../components/ClaraCustom/PublishToButton';
 import { isImageFile, isOversized } from '../utils/imageResize';
@@ -36,6 +37,7 @@ import {
   Sparkles,
   Pencil,
   Undo2,
+  Copyright,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -167,6 +169,30 @@ const ContentDetailPage = () => {
   const [publishSettings, setPublishSettings] = useState({});
   // Featured images state per site
   const [featuredImages, setFeaturedImages] = useState({});
+
+  // Photo credit/copyright dialog state
+  const [credDialogOpen, setCredDialogOpen] = useState(false);
+  const [credDialogTarget, setCredDialogTarget] = useState(null); // { siteId, image }
+
+  const openCreditDialog = (siteId, image) => {
+    setCredDialogTarget({ siteId, image });
+    setCredDialogOpen(true);
+  };
+
+  const saveCreditForTarget = async (data) => {
+    if (!credDialogTarget) return;
+    const { siteId } = credDialogTarget;
+    try {
+      const r = await axios.put(
+        `${API}/content/${contentId}/featured-images/${siteId}/attribution`,
+        data
+      );
+      setFeaturedImages((prev) => ({ ...prev, [siteId]: r.data.featured_image }));
+      toast.success('Attribution saved');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not save attribution');
+    }
+  };
   const [uploadingSiteId, setUploadingSiteId] = useState(null);
   const fileInputRefs = useRef({});
   // Image resize state
@@ -1419,9 +1445,23 @@ const ContentDetailPage = () => {
                                               onClick={() => fileInputRefs.current[site.id]?.click()}
                                               className="border-zinc-200 text-zinc-600 hover:bg-zinc-50 text-xs h-7 rounded-lg">Replace</Button>
                                             <Button type="button" variant="outline" size="sm"
+                                              onClick={() => openCreditDialog(site.id, image)}
+                                              data-testid={`open-credit-dialog-${site.id}`}
+                                              className="border-zinc-200 text-zinc-600 hover:bg-zinc-50 text-xs h-7 rounded-lg gap-1">
+                                              <Copyright className="w-3 h-3" />
+                                              {image.photo_credit || image.photo_copyright ? 'Edit credit' : 'Add credit'}
+                                            </Button>
+                                            <Button type="button" variant="outline" size="sm"
                                               onClick={() => handleRemoveImage(site.id)}
                                               className="border-zinc-200 text-red-500 hover:bg-red-50 text-xs h-7 rounded-lg">Remove</Button>
                                           </div>
+                                          {(image.photo_credit || image.photo_copyright) && (
+                                            <p className="text-[11px] text-zinc-400 mt-1.5">
+                                              {image.photo_credit && <span>Photo: <span className="text-zinc-600">{image.photo_credit}</span></span>}
+                                              {image.photo_credit && image.photo_copyright && ' · '}
+                                              {image.photo_copyright && <span>© <span className="text-zinc-600">{image.photo_copyright}</span></span>}
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
                                     ) : (
@@ -1635,6 +1675,14 @@ const ContentDetailPage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Photo credit / copyright dialog */}
+      <ImageCopyrightDialog
+        open={credDialogOpen}
+        onOpenChange={setCredDialogOpen}
+        initial={credDialogTarget?.image || {}}
+        onSave={saveCreditForTarget}
+      />
     </div>
   );
 };

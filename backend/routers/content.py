@@ -1,6 +1,7 @@
 """Content library routes."""
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Request
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timezone
 from pathlib import Path
@@ -1140,6 +1141,46 @@ async def upload_content_featured_image(
     return {"success": True, "featured_image": image_data}
 
 
+class FeaturedImageAttributionUpdate(BaseModel):
+    photo_credit: Optional[str] = None
+    photo_copyright: Optional[str] = None
+    photo_source_url: Optional[str] = None
+
+
+@content_router.put("/{content_id}/featured-image/attribution")
+async def update_featured_image_attribution(
+    content_id: str,
+    data: FeaturedImageAttributionUpdate,
+    request: Request,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Update copyright/credit metadata on a content item's featured image."""
+    main_site_id = await get_main_site_id_from_header(request)
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get("team_id"):
+        query["team_id"] = current_user.get("team_id")
+
+    content = await db.content_items.find_one(query)
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    if not content.get("featured_image"):
+        raise HTTPException(status_code=400, detail="Upload a featured image first.")
+
+    fi = dict(content["featured_image"])
+    fi["photo_credit"] = data.photo_credit
+    fi["photo_copyright"] = data.photo_copyright
+    fi["photo_source_url"] = data.photo_source_url
+
+    now = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {"featured_image": fi, "updated_at": now}},
+    )
+    return {"success": True, "featured_image": fi}
+
+
 @content_router.delete("/{content_id}/featured-image")
 async def delete_content_featured_image(
     content_id: str,
@@ -1324,6 +1365,46 @@ async def upload_featured_image(
     return image_doc
 
 
+@content_router.put("/{content_id}/featured-images/{site_id}/attribution")
+async def update_featured_image_attribution_per_site(
+    content_id: str,
+    site_id: str,
+    data: FeaturedImageAttributionUpdate,
+    request: Request,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Attach copyright/credit metadata to a site-specific featured image.
+
+    These fields are forwarded:
+      • WordPress: into the WP media caption / alt_text / description.
+      • Clara News API: as `image_attribution` in the article payload.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    img = await db.content_item_featured_images.find_one({
+        "content_item_id": content_id,
+        "wordpress_site_id": site_id,
+    })
+    if not img:
+        raise HTTPException(status_code=404, detail="Featured image not found")
+
+    now = datetime.now(timezone.utc).isoformat()
+    update = {
+        "photo_credit": data.photo_credit,
+        "photo_copyright": data.photo_copyright,
+        "photo_source_url": data.photo_source_url,
+        "updated_at": now,
+    }
+    await db.content_item_featured_images.update_one(
+        {"content_item_id": content_id, "wordpress_site_id": site_id},
+        {"$set": update},
+    )
+    updated = await db.content_item_featured_images.find_one(
+        {"content_item_id": content_id, "wordpress_site_id": site_id},
+        {"_id": 0},
+    )
+    return {"success": True, "featured_image": updated}
+
+
 @content_router.delete("/{content_id}/featured-images/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_featured_image(
     content_id: str,
@@ -1439,6 +1520,13 @@ async def publish_via_clara_api(
             detail="Publishing via Clara is not enabled for this site. Enable the 'Publish via Clara' feature in site settings first.",
         )
 
+    # Mirror the WordPress flow: only approved items may be published.
+    if content.get("approval_status") != "approved":
+        raise HTTPException(
+            status_code=409,
+            detail="Content must be approved before it can be published. Submit it for approval and have an admin approve it first.",
+        )
+
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.content_items.update_one(
         {"id": content_id},
@@ -1492,8 +1580,6 @@ async def unpublish_via_clara_api(
 
 # ============== BULK NEWS API PUBLISH ==============
 
-from pydantic import BaseModel  # noqa: E402
-
 
 class BulkPublishClaraRequest(BaseModel):
     content_ids: List[str]
@@ -1532,7 +1618,7 @@ async def bulk_publish_via_clara(
 
     items = await db.content_items.find(
         {"id": {"$in": payload.content_ids}, "main_site_id": main_site_id},
-        {"_id": 0, "id": 1, "title": 1, "slug": 1},
+        {"_id": 0, "id": 1, "title": 1, "slug": 1, "approval_status": 1},
     ).to_list(len(payload.content_ids))
     by_id = {i["id"]: i for i in items}
 
@@ -1543,6 +1629,10 @@ async def bulk_publish_via_clara(
         item = by_id.get(cid)
         if not item:
             results.append({"content_id": cid, "status": "skipped", "reason": "not in this main site"})
+            continue
+        # Mirror per-item /publish-clara guard: only approved items get pushed.
+        if item.get("approval_status") != "approved":
+            results.append({"content_id": cid, "status": "skipped", "reason": "not_approved"})
             continue
         slug_to_use = item.get("slug")
         if not slug_to_use:

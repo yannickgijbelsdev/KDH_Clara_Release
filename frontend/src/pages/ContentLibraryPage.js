@@ -150,14 +150,51 @@ const ContentLibraryPage = () => {
   };
   const clearSelection = () => setSelectedIds(new Set());
 
+  const bulkApprove = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkPublishing(true);
+    try {
+      const ids = Array.from(selectedIds);
+      // Walk one-by-one — each request goes through the existing approval audit log
+      const results = await Promise.allSettled(
+        ids.map((id) => axios.put(`${API}/content/${id}/approval`, { approval_status: 'approved' }))
+      );
+      const ok = results.filter((r) => r.status === 'fulfilled').length;
+      const fail = results.length - ok;
+      toast.success(`Approved ${ok}${fail ? ` — ${fail} failed` : ''}`);
+      fetchContent();
+    } catch (err) {
+      toast.error('Bulk approve failed');
+    } finally {
+      setBulkPublishing(false);
+    }
+  };
+
   const bulkPublishToApi = async () => {
     if (selectedIds.size === 0) return;
+    // Pre-check: warn about items that aren't approved yet.
+    const notApproved = filteredContent.filter(
+      (c) => selectedIds.has(c.id) && c.approval_status !== 'approved'
+    );
+    if (notApproved.length > 0) {
+      toast.error(
+        `${notApproved.length} item${notApproved.length === 1 ? ' is' : 's are'} not approved yet — approve first.`,
+        { duration: 5000 }
+      );
+      return;
+    }
     setBulkPublishing(true);
     try {
       const r = await axios.post(`${API}/content/bulk-publish-clara`, {
         content_ids: Array.from(selectedIds),
       });
-      toast.success(`Published ${r.data.published} article${r.data.published === 1 ? '' : 's'} to News API`);
+      const skipped = r.data.skipped || 0;
+      const published = r.data.published || 0;
+      if (skipped > 0) {
+        toast.message(`Published ${published} · skipped ${skipped} (not approved)`);
+      } else {
+        toast.success(`Published ${published} article${published === 1 ? '' : 's'} to News API`);
+      }
       clearSelection();
       fetchContent();
     } catch (err) {
@@ -512,6 +549,17 @@ const ContentLibraryPage = () => {
               className="text-white/70 hover:text-white hover:bg-white/10"
             >
               Clear
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={bulkPublishing}
+              onClick={bulkApprove}
+              data-testid="bulk-approve-btn"
+              className="text-white border border-white/20 hover:bg-white/10 gap-1.5"
+            >
+              <Check className="w-3.5 h-3.5" />
+              Approve all
             </Button>
             <Button
               size="sm"

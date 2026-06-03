@@ -68,6 +68,23 @@ def _build_image_url(item: dict) -> Optional[str]:
     )
 
 
+def _build_image_attribution(item: dict) -> Optional[dict]:
+    """Return photo credit/copyright bundle if present on the featured image
+    or directly on the content item. None when nothing is set.
+    """
+    fi = item.get("featured_image") or {}
+    credit = fi.get("photo_credit") or item.get("photo_credit")
+    copy = fi.get("photo_copyright") or item.get("photo_copyright")
+    src = fi.get("photo_source_url") or item.get("photo_source_url")
+    if not (credit or copy or src):
+        return None
+    return {
+        "credit": credit,
+        "copyright": copy,
+        "source_url": src,
+    }
+
+
 def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, include_body: bool = False) -> dict:
     out = {
         "id": item["id"],
@@ -75,6 +92,7 @@ def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, inc
         "slug": item.get("slug") or item["id"],
         "excerpt": item.get("excerpt", ""),
         "image_url": _build_image_url(item),
+        "image_attribution": _build_image_attribution(item),
         "category": (
             {"id": category["id"], "slug": category["slug"], "name": category["name"]}
             if category else None

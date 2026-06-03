@@ -52,6 +52,11 @@ class FeaturedImageResponse(BaseModel):
     sync_status: str = "not_synced"
     sync_error_message: Optional[str] = None
     last_synced_at: Optional[str] = None
+    # Copyright / attribution — required to comply with photographer/agency
+    # licensing. Pushed into WP media caption + News API article payload.
+    photo_credit: Optional[str] = None
+    photo_copyright: Optional[str] = None
+    photo_source_url: Optional[str] = None
     created_at: str
     updated_at: str
 
@@ -86,6 +91,12 @@ class ContentFeaturedImage(BaseModel):
     file_name: str
     mime_type: str
     size: int
+    # Copyright / attribution metadata. Travels with the image so WordPress
+    # publish (as media caption / alt) and News API publish (in the article
+    # payload) can credit the rights holder consistently.
+    photo_credit: Optional[str] = None
+    photo_copyright: Optional[str] = None
+    photo_source_url: Optional[str] = None
 
 
 class ContentItemResponse(BaseModel):
