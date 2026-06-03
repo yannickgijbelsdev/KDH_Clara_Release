@@ -1584,12 +1584,157 @@ async def get_main_site_api_endpoints(
         ],
     })
 
+    # ─── Additional Public Endpoints (auto-introspected) ───────────────────
+    # Walk every registered FastAPI route, find the ones that DO NOT require
+    # authentication, and include them so the admin sees the full surface
+    # area of public API. We exclude:
+    #   - paths already covered by the curated groups above
+    #   - internal/debug/migration/backup/clone endpoints
+    #   - WebSocket routes and OPTIONS/HEAD methods
+    #   - auth flow (login/register) — already in Auth group
+    try:
+        extra = _build_extra_public_endpoints_group(base_url, site, groups)
+        if extra and extra["endpoints"]:
+            groups.append(extra)
+    except Exception as e:
+        logger.warning(f"Could not introspect extra public endpoints: {e}")
+
     return {
         "site": {"id": site["id"], "name": site["name"], "slug": site.get("slug"), "enabled_features": enabled, "site_type": site_type},
         "base_url": base_url,
         "groups": groups,
         "total_endpoints": sum(len(g["endpoints"]) for g in groups),
     }
+
+
+def _build_extra_public_endpoints_group(base_url: str, site: dict, existing_groups: list) -> dict:
+    """Introspect FastAPI's route table and return any public (auth-less) GET
+    endpoints that are NOT already covered by the curated groups above.
+
+    "Public" = the route has no auth dependency (no Depends(get_current_user) etc.)
+    """
+    from server import app
+    from fastapi.routing import APIRoute
+
+    # Build the set of paths already in curated groups so we don't duplicate.
+    covered_paths = set()
+    for g in existing_groups:
+        for ep in g.get("endpoints", []):
+            covered_paths.add((ep["method"], ep["path"]))
+
+    # Heuristics: prefixes/keywords that should NEVER be shown to a site admin,
+    # even when auth-less, because they're operational/internal or per-token.
+    excluded_prefixes = (
+        "/api/migration", "/api/debug", "/api/internal", "/api/test",
+        "/api/vdc",                # deployment internals
+        "/api/clara-custom",       # already curated when integrations are registered
+        "/api/auth/",              # all auth flows live in their own group already
+        "/api/branding/upload",    # admin uploads
+        "/api/canva/auth",         # OAuth callbacks, not browsable
+    )
+    excluded_keywords = ("debug", "migration", "internal", "test-connection", "/callback")
+
+    # Single-use tokens in path (per-invite, per-share) → skip (not enumerable)
+    def _has_single_use_token(p: str) -> bool:
+        return any(seg in p for seg in ("{token}", "{invite_token}", "{share_token}", "{call_token}", "{reset_token}"))
+
+    # Some routes are nominally public but route-by-id only (useless to list)
+    # We KEEP /api/news/articles/{id} because the curated group already lists it.
+
+    # Auth dependency detection: any dependency whose call signature mentions
+    # current_user / token / require_* is treated as authenticated.
+    def _is_auth_required(route: APIRoute) -> bool:
+        try:
+            dep = route.dependant
+            for d in dep.dependencies:
+                call = getattr(d, "call", None)
+                if not call:
+                    continue
+                name = getattr(call, "__name__", "") or ""
+                if any(s in name for s in ("current_user", "get_current_user", "require_", "verify_", "_admin", "_token")):
+                    return True
+                # Recurse one level into Security dependencies
+                for sub in getattr(d, "dependencies", []):
+                    sub_call = getattr(sub, "call", None)
+                    sub_name = getattr(sub_call, "__name__", "") or ""
+                    if any(s in sub_name for s in ("current_user", "get_current_user", "require_", "verify_")):
+                        return True
+        except Exception:
+            return True  # err on the side of hiding
+        return False
+
+    site_slug = site.get("slug", "")
+    extra_endpoints = []
+
+    for route in app.routes:
+        if not isinstance(route, APIRoute):
+            continue
+        path = getattr(route, "path", "") or ""
+        if not path.startswith("/api/"):
+            continue
+        if any(path.startswith(p) for p in excluded_prefixes):
+            continue
+        if any(k in path for k in excluded_keywords):
+            continue
+        if _has_single_use_token(path):
+            continue
+        # Only list READ-ONLY routes — write/delete are intrinsically more
+        # privileged even when nominally auth-less.
+        methods = (getattr(route, "methods", set()) or set()) & {"GET"}
+        if not methods:
+            continue
+        if _is_auth_required(route):
+            continue
+
+        # Pull short docstring as description
+        ep_fn = getattr(route, "endpoint", None)
+        doc = (ep_fn.__doc__ or "").strip() if ep_fn else ""
+        description = (doc.split("\n", 1)[0] if doc else "").strip()
+
+        # Prefer GET first
+        for method in sorted(methods, key=lambda m: 0 if m == "GET" else 1):
+            if (method, path) in covered_paths:
+                continue
+            full_url = f"{base_url}{path}"
+            # Auto-suggest the site slug in the URL preview when the path
+            # contains a `{site_slug}` or `{main_site_slug}` placeholder.
+            preview_url = full_url.replace("{site_slug}", site_slug).replace("{main_site_slug}", site_slug)
+            extra_endpoints.append({
+                "name": (getattr(route, "name", "") or path).replace("_", " "),
+                "description": description or "Auto-discovered public endpoint",
+                "method": method,
+                "response_type": "application/json",
+                "path": path,
+                "full_url": preview_url,
+                "tag": _path_to_tag(path),
+                "tag_color": "#0891b2",
+            })
+
+    # Sort by path for stable ordering, then de-dupe (some routers register
+    # the same path twice for backwards-compat aliases).
+    seen = set()
+    deduped = []
+    for ep in sorted(extra_endpoints, key=lambda e: (e["path"], e["method"])):
+        key = (ep["method"], ep["path"])
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(ep)
+    extra_endpoints = deduped
+
+    return {
+        "id": "additional_public",
+        "name": "Additional Public Endpoints",
+        "icon": "globe",
+        "description": "Auto-discovered routes that don't require authentication. Useful for client apps, share previews, embeds and crawlers. Curl any of these without a token.",
+        "endpoints": extra_endpoints,
+    }
+
+
+def _path_to_tag(path: str) -> str:
+    """Derive a short tag from the route path's first non-{} segment after /api/."""
+    parts = [p for p in path.split("/") if p and not p.startswith("{") and p != "api"]
+    return parts[0] if parts else "api"
 
 
 @main_sites_router.get("/{main_site_id}/debug")
