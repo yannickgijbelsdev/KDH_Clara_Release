@@ -570,7 +570,13 @@ async def upload_site_logo(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user),
 ):
-    """Upload a logo for a main site."""
+    """Upload a logo for a main site.
+
+    Persists to S3 when configured (survives container restarts). Falls back
+    to the local /uploads folder only if S3 is unavailable in the current
+    environment — in that case the file is ephemeral and the admin should
+    enable Cloud Resources for the environment.
+    """
     main_site = await db.main_sites.find_one({"id": main_site_id})
     if not main_site:
         raise HTTPException(status_code=404, detail="Main site not found")
@@ -579,15 +585,41 @@ async def upload_site_logo(
         raise HTTPException(status_code=400, detail="Only image files are allowed")
 
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else "png"
-    file_key = f"{main_site_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    dest = SITE_LOGOS_DIR / file_key
+    file_key = f"site_logos/{main_site_id}_{uuid.uuid4().hex[:8]}.{ext}"
+    file_bytes = await file.read()
 
-    with open(dest, "wb") as out:
-        shutil.copyfileobj(file.file, out)
+    logo_url = None
+    try:
+        from services.s3_storage import is_s3_configured, upload_file_to_s3
+        if is_s3_configured():
+            result = await upload_file_to_s3(
+                file_content=file_bytes,
+                file_key=file_key,
+                content_type=file.content_type,
+                main_site_id=main_site_id,
+                user_id=current_user.get("id"),
+                user_name=current_user.get("name"),
+            )
+            logo_url = result["url"]
+    except HTTPException:
+        # Cloud Resources disabled for this env — fall back to local
+        logo_url = None
+    except Exception as e:
+        # S3 hiccup — log and fall back
+        import logging
+        logging.getLogger(__name__).warning("Logo upload to S3 failed, falling back to local: %s", e)
+        logo_url = None
 
-    logo_url = f"/api/uploads/site_logos/{file_key}"
+    if not logo_url:
+        # Local fallback (ephemeral — survives reload but not container restart)
+        local_key = f"{main_site_id}_{uuid.uuid4().hex[:8]}.{ext}"
+        dest = SITE_LOGOS_DIR / local_key
+        SITE_LOGOS_DIR.mkdir(parents=True, exist_ok=True)
+        with open(dest, "wb") as out:
+            out.write(file_bytes)
+        logo_url = f"/api/uploads/site_logos/{local_key}"
+
     await db.main_sites.update_one({"id": main_site_id}, {"$set": {"logo_url": logo_url}})
-
     return {"logo_url": logo_url}
 
 

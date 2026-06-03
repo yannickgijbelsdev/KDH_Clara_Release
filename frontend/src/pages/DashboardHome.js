@@ -47,7 +47,7 @@ export default function DashboardHome() {
 
   const siteType = mainSite?.site_type || 'radio';
   const isRadio = siteType === 'radio';
-  const isSinglePurpose = ['task_scheduler', 'clara_custom', 'wp_security'].includes(siteType);
+  const isSinglePurpose = ['task_scheduler', 'clara_custom', 'wp_security', 'custom'].includes(siteType);
   const showFeaturesPanel = !isRadio && !isSinglePurpose; // only relevant for network/sites/external_host/technical
   const theme = SITE_TYPE_THEMES[siteType] || SITE_TYPE_THEMES.radio;
   const Icon = theme.icon;
@@ -404,4 +404,3 @@ function TeamPanel({ teamMembers, loading, navigate, mainSiteSlug }) {
     </Panel>
   );
 }
-

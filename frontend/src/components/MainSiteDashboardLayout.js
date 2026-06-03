@@ -375,13 +375,22 @@ const MainSiteDashboardContent = () => {
   // Dynamically calculate how many nav items fit in the pill bar.
   // Strategy: estimate width per item from its label length (px per character),
   // recompute on resize. Falls back to a conservative average.
+  // Recalculate visible nav pill count whenever the site slug, the available
+  // features OR the actual nav item list changes. After a site switch the
+  // mainSite re-renders before the ResizeObserver fires, leaving the
+  // calculation stuck on the previous (smaller) list — that's why the header
+  // would collapse to "Dashboard · More". Triggering on the items themselves
+  // forces a fresh calculation with the new list.
+  const flatNavSignature = (flatNavItemsRef.current || [])
+    .map((i) => i.label)
+    .join('|');
   useEffect(() => {
     const container = pillNavRef.current;
     if (!container) return;
-    const DASHBOARD_WIDTH = 130; // Dashboard pill + gap
-    const MORE_WIDTH = 90;        // "More ▾" button
-    const PILL_PADDING = 44;      // px:py-2.5 + gap per pill
-    const PX_PER_CHAR = 7.2;      // approximate at text-sm/medium
+    const DASHBOARD_WIDTH = 130;
+    const MORE_WIDTH = 90;
+    const PILL_PADDING = 44;
+    const PX_PER_CHAR = 7.2;
 
     const calculate = () => {
       const totalWidth = container.offsetWidth;
@@ -397,11 +406,16 @@ const MainSiteDashboardContent = () => {
       setVisibleNavCount(count);
     };
     calculate();
+    // Re-run on next animation frame to ensure fonts/layout have settled
+    const raf = requestAnimationFrame(calculate);
     const observer = new ResizeObserver(calculate);
     observer.observe(container);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(raf);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mainSiteSlug]);
+  }, [mainSiteSlug, flatNavSignature]);
 
 
   // Fetch sites for navigation
