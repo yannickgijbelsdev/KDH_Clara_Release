@@ -53,6 +53,7 @@ import VDCDeployPanel from './VDCDeployPanel';
 import SupportTicketsPage from './SupportTicketsPage';
 import LicenseManager from './LicenseManager';
 import DomainManager from './DomainManager';
+import ZeroTrustPanel from '../../components/ZeroTrustPanel';
 import {
   Tooltip,
   TooltipContent,
@@ -1029,6 +1030,13 @@ export default function NetworkDashboard() {
                     <TwoFactorSetup user={user} onUpdate={refreshUser} />
                   </CardContent>
                 </Card>
+
+                {/* Zero Trust Posture — visible to network/system admins */}
+                {(user?.is_network_admin || isSystemAdmin) && (
+                  <div className="mt-8">
+                    <ZeroTrustPanel token={token} />
+                  </div>
+                )}
 
                 {/* ZeroTier Network Guard - System Admins Only */}
                 {isSystemAdmin && (

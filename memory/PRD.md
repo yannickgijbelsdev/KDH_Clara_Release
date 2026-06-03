@@ -144,3 +144,37 @@ Multi-environment SaaS platform for radio station management built with React fr
 - **Fix**: Removed `setLinkedMainSiteId('')` and `setClMode('none')` from both call sites (lines 1394 & 1486); replaced with `setCustomApis([])` reset for Clara Custom flow.
 - **Tested** (`testing_agent_v3_fork` iteration_150): Backend 10/10 (Clara Custom, notifications broadcast, content rollback). Frontend smoke 100% — login → LoginWizard → Enter Clara → "New Server" wizard opens without `ReferenceError`. Regression suite saved to `/app/backend/tests/test_clara_custom_and_recent_fixes.py`.
 
+
+## 2026-06-03 — ProRadio Cleanup + Zero Trust Enterprise Security
+### ProRadio fully removed
+- Deleted: `backend/routers/proradio.py`, `backend/services/proradio_service.py`, `frontend/public/images/api_proradio.jpg`.
+- Stripped: ProRadio sync calls + imports from `routers/shows.py` (create/update/delete handlers), `server.py`, `routers/main_sites.py` (API explorer mapping), and `pages/Network/ApiExplorerPage.js`.
+- DB migration `scripts/cleanup_proradio_data.py` — drops `proradio_sync` / `proradio_credentials` / `proradio_logs` collections, strips legacy ProRadio fields from shows, removes `"proradio"` from `enabled_integrations`. Idempotent.
+- Verified: `GET /api/proradio/*` → 404; no ProRadio collections remain.
+
+### Zero Trust security layer (assume-breach posture)
+New components:
+- **Field-level encryption** (`services/security/encryption.py`) — Fernet/AES-128-CBC + HMAC-SHA256, prefix `enc:v1:`, idempotent, keyed by `SECURITY_ENCRYPTION_KEY`.
+- **Brute-force identity lockout** (`services/security/brute_force.py`) — ladder: 5 failed attempts → 60s lock, then 5m → 15m → 60m. Stored in `db.brute_force_locks`. Per-email scoping (complementary to existing IP-level firewall).
+- **Device-trust tracking** (`services/security/device_trust.py`) — SHA-256 fingerprint of UA + accept-language + IP /24, new-device → audit event → notification.
+- **Anomaly scheduler** (`services/security/anomaly.py`) — 5min loop detecting credential stuffing, off-hours admin writes, permission bursts.
+- **Security headers middleware** (`middleware/security_headers.py`) — HSTS, CSP, X-Frame-Options=SAMEORIGIN, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP/CORP.
+- **Strict CORS** — exact origin allow-list + regex `^https://([a-zA-Z0-9-]+\.)?koodh\.com$|^https://[a-zA-Z0-9-]+\.preview\.emergentagent\.com$`; methods + headers narrowed to what's actually used.
+- **Admin telemetry router** (`routers/security.py`): `/api/security/overview|anomalies|lockouts|devices` + acknowledge / clear / revoke actions.
+- **Frontend Zero Trust panel** (`components/ZeroTrustPanel.js`) embedded in Network Dashboard → Security section. Shows encryption status, open anomalies (with severity tiles), active lockouts (with one-click release), and known devices.
+
+Encryption applied to existing data:
+- `wordpress_sites.app_password` and `clara_integrations.shared_secret` migrated to `enc:v1:…` via `scripts/encrypt_existing_secrets.py` (4 documents). Runtime decrypt happens at the auth-string build sites (`routers/wordpress.py`, `routers/clara_integrations.py`).
+
+Audit wiring:
+- Login now feeds *both* the existing IP-level firewall **and** the new identity-level lockout; failed 2FA also records identity failures.
+- Successful login emits a New-Device audit log via the existing audit→notification bridge when the fingerprint is unknown.
+
+Tests:
+- `backend/tests/test_zero_trust.py` — 4 tests, all green: encryption round-trip, brute-force ladder, fingerprint stability across /24, security headers presence.
+
+### Status
+- Backend health: ✅ running
+- Encryption available: ✅ (verified via `/api/security/overview`)
+- ProRadio: removed
+- Auto-deploy push to VDC: queued (deployment_id `7a7e6f09-…`)

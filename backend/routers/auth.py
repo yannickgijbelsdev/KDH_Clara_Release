@@ -15,6 +15,8 @@ from services.auth import (
 from services.audit import log_action, get_client_ip
 from services.firewall_service import handle_failed_login, handle_successful_login, check_ip_blocked
 from services.zt_guard import verify_zt_access
+from services.security.brute_force import is_locked as is_identity_locked, record_failure as record_login_failure, record_success as record_login_success
+from services.security.device_trust import record_login_device
 from services.two_factor import (
     generate_totp_secret, generate_qr_code_base64, verify_totp,
     generate_backup_codes, hash_backup_code, verify_backup_code
@@ -161,10 +163,21 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
     if block:
         raise HTTPException(status_code=403, detail="IP temporarily blocked due to too many failed attempts. Try again later.")
 
+    # Zero Trust: identity-scoped brute-force lockout (independent of IP)
+    identity_key = f"email:{credentials.email.lower().strip()}"
+    locked, retry = await is_identity_locked(identity_key)
+    if locked:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Account temporarily locked due to failed attempts. Retry in {retry}s.",
+            headers={"Retry-After": str(retry)},
+        )
+
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not verify_password(credentials.password, user['password_hash']):
-        # Record failed attempt for brute force detection
+        # Record failed attempt for brute force detection (both IP-level and identity-level)
         await handle_failed_login(client_ip, credentials.email)
+        await record_login_failure(identity_key, client_ip, "invalid_credentials")
         await log_action(
             action="Login Failed",
             category="auth",
@@ -219,6 +232,7 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
                 )
         
         if not code_valid:
+            await record_login_failure(identity_key, client_ip, "invalid_2fa")
             await log_action(
                 action="Login Failed - Invalid 2FA",
                 category="auth",
@@ -256,6 +270,20 @@ async def login(credentials: TwoFactorLoginRequest, request: Request):
 
     # Log successful login
     await handle_successful_login(client_ip, user['id'], user['email'])
+    await record_login_success(identity_key, client_ip)
+
+    # Zero Trust: record device fingerprint and emit alert on new device
+    try:
+        await record_login_device(
+            user=user,
+            ip=client_ip,
+            user_agent=request.headers.get("user-agent"),
+            accept_lang=request.headers.get("accept-language"),
+            country=request.headers.get("cf-ipcountry") or request.headers.get("x-country"),
+            city=request.headers.get("cf-ipcity") or request.headers.get("x-city"),
+        )
+    except Exception:
+        pass
     await log_action(
         action="Login",
         category="auth",

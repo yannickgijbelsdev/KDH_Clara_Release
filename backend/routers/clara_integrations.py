@@ -22,6 +22,7 @@ import asyncio
 import httpx
 
 from services.auth import get_current_user, require_network_admin
+from services.security.encryption import encrypt as enc_field, decrypt as dec_field
 from database import db
 
 clara_integrations_router = APIRouter(prefix="/clara-custom/integrations", tags=["clara-integrations"])
@@ -378,7 +379,7 @@ async def register_integration(data: dict, background: BackgroundTasks):
 
     update = {
         "base_url": base_url,
-        "shared_secret": shared_secret,
+        "shared_secret": enc_field(shared_secret),
         "endpoints_map": endpoints_map,
         "schema_version": schema_version,
         "registered_at": integ.get("registered_at") or now,
@@ -541,6 +542,8 @@ async def patch_integration(
         raise HTTPException(status_code=404, detail="Integration not found")
     allowed = {"base_url", "shared_secret", "production_url", "production_slug"}
     update = {k: v for k, v in data.items() if k in allowed and v is not None}
+    if "shared_secret" in update:
+        update["shared_secret"] = enc_field(update["shared_secret"])
     if "base_url" in update:
         update["base_url"] = str(update["base_url"]).rstrip("/")
     if "production_url" in update:
@@ -708,7 +711,7 @@ async def diagnose_external(integration_id: str, current_user: dict = Depends(re
     url = _build_url(integ["base_url"], list_path)
     headers = {}
     if integ.get("shared_secret"):
-        headers["Authorization"] = f"Bearer {integ['shared_secret']}"
+        headers["Authorization"] = f"Bearer {dec_field(integ['shared_secret'])}"
 
     try:
         async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
@@ -943,7 +946,7 @@ async def _push_content_item(integ: dict, item: dict) -> dict:
     url = _build_url(integ["base_url"], upsert_path, clara_content_id=item["id"])
     headers = {"Content-Type": "application/json"}
     if integ.get("shared_secret"):
-        headers["Authorization"] = f"Bearer {integ['shared_secret']}"
+        headers["Authorization"] = f"Bearer {dec_field(integ['shared_secret'])}"
     payload = _content_to_payload(item)
     started = datetime.now(timezone.utc)
     await _log_activity(integ["id"], "push_start", f"Pushing '{item.get('title', '')[:60]}' → {url}", "info")
@@ -1284,7 +1287,7 @@ async def _import_existing_remote_items(integ: dict) -> dict:
     url = _build_url(integ["base_url"], list_path)
     headers = {}
     if integ.get("shared_secret"):
-        headers["Authorization"] = f"Bearer {integ['shared_secret']}"
+        headers["Authorization"] = f"Bearer {dec_field(integ['shared_secret'])}"
     await _log_activity(integ["id"], "import_start", f"Importing remote items from {url}…", "info")
     try:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:

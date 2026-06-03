@@ -1090,7 +1090,6 @@ async def get_api_endpoints(current_user: dict = Depends(require_network_admin))
         '/api/audio-triggers': {'name': 'Audio Triggers', 'icon': 'volume-2', 'description': 'Audio detection triggers'},
         '/api/stream': {'name': 'Stream', 'icon': 'radio', 'description': 'Stream proxy'},
         '/api/public': {'name': 'Public', 'icon': 'external-link', 'description': 'Public endpoints (no auth)'},
-        '/api/proradio': {'name': 'ProRadio', 'icon': 'refresh-cw', 'description': 'ProRadio sync'},
         '/api/migration': {'name': 'Migration', 'icon': 'database', 'description': 'Data migration tools'},
     }
     

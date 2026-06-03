@@ -25,7 +25,6 @@ from services.websocket import ws_manager
 from services.helpers import get_content_with_publish_statuses
 from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured, check_cloud_resources_enabled
 from services.main_site_context import get_main_site_id_from_header
-from services.proradio_service import sync_show_to_proradio, delete_show_from_proradio
 from services.timezone_utils import now_brussels, today_brussels, format_datetime_brussels
 from services.audit import log_action, get_client_ip
 
@@ -912,16 +911,6 @@ async def create_show(
         if parent_doc.get("presenter_ids"):
             parent_doc["presenters"] = await get_presenters_info(parent_doc["presenter_ids"], team_id)
         
-        # Sync to ProRadio in background (for parent and all occurrences)
-        async def sync_recurring_shows():
-            all_shows = await db.shows.find({
-                "$or": [{"id": parent_id}, {"parent_show_id": parent_id}]
-            }, {"_id": 0}).to_list(100)
-            for show in all_shows:
-                await sync_show_to_proradio(show, main_site_id, team_id)
-        
-        background_tasks.add_task(sync_recurring_shows)
-        
         # Log show creation
         await log_action(
             action=f"Created recurring show: {show_data.title}",
@@ -970,9 +959,6 @@ async def create_show(
         # Add presenter info to response
         if show_doc.get("presenter_ids"):
             show_doc["presenters"] = await get_presenters_info(show_doc["presenter_ids"], team_id)
-        
-        # Sync to ProRadio in background
-        background_tasks.add_task(sync_show_to_proradio, show_doc, main_site_id, team_id)
         
         # Log show creation
         await log_action(
@@ -1109,21 +1095,6 @@ async def update_show(
     if updated_show.get('presenter_ids'):
         updated_show['presenters'] = await get_presenters_info(updated_show['presenter_ids'], main_site_id, team_id)
     
-    # Sync to ProRadio in background
-    if update_all and show.get('is_recurring'):
-        # Sync all occurrences
-        parent_id = show.get('parent_show_id') or show_id
-        async def sync_updated_recurring():
-            all_shows = await db.shows.find({
-                "$or": [{"id": parent_id}, {"parent_show_id": parent_id}]
-            }, {"_id": 0}).to_list(100)
-            for s in all_shows:
-                await sync_show_to_proradio(s, main_site_id, team_id)
-        background_tasks.add_task(sync_updated_recurring)
-    else:
-        # Sync just this show
-        background_tasks.add_task(sync_show_to_proradio, updated_show, main_site_id, team_id)
-    
     # Log show update
     await log_action(
         action=f"Updated show: {updated_show.get('title', 'Unknown')}",
@@ -1189,7 +1160,7 @@ async def delete_show(
                 ]
             }
         
-        # Get all shows to delete (for ProRadio sync)
+        # Get all shows to delete
         shows_to_delete = await db.shows.find(context_query, {"_id": 0}).to_list(1000)
         
         show_ids = [s['id'] for s in shows_to_delete]
@@ -1199,28 +1170,10 @@ async def delete_show(
         
         # Delete all shows
         await db.shows.delete_many(context_query)
-        
-        # Delete from ProRadio in background
-        async def delete_recurring_from_proradio():
-            for s in shows_to_delete:
-                await delete_show_from_proradio(
-                    s.get("id"), s.get("title"), s.get("date"),
-                    s.get("start_time"), s.get("end_time"),
-                    main_site_id, team_id
-                )
-        background_tasks.add_task(delete_recurring_from_proradio)
     else:
         # Delete only this show
         await db.shows.delete_one({"id": show_id})
         await db.rundown_items.delete_many({"show_id": show_id})
-        
-        # Delete from ProRadio in background
-        background_tasks.add_task(
-            delete_show_from_proradio,
-            show_id, show.get("title"), show.get("date"),
-            show.get("start_time"), show.get("end_time"),
-            main_site_id, team_id
-        )
 
     # Log show deletion
     await log_action(

@@ -28,6 +28,7 @@ from models.wordpress import (
 from services.auth import get_current_user, require_admin
 from services.main_site_context import get_main_site_id_from_header, get_effective_role
 from services.audit import log_action, get_client_ip
+from services.security.encryption import encrypt as enc_field, decrypt as dec_field
 
 # Security audit logger for WordPress integration
 wp_audit_logger = logging.getLogger("wordpress.audit")
@@ -99,7 +100,7 @@ async def create_wordpress_site(
         "name": site_data.name,
         "wp_base_url": site_data.wp_base_url.rstrip('/'),
         "username": site_data.username,
-        "app_password": site_data.app_password,
+        "app_password": enc_field(site_data.app_password),
         "default_post_type": site_data.default_post_type,
         "default_publish_status": site_data.default_publish_status,
         "is_active": site_data.is_active,
@@ -139,6 +140,9 @@ async def update_wordpress_site(
     update_dict = {k: v for k, v in site_data.model_dump().items() if v is not None}
     if "wp_base_url" in update_dict:
         update_dict["wp_base_url"] = update_dict["wp_base_url"].rstrip('/')
+    # Zero Trust: encrypt rotated credentials before persisting
+    if "app_password" in update_dict and update_dict["app_password"]:
+        update_dict["app_password"] = enc_field(update_dict["app_password"])
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     
     await db.wordpress_sites.update_one(
@@ -209,7 +213,7 @@ async def test_wordpress_site(
     
     try:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-            auth_string = f"{site['username']}:{site['app_password']}"
+            auth_string = f"{site['username']}:{dec_field(site['app_password'])}"
             auth_bytes = base64.b64encode(auth_string.encode()).decode()
             headers = {
                 "Authorization": f"Basic {auth_bytes}",
@@ -367,7 +371,7 @@ async def sync_wordpress_categories(
     
     try:
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-            auth_string = f"{site['username']}:{site['app_password']}"
+            auth_string = f"{site['username']}:{dec_field(site['app_password'])}"
             auth_bytes = base64.b64encode(auth_string.encode()).decode()
             headers = {
                 "Authorization": f"Basic {auth_bytes}",
@@ -513,7 +517,7 @@ async def import_wordpress_posts(
     
     try:
         async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-            auth_string = f"{site['username']}:{site['app_password']}"
+            auth_string = f"{site['username']}:{dec_field(site['app_password'])}"
             auth_bytes = base64.b64encode(auth_string.encode()).decode()
             headers = {
                 "Authorization": f"Basic {auth_bytes}",
@@ -839,7 +843,7 @@ async def publish_content_to_wordpress(
         
         try:
             async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-                auth_string = f"{site['username']}:{site['app_password']}"
+                auth_string = f"{site['username']}:{dec_field(site['app_password'])}"
                 auth_bytes = base64.b64encode(auth_string.encode()).decode()
                 headers = {
                     "Authorization": f"Basic {auth_bytes}",

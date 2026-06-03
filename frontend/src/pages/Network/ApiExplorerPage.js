@@ -47,7 +47,6 @@ const CATEGORY_BACKGROUNDS = {
   'Main Sites': 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/22f2f45a0fc5b946a4fce7f42e72cdb6a1cee099c233bdf9ae31b1c5411a5148.png',
   'Media': 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/8db81cf457a5dc2a0479af6355d9137dda931ef1fae1e1eac5875a04dfe41e98.png',
   'Other': 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/5f02546a9528327087ac36c645eefb895b5a121776c7216b1e7895840de18f80.png',
-  'ProRadio': '/images/api_proradio.jpg',
   'Public': 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/b298f8d0606e3d28910cb9767ff851b9549c708afe2f5b4ad63c81f08a5bccf8.png',
   'RDS': 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/51eb36617c111a9a618e323da5489f43bcaaf0e139c26ec379ea0410e524a79f.png',
   'Series': 'https://static.prod-images.emergentagent.com/jobs/701f0662-a1b9-4b1a-b3cd-31d39c15bdb0/images/6980b52fd9ba9df33dfd25a2a992310f115d506bd87a6662aef5ac709f41f901.png',

@@ -47,7 +47,6 @@ from routers.sites import sites_router
 from routers.main_sites import main_sites_router
 from routers.migration import router as migration_router
 from routers.wordpress import publish_content_to_wordpress
-from routers.proradio import proradio_router
 from routers.public_schedule import public_schedule_router
 from routers.statistics import statistics_router
 from routers.backups import backup_router
@@ -82,6 +81,7 @@ from routers.clara_custom import clara_custom_router
 from routers.clara_integrations import clara_integrations_router, integrations_health_poller
 from routers.vdc_quick_deploy import vdc_quick_router
 from routers.news_public import news_public_router
+from routers.security import security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -134,8 +134,8 @@ api_router.include_router(clara_test_router)
 api_router.include_router(stream_proxy_router)
 api_router.include_router(sites_router)
 api_router.include_router(main_sites_router)
-api_router.include_router(proradio_router)
 api_router.include_router(public_schedule_router)
+api_router.include_router(security_router)
 api_router.include_router(statistics_router)
 api_router.include_router(backup_router)
 api_router.include_router(devtools_router)
@@ -1109,13 +1109,17 @@ app.include_router(api_router)
 app.include_router(migration_router)
 app.include_router(news_public_router)
 
-# CORS Middleware
+# CORS Middleware — Zero Trust strict allow-list with regex for *.koodh.com subdomains
+_cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]
+_cors_regex = os.environ.get('CORS_ORIGIN_REGEX') or None
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_cors_origins or ["*"],
+    allow_origin_regex=_cors_regex,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Main-Site-ID", "X-Requested-With", "Accept", "Origin"],
+    max_age=600,
 )
 
 # Firewall Middleware (runs after CORS so blocked requests still get proper CORS headers)
@@ -1123,9 +1127,11 @@ from database import JWT_ALGORITHM
 from middleware.firewall_middleware import FirewallMiddleware
 from middleware.permission_middleware import PermissionMiddleware
 from middleware.no_cache_middleware import NoCacheMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware
 app.add_middleware(FirewallMiddleware, jwt_secret=JWT_SECRET, jwt_algorithm=JWT_ALGORITHM)
 app.add_middleware(PermissionMiddleware, jwt_secret=JWT_SECRET, jwt_algorithm=JWT_ALGORITHM)
 app.add_middleware(NoCacheMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 # ============== STARTUP/SHUTDOWN EVENTS ==============
@@ -1352,6 +1358,14 @@ async def startup_db_client():
         logger.info("Clara integrations health poller started")
     except Exception as e:
         logger.warning(f"Integrations poller start failed: {e}")
+
+    # Start Zero Trust anomaly detection scheduler (5 min)
+    try:
+        from services.security.anomaly import start_scheduler as start_anomaly_scheduler
+        start_anomaly_scheduler()
+        logger.info("Zero Trust anomaly scheduler started (5 min interval)")
+    except Exception as e:
+        logger.warning(f"Anomaly scheduler start failed: {e}")
 
     # Initialize Radioplayer config if not exists
     try:
