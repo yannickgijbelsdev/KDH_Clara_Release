@@ -40,6 +40,12 @@ news_public_router = APIRouter(prefix="/api/news", tags=["news-public"])
 
 PUBLIC_STATUSES = ["ready", "published"]
 
+# Public News API never returns trashed / soft-deleted items.
+PUBLIC_BASE_QUERY = {
+    "status": {"$in": PUBLIC_STATUSES},
+    "deleted_at": {"$in": [None, ""]},
+}
+
 
 async def _resolve_site(site_slug: str) -> dict:
     site = await db.main_sites.find_one({"slug": site_slug}, {"_id": 0, "id": 1, "name": 1, "slug": 1})
@@ -114,7 +120,7 @@ async def get_article_detail(article_id: str):
     item = await db.content_items.find_one(
         {
             "$or": [{"id": article_id}, {"slug": article_id}],
-            "status": {"$in": PUBLIC_STATUSES},
+            **PUBLIC_BASE_QUERY,
         },
         {"_id": 0},
     )
@@ -148,7 +154,7 @@ async def list_news_by_category(
             {
                 "main_site_id": site["id"],
                 "category_id": category["id"],
-                "status": {"$in": PUBLIC_STATUSES},
+                **PUBLIC_BASE_QUERY,
             },
             {"_id": 0},
         )
