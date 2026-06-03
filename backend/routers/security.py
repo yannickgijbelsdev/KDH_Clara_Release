@@ -143,3 +143,55 @@ async def security_overview(current_user: dict = Depends(require_network_admin))
         "known_devices": known_devices,
         "checked_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+# ── Maintenance: clean stale RDS source values on content items ──
+
+@security_router.post("/maintenance/clean-content-sources")
+async def clean_content_sources(current_user: dict = Depends(require_network_admin)):
+    """Drop `source` fields from content items that don't match the main site's
+    configured RDS stations. Lets admins re-tag content via the new dynamic
+    Source filter (driven by `/api/rds-stations/by-slug/{slug}`).
+
+    Idempotent — running it twice is safe.
+    """
+    # Build per-site allow-list (codes + names, lowercased)
+    allowed_per_site: dict[str, set[str]] = {}
+    async for st in db.rds_stations.find({}, {"_id": 0, "main_site_id": 1, "code": 1, "name": 1}):
+        msid = st.get("main_site_id")
+        if not msid:
+            continue
+        bucket = allowed_per_site.setdefault(msid, set())
+        if st.get("code"):
+            bucket.add(st["code"].lower())
+        if st.get("name"):
+            bucket.add(st["name"].lower())
+
+    kept = 0
+    cleared = 0
+    examples = []
+    async for doc in db.content_items.find(
+        {"source": {"$nin": [None, ""], "$exists": True}},
+        {"_id": 1, "main_site_id": 1, "source": 1, "title": 1},
+    ):
+        src = (doc.get("source") or "").strip()
+        if not src:
+            continue
+        allowed = allowed_per_site.get(doc.get("main_site_id"), set())
+        if src.lower() in allowed:
+            kept += 1
+            continue
+        await db.content_items.update_one({"_id": doc["_id"]}, {"$unset": {"source": ""}})
+        cleared += 1
+        if len(examples) < 5:
+            examples.append({"title": doc.get("title"), "old_source": src})
+
+    await log_action(
+        action="Cleaned stale content sources",
+        category="settings",
+        user_id=current_user["id"],
+        user_email=current_user.get("email"),
+        target_type="maintenance",
+        details={"kept": kept, "cleared": cleared},
+    )
+    return {"kept": kept, "cleared": cleared, "examples": examples}
