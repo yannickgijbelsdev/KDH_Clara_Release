@@ -154,18 +154,31 @@ const ContentLibraryPage = () => {
   const clearSelection = () => setSelectedIds(new Set());
 
   // Admin-only: nuke every published News API article on this site.
+  // Optionally also deletes the WordPress posts in the same call.
   const unpublishAllNews = async () => {
     const confirm1 = window.confirm(
-      'Unpublish ALL News API articles for this main site? Drafts stay safe — only the public API will go empty.'
+      'Unpublish ALL News API articles for this main site?\n\n' +
+      'Drafts stay safe — only the public API will go empty.'
     );
     if (!confirm1) return;
+    const alsoWp = window.confirm(
+      'Also DELETE the matching WordPress posts? (Moves them to the WP Trash.)\n\n' +
+      'Click "OK" to also wipe WordPress, "Cancel" to keep WordPress intact and only unpublish from the News API.'
+    );
     const confirm2 = window.prompt(
-      'Type DELETE to confirm. This affects everyone reading /api/news/* on this site.'
+      'Type DELETE to confirm.\n\nThis affects everyone reading /api/news/*' +
+      (alsoWp ? ' AND the connected WordPress site(s).' : '.')
     );
     if (confirm2 !== 'DELETE') return;
     try {
-      const r = await axios.post(`${API}/content/unpublish-all-news`);
-      toast.success(`Unpublished ${r.data.unpublished} article${r.data.unpublished === 1 ? '' : 's'} from the News API`);
+      const r = await axios.post(
+        `${API}/content/unpublish-all-news?include_wordpress=${alsoWp}`
+      );
+      const wp = r.data.wordpress;
+      const wpSuffix = wp
+        ? ` · WP deleted ${wp.deleted}${wp.failed ? ` (failed ${wp.failed})` : ''}`
+        : '';
+      toast.success(`Unpublished ${r.data.unpublished} article${r.data.unpublished === 1 ? '' : 's'} from the News API${wpSuffix}`);
       fetchContent();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Could not unpublish');

@@ -9,6 +9,8 @@ import uuid
 import mimetypes
 import aiofiles
 import io
+import base64
+import httpx
 
 from database import db, UPLOADS_DIR
 from models.content import (
@@ -618,7 +620,11 @@ async def delete_content_item(
                 site = await db.wordpress_sites.find_one({"id": record['wordpress_site_id']})
                 if site and site.get('is_active'):
                     try:
-                        credentials = f"{site['username']}:{site['app_password']}"
+                        # WordPress app_password is encrypted at rest (Zero Trust).
+                        # Decrypt it just-in-time to build the auth header.
+                        from services.security.encryption import decrypt as dec_field
+                        pw = dec_field(site.get('app_password')) or ''
+                        credentials = f"{site['username']}:{pw}"
                         auth_header = base64.b64encode(credentials.encode()).decode()
                         headers = {"Authorization": f"Basic {auth_header}"}
                         
@@ -1490,31 +1496,87 @@ async def get_publish_status(
 async def unpublish_all_news_articles(
     request: Request,
     current_user: dict = Depends(require_admin),
+    include_wordpress: bool = False,
+    soft_delete: bool = False,
 ):
     """Admin-only kill switch — unpublishes EVERY content item served by the
     Clara News API for the active main site.
 
-    Items are reverted to `status='ready'` (not soft-deleted), so editors can
-    still see their drafts in the Content Library and re-publish individually.
-    The articles disappear from `/api/news/*` immediately because the public
-    filter requires `status==published`.
-
-    Scope: limited to the X-Main-Site-ID. Cross-site wipes must be done per
-    site to avoid accidental nukes.
+    Modes (all scoped by X-Main-Site-ID):
+      - default: revert `status: published → ready`. Drafts safe. News API
+        empties immediately because the public filter requires `status==published`.
+      - `?include_wordpress=true`: ALSO call DELETE on each WordPress post
+        (moves them to WP trash). Stops short of wiping the WP site.
+      - `?soft_delete=true`: marks every reverted item with `deleted_at` so
+        they vanish from the Content Library list as well (recoverable from
+        the Trash view).
     """
     main_site_id = await get_main_site_id_from_header(request)
     if not main_site_id:
         raise HTTPException(status_code=400, detail="X-Main-Site-ID header is required")
 
     now_iso = datetime.now(timezone.utc).isoformat()
-    res = await db.content_items.update_many(
-        {"main_site_id": main_site_id, "status": "published"},
-        {"$set": {
-            "status": "ready",
-            "unpublished_at": now_iso,
-            "updated_at": now_iso,
-        }},
-    )
+    base_query = {"main_site_id": main_site_id, "status": "published"}
+
+    affected_ids = [
+        d["id"] for d in await db.content_items.find(base_query, {"_id": 0, "id": 1}).to_list(10000)
+    ]
+
+    wp_results = {"deleted": 0, "failed": 0, "details": []}
+    if include_wordpress and affected_ids:
+        from services.security.encryption import decrypt as dec_field
+        records = await db.content_item_publishes.find(
+            {"content_item_id": {"$in": affected_ids}, "wp_post_id": {"$ne": None}},
+        ).to_list(20000)
+        # Group by site to reuse the http client + auth headers
+        by_site: dict[str, list[dict]] = {}
+        for r in records:
+            by_site.setdefault(r.get("wordpress_site_id"), []).append(r)
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            for site_id, recs in by_site.items():
+                site = await db.wordpress_sites.find_one({"id": site_id})
+                if not site or not site.get("is_active"):
+                    continue
+                pw = dec_field(site.get("app_password")) or ""
+                credentials = f"{site['username']}:{pw}"
+                auth_header = base64.b64encode(credentials.encode()).decode()
+                headers = {"Authorization": f"Basic {auth_header}"}
+                for rec in recs:
+                    endpoint = f"{site['wp_base_url'].rstrip('/')}/wp-json/wp/v2/{rec.get('wp_post_type', 'post')}s/{rec['wp_post_id']}"
+                    try:
+                        resp = await client.delete(endpoint, headers=headers)
+                        if resp.status_code in (200, 201):
+                            wp_results["deleted"] += 1
+                            await db.content_item_publishes.update_one(
+                                {"_id": rec["_id"]},
+                                {"$set": {"sync_status": "deleted", "wp_post_id": None}},
+                            )
+                        else:
+                            wp_results["failed"] += 1
+                            wp_results["details"].append({
+                                "site": site.get("name"),
+                                "wp_post_id": rec["wp_post_id"],
+                                "http": resp.status_code,
+                            })
+                    except Exception as e:
+                        wp_results["failed"] += 1
+                        wp_results["details"].append({
+                            "site": site.get("name"),
+                            "wp_post_id": rec.get("wp_post_id"),
+                            "error": str(e)[:120],
+                        })
+
+    # Now do the local status flip (and optionally the soft delete)
+    update_set = {
+        "status": "ready",
+        "unpublished_at": now_iso,
+        "updated_at": now_iso,
+    }
+    if soft_delete:
+        update_set["deleted_at"] = now_iso
+        update_set["deleted_by"] = current_user["id"]
+    res = await db.content_items.update_many(base_query, {"$set": update_set})
 
     await log_action(
         action="Bulk unpublished News API articles",
@@ -1524,13 +1586,20 @@ async def unpublish_all_news_articles(
         main_site_id=main_site_id,
         ip_address=get_client_ip(request),
         target_type="bulk_unpublish",
-        details={"unpublished_count": res.modified_count},
+        details={
+            "unpublished_count": res.modified_count,
+            "include_wordpress": include_wordpress,
+            "soft_delete": soft_delete,
+            "wordpress": wp_results if include_wordpress else None,
+        },
     )
 
     return {
         "unpublished": res.modified_count,
         "main_site_id": main_site_id,
         "unpublished_at": now_iso,
+        "wordpress": wp_results if include_wordpress else None,
+        "soft_deleted": soft_delete,
     }
 
 
