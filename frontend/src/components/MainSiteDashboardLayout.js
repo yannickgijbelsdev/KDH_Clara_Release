@@ -71,17 +71,20 @@ const SITE_TYPE_BACKGROUNDS = {
    can manage feature-integrations (news/blog, pages, etc.) from day one. */
 function withImplicitFeatures(enabledFeatures, siteType) {
   const set = new Set(enabledFeatures || []);
-  if (siteType === 'clara_custom') {
-    set.add('content_library');
-    set.add('media_library');
-  }
+  // Auto-include implicit base features only — explicit features (RDS, news, etc.)
+  // are now ALWAYS opt-in via enabled_features so admins fully control the menu.
   if (set.has('content_library')) {
     set.add('content_approval');
     set.add('trash');
   }
   // API Endpoints page is available when the site exposes anything publicly
-  // (radio, news/content, or clara custom integrations).
-  if (set.has('rds') || set.has('content_library') || set.has('clara_custom') || siteType === 'clara_custom') {
+  // (radio/news/content). For 'custom' sites the feature is only on when the
+  // admin explicitly enables at least one publicly-facing feature.
+  const hasPublicSurface =
+    set.has('rds') || set.has('rds_settings') ||
+    set.has('content_library') || set.has('shows') || set.has('clara_publish') ||
+    set.has('sites');
+  if (hasPublicSurface) {
     set.add('api_endpoints');
   }
   return Array.from(set);
@@ -129,12 +132,7 @@ const FEATURE_NAV_ITEMS = {
   vmix_director: { to: 'vmix-director', icon: Video, label: 'vMix Director' },
   canva_director: { to: 'canva', icon: Palette, label: 'Canva Director' },
   task_boards: { to: 'task-boards', icon: LayoutList, label: 'Task Boards' },
-  wp_security_dashboard: { to: 'wp-security', icon: Shield, label: 'Security Dashboard', adminOnly: true },
-  wp_waf_rules: { to: 'wp-waf', icon: Shield, label: 'WAF Rules', adminOnly: true },
-  wp_ip_blocklist: { to: 'wp-blocklist', icon: Ban, label: 'IP Blocklist', adminOnly: true },
-  wp_login_protection: { to: 'wp-login-protect', icon: Lock, label: 'Login Protection', adminOnly: true },
   enterprise_assistant: { to: 'enterprise-assistant', icon: Sparkles, label: 'Enterprise Assistant' },
-  clara_custom: { to: 'clara-custom', icon: Plug, label: 'Clara Custom' },
   radio_automation: { to: 'radio-automation', icon: Disc3, label: 'Radio Automation', adminOnly: true },
   api_endpoints: { to: 'api-endpoints', icon: Zap, label: 'API Endpoints', adminOnly: true },
 };
@@ -245,14 +243,6 @@ const MainSiteDashboardContent = () => {
     // Task Scheduler sites always have task-boards
     if (mainSite.site_type === 'task_scheduler') {
       validRoutes.add('task-boards');
-    }
-    // Clara Custom sites always have clara-custom
-    if (mainSite.site_type === 'clara_custom') {
-      validRoutes.add('clara-custom');
-    }
-    // WP Security sites always have the security dashboard
-    if (mainSite.site_type === 'wp_security') {
-      validRoutes.add('wp-security');
     }
     
     if (!validRoutes.has(subPath)) {
@@ -563,8 +553,8 @@ const MainSiteDashboardContent = () => {
   };
 
   // Brand: always "Clara", labels only in page header bar
-  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Virtual Datacenter' : mainSite?.site_type === 'technical' ? 'Data Connection' : mainSite?.site_type === 'task_scheduler' ? 'Tasks' : mainSite?.site_type === 'external_host' ? 'External Host' : mainSite?.site_type === 'wp_security' ? 'WP Security' : 'Radio';
-  const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : mainSite?.site_type === 'task_scheduler' ? 'bg-violet-500/15 text-violet-400 border-violet-500/25' : mainSite?.site_type === 'wp_security' ? 'bg-red-500/15 text-red-400 border-red-500/25' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25';
+  const siteTypeLabel = mainSite?.site_type === 'server' ? 'Virtual Datacenter' : mainSite?.site_type === 'technical' ? 'Data Connection' : mainSite?.site_type === 'task_scheduler' ? 'Tasks' : mainSite?.site_type === 'custom' ? 'Custom' : 'Radio';
+  const siteTypeLabelColor = mainSite?.site_type === 'server' ? 'bg-red-500/15 text-red-400 border-red-500/25' : mainSite?.site_type === 'technical' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' : mainSite?.site_type === 'task_scheduler' ? 'bg-violet-500/15 text-violet-400 border-violet-500/25' : mainSite?.site_type === 'custom' ? 'bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/25' : 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25';
   // Display name: for server sites, show linked main site name
   const displayName = mainSite?.site_type === 'server' && mainSite?.linked_main_site_name
     ? mainSite.linked_main_site_name
@@ -592,31 +582,6 @@ const MainSiteDashboardContent = () => {
         icon: Monitor,
         items
       }];
-    }
-
-    // External Host sites: content + wordpress + admin
-    if (mainSite.site_type === 'external_host') {
-    const enabledFeatures = withImplicitFeatures(mainSite.enabled_features, mainSite.site_type);
-    const contentItems = ['content_library', 'media_library', 'content_approval', 'trash']
-        .filter(f => enabledFeatures.includes(f))
-        .map(featureId => {
-          const navItem = FEATURE_NAV_ITEMS[featureId];
-          if (!navItem) return null;
-          if (!userIsAdmin && !canView(featureId)) return null;
-          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId };
-        }).filter(Boolean);
-      const adminItems = ['team_settings', 'wordpress', 'activity_logs']
-        .filter(f => enabledFeatures.includes(f))
-        .map(featureId => {
-          const navItem = FEATURE_NAV_ITEMS[featureId];
-          if (!navItem) return null;
-          if (navItem.adminOnly && !userIsAdmin) return null;
-          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId };
-        }).filter(Boolean);
-      const groups = [];
-      if (contentItems.length > 0) groups.push({ id: 'content', label: 'Content', icon: FileText, items: contentItems });
-      if (adminItems.length > 0) groups.push({ id: 'admin', label: 'Administration', icon: Settings, items: adminItems });
-      return groups;
     }
 
     // Clara Tasks sites show task_boards + optional admin features
@@ -655,51 +620,8 @@ const MainSiteDashboardContent = () => {
       return groups;
     }
 
-    // WP Security sites show security dashboard
-    if (mainSite.site_type === 'wp_security') {
-      const securityItem = FEATURE_NAV_ITEMS['wp_security_dashboard'];
-      const items = [];
-      if (securityItem) {
-        items.push({ ...securityItem, to: `/${mainSiteSlug}/${securityItem.to}`, featureId: 'wp_security_dashboard' });
-      }
-      return [{
-        id: 'security',
-        label: 'Security',
-        icon: Shield,
-        items
-      }];
-    }
-
-    // Clara Custom sites: Content + Clara Custom + admin settings
-    if (mainSite.site_type === 'clara_custom') {
-      const customItem = FEATURE_NAV_ITEMS['clara_custom'];
-      const teamItem = FEATURE_NAV_ITEMS['team_settings'];
-      const enabledFeatures = withImplicitFeatures(mainSite.enabled_features, mainSite.site_type);
-      const groups = [];
-
-      // Content group — Content Library, Media Library, Approval, Trash
-      const contentItems = ['content_library', 'media_library', 'content_approval', 'trash']
-        .filter((fid) => enabledFeatures.includes(fid))
-        .map((fid) => {
-          const navItem = FEATURE_NAV_ITEMS[fid];
-          if (!navItem) return null;
-          if (!userIsAdmin && !canView(fid)) return null;
-          return { ...navItem, to: `/${mainSiteSlug}/${navItem.to}`, featureId: fid };
-        })
-        .filter(Boolean);
-      if (contentItems.length > 0) groups.push({ id: 'content', label: 'Content', icon: FileText, items: contentItems });
-
-      const customItems = [];
-      if (customItem) customItems.push({ ...customItem, to: `/${mainSiteSlug}/${customItem.to}`, featureId: 'clara_custom' });
-      if (customItems.length > 0) groups.push({ id: 'custom', label: 'Clara Custom', icon: Plug, items: customItems });
-
-      const adminItems = [];
-      if (teamItem && userIsAdmin) adminItems.push({ ...teamItem, to: `/${mainSiteSlug}/${teamItem.to}`, featureId: 'team_settings' });
-      if (adminItems.length > 0) groups.push({ id: 'admin', label: 'Administration', icon: Settings, items: adminItems });
-
-      return groups;
-    }
-
+    // Custom sites + Radio sites + Server sites + Technical sites — share the
+    // generic feature-flag-driven menu below.
     
     const enabledFeatures = withImplicitFeatures(mainSite.enabled_features, mainSite.site_type);
 

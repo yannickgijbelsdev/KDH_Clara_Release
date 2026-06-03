@@ -6,7 +6,7 @@ import {
   Check, ChevronRight, ChevronLeft, User, Lock, Zap, Loader2,
   Upload, X, Disc3, Video, Palette, FileCode, Key, Podcast,
   Plus, Trash2, GripVertical, Music, Globe, Eye, EyeOff,
-  CheckCircle2, XCircle, Plug
+  CheckCircle2, XCircle, Plug, Image
 } from 'lucide-react';
 import { Dialog, DialogContent } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
@@ -42,14 +42,12 @@ const WIZARD_THUMBNAILS = {
 const SITE_TYPES = [
   { id: 'radio',          icon: Radio,       label: 'Radio Station',     desc: 'Shows, calendar, content library, RDS',    color: '#dd0c51', features: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings'], optionalFeatures: [] },
   { id: 'server',         icon: HardDrive,   label: 'Virtual Datacenter', desc: 'XML imports, VMix, Radio Automation',      color: '#3b82f6', features: ['team_settings'], optionalFeatures: ['xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'radio_automation'] },
-  { id: 'external_host',  icon: ExternalLink, label: 'External Host',    desc: 'External site hosting & monitoring',        color: '#06b6d4', features: ['sites', 'team_settings'], optionalFeatures: [] },
   { id: 'task_scheduler', icon: LayoutGrid,  label: 'Task Manager',      desc: 'Task boards, project management',          color: '#8b5cf6', features: ['task_boards', 'team_settings'], optionalFeatures: [] },
   { id: 'technical',      icon: Network,     label: 'Data Connection',   desc: 'ZeroTier networking, data connections',     color: '#10b981', features: ['zerotier', 'team_settings'], optionalFeatures: [] },
-  { id: 'wp_security',    icon: Shield,      label: 'WP Security',       desc: 'WordPress firewall & security scanning',    color: '#ef4444', features: ['wp_security', 'team_settings'], optionalFeatures: [] },
-  { id: 'clara_custom',   icon: Plug,        label: 'Clara Custom',      desc: 'Connect & monitor any external API set',    color: '#7c1ac8', features: ['clara_custom', 'team_settings'], optionalFeatures: [] },
+  { id: 'custom',         icon: Plug,        label: 'Custom',            desc: 'Clean slate — pick exactly the features you need', color: '#7c1ac8', features: ['team_settings'], optionalFeatures: ['shows', 'calendar', 'content_library', 'media_library', 'team_chat', 'rds_settings', 'rds', 'sites', 'wordpress', 'task_boards', 'zerotier', 'xml_imports', 'server_api_keys', 'vmix_director', 'canva_director', 'radioplayer', 'radio_automation', 'clara_publish', 'firewall', 'activity_logs', 'trash'] },
 ];
 
-/* ── Optional feature details for the server type ── */
+/* ── Optional feature details (server + custom) ── */
 const OPTIONAL_FEATURE_INFO = {
   xml_imports:      { icon: FileCode,  label: 'XML Imports',        desc: 'Import and process XML data feeds',     color: '#3b82f6' },
   server_api_keys:  { icon: Key,       label: 'API Keys',           desc: 'Manage server API keys and tokens',     color: '#6b7280' },
@@ -57,6 +55,22 @@ const OPTIONAL_FEATURE_INFO = {
   canva_director:   { icon: Palette,   label: 'Canva Director',     desc: 'Visual design and graphics control',    color: '#ec4899' },
   radioplayer:      { icon: Podcast,   label: 'Radioplayer',        desc: 'Radioplayer API integration',           color: '#06b6d4' },
   radio_automation: { icon: Disc3,     label: 'Radio Automation',   desc: 'A/B player, playlists, cloud playout',  color: '#dd0c51' },
+  // Custom-site extras
+  shows:            { icon: Radio,     label: 'Shows',              desc: 'Show management & calendar',            color: '#dd0c51' },
+  calendar:         { icon: LayoutGrid,label: 'Calendar',           desc: 'Show schedule view',                    color: '#f59e0b' },
+  content_library:  { icon: FileCode,  label: 'Content Library',    desc: 'Articles, news, blog editor',           color: '#0ea5e9' },
+  media_library:    { icon: Image,     label: 'Media Library',      desc: 'Images, audio, video assets',           color: '#8b5cf6' },
+  team_chat:        { icon: Plug,      label: 'Team Chat',          desc: 'Internal messaging between members',    color: '#10b981' },
+  rds_settings:     { icon: Radio,     label: 'RDS Settings',       desc: 'Configure RDS stations & schedules',    color: '#f97316' },
+  rds:              { icon: Radio,     label: 'RDS API',            desc: 'Public RDS API endpoints (live, presenter, now-playing)', color: '#f97316' },
+  sites:            { icon: ExternalLink, label: 'Sites',           desc: 'Public site / hosted page management',  color: '#06b6d4' },
+  wordpress:        { icon: ExternalLink, label: 'WordPress',       desc: 'Publish via WordPress plugin',          color: '#0073aa' },
+  task_boards:      { icon: LayoutGrid,label: 'Task Boards',        desc: 'Kanban boards and project tasks',       color: '#8b5cf6' },
+  zerotier:         { icon: Network,   label: 'ZeroTier',           desc: 'Private network connectivity',          color: '#10b981' },
+  clara_publish:    { icon: Plug,      label: 'Publish via Clara',  desc: 'Publish articles directly through Clara\'s News API (no WordPress required)', color: '#7c1ac8' },
+  firewall:         { icon: Shield,    label: 'Firewall',           desc: 'Global Protect / WAF rules',            color: '#ef4444' },
+  activity_logs:    { icon: FileCode,  label: 'Activity Logs',      desc: 'Audit trail of admin actions',          color: '#6b7280' },
+  trash:            { icon: Plug,      label: 'Trash',              desc: 'Soft-delete recovery bin',              color: '#71717a' },
 };
 
 const MAIN_SITE_STEPS = ['Choosing a server', 'Features', 'Details', 'Admin', 'Security', 'Deploying'];

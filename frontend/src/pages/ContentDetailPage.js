@@ -119,6 +119,44 @@ const ContentDetailPage = () => {
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishStep, setPublishStep] = useState('configure'); // 'configure' | 'deploying'
+
+  // Clara native publish (independent of WordPress)
+  const [claraPublishBusy, setClaraPublishBusy] = useState(false);
+  const claraPublishEnabled = useMemo(() => {
+    const feats = mainSite?.enabled_features || [];
+    return Array.isArray(feats) && feats.includes('clara_publish');
+  }, [mainSite]);
+
+  const publishViaClara = useCallback(async () => {
+    if (!contentId) return;
+    setClaraPublishBusy(true);
+    try {
+      const r = await axios.post(`${API}/content/${contentId}/publish-clara`, null);
+      toast.success(r.data?.public_url ? `Published — ${r.data.public_url}` : 'Published to Clara News');
+      // Reload content to refresh status
+      fetchContent();
+    } catch (e) {
+      const detail = e.response?.data?.detail || 'Publish to Clara failed';
+      toast.error(detail);
+    } finally {
+      setClaraPublishBusy(false);
+    }
+  }, [contentId]); // eslint-disable-line
+
+  const unpublishViaClara = useCallback(async () => {
+    if (!contentId) return;
+    if (!window.confirm('Unpublish this article from Clara News? It will disappear from the public News API immediately.')) return;
+    setClaraPublishBusy(true);
+    try {
+      await axios.post(`${API}/content/${contentId}/unpublish-clara`, null);
+      toast.success('Unpublished from Clara News');
+      fetchContent();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Unpublish failed');
+    } finally {
+      setClaraPublishBusy(false);
+    }
+  }, [contentId]); // eslint-disable-line
   const [deployStatus, setDeployStatus] = useState(0);
   const [deployDone, setDeployDone] = useState(false);
   const [deployFailed, setDeployFailed] = useState(false);
@@ -689,6 +727,34 @@ const ContentDetailPage = () => {
               <span className="text-xs text-amber-500">
                 Requires admin approval
               </span>
+            )}
+          </div>
+        )}
+
+        {/* Clara Publish Button — independent of WordPress */}
+        {isEditor && claraPublishEnabled && (
+          <div className="flex flex-col items-end gap-1" data-testid="clara-publish-section">
+            <Button
+              data-testid="publish-clara-btn"
+              onClick={() => publishViaClara()}
+              disabled={isPublishBlocked || claraPublishBusy}
+              className={`gap-2 rounded-full px-5 ${content?.status === 'published' ? 'bg-emerald-600 hover:bg-emerald-600' : 'bg-violet-600 hover:bg-violet-600'} text-white`}
+            >
+              {claraPublishBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+              {content?.status === 'published' ? 'Update on Clara News' : 'Publish to Clara News'}
+            </Button>
+            {content?.status === 'published' && (
+              <button
+                onClick={() => unpublishViaClara()}
+                disabled={claraPublishBusy}
+                className="text-[11px] text-zinc-500 hover:text-rose-500 underline"
+                data-testid="unpublish-clara-btn"
+              >
+                Unpublish from Clara News
+              </button>
+            )}
+            {isPublishBlocked && (
+              <span className="text-xs text-amber-500">Requires admin approval</span>
             )}
           </div>
         )}

@@ -1437,10 +1437,9 @@ async def get_main_site_api_endpoints(
 
     enabled = site.get("enabled_features") or []
     site_type = site.get("site_type")
-    if site_type == "clara_custom" and "clara_custom" not in enabled:
-        enabled = enabled + ["clara_custom"]
-    if site_type == "external_host" and "content_library" not in enabled:
-        enabled = enabled + ["content_library"]
+    # Backwards compat for migrated sites: external_host/clara_custom no longer
+    # exist; the features they used (content_library, etc.) are now explicit.
+    # No implicit fall-through here — features must be in enabled_features.
 
     # Derive base URL from the incoming request so preview→preview URLs,
     # production→production URLs. Cloudflare/Kubernetes ingress forwards the
@@ -1455,7 +1454,7 @@ async def get_main_site_api_endpoints(
     groups = []
 
     # ─── Radio & RDS ───────────────────────────────────────────────────────
-    if "rds" in enabled:
+    if "rds" in enabled or "rds_settings" in enabled:
         rds_stations = await db.rds_stations.find(
             {"main_site_id": main_site_id}, {"_id": 0}
         ).to_list(50)
@@ -1575,10 +1574,12 @@ async def get_main_site_api_endpoints(
             })
 
     # ─── Clara Custom integrations ─────────────────────────────────────────
-    if "clara_custom" in enabled:
-        integrations = await db.clara_integrations.find(
-            {"main_site_id": main_site_id}, {"_id": 0, "shared_secret": 0, "integration_token": 0}
-        ).to_list(50)
+    # Show this group when the site has at least one registered Clara
+    # integration (auto-detected — no separate feature flag needed).
+    integrations = await db.clara_integrations.find(
+        {"main_site_id": main_site_id}, {"_id": 0, "shared_secret": 0, "integration_token": 0}
+    ).to_list(50)
+    if integrations:
         clara_endpoints = [
             {"name": "Inbound — Register external integration", "description": "External Emergent project POSTs here on startup with its `integration_token` to self-register against this Clara.", "method": "POST", "response_type": "application/json", "path": "/api/clara-custom/integrations/register", "full_url": f"{base_url}/api/clara-custom/integrations/register", "tag": "Inbound", "tag_color": "#dd0c51"},
         ]
@@ -1705,6 +1706,8 @@ def _build_extra_public_endpoint_groups(base_url: str, site: dict, existing_grou
         return False
 
     site_slug = site.get("slug", "")
+    enabled_set = set(site.get("enabled_features") or [])
+    # The curated groups already added these implicit features, so respect them too
     extra_endpoints = []
 
     for route in app.routes:
@@ -1725,6 +1728,12 @@ def _build_extra_public_endpoint_groups(base_url: str, site: dict, existing_grou
         if not methods:
             continue
         if _is_auth_required(route):
+            continue
+
+        # Feature-aware filter: hide routes whose first segment requires a
+        # feature the site does not have enabled.
+        seg = _path_to_tag(path)
+        if not _segment_is_allowed_for_site(seg, enabled_set):
             continue
 
         # Pull short docstring as description
@@ -1852,6 +1861,42 @@ def _path_to_tag(path: str) -> str:
     """Derive a short tag from the route path's first non-{} segment after /api/."""
     parts = [p for p in path.split("/") if p and not p.startswith("{") and p != "api"]
     return parts[0] if parts else "api"
+
+
+# Map "first path segment after /api/" → enabled_features that must be set.
+# When a site does NOT have any of these features, the corresponding routes
+# are hidden from the Additional Public Endpoints groups.
+#
+# Segments not present in this map are considered always-available (e.g. config,
+# branding, files — these serve generic platform metadata).
+_SEG_REQUIRES_FEATURE = {
+    "vmix":          ("vmix_director",),
+    "rds":           ("rds", "rds_settings"),
+    "rds-builder":   ("rds", "rds_settings"),
+    "shows":         ("shows",),
+    "public":        ("shows", "calendar", "rds", "rds_settings"),  # /api/public/schedule needs shows
+    "occurrences":   ("shows", "calendar"),
+    "streams":       ("rds", "rds_settings"),  # audio streams are only useful with radio
+    "task-boards":   ("task_boards",),
+    "uploads":       (),  # always allow — used by editor / avatars
+    "media":         ("media_library", "content_library"),
+    "chat":          ("team_chat",),
+    "news":          ("content_library", "clara_publish"),
+    "support-tickets": (),  # always allow — support is platform-wide
+    "notifications": (),
+}
+
+
+def _segment_is_allowed_for_site(seg: str, enabled_set: set) -> bool:
+    """Return True when the site's enabled_features satisfies the requirement
+    for this URL segment. Segments not listed are always allowed.
+    """
+    req = _SEG_REQUIRES_FEATURE.get(seg)
+    if req is None:
+        return True
+    if not req:
+        return True
+    return any(f in enabled_set for f in req)
 
 
 @main_sites_router.get("/{main_site_id}/debug")

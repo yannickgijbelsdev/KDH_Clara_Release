@@ -202,6 +202,7 @@ export default function IntegrationsTab({ mainSite, token }) {
       if (editTarget.base_url !== editTarget.integ.base_url) payload.base_url = editTarget.base_url;
       if (editTarget.shared_secret) payload.shared_secret = editTarget.shared_secret;
       if (editTarget.production_url !== (editTarget.integ.production_url || '')) payload.production_url = editTarget.production_url;
+      if (editTarget.production_slug !== (editTarget.integ.production_slug || '')) payload.production_slug = editTarget.production_slug;
       if (Object.keys(payload).length === 0) {
         toast.info('Nothing to save');
         setEditTarget(null);
@@ -288,6 +289,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                   {it.production_url && (
                     <p className="text-[11px] text-zinc-500 mt-0.5">
                       🚀 Production: <code className="text-zinc-700">{it.production_url}</code>
+                      {it.production_slug && <> · slug: <code className="text-zinc-700">{it.production_slug}</code></>}
                     </p>
                   )}
                   {it.last_synced_at && (
@@ -331,7 +333,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                       <Button size="sm" variant="outline" onClick={() => diagnose(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`diagnose-${it.id}`} title="Inspect what the external site is returning">
                         {busyId === it.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Stethoscope className="w-3.5 h-3.5" />} Diagnose
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditTarget({ integ: it, base_url: it.base_url || '', shared_secret: '', production_url: it.production_url || '' })} className="gap-1.5" data-testid={`edit-${it.id}`} title="Change base URL, production URL or shared secret">
+                      <Button size="sm" variant="outline" onClick={() => setEditTarget({ integ: it, base_url: it.base_url || '', shared_secret: '', production_url: it.production_url || '', production_slug: it.production_slug || '' })} className="gap-1.5" data-testid={`edit-${it.id}`} title="Change base URL, production URL, production slug or shared secret">
                         <Edit3 className="w-3.5 h-3.5" /> Edit
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => check(it)} disabled={busyId === it.id} className="gap-1.5" data-testid={`check-${it.id}`}>
@@ -495,6 +497,17 @@ export default function IntegrationsTab({ mainSite, token }) {
                   data-testid="edit-production-url"
                 />
                 <p className="text-[11px] text-zinc-500 mt-1">The final public domain of the external site. Used as <code>SITE_PUBLIC_URL</code> when generating the production prompt.</p>
+              </div>
+              <div>
+                <Label className="text-xs">Production slug <span className="text-zinc-400">(optional)</span></Label>
+                <Input
+                  value={editTarget.production_slug}
+                  onChange={(e) => setEditTarget({ ...editTarget, production_slug: e.target.value })}
+                  placeholder="Leave blank to use the preview site's current slug"
+                  className="font-mono text-xs"
+                  data-testid="edit-production-slug"
+                />
+                <p className="text-[11px] text-zinc-500 mt-1">When you click <strong>Promote</strong>, this is the slug Clara will look up on production. Leave blank to use the preview site's current slug. <strong>No format restrictions</strong> — type whatever the production site uses.</p>
               </div>
               <div>
                 <Label className="text-xs">Shared secret (optional)</Label>

@@ -1403,3 +1403,87 @@ async def get_publish_status(
     publish_record["wordpress_site_name"] = site["name"] if site else "Unknown"
     
     return publish_record
+
+
+@content_router.post("/{content_id}/publish-clara")
+async def publish_via_clara_api(
+    content_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Publish a content item directly via Clara's News API (no WordPress).
+
+    Sets `status='published'` and `published_at=now()` on the content item so
+    it is immediately served by `/api/news/{site_slug}/{category_slug}` and
+    `/api/news/articles/{article_id}`.
+
+    Requires the parent main_site to have the `clara_publish` feature enabled.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get("team_id"):
+        query["team_id"] = current_user.get("team_id")
+    content = await db.content_items.find_one(query)
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+
+    site = await db.main_sites.find_one({"id": content["main_site_id"]}, {"_id": 0, "enabled_features": 1, "slug": 1, "site_type": 1})
+    if not site:
+        raise HTTPException(status_code=404, detail="Main site not found for this content item")
+    feats = site.get("enabled_features") or []
+    if "clara_publish" not in feats:
+        raise HTTPException(
+            status_code=403,
+            detail="Publishing via Clara is not enabled for this site. Enable the 'Publish via Clara' feature in site settings first.",
+        )
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {"status": "published", "published_at": now_iso, "clara_published_at": now_iso, "updated_at": now_iso}},
+    )
+
+    # Best-effort slug — generate from title if missing
+    slug_to_use = content.get("slug")
+    if not slug_to_use:
+        import re
+        base = re.sub(r"[^a-z0-9]+", "-", (content.get("title") or content_id).lower()).strip("-") or content_id
+        slug_to_use = base
+        await db.content_items.update_one({"id": content_id}, {"$set": {"slug": slug_to_use}})
+
+    public_url = f"/api/news/articles/{slug_to_use}"
+    return {
+        "status": "published",
+        "published_at": now_iso,
+        "slug": slug_to_use,
+        "public_url": public_url,
+        "site_slug": site.get("slug"),
+    }
+
+
+@content_router.post("/{content_id}/unpublish-clara")
+async def unpublish_via_clara_api(
+    content_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Revert a Clara-published item back to draft. The article disappears
+    from the public News API immediately.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get("team_id"):
+        query["team_id"] = current_user.get("team_id")
+    content = await db.content_items.find_one(query)
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {"status": "ready", "clara_published_at": None, "updated_at": now_iso}},
+    )
+    return {"status": "ready", "unpublished_at": now_iso}

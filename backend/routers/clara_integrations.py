@@ -539,12 +539,17 @@ async def patch_integration(
     integ = await db.clara_integrations.find_one({"id": integration_id}, {"_id": 0, "id": 1})
     if not integ:
         raise HTTPException(status_code=404, detail="Integration not found")
-    allowed = {"base_url", "shared_secret", "production_url"}
+    allowed = {"base_url", "shared_secret", "production_url", "production_slug"}
     update = {k: v for k, v in data.items() if k in allowed and v is not None}
     if "base_url" in update:
         update["base_url"] = str(update["base_url"]).rstrip("/")
     if "production_url" in update:
         update["production_url"] = str(update["production_url"]).rstrip("/")
+    if "production_slug" in update:
+        # No restrictions — store the value exactly as the admin typed it.
+        # Production-side matching is a plain MongoDB equality on `slug`, so
+        # whatever string is here will be used verbatim during promote.
+        update["production_slug"] = str(update["production_slug"]).strip()
     if not update:
         raise HTTPException(status_code=400, detail="No editable fields provided")
     update["updated_at"] = _now_iso()
@@ -593,7 +598,10 @@ async def promote_to_production(
 
     payload = {
         "integration": integ,
-        "main_site_slug": site.get("slug"),
+        # Allow per-integration override of the production slug. If the admin
+        # set `production_slug` on the integration via PATCH, use it verbatim;
+        # otherwise fall back to the preview site's current slug.
+        "main_site_slug": integ.get("production_slug") or site.get("slug"),
         "main_site_name": site.get("name"),
     }
     headers = {"X-Promote-Secret": secret, "Content-Type": "application/json"}
