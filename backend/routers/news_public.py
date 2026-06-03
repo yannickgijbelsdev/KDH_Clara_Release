@@ -38,11 +38,16 @@ db = mongo_client[os.environ["DB_NAME"]]
 news_public_router = APIRouter(prefix="/api/news", tags=["news-public"])
 
 
-PUBLIC_STATUSES = ["ready", "published"]
+PUBLIC_STATUSES = ["published"]
 
-# Public News API never returns trashed / soft-deleted items.
+# Public News API only returns items that have been explicitly:
+#   • status == 'published'   (via /publish-clara, which now requires approval)
+#   • approval_status == 'approved'
+#   • not soft-deleted
+# Items in draft / ready / trashed never reach the public API.
 PUBLIC_BASE_QUERY = {
     "status": {"$in": PUBLIC_STATUSES},
+    "approval_status": "approved",
     "deleted_at": {"$in": [None, ""]},
 }
 

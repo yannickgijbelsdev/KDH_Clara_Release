@@ -124,8 +124,9 @@ const ContentLibraryPage = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [bulkPublishing, setBulkPublishing] = useState(false);
   const [mainSite, setMainSite] = useState(null);
-  const claraPublishEnabled = Array.isArray(mainSite?.enabled_features)
-    && mainSite.enabled_features.includes('clara_publish');
+  // Always show bulk select. Backend gates the actual publish call —
+  // sites without `clara_publish` get a clear 403 with instructions.
+  const claraPublishEnabled = true;
 
   const toggleSelect = (id) => {
     setSelectedIds((cur) => {
