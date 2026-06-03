@@ -18,6 +18,9 @@ import {
   User,
   Check,
   CalendarDays,
+  CheckSquare,
+  Square,
+  Send,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -117,6 +120,53 @@ const ContentLibraryPage = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
+  // Bulk-select state for "Publish to News API"
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkPublishing, setBulkPublishing] = useState(false);
+  const [mainSite, setMainSite] = useState(null);
+  const claraPublishEnabled = Array.isArray(mainSite?.enabled_features)
+    && mainSite.enabled_features.includes('clara_publish');
+
+  const toggleSelect = (id) => {
+    setSelectedIds((cur) => {
+      const next = new Set(cur);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((cur) => {
+      const visibleIds = filteredContent.map((c) => c.id);
+      const allSelected = visibleIds.every((id) => cur.has(id));
+      if (allSelected) {
+        const next = new Set(cur);
+        visibleIds.forEach((id) => next.delete(id));
+        return next;
+      }
+      const next = new Set(cur);
+      visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const bulkPublishToApi = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkPublishing(true);
+    try {
+      const r = await axios.post(`${API}/content/bulk-publish-clara`, {
+        content_ids: Array.from(selectedIds),
+      });
+      toast.success(`Published ${r.data.published} article${r.data.published === 1 ? '' : 's'} to News API`);
+      clearSelection();
+      fetchContent();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Bulk publish failed');
+    } finally {
+      setBulkPublishing(false);
+    }
+  };
+
   // Helper to build paths with main site slug
   const buildPath = (path) => mainSiteSlug ? `/${mainSiteSlug}${path}` : path;
 
@@ -133,13 +183,19 @@ const ContentLibraryPage = () => {
       // This makes the dropdown dynamic instead of hardcoded MFY/GRK.
       if (mainSiteSlug) {
         try {
-          const r = await axios.get(`${API}/rds-stations/by-slug/${mainSiteSlug}`);
-          setRdsStations(r.data?.stations || []);
+          const [stationsRes, siteRes] = await Promise.all([
+            axios.get(`${API}/rds-stations/by-slug/${mainSiteSlug}`),
+            axios.get(`${API}/main-sites/by-slug/${mainSiteSlug}`).catch(() => ({ data: null })),
+          ]);
+          setRdsStations(stationsRes.data?.stations || []);
+          setMainSite(siteRes.data || null);
         } catch {
           setRdsStations([]);
+          setMainSite(null);
         }
       } else {
         setRdsStations([]);
+        setMainSite(null);
       }
     } catch (error) {
       toast.error('Failed to load content');
@@ -200,14 +256,20 @@ const ContentLibraryPage = () => {
     toast.success('Content created');
   };
 
-  // Source options come from the current main site's RDS stations.
-  // Fall back to legacy item.source values *only* when no stations are
-  // configured yet — so a fresh site doesn't show empty.
-  const availableSources = rdsStations.length > 0
-    ? rdsStations
-        .map((s) => s?.name || (s?.code ? s.code.toUpperCase() : null))
-        .filter(Boolean)
-    : [...new Set(allContent.filter((item) => item.source).map((item) => item.source))];
+  // Source options = UNION of (RDS station names) + (sources currently
+  // present on content items). This way legacy "MFY"/"GRK" tags remain
+  // filterable even after a site reconfiguration, while new stations
+  // appear automatically as soon as they are added in RDS Settings.
+  const availableSources = (() => {
+    const fromStations = rdsStations
+      .map((s) => s?.name || (s?.code ? s.code.toUpperCase() : null))
+      .filter(Boolean);
+    const fromContent = allContent
+      .map((item) => item?.source)
+      .filter(Boolean);
+    const merged = new Set([...fromStations, ...fromContent]);
+    return Array.from(merged);
+  })();
 
   // Calculate publish summary for an item
   const getPublishSummary = (item) => {
@@ -422,6 +484,65 @@ const ContentLibraryPage = () => {
         )}
       </div>
 
+      {/* Bulk Publish Bar — only visible when items selected AND clara_publish enabled */}
+      {selectedIds.size > 0 && claraPublishEnabled && (
+        <div
+          data-testid="bulk-publish-bar"
+          className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-zinc-900 text-white px-4 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.18)]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
+              <Globe className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold">
+                {selectedIds.size} article{selectedIds.size === 1 ? '' : 's'} selected
+              </div>
+              <div className="text-xs text-white/60">
+                Push directly to <code className="bg-white/10 px-1.5 rounded">/api/news/{mainSiteSlug}</code> — no WordPress needed
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearSelection}
+              data-testid="bulk-clear-btn"
+              className="text-white/70 hover:text-white hover:bg-white/10"
+            >
+              Clear
+            </Button>
+            <Button
+              size="sm"
+              disabled={bulkPublishing}
+              onClick={bulkPublishToApi}
+              data-testid="bulk-publish-clara-btn"
+              className="bg-white text-zinc-900 hover:bg-zinc-100 gap-1.5"
+            >
+              <Send className="w-3.5 h-3.5" />
+              {bulkPublishing ? 'Publishing…' : 'Publish to News API'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Select-all chip (only shown if bulk publish feature is enabled) */}
+      {claraPublishEnabled && filteredContent.length > 0 && (
+        <div className="flex items-center gap-2 mb-3 text-xs text-zinc-500">
+          <button
+            type="button"
+            onClick={toggleSelectAllVisible}
+            data-testid="select-all-visible-btn"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-100 hover:bg-zinc-200 transition-colors text-zinc-600"
+          >
+            <CheckSquare className="w-3.5 h-3.5" />
+            {filteredContent.every((c) => selectedIds.has(c.id)) ? 'Deselect all' : `Select all (${filteredContent.length})`}
+          </button>
+          <span className="text-zinc-400">Bulk push to News API instead of WordPress</span>
+        </div>
+      )}
+
       {/* Content List */}
       {loading ? (
         <div className="space-y-3">
@@ -468,10 +589,28 @@ const ContentLibraryPage = () => {
                 key={item.id}
                 data-testid={`content-item-${index}`}
                 onClick={() => navigate(buildPath(`/content/${item.id}`))}
-                className="bg-white border border-zinc-200 rounded-xl p-5 cursor-pointer hover:bg-white/70 hover:border-white/80 transition-all duration-200 group"
+                className={`bg-white border rounded-xl p-5 cursor-pointer hover:bg-white/70 hover:border-white/80 transition-all duration-200 group ${
+                  selectedIds.has(item.id) ? 'border-orange-300 ring-2 ring-orange-200/60' : 'border-zinc-200'
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
+                    {/* Bulk-select checkbox (only when clara_publish is enabled) */}
+                    {claraPublishEnabled && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
+                        data-testid={`select-item-${item.id}`}
+                        className="mt-1 w-5 h-5 rounded-md flex items-center justify-center text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors"
+                        aria-label="Select for bulk publish"
+                      >
+                        {selectedIds.has(item.id) ? (
+                          <CheckSquare className="w-4 h-4 text-orange-500" />
+                        ) : (
+                          <Square className="w-4 h-4" />
+                        )}
+                      </button>
+                    )}
                     {/* Featured Image Thumbnail or Type Icon */}
                     {featuredImageUrl ? (
                       <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-200 flex-shrink-0">

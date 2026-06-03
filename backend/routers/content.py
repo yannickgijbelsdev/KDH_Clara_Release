@@ -1487,3 +1487,100 @@ async def unpublish_via_clara_api(
         {"$set": {"status": "ready", "clara_published_at": None, "updated_at": now_iso}},
     )
     return {"status": "ready", "unpublished_at": now_iso}
+
+
+
+# ============== BULK NEWS API PUBLISH ==============
+
+from pydantic import BaseModel  # noqa: E402
+
+
+class BulkPublishClaraRequest(BaseModel):
+    content_ids: List[str]
+
+
+@content_router.post("/bulk-publish-clara")
+async def bulk_publish_via_clara(
+    payload: BulkPublishClaraRequest,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Publish many content items to the Clara News API in one round-trip.
+
+    All items must belong to the active main site (resolved from X-Main-Site-ID).
+    The site must have the `clara_publish` feature enabled.
+
+    Returns per-item status so the UI can show success/error counts.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    if not main_site_id:
+        raise HTTPException(status_code=400, detail="X-Main-Site-ID header is required for bulk publish")
+
+    site = await db.main_sites.find_one(
+        {"id": main_site_id}, {"_id": 0, "enabled_features": 1, "slug": 1}
+    )
+    if not site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+    if "clara_publish" not in (site.get("enabled_features") or []):
+        raise HTTPException(
+            status_code=403,
+            detail="Publishing via Clara News API is not enabled for this site. Toggle the 'Publish via Clara' feature in site settings first.",
+        )
+
+    if not payload.content_ids:
+        raise HTTPException(status_code=400, detail="content_ids must not be empty")
+
+    items = await db.content_items.find(
+        {"id": {"$in": payload.content_ids}, "main_site_id": main_site_id},
+        {"_id": 0, "id": 1, "title": 1, "slug": 1},
+    ).to_list(len(payload.content_ids))
+    by_id = {i["id"]: i for i in items}
+
+    import re
+    now_iso = datetime.now(timezone.utc).isoformat()
+    results = []
+    for cid in payload.content_ids:
+        item = by_id.get(cid)
+        if not item:
+            results.append({"content_id": cid, "status": "skipped", "reason": "not in this main site"})
+            continue
+        slug_to_use = item.get("slug")
+        if not slug_to_use:
+            base = re.sub(r"[^a-z0-9]+", "-", (item.get("title") or cid).lower()).strip("-") or cid
+            slug_to_use = base
+        await db.content_items.update_one(
+            {"id": cid},
+            {"$set": {
+                "status": "published",
+                "published_at": now_iso,
+                "clara_published_at": now_iso,
+                "updated_at": now_iso,
+                "slug": slug_to_use,
+            }},
+        )
+        results.append({
+            "content_id": cid,
+            "status": "published",
+            "slug": slug_to_use,
+            "public_url": f"/api/news/articles/{slug_to_use}",
+        })
+
+    published_count = sum(1 for r in results if r["status"] == "published")
+    skipped_count = sum(1 for r in results if r["status"] == "skipped")
+
+    await log_action(
+        action="Bulk published to Clara News API",
+        category="content",
+        user_id=current_user["id"],
+        user_email=current_user.get("email"),
+        main_site_id=main_site_id,
+        target_type="bulk_publish",
+        details={"published": published_count, "skipped": skipped_count},
+    )
+    return {
+        "site_slug": site.get("slug"),
+        "published": published_count,
+        "skipped": skipped_count,
+        "results": results,
+        "published_at": now_iso,
+    }

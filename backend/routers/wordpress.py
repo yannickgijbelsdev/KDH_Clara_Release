@@ -174,11 +174,39 @@ async def delete_wordpress_site(
     else:
         query = {"id": site_id, "team_id": current_user.get('team_id')}
     
+    # Look up the site name BEFORE deletion so we can also clean up
+    # stale `source` values on imported content (the `source` field was
+    # historically set to the WordPress site name during import).
+    site_doc = await db.wordpress_sites.find_one(query, {"_id": 0, "name": 1, "main_site_id": 1})
+
     result = await db.wordpress_sites.delete_one(query)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="WordPress site not found")
     
     await db.content_item_publishes.delete_many({"wordpress_site_id": site_id})
+
+    # Clear stale `source` from any content_items that referenced this WP site.
+    # Match case-insensitively on the site's display name so imported items
+    # (`source: "MFY"`) no longer appear filed under a deleted WordPress.
+    if site_doc and site_doc.get("name") and site_doc.get("main_site_id"):
+        import re as _re
+        name_pattern = f"^{_re.escape(site_doc['name'])}$"
+        cleared = await db.content_items.update_many(
+            {
+                "main_site_id": site_doc["main_site_id"],
+                "source": {"$regex": name_pattern, "$options": "i"},
+            },
+            {"$unset": {"source": ""}},
+        )
+        await log_action(
+            action="WordPress site removed — cleared stale source tags",
+            category="settings",
+            user_id=current_user["id"],
+            user_email=current_user.get("email"),
+            target_type="wordpress_site",
+            target_name=site_doc.get("name"),
+            details={"cleared_source_count": cleared.modified_count},
+        )
 
 
 @wordpress_router.post("/sites/{site_id}/test", response_model=WordPressConnectionTestResponse)
