@@ -108,6 +108,7 @@ const ContentLibraryPage = () => {
   const [allContent, setAllContent] = useState([]);
   const [filteredContent, setFilteredContent] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [rdsStations, setRdsStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
