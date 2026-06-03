@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Radio, Newspaper, Plug, Shield, Search, Copy, Check, ExternalLink,
   ChevronDown, ChevronUp, Loader2,
+  Globe, Image as ImageIcon, Settings as SettingsIcon, FileText as FileIcon,
+  Bell, Calendar, Mic, Headphones, LifeBuoy, Kanban, Upload, Video, MessageSquare,
 } from 'lucide-react';
 import { useMainSite } from '../context/MainSiteContext';
 import { Input } from '../components/ui/input';
@@ -25,6 +27,15 @@ const GROUP_ICON = {
   news_content: Newspaper,
   clara_custom: Plug,
   auth_public: Shield,
+};
+
+// Icon for auto-discovered extras groups, keyed by backend-supplied `icon` string
+const EXTRA_ICON = {
+  globe: Globe, image: ImageIcon, settings: SettingsIcon, file: FileIcon,
+  bell: Bell, calendar: Calendar, radio: Radio, mic: Mic,
+  headphones: Headphones, 'life-buoy': LifeBuoy, kanban: Kanban,
+  upload: Upload, video: Video, 'message-square': MessageSquare,
+  newspaper: Newspaper, shield: Shield, plug: Plug,
 };
 
 const METHOD_COLOR = {
@@ -84,9 +95,9 @@ function EndpointRow({ ep }) {
 }
 
 
-function GroupCard({ group, query }) {
-  const [open, setOpen] = useState(true);
-  const Icon = GROUP_ICON[group.id] || Plug;
+function GroupCard({ group, query, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const Icon = GROUP_ICON[group.id] || EXTRA_ICON[group.icon] || Plug;
   const filtered = useMemo(() => {
     if (!query) return group.endpoints;
     const q = query.toLowerCase();
@@ -191,7 +202,9 @@ export default function ApiEndpointsPage() {
       </div>
 
       <div className="space-y-4">
-        {data.groups?.map((g) => <GroupCard key={g.id} group={g} query={query} />)}
+        {data.groups?.map((g) => (
+          <GroupCard key={g.id} group={g} query={query} defaultOpen={!g.id.startsWith('extras_')} />
+        ))}
       </div>
     </div>
   );

@@ -1584,18 +1584,15 @@ async def get_main_site_api_endpoints(
         ],
     })
 
-    # ─── Additional Public Endpoints (auto-introspected) ───────────────────
+    # ─── Additional Public Endpoints (auto-introspected, sub-grouped) ──────
     # Walk every registered FastAPI route, find the ones that DO NOT require
-    # authentication, and include them so the admin sees the full surface
-    # area of public API. We exclude:
-    #   - paths already covered by the curated groups above
-    #   - internal/debug/migration/backup/clone endpoints
-    #   - WebSocket routes and OPTIONS/HEAD methods
-    #   - auth flow (login/register) — already in Auth group
+    # authentication, sub-group them per first-path-segment so the page has
+    # ~8 small cards instead of one giant scroll-list.
     try:
-        extra = _build_extra_public_endpoints_group(base_url, site, groups)
-        if extra and extra["endpoints"]:
-            groups.append(extra)
+        extra_groups = _build_extra_public_endpoint_groups(base_url, site, groups)
+        for g in extra_groups:
+            if g["endpoints"]:
+                groups.append(g)
     except Exception as e:
         logger.warning(f"Could not introspect extra public endpoints: {e}")
 
@@ -1607,11 +1604,13 @@ async def get_main_site_api_endpoints(
     }
 
 
-def _build_extra_public_endpoints_group(base_url: str, site: dict, existing_groups: list) -> dict:
-    """Introspect FastAPI's route table and return any public (auth-less) GET
-    endpoints that are NOT already covered by the curated groups above.
+def _build_extra_public_endpoint_groups(base_url: str, site: dict, existing_groups: list) -> list:
+    """Introspect FastAPI's route table and return a list of sub-groups of
+    public (auth-less) GET endpoints, one per first-path-segment.
 
     "Public" = the route has no auth dependency (no Depends(get_current_user) etc.)
+    Each returned group has the same shape as the curated groups so the
+    frontend renders them identically.
     """
     from server import app
     from fastapi.routing import APIRoute
@@ -1720,15 +1719,91 @@ def _build_extra_public_endpoints_group(base_url: str, site: dict, existing_grou
             continue
         seen.add(key)
         deduped.append(ep)
-    extra_endpoints = deduped
 
-    return {
-        "id": "additional_public",
-        "name": "Additional Public Endpoints",
-        "icon": "globe",
-        "description": "Auto-discovered routes that don't require authentication. Useful for client apps, share previews, embeds and crawlers. Curl any of these without a token.",
-        "endpoints": extra_endpoints,
-    }
+    # Sub-group by first path segment after /api/
+    bucket: dict = {}
+    for ep in deduped:
+        seg = _path_to_tag(ep["path"])
+        bucket.setdefault(seg, []).append(ep)
+
+    def _segment_label(seg: str) -> str:
+        # Hand-tuned display names; fall back to titlecased segment
+        return _SEG_LABELS.get(seg, seg.replace("-", " ").replace("_", " ").title())
+
+    def _segment_description(seg: str) -> str:
+        return _SEG_DESCRIPTIONS.get(seg, f"Public endpoints under /api/{seg}/. Auto-discovered, auth-less.")
+
+    def _segment_icon(seg: str) -> str:
+        return _SEG_ICONS.get(seg, "globe")
+
+    result = []
+    # Sort buckets alphabetically except put 'rds-builder', 'public', 'sites' early
+    priority = {"rds-builder": 0, "public": 1, "sites": 2, "vmix": 3}
+    for seg in sorted(bucket.keys(), key=lambda s: (priority.get(s, 99), s)):
+        result.append({
+            "id": f"extras_{seg}",
+            "name": _segment_label(seg),
+            "icon": _segment_icon(seg),
+            "description": _segment_description(seg),
+            "endpoints": bucket[seg],
+        })
+    return result
+
+
+_SEG_LABELS = {
+    "branding": "Branding",
+    "config": "Configuration",
+    "domains": "Domain Routing",
+    "files": "File Serving",
+    "media": "Media Library",
+    "notifications": "Notifications",
+    "occurrences": "Occurrences (Schedule)",
+    "public": "Public Schedule",
+    "rds-builder": "RDS Builder",
+    "rds": "RDS Image & Aliases",
+    "shows": "Shows (Public)",
+    "sites": "Public Sites",
+    "streams": "Audio Streams",
+    "support-tickets": "Support Asset Proxy",
+    "task-boards": "Task Board Files",
+    "uploads": "Uploads & Assets",
+    "vmix": "vMix Overlays",
+    "chat": "Chat Files",
+    "news": "News (extra)",
+    "api": "Root",
+}
+
+_SEG_DESCRIPTIONS = {
+    "branding": "Brand assets and platform metadata. Used by the login page and frontend boot.",
+    "config": "Public frontend configuration (feature flags, theme defaults).",
+    "domains": "Subdomain routing data for the Cloudflare Worker.",
+    "files": "Generic file proxy. Serves assets from object storage with optional ?auth= token.",
+    "media": "Media library asset serving (presigned S3 URLs).",
+    "notifications": "Notification category catalog and SMTP provider templates.",
+    "occurrences": "Print-friendly views of scheduled rundowns. Token-protected variants exist for sharing.",
+    "public": "Public schedule and station information. Safe to embed on external sites.",
+    "rds-builder": "Live RDS text output, scheduled-texts status and monitor history per station.",
+    "rds": "Image and alias endpoints for the legacy RDS contract.",
+    "shows": "Read-only show data exposed publicly.",
+    "sites": "Public site renderer data (used by the white-label frontend).",
+    "streams": "Audio stream proxies (CORS-bypass) and status checks.",
+    "support-tickets": "Authenticated proxy for support ticket attachments. Uses ?auth= token.",
+    "task-boards": "Task board file attachments via presigned URL redirect.",
+    "uploads": "Avatar, logo, editor-file and featured-image file serving.",
+    "vmix": "HTML overlay generators for vMix Web Browser Input.",
+    "chat": "Direct file serving for chat attachments stored locally.",
+    "news": "News endpoints not already in the curated News & Content group.",
+    "api": "Root API metadata.",
+}
+
+_SEG_ICONS = {
+    "branding": "image", "config": "settings", "domains": "globe",
+    "files": "file", "media": "image", "notifications": "bell",
+    "occurrences": "calendar", "public": "calendar", "rds-builder": "radio",
+    "rds": "radio", "shows": "mic", "sites": "globe", "streams": "headphones",
+    "support-tickets": "life-buoy", "task-boards": "kanban", "uploads": "upload",
+    "vmix": "video", "chat": "message-square", "news": "newspaper",
+}
 
 
 def _path_to_tag(path: str) -> str:
