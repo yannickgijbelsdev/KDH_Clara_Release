@@ -127,12 +127,25 @@ const ContentLibraryPage = () => {
       ]);
       setAllContent(contentRes.data);
       setCategories(categoriesRes.data);
+
+      // Fetch RDS stations for current main site → drives the source filter.
+      // This makes the dropdown dynamic instead of hardcoded MFY/GRK.
+      if (mainSiteSlug) {
+        try {
+          const r = await axios.get(`${API}/rds-stations/by-slug/${mainSiteSlug}`);
+          setRdsStations(r.data?.stations || []);
+        } catch {
+          setRdsStations([]);
+        }
+      } else {
+        setRdsStations([]);
+      }
     } catch (error) {
       toast.error('Failed to load content');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mainSiteSlug]);
 
   // Refetch content when navigating back to this page
   useEffect(() => {
@@ -164,9 +177,12 @@ const ContentLibraryPage = () => {
       result = result.filter(item => item.status === statusFilter);
     }
     
-    // Source filter (MFY, GRK, etc.)
+    // Source filter — case-insensitive match against either the station code
+    // or the human-readable station name (legacy data may store "GRK" while
+    // a station is named "GRK 90.7" with code "grk").
     if (sourceFilter) {
-      result = result.filter(item => item.source === sourceFilter);
+      const needle = sourceFilter.toLowerCase();
+      result = result.filter((item) => (item.source || '').toLowerCase() === needle);
     }
     
     // Category filter
@@ -183,8 +199,12 @@ const ContentLibraryPage = () => {
     toast.success('Content created');
   };
 
-  // Get unique sources for filter dropdown
-  const availableSources = [...new Set(allContent.filter(item => item.source).map(item => item.source))];
+  // Source options come from the current main site's RDS stations.
+  // Fall back to legacy item.source values *only* when no stations are
+  // configured yet — so a fresh site doesn't show empty.
+  const availableSources = rdsStations.length > 0
+    ? rdsStations.map((s) => s.name || s.code.toUpperCase())
+    : [...new Set(allContent.filter((item) => item.source).map((item) => item.source))];
 
   // Calculate publish summary for an item
   const getPublishSummary = (item) => {
