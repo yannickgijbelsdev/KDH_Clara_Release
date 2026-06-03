@@ -1486,6 +1486,54 @@ async def get_publish_status(
     return publish_record
 
 
+@content_router.post("/unpublish-all-news")
+async def unpublish_all_news_articles(
+    request: Request,
+    current_user: dict = Depends(require_admin),
+):
+    """Admin-only kill switch — unpublishes EVERY content item served by the
+    Clara News API for the active main site.
+
+    Items are reverted to `status='ready'` (not soft-deleted), so editors can
+    still see their drafts in the Content Library and re-publish individually.
+    The articles disappear from `/api/news/*` immediately because the public
+    filter requires `status==published`.
+
+    Scope: limited to the X-Main-Site-ID. Cross-site wipes must be done per
+    site to avoid accidental nukes.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    if not main_site_id:
+        raise HTTPException(status_code=400, detail="X-Main-Site-ID header is required")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    res = await db.content_items.update_many(
+        {"main_site_id": main_site_id, "status": "published"},
+        {"$set": {
+            "status": "ready",
+            "unpublished_at": now_iso,
+            "updated_at": now_iso,
+        }},
+    )
+
+    await log_action(
+        action="Bulk unpublished News API articles",
+        category="content",
+        user_id=current_user["id"],
+        user_email=current_user.get("email"),
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="bulk_unpublish",
+        details={"unpublished_count": res.modified_count},
+    )
+
+    return {
+        "unpublished": res.modified_count,
+        "main_site_id": main_site_id,
+        "unpublished_at": now_iso,
+    }
+
+
 @content_router.post("/{content_id}/publish-clara")
 async def publish_via_clara_api(
     content_id: str,

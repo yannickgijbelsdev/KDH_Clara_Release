@@ -758,16 +758,19 @@ const ContentDetailPage = () => {
           </div>
         )}
 
-        {/* News API Publish Button — works on every main site, no flag needed.
-            Mirrors the WordPress sync flow: requires approval first, becomes
-            "Sync" after an initial publish. */}
+        {/* News API Publish Button — works on every main site.
+            Same shape/size as the WordPress sync button; green only when synced. */}
         {isEditor && (
           <div className="flex flex-col items-end gap-1" data-testid="clara-publish-section">
             <Button
               data-testid="publish-clara-btn"
               onClick={() => publishViaClara()}
               disabled={isPublishBlocked || claraPublishBusy}
-              className={`gap-2 rounded-full px-5 ${content?.status === 'published' ? 'bg-emerald-600 hover:bg-emerald-600' : 'bg-zinc-900 hover:bg-zinc-900'} text-white`}
+              className={`gap-2 rounded-full px-5 text-white ${
+                content?.status === 'published'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
+                  : 'bg-violet-600 hover:bg-violet-700 border border-violet-700'
+              }`}
             >
               {claraPublishBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}

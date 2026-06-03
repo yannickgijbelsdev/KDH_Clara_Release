@@ -21,6 +21,7 @@ import {
   CheckSquare,
   Square,
   Send,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -102,9 +103,10 @@ const getBestFeaturedImage = (item) => {
 };
 
 const ContentLibraryPage = () => {
-  const { isEditor: legacyIsEditor } = useAuth();
+  const { isEditor: legacyIsEditor, isAdmin: legacyIsAdmin, user } = useAuth();
   const { canCreate, canEdit } = usePermissions();
   const isEditor = canCreate('content_library') || canEdit('content_library') || legacyIsEditor;
+  const isAdmin = legacyIsAdmin || user?.role === 'system_admin' || user?.is_network_admin === true;
   const navigate = useNavigate();
   const location = useLocation();
   const { mainSiteSlug } = useParams();
@@ -150,6 +152,25 @@ const ContentLibraryPage = () => {
     });
   };
   const clearSelection = () => setSelectedIds(new Set());
+
+  // Admin-only: nuke every published News API article on this site.
+  const unpublishAllNews = async () => {
+    const confirm1 = window.confirm(
+      'Unpublish ALL News API articles for this main site? Drafts stay safe — only the public API will go empty.'
+    );
+    if (!confirm1) return;
+    const confirm2 = window.prompt(
+      'Type DELETE to confirm. This affects everyone reading /api/news/* on this site.'
+    );
+    if (confirm2 !== 'DELETE') return;
+    try {
+      const r = await axios.post(`${API}/content/unpublish-all-news`);
+      toast.success(`Unpublished ${r.data.unpublished} article${r.data.unpublished === 1 ? '' : 's'} from the News API`);
+      fetchContent();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not unpublish');
+    }
+  };
 
   const bulkApprove = async () => {
     if (selectedIds.size === 0) return;
@@ -341,6 +362,17 @@ const ContentLibraryPage = () => {
               className="ml-1 bg-orange-500 hover:bg-orange-600 text-white rounded-full px-4 gap-1.5 text-sm shadow-lg shadow-orange-500/20"
             >
               <Plus className="w-3.5 h-3.5" /> New Article
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
+              data-testid="unpublish-all-news-btn"
+              onClick={unpublishAllNews}
+              variant="outline"
+              className="ml-1 border-rose-200 text-rose-600 hover:bg-rose-50 rounded-full px-4 gap-1.5 text-sm"
+              title="Admin-only: unpublish every News API article on this site"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> /delete all-news
             </Button>
           )}
         </div>
@@ -713,6 +745,26 @@ const ContentLibraryPage = () => {
                           </span>
                         )}
                         
+                        {/* Distribution channel badges — News API and/or WordPress.
+                            News API: item.status === 'published' (set by /publish-clara).
+                            WordPress: any synced publish_statuses row. */}
+                        {item.status === 'published' && (
+                          <span
+                            data-testid="badge-news-api"
+                            className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-medium"
+                          >
+                            <Send className="w-2.5 h-2.5" /> News API
+                          </span>
+                        )}
+                        {(item.publish_statuses || []).some((ps) => ps.sync_status === 'synced') && (
+                          <span
+                            data-testid="badge-wordpress"
+                            className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-medium"
+                          >
+                            <Globe className="w-2.5 h-2.5" /> WordPress
+                          </span>
+                        )}
+
                         {item.source && (
                           <span className="flex items-center gap-1 text-blue-400">
                             <Globe className="w-3 h-3" />
