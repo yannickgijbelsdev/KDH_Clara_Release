@@ -1571,6 +1571,13 @@ async def publish_via_clara_api(
             detail="Content must be approved before it can be published. Submit it for approval and have an admin approve it first.",
         )
 
+    # News API requires a featured image (mirrors the WordPress publish rule).
+    if not await _content_has_any_image(content):
+        raise HTTPException(
+            status_code=409,
+            detail="Add a featured image before publishing to the News API. It becomes the article's main photo.",
+        )
+
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.content_items.update_one(
         {"id": content_id},
@@ -1625,6 +1632,26 @@ async def unpublish_via_clara_api(
 # ============== BULK NEWS API PUBLISH ==============
 
 
+def _content_has_image(item: dict) -> bool:
+    """True if item carries a featured image inline (no DB lookup)."""
+    fi = item.get("featured_image") or {}
+    if fi.get("s3_url") or fi.get("file_storage_key") or fi.get("url"):
+        return True
+    if item.get("external_featured_image") or item.get("imported_image_url"):
+        return True
+    return False
+
+
+async def _content_has_any_image(item: dict) -> bool:
+    """True if either inline featured image OR a per-site featured image exists."""
+    if _content_has_image(item):
+        return True
+    has = await db.content_item_featured_images.find_one(
+        {"content_item_id": item["id"]}, {"_id": 0, "id": 1}
+    )
+    return bool(has)
+
+
 class BulkPublishClaraRequest(BaseModel):
     content_ids: List[str]
 
@@ -1659,9 +1686,17 @@ async def bulk_publish_via_clara(
 
     items = await db.content_items.find(
         {"id": {"$in": payload.content_ids}, "main_site_id": main_site_id},
-        {"_id": 0, "id": 1, "title": 1, "slug": 1, "approval_status": 1},
+        {"_id": 0, "id": 1, "title": 1, "slug": 1, "approval_status": 1, "featured_image": 1, "external_featured_image": 1, "imported_image_url": 1},
     ).to_list(len(payload.content_ids))
     by_id = {i["id"]: i for i in items}
+
+    # Pre-fetch per-site featured images so we can validate "has an image"
+    # without N+1 queries.
+    has_per_site_image: set[str] = set()
+    async for img in db.content_item_featured_images.find(
+        {"content_item_id": {"$in": payload.content_ids}}, {"_id": 0, "content_item_id": 1}
+    ):
+        has_per_site_image.add(img["content_item_id"])
 
     import re
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -1671,9 +1706,11 @@ async def bulk_publish_via_clara(
         if not item:
             results.append({"content_id": cid, "status": "skipped", "reason": "not in this main site"})
             continue
-        # Mirror per-item /publish-clara guard: only approved items get pushed.
         if item.get("approval_status") != "approved":
             results.append({"content_id": cid, "status": "skipped", "reason": "not_approved"})
+            continue
+        if not _content_has_image(item) and cid not in has_per_site_image:
+            results.append({"content_id": cid, "status": "skipped", "reason": "missing_featured_image"})
             continue
         slug_to_use = item.get("slug")
         if not slug_to_use:

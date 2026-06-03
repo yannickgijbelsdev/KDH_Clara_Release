@@ -626,6 +626,17 @@ const ContentDetailPage = () => {
   // Publishing is blocked only for "ready" content that hasn't been approved
   const isPublishBlocked = content.status === 'ready' && !isApproved;
 
+  // News API publish additionally requires a featured image (any source: inline,
+  // per-site WP image, or an imported external image URL).
+  const hasFeaturedImage = (() => {
+    const fi = content?.featured_image;
+    if (fi && (fi.s3_url || fi.url || fi.file_storage_key)) return true;
+    if (content?.external_featured_image || content?.imported_image_url) return true;
+    if (Object.values(featuredImages || {}).some((img) => img && (img.s3_url || img.file_storage_key))) return true;
+    return false;
+  })();
+  const newsApiBlocked = isPublishBlocked || !hasFeaturedImage;
+
   return (
     <div data-testid="content-detail-page">
       {/* Header */}
@@ -765,7 +776,7 @@ const ContentDetailPage = () => {
             <Button
               data-testid="publish-clara-btn"
               onClick={() => publishViaClara()}
-              disabled={isPublishBlocked || claraPublishBusy}
+              disabled={newsApiBlocked || claraPublishBusy}
               className={`gap-2 rounded-full px-5 text-white ${
                 content?.status === 'published'
                   ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
@@ -787,6 +798,9 @@ const ContentDetailPage = () => {
             )}
             {isPublishBlocked && (
               <span className="text-xs text-amber-500">Requires admin approval</span>
+            )}
+            {!isPublishBlocked && !hasFeaturedImage && (
+              <span className="text-xs text-amber-500">Add a featured image first</span>
             )}
           </div>
         )}

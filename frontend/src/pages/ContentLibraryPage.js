@@ -212,8 +212,10 @@ const ContentLibraryPage = () => {
       });
       const skipped = r.data.skipped || 0;
       const published = r.data.published || 0;
+      const noImg = (r.data.results || []).filter((x) => x.reason === 'missing_featured_image').length;
       if (skipped > 0) {
-        toast.message(`Published ${published} · skipped ${skipped} (not approved)`);
+        const reasonText = noImg > 0 ? ` (${noImg} missing featured image)` : '';
+        toast.message(`Published ${published} · skipped ${skipped}${reasonText}`);
       } else {
         toast.success(`Published ${published} article${published === 1 ? '' : 's'} to News API`);
       }

@@ -70,11 +70,29 @@ async def _resolve_category(main_site_id: str, category_slug: str) -> dict:
 
 
 def _build_image_url(item: dict) -> Optional[str]:
-    """Return the best available image url for a content item."""
+    """Return the best available image url for a content item.
+
+    Lookup order (most specific → most general):
+      1. inline `featured_image` (s3_url or storage key — set by /featured-image upload)
+      2. legacy `featured_image_url` / `image_url` / `cover_image_url`
+      3. `external_featured_image` / `imported_image_url` (carried over from
+         WordPress imports for legacy content).
+    """
+    fi = item.get("featured_image") or {}
+    if isinstance(fi, dict):
+        candidate = (
+            fi.get("s3_url")
+            or fi.get("url")
+            or (f"/api/files/{fi['file_storage_key']}" if fi.get("file_storage_key") else None)
+        )
+        if candidate:
+            return candidate
     return (
         item.get("featured_image_url")
         or item.get("image_url")
         or item.get("cover_image_url")
+        or item.get("external_featured_image")
+        or item.get("imported_image_url")
         or None
     )
 
