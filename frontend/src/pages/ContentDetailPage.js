@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
@@ -123,9 +123,9 @@ const ContentDetailPage = () => {
   // Clara native publish (independent of WordPress)
   const [claraPublishBusy, setClaraPublishBusy] = useState(false);
   const claraPublishEnabled = useMemo(() => {
-    const feats = mainSite?.enabled_features || [];
+    const feats = parentMainSite?.enabled_features || [];
     return Array.isArray(feats) && feats.includes('clara_publish');
-  }, [mainSite]);
+  }, [parentMainSite]);
 
   const publishViaClara = useCallback(async () => {
     if (!contentId) return;
