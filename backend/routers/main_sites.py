@@ -1422,10 +1422,14 @@ async def get_main_site_api_endpoints(
     """Curated, feature-aware list of public API endpoints for ONE main site.
 
     Returned groups depend on the site's `enabled_features`:
-      - "rds" feature              → Radio & RDS group (per dynamic station)
-      - "content_library" feature  → News & Content group (per category)
-      - "clara_custom" feature     → Clara Custom group
+      - "rds" feature              → Radio & RDS group (per dynamic station of THIS site)
+      - "content_library" feature  → News & Content group (per category of THIS site)
+      - "clara_custom" feature     → Clara Custom group (per integration of THIS site)
     Authentication & Public is always included.
+
+    Base URL is derived from the **incoming request's Host header** so the page
+    always shows the URLs of whatever Clara instance the admin is currently
+    using (preview vs production), not a hardcoded fallback.
     """
     site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0})
     if not site:
@@ -1438,12 +1442,15 @@ async def get_main_site_api_endpoints(
     if site_type == "external_host" and "content_library" not in enabled:
         enabled = enabled + ["content_library"]
 
-    # Public base URL — prefer settings.production_base_url for radio sites, else REACT_APP_BACKEND_URL
-    import os as _os
-    rds_settings = await db.rds_settings.find_one(
-        {"main_site_id": main_site_id}, {"_id": 0, "production_base_url": 1}
-    )
-    base_url = (rds_settings or {}).get("production_base_url") or _os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+    # Derive base URL from the incoming request so preview→preview URLs,
+    # production→production URLs. Cloudflare/Kubernetes ingress forwards the
+    # public hostname via X-Forwarded-Host (and the scheme via X-Forwarded-Proto).
+    # Fall back to the raw Host header only when no proxy header is present.
+    fwd_host = request.headers.get("x-forwarded-host", "").split(",")[0].strip()
+    fwd_proto = request.headers.get("x-forwarded-proto", "").split(",")[0].strip()
+    host = fwd_host or request.url.hostname or ""
+    scheme = fwd_proto or request.url.scheme or "https"
+    base_url = f"{scheme}://{host}" if host else ""
 
     groups = []
 

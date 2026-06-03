@@ -153,16 +153,27 @@ async def update_rds_settings(
 
 @rds_router.get("/endpoints")
 async def get_rds_endpoints(request: Request, current_user: dict = Depends(require_admin)):
-    """Get all available RDS API endpoints with production URLs, dynamically from stations."""
+    """Get all available RDS API endpoints with the request's host as base URL.
+
+    Base URL is derived from the incoming request so preview shows preview
+    URLs and production shows production URLs — no hardcoded `clara.koodh.com`.
+    """
     query_filter = await get_rds_query_filter(request, current_user)
     main_site_id = await get_main_site_id_from_header(request)
     
-    settings = await db.rds_settings.find_one(
-        query_filter,
-        {"_id": 0}
-    ) if query_filter else None
+    # Settings still loaded for backwards compatibility (other fields), but
+    # `production_base_url` is no longer used to build endpoint URLs.
+    await db.rds_settings.find_one(query_filter, {"_id": 0}) if query_filter else None
     
-    base_url = settings.get("production_base_url", "https://clara.koodh.com") if settings else "https://clara.koodh.com"
+    # Derive base URL from the incoming request host. Cloudflare/Kubernetes
+    # ingress forwards the original hostname via X-Forwarded-Host (and the
+    # scheme via X-Forwarded-Proto). Fall back to raw Host header when no
+    # proxy header is present.
+    fwd_host = request.headers.get("x-forwarded-host", "").split(",")[0].strip()
+    fwd_proto = request.headers.get("x-forwarded-proto", "").split(",")[0].strip()
+    host = fwd_host or request.url.hostname or ""
+    scheme = fwd_proto or request.url.scheme or "https"
+    base_url = f"{scheme}://{host}" if host else ""
     
     # Fetch dynamic stations for this site
     stations = []
