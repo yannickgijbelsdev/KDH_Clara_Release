@@ -52,6 +52,29 @@ async def _resolve_site_id_from_slug(site_slug: str) -> str:
     return site["id"]
 
 
+async def _validate_station_for_site(main_site_id: str, station: str) -> None:
+    """Reject station codes that aren't configured for this main site.
+
+    Accepts the aliases `all` / `both` (every configured station). All other
+    values must match a `code` in `rds_stations` for the given main site.
+    """
+    if station in ("all", "both"):
+        return
+    exists = await db.rds_stations.find_one(
+        {"main_site_id": main_site_id, "code": station},
+        {"_id": 0, "code": 1},
+    )
+    if not exists:
+        configured = await db.rds_stations.find(
+            {"main_site_id": main_site_id}, {"_id": 0, "code": 1}
+        ).to_list(50)
+        codes = [c["code"] for c in configured] + ["all"]
+        raise HTTPException(
+            status_code=400,
+            detail=f"Station '{station}' is not configured for this site. Valid: {', '.join(codes)}",
+        )
+
+
 async def _first_presenter_image(presenter_ids: list) -> str:
     """Return the first presenter's photo URL, else ''.
 
@@ -107,11 +130,17 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
         title_info = show_titles.get(title_name, {})
         rds_station = title_info.get("rds_station", "none")
 
-        if station != "both":
-            if rds_station != station and rds_station != "both":
+        # Dynamic filter — backwards-compat aliases:
+        #   "both" / "all" → broadcast on every station of the site
+        #   any other code → must match the show's `rds_station` exactly
+        #   "none"         → never broadcast
+        if station in ("both", "all"):
+            if rds_station == "none":
                 continue
         else:
             if rds_station == "none":
+                continue
+            if rds_station not in (station, "both", "all"):
                 continue
 
         try:
@@ -174,12 +203,11 @@ async def schedule_by_slug_and_day(site_slug: str, station: str, day: str):
     Returns a JSON list of shows with time, title, presenter name(s),
     presenter photo URL and show image. No auth, no headers.
     """
-    if station not in ("mfy", "grk", "both"):
-        raise HTTPException(status_code=400, detail="station must be mfy, grk, or both")
     day_lower = day.lower()
     if day_lower not in WEEKDAYS_NL:
         raise HTTPException(status_code=400, detail=f"Invalid day. Use one of {', '.join(WEEKDAYS_NL)}")
     main_site_id = await _resolve_site_id_from_slug(site_slug)
+    await _validate_station_for_site(main_site_id, station)
     week = await get_shows_for_week(main_site_id, station)
     return {"site_slug": site_slug, "station": station, "day": day_lower, "shows": week.get(day_lower, [])}
 
@@ -187,9 +215,8 @@ async def schedule_by_slug_and_day(site_slug: str, station: str, day: str):
 @public_schedule_router.get("/schedule/{site_slug}/{station}/today")
 async def schedule_by_slug_today(site_slug: str, station: str):
     """Public schedule for today, scoped by site slug + station."""
-    if station not in ("mfy", "grk", "both"):
-        raise HTTPException(status_code=400, detail="station must be mfy, grk, or both")
     main_site_id = await _resolve_site_id_from_slug(site_slug)
+    await _validate_station_for_site(main_site_id, station)
     shows = await get_shows_for_today(main_site_id, station)
     return {"site_slug": site_slug, "station": station, "day": WEEKDAY_NAMES_NL[now_brussels().weekday()], "shows": shows}
 
@@ -197,9 +224,8 @@ async def schedule_by_slug_today(site_slug: str, station: str):
 @public_schedule_router.get("/schedule/{site_slug}/{station}/week")
 async def schedule_by_slug_week(site_slug: str, station: str):
     """Public weekly schedule for one site + station, grouped per Dutch weekday."""
-    if station not in ("mfy", "grk", "both"):
-        raise HTTPException(status_code=400, detail="station must be mfy, grk, or both")
     main_site_id = await _resolve_site_id_from_slug(site_slug)
+    await _validate_station_for_site(main_site_id, station)
     return {"site_slug": site_slug, "station": station, "week": await get_shows_for_week(main_site_id, station)}
 
 
@@ -211,8 +237,10 @@ async def get_public_schedule(station: str, request: Request):
     main_site_id = request.headers.get("X-Main-Site-ID") or request.query_params.get("main_site_id", "")
     if not main_site_id:
         return {"error": "main_site_id required"}
-    if station not in ("mfy", "grk", "both"):
-        return {"error": "Invalid station. Use: mfy, grk, or both"}
+    try:
+        await _validate_station_for_site(main_site_id, station)
+    except HTTPException as e:
+        return {"error": e.detail}
     return await get_shows_for_week(main_site_id, station)
 
 
@@ -222,8 +250,10 @@ async def get_public_schedule_today(station: str, request: Request):
     main_site_id = request.headers.get("X-Main-Site-ID") or request.query_params.get("main_site_id", "")
     if not main_site_id:
         return {"error": "main_site_id required"}
-    if station not in ("mfy", "grk", "both"):
-        return {"error": "Invalid station. Use: mfy, grk, or both"}
+    try:
+        await _validate_station_for_site(main_site_id, station)
+    except HTTPException as e:
+        return {"error": e.detail}
     shows = await get_shows_for_today(main_site_id, station)
     return [
         {
@@ -246,8 +276,10 @@ async def get_public_schedule_day(station: str, day: str, request: Request):
     main_site_id = request.headers.get("X-Main-Site-ID") or request.query_params.get("main_site_id", "")
     if not main_site_id:
         return {"error": "main_site_id required"}
-    if station not in ("mfy", "grk", "both"):
-        return {"error": "Invalid station. Use: mfy, grk, or both"}
+    try:
+        await _validate_station_for_site(main_site_id, station)
+    except HTTPException as e:
+        return {"error": e.detail}
     day_lower = day.lower()
     if day_lower not in WEEKDAYS_NL:
         return {"error": f"Invalid day. Use one of {', '.join(WEEKDAYS_NL)}"}

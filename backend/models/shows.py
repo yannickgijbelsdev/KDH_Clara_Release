@@ -10,7 +10,10 @@ class ShowTitleCreate(BaseModel):
     description: Optional[str] = ""
     default_start_time: Optional[str] = None
     default_end_time: Optional[str] = None
-    rds_station: Optional[Literal["mfy", "grk", "both", "none"]] = "none"
+    # Free-form RDS station code. Must be one of the RDS station codes
+    # configured for the show's main site, "all" to broadcast on every
+    # configured station, or "none" to skip RDS output entirely.
+    rds_station: Optional[str] = "none"
     default_presenter_ids: Optional[List[str]] = None
 
 
@@ -19,7 +22,7 @@ class ShowTitleUpdate(BaseModel):
     description: Optional[str] = None
     default_start_time: Optional[str] = None
     default_end_time: Optional[str] = None
-    rds_station: Optional[Literal["mfy", "grk", "both", "none"]] = None
+    rds_station: Optional[str] = None
     default_presenter_ids: Optional[List[str]] = None
 
 

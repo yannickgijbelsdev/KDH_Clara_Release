@@ -112,6 +112,9 @@ const ShowManagementPage = () => {
   });
   const [savingStudio, setSavingStudio] = useState(false);
 
+  // RDS stations for current main site (dynamic — replaces hardcoded MFY/GRK)
+  const [rdsStations, setRdsStations] = useState([]);
+
   useEffect(() => {
     if (permissionsLoading) return;
     if (!isAdmin && !canView('show_management')) {
@@ -131,6 +134,20 @@ const ShowManagementPage = () => {
       setShowTitles(titlesRes.data);
       setStudios(studiosRes.data);
       setTeamUsers(usersRes.data);
+
+      // Resolve the current main site → fetch its RDS stations.
+      // We rely on the X-Main-Site-ID header axios already sends globally to
+      // avoid plumbing through context. Falls back to slug lookup if available.
+      try {
+        if (mainSiteSlug) {
+          const r = await axios.get(`${API}/rds-stations/by-slug/${mainSiteSlug}`);
+          setRdsStations(r.data?.stations || []);
+        } else {
+          setRdsStations([]);
+        }
+      } catch {
+        setRdsStations([]);
+      }
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
@@ -636,21 +653,26 @@ const ShowManagementPage = () => {
                   </div>
                 </div>
 
-                {/* RDS Station Selection */}
+                {/* RDS Station Selection — dynamic per main site */}
                 <div className="space-y-2">
                   <Label className="text-zinc-700 font-medium">RDS Station</Label>
-                  <p className="text-xs text-zinc-400 mb-2">Choose on which radio station(s) this show should be displayed in RDS</p>
+                  <p className="text-xs text-zinc-400 mb-2">
+                    {rdsStations.length === 0
+                      ? 'No RDS stations configured for this site — set them up in RDS Settings to enable per-station scheduling.'
+                      : 'Choose on which radio station(s) this show should be displayed in RDS'}
+                  </p>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { value: 'none', label: 'None' },
-                      { value: 'mfy', label: 'MFY' },
-                      { value: 'grk', label: 'GRK' },
-                      { value: 'both', label: 'Both' },
+                      ...rdsStations.map((s) => ({ value: s.code, label: s.name || s.code.toUpperCase() })),
+                      ...(rdsStations.length > 1 ? [{ value: 'all', label: 'All stations' }] : []),
                     ].map((option) => (
                       <button key={option.value} type="button"
+                        data-testid={`rds-station-option-${option.value}`}
                         onClick={() => setTitleFormData({ ...titleFormData, rds_station: option.value })}
                         className={`px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
-                          titleFormData.rds_station === option.value
+                          titleFormData.rds_station === option.value ||
+                          (option.value === 'all' && titleFormData.rds_station === 'both')
                             ? 'border-zinc-900 bg-zinc-50 text-zinc-900'
                             : 'border-zinc-200 text-zinc-500 hover:border-zinc-300'
                         }`}>
