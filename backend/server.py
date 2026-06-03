@@ -81,6 +81,7 @@ from routers.data_transfer import data_transfer_router
 from routers.clara_custom import clara_custom_router
 from routers.clara_integrations import clara_integrations_router, integrations_health_poller
 from routers.vdc_quick_deploy import vdc_quick_router
+from routers.news_public import news_public_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.call_signaling import call_signaling
@@ -1106,6 +1107,7 @@ async def call_signaling_websocket(websocket: WebSocket, room_id: str):
 
 app.include_router(api_router)
 app.include_router(migration_router)
+app.include_router(news_public_router)
 
 # CORS Middleware
 app.add_middleware(

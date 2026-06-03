@@ -23,7 +23,7 @@ import {
   ScrollText, ClipboardCheck, Trash2, Users, ChevronDown, ChevronRight,
   UserCog, ArrowLeftRight, FileCheck, Radio, Headphones, Wand2, Play,
   ArrowLeft, Send, Palette, Network, Activity, Shield, Phone, Monitor,
-  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug
+  KeyRound, FileCode, Video, Ban, Lock, Check, Search, Image, Loader2, Sparkles, Terminal, Plug, Zap
 } from 'lucide-react';
 import { Button } from './ui/button';
 import RadioplayerIcon from './icons/RadioplayerIcon';
@@ -79,6 +79,11 @@ function withImplicitFeatures(enabledFeatures, siteType) {
     set.add('content_approval');
     set.add('trash');
   }
+  // API Endpoints page is available when the site exposes anything publicly
+  // (radio, news/content, or clara custom integrations).
+  if (set.has('rds') || set.has('content_library') || set.has('clara_custom') || siteType === 'clara_custom') {
+    set.add('api_endpoints');
+  }
   return Array.from(set);
 }
 
@@ -131,6 +136,7 @@ const FEATURE_NAV_ITEMS = {
   enterprise_assistant: { to: 'enterprise-assistant', icon: Sparkles, label: 'Enterprise Assistant' },
   clara_custom: { to: 'clara-custom', icon: Plug, label: 'Clara Custom' },
   radio_automation: { to: 'radio-automation', icon: Disc3, label: 'Radio Automation', adminOnly: true },
+  api_endpoints: { to: 'api-endpoints', icon: Zap, label: 'API Endpoints', adminOnly: true },
 };
 
 // Navigation groups with feature mapping
@@ -169,7 +175,7 @@ const NAV_GROUPS = [
     id: 'admin',
     label: 'Administration',
     icon: Settings,
-    features: ['team_settings', 'wordpress', 'activity_logs', 'zerotier']
+    features: ['team_settings', 'wordpress', 'activity_logs', 'zerotier', 'api_endpoints']
   },
   {
     id: 'server',

@@ -1413,6 +1413,178 @@ async def get_health_history(
     return checks
 
 
+@main_sites_router.get("/{main_site_id}/api-endpoints")
+async def get_main_site_api_endpoints(
+    main_site_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+):
+    """Curated, feature-aware list of public API endpoints for ONE main site.
+
+    Returned groups depend on the site's `enabled_features`:
+      - "rds" feature              → Radio & RDS group (per dynamic station)
+      - "content_library" feature  → News & Content group (per category)
+      - "clara_custom" feature     → Clara Custom group
+    Authentication & Public is always included.
+    """
+    site = await db.main_sites.find_one({"id": main_site_id}, {"_id": 0})
+    if not site:
+        raise HTTPException(status_code=404, detail="Main site not found")
+
+    enabled = site.get("enabled_features") or []
+    site_type = site.get("site_type")
+    if site_type == "clara_custom" and "clara_custom" not in enabled:
+        enabled = enabled + ["clara_custom"]
+    if site_type == "external_host" and "content_library" not in enabled:
+        enabled = enabled + ["content_library"]
+
+    # Public base URL — prefer settings.production_base_url for radio sites, else REACT_APP_BACKEND_URL
+    import os as _os
+    rds_settings = await db.rds_settings.find_one(
+        {"main_site_id": main_site_id}, {"_id": 0, "production_base_url": 1}
+    )
+    base_url = (rds_settings or {}).get("production_base_url") or _os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+
+    groups = []
+
+    # ─── Radio & RDS ───────────────────────────────────────────────────────
+    if "rds" in enabled:
+        rds_stations = await db.rds_stations.find(
+            {"main_site_id": main_site_id}, {"_id": 0}
+        ).to_list(50)
+        rds_endpoints = []
+        for st in rds_stations:
+            code = (st.get("code") or "").lower()
+            name = st.get("name") or code.upper()
+            color = st.get("color") or "#f97316"
+            if not code:
+                continue
+            rds_endpoints.extend([
+                {"name": f"{name} — Live Show",         "description": f"Title of the current {name} live show", "method": "GET", "response_type": "text/plain",   "path": f"/api/rds/{code}/live",                 "full_url": f"{base_url}/api/rds/{code}/live",                 "tag": name, "tag_color": color},
+                {"name": f"{name} — Presenter(s)",      "description": f"Presenter name(s) live on {name}, joined with ' & '", "method": "GET", "response_type": "text/plain",   "path": f"/api/rds/{code}/presenter",            "full_url": f"{base_url}/api/rds/{code}/presenter",            "tag": name, "tag_color": color},
+                {"name": f"{name} — Now Playing (text)", "description": f"Current track on {name} as plain text", "method": "GET", "response_type": "text/plain",   "path": f"/api/rds/{code}/now-playing.txt",      "full_url": f"{base_url}/api/rds/{code}/now-playing.txt",      "tag": name, "tag_color": color},
+                {"name": f"{name} — Now Playing (JSON)", "description": "Shoutcast info incl. listeners", "method": "GET", "response_type": "application/json", "path": f"/api/rds/{code}/now-playing",          "full_url": f"{base_url}/api/rds/{code}/now-playing",          "tag": name, "tag_color": color},
+                {"name": f"{name} — Cached Rundown",    "description": f"Cached rundown JSON for {name}",       "method": "GET", "response_type": "application/json", "path": f"/api/rds/{code}/cached-rundown",       "full_url": f"{base_url}/api/rds/{code}/cached-rundown",       "tag": name, "tag_color": color},
+                {"name": f"{name} — Presenter image",   "description": f"Photo of the current {name} presenter", "method": "GET", "response_type": "image/jpeg",   "path": f"/api/rds/{code}/image.jpg",            "full_url": f"{base_url}/api/rds/{code}/image.jpg",            "tag": name, "tag_color": color},
+            ])
+        # Always include the cross-station fallbacks
+        rds_endpoints.extend([
+            {"name": "Any station — Live Show",   "description": "Title of any currently-live show", "method": "GET", "response_type": "text/plain", "path": "/api/rds/live",      "full_url": f"{base_url}/api/rds/live",      "tag": "All", "tag_color": "#71717a"},
+            {"name": "Any station — Presenter(s)", "description": "Presenter(s) for any currently-live show", "method": "GET", "response_type": "text/plain", "path": "/api/rds/presenter", "full_url": f"{base_url}/api/rds/presenter", "tag": "All", "tag_color": "#71717a"},
+        ])
+        if rds_endpoints:
+            groups.append({
+                "id": "radio_rds",
+                "name": "Radio & RDS",
+                "icon": "radio",
+                "description": "Live show, presenter, now-playing and rundown data for this site's radio stations. Public, no auth.",
+                "endpoints": rds_endpoints,
+            })
+
+    # ─── News & Content ────────────────────────────────────────────────────
+    if "content_library" in enabled:
+        cats = await db.categories.find(
+            {"main_site_id": main_site_id}, {"_id": 0, "id": 1, "name": 1, "slug": 1}
+        ).sort("name", 1).to_list(100)
+        site_slug = site.get("slug", "")
+        news_endpoints = []
+        for cat in cats:
+            cnt = await db.content_items.count_documents({
+                "main_site_id": main_site_id,
+                "category_id": cat["id"],
+                "status": {"$in": ["ready", "published"]},
+            })
+            news_endpoints.append({
+                "name": f"{cat['name']}",
+                "description": f"List of public articles in category '{cat['name']}' for this site. {cnt} item(s) available.",
+                "method": "GET",
+                "response_type": "application/json",
+                "path": f"/api/news/{site_slug}/{cat['slug']}",
+                "full_url": f"{base_url}/api/news/{site_slug}/{cat['slug']}",
+                "tag": cat["name"],
+                "tag_color": "#0ea5e9",
+                "item_count": cnt,
+            })
+        # Always include article-detail endpoint
+        news_endpoints.append({
+            "name": "Article detail",
+            "description": "Full article body (HTML) by id or slug. Public, no auth. Used for share previews, RSS, mobile apps.",
+            "method": "GET",
+            "response_type": "application/json",
+            "path": "/api/news/articles/{article_id}",
+            "full_url": f"{base_url}/api/news/articles/{{article_id}}",
+            "tag": "Detail",
+            "tag_color": "#0ea5e9",
+        })
+        if news_endpoints:
+            groups.append({
+                "id": "news_content",
+                "name": "News & Content",
+                "icon": "newspaper",
+                "description": "Public article lists per category and article detail. One endpoint per category — perfect for splitting your site's news feeds.",
+                "endpoints": news_endpoints,
+            })
+
+    # ─── Clara Custom integrations ─────────────────────────────────────────
+    if "clara_custom" in enabled:
+        integrations = await db.clara_integrations.find(
+            {"main_site_id": main_site_id}, {"_id": 0, "shared_secret": 0, "integration_token": 0}
+        ).to_list(50)
+        clara_endpoints = [
+            {"name": "Inbound — Register external integration", "description": "External Emergent project POSTs here on startup with its `integration_token` to self-register against this Clara.", "method": "POST", "response_type": "application/json", "path": "/api/clara-custom/integrations/register", "full_url": f"{base_url}/api/clara-custom/integrations/register", "tag": "Inbound", "tag_color": "#dd0c51"},
+        ]
+        # Per-integration outbound endpoints
+        for ig in integrations:
+            tpl = ig.get("template", "integration")
+            base = (ig.get("base_url") or "").rstrip("/")
+            if not base:
+                continue
+            eps = ig.get("endpoints_map") or {}
+            color = "#7c1ac8"
+            for key, label in [("health", "Health"), ("list", "List items"), ("upsert_by_clara_id", "Upsert by Clara id"), ("delete_by_clara_id", "Delete by Clara id")]:
+                p = eps.get(key)
+                if not p:
+                    continue
+                clara_endpoints.append({
+                    "name": f"{tpl} — {label}",
+                    "description": f"External endpoint Clara calls on the {tpl} integration.",
+                    "method": "GET" if key in ("health", "list") else ("POST" if key.startswith("upsert") else "DELETE"),
+                    "response_type": "application/json",
+                    "path": p,
+                    "full_url": f"{base}{p}",
+                    "tag": tpl,
+                    "tag_color": color,
+                })
+        if clara_endpoints:
+            groups.append({
+                "id": "clara_custom",
+                "name": "Clara Custom",
+                "icon": "plug",
+                "description": "Integration endpoints for external Emergent projects to push/pull content via Clara as a headless CMS.",
+                "endpoints": clara_endpoints,
+            })
+
+    # ─── Authentication & Public (always present) ──────────────────────────
+    groups.append({
+        "id": "auth_public",
+        "name": "Authentication & Public",
+        "icon": "shield",
+        "description": "Login and other generally-available endpoints. Not site-specific.",
+        "endpoints": [
+            {"name": "Login",                "description": "POST email+password, receive JWT token.",          "method": "POST", "response_type": "application/json", "path": "/api/auth/login",          "full_url": f"{base_url}/api/auth/login",          "tag": "Auth", "tag_color": "#52525b"},
+            {"name": "Current user (whoami)","description": "GET your own user record with the bearer token.", "method": "GET",  "response_type": "application/json", "path": "/api/auth/me",             "full_url": f"{base_url}/api/auth/me",             "tag": "Auth", "tag_color": "#52525b"},
+            {"name": "Service health",       "description": "Kubernetes liveness probe. No auth.",               "method": "GET",  "response_type": "application/json", "path": "/api/health",              "full_url": f"{base_url}/api/health",              "tag": "Public", "tag_color": "#52525b"},
+        ],
+    })
+
+    return {
+        "site": {"id": site["id"], "name": site["name"], "slug": site.get("slug"), "enabled_features": enabled, "site_type": site_type},
+        "base_url": base_url,
+        "groups": groups,
+        "total_endpoints": sum(len(g["endpoints"]) for g in groups),
+    }
+
+
 @main_sites_router.get("/{main_site_id}/debug")
 async def get_debug_info(
     main_site_id: str,

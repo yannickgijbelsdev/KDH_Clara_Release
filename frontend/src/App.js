@@ -60,6 +60,7 @@ import TaskBoardsPage from './pages/Tasks/TaskBoardsPage';
 import CanvaDirectorPage from './pages/CanvaDirectorPage';
 import EnterpriseAssistantPage from './pages/EnterpriseAssistantPage';
 import RadioAutomationPage from './pages/RadioAutomation/RadioAutomationPage';
+import ApiEndpointsPage from './pages/ApiEndpointsPage';
 import CallWidget from './components/Call/CallWidget';
 import ForcePasswordChangeModal from './components/Auth/ForcePasswordChangeModal';
 import { useSubdomainRouter } from './hooks/useSubdomainRouter';
@@ -282,6 +283,7 @@ const AppRoutes = () => {
         <Route path="task-boards/:boardId" element={<TaskBoardsPage />} />
         <Route path="enterprise-assistant" element={<EnterpriseAssistantPage />} />
         <Route path="radio-automation" element={<RadioAutomationPage />} />
+        <Route path="api-endpoints" element={<ApiEndpointsPage />} />
       </Route>
 
       {/* Public Call Page - /call/:callToken (no auth required) */}
