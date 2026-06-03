@@ -664,7 +664,9 @@ const ShowManagementPage = () => {
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { value: 'none', label: 'None' },
-                      ...rdsStations.map((s) => ({ value: s.code, label: s.name || s.code.toUpperCase() })),
+                      ...rdsStations
+                        .filter((s) => s?.code)
+                        .map((s) => ({ value: s.code, label: s.name || s.code.toUpperCase() })),
                       ...(rdsStations.length > 1 ? [{ value: 'all', label: 'All stations' }] : []),
                     ].map((option) => (
                       <button key={option.value} type="button"

@@ -203,7 +203,9 @@ const ContentLibraryPage = () => {
   // Fall back to legacy item.source values *only* when no stations are
   // configured yet — so a fresh site doesn't show empty.
   const availableSources = rdsStations.length > 0
-    ? rdsStations.map((s) => s.name || s.code.toUpperCase())
+    ? rdsStations
+        .map((s) => s?.name || (s?.code ? s.code.toUpperCase() : null))
+        .filter(Boolean)
     : [...new Set(allContent.filter((item) => item.source).map((item) => item.source))];
 
   // Calculate publish summary for an item
