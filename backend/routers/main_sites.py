@@ -1479,6 +1479,42 @@ async def get_main_site_api_endpoints(
             {"name": "Any station — Live Show",   "description": "Title of any currently-live show", "method": "GET", "response_type": "text/plain", "path": "/api/rds/live",      "full_url": f"{base_url}/api/rds/live",      "tag": "All", "tag_color": "#71717a"},
             {"name": "Any station — Presenter(s)", "description": "Presenter(s) for any currently-live show", "method": "GET", "response_type": "text/plain", "path": "/api/rds/presenter", "full_url": f"{base_url}/api/rds/presenter", "tag": "All", "tag_color": "#71717a"},
         ])
+        # Per-station × per-day schedule endpoints (one URL per day, exactly as
+        # asked for). Plus convenience "today" and "week" aliases.
+        site_slug_for_schedule = site.get("slug", "")
+        if site_slug_for_schedule and rds_stations:
+            DAYS_NL = ("maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag")
+            for st in rds_stations:
+                code = (st.get("code") or "").lower()
+                name = st.get("name") or code.upper()
+                color = st.get("color") or "#f97316"
+                if not code:
+                    continue
+                rds_endpoints.append({
+                    "name": f"{name} — Schedule · This Week",
+                    "description": f"Full weekly schedule for {name}, grouped per day. Each show carries time, title, presenter and presenter photo.",
+                    "method": "GET", "response_type": "application/json",
+                    "path": f"/api/public/schedule/{site_slug_for_schedule}/{code}/week",
+                    "full_url": f"{base_url}/api/public/schedule/{site_slug_for_schedule}/{code}/week",
+                    "tag": name, "tag_color": color,
+                })
+                rds_endpoints.append({
+                    "name": f"{name} — Schedule · Today",
+                    "description": f"Shows airing on {name} today (in Europe/Brussels time).",
+                    "method": "GET", "response_type": "application/json",
+                    "path": f"/api/public/schedule/{site_slug_for_schedule}/{code}/today",
+                    "full_url": f"{base_url}/api/public/schedule/{site_slug_for_schedule}/{code}/today",
+                    "tag": name, "tag_color": color,
+                })
+                for day in DAYS_NL:
+                    rds_endpoints.append({
+                        "name": f"{name} — Schedule · {day.capitalize()}",
+                        "description": f"Shows airing on {name} on {day}. Returns time, show name, presenter(s) and presenter photo.",
+                        "method": "GET", "response_type": "application/json",
+                        "path": f"/api/public/schedule/{site_slug_for_schedule}/{code}/day/{day}",
+                        "full_url": f"{base_url}/api/public/schedule/{site_slug_for_schedule}/{code}/day/{day}",
+                        "tag": name, "tag_color": color,
+                    })
         if rds_endpoints:
             groups.append({
                 "id": "radio_rds",
