@@ -199,7 +199,24 @@ const ContentLibraryPage = () => {
       clearSelection();
       fetchContent();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Bulk publish failed');
+      // If the site doesn't have clara_publish enabled, offer a one-click fix
+      // (admin-only — the maintenance endpoint already requires network admin).
+      const detail = err.response?.data?.detail || 'Bulk publish failed';
+      if (err.response?.status === 403 && detail.includes('not enabled')) {
+        const confirmed = window.confirm(
+          'News API publishing is not enabled for this site yet. Enable it now for ALL main sites?'
+        );
+        if (confirmed) {
+          try {
+            const m = await axios.post(`${API}/security/maintenance/enable-clara-publish-everywhere`);
+            toast.success(`Enabled News API on ${m.data.updated} main site(s). Try publish again.`);
+          } catch (mErr) {
+            toast.error(mErr.response?.data?.detail || 'Could not enable News API');
+          }
+        }
+      } else {
+        toast.error(detail);
+      }
     } finally {
       setBulkPublishing(false);
     }

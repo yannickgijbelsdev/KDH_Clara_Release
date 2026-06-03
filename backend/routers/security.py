@@ -195,3 +195,40 @@ async def clean_content_sources(current_user: dict = Depends(require_network_adm
         details={"kept": kept, "cleared": cleared},
     )
     return {"kept": kept, "cleared": cleared, "examples": examples}
+
+
+
+@security_router.post("/maintenance/enable-clara-publish-everywhere")
+async def enable_clara_publish_everywhere(current_user: dict = Depends(require_network_admin)):
+    """Add the `clara_publish` feature flag to every main_site that doesn't
+    have it yet. One-time migration to retroactively unlock the News API for
+    sites created before this feature became the default.
+
+    Idempotent — running it twice is safe.
+    """
+    sites = await db.main_sites.find(
+        {}, {"_id": 0, "id": 1, "name": 1, "enabled_features": 1}
+    ).to_list(500)
+
+    updated = 0
+    updated_sites = []
+    for s in sites:
+        feats = s.get("enabled_features") or []
+        if "clara_publish" in feats:
+            continue
+        await db.main_sites.update_one(
+            {"id": s["id"]},
+            {"$set": {"enabled_features": feats + ["clara_publish"]}},
+        )
+        updated += 1
+        updated_sites.append(s.get("name"))
+
+    await log_action(
+        action="Enabled clara_publish on all main sites",
+        category="settings",
+        user_id=current_user["id"],
+        user_email=current_user.get("email"),
+        target_type="maintenance",
+        details={"sites_updated": updated, "names": updated_sites},
+    )
+    return {"updated": updated, "sites": updated_sites}
