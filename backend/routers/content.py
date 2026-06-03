@@ -1513,12 +1513,8 @@ async def publish_via_clara_api(
     site = await db.main_sites.find_one({"id": content["main_site_id"]}, {"_id": 0, "enabled_features": 1, "slug": 1, "site_type": 1})
     if not site:
         raise HTTPException(status_code=404, detail="Main site not found for this content item")
-    feats = site.get("enabled_features") or []
-    if "clara_publish" not in feats:
-        raise HTTPException(
-            status_code=403,
-            detail="Publishing via Clara is not enabled for this site. Enable the 'Publish via Clara' feature in site settings first.",
-        )
+    # News API publishing is a baseline platform capability — every main site
+    # gets it by default, no feature flag required.
 
     # Mirror the WordPress flow: only approved items may be published.
     if content.get("approval_status") != "approved":
@@ -1607,11 +1603,8 @@ async def bulk_publish_via_clara(
     )
     if not site:
         raise HTTPException(status_code=404, detail="Main site not found")
-    if "clara_publish" not in (site.get("enabled_features") or []):
-        raise HTTPException(
-            status_code=403,
-            detail="Publishing via Clara News API is not enabled for this site. Toggle the 'Publish via Clara' feature in site settings first.",
-        )
+    # News API publishing is a baseline platform capability — every main site
+    # gets it by default, no feature flag required.
 
     if not payload.content_ids:
         raise HTTPException(status_code=400, detail="content_ids must not be empty")
