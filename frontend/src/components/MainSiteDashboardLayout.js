@@ -1129,8 +1129,8 @@ const MainSiteDashboardContent = () => {
               <Terminal className="w-3.5 h-3.5 text-zinc-500" />
             </button>
           )}
-          {/* Main Site Switcher Dropdown */}
-          {myMainSites.length > 1 && (
+          {/* Main Site Switcher Dropdown — always visible so user can switch to another site they have access to */}
+          {myMainSites.length >= 1 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="h-9 flex items-center gap-2 px-3 rounded-full border border-white/40 bg-white/20 backdrop-blur-xl hover:bg-white/35 text-sm font-medium text-zinc-700 transition-all duration-200 flex-shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" data-testid="main-site-switcher">

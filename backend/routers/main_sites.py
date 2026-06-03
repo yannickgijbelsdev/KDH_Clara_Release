@@ -209,6 +209,13 @@ async def create_main_site(
             if f not in effective_features:
                 effective_features.append(f)
 
+    # Zero-config News API: every main site gets `clara_publish` enabled by
+    # default so admins can publish content via /api/news/* immediately —
+    # without needing WordPress credentials. Can still be toggled off in
+    # site settings if a site is purely read-only.
+    if "clara_publish" not in effective_features:
+        effective_features.append("clara_publish")
+
     now = datetime.now(timezone.utc).isoformat()
     main_site_id = str(uuid.uuid4())
     

@@ -315,7 +315,7 @@ export default function EnvironmentManager() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div><Label className="text-zinc-700">Name</Label><Input value={envForm.name} onChange={e => setEnvForm(p => ({ ...p, name: e.target.value }))} placeholder="Staging" className="bg-white border-zinc-300 text-zinc-900" data-testid="env-name-input" /></div>
-              <div><Label className="text-zinc-700">Slug</Label><Input value={envForm.slug} onChange={e => setEnvForm(p => ({ ...p, slug: e.target.value }))} placeholder="staging" disabled={!!editingEnv} className="bg-white border-zinc-300 text-zinc-900 font-mono" data-testid="env-slug-input" /></div>
+              <div><Label className="text-zinc-700">Slug</Label><Input value={envForm.slug} onChange={e => setEnvForm(p => ({ ...p, slug: e.target.value }))} placeholder="staging" className="bg-white border-zinc-300 text-zinc-900 font-mono" data-testid="env-slug-input" /></div>
             </div>
             <div><Label className="text-zinc-700">Description</Label><Input value={envForm.description} onChange={e => setEnvForm(p => ({ ...p, description: e.target.value }))} placeholder="Test environment" className="bg-white border-zinc-300 text-zinc-900" /></div>
             <div>
