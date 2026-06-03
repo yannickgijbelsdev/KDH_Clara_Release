@@ -54,6 +54,19 @@ import { LayoutDashboard, Disc3 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+/**
+ * Resolve a main site logo URL.
+ *   - Absolute https:// URL (S3) → use as-is
+ *   - Relative /api/uploads path  → prefix with backend URL (legacy)
+ *   - Anything else               → return as-is so onError can fall through
+ */
+function resolveLogoUrl(url) {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith('/')) return `${process.env.REACT_APP_BACKEND_URL}${url}`;
+  return url;
+}
+
 /* Site-type background images (same as CreateMainSiteWizard) */
 const SITE_TYPE_BACKGROUNDS = {
   radio: '/images/env_radio.jpg',
@@ -375,15 +388,12 @@ const MainSiteDashboardContent = () => {
   // Dynamically calculate how many nav items fit in the pill bar.
   // Strategy: estimate width per item from its label length (px per character),
   // recompute on resize. Falls back to a conservative average.
-  // Recalculate visible nav pill count whenever the site slug, the available
-  // features OR the actual nav item list changes. After a site switch the
-  // mainSite re-renders before the ResizeObserver fires, leaving the
-  // calculation stuck on the previous (smaller) list — that's why the header
-  // would collapse to "Dashboard · More". Triggering on the items themselves
-  // forces a fresh calculation with the new list.
-  const flatNavSignature = (flatNavItemsRef.current || [])
-    .map((i) => i.label)
-    .join('|');
+  // Recalculate visible nav pill count whenever the active main site OR its
+  // feature set changes. We trigger on `mainSite?.id` *and* a length signature
+  // of the available features so a site switch never leaves the nav stuck at
+  // the previous (smaller) calculation — which used to collapse the menu to
+  // "Dashboard · More".
+  const featuresSignature = (mainSite?.enabled_features || []).join('|') + ':' + (mainSite?.site_type || '');
   useEffect(() => {
     const container = pillNavRef.current;
     if (!container) return;
@@ -405,17 +415,21 @@ const MainSiteDashboardContent = () => {
       }
       setVisibleNavCount(count);
     };
+    // Run twice: once synchronously, once after the next paint so the new
+    // flatNavItems ref has been written by the render that follows this
+    // effect. Without the rAF we measure the *previous* list after switching.
     calculate();
-    // Re-run on next animation frame to ensure fonts/layout have settled
-    const raf = requestAnimationFrame(calculate);
+    const raf1 = requestAnimationFrame(calculate);
+    const raf2 = requestAnimationFrame(() => requestAnimationFrame(calculate));
     const observer = new ResizeObserver(calculate);
     observer.observe(container);
     return () => {
       observer.disconnect();
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mainSiteSlug, flatNavSignature]);
+  }, [mainSiteSlug, mainSite?.id, featuresSignature]);
 
 
   // Fetch sites for navigation
@@ -1149,7 +1163,12 @@ const MainSiteDashboardContent = () => {
               <DropdownMenuTrigger asChild>
                 <button className="h-9 flex items-center gap-2 px-3 rounded-full border border-white/40 bg-white/20 backdrop-blur-xl hover:bg-white/35 text-sm font-medium text-zinc-700 transition-all duration-200 flex-shrink-0 shadow-[0_2px_8px_rgba(0,0,0,0.04)]" data-testid="main-site-switcher">
                   {mainSite?.logo_url ? (
-                    <img src={`${process.env.REACT_APP_BACKEND_URL}${mainSite.logo_url}`} alt="" className="w-5 h-5 rounded object-contain" />
+                    <img
+                      src={resolveLogoUrl(mainSite.logo_url)}
+                      alt=""
+                      className="w-5 h-5 rounded object-contain"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
                   ) : (
                     <Globe className="w-3.5 h-3.5 text-zinc-400" />
                   )}
@@ -1185,7 +1204,12 @@ const MainSiteDashboardContent = () => {
                           data-testid={`switch-site-${site.slug}`}
                         >
                           {site.logo_url ? (
-                            <img src={`${process.env.REACT_APP_BACKEND_URL}${site.logo_url}`} alt="" className="w-6 h-6 rounded object-contain mr-2 flex-shrink-0" />
+                            <img
+                              src={resolveLogoUrl(site.logo_url)}
+                              alt=""
+                              className="w-6 h-6 rounded object-contain mr-2 flex-shrink-0"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
                           ) : (
                             <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
                           )}

@@ -564,6 +564,40 @@ async def delete_main_site(
 
 
 
+@main_sites_router.post("/maintenance/clean-broken-logos")
+async def clean_broken_logos(current_user: dict = Depends(get_current_user)):
+    """Drop `logo_url` values that point at non-existing local files.
+
+    After moving logo uploads to S3, the legacy `/api/uploads/site_logos/…`
+    URLs from before the migration go stale because the container folder is
+    ephemeral. This endpoint walks all main sites and clears any logo_url
+    that no longer resolves locally and isn't an absolute https:// URL.
+    Idempotent.
+    """
+    sites = await db.main_sites.find(
+        {}, {"_id": 0, "id": 1, "name": 1, "logo_url": 1}
+    ).to_list(500)
+
+    cleared = 0
+    cleared_names = []
+    for s in sites:
+        url = s.get("logo_url")
+        if not url:
+            continue
+        if url.startswith(("http://", "https://")):
+            continue
+        if url.startswith("/api/uploads/site_logos/"):
+            file_key = url.replace("/api/uploads/site_logos/", "")
+            local = SITE_LOGOS_DIR / file_key
+            if local.exists():
+                continue
+        await db.main_sites.update_one({"id": s["id"]}, {"$unset": {"logo_url": ""}})
+        cleared += 1
+        cleared_names.append(s.get("name"))
+
+    return {"cleared": cleared, "sites": cleared_names}
+
+
 @main_sites_router.post("/{main_site_id}/logo")
 async def upload_site_logo(
     main_site_id: str,
