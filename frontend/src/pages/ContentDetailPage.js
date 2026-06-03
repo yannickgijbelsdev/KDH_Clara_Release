@@ -38,6 +38,7 @@ import {
   Pencil,
   Undo2,
   Copyright,
+  Send,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -757,17 +758,19 @@ const ContentDetailPage = () => {
           </div>
         )}
 
-        {/* Clara Publish Button — independent of WordPress */}
-        {isEditor && claraPublishEnabled && (
+        {/* News API Publish Button — works on every main site, no flag needed.
+            Mirrors the WordPress sync flow: requires approval first, becomes
+            "Sync" after an initial publish. */}
+        {isEditor && (
           <div className="flex flex-col items-end gap-1" data-testid="clara-publish-section">
             <Button
               data-testid="publish-clara-btn"
               onClick={() => publishViaClara()}
               disabled={isPublishBlocked || claraPublishBusy}
-              className={`gap-2 rounded-full px-5 ${content?.status === 'published' ? 'bg-emerald-600 hover:bg-emerald-600' : 'bg-violet-600 hover:bg-violet-600'} text-white`}
+              className={`gap-2 rounded-full px-5 ${content?.status === 'published' ? 'bg-emerald-600 hover:bg-emerald-600' : 'bg-zinc-900 hover:bg-zinc-900'} text-white`}
             >
-              {claraPublishBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              {content?.status === 'published' ? 'Update on Clara News' : 'Publish to Clara News'}
+              {claraPublishBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              {content?.status === 'published' ? 'Sync to News API' : 'Publish to News API'}
             </Button>
             {content?.status === 'published' && (
               <button
@@ -776,7 +779,7 @@ const ContentDetailPage = () => {
                 className="text-[11px] text-zinc-500 hover:text-rose-500 underline"
                 data-testid="unpublish-clara-btn"
               >
-                Unpublish from Clara News
+                Unpublish from News API
               </button>
             )}
             {isPublishBlocked && (
