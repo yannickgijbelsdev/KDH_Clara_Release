@@ -663,9 +663,72 @@ async def get_any_presenter_txt():
     return PlainTextResponse(content="", media_type="text/plain")
 
 
+# ─── JSON variants of the plain-text live/presenter endpoints ───────────────
+# Allow programmatic consumers (apps, JS clients) to receive structured data
+# instead of a raw string. Uses the same underlying helpers.
+
+def _split_presenter_names(joined: str) -> list:
+    return [n.strip() for n in joined.split("&") if n.strip()] if joined else []
+
+
+@rds_router.get("/mfy/live.json")
+async def get_mfy_live_show_title_json():
+    """Public endpoint: JSON-wrapped current MFY live show title."""
+    title = await get_live_show_title_for_station("mfy")
+    return {"station": "mfy", "field": "live_show_title", "value": title}
+
+
+@rds_router.get("/grk/live.json")
+async def get_grk_live_show_title_json():
+    """Public endpoint: JSON-wrapped current GRK live show title."""
+    title = await get_live_show_title_for_station("grk")
+    return {"station": "grk", "field": "live_show_title", "value": title}
+
+
+@rds_router.get("/live.json")
+async def get_any_live_show_title_json():
+    """Public endpoint: JSON-wrapped current live show title (any station)."""
+    for st in ("mfy", "grk"):
+        title = await get_live_show_title_for_station(st)
+        if title:
+            return {"station": st, "field": "live_show_title", "value": title}
+    return {"station": None, "field": "live_show_title", "value": ""}
+
+
+@rds_router.get("/mfy/presenter.json")
+async def get_mfy_presenter_json():
+    """Public endpoint: JSON-wrapped MFY presenter info (string + list)."""
+    names = await get_live_show_presenters_for_station("mfy")
+    return {"station": "mfy", "field": "presenter", "value": names, "list": _split_presenter_names(names)}
+
+
+@rds_router.get("/grk/presenter.json")
+async def get_grk_presenter_json():
+    """Public endpoint: JSON-wrapped GRK presenter info (string + list)."""
+    names = await get_live_show_presenters_for_station("grk")
+    return {"station": "grk", "field": "presenter", "value": names, "list": _split_presenter_names(names)}
+
+
+@rds_router.get("/presenter.json")
+async def get_any_presenter_json():
+    """Public endpoint: JSON-wrapped presenter for any currently-live show."""
+    for st in ("mfy", "grk"):
+        names = await get_live_show_presenters_for_station(st)
+        if names:
+            return {"station": st, "field": "presenter", "value": names, "list": _split_presenter_names(names)}
+    return {"station": None, "field": "presenter", "value": "", "list": []}
+
+
 @rds_router.get("/mfy/now-playing")
 async def get_mfy_now_playing():
     """Public endpoint: Get the current now playing info from MFY Shoutcast (cached, 10s interval)."""
+    from services.shoutcast import get_cached_now_playing
+    return await get_cached_now_playing(db, "mfy")
+
+
+@rds_router.get("/mfy/now-playing.json")
+async def get_mfy_now_playing_json():
+    """Public endpoint: Same as /mfy/now-playing — explicit .json alias for symmetry with .txt."""
     from services.shoutcast import get_cached_now_playing
     return await get_cached_now_playing(db, "mfy")
 
@@ -716,6 +779,12 @@ async def get_grk_now_playing():
     if source_station != "grk":
         result["note"] = "Now playing data sourced from MFY (show is on both stations)"
     return result
+
+
+@rds_router.get("/grk/now-playing.json")
+async def get_grk_now_playing_json():
+    """Public endpoint: Same as /grk/now-playing — explicit .json alias for symmetry with .txt."""
+    return await get_grk_now_playing()
 
 
 @rds_router.get("/grk/now-playing.txt")
@@ -1016,11 +1085,36 @@ async def get_station_show_image_url_txt(station: str):
         image_url = image_data.get("s3_url")
         if not image_url:
             file_key = image_data.get("file_key", "")
-            # Return full URL for MagicRDS
-            image_url = f"https://clara.koodh.com/uploads/show_title_images/{file_key}"
+            # Return path-only URL — consumer prepends its own host. Avoids
+            # hardcoded clara.koodh.com leaking into production responses.
+            image_url = f"/uploads/show_title_images/{file_key}"
         return PlainTextResponse(content=image_url, media_type="text/plain")
     
     return PlainTextResponse(content="", media_type="text/plain")
+
+
+@rds_router.get("/{station}/image-url.json")
+async def get_station_show_image_url_json(station: str):
+    """Public endpoint: JSON-wrapped image URL of the current live show on this station."""
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_title": 1, "show_image": 1},
+    )
+    image_data = None
+    show_title = None
+    if cached:
+        show_title = cached.get("show_title")
+        image_data = cached.get("show_image")
+    if not image_data and show_title:
+        title_doc = await db.show_titles.find_one({"name": show_title}, {"_id": 0, "image": 1})
+        if title_doc:
+            image_data = title_doc.get("image")
+    image_url = ""
+    if image_data:
+        image_url = image_data.get("s3_url") or (
+            f"/uploads/show_title_images/{image_data.get('file_key', '')}" if image_data.get("file_key") else ""
+        )
+    return {"station": station, "field": "image_url", "value": image_url, "show_title": show_title or ""}
 
 @rds_router.get("/shoutcast/logs")
 async def get_shoutcast_logs(

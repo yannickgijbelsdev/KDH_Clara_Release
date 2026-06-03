@@ -161,6 +161,27 @@ async def get_rds_output(station: str):
     return PlainTextResponse(content="", media_type="text/plain")
 
 
+@rds_builder_router.get("/output/{station}.json")
+async def get_rds_output_json(station: str):
+    """Public endpoint: JSON-wrapped current RDS text output for a station.
+
+    Use this instead of `.txt` when your client expects structured data
+    (e.g. JS apps, mobile clients). Returns `{station, value, updated_at}`.
+    """
+    output = await db.rds_builder_output.find_one(
+        {"station": station},
+        {"_id": 0},
+    )
+    if output and output.get("current_text"):
+        return {
+            "station": station,
+            "field": "rds_text",
+            "value": output["current_text"],
+            "updated_at": output.get("updated_at"),
+        }
+    return {"station": station, "field": "rds_text", "value": "", "updated_at": None}
+
+
 @rds_builder_router.get("/debug/{station}")
 async def debug_output(station: str):
     """Debug endpoint to check output data."""
@@ -1007,6 +1028,36 @@ async def get_named_output(station: str, slug: str):
         return PlainTextResponse(content=output_state["current_text"], media_type="text/plain")
     
     return PlainTextResponse(content="", media_type="text/plain")
+
+
+@rds_builder_router.get("/output/{station}/{slug}.json")
+async def get_named_output_json(station: str, slug: str):
+    """Public endpoint: JSON-wrapped current RDS text for a named output.
+
+    Returns `{station, slug, value, updated_at}`. Useful when integrating
+    from a JS app that wants structured data instead of raw text.
+    """
+    if slug in ["mfy", "grk", "mfy.txt", "grk.txt", "mfy.json", "grk.json"]:
+        return {"station": station, "slug": slug, "field": "rds_text", "value": "", "updated_at": None}
+    output_config = await db.rds_outputs.find_one(
+        {"station": station, "slug": slug},
+        {"_id": 0, "id": 1, "enabled": 1},
+    )
+    if not output_config or not output_config.get("enabled"):
+        return {"station": station, "slug": slug, "field": "rds_text", "value": "", "updated_at": None}
+    output_state = await db.rds_output_states.find_one(
+        {"output_id": output_config.get("id")},
+        {"_id": 0},
+    )
+    if output_state and output_state.get("current_text"):
+        return {
+            "station": station,
+            "slug": slug,
+            "field": "rds_text",
+            "value": output_state["current_text"],
+            "updated_at": output_state.get("updated_at"),
+        }
+    return {"station": station, "slug": slug, "field": "rds_text", "value": "", "updated_at": None}
 
 
 @rds_builder_router.get("/outputs/{station}/{slug}/status")
