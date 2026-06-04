@@ -33,6 +33,7 @@ remain working for backwards compatibility.
 from fastapi import APIRouter, HTTPException, Request
 from datetime import datetime, timedelta
 import logging
+import os
 
 from database import db
 from services.timezone_utils import now_brussels, WEEKDAY_NAMES_NL
@@ -40,6 +41,27 @@ from services.timezone_utils import now_brussels, WEEKDAY_NAMES_NL
 logger = logging.getLogger(__name__)
 
 public_schedule_router = APIRouter(prefix="/public", tags=["Public Schedule"])
+
+
+def _absolute_url(url: str) -> str:
+    """Turn `/api/uploads/...` style relative paths into absolute URLs so
+    that external consumers (WordPress plugin, FM player, schedule widget)
+    can fetch the file. Anything that already starts with `http(s)://`
+    passes through unchanged.
+
+    Uses `SHARE_BASE_URL` from env — the same base used for shared media,
+    so production / staging hosts get the right hostname automatically.
+    """
+    if not url:
+        return ""
+    if url.startswith(("http://", "https://", "//")):
+        return url
+    base = (os.environ.get("SHARE_BASE_URL") or "").rstrip("/")
+    if not base:
+        return url
+    if url.startswith("/"):
+        return f"{base}{url}"
+    return f"{base}/{url}"
 
 
 WEEKDAYS_NL = ("maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag")
@@ -75,21 +97,18 @@ async def _validate_station_for_site(main_site_id: str, station: str) -> None:
         )
 
 
-async def _first_presenter_image(presenter_ids: list) -> str:
-    """Return the first presenter's photo URL, else ''.
+async def _first_presenter_image(presenter_ids: list, title_image_fallback: str = "") -> str:
+    """Return the first presenter's photo URL, else the show-title image as
+    a fallback, else ''.
 
     Users store their avatar under `avatar: {file_key, s3_url?, filename, ...}`.
     Prefer `s3_url` when present, fall back to `/api/uploads/avatars/{file_key}`.
     Also accept legacy flat fields (`avatar_url`, `image_url`, `photo_url`).
+
+    Result is ALWAYS an absolute URL so the WordPress plugin, the player
+    and external schedule widgets can render it directly.
     """
-    if not presenter_ids:
-        return ""
-    presenters = await db.users.find(
-        {"id": {"$in": presenter_ids}},
-        {"_id": 0, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1},
-    ).to_list(10)
-    for p in presenters:
-        # 1. Modern: nested avatar dict
+    def resolve_from_doc(p: dict) -> str:
         avatar = p.get("avatar")
         if isinstance(avatar, dict):
             s3 = avatar.get("s3_url")
@@ -98,14 +117,31 @@ async def _first_presenter_image(presenter_ids: list) -> str:
             fk = avatar.get("file_key")
             if fk:
                 return f"/api/uploads/avatars/{fk}"
-        # 2. Legacy flat fields
         for k in ("avatar_url", "image_url", "photo_url"):
             if p.get(k):
                 return p[k]
-        # 3. Legacy nested `image` dict
         if isinstance(p.get("image"), dict):
             return p["image"].get("s3_url") or p["image"].get("url") or ""
-    return ""
+        return ""
+
+    if presenter_ids:
+        presenters = await db.users.find(
+            {"id": {"$in": presenter_ids}},
+            {"_id": 0, "id": 1, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1},
+        ).to_list(10)
+        # Re-order so the response uses the explicit presenter_ids order
+        by_id = {p.get("id"): p for p in presenters if p.get("id")}
+        ordered = [by_id[pid] for pid in presenter_ids if pid in by_id] + [
+            p for p in presenters if p.get("id") not in set(presenter_ids)
+        ]
+        for p in ordered or presenters:
+            url = resolve_from_doc(p)
+            if url:
+                return _absolute_url(url)
+
+    # Fallback — show-title image, so a row never ends up image-less when the
+    # show *does* have artwork even if the presenter does not.
+    return _absolute_url(title_image_fallback)
 
 
 async def get_shows_for_week(main_site_id: str, station: str) -> dict:
@@ -158,11 +194,14 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
             ).to_list(10)
             presenter_names = [p.get("name", "") for p in presenters if p.get("name")]
 
-        presenter_image_url = await _first_presenter_image(presenter_ids)
-
         image_url = ""
         if isinstance(title_info.get("image"), dict):
             image_url = title_info["image"].get("s3_url") or title_info["image"].get("url") or ""
+            if not image_url and title_info["image"].get("file_key"):
+                image_url = f"/api/uploads/show_title_images/{title_info['image']['file_key']}"
+        image_url = _absolute_url(image_url)
+
+        presenter_image_url = await _first_presenter_image(presenter_ids, title_image_fallback=image_url)
 
         result[weekday].append({
             "id": show.get("id"),
