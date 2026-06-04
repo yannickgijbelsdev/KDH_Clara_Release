@@ -645,20 +645,65 @@ async def import_wordpress_posts(
                 })
                 
                 if existing_record:
-                    # Update existing content item and publish record
+                    # Update existing content item and publish record. If the
+                    # content item was hard-deleted from the DB while the
+                    # publish record stuck around (orphaned publish), recreate
+                    # the content item so the article shows up in the Library
+                    # again on re-import.
                     content_id = existing_record.get('content_item_id')
-                    await db.content_items.update_one(
-                        {"id": content_id},
-                        {"$set": {
+                    existing_content = await db.content_items.find_one(
+                        {"id": content_id}, {"_id": 0, "id": 1}
+                    )
+                    if existing_content:
+                        await db.content_items.update_one(
+                            {"id": content_id},
+                            {"$set": {
+                                "title": title,
+                                "body": body,
+                                "excerpt": excerpt[:500] if excerpt else '',
+                                "external_featured_image": featured_image_url,
+                                "updated_at": now,
+                                "source_url": wp_link,
+                                "source": site.get('name', 'WordPress'),
+                                "wp_imported": True,
+                                "category_name": category_name,
+                                # Clear any stale `deleted_at` so a soft-deleted
+                                # item reappears after a fresh sync.
+                                "deleted_at": None,
+                            }}
+                        )
+                        # Mongo doesn't let us $unset and $set deleted_at in the
+                        # same op above — fix it up here for cleanliness.
+                        await db.content_items.update_one(
+                            {"id": content_id, "deleted_at": None},
+                            {"$unset": {"deleted_at": "", "deleted_by": ""}}
+                        )
+                    else:
+                        # Orphan repair — recreate the content item the publish
+                        # record points at, using the same id so nothing else
+                        # has to be rewired.
+                        await db.content_items.insert_one({
+                            "id": content_id,
+                            "team_id": current_user.get('team_id'),
+                            "main_site_id": main_site_id or site.get('main_site_id'),
                             "title": title,
                             "body": body,
+                            "body_text": excerpt,
                             "excerpt": excerpt[:500] if excerpt else '',
-                            "external_featured_image": featured_image_url,
-                            "updated_at": now,
+                            "type": "article",
+                            "source": site.get('name', 'WordPress'),
                             "source_url": wp_link,
+                            "external_featured_image": featured_image_url,
                             "category_name": category_name,
-                        }}
-                    )
+                            "tags": [],
+                            "status": "ready",
+                            "approval_status": "approved",
+                            "created_by": current_user['id'],
+                            "created_at": now,
+                            "updated_at": now,
+                            "original_date": wp_date,
+                            "wp_imported": True,
+                        })
                     await db.content_item_publishes.update_one(
                         {"id": existing_record['id']},
                         {"$set": {
