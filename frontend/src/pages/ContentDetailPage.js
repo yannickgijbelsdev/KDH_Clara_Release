@@ -500,6 +500,32 @@ const ContentDetailPage = () => {
     return `${API}/uploads/featured_images/${image.file_storage_key}`;
   };
 
+  // News API featured image upload — writes to the content item's own
+  // `featured_image` field (different storage from the per-WordPress-site
+  // featured images). Triggers a content reload so the publish button
+  // becomes active immediately.
+  const newsFeaturedInputRef = useRef(null);
+  const [newsFeaturedUploading, setNewsFeaturedUploading] = useState(false);
+  const handleNewsFeaturedSelected = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setNewsFeaturedUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      await axios.post(`${API}/content/${contentId}/featured-image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      toast.success('Featured image uploaded');
+      await fetchContent();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not upload featured image');
+    } finally {
+      setNewsFeaturedUploading(false);
+    }
+  };
+
   const handlePublish = async () => {
     const targets = Object.entries(selectedSites)
       .filter(([_, isSelected]) => isSelected)
@@ -806,7 +832,25 @@ const ContentDetailPage = () => {
               <span className="text-xs text-amber-500">Requires admin approval</span>
             )}
             {!isPublishBlocked && !hasFeaturedImage && (
-              <span className="text-xs text-amber-500">Add a featured image first</span>
+              <>
+                <button
+                  type="button"
+                  data-testid="upload-news-featured-image-btn"
+                  onClick={() => newsFeaturedInputRef.current?.click()}
+                  disabled={newsFeaturedUploading}
+                  className="text-xs font-semibold text-violet-600 hover:text-violet-700 underline decoration-violet-300 hover:decoration-violet-500 disabled:opacity-50"
+                >
+                  {newsFeaturedUploading ? 'Uploading…' : 'Add a featured image first →'}
+                </button>
+                <input
+                  ref={newsFeaturedInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
+                  className="hidden"
+                  onChange={handleNewsFeaturedSelected}
+                  data-testid="news-featured-image-input"
+                />
+              </>
             )}
           </div>
         )}
