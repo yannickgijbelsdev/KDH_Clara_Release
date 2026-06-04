@@ -938,183 +938,163 @@ async def update_shoutcast_filters(
 # ============== RDS IMAGE ENDPOINTS ==============
 # Public endpoints for MagicRDS to fetch show images
 
+
+async def _resolve_show_image_for_station(station: str) -> tuple[dict | None, str | None]:
+    """Walk every known source to find the best image for the currently
+    LIVE show on `station`, in priority order:
+
+    1. `rds_cached_rundowns.show_image`  — pre-baked by the scheduler
+    2. `shows.{show_id}.image`           — per-show upload (Show Management)
+    3. `show_titles.{name}.image`        — per-template upload (Show Titles)
+
+    Returns `(image_dict_normalised_or_None, show_title)`. The normalised dict
+    always exposes `s3_url`, `file_key` and `mime_type` regardless of the
+    source field naming (`file_storage_key` vs `file_key`).
+    """
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_id": 1, "team_id": 1, "show_title": 1, "show_image": 1},
+    )
+    if not cached:
+        return None, None
+
+    show_title = cached.get("show_title")
+    team_id = cached.get("team_id")
+    show_id = cached.get("show_id")
+
+    def normalise(raw: dict | None) -> dict | None:
+        """Make `{s3_url, file_key, mime_type, filename}` regardless of source."""
+        if not raw or not isinstance(raw, dict):
+            return None
+        s3_url = raw.get("s3_url")
+        file_key = raw.get("file_key") or raw.get("file_storage_key")
+        if not s3_url and not file_key:
+            # Empty placeholder — treat as missing
+            return None
+        return {
+            "s3_url": s3_url,
+            "file_key": file_key,
+            "mime_type": raw.get("mime_type", "image/jpeg"),
+            "filename": raw.get("filename") or raw.get("file_name"),
+        }
+
+    # 1. Cached rundown
+    img = normalise(cached.get("show_image"))
+    if img:
+        return img, show_title
+
+    # 2. Show instance (Show Management upload)
+    if show_id:
+        show_doc = await db.shows.find_one({"id": show_id}, {"_id": 0, "image": 1})
+        img = normalise((show_doc or {}).get("image"))
+        if img:
+            return img, show_title
+
+    # 3. Show title template
+    if show_title:
+        # Prefer the title doc that belongs to the same team_id / main_site_id as
+        # the cached rundown — otherwise we risk picking another site's image
+        # if two main sites share a show title name.
+        title_doc = None
+        if team_id:
+            title_doc = await db.show_titles.find_one(
+                {"name": show_title, "$or": [{"team_id": team_id}, {"main_site_id": team_id}]},
+                {"_id": 0, "image": 1},
+            )
+        if not title_doc:
+            title_doc = await db.show_titles.find_one(
+                {"name": show_title}, {"_id": 0, "image": 1}
+            )
+        img = normalise((title_doc or {}).get("image"))
+        if img:
+            return img, show_title
+
+    return None, show_title
+
+
+def _image_url_from(img: dict | None) -> str | None:
+    """Public URL for an image dict, S3 preferred, else local upload path."""
+    if not img:
+        return None
+    if img.get("s3_url"):
+        return img["s3_url"]
+    if img.get("file_key"):
+        return f"/uploads/show_title_images/{img['file_key']}"
+    return None
+
+
 @rds_router.get("/{station}/image")
 async def get_station_show_image(station: str):
     """Public endpoint: Get the current show image URL for a station.
-    
+
     Returns the S3 URL or local URL of the current live show's image.
-    If no show is active, returns the default station image (if configured).
-    
+    Walks (cached rundown → show instance → show title template) so any
+    image uploaded via Show Management is picked up.
+
     URL format: /api/rds/{station}/image
     Example: /api/rds/grk/image
-    
-    Returns JSON with image URL for programmatic access.
     """
-    # Get the current live show for this station
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-        {"_id": 0, "show_title": 1, "show_image": 1}
-    )
-    
-    image_data = None
-    show_title = None
-    
-    if cached:
-        show_title = cached.get("show_title")
-        image_data = cached.get("show_image")
-    
-    # If no image in cached rundown, try to get from show_titles
-    if not image_data and show_title:
-        title_doc = await db.show_titles.find_one(
-            {"name": show_title},
-            {"_id": 0, "image": 1}
-        )
-        if title_doc:
-            image_data = title_doc.get("image")
-    
-    if image_data:
-        # Return the S3 URL if available, otherwise construct local URL
-        image_url = image_data.get("s3_url")
-        if not image_url:
-            # Construct local URL
-            file_key = image_data.get("file_key", "")
-            image_url = f"/uploads/show_title_images/{file_key}"
-        
+    image_data, show_title = await _resolve_show_image_for_station(station)
+    image_url = _image_url_from(image_data)
+    if image_data and image_url:
         return {
             "station": station,
             "show_title": show_title,
             "has_image": True,
             "image_url": image_url,
             "mime_type": image_data.get("mime_type", "image/jpeg"),
-            "filename": image_data.get("filename")
+            "filename": image_data.get("filename"),
         }
-    
     return {
         "station": station,
         "show_title": show_title,
         "has_image": False,
         "image_url": None,
-        "message": "No image available for current show"
+        "message": "No image available for current show",
     }
 
 
 @rds_router.get("/{station}/image.jpg")
 async def get_station_show_image_redirect(station: str):
     """Public endpoint: Redirect to the actual image file.
-    
-    This endpoint is useful for MagicRDS and other systems that expect
-    a direct image URL. It redirects to the actual S3 or local image.
-    
+
+    Used by MagicRDS and similar systems that expect a direct image URL.
+
     URL format: /api/rds/{station}/image.jpg
-    Example: /api/rds/grk/image.jpg
-    
-    Returns: 302 redirect to actual image, or 404 if no image available.
     """
     from fastapi.responses import RedirectResponse
-    
-    # Get the current live show for this station
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-        {"_id": 0, "show_title": 1, "show_image": 1}
-    )
-    
-    image_data = None
-    show_title = None
-    
-    if cached:
-        show_title = cached.get("show_title")
-        image_data = cached.get("show_image")
-    
-    # If no image in cached rundown, try to get from show_titles
-    if not image_data and show_title:
-        title_doc = await db.show_titles.find_one(
-            {"name": show_title},
-            {"_id": 0, "image": 1}
-        )
-        if title_doc:
-            image_data = title_doc.get("image")
-    
-    if image_data:
-        image_url = image_data.get("s3_url")
-        if image_url:
-            return RedirectResponse(url=image_url, status_code=302)
-        else:
-            # Local file - redirect to static file serving
-            file_key = image_data.get("file_key", "")
-            return RedirectResponse(url=f"/uploads/show_title_images/{file_key}", status_code=302)
-    
+
+    image_data, _ = await _resolve_show_image_for_station(station)
+    image_url = _image_url_from(image_data)
+    if image_url:
+        return RedirectResponse(url=image_url, status_code=302)
     raise HTTPException(status_code=404, detail="No image available for current show")
 
 
 @rds_router.get("/{station}/image-url.txt")
 async def get_station_show_image_url_txt(station: str):
-    """Public endpoint: Get just the image URL as plain text.
-    
-    This is useful for systems that need to read a URL from a text file.
-    
-    URL format: /api/rds/{station}/image-url.txt
-    Example: /api/rds/grk/image-url.txt
-    
-    Returns: Plain text with the image URL, or empty if no image.
-    """
+    """Public endpoint: Get just the image URL as plain text."""
     from fastapi.responses import PlainTextResponse
-    
-    # Get the current live show for this station
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-        {"_id": 0, "show_title": 1, "show_image": 1}
-    )
-    
-    image_data = None
-    show_title = None
-    
-    if cached:
-        show_title = cached.get("show_title")
-        image_data = cached.get("show_image")
-    
-    # If no image in cached rundown, try to get from show_titles
-    if not image_data and show_title:
-        title_doc = await db.show_titles.find_one(
-            {"name": show_title},
-            {"_id": 0, "image": 1}
-        )
-        if title_doc:
-            image_data = title_doc.get("image")
-    
-    if image_data:
-        image_url = image_data.get("s3_url")
-        if not image_url:
-            file_key = image_data.get("file_key", "")
-            # Return path-only URL — consumer prepends its own host. Avoids
-            # hardcoded clara.koodh.com leaking into production responses.
-            image_url = f"/uploads/show_title_images/{file_key}"
-        return PlainTextResponse(content=image_url, media_type="text/plain")
-    
-    return PlainTextResponse(content="", media_type="text/plain")
+
+    image_data, _ = await _resolve_show_image_for_station(station)
+    image_url = _image_url_from(image_data) or ""
+    return PlainTextResponse(content=image_url, media_type="text/plain")
 
 
 @rds_router.get("/{station}/image-url.json")
 async def get_station_show_image_url_json(station: str):
     """Public endpoint: JSON-wrapped image URL of the current live show on this station."""
-    cached = await db.rds_cached_rundowns.find_one(
-        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-        {"_id": 0, "show_title": 1, "show_image": 1},
-    )
-    image_data = None
-    show_title = None
-    if cached:
-        show_title = cached.get("show_title")
-        image_data = cached.get("show_image")
-    if not image_data and show_title:
-        title_doc = await db.show_titles.find_one({"name": show_title}, {"_id": 0, "image": 1})
-        if title_doc:
-            image_data = title_doc.get("image")
-    image_url = ""
-    if image_data:
-        image_url = image_data.get("s3_url") or (
-            f"/uploads/show_title_images/{image_data.get('file_key', '')}" if image_data.get("file_key") else ""
-        )
-    return {"station": station, "field": "image_url", "value": image_url, "show_title": show_title or ""}
+    image_data, show_title = await _resolve_show_image_for_station(station)
+    image_url = _image_url_from(image_data) or ""
+    return {
+        "station": station,
+        "field": "image_url",
+        "value": image_url,
+        "show_title": show_title or "",
+    }
+
+
+# ============== SHOUTCAST LOGS (admin-only debugging) ==============
 
 @rds_router.get("/shoutcast/logs")
 async def get_shoutcast_logs(
