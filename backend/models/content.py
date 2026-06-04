@@ -20,7 +20,7 @@ class ContentItemUpdate(BaseModel):
     excerpt: Optional[str] = None
     external_url: Optional[str] = None
     category_id: Optional[str] = None
-    status: Optional[Literal["draft", "ready"]] = None
+    status: Optional[Literal["draft", "ready", "published"]] = None
 
 
 class ContentApprovalUpdate(BaseModel):

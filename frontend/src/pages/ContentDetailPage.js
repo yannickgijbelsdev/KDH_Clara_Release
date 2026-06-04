@@ -362,7 +362,11 @@ const ContentDetailPage = () => {
       setIsEditing(false);
       toast.success('Content updated');
     } catch (error) {
-      claraToast.error('Failed to update content', openClara, 'Content editing');
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail
+        : Array.isArray(detail) && detail[0]?.msg ? detail[0].msg
+        : 'Failed to update content';
+      claraToast.error(msg, openClara, 'Content editing');
     } finally {
       setSaving(false);
     }
@@ -809,7 +813,7 @@ const ContentDetailPage = () => {
               data-testid="publish-clara-btn"
               onClick={() => publishViaClara()}
               disabled={newsApiBlocked || claraPublishBusy}
-              className={`gap-2 rounded-full px-5 text-white disabled:text-white disabled:opacity-60 ${
+              className={`gap-2 rounded-full px-5 !text-white disabled:!text-white disabled:opacity-60 ${
                 content?.status === 'published'
                   ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
                   : 'bg-violet-600 hover:bg-violet-700 border border-violet-700'
@@ -1074,6 +1078,7 @@ const ContentDetailPage = () => {
                   <SelectContent className="bg-white border-zinc-200">
                     <SelectItem value="draft" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Draft</SelectItem>
                     <SelectItem value="ready" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Ready</SelectItem>
+                    <SelectItem value="published" className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100">Published</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
