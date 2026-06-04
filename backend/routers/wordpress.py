@@ -699,7 +699,7 @@ async def import_wordpress_posts(
                             "status": "ready",
                             "approval_status": "approved",
                             "created_by": current_user['id'],
-                            "created_at": now,
+                            "created_at": wp_date or now,
                             "updated_at": now,
                             "original_date": wp_date,
                             "wp_imported": True,
@@ -741,6 +741,12 @@ async def import_wordpress_posts(
                             "source": site.get('name', 'WordPress'),
                             "source_url": wp_link,
                             "wp_imported": True,
+                            # Keep the WordPress publish date authoritative on
+                            # the Clara side too — the Library sorts by
+                            # `created_at` and was collapsing every import to
+                            # "today" because we used `now` here.
+                            "created_at": wp_date or now,
+                            "original_date": wp_date,
                         }}
                     )
                 else:
@@ -763,7 +769,9 @@ async def import_wordpress_posts(
                         "status": "ready",
                         "approval_status": "approved",
                         "created_by": current_user['id'],
-                        "created_at": now,
+                        # Use the WordPress publish date so the Library shows
+                        # articles in their original chronological order.
+                        "created_at": wp_date or now,
                         "updated_at": now,
                         "original_date": wp_date,
                         "wp_imported": True,
@@ -1054,7 +1062,7 @@ async def publish_content_to_wordpress(
                                     caption_text = " — ".join(parts)
                                     try:
                                         await client.post(
-                                            f"{wp_base_url.rstrip('/')}/wp-json/wp/v2/media/{wp_media_id}",
+                                            f"{site['wp_base_url'].rstrip('/')}/wp-json/wp/v2/media/{wp_media_id}",
                                             headers=headers,
                                             json={
                                                 "caption": caption_text,
