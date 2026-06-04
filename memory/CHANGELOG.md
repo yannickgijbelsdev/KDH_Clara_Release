@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-06-04 — Content Library Robustness & Custom-Site Polish
+
+### Backend (`/app/backend/routers/content.py`)
+- `POST /api/content/categories` now accepts JSON body `{ "name": "..." }` and de-duplicates on slug per main site.
+- NEW `DELETE /api/content/categories/{id}` — removes a category and unsets `category_id` on its items (no data loss).
+- NEW `POST /api/content/bulk-delete` — body `{ "content_ids": [...] }`. Soft-deletes the items, flips `status='draft'` so they vanish from the public News API immediately, batched audit log.
+- `DELETE /api/content/{id}` re-ordered: **soft-delete first**, WordPress trash cleanup after with a 6-second timeout per site. Slow/unreachable WP hosts can no longer make the UI think the delete failed.
+
+### Frontend
+- `ContentLibraryPage.js`:
+  - New **Delete** button in the bulk action bar (calls `/bulk-delete`).
+  - **Always-visible Category dropdown** with `+ New category` and per-row trash icons, even when no categories exist.
+  - New **News API endpoints** info panel: lists each category with its public `/api/news/{slug}/{cat}` URL and a copy-to-clipboard button.
+- `CreateContentDialog.js`: `+ New category` button next to the Category label — inline create without leaving the wizard.
+- `ContentDetailPage.js`: surfaces backend `detail` on delete errors and reports per-site WordPress sync failures in the toast.
+- `DashboardHome.js`: added `SITE_TYPE_THEMES.custom` (label "Custom Site"). Unknown site types now fall back to **custom** instead of **radio** — custom main sites no longer show the "Radio Station" label.
+
+### Tests
+- `/app/backend/tests/test_content_library_dbnt_fixes.py` — 10/10 green covering category CRUD, dedupe, bulk-delete soft-delete + status-flip, fast single delete, public News API regression.
+
+
 ## 2026-04-10 — Fork Session: UI Width Standardization & Dynamic RDS Stations
 
 ### UI Consistency: Page Width Unification
