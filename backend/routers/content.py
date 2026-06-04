@@ -96,22 +96,43 @@ async def get_categories(
     return categories
 
 
+class CategoryCreateRequest(BaseModel):
+    name: str
+
+
 @content_router.post("/categories", response_model=CategoryResponse)
 async def create_category(
     request: Request,
-    name: str,
+    payload: CategoryCreateRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create a new category."""
+    """Create a new category. Slug auto-derived from name; uniqueness scoped per main site."""
     effective_role = await get_effective_role(request, current_user)
     if effective_role not in ['admin', 'news_admin', 'editor']:
         raise HTTPException(status_code=403, detail="Editor or admin access required")
     # Get main_site_id from header for multisite context
     main_site_id = await get_main_site_id_from_header(request)
-    
-    slug = name.lower().replace(" ", "-")
+
+    import re
+    name = (payload.name or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Category name is required")
+
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    if not slug:
+        raise HTTPException(status_code=400, detail="Category name must contain at least one letter or digit")
+
+    # Prevent duplicates per main site (case-insensitive on slug)
+    dup_query = {"slug": slug}
+    if main_site_id:
+        dup_query["main_site_id"] = main_site_id
+    else:
+        dup_query["team_id"] = current_user.get('team_id')
+    existing = await db.categories.find_one(dup_query, {"_id": 0, "id": 1, "name": 1, "slug": 1})
+    if existing:
+        return existing
+
     cat_id = str(uuid.uuid4())[:8]
-    
     cat_doc = {
         "id": f"cat_{cat_id}",
         "team_id": current_user.get('team_id'),
@@ -120,10 +141,45 @@ async def create_category(
         "slug": slug,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
-    
+
     await db.categories.insert_one(cat_doc)
     cat_doc.pop('_id', None)
     return cat_doc
+
+
+@content_router.delete("/categories/{category_id}")
+async def delete_category(
+    category_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a category. Content items assigned to it are kept but
+    their `category_id` is cleared so they don't reference a ghost."""
+    effective_role = await get_effective_role(request, current_user)
+    if effective_role not in ['admin', 'news_admin', 'editor']:
+        raise HTTPException(status_code=403, detail="Editor or admin access required")
+    main_site_id = await get_main_site_id_from_header(request)
+
+    query = {"id": category_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    else:
+        query["team_id"] = current_user.get('team_id')
+    cat = await db.categories.find_one(query, {"_id": 0})
+    if not cat:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+    # Unassign from content items in the same scope
+    unassign_query = {"category_id": category_id}
+    if main_site_id:
+        unassign_query["main_site_id"] = main_site_id
+    else:
+        unassign_query["team_id"] = current_user.get('team_id')
+    await db.content_items.update_many(unassign_query, {"$unset": {"category_id": ""}})
+
+    await db.categories.delete_one({"id": category_id})
+    return {"message": "Category deleted", "id": category_id}
+
 
 
 # ============== CONTENT ITEMS ==============
@@ -606,15 +662,28 @@ async def delete_content_item(
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
     
+    # Soft delete FIRST so the UI is never blocked by a slow or unreachable
+    # WordPress host. WP cleanup runs after and is best-effort.
+    now = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {
+            "deleted_at": now,
+            "deleted_by": current_user['id'],
+            "updated_at": now
+        }}
+    )
+
     # Get all WordPress publish records
     publish_records = await db.content_item_publishes.find(
         {"content_item_id": content_id}
     ).to_list(100)
-    
+
     wp_deletion_results = []
-    
-    # Delete from WordPress for each published site
-    async with httpx.AsyncClient(timeout=30.0) as client:
+
+    # Delete from WordPress for each published site — best-effort. A short
+    # timeout keeps the request snappy even if a remote WP site is dead.
+    async with httpx.AsyncClient(timeout=6.0) as client:
         for record in publish_records:
             if record.get('wp_post_id'):
                 site = await db.wordpress_sites.find_one({"id": record['wordpress_site_id']})
@@ -627,11 +696,11 @@ async def delete_content_item(
                         credentials = f"{site['username']}:{pw}"
                         auth_header = base64.b64encode(credentials.encode()).decode()
                         headers = {"Authorization": f"Basic {auth_header}"}
-                        
+
                         # Delete (trash) the WordPress post
                         endpoint = f"{site['wp_base_url']}/wp-json/wp/v2/{record.get('wp_post_type', 'post')}s/{record['wp_post_id']}"
                         response = await client.delete(endpoint, headers=headers)
-                        
+
                         wp_deletion_results.append({
                             "site": site['name'],
                             "success": response.status_code in [200, 201],
@@ -643,17 +712,6 @@ async def delete_content_item(
                             "success": False,
                             "error": str(e)
                         })
-    
-    # Soft delete - mark as deleted instead of removing
-    now = datetime.now(timezone.utc).isoformat()
-    await db.content_items.update_one(
-        {"id": content_id},
-        {"$set": {
-            "deleted_at": now,
-            "deleted_by": current_user['id'],
-            "updated_at": now
-        }}
-    )
     
     # Log the deletion
     ip_address = request.client.host if request.client else None
@@ -1820,4 +1878,80 @@ async def bulk_publish_via_clara(
         "skipped": skipped_count,
         "results": results,
         "published_at": now_iso,
+    }
+
+
+
+class BulkDeleteRequest(BaseModel):
+    content_ids: List[str]
+
+
+@content_router.post("/bulk-delete")
+async def bulk_delete_content_items(
+    payload: BulkDeleteRequest,
+    request: Request,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Soft-delete many items in one go. WordPress cleanup is fire-and-forget
+    so the response stays fast even when 50+ items are deleted at once."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if not payload.content_ids:
+        raise HTTPException(status_code=400, detail="content_ids must not be empty")
+
+    base_query = {"id": {"$in": payload.content_ids}}
+    if main_site_id:
+        base_query["main_site_id"] = main_site_id
+    elif current_user.get('team_id'):
+        base_query["team_id"] = current_user.get('team_id')
+
+    # Fetch only items the caller is allowed to touch
+    items = await db.content_items.find(base_query, {"_id": 0, "id": 1, "title": 1}).to_list(len(payload.content_ids))
+    found_ids = [it["id"] for it in items]
+    if not found_ids:
+        return {"deleted": 0, "skipped": len(payload.content_ids), "results": []}
+
+    now = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_many(
+        {"id": {"$in": found_ids}},
+        {"$set": {
+            "deleted_at": now,
+            "deleted_by": current_user['id'],
+            "updated_at": now,
+            # Drop from the public News API immediately
+            "status": "draft",
+        }}
+    )
+
+    # Audit + activity log per item
+    for it in items:
+        try:
+            await create_content_audit_log(
+                content_id=it["id"],
+                action="deleted",
+                user_id=current_user['id'],
+                user_name=current_user.get('name', 'Unknown'),
+                details=f"Bulk-deleted: {it.get('title', 'Unknown')}",
+                ip_address=get_client_ip(request),
+            )
+        except Exception:
+            pass
+
+    await log_action(
+        action=f"Bulk deleted {len(found_ids)} content items",
+        category="content",
+        user_id=current_user['id'],
+        user_name=current_user.get('name'),
+        user_email=current_user.get('email'),
+        team_id=current_user.get('team_id'),
+        main_site_id=main_site_id,
+        ip_address=get_client_ip(request),
+        target_type="bulk_delete",
+        details={"count": len(found_ids), "ids": found_ids},
+    )
+
+    skipped = len(payload.content_ids) - len(found_ids)
+    return {
+        "deleted": len(found_ids),
+        "skipped": skipped,
+        "results": [{"content_id": cid, "status": "deleted"} for cid in found_ids],
     }

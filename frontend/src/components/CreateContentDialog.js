@@ -3,7 +3,7 @@ import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   FileText, Mic, Loader2, Folder,
-  ChevronLeft, ChevronRight, X, Zap, Sparkles, Pencil
+  ChevronLeft, ChevronRight, X, Zap, Sparkles, Pencil, Plus
 } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
@@ -86,6 +86,22 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
       setCategories(response.data);
     } catch (error) {
       console.error('Failed to fetch categories');
+    }
+  };
+
+  // Inline category creation — keeps the wizard open and immediately selects
+  // the new category so the user doesn't lose flow.
+  const createCategoryInline = async () => {
+    const name = window.prompt('New category name')?.trim();
+    if (!name) return;
+    try {
+      const r = await axios.post(`${API}/content/categories`, { name });
+      const newCat = r.data;
+      setCategories((cur) => [...cur, newCat].sort((a, b) => a.name.localeCompare(b.name)));
+      setFormData((cur) => ({ ...cur, category_id: newCat.id }));
+      toast.success(`Category "${newCat.name}" created`);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not create category');
     }
   };
 
@@ -203,7 +219,17 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
 
                     {/* Category */}
                     <div className="space-y-2">
-                      <Label className="text-zinc-700 font-medium">Category</Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-zinc-700 font-medium">Category</Label>
+                        <button
+                          type="button"
+                          data-testid="create-category-inline-btn"
+                          onClick={createCategoryInline}
+                          className="text-xs font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" /> New category
+                        </button>
+                      </div>
                       <Select value={formData.category_id || "none"}
                         onValueChange={(v) => setFormData({ ...formData, category_id: v === "none" ? "" : v })}>
                         <SelectTrigger data-testid="content-category-select" className="bg-zinc-50 border-zinc-200 text-zinc-900 h-12 rounded-xl">

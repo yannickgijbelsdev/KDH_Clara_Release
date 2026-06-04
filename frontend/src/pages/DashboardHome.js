@@ -21,6 +21,7 @@ const SITE_TYPE_THEMES = {
   wp_security:    { img: '/images/env_wp_security.jpg', accent: '#ef4444', label: 'WP Security',      icon: Shield },
   code_studio:    { img: '/images/env_code_studio.jpg', accent: '#7c1ac8', label: 'Code Studio',      icon: Plug },
   clara_custom:   { img: '/images/env_technical.jpg', accent: '#7c1ac8', label: 'Clara Custom',     icon: Plug },
+  custom:         { img: '/images/env_technical.jpg', accent: '#64748b', label: 'Custom Site',      icon: Layers },
 };
 
 const Panel = ({ children, className = '', delay = 0, testId }) => (
@@ -49,7 +50,7 @@ export default function DashboardHome() {
   const isRadio = siteType === 'radio';
   const isSinglePurpose = ['task_scheduler', 'clara_custom', 'wp_security', 'custom'].includes(siteType);
   const showFeaturesPanel = !isRadio && !isSinglePurpose; // only relevant for network/sites/external_host/technical
-  const theme = SITE_TYPE_THEMES[siteType] || SITE_TYPE_THEMES.radio;
+  const theme = SITE_TYPE_THEMES[siteType] || SITE_TYPE_THEMES.custom;
   const Icon = theme.icon;
   const features = mainSite?.enabled_features || [];
 

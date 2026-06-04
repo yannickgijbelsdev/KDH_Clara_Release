@@ -1,0 +1,34 @@
+{
+  "summary": "Iteration 151 — Tested Content Library fixes on custom main sites (dbnt/koodh). Backend: 10/10 pytest tests passed covering category JSON-body create, duplicate-merge, delete-unassign, bulk-delete soft-delete-with-status-flip, fast single delete (returns wordpress_deletions), and public News API regression. Frontend: navigated to /dbnt/content (content-library-page rendered, news-api-endpoints info panel rendered with per-category URLs and copy buttons, category-filter-btn always visible, create-category-btn present in dropdown), Create Content dialog shows create-category-inline-btn, and /koodh dashboard StatusPanel shows 'Custom Site' (NOT 'Radio Station').",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Login dialog (Emergent auth)", "issues": ["Console warnings: DialogContent missing DialogTitle and aria-describedby — accessibility a11y warning, not functional"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_content_library_dbnt_fixes.py",
+    "/app/test_reports/pytest/content_library_dbnt_fixes_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "content.py is 1958 lines — should be split into smaller modules (categories.py, items.py, featured_images.py, news_publishing.py). File size warning.",
+    "Backend delete_category and bulk_delete are well-scoped by main_site_id — good multisite isolation.",
+    "Soft-delete-first in DELETE /api/content/{id} is correct: short-circuits WP cleanup so unreachable WP can never block UI.",
+    "bulk_delete sets status='draft' which correctly removes items from public News API (which requires status='published'). Note: the items are also tagged deleted_at so they remain hidden even if status changes later — good defense in depth.",
+    "Public News API uses approval_status='approved' AND status='published' AND deleted_at in [null, '']. Bulk-delete properly stops items from being served.",
+    "Dialog a11y warning visible across the app — recommend adding DialogTitle / VisuallyHidden wrappers to all radix Dialogs."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_content_library_dbnt_fixes.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100% (all required testids verified visually + present)"},
+  "test_credentials": "admkoodh@koodh.com / KYLovie13monx (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created TEST_Cat_* categories and TEST_Article_*/TEST_KeepMe_* content via the test fixtures on dbnt main site. Cleanup attempted but one TEST category may remain visible in the dropdown screenshot — safe to leave.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "DBNT site_id = 05bb673c-11eb-4932-9046-22697f89ab3e (slug='dbnt'). koodh is also custom. Backend test file at /app/backend/tests/test_content_library_dbnt_fixes.py — set REACT_APP_BACKEND_URL env explicitly when running pytest since /app/backend/.env isn't autoloaded by pytest collector. Use `type='text'` (not 'article') when creating ContentItem — the model's Literal is ['text','audio','link','reference']. Frontend row checkboxes are custom shadcn button[role='checkbox'] not native inputs — if testing selection, query [data-testid='select-content-checkbox'] or similar custom selectors.",
+  "rca of the issue": "All four originally-reported issues are resolved: (1) Bulk-delete + improved single delete confirmed via 200/fast-response, soft-delete is local-first. (2) /koodh StatusPanel renders 'Custom Site' label — confirmed by panel-site-status text. (3) Public News API is per-category at /api/news/{site_slug}/{category_slug} — regression passes, and frontend shows the per-category URLs in the news-api-endpoints info panel with copy buttons. (4) New category creation works via dropdown 'New category' option (data-testid='create-category-btn') and inline button in CreateContentDialog (data-testid='create-category-inline-btn'); both are visible even when no categories exist."
+}

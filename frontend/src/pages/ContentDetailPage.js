@@ -370,11 +370,17 @@ const ContentDetailPage = () => {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`${API}/content/${contentId}`);
-      toast.success('Content deleted');
+      const r = await axios.delete(`${API}/content/${contentId}`);
+      const wpFails = (r.data?.wordpress_deletions || []).filter((d) => !d.success).length;
+      if (wpFails > 0) {
+        toast.success(`Content deleted (WordPress sync failed on ${wpFails} site${wpFails === 1 ? '' : 's'})`);
+      } else {
+        toast.success('Content deleted');
+      }
       navigate(navTo('/content'));
     } catch (error) {
-      toast.error('Failed to delete content');
+      const detail = error.response?.data?.detail;
+      toast.error(typeof detail === 'string' ? detail : 'Failed to delete content');
     }
   };
 

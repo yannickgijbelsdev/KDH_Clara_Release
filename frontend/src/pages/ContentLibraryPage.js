@@ -22,7 +22,7 @@ import {
   Square,
   Send,
   Trash2,
-} from 'lucide-react';
+  Copy,} from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
@@ -205,6 +205,30 @@ const ContentLibraryPage = () => {
     }
   };
 
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const ok = window.confirm(
+      `Delete ${selectedIds.size} article${selectedIds.size === 1 ? '' : 's'}?\n\n` +
+      'They will be moved to the Trash (soft delete) and disappear from the News API immediately.'
+    );
+    if (!ok) return;
+    setBulkPublishing(true);
+    try {
+      const r = await axios.post(`${API}/content/bulk-delete`, {
+        content_ids: Array.from(selectedIds),
+      });
+      toast.success(
+        `Deleted ${r.data.deleted}${r.data.skipped ? ` · ${r.data.skipped} skipped` : ''}`
+      );
+      clearSelection();
+      fetchContent();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Bulk delete failed');
+    } finally {
+      setBulkPublishing(false);
+    }
+  };
+
   const bulkPublishToApi = async () => {
     if (selectedIds.size === 0) return;
     // Pre-check: warn about items that aren't approved yet.
@@ -328,6 +352,36 @@ const ContentLibraryPage = () => {
     setAllContent([newContent, ...allContent]);
     setIsCreateOpen(false);
     toast.success('Content created');
+  };
+
+  // Quick inline category creation — used by the "+ New category" entry in the
+  // filter dropdown. Prompts for a name, posts to the backend, refreshes the
+  // list and immediately filters by the new category so the user sees what
+  // they just created.
+  const createCategoryInline = async () => {
+    const name = window.prompt('New category name')?.trim();
+    if (!name) return;
+    try {
+      const r = await axios.post(`${API}/content/categories`, { name });
+      const newCat = r.data;
+      setCategories((cur) => [...cur, newCat].sort((a, b) => a.name.localeCompare(b.name)));
+      setCategoryFilter(newCat.id);
+      toast.success(`Category "${newCat.name}" created`);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not create category');
+    }
+  };
+
+  const deleteCategoryInline = async (cat) => {
+    if (!window.confirm(`Delete category "${cat.name}"?\n\nArticles in this category will be kept but un-categorised.`)) return;
+    try {
+      await axios.delete(`${API}/content/categories/${cat.id}`);
+      setCategories((cur) => cur.filter((c) => c.id !== cat.id));
+      if (categoryFilter === cat.id) setCategoryFilter('');
+      toast.success(`Category "${cat.name}" removed`);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not delete category');
+    }
   };
 
   // Source options = UNION of (RDS station names) + (sources currently
@@ -519,8 +573,9 @@ const ContentLibraryPage = () => {
           </DropdownMenu>
         )}
 
-        {/* Category Filter */}
-        {categories.length > 0 && (
+        {/* Category Filter — always shown so users can create the first
+            category if none exist yet. */}
+        {isEditor || categories.length > 0 ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -532,7 +587,7 @@ const ContentLibraryPage = () => {
                 {categoryFilter ? categories.find(c => c.id === categoryFilter)?.name : 'All Categories'}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white border-zinc-200">
+            <DropdownMenuContent className="bg-white border-zinc-200 min-w-[220px]">
               <DropdownMenuItem
                 onClick={() => setCategoryFilter('')}
                 className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
@@ -542,15 +597,37 @@ const ContentLibraryPage = () => {
               {categories.map(cat => (
                 <DropdownMenuItem
                   key={cat.id}
-                  onClick={() => setCategoryFilter(cat.id)}
-                  className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100"
+                  onSelect={(e) => { e.preventDefault(); setCategoryFilter(cat.id); }}
+                  data-testid={`category-option-${cat.slug}`}
+                  className="text-zinc-600 focus:text-zinc-900 focus:bg-zinc-100 flex items-center justify-between"
                 >
-                  {cat.name}
+                  <span>{cat.name}</span>
+                  {isEditor && (
+                    <button
+                      type="button"
+                      data-testid={`delete-category-${cat.slug}`}
+                      onClick={(e) => { e.stopPropagation(); deleteCategoryInline(cat); }}
+                      className="ml-3 w-5 h-5 rounded text-zinc-400 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center"
+                      aria-label={`Delete category ${cat.name}`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
                 </DropdownMenuItem>
               ))}
+              {isEditor && (
+                <DropdownMenuItem
+                  data-testid="create-category-btn"
+                  onSelect={(e) => { e.preventDefault(); createCategoryInline(); }}
+                  className="text-orange-600 focus:text-orange-700 focus:bg-orange-50 border-t border-zinc-100 mt-1 pt-2"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1.5" />
+                  New category
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
+        ) : null}
 
         {(typeFilter || statusFilter || sourceFilter || categoryFilter) && (
           <Button
@@ -568,6 +645,60 @@ const ContentLibraryPage = () => {
           </Button>
         )}
       </div>
+
+      {/* News API Endpoints panel — surfaces the per-category public URLs so
+          users know exactly where their content will be served. Only shown
+          when the site has the clara_publish feature AND we have a slug. */}
+      {mainSiteSlug && claraPublishEnabled && categories.length > 0 && (
+        <div
+          data-testid="news-api-endpoints"
+          className="mb-4 rounded-2xl border border-zinc-200 bg-gradient-to-br from-white to-zinc-50/60 px-4 py-3"
+        >
+          <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <Send className="w-3.5 h-3.5 text-emerald-600" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold text-zinc-900">News API endpoints</div>
+                <div className="text-[11px] text-zinc-500">
+                  Public, read-only. One endpoint per category — perfect for your
+                  website or app to fetch the latest articles.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {categories.map((cat) => {
+              const url = `${process.env.REACT_APP_BACKEND_URL}/api/news/${mainSiteSlug}/${cat.slug}`;
+              return (
+                <div
+                  key={cat.id}
+                  data-testid={`news-endpoint-${cat.slug}`}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <div className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">{cat.name}</div>
+                    <code className="block text-xs text-zinc-700 truncate" title={url}>{url}</code>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(url);
+                      toast.success(`Copied ${cat.name} endpoint`);
+                    }}
+                    data-testid={`copy-news-endpoint-${cat.slug}`}
+                    className="flex-shrink-0 w-7 h-7 rounded-md text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 flex items-center justify-center transition-colors"
+                    title="Copy endpoint URL"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Bulk Publish Bar — only visible when items selected AND clara_publish enabled */}
       {selectedIds.size > 0 && claraPublishEnabled && (
@@ -609,6 +740,20 @@ const ContentLibraryPage = () => {
               <Check className="w-3.5 h-3.5" />
               Approve all
             </Button>
+            {isEditor && (
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={bulkPublishing}
+                onClick={bulkDelete}
+                data-testid="bulk-delete-btn"
+                className="text-rose-100 border border-rose-300/40 hover:bg-rose-500/20 gap-1.5"
+                title="Soft-delete the selected articles"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete
+              </Button>
+            )}
             <Button
               size="sm"
               disabled={bulkPublishing}
