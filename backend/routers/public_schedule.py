@@ -97,51 +97,52 @@ async def _validate_station_for_site(main_site_id: str, station: str) -> None:
         )
 
 
-async def _first_presenter_image(presenter_ids: list, title_image_fallback: str = "") -> str:
-    """Return the first presenter's photo URL, else the show-title image as
-    a fallback, else ''.
+async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str = "") -> str:
+    """Pick the best image URL for the on-air presenter slot.
 
-    Users store their avatar under `avatar: {file_key, s3_url?, filename, ...}`.
-    Prefer `s3_url` when present, fall back to `/api/uploads/avatars/{file_key}`.
-    Also accept legacy flat fields (`avatar_url`, `image_url`, `photo_url`).
+    Priority (matches the user's expectation that "Show Management uploads
+    are the source of truth"):
 
-    Result is ALWAYS an absolute URL so the WordPress plugin, the player
-    and external schedule widgets can render it directly.
+    1. **Show-title image** uploaded via Show Management — this is always S3
+       and is the official artwork for the broadcast.
+    2. The first presenter's personal avatar (S3 preferred, then local
+       upload). Used when no show-title image exists.
+
+    Result is always an absolute URL ready for `<img src>` consumption.
     """
-    def resolve_from_doc(p: dict) -> str:
-        avatar = p.get("avatar")
-        if isinstance(avatar, dict):
-            s3 = avatar.get("s3_url")
-            if s3:
-                return s3
-            fk = avatar.get("file_key")
-            if fk:
-                return f"/api/uploads/avatars/{fk}"
-        for k in ("avatar_url", "image_url", "photo_url"):
-            if p.get(k):
-                return p[k]
-        if isinstance(p.get("image"), dict):
-            return p["image"].get("s3_url") or p["image"].get("url") or ""
-        return ""
+    # 1. Show-title image wins
+    if title_image_url:
+        return _absolute_url(title_image_url)
 
+    # 2. Presenter avatar fallback (preserve presenter_ids order)
     if presenter_ids:
         presenters = await db.users.find(
             {"id": {"$in": presenter_ids}},
             {"_id": 0, "id": 1, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1},
         ).to_list(10)
-        # Re-order so the response uses the explicit presenter_ids order
         by_id = {p.get("id"): p for p in presenters if p.get("id")}
-        ordered = [by_id[pid] for pid in presenter_ids if pid in by_id] + [
-            p for p in presenters if p.get("id") not in set(presenter_ids)
-        ]
-        for p in ordered or presenters:
-            url = resolve_from_doc(p)
-            if url:
-                return _absolute_url(url)
+        ordered = [by_id[pid] for pid in presenter_ids if pid in by_id]
+        for p in ordered:
+            avatar = p.get("avatar")
+            if isinstance(avatar, dict):
+                if avatar.get("s3_url"):
+                    return avatar["s3_url"]
+                if avatar.get("file_key"):
+                    return _absolute_url(f"/api/uploads/avatars/{avatar['file_key']}")
+            for k in ("avatar_url", "image_url", "photo_url"):
+                if p.get(k):
+                    return _absolute_url(p[k])
+            if isinstance(p.get("image"), dict):
+                url = p["image"].get("s3_url") or p["image"].get("url")
+                if url:
+                    return _absolute_url(url)
 
-    # Fallback — show-title image, so a row never ends up image-less when the
-    # show *does* have artwork even if the presenter does not.
-    return _absolute_url(title_image_fallback)
+    return ""
+
+
+# Legacy alias kept for any internal caller that still expects the old name.
+async def _first_presenter_image(presenter_ids: list, title_image_fallback: str = "") -> str:
+    return await _resolve_presenter_image_url(presenter_ids, title_image_url=title_image_fallback)
 
 
 async def get_shows_for_week(main_site_id: str, station: str) -> dict:
@@ -201,7 +202,7 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
                 image_url = f"/api/uploads/show_title_images/{title_info['image']['file_key']}"
         image_url = _absolute_url(image_url)
 
-        presenter_image_url = await _first_presenter_image(presenter_ids, title_image_fallback=image_url)
+        presenter_image_url = await _resolve_presenter_image_url(presenter_ids, title_image_url=image_url)
 
         result[weekday].append({
             "id": show.get("id"),
