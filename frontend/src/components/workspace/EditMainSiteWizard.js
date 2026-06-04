@@ -51,6 +51,8 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const [logoUrl, setLogoUrl] = useState('');
   const [require2fa, setRequire2fa] = useState(false);
   const [claraEnterprise, setClaraEnterprise] = useState(false);
+  const [environmentId, setEnvironmentId] = useState('');
+  const [environments, setEnvironments] = useState([]); // System-admin only — to move a site between envs
 
   // License
   const [packages, setPackages] = useState([]);
@@ -103,7 +105,20 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
     setLogoUrl(site.logo_url || '');
     setRequire2fa(site.require_2fa || false);
     setClaraEnterprise(site.clara_enterprise || false);
+    setEnvironmentId(site.environment_id || '');
   }, [open, site]);
+
+  // System Admin only — list of environments so we can move the site.
+  useEffect(() => {
+    if (!open || !isSystemAdmin) return;
+    (async () => {
+      try {
+        const res = await fetch(`${API}/api/environments`, { headers });
+        if (res.ok) setEnvironments(await res.json());
+      } catch (e) { console.error('Could not load environments', e); }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isSystemAdmin]);
 
   // Load license + users when step changes
   const loadLicenseData = useCallback(async () => {
@@ -207,8 +222,15 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
   const handleSaveGeneral = async () => {
     setSaving(true);
     try {
+      const payload = { name, slug, logo_url: logoUrl, require_2fa: require2fa, clara_enterprise: claraEnterprise };
+      // Only system admins may move a site between environments — backend
+      // enforces this too, so we just keep the field out of the payload for
+      // non-admins to avoid 403s.
+      if (isSystemAdmin && environmentId && environmentId !== site?.environment_id) {
+        payload.environment_id = environmentId;
+      }
       const res = await fetch(`${API}/api/main-sites/${site.id}`, {
-        method: 'PUT', headers, body: JSON.stringify({ name, slug, logo_url: logoUrl, require_2fa: require2fa, clara_enterprise: claraEnterprise }),
+        method: 'PUT', headers, body: JSON.stringify(payload),
       });
       if (res.ok) {
         toast.success('Settings saved');
@@ -539,6 +561,37 @@ export default function EditMainSiteWizard({ open, onClose, site, onUpdated }) {
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${claraEnterprise ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
               </div>
+              )}
+
+              {/* Environment selector — System Admin only. Moves the site
+                  between environments (e.g. Production → Demo). All users,
+                  WordPress sites, RDS stations, content and licenses move
+                  with it automatically because they're scoped by main_site_id. */}
+              {isSystemAdmin && environments.length > 0 && (
+                <div className="space-y-1.5 p-3 bg-zinc-50 rounded-xl border border-zinc-200" data-testid="environment-mover">
+                  <Label className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5" />
+                    Environment
+                  </Label>
+                  <select
+                    value={environmentId}
+                    onChange={(e) => setEnvironmentId(e.target.value)}
+                    data-testid="environment-select"
+                    className="w-full px-3 py-2 rounded-lg border border-zinc-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40"
+                  >
+                    {environments.map((e) => (
+                      <option key={e.id} value={e.id}>
+                        {e.name}{e.is_default ? ' (default)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {environmentId !== site?.environment_id && (
+                    <p className="text-[11px] text-amber-600 mt-1">
+                      Moving from <strong>{environments.find(e => e.id === site?.environment_id)?.name || 'unassigned'}</strong> to{' '}
+                      <strong>{environments.find(e => e.id === environmentId)?.name}</strong> on save.
+                    </p>
+                  )}
+                </div>
               )}
 
               <div className="flex gap-2 pt-2">
