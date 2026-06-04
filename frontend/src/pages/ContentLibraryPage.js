@@ -21,8 +21,7 @@ import {
   CheckSquare,
   Square,
   Send,
-  Trash2,
-  Copy,} from 'lucide-react';
+  Trash2,} from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
@@ -645,60 +644,6 @@ const ContentLibraryPage = () => {
           </Button>
         )}
       </div>
-
-      {/* News API Endpoints panel — surfaces the per-category public URLs so
-          users know exactly where their content will be served. Only shown
-          when the site has the clara_publish feature AND we have a slug. */}
-      {mainSiteSlug && claraPublishEnabled && categories.length > 0 && (
-        <div
-          data-testid="news-api-endpoints"
-          className="mb-4 rounded-2xl border border-zinc-200 bg-gradient-to-br from-white to-zinc-50/60 px-4 py-3"
-        >
-          <div className="flex items-center justify-between gap-3 mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <Send className="w-3.5 h-3.5 text-emerald-600" />
-              </div>
-              <div>
-                <div className="text-sm font-semibold text-zinc-900">News API endpoints</div>
-                <div className="text-[11px] text-zinc-500">
-                  Public, read-only. One endpoint per category — perfect for your
-                  website or app to fetch the latest articles.
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {categories.map((cat) => {
-              const url = `${process.env.REACT_APP_BACKEND_URL}/api/news/${mainSiteSlug}/${cat.slug}`;
-              return (
-                <div
-                  key={cat.id}
-                  data-testid={`news-endpoint-${cat.slug}`}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2"
-                >
-                  <div className="min-w-0">
-                    <div className="text-[11px] uppercase tracking-wider text-zinc-400 font-semibold">{cat.name}</div>
-                    <code className="block text-xs text-zinc-700 truncate" title={url}>{url}</code>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(url);
-                      toast.success(`Copied ${cat.name} endpoint`);
-                    }}
-                    data-testid={`copy-news-endpoint-${cat.slug}`}
-                    className="flex-shrink-0 w-7 h-7 rounded-md text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 flex items-center justify-center transition-colors"
-                    title="Copy endpoint URL"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Bulk Publish Bar — only visible when items selected AND clara_publish enabled */}
       {selectedIds.size > 0 && claraPublishEnabled && (

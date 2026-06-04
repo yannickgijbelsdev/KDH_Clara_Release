@@ -3,19 +3,17 @@ import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   FileText, Mic, Loader2, Folder,
-  ChevronLeft, ChevronRight, X, Zap, Sparkles, Pencil, Plus
+  ChevronLeft, ChevronRight, X, Zap, Sparkles, Pencil, Plus, Trash2
 } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from './ui/select';
 import { toast } from 'sonner';
 import RichTextEditor from './RichTextEditor';
 import WizardStepIndicator from './workspace/WizardStepIndicator';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
+import { useAuth } from '../context/AuthContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -33,6 +31,8 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
   const [tinyMCEDialogOpen, setTinyMCEDialogOpen] = useState(false);
   const [writingMethod, setWritingMethod] = useState(null); // null | 'manual' | 'clara'
   const { openClara, registerEditor, unregisterEditor } = useClaraAssistant();
+  const { user, isAdmin: legacyIsAdmin } = useAuth();
+  const isAdmin = legacyIsAdmin || user?.role === 'system_admin' || user?.is_network_admin === true;
 
   const [formData, setFormData] = useState({
     title: '',
@@ -102,6 +102,22 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
       toast.success(`Category "${newCat.name}" created`);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Could not create category');
+    }
+  };
+
+  // Admin-only inline category deletion. Articles in the category keep
+  // existing — they just lose their category reference.
+  const deleteCategoryInline = async (cat) => {
+    if (!window.confirm(`Delete category "${cat.name}"?\n\nArticles in this category will be kept but un-categorised.`)) return;
+    try {
+      await axios.delete(`${API}/content/categories/${cat.id}`);
+      setCategories((cur) => cur.filter((c) => c.id !== cat.id));
+      if (formData.category_id === cat.id) {
+        setFormData((cur) => ({ ...cur, category_id: '' }));
+      }
+      toast.success(`Category "${cat.name}" removed`);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not delete category');
     }
   };
 
@@ -225,28 +241,66 @@ const CreateContentDialog = ({ open, onOpenChange, onContentCreated }) => {
                           type="button"
                           data-testid="create-category-inline-btn"
                           onClick={createCategoryInline}
-                          className="text-xs font-medium text-orange-600 hover:text-orange-700 flex items-center gap-1"
+                          className="text-xs font-semibold text-orange-600 hover:text-orange-700 flex items-center gap-1 px-2 py-1 rounded-md hover:bg-orange-50"
                         >
                           <Plus className="w-3 h-3" /> New category
                         </button>
                       </div>
-                      <Select value={formData.category_id || "none"}
-                        onValueChange={(v) => setFormData({ ...formData, category_id: v === "none" ? "" : v })}>
-                        <SelectTrigger data-testid="content-category-select" className="bg-zinc-50 border-zinc-200 text-zinc-900 h-12 rounded-xl">
-                          <SelectValue placeholder="Select category..." />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border-zinc-200">
-                          <SelectItem value="none" className="text-zinc-500">No category</SelectItem>
-                          {categories.map((cat) => (
-                            <SelectItem key={cat.id} value={cat.id} className="text-zinc-700 focus:text-zinc-900 focus:bg-zinc-50">
-                              <div className="flex items-center gap-2">
-                                <Folder className="w-4 h-4 text-orange-400" />
-                                <span>{cat.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div
+                        data-testid="content-category-list"
+                        className="rounded-xl border border-zinc-200 bg-zinc-50 divide-y divide-zinc-100 max-h-[260px] overflow-y-auto"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, category_id: '' })}
+                          className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
+                            !formData.category_id ? 'bg-white text-zinc-900 font-semibold' : 'text-zinc-500 hover:bg-white/60'
+                          }`}
+                          data-testid="content-category-option-none"
+                        >
+                          <span>No category</span>
+                          {!formData.category_id && <span className="text-orange-500">✓</span>}
+                        </button>
+                        {categories.map((cat) => {
+                          const active = formData.category_id === cat.id;
+                          return (
+                            <div
+                              key={cat.id}
+                              className={`flex items-center gap-2 px-4 py-3 text-sm transition-colors ${
+                                active ? 'bg-white' : 'hover:bg-white/60'
+                              }`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, category_id: cat.id })}
+                                data-testid={`content-category-option-${cat.slug}`}
+                                className="flex-1 flex items-center gap-2 text-left"
+                              >
+                                <Folder className={`w-4 h-4 ${active ? 'text-orange-500' : 'text-orange-300'}`} />
+                                <span className={active ? 'text-zinc-900 font-semibold' : 'text-zinc-700'}>{cat.name}</span>
+                                {active && <span className="ml-auto text-orange-500">✓</span>}
+                              </button>
+                              {isAdmin && (
+                                <button
+                                  type="button"
+                                  data-testid={`delete-category-inline-${cat.slug}`}
+                                  onClick={() => deleteCategoryInline(cat)}
+                                  className="flex-shrink-0 w-7 h-7 rounded-md text-zinc-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center"
+                                  title={`Delete "${cat.name}"`}
+                                  aria-label={`Delete category ${cat.name}`}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                        {categories.length === 0 && (
+                          <div className="px-4 py-6 text-center text-xs text-zinc-400">
+                            No categories yet — use <span className="font-semibold text-orange-600">+ New category</span> above to add one.
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
