@@ -274,13 +274,18 @@ async def update_show_title(
 @shows_router.delete("/titles/{title_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_show_title(
     title_id: str,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
-    """Delete a show title. Admin only."""
-    result = await db.show_titles.delete_one({
-        "id": title_id,
-        "team_id": current_user.get('team_id')
-    })
+    """Delete a show title. Admin only. Multisite-aware: prefers the
+    X-Main-Site-ID header (the only field consistently populated for newer
+    show titles); falls back to team_id for legacy records."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if main_site_id:
+        query = {"id": title_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": title_id, "team_id": current_user.get('team_id')}
+    result = await db.show_titles.delete_one(query)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Show title not found")
 
@@ -612,13 +617,16 @@ async def update_studio(
 @shows_router.delete("/studios/{studio_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_studio(
     studio_id: str,
+    request: Request,
     current_user: dict = Depends(require_admin)
 ):
-    """Delete a studio. Admin only."""
-    result = await db.studios.delete_one({
-        "id": studio_id,
-        "team_id": current_user.get('team_id')
-    })
+    """Delete a studio. Admin only. Multisite-aware."""
+    main_site_id = await get_main_site_id_from_header(request)
+    if main_site_id:
+        query = {"id": studio_id, "main_site_id": main_site_id}
+    else:
+        query = {"id": studio_id, "team_id": current_user.get('team_id')}
+    result = await db.studios.delete_one(query)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Studio not found")
 

@@ -285,22 +285,73 @@ async def run_scheduled_cache_refresh():
                 await refresh_live_show_cache(identifier)
 
 
+async def run_hourly_hard_refresh():
+    """Hard refresh — wipes EVERY active RDS cache row and rebuilds it
+    from scratch.
+
+    Why this exists: the per-minute refresh updates documents in place
+    (`upsert=True` on `{team_id, rds_station}`). Over time, stuck/stale
+    rows or partial writes from a transient DB hiccup can leave a cached
+    rundown that nobody overwrites — the RDS API then keeps serving
+    yesterday's show. Once per hour we throw the whole cache away and
+    let the normal scheduler repopulate only the truly-live shows.
+    """
+    now_iso = datetime.now(timezone.utc).isoformat()
+    logger.info("RDS hourly HARD refresh starting — wiping all active cached rundowns")
+    try:
+        # Deactivate every cached row first. The minute-scheduler that runs
+        # immediately after will set is_active=True on the actually-live
+        # shows only. Anything that was stuck stays deactivated.
+        result = await db.rds_cached_rundowns.update_many(
+            {"is_active": True},
+            {"$set": {"is_active": False, "hard_refresh_at": now_iso, "updated_at": now_iso}},
+        )
+        logger.info(f"Hard refresh deactivated {result.modified_count} rows")
+    except Exception as e:
+        logger.error(f"Hard refresh deactivate step failed: {e}")
+        return
+
+    # Now run the normal refresh to repopulate the truly-live shows.
+    try:
+        await run_scheduled_cache_refresh()
+    except Exception as e:
+        logger.error(f"Hard refresh repopulate step failed: {e}")
+
+    # Audit log — admins can see exactly when each hard refresh ran
+    try:
+        await db.rds_cache_logs.insert_one({
+            "id": str(uuid.uuid4()),
+            "team_id": None,
+            "timestamp": now_iso,
+            "status": "hard_refresh",
+            "show_id": None,
+            "show_title": None,
+            "message": f"Hourly hard refresh — wiped {result.modified_count} stale cache row(s) and rebuilt",
+            "cached_data": {"wiped": result.modified_count},
+        })
+    except Exception:
+        pass
+    logger.info("RDS hourly HARD refresh complete")
+
+
 class RDSScheduler:
     """Background scheduler for RDS cache refresh jobs."""
-    
+
     def __init__(self):
         self.running = False
         self.check_interval = 60  # 1 minute in seconds
         self.task = None
-    
+        # Tracks when the last hourly hard refresh fired (wall-clock hour).
+        self._last_hard_refresh_hour = None
+
     async def start(self):
         """Start the RDS cache scheduler."""
         if self.running:
             logger.warning("RDS scheduler is already running")
             return
-        
+
         self.running = True
-        
+
         # Force all existing RDS settings to 1 minute interval
         try:
             await db.rds_settings.update_many(
@@ -309,15 +360,15 @@ class RDSScheduler:
             )
         except Exception as e:
             logger.warning(f"Could not update RDS intervals: {e}")
-        
+
         self.task = asyncio.create_task(self._run_loop())
-        logger.info("RDS cache scheduler started (1 min interval)")
-    
+        logger.info("RDS cache scheduler started (1 min interval, hourly hard refresh)")
+
     async def stop(self):
         """Stop the RDS cache scheduler."""
         if not self.running:
             return
-        
+
         self.running = False
         if self.task:
             self.task.cancel()
@@ -326,17 +377,39 @@ class RDSScheduler:
             except asyncio.CancelledError:
                 pass
         logger.info("RDS cache scheduler stopped")
-    
+
+    async def _maybe_hourly_hard_refresh(self):
+        """Fire the hourly hard refresh once per wall-clock hour, on the :00
+        tick (or the first tick after :00). Skips on the very first loop so
+        startup isn't slowed down by a redundant wipe."""
+        # Brussels time keeps the radio team's mental model intact (FM logs
+        # are in local time too).
+        now_local = datetime.now(BRUSSELS_TZ)
+        current_hour = now_local.replace(minute=0, second=0, microsecond=0)
+        if self._last_hard_refresh_hour is None:
+            # First tick after start — mark as done but don't run yet to
+            # avoid wiping the cache we just built.
+            self._last_hard_refresh_hour = current_hour
+            return
+        if current_hour != self._last_hard_refresh_hour:
+            self._last_hard_refresh_hour = current_hour
+            try:
+                await run_hourly_hard_refresh()
+            except Exception as e:
+                logger.error(f"Hourly hard refresh failed: {e}")
+
     async def _run_loop(self):
         """Main loop that runs the scheduler."""
         # Run initial refresh
         await run_scheduled_cache_refresh()
-        
+
         while self.running:
             try:
                 await asyncio.sleep(self.check_interval)
-                if self.running:
-                    await run_scheduled_cache_refresh()
+                if not self.running:
+                    break
+                await self._maybe_hourly_hard_refresh()
+                await run_scheduled_cache_refresh()
             except asyncio.CancelledError:
                 break
             except Exception as e:

@@ -350,6 +350,20 @@ async def manual_refresh_cache(request: Request, current_user: dict = Depends(re
     return result
 
 
+@rds_router.post("/hard-refresh")
+async def manual_hard_refresh(current_user: dict = Depends(require_admin)):
+    """Admin-only kill switch — wipes EVERY active cached rundown and lets
+    the normal scheduler rebuild only the truly-live ones.
+
+    Same logic as the automatic hourly job; expose it manually so admins
+    can unstick the RDS API immediately when MagicRDS reports a hang
+    without waiting for the next :00 tick.
+    """
+    from services.rds_scheduler import run_hourly_hard_refresh
+    await run_hourly_hard_refresh()
+    return {"status": "ok", "message": "Hard refresh complete — cache rebuilt from scratch"}
+
+
 @rds_router.get("/debug-live-shows")
 async def debug_live_shows(request: Request, current_user: dict = Depends(require_admin)):
     """Debug endpoint to see why a show might not be syncing.
