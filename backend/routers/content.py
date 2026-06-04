@@ -1556,6 +1556,7 @@ async def unpublish_all_news_articles(
     current_user: dict = Depends(require_admin),
     include_wordpress: bool = False,
     soft_delete: bool = False,
+    scope: str = "published",
 ):
     """Admin-only kill switch — unpublishes EVERY content item served by the
     Clara News API for the active main site.
@@ -1565,16 +1566,26 @@ async def unpublish_all_news_articles(
         empties immediately because the public filter requires `status==published`.
       - `?include_wordpress=true`: ALSO call DELETE on each WordPress post
         (moves them to WP trash). Stops short of wiping the WP site.
-      - `?soft_delete=true`: marks every reverted item with `deleted_at` so
+      - `?soft_delete=true`: marks every targeted item with `deleted_at` so
         they vanish from the Content Library list as well (recoverable from
         the Trash view).
+      - `?scope=all`: target every non-deleted item on this main site, not
+        just the ones currently marked `published`. Required when the button
+        is meant to *clear the whole library*.
     """
     main_site_id = await get_main_site_id_from_header(request)
     if not main_site_id:
         raise HTTPException(status_code=400, detail="X-Main-Site-ID header is required")
 
     now_iso = datetime.now(timezone.utc).isoformat()
-    base_query = {"main_site_id": main_site_id, "status": "published"}
+    if scope == "all":
+        # Everything still alive on this main site
+        base_query = {
+            "main_site_id": main_site_id,
+            "deleted_at": {"$exists": False},
+        }
+    else:
+        base_query = {"main_site_id": main_site_id, "status": "published"}
 
     affected_ids = [
         d["id"] for d in await db.content_items.find(base_query, {"_id": 0, "id": 1}).to_list(10000)

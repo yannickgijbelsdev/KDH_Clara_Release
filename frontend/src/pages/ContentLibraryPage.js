@@ -156,31 +156,34 @@ const ContentLibraryPage = () => {
   // Optionally also deletes the WordPress posts in the same call.
   const unpublishAllNews = async () => {
     const confirm1 = window.confirm(
-      'Unpublish ALL News API articles for this main site?\n\n' +
-      'Drafts stay safe — only the public API will go empty.'
+      'Delete ALL articles for this main site?\n\n' +
+      'Every article (draft, ready and published) will be moved to Trash and ' +
+      'the public News API will go empty. Recoverable from the admin Trash view.'
     );
     if (!confirm1) return;
     const alsoWp = window.confirm(
       'Also DELETE the matching WordPress posts? (Moves them to the WP Trash.)\n\n' +
-      'Click "OK" to also wipe WordPress, "Cancel" to keep WordPress intact and only unpublish from the News API.'
+      'Click "OK" to also wipe WordPress, "Cancel" to keep WordPress intact and only clear the local library.'
     );
     const confirm2 = window.prompt(
-      'Type DELETE to confirm.\n\nThis affects everyone reading /api/news/*' +
+      'Type DELETE to confirm.\n\nThis empties /api/news/* AND the Content Library' +
       (alsoWp ? ' AND the connected WordPress site(s).' : '.')
     );
     if (confirm2 !== 'DELETE') return;
     try {
       const r = await axios.post(
-        `${API}/content/unpublish-all-news?include_wordpress=${alsoWp}`
+        `${API}/content/unpublish-all-news?scope=all&soft_delete=true&include_wordpress=${alsoWp}`
       );
       const wp = r.data.wordpress;
       const wpSuffix = wp
         ? ` · WP deleted ${wp.deleted}${wp.failed ? ` (failed ${wp.failed})` : ''}`
         : '';
-      toast.success(`Unpublished ${r.data.unpublished} article${r.data.unpublished === 1 ? '' : 's'} from the News API${wpSuffix}`);
+      toast.success(
+        `Deleted ${r.data.unpublished} article${r.data.unpublished === 1 ? '' : 's'}${wpSuffix}`
+      );
       fetchContent();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Could not unpublish');
+      toast.error(err.response?.data?.detail || 'Could not delete');
     }
   };
 
