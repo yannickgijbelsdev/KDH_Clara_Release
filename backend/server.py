@@ -1449,13 +1449,18 @@ async def startup_db_client():
 
     # Migrate clara-imported content_items with non-enum type/status values to valid enums.
     # Idempotent: skips records that already have a valid enum.
+    # NB: "published" used to be migrated away here, but it's now a first-class
+    # status used by the bulk-publish-to-News-API flow. Keep it intact so a
+    # backend restart no longer un-publishes every News article.
     try:
         type_map = {"article": "text", "post": "text", "news": "text"}
         for old, new in type_map.items():
             r = await db.content_items.update_many({"type": old}, {"$set": {"type": new}})
             if r.modified_count:
                 logger.info(f"content_items type '{old}' → '{new}': fixed {r.modified_count} records")
-        status_map = {"published": "ready", "archived": "draft", "scheduled": "ready"}
+        # Only "archived" still maps to "draft" — and "scheduled" was never a
+        # documented status anyway. "published" stays put.
+        status_map = {"archived": "draft", "scheduled": "ready"}
         for old, new in status_map.items():
             r = await db.content_items.update_many({"status": old}, {"$set": {"status": new}})
             if r.modified_count:
