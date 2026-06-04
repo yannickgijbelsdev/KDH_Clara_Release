@@ -783,7 +783,7 @@ const ContentDetailPage = () => {
               data-testid="publish-clara-btn"
               onClick={() => publishViaClara()}
               disabled={newsApiBlocked || claraPublishBusy}
-              className={`gap-2 rounded-full px-5 text-white ${
+              className={`gap-2 rounded-full px-5 text-white disabled:text-white disabled:opacity-60 ${
                 content?.status === 'published'
                   ? 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-700'
                   : 'bg-violet-600 hover:bg-violet-700 border border-violet-700'

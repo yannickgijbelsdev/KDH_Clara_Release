@@ -690,6 +690,12 @@ async def import_wordpress_posts(
                             "external_featured_image": featured_image_url,
                             "updated_at": now,
                             "category_name": category_name,
+                            # Refresh the source tag on every re-import so the
+                            # Content Library filter dropdown stays in sync
+                            # with the actual WordPress site name (e.g. MFY).
+                            "source": site.get('name', 'WordPress'),
+                            "source_url": wp_link,
+                            "wp_imported": True,
                         }}
                     )
                 else:

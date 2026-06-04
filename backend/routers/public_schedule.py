@@ -100,43 +100,43 @@ async def _validate_station_for_site(main_site_id: str, station: str) -> None:
 async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str = "") -> str:
     """Pick the best image URL for the on-air presenter slot.
 
-    Priority (matches the user's expectation that "Show Management uploads
-    are the source of truth"):
+    POLICY: **S3 only**. Local `/api/uploads/...` URLs are deliberately
+    skipped — the homepage, player and external programmering need
+    direct, cache-friendly, CDN-able URLs. Show Management uploads land
+    on S3 already; if no S3 source exists for either the show or the
+    presenter we return "" so the consumer renders a placeholder rather
+    than a broken Clara-internal link.
 
-    1. **Show-title image** uploaded via Show Management — this is always S3
-       and is the official artwork for the broadcast.
-    2. The first presenter's personal avatar (S3 preferred, then local
-       upload). Used when no show-title image exists.
-
-    Result is always an absolute URL ready for `<img src>` consumption.
+    Priority:
+    1. Show-title image's `s3_url` (uploaded via Show Management).
+    2. First presenter avatar's `s3_url`.
     """
-    # 1. Show-title image wins
-    if title_image_url:
-        return _absolute_url(title_image_url)
+    # 1. Show-title S3 image always wins (Show Management is the source of truth)
+    if title_image_url and (title_image_url.startswith("http://") or title_image_url.startswith("https://")):
+        return title_image_url
 
-    # 2. Presenter avatar fallback (preserve presenter_ids order)
+    # 2. Presenter avatar — S3 only
     if presenter_ids:
         presenters = await db.users.find(
             {"id": {"$in": presenter_ids}},
             {"_id": 0, "id": 1, "avatar": 1, "avatar_url": 1, "image": 1, "image_url": 1, "photo_url": 1},
         ).to_list(10)
         by_id = {p.get("id"): p for p in presenters if p.get("id")}
-        ordered = [by_id[pid] for pid in presenter_ids if pid in by_id]
-        for p in ordered:
+        for pid in presenter_ids:
+            p = by_id.get(pid)
+            if not p:
+                continue
             avatar = p.get("avatar")
-            if isinstance(avatar, dict):
-                if avatar.get("s3_url"):
-                    return avatar["s3_url"]
-                if avatar.get("file_key"):
-                    return _absolute_url(f"/api/uploads/avatars/{avatar['file_key']}")
+            if isinstance(avatar, dict) and avatar.get("s3_url"):
+                return avatar["s3_url"]
+            # Flat legacy fields — accept only if they're absolute S3 URLs
             for k in ("avatar_url", "image_url", "photo_url"):
-                if p.get(k):
-                    return _absolute_url(p[k])
-            if isinstance(p.get("image"), dict):
-                url = p["image"].get("s3_url") or p["image"].get("url")
-                if url:
-                    return _absolute_url(url)
-
+                v = p.get(k) or ""
+                if v.startswith("https://") and "your-objectstorage.com" in v:
+                    return v
+            img = p.get("image")
+            if isinstance(img, dict) and img.get("s3_url"):
+                return img["s3_url"]
     return ""
 
 
@@ -197,10 +197,8 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
 
         image_url = ""
         if isinstance(title_info.get("image"), dict):
-            image_url = title_info["image"].get("s3_url") or title_info["image"].get("url") or ""
-            if not image_url and title_info["image"].get("file_key"):
-                image_url = f"/api/uploads/show_title_images/{title_info['image']['file_key']}"
-        image_url = _absolute_url(image_url)
+            # S3 only — Show Management always lands on S3.
+            image_url = title_info["image"].get("s3_url") or ""
 
         presenter_image_url = await _resolve_presenter_image_url(presenter_ids, title_image_url=image_url)
 

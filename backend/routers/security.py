@@ -232,3 +232,63 @@ async def enable_clara_publish_everywhere(current_user: dict = Depends(require_n
         details={"sites_updated": updated, "names": updated_sites},
     )
     return {"updated": updated, "sites": updated_sites}
+
+
+
+@security_router.post("/maintenance/backfill-wp-source")
+async def backfill_wp_source(current_user: dict = Depends(require_network_admin)):
+    """Backfill the `source` and `source_url` fields on items that were imported
+    from WordPress before the importer started recording them on update.
+
+    For every `content_item_publishes` row that has a `wp_post_id` we copy the
+    matching WordPress site's name onto the content item — same value the
+    importer writes today. Idempotent.
+    """
+    publishes = await db.content_item_publishes.find(
+        {"wp_post_id": {"$nin": [None, ""], "$exists": True}},
+        {"_id": 0, "content_item_id": 1, "wordpress_site_id": 1, "wp_permalink": 1},
+    ).to_list(100000)
+    if not publishes:
+        return {"updated": 0, "skipped": 0}
+
+    site_ids = list({p["wordpress_site_id"] for p in publishes if p.get("wordpress_site_id")})
+    site_docs = await db.wordpress_sites.find({"id": {"$in": site_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(200)
+    site_name = {s["id"]: s.get("name") for s in site_docs}
+
+    updated = 0
+    skipped = 0
+    for p in publishes:
+        cid = p["content_item_id"]
+        name = site_name.get(p.get("wordpress_site_id"))
+        if not name:
+            skipped += 1
+            continue
+        # Only touch items that don't already have a non-empty source
+        item = await db.content_items.find_one(
+            {"id": cid},
+            {"_id": 0, "id": 1, "source": 1, "source_url": 1},
+        )
+        if not item:
+            skipped += 1
+            continue
+        set_fields = {}
+        if not (item.get("source") or "").strip():
+            set_fields["source"] = name
+        if not (item.get("source_url") or "").strip() and p.get("wp_permalink"):
+            set_fields["source_url"] = p["wp_permalink"]
+        if not set_fields:
+            skipped += 1
+            continue
+        set_fields["wp_imported"] = True
+        await db.content_items.update_one({"id": cid}, {"$set": set_fields})
+        updated += 1
+
+    await log_action(
+        action="Backfilled WP source on content items",
+        category="settings",
+        user_id=current_user["id"],
+        user_email=current_user.get("email"),
+        target_type="maintenance",
+        details={"updated": updated, "skipped": skipped},
+    )
+    return {"updated": updated, "skipped": skipped}

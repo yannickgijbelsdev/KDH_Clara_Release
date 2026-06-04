@@ -1027,13 +1027,17 @@ async def _resolve_show_image_for_station(station: str) -> tuple[dict | None, st
 
 
 def _image_url_from(img: dict | None) -> str | None:
-    """Public URL for an image dict, S3 preferred, else local upload path."""
+    """Public URL for an image dict — S3 only.
+
+    Policy: we never serve local `/uploads/...` URLs from the RDS endpoint
+    because MagicRDS and external embedders need a stable, CDN-friendly
+    URL. If the upload didn't land on S3 the consumer should fall back to
+    its own placeholder instead of pointing at a host-internal path.
+    """
     if not img:
         return None
     if img.get("s3_url"):
         return img["s3_url"]
-    if img.get("file_key"):
-        return f"/uploads/show_title_images/{img['file_key']}"
     return None
 
 
