@@ -133,7 +133,15 @@ def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, inc
         "url": f"/nieuws/{item.get('slug') or item['id']}",
     }
     if include_body:
+        # The body already contains the intro paragraph that was reused as
+        # excerpt (especially for WordPress-imported items where WP auto-
+        # generates the excerpt from the first ~55 words of the body).
+        # Returning both makes every consumer that renders excerpt + body
+        # show the intro twice, so we drop the excerpt on the detail
+        # response. The list endpoint still returns excerpt only — body is
+        # never included there.
         out["body"] = item.get("body", "")
+        out.pop("excerpt", None)
     return out
 
 
