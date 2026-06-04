@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
 import {
@@ -193,10 +194,13 @@ const AudioFileUpload = ({ label, filename, onUpload, onDelete, isUploading }) =
 };
 
 // Create/Edit Trigger Dialog
-const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
+const TriggerDialog = ({ isOpen, onClose, trigger, onSave, stations = [] }) => {
+  // Pick a sane default station: the first one configured for this site,
+  // otherwise fall back to whatever was on the trigger.
+  const defaultStation = stations[0]?.code || trigger?.station || '';
   const [formData, setFormData] = useState({
     name: '',
-    station: 'mfy',
+    station: defaultStation,
     time_windows: [],
     in_action_type: 'custom_text',
     in_action_text: 'Reclame',
@@ -214,7 +218,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
     if (trigger) {
       setFormData({
         name: trigger.name || '',
-        station: trigger.station || 'mfy',
+        station: trigger.station || defaultStation,
         time_windows: trigger.time_windows || [],
         in_action_type: trigger.in_action_type || 'custom_text',
         in_action_text: trigger.in_action_text || 'Reclame',
@@ -227,7 +231,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
     } else {
       setFormData({
         name: '',
-        station: 'mfy',
+        station: defaultStation,
         time_windows: [{ start_time: '07:00', end_time: '19:00', days: [0, 1, 2, 3, 4] }],
         in_action_type: 'custom_text',
         in_action_text: 'Reclame',
@@ -343,7 +347,7 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., Commercial Break MFY"
+                placeholder="e.g., Commercial Break"
                 className="bg-zinc-50 border-zinc-200"
               />
             </div>
@@ -353,13 +357,21 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
                 value={formData.station}
                 onValueChange={(v) => setFormData({ ...formData, station: v })}
               >
-                <SelectTrigger className="bg-zinc-50 border-zinc-200">
-                  <SelectValue />
+                <SelectTrigger className="bg-zinc-50 border-zinc-200" data-testid="trigger-station-select">
+                  <SelectValue placeholder={stations.length ? 'Pick a station' : 'No RDS stations configured'} />
                 </SelectTrigger>
                 <SelectContent className="bg-zinc-50 border-zinc-200">
-                  <SelectItem value="mfy">Radio MFY</SelectItem>
-                  <SelectItem value="grk">Radio GRK</SelectItem>
-                  <SelectItem value="both">Both Stations</SelectItem>
+                  {stations.length === 0 && (
+                    <SelectItem value="__no_stations" disabled>No RDS stations configured</SelectItem>
+                  )}
+                  {stations.map((s) => (
+                    <SelectItem key={s.id || s.code} value={s.code} data-testid={`trigger-station-${s.code}`}>
+                      {s.name || s.code.toUpperCase()}
+                    </SelectItem>
+                  ))}
+                  {stations.length > 1 && (
+                    <SelectItem value="both" data-testid="trigger-station-both">All Stations</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -528,7 +540,9 @@ const TriggerDialog = ({ isOpen, onClose, trigger, onSave }) => {
 
 // Main Page Component
 const AudioTriggersPage = () => {
+  const { mainSiteSlug } = useParams();
   const [triggers, setTriggers] = useState([]);
+  const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTrigger, setEditingTrigger] = useState(null);
@@ -547,6 +561,21 @@ const AudioTriggersPage = () => {
     }
   }, []);
 
+  // Load RDS stations so the dropdown + badges follow what's actually
+  // configured. Falls back to an empty list so the dialog can still warn.
+  const fetchStations = useCallback(async () => {
+    if (!mainSiteSlug) {
+      setStations([]);
+      return;
+    }
+    try {
+      const r = await axios.get(`${API}/rds-stations/by-slug/${mainSiteSlug}`);
+      setStations(r.data?.stations || []);
+    } catch (e) {
+      setStations([]);
+    }
+  }, [mainSiteSlug]);
+
   const fetchLogs = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/audio-triggers/logs?limit=50`);
@@ -558,10 +587,11 @@ const AudioTriggersPage = () => {
 
   useEffect(() => {
     fetchTriggers();
+    fetchStations();
     fetchLogs();
     const interval = setInterval(fetchLogs, 10000);
     return () => clearInterval(interval);
-  }, [fetchTriggers, fetchLogs]);
+  }, [fetchTriggers, fetchStations, fetchLogs]);
 
   const handleSave = async (formData, triggerId) => {
     try {
@@ -617,10 +647,26 @@ const AudioTriggersPage = () => {
     }
   };
 
-  const stationColors = {
-    mfy: { bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' },
-    grk: { bg: 'bg-violet-500/10', border: 'border-violet-500/30', text: 'text-violet-400' },
-    both: { bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' },
+  // Resolve a per-trigger colour scheme dynamically from the configured RDS
+  // stations. Falls back to a neutral zinc tone for unknown station codes
+  // (e.g. legacy triggers pointing at a deleted station).
+  const stationStyle = (code) => {
+    if (code === 'both') {
+      return { bg: 'bg-violet-500/10', border: 'border-violet-500/30', text: 'text-violet-600', accent: '#7c3aed' };
+    }
+    const s = stations.find((x) => x.code === code);
+    const accent = s?.color || '#71717a';
+    return {
+      bg: '',
+      border: '',
+      text: '',
+      accent,
+      inline: {
+        backgroundColor: `${accent}11`,
+        borderColor: `${accent}55`,
+        color: accent,
+      },
+    };
   };
 
   if (loading) {
@@ -687,7 +733,7 @@ const AudioTriggersPage = () => {
           </div>
         ) : (
           triggers.map((trigger) => {
-            const colors = stationColors[trigger.station] || stationColors.mfy;
+            const colors = stationStyle(trigger.station);
             const hasInSound = !!trigger.in_sound_filename;
             const hasOutSound = !!trigger.out_sound_filename;
 
@@ -695,6 +741,8 @@ const AudioTriggersPage = () => {
               <div
                 key={trigger.id}
                 className={`p-4 rounded-lg border ${colors.border} ${colors.bg}`}
+                style={colors.inline ? { borderColor: colors.inline.borderColor, backgroundColor: colors.inline.backgroundColor } : undefined}
+                data-testid={`trigger-row-${trigger.id}`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
@@ -706,8 +754,24 @@ const AudioTriggersPage = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-zinc-900 flex items-center gap-2">
                         {trigger.name}
-                        <span className={`text-xs px-2 py-0.5 rounded ${colors.bg} ${colors.text} border ${colors.border}`}>
-                          {trigger.station === 'both' ? 'Both' : trigger.station.toUpperCase()}
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded border`}
+                          style={
+                            colors.inline
+                              ? {
+                                  backgroundColor: colors.inline.backgroundColor,
+                                  color: colors.inline.color,
+                                  borderColor: colors.inline.borderColor,
+                                }
+                              : undefined
+                          }
+                          data-testid={`trigger-station-badge-${trigger.station}`}
+                        >
+                          {trigger.station === 'both'
+                            ? 'Both'
+                            : (stations.find((s) => s.code === trigger.station)?.name
+                              || (trigger.station || '').toUpperCase()
+                              || 'Unassigned')}
                         </span>
                       </h3>
                       <div className="flex items-center gap-4 mt-2 text-sm">
@@ -866,6 +930,7 @@ const AudioTriggersPage = () => {
         }}
         trigger={editingTrigger}
         onSave={handleSave}
+        stations={stations}
       />
     </div>
   );

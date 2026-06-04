@@ -31,26 +31,51 @@ import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Derive station from WordPress site name
-const deriveStation = (siteName) => {
+// Try to derive a station code from a free-text site name. Used as a
+// best-effort heuristic before we have the dynamic RDS station list.
+const inferStationCode = (siteName, stations) => {
   if (!siteName) return null;
-  const lower = siteName.toLowerCase();
-  if (lower === 'mfy' || lower.includes('mfy')) return 'mfy';
-  if (lower === 'grk' || lower.includes('grk')) return 'grk';
+  const lower = siteName.toLowerCase().trim();
+  // Exact code/name match wins
+  for (const s of stations) {
+    if (s.code === lower || s.name.toLowerCase() === lower) return s.code;
+  }
+  // Then a contains match — "Mijn FM Yzer" still maps to mfy
+  for (const s of stations) {
+    const code = s.code.toLowerCase();
+    if (lower === code || lower.includes(code) || code.includes(lower)) return s.code;
+  }
   return null;
 };
 
-const stationBadge = (station) => {
-  if (!station) return null;
-  const cfg = {
-    mfy: { label: 'MFY', cls: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
-    grk: { label: 'GRK', cls: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
-    both: { label: 'BOTH', cls: 'bg-violet-500/20 text-violet-400 border-violet-500/30' },
-  };
-  const c = cfg[station] || { label: station.toUpperCase(), cls: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30' };
+const stationBadge = (stationCode, stations) => {
+  if (!stationCode) return null;
+  if (stationCode === 'both') {
+    return (
+      <span
+        className="text-[9px] font-bold px-1.5 py-0.5 rounded border bg-violet-500/20 text-violet-400 border-violet-500/30 leading-none"
+        data-testid="station-badge-both"
+      >
+        BOTH
+      </span>
+    );
+  }
+  const station = stations.find((s) => s.code === stationCode);
+  // Each station has an explicit color in RDS settings — use it as the
+  // pill background. Falls back to a neutral zinc tint if missing.
+  const color = station?.color || '#71717a';
+  const label = (station?.code || stationCode).toUpperCase();
   return (
-    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.cls} leading-none`}>
-      {c.label}
+    <span
+      data-testid={`station-badge-${stationCode}`}
+      className="text-[9px] font-bold px-1.5 py-0.5 rounded border leading-none"
+      style={{
+        backgroundColor: `${color}22`, // ~13% alpha hex tail
+        color: color,
+        borderColor: `${color}55`,
+      }}
+    >
+      {label}
     </span>
   );
 };
@@ -87,6 +112,7 @@ const getBestFeaturedImage = (item) => {
 const ContentCalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [contentItems, setContentItems] = useState([]);
+  const [stations, setStations] = useState([]); // RDS stations for the active main site
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
   const navigate = useNavigate();
@@ -96,10 +122,12 @@ const ContentCalendarPage = () => {
 
   useEffect(() => {
     fetchContent();
+    fetchStations();
     const handleFocus = () => fetchContent();
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainSiteSlug]);
 
   const fetchContent = async () => {
     try {
@@ -112,6 +140,24 @@ const ContentCalendarPage = () => {
     }
   };
 
+  // Fetch the RDS stations the user has configured for THIS main site.
+  // We use the slug variant so the page doesn't need to know the main_site_id
+  // — the axios interceptor sets X-Main-Site-ID anyway, but the public slug
+  // route works even without it.
+  const fetchStations = async () => {
+    if (!mainSiteSlug) {
+      setStations([]);
+      return;
+    }
+    try {
+      const r = await axios.get(`${API}/rds-stations/by-slug/${mainSiteSlug}`);
+      setStations(r.data?.stations || []);
+    } catch (e) {
+      // Custom main sites without RDS — just hide the station legend.
+      setStations([]);
+    }
+  };
+
   // Build calendar entries from content items
   const calendarEntries = useMemo(() => {
     const entries = [];
@@ -120,29 +166,29 @@ const ContentCalendarPage = () => {
       // Determine station for the whole content item (based on all publish targets)
       const allStations = new Set();
       (item.publish_statuses || []).forEach(ps => {
-        const st = deriveStation(ps.wordpress_site_name);
+        const st = inferStationCode(ps.wordpress_site_name, stations);
         if (st) allStations.add(st);
       });
-      const itemStation = allStations.size > 1 ? 'both' 
-        : allStations.size === 1 ? [...allStations][0] 
-        : deriveStation(item.source) || null;
+      const itemStation = allStations.size > 1 ? 'both'
+        : allStations.size === 1 ? [...allStations][0]
+        : inferStationCode(item.source, stations) || null;
 
       if (item.publish_statuses?.length > 0) {
         item.publish_statuses.forEach(ps => {
           const isPublished = ps.sync_status === 'synced' || ps.wp_status === 'publish';
           const isScheduled = ps.sync_status === 'scheduled' || ps.wp_status === 'future';
-          
+
           if (isPublished || isScheduled) {
             // Determine the date to display
-            const dateStr = isScheduled 
+            const dateStr = isScheduled
               ? (ps.wp_scheduled_date || ps.last_synced_at || ps.created_at)
               : (ps.last_synced_at || ps.created_at);
-            
+
             if (!dateStr) return;
-            
+
             let parsedDate;
             try { parsedDate = parseISO(dateStr); } catch { return; }
-            
+
             entries.push({
               id: `${item.id}-${ps.wordpress_site_id || ps.id}`,
               contentId: item.id,
@@ -152,7 +198,7 @@ const ContentCalendarPage = () => {
               status: isScheduled ? 'scheduled' : 'published',
               siteName: ps.wordpress_site_name || 'WordPress',
               siteId: ps.wordpress_site_id,
-              station: deriveStation(ps.wordpress_site_name) || itemStation,
+              station: inferStationCode(ps.wordpress_site_name, stations) || itemStation,
               wpUrl: ps.wp_permalink,
               imageUrl: getBestFeaturedImage(item),
               excerpt: item.excerpt || '',
@@ -162,12 +208,12 @@ const ContentCalendarPage = () => {
           }
         });
       }
-      
+
       // Items with original_date from WP import but no publish_statuses yet
       if (item.original_date && (!item.publish_statuses || item.publish_statuses.length === 0)) {
         let parsedDate;
         try { parsedDate = parseISO(item.original_date); } catch { return; }
-        
+
         entries.push({
           id: `${item.id}-imported`,
           contentId: item.id,
@@ -177,7 +223,7 @@ const ContentCalendarPage = () => {
           status: 'published',
           siteName: item.source || 'WordPress',
           siteId: null,
-          station: deriveStation(item.source) || itemStation,
+          station: inferStationCode(item.source, stations) || itemStation,
           wpUrl: item.source_url,
           imageUrl: getBestFeaturedImage(item),
           excerpt: item.excerpt || '',
@@ -188,7 +234,7 @@ const ContentCalendarPage = () => {
     });
 
     return entries;
-  }, [contentItems]);
+  }, [contentItems, stations]);
 
   // Calendar days grid
   const calendarDays = useMemo(() => {
@@ -328,14 +374,24 @@ const ContentCalendarPage = () => {
                     {dayEntries.length > 0 && (
                       <div className="flex flex-wrap gap-0.5 justify-center">
                         {dayEntries.slice(0, 4).map((entry) => {
-                          const stColor = entry.station === 'mfy' ? 'bg-orange-400' 
-                            : entry.station === 'grk' ? 'bg-cyan-400'
-                            : entry.station === 'both' ? 'bg-violet-400'
-                            : statusColors[entry.status];
+                          // Pick the station-specific colour first, fall back
+                          // to status colour if the entry isn't bound to one.
+                          let stColor = statusColors[entry.status];
+                          let inlineStyle;
+                          if (entry.station === 'both') {
+                            stColor = 'bg-violet-400';
+                          } else if (entry.station) {
+                            const cfg = stations.find((s) => s.code === entry.station);
+                            if (cfg?.color) {
+                              stColor = '';
+                              inlineStyle = { backgroundColor: cfg.color };
+                            }
+                          }
                           return (
                             <div
                               key={entry.id}
                               className={`w-1.5 h-1.5 rounded-full ${stColor}`}
+                              style={inlineStyle}
                               title={`${entry.title} (${entry.siteName}${entry.station ? ` - ${entry.station.toUpperCase()}` : ''})`}
                             />
                           );
@@ -362,20 +418,27 @@ const ContentCalendarPage = () => {
               <div className="w-2 h-2 rounded-full bg-orange-500" />
               <span className="text-xs text-zinc-400">Scheduled</span>
             </div>
-            <span className="text-xs text-zinc-600 mx-1">|</span>
-            <span className="text-xs text-zinc-500">Station:</span>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-orange-400" />
-              <span className="text-xs text-zinc-400">MFY</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-cyan-400" />
-              <span className="text-xs text-zinc-400">GRK</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-violet-400" />
-              <span className="text-xs text-zinc-400">Both</span>
-            </div>
+            {stations.length > 0 && (
+              <>
+                <span className="text-xs text-zinc-600 mx-1">|</span>
+                <span className="text-xs text-zinc-500">Station:</span>
+                {stations.map((s) => (
+                  <div key={s.id || s.code} className="flex items-center gap-2" data-testid={`station-legend-${s.code}`}>
+                    <div
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: s.color || '#71717a' }}
+                    />
+                    <span className="text-xs text-zinc-400">{s.code.toUpperCase()}</span>
+                  </div>
+                ))}
+                {stations.length > 1 && (
+                  <div className="flex items-center gap-2" data-testid="station-legend-both">
+                    <div className="w-2 h-2 rounded-full bg-violet-400" />
+                    <span className="text-xs text-zinc-400">Both</span>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -434,7 +497,7 @@ const ContentCalendarPage = () => {
                               <h4 className="text-white font-medium group-hover:text-rose-400 transition-colors line-clamp-1 text-sm">
                                 {entry.title}
                               </h4>
-                              {stationBadge(entry.station)}
+                              {stationBadge(entry.station, stations)}
                             </div>
                             <span className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${statusColors[entry.status]}`} />
                           </div>
