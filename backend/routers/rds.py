@@ -954,74 +954,77 @@ async def update_shoutcast_filters(
 
 
 async def _resolve_show_image_for_station(station: str) -> tuple[dict | None, str | None]:
-    """Walk every known source to find the best image for the currently
-    LIVE show on `station`, in priority order:
+    """Find the S3 image URL for the currently LIVE show on `station`.
 
-    1. `rds_cached_rundowns.show_image`  — pre-baked by the scheduler
-    2. `shows.{show_id}.image`           — per-show upload (Show Management)
-    3. `show_titles.{name}.image`        — per-template upload (Show Titles)
+    Same priority as `/api/public/schedule/*` so the homepage, player and
+    banner all show the **exact same artwork**:
 
-    Returns `(image_dict_normalised_or_None, show_title)`. The normalised dict
-    always exposes `s3_url`, `file_key` and `mime_type` regardless of the
-    source field naming (`file_storage_key` vs `file_key`).
+    1. `show_titles.{name}.image.s3_url`  — Show Management template (S3)
+       This is the radio team's "official" artwork — wins over per-show
+       and pre-cached variants.
+    2. `shows.{show_id}.image.s3_url`     — per-show upload, used when a
+       title has no image of its own.
+    3. `rds_cached_rundowns.show_image`   — pre-baked snapshot.
+
+    Only S3 URLs are returned. Local `/uploads/...` paths are treated as
+    missing so external consumers don't end up pointing at host-internal
+    files.
+
+    Returns `(image_dict_or_None, show_title)`.
     """
     cached = await db.rds_cached_rundowns.find_one(
         {"is_active": True, "rds_station": {"$in": [station, "both"]}},
-        {"_id": 0, "show_id": 1, "team_id": 1, "show_title": 1, "show_image": 1},
+        {"_id": 0, "show_id": 1, "team_id": 1, "main_site_id": 1, "show_title": 1, "show_image": 1},
     )
     if not cached:
         return None, None
 
     show_title = cached.get("show_title")
-    team_id = cached.get("team_id")
+    scope_id = cached.get("main_site_id") or cached.get("team_id")
     show_id = cached.get("show_id")
 
-    def normalise(raw: dict | None) -> dict | None:
-        """Make `{s3_url, file_key, mime_type, filename}` regardless of source."""
+    def s3_only(raw: dict | None) -> dict | None:
         if not raw or not isinstance(raw, dict):
             return None
         s3_url = raw.get("s3_url")
-        file_key = raw.get("file_key") or raw.get("file_storage_key")
-        if not s3_url and not file_key:
-            # Empty placeholder — treat as missing
+        if not s3_url:
             return None
         return {
             "s3_url": s3_url,
-            "file_key": file_key,
             "mime_type": raw.get("mime_type", "image/jpeg"),
             "filename": raw.get("filename") or raw.get("file_name"),
         }
 
-    # 1. Cached rundown
-    img = normalise(cached.get("show_image"))
-    if img:
-        return img, show_title
-
-    # 2. Show instance (Show Management upload)
-    if show_id:
-        show_doc = await db.shows.find_one({"id": show_id}, {"_id": 0, "image": 1})
-        img = normalise((show_doc or {}).get("image"))
-        if img:
-            return img, show_title
-
-    # 3. Show title template
+    # 1. Show title template — Show Management is source of truth
     if show_title:
-        # Prefer the title doc that belongs to the same team_id / main_site_id as
-        # the cached rundown — otherwise we risk picking another site's image
-        # if two main sites share a show title name.
         title_doc = None
-        if team_id:
+        if scope_id:
             title_doc = await db.show_titles.find_one(
-                {"name": show_title, "$or": [{"team_id": team_id}, {"main_site_id": team_id}]},
+                {
+                    "name": show_title,
+                    "$or": [{"team_id": scope_id}, {"main_site_id": scope_id}],
+                },
                 {"_id": 0, "image": 1},
             )
         if not title_doc:
             title_doc = await db.show_titles.find_one(
                 {"name": show_title}, {"_id": 0, "image": 1}
             )
-        img = normalise((title_doc or {}).get("image"))
+        img = s3_only((title_doc or {}).get("image"))
         if img:
             return img, show_title
+
+    # 2. Per-show upload
+    if show_id:
+        show_doc = await db.shows.find_one({"id": show_id}, {"_id": 0, "image": 1})
+        img = s3_only((show_doc or {}).get("image"))
+        if img:
+            return img, show_title
+
+    # 3. Cached rundown snapshot
+    img = s3_only(cached.get("show_image"))
+    if img:
+        return img, show_title
 
     return None, show_title
 
