@@ -327,7 +327,7 @@ async def upload_show_title_image(
         if old_key.startswith("show_titles/") and is_s3_configured():
             try:
                 await delete_file_from_s3(old_key)
-            except:
+            except Exception:
                 pass
         else:
             old_path = SHOW_TITLE_IMAGES_DIR / old_key
@@ -407,7 +407,7 @@ async def delete_show_title_image(
         if storage_key.startswith("show_titles/") and is_s3_configured():
             try:
                 await delete_file_from_s3(storage_key)
-            except:
+            except Exception:
                 pass
         else:
             file_path = SHOW_TITLE_IMAGES_DIR / storage_key
@@ -659,7 +659,7 @@ async def upload_show_image(
         if old_key.startswith("shows/") and is_s3_configured():
             try:
                 await delete_file_from_s3(old_key)
-            except:
+            except Exception:
                 pass
         else:
             old_file = SHOW_IMAGES_DIR / old_key
@@ -726,7 +726,7 @@ async def delete_show_image(
         if storage_key.startswith("shows/") and is_s3_configured():
             try:
                 await delete_file_from_s3(storage_key)
-            except:
+            except Exception:
                 pass
         else:
             file_path = SHOW_IMAGES_DIR / storage_key
@@ -1208,38 +1208,52 @@ async def delete_show(
 @shows_router.put("/{show_id}/recurrence", response_model=ShowResponse)
 async def update_recurrence_settings(
     show_id: str,
+    request: Request,
     recurrence_interval: Optional[int] = Query(None, ge=1, le=4, description="Repeat every N weeks"),
     recurrence_end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD or 'none' to clear"),
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Update recurrence settings for a recurring show (applies to all occurrences)."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')}
-    )
+    # Scope: prefer main_site_id header (network/system admins have no
+    # team_id, so a plain team_id match returns 404 for them).
+    main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
+
+    if main_site_id:
+        show_query = {"id": show_id, "main_site_id": main_site_id}
+    else:
+        show_query = {"id": show_id, "team_id": team_id}
+
+    show = await db.shows.find_one(show_query)
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
-    
+
     if not show.get('is_recurring'):
         raise HTTPException(status_code=400, detail="This show is not recurring")
-    
+
     parent_id = show.get('parent_show_id') or show_id
     now = datetime.now(timezone.utc).isoformat()
-    
+
     update_dict = {"updated_at": now}
-    
+
     if recurrence_interval is not None:
         update_dict["recurrence_interval"] = recurrence_interval
-    
+
     if recurrence_end_date is not None:
         if recurrence_end_date.lower() == 'none':
             update_dict["recurrence_end_date"] = None
         else:
             update_dict["recurrence_end_date"] = recurrence_end_date
-    
-    # Update all occurrences
+
+    # Update all occurrences — scope by the same field we matched on.
+    if main_site_id:
+        bulk_scope = {"main_site_id": main_site_id}
+    else:
+        bulk_scope = {"team_id": team_id}
+
     await db.shows.update_many(
         {
-            "team_id": current_user.get('team_id'),
+            **bulk_scope,
             "$or": [
                 {"id": parent_id},
                 {"parent_show_id": parent_id}
@@ -1247,7 +1261,7 @@ async def update_recurrence_settings(
         },
         {"$set": update_dict}
     )
-    
+
     updated_show = await db.shows.find_one({"id": show_id}, {"_id": 0})
     return updated_show
 
@@ -1255,13 +1269,16 @@ async def update_recurrence_settings(
 @shows_router.post("/{show_id}/stop-recurrence")
 async def stop_recurrence(
     show_id: str,
+    request: Request,
     delete_future: bool = Query(default=True, description="Delete future occurrences"),
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Stop a recurring show from repeating. Optionally delete future occurrences."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')}
-    )
+    main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
+    scope = {"main_site_id": main_site_id} if main_site_id else {"team_id": team_id}
+
+    show = await db.shows.find_one({"id": show_id, **scope})
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
@@ -1278,7 +1295,7 @@ async def stop_recurrence(
         # Delete all future occurrences (keep past and today's)
         future_shows = await db.shows.find(
             {
-                "team_id": current_user.get('team_id'),
+                **scope,
                 "date": {"$gt": today},
                 "$or": [
                     {"id": parent_id},
@@ -1301,7 +1318,7 @@ async def stop_recurrence(
     # Mark all remaining occurrences as non-recurring
     await db.shows.update_many(
         {
-            "team_id": current_user.get('team_id'),
+            **scope,
             "$or": [
                 {"id": parent_id},
                 {"parent_show_id": parent_id}
@@ -1334,14 +1351,17 @@ async def stop_recurrence(
 @shows_router.post("/{show_id}/enable-recurrence", response_model=ShowResponse)
 async def enable_recurrence(
     show_id: str,
+    request: Request,
     recurrence_interval: int = Query(1, ge=1, le=4, description="Repeat every N weeks"),
     recurrence_end_date: Optional[str] = Query(None, description="End date YYYY-MM-DD or None for 1 year"),
     current_user: dict = Depends(require_editor_or_admin)
 ):
     """Convert a non-recurring show into a recurring show and generate future occurrences."""
-    show = await db.shows.find_one(
-        {"id": show_id, "team_id": current_user.get('team_id')}
-    )
+    main_site_id = await get_main_site_id_from_header(request)
+    team_id = current_user.get('team_id')
+    scope = {"main_site_id": main_site_id} if main_site_id else {"team_id": team_id}
+
+    show = await db.shows.find_one({"id": show_id, **scope})
     if not show:
         raise HTTPException(status_code=404, detail="Show not found")
     
@@ -1349,7 +1369,9 @@ async def enable_recurrence(
         raise HTTPException(status_code=400, detail="This show is already recurring")
     
     now = datetime.now(timezone.utc).isoformat()
-    team_id = current_user.get('team_id')
+    # Inherit the original show's team_id when the admin has none —
+    # keeps child occurrences scoped consistently.
+    team_id = team_id or show.get('team_id')
     
     # This show becomes the parent
     parent_id = show_id

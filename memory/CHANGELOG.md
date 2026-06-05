@@ -1,6 +1,22 @@
 # Changelog
 
 
+## 2026-06-05 — Fix: Network/System admins kunnen recurring shows nu bewerken
+
+### Root cause
+`PUT /api/shows/{id}/recurrence`, `POST /{id}/stop-recurrence` en `POST /{id}/enable-recurrence` scopen alleen op `team_id == current_user.team_id`. System/Network admins hebben `team_id = None`, dus de query matchte niks → 404 "Show not found" → toast "Failed to update recurrence settings".
+
+### Fix — `backend/routers/shows.py`
+Alle drie de endpoints lezen nu eerst `X-Main-Site-ID` uit de request header (de frontend `MainSiteContext` interceptor stuurt die automatisch mee), en vallen alleen terug op `team_id` als de header er niet is. `enable-recurrence` erft het `team_id` van de oorspronkelijke show als de admin er geen heeft, zodat child occurrences consistent gescoped blijven.
+
+### Cleanup
+Pre-existing bare `except:` blocks vervangen door `except Exception:` (ruff E722) — geen functionele wijziging.
+
+### Verified
+- `PUT /shows/{id}/recurrence` met `X-Main-Site-ID` header → HTTP 200, settings opgeslagen, `is_recurring: true`, `recurrence_interval` & `recurrence_end_date` correct doorgevoerd.
+
+
+
 ## 2026-06-05 — Inline TinyMCE images now used as article thumbnail
 
 ### Why
