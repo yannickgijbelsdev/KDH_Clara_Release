@@ -111,9 +111,24 @@ async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str
     1. Show-title image's `s3_url` (uploaded via Show Management).
     2. First presenter avatar's `s3_url`.
     """
+    def _clean(u: str) -> str:
+        """Reject corrupt URLs containing the literal "None" scope segment.
+
+        Legacy uploads done before team/main_site context existed landed on
+        S3 with a literal Python ``None`` stringified into the path
+        (e.g. ``show_titles/None/...``). Those records point at orphaned
+        files (the wrong presenter's photo) and must never be served.
+        """
+        if not u:
+            return ""
+        if "/None/" in u or "/None_" in u:
+            return ""
+        return u
+
     # 1. Show-title S3 image always wins (Show Management is the source of truth)
-    if title_image_url and (title_image_url.startswith("http://") or title_image_url.startswith("https://")):
-        return title_image_url
+    cleaned_title = _clean(title_image_url)
+    if cleaned_title and (cleaned_title.startswith("http://") or cleaned_title.startswith("https://")):
+        return cleaned_title
 
     # 2. Presenter avatar — S3 only
     if presenter_ids:
@@ -127,16 +142,20 @@ async def _resolve_presenter_image_url(presenter_ids: list, title_image_url: str
             if not p:
                 continue
             avatar = p.get("avatar")
-            if isinstance(avatar, dict) and avatar.get("s3_url"):
-                return avatar["s3_url"]
+            if isinstance(avatar, dict):
+                cleaned = _clean(avatar.get("s3_url") or "")
+                if cleaned:
+                    return cleaned
             # Flat legacy fields — accept only if they're absolute S3 URLs
             for k in ("avatar_url", "image_url", "photo_url"):
-                v = p.get(k) or ""
+                v = _clean(p.get(k) or "")
                 if v.startswith("https://") and "your-objectstorage.com" in v:
                     return v
             img = p.get("image")
-            if isinstance(img, dict) and img.get("s3_url"):
-                return img["s3_url"]
+            if isinstance(img, dict):
+                cleaned = _clean(img.get("s3_url") or "")
+                if cleaned:
+                    return cleaned
     return ""
 
 
@@ -198,7 +217,10 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
         image_url = ""
         if isinstance(title_info.get("image"), dict):
             # S3 only — Show Management always lands on S3.
-            image_url = title_info["image"].get("s3_url") or ""
+            raw_url = title_info["image"].get("s3_url") or ""
+            # Reject corrupt /None/ paths from legacy uploads.
+            if raw_url and "/None/" not in raw_url and "/None_" not in raw_url:
+                image_url = raw_url
 
         presenter_image_url = await _resolve_presenter_image_url(presenter_ids, title_image_url=image_url)
 

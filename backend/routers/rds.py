@@ -739,6 +739,103 @@ async def get_mfy_now_playing():
     return await get_cached_now_playing(db, "mfy")
 
 
+# ─── Empty-pixel constant (shared by all "image.jpg/png" endpoints) ─────────
+
+_TRANSPARENT_1X1_PNG = bytes([
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+    0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+    0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41,
+    0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+    0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+    0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+    0x42, 0x60, 0x82,
+])
+
+
+def _empty_image_response():
+    """Return a 1×1 transparent PNG so browsers overwrite stale cached
+    `<img>` content with nothing visible."""
+    from fastapi.responses import Response
+    return Response(
+        content=_TRANSPARENT_1X1_PNG,
+        media_type="image/png",
+        headers={
+            "Cache-Control": "public, max-age=30, must-revalidate",
+            "X-Image-Source": "empty-placeholder",
+        },
+    )
+
+
+async def _resolve_presenter_image_for_station(station: str) -> str:
+    """S3 URL of the first presenter avatar on the currently live `station`
+    show, or empty string if none. Used by `/presenter-image.jpg`."""
+    cached = await db.rds_cached_rundowns.find_one(
+        {"is_active": True, "rds_station": {"$in": [station, "both"]}},
+        {"_id": 0, "show_id": 1},
+    )
+    if not cached or not cached.get("show_id"):
+        return ""
+    show_doc = await db.shows.find_one({"id": cached["show_id"]}, {"_id": 0, "presenter_ids": 1})
+    presenter_ids = (show_doc or {}).get("presenter_ids") or []
+    if not presenter_ids:
+        return ""
+    users = await db.users.find(
+        {"id": {"$in": presenter_ids}},
+        {"_id": 0, "id": 1, "avatar": 1, "avatar_url": 1},
+    ).to_list(10)
+    by_id = {u.get("id"): u for u in users if u.get("id")}
+    for pid in presenter_ids:
+        u = by_id.get(pid) or {}
+        avatar = u.get("avatar")
+        if isinstance(avatar, dict):
+            url = avatar.get("s3_url") or ""
+            if url and "/None/" not in url and "/None_" not in url:
+                return url
+        legacy = u.get("avatar_url") or ""
+        if legacy.startswith("https://") and "your-objectstorage.com" in legacy and "/None/" not in legacy:
+            return legacy
+    return ""
+
+
+@rds_router.get("/{station}/presenter-image.jpg")
+async def get_station_presenter_image(station: str):
+    """Public endpoint: Direct `<img src>` URL for the on-air presenter.
+
+    Used by grk.fm / mfy.fm banners that embed
+    `<img src="/api/rds/{station}/presenter-image.jpg">` directly.
+
+    - When the live show's first presenter has an S3 avatar: 302 redirect.
+    - Otherwise: 200 OK with a 1×1 transparent PNG so the browser
+      overwrites whatever stale image was cached on screen.
+    """
+    from fastapi.responses import RedirectResponse
+    url = await _resolve_presenter_image_for_station(station)
+    if url:
+        return RedirectResponse(url=url, status_code=302)
+    return _empty_image_response()
+
+
+@rds_router.get("/{station}/presenter-image-url.txt")
+async def get_station_presenter_image_url_txt(station: str):
+    """Plain-text variant of `/presenter-image.jpg` — returns the URL or ""."""
+    from fastapi.responses import PlainTextResponse
+    url = await _resolve_presenter_image_for_station(station)
+    return PlainTextResponse(content=url or "", media_type="text/plain")
+
+
+@rds_router.get("/{station}/presenter-image.json")
+async def get_station_presenter_image_json(station: str):
+    """JSON variant: `{ station, has_image, image_url }`."""
+    url = await _resolve_presenter_image_for_station(station)
+    return {
+        "station": station,
+        "has_image": bool(url),
+        "image_url": url or "",
+    }
+
+
 @rds_router.get("/mfy/now-playing.json")
 async def get_mfy_now_playing_json():
     """Public endpoint: Same as /mfy/now-playing — explicit .json alias for symmetry with .txt."""
@@ -988,6 +1085,14 @@ async def _resolve_show_image_for_station(station: str) -> tuple[dict | None, st
         s3_url = raw.get("s3_url")
         if not s3_url:
             return None
+        # Reject corrupt records where the upload landed with a literal
+        # "None" scope segment in the path — these are legacy uploads done
+        # before the team/main_site context was injected, and they point
+        # at orphaned files (typically the wrong presenter's photo, e.g.
+        # Hadewig sticking to unrelated shows). Treat as missing so the
+        # transparent placeholder kicks in.
+        if "/None/" in s3_url or "/None_" in s3_url:
+            return None
         return {
             "s3_url": s3_url,
             "mime_type": raw.get("mime_type", "image/jpeg"),
@@ -1091,34 +1196,13 @@ async def get_station_show_image_redirect(station: str):
     overwrite the visual with nothing, so the player can render its own
     placeholder via CSS.
     """
-    from fastapi.responses import RedirectResponse, Response
+    from fastapi.responses import RedirectResponse
 
     image_data, _ = await _resolve_show_image_for_station(station)
     image_url = _image_url_from(image_data)
     if image_url:
         return RedirectResponse(url=image_url, status_code=302)
-
-    # Smallest valid PNG: 1×1 fully transparent pixel.
-    transparent_png = bytes([
-        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-        0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-        0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
-        0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41,
-        0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-        0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
-        0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
-        0x42, 0x60, 0x82,
-    ])
-    return Response(
-        content=transparent_png,
-        media_type="image/png",
-        headers={
-            # Short cache so a real image upload propagates within ~30s.
-            "Cache-Control": "public, max-age=30, must-revalidate",
-            "X-Image-Source": "empty-placeholder",
-        },
-    )
+    return _empty_image_response()
 
 
 @rds_router.get("/{station}/image-url.txt")

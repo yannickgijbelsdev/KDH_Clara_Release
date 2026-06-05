@@ -1,6 +1,29 @@
 # Changelog
 
 
+## 2026-06-05 — Reject corrupt `/None/` paths + dedicated presenter-image endpoint
+
+### Root cause (continued)
+Even with the transparent-PNG fix on `/api/rds/{station}/image.jpg`, the production DB still contained an orphan `show_titles` doc whose `image.s3_url` was `…/show_titles/**None**/34ce…_2024_Hadewig_Weyen.png` — a legacy upload done before the team/main_site scope was injected. The resolver happily 302-redirected to that broken Hadewig file, so the browser still received the wrong image.
+
+### Fix — backend
+- `routers/rds.py` → `_resolve_show_image_for_station.s3_only()` now **rejects any `s3_url` containing `/None/` or `/None_`**, treating it as missing so the transparent placeholder kicks in.
+- `routers/public_schedule.py` → `_resolve_presenter_image_url` and the schedule `image` field do the same `/None/` rejection, so the homepage/banner never see a corrupt URL either.
+
+### New endpoints (dedicated presenter image for banners)
+- `GET /api/rds/{station}/presenter-image.jpg` — 302 to first presenter's S3 avatar, or 1×1 transparent PNG when none. Drop-in `<img src>` target for grk.fm / mfy.fm banners.
+- `GET /api/rds/{station}/presenter-image-url.txt` — plain text URL or `""`.
+- `GET /api/rds/{station}/presenter-image.json` — `{ station, has_image, image_url }`.
+
+### Refactor
+Pulled the 1×1 transparent-PNG bytes and response builder into shared `_TRANSPARENT_1X1_PNG` constant + `_empty_image_response()` helper. Both `image.jpg` and `presenter-image.jpg` share the same placeholder.
+
+### Verified (preview)
+- Injected a `/None/` corrupt URL into the live "Playground: The Friday Edition" show_title → `image.jpg` returns 200 transparent PNG (67 bytes), JSON `has_image: false`. Real S3 URLs still 302 as before.
+- `presenter-image.jpg` returns transparent PNG when presenter has no avatar.
+
+
+
 ## 2026-06-05 — Empty image placeholder instead of 404 on `/api/rds/{station}/image.jpg`
 
 ### Why
