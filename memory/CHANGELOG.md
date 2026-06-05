@@ -1,6 +1,25 @@
 # Changelog
 
 
+## 2026-06-05 — Snappier Test + Live Source Pill + Instant Cache Refresh
+
+### Backend
+- `services/shoutcast.py` — `_fetch_shoutcast_v1` timeout reduced 5s → **3.5s** with `follow_redirects=True`, so the "Test" button returns much faster on bad/slow URLs.
+- `routers/rds_stations.py` — saving `custom_streams` now **immediately calls `cache_now_playing()`** so the public now-playing API reflects the new source within ~1s instead of waiting for the next 10s scheduler tick.
+
+### Frontend (`RDSSettingsPage.js`)
+- New polling loop (every 10s) hits `/api/rds/{code}/now-playing` for every station and shows a **live status pill** next to each station header:
+  - 🟣 violet "Live: <label> · <song>" when the active source is a custom stream
+  - 🟢 green "Live: default stream · <song>" otherwise
+  - amber "· fallback" appended when the custom URL was unreachable and the system fell back to the default
+- Save action now triggers an immediate re-poll so the pill flips state right after submitting.
+
+### Verified
+- PUT custom_streams → `cached_at` advances within 1s, `active_stream:"custom"`, `custom_stream_label` set, song from alternative source.
+- Clearing custom_streams → pill flips back to "Live: default stream" within 10s, API confirms `active_stream:"default"`.
+
+
+
 ## 2026-06-05 — Custom Stream Info Exposed in Now-Playing API
 
 ### Backend

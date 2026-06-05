@@ -57,6 +57,8 @@ const RDSSettingsPage = () => {
   // Per-row test result: { [stationId]: { [index]: { status, song_title, message, stream_online, current_listeners } } }
   const [streamTestResults, setStreamTestResults] = useState({});
   const [testingStream, setTestingStream] = useState(null); // `${stationId}-${index}` while in-flight
+  // Live "what's active right now" per station code
+  const [liveStatus, setLiveStatus] = useState({});
 
   // Shoutcast filters state - dynamic per station
   const [stationFilters, setStationFilters] = useState({});
@@ -139,6 +141,32 @@ const RDSSettingsPage = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Poll live now-playing status every 10s so admins see WHICH source is
+  // currently feeding each station's RDS data.
+  const fetchLiveStatus = useCallback(async (sts) => {
+    const target = (sts && sts.length ? sts : stations) || [];
+    if (!target.length) return;
+    const results = {};
+    await Promise.all(
+      target.map(async (st) => {
+        try {
+          const res = await axios.get(`${API}/rds/${st.code}/now-playing`);
+          results[st.code] = res.data || {};
+        } catch (e) {
+          results[st.code] = { status: 'error' };
+        }
+      })
+    );
+    setLiveStatus(results);
+  }, [stations]);
+
+  useEffect(() => {
+    if (!stations.length) return;
+    fetchLiveStatus(stations);
+    const t = setInterval(() => fetchLiveStatus(stations), 10000);
+    return () => clearInterval(t);
+  }, [stations, fetchLiveStatus]);
 
   const handleSaveSettings = async () => {
     setSaving(true);
@@ -284,6 +312,9 @@ const RDSSettingsPage = () => {
       await axios.put(`${API}/rds-stations/${mainSiteId}/${station.id}`, payload);
       toast.success(`Stream schedule saved for ${station.name}`);
       setEditingStreamsFor(null);
+      // Backend already refreshed the cache on save — re-poll status so the
+      // "Currently active" pill updates instantly.
+      fetchLiveStatus(stations);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Could not save stream schedule');
     } finally {
@@ -621,12 +652,38 @@ const RDSSettingsPage = () => {
           return (
             <div key={st.id} className="mb-6 last:mb-0" data-testid={`custom-streams-station-${st.code}`}>
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: st.color }} />
                   <h3 className="text-sm font-semibold text-zinc-700">{st.name}</h3>
                   <span className="text-xs text-zinc-500">
                     {streams.length === 0 ? 'No schedule' : `${streams.length} window${streams.length === 1 ? '' : 's'}`}
                   </span>
+                  {(() => {
+                    const ls = liveStatus[st.code];
+                    if (!ls) return null;
+                    const isCustom = ls.active_stream === 'custom';
+                    const isFallback = ls.fallback_used;
+                    return (
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                          isCustom
+                            ? 'bg-violet-50 border-violet-200 text-violet-700'
+                            : 'bg-zinc-50 border-zinc-200 text-zinc-600'
+                        }`}
+                        data-testid={`live-source-${st.code}`}
+                        title={ls.song_title || ''}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isCustom ? 'bg-violet-500' : 'bg-emerald-500'} animate-pulse`} />
+                        {isCustom
+                          ? `Live: ${ls.custom_stream_label || 'custom stream'}`
+                          : 'Live: default stream'}
+                        {isFallback && <span className="text-amber-600">· fallback</span>}
+                        {ls.song_title && (
+                          <span className="opacity-70 truncate max-w-[180px]">· {ls.song_title}</span>
+                        )}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div className="flex gap-2">
                   {isEditing ? (

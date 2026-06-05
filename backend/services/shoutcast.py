@@ -291,7 +291,7 @@ async def _fetch_shoutcast_v1(url: str) -> Optional[Dict]:
     """Fetch and parse a Shoutcast v1 stats XML endpoint. Returns parsed dict
     on success, None on failure (caller handles fallback)."""
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=3.5, follow_redirects=True) as client:
             response = await client.get(url)
             response.raise_for_status()
             root = ET.fromstring(response.text)

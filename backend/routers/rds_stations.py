@@ -322,6 +322,17 @@ async def update_station(
 
     await db.rds_stations.update_one({"id": station_id}, {"$set": update_fields})
     updated = await db.rds_stations.find_one({"id": station_id}, {"_id": 0})
+
+    # If the scheduler changed (custom_streams updated), refresh the
+    # now-playing cache immediately so the new URL/source is reflected
+    # without waiting for the next 10s scheduler tick.
+    if data.custom_streams is not None and updated:
+        try:
+            from services.shoutcast import cache_now_playing
+            await cache_now_playing(db, updated["code"])
+        except Exception as e:
+            logger.warning(f"Cache refresh after custom_streams update failed: {e}")
+
     return updated
 
 
