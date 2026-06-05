@@ -20,6 +20,7 @@ import {
   Plus,
   Music,
   Calendar,
+  PlayCircle,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -53,6 +54,9 @@ const RDSSettingsPage = () => {
   const [customStreams, setCustomStreams] = useState({});
   const [editingStreamsFor, setEditingStreamsFor] = useState(null);
   const [savingStreams, setSavingStreams] = useState(false);
+  // Per-row test result: { [stationId]: { [index]: { status, song_title, message, stream_online, current_listeners } } }
+  const [streamTestResults, setStreamTestResults] = useState({});
+  const [testingStream, setTestingStream] = useState(null); // `${stationId}-${index}` while in-flight
 
   // Shoutcast filters state - dynamic per station
   const [stationFilters, setStationFilters] = useState({});
@@ -284,6 +288,44 @@ const RDSSettingsPage = () => {
       toast.error(error.response?.data?.detail || 'Could not save stream schedule');
     } finally {
       setSavingStreams(false);
+    }
+  };
+
+  const testCustomStream = async (stationId, index, url) => {
+    if (!url || !url.trim()) {
+      toast.error('Enter a stream URL first');
+      return;
+    }
+    const key = `${stationId}-${index}`;
+    setTestingStream(key);
+    setStreamTestResults(prev => ({
+      ...prev,
+      [stationId]: { ...(prev[stationId] || {}), [index]: { status: 'loading' } },
+    }));
+    try {
+      const res = await axios.post(`${API}/rds-stations/test-stream`, {
+        url: url.trim(),
+        stream_type: 'shoutcast_v1',
+      });
+      const data = res.data || {};
+      setStreamTestResults(prev => ({
+        ...prev,
+        [stationId]: { ...(prev[stationId] || {}), [index]: data },
+      }));
+      if (data.status === 'success') {
+        toast.success(data.song_title ? `Now playing: ${data.song_title}` : 'Stream reached, but no song title');
+      } else {
+        toast.error(data.message || 'Stream unreachable');
+      }
+    } catch (error) {
+      const msg = error.response?.data?.detail || 'Test failed';
+      setStreamTestResults(prev => ({
+        ...prev,
+        [stationId]: { ...(prev[stationId] || {}), [index]: { status: 'error', message: msg } },
+      }));
+      toast.error(msg);
+    } finally {
+      setTestingStream(null);
     }
   };
 
@@ -627,7 +669,11 @@ const RDSSettingsPage = () => {
 
               {isEditing ? (
                 <div className="space-y-3">
-                  {streams.map((cs, idx) => (
+                  {streams.map((cs, idx) => {
+                    const testKey = `${st.id}-${idx}`;
+                    const testRes = (streamTestResults[st.id] || {})[idx];
+                    const isTesting = testingStream === testKey;
+                    return (
                     <div key={cs.id || idx} className="bg-zinc-50 border border-zinc-200 rounded-lg p-3 space-y-3">
                       <div className="flex items-center gap-3">
                         <label className="flex items-center gap-2 text-xs text-zinc-600">
@@ -660,13 +706,56 @@ const RDSSettingsPage = () => {
 
                       <div>
                         <Label className="text-[11px] text-zinc-500">Stream URL (Shoutcast v1 stats endpoint)</Label>
-                        <Input
-                          value={cs.url || ''}
-                          onChange={(e) => updateCustomStream(st.id, idx, 'url', e.target.value)}
-                          placeholder="http://example.com:8000/stats?sid=1"
-                          className="bg-white border-zinc-300 text-zinc-900 text-xs font-mono mt-1"
-                          data-testid={`stream-url-${st.code}-${idx}`}
-                        />
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            value={cs.url || ''}
+                            onChange={(e) => updateCustomStream(st.id, idx, 'url', e.target.value)}
+                            placeholder="http://example.com:8000/stats?sid=1"
+                            className="bg-white border-zinc-300 text-zinc-900 text-xs font-mono flex-1"
+                            data-testid={`stream-url-${st.code}-${idx}`}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => testCustomStream(st.id, idx, cs.url)}
+                            disabled={isTesting || !cs.url}
+                            className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs whitespace-nowrap"
+                            data-testid={`test-stream-${st.code}-${idx}`}
+                          >
+                            {isTesting ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <PlayCircle className="w-3 h-3 mr-1" />
+                            )}
+                            {isTesting ? '' : 'Test'}
+                          </Button>
+                        </div>
+                        {testRes && testRes.status !== 'loading' && (
+                          <div
+                            className={`mt-2 text-[11px] rounded border px-2 py-1.5 ${
+                              testRes.status === 'success'
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                : 'bg-red-50 border-red-200 text-red-700'
+                            }`}
+                            data-testid={`test-result-${st.code}-${idx}`}
+                          >
+                            {testRes.status === 'success' ? (
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <CheckCircle className="w-3 h-3" />
+                                <span className="font-medium">{testRes.song_title || '(no song title)'}</span>
+                                {testRes.server_title && <span className="opacity-70">· {testRes.server_title}</span>}
+                                <span className="opacity-70">· {testRes.current_listeners} listener{testRes.current_listeners === 1 ? '' : 's'}</span>
+                                {!testRes.stream_online && <span className="text-amber-600">· offline</span>}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <XCircle className="w-3 h-3" />
+                                <span>{testRes.message || 'Stream unreachable'}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
 
                       <div>
@@ -720,7 +809,7 @@ const RDSSettingsPage = () => {
                         Tip: set end time before start time to cross midnight (e.g. 22:00 → 06:00).
                       </p>
                     </div>
-                  ))}
+                  );})}
 
                   <Button
                     variant="outline"
@@ -738,21 +827,58 @@ const RDSSettingsPage = () => {
                     <p className="text-zinc-500 italic">No custom stream windows — default stream is always used.</p>
                   ) : (
                     <div className="space-y-1.5">
-                      {streams.map((cs, i) => (
-                        <div
-                          key={cs.id || i}
-                          className="text-xs bg-zinc-50 border border-zinc-200 rounded px-3 py-2 flex items-center gap-3 flex-wrap"
-                        >
-                          <span className={`w-2 h-2 rounded-full ${cs.enabled ? '' : 'opacity-30'}`} style={{ backgroundColor: st.color }} />
-                          <span className="font-medium text-zinc-700">{cs.label || 'Untitled'}</span>
-                          <span className="text-zinc-500 font-mono truncate max-w-[260px]">{cs.url || '—'}</span>
-                          <span className="text-zinc-600">
-                            {(cs.days || []).length === 7 ? 'Every day' : (cs.days || []).map(d => DAY_LABELS[d]).join(', ') || 'Never'}
-                          </span>
-                          <span className="text-zinc-600">{cs.start_time} → {cs.end_time}</span>
-                          {!cs.enabled && <span className="text-amber-600">(disabled)</span>}
+                      {streams.map((cs, i) => {
+                        const testRes = (streamTestResults[st.id] || {})[i];
+                        const isTesting = testingStream === `${st.id}-${i}`;
+                        return (
+                        <div key={cs.id || i}>
+                          <div className="text-xs bg-zinc-50 border border-zinc-200 rounded px-3 py-2 flex items-center gap-3 flex-wrap">
+                            <span className={`w-2 h-2 rounded-full ${cs.enabled ? '' : 'opacity-30'}`} style={{ backgroundColor: st.color }} />
+                            <span className="font-medium text-zinc-700">{cs.label || 'Untitled'}</span>
+                            <span className="text-zinc-500 font-mono truncate max-w-[260px]">{cs.url || '—'}</span>
+                            <span className="text-zinc-600">
+                              {(cs.days || []).length === 7 ? 'Every day' : (cs.days || []).map(d => DAY_LABELS[d]).join(', ') || 'Never'}
+                            </span>
+                            <span className="text-zinc-600">{cs.start_time} → {cs.end_time}</span>
+                            {!cs.enabled && <span className="text-amber-600">(disabled)</span>}
+                            <button
+                              type="button"
+                              onClick={() => testCustomStream(st.id, i, cs.url)}
+                              disabled={isTesting || !cs.url}
+                              className="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded border border-zinc-300 text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
+                              data-testid={`test-stream-view-${st.code}-${i}`}
+                            >
+                              {isTesting ? <Loader2 className="w-3 h-3 animate-spin" /> : <PlayCircle className="w-3 h-3" />}
+                              Test
+                            </button>
+                          </div>
+                          {testRes && testRes.status !== 'loading' && (
+                            <div
+                              className={`mt-1 text-[11px] rounded border px-2 py-1.5 ${
+                                testRes.status === 'success'
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                                  : 'bg-red-50 border-red-200 text-red-700'
+                              }`}
+                              data-testid={`test-result-view-${st.code}-${i}`}
+                            >
+                              {testRes.status === 'success' ? (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <CheckCircle className="w-3 h-3" />
+                                  <span className="font-medium">{testRes.song_title || '(no song title)'}</span>
+                                  {testRes.server_title && <span className="opacity-70">· {testRes.server_title}</span>}
+                                  <span className="opacity-70">· {testRes.current_listeners} listener{testRes.current_listeners === 1 ? '' : 's'}</span>
+                                  {!testRes.stream_online && <span className="text-amber-600">· offline</span>}
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <XCircle className="w-3 h-3" />
+                                  <span>{testRes.message || 'Stream unreachable'}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
-                      ))}
+                      );})}
                     </div>
                   )}
                 </div>

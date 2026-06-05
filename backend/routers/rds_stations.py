@@ -113,6 +113,50 @@ async def resolve_station(station_code: str, main_site_id: str = None):
 
 # ── Endpoints ──
 
+# Test endpoint registered FIRST so the static path "/test-stream" wins over
+# the parameterized "/{main_site_id}" route.
+class TestStreamRequest(BaseModel):
+    url: str
+    stream_type: str = "shoutcast_v1"
+
+
+@rds_stations_router.post("/test-stream")
+async def test_stream(
+    payload: TestStreamRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Probe a Shoutcast/Icecast URL once and return the parsed now-playing
+    metadata so admins can verify a custom-stream configuration without
+    waiting for the scheduler tick."""
+    from services.shoutcast import _fetch_shoutcast_v1
+
+    url = (payload.url or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="Stream URL is required")
+    if not url.startswith(("http://", "https://")):
+        raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
+
+    parsed = await _fetch_shoutcast_v1(url)
+    if parsed is None:
+        return {
+            "status": "error",
+            "url": url,
+            "message": "Could not reach stream or response was not valid Shoutcast XML",
+            "song_title": "",
+            "stream_online": False,
+        }
+
+    return {
+        "status": "success",
+        "url": url,
+        "song_title": parsed.get("raw_song_title") or "",
+        "server_title": parsed.get("server_title") or "",
+        "current_listeners": parsed.get("current_listeners", 0),
+        "stream_online": parsed.get("stream_status") == 1,
+        "bitrate": parsed.get("bitrate") or "",
+    }
+
+
 @rds_stations_router.get("/by-slug/{slug}")
 async def list_stations_by_slug(
     slug: str,

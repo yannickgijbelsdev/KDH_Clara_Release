@@ -1,6 +1,19 @@
 # Changelog
 
 
+## 2026-06-05 — Custom Stream Test Button
+
+### Backend
+- New `POST /api/rds-stations/test-stream` (`routers/rds_stations.py`) — accepts `{ url, stream_type }`, probes the Shoutcast v1 stats endpoint once, returns `song_title`, `server_title`, `current_listeners`, `stream_online`, `bitrate`, or `status:'error'` with a message. Registered **before** the `/{main_site_id}` POST route so the static path wins.
+
+### Frontend (`RDSSettingsPage.js`)
+- "Test" button on every custom-stream row (both edit and read-only views). Result rendered inline:
+  - Green = `success` with song title + server + listener count
+  - Red = `error` with diagnostic message
+- Loader spinner while in-flight; toast mirrors the result.
+
+
+
 ## 2026-06-05 — Custom "Now Playing" Stream Scheduler
 
 ### Backend
