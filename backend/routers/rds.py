@@ -1077,17 +1077,48 @@ async def get_station_show_image(station: str):
 async def get_station_show_image_redirect(station: str):
     """Public endpoint: Redirect to the actual image file.
 
-    Used by MagicRDS and similar systems that expect a direct image URL.
+    Used by MagicRDS, grk.fm/mfy.fm players and similar systems that
+    embed `<img src=".../image.jpg">` directly.
 
     URL format: /api/rds/{station}/image.jpg
+
+    When a show has an image: 302 redirect to the S3 URL.
+    When a show has NO image: return a 1×1 transparent PNG (HTTP 200).
+    A 200 is required because returning 404 makes iOS Safari and most
+    desktop browsers KEEP the previously cached `<img>` on screen —
+    that's how stale presenter photos (e.g. Hadewig) ended up "sticking"
+    on the next show. The transparent pixel forces the browser to
+    overwrite the visual with nothing, so the player can render its own
+    placeholder via CSS.
     """
-    from fastapi.responses import RedirectResponse
+    from fastapi.responses import RedirectResponse, Response
 
     image_data, _ = await _resolve_show_image_for_station(station)
     image_url = _image_url_from(image_data)
     if image_url:
         return RedirectResponse(url=image_url, status_code=302)
-    raise HTTPException(status_code=404, detail="No image available for current show")
+
+    # Smallest valid PNG: 1×1 fully transparent pixel.
+    transparent_png = bytes([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
+        0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
+        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4,
+        0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41,
+        0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+        0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00,
+        0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE,
+        0x42, 0x60, 0x82,
+    ])
+    return Response(
+        content=transparent_png,
+        media_type="image/png",
+        headers={
+            # Short cache so a real image upload propagates within ~30s.
+            "Cache-Control": "public, max-age=30, must-revalidate",
+            "X-Image-Source": "empty-placeholder",
+        },
+    )
 
 
 @rds_router.get("/{station}/image-url.txt")

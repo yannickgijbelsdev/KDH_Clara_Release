@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 2026-06-05 — Empty image placeholder instead of 404 on `/api/rds/{station}/image.jpg`
+
+### Why
+grk.fm / mfy.fm players embed `<img src="/api/rds/grk/image.jpg">` directly. When the current show has no S3 image we used to return **404**, which makes iOS Safari (and most desktop browsers) **keep the previously cached image on screen** — that's how Hadewig's photo "stuck" on later shows like Optimix met Jordy Copz that have no image of their own.
+
+### Fix
+`backend/routers/rds.py` — `/api/rds/{station}/image.jpg` now returns a **67-byte 1×1 transparent PNG (HTTP 200, `image/png`)** when no real image is found. The browser overwrites the cached `<img>` with a transparent pixel, so visually the slot is empty and the player's CSS/placeholder takes over. Real uploads still 302 to the S3 URL as before. Cache header set to 30s so a freshly uploaded show image becomes visible quickly.
+
+
+
 ## 2026-06-05 — Snappier Test + Live Source Pill + Instant Cache Refresh
 
 ### Backend
