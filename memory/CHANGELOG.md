@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 2026-06-05 — Custom Stream Info Exposed in Now-Playing API
+
+### Backend
+- `routers/rds_builder.py` — RDS Builder dashboard `/dashboard-data` endpoint now also reads `active_stream`, `custom_stream_label`, `fallback_used` from `shoutcast_cache` and includes them in each station's `now_playing` payload.
+- Public endpoints `/api/rds/{mfy,grk}/now-playing[.json]` already pass the cached document untouched, so they expose the new fields automatically. Verified: when a custom stream window is active for MFY, the JSON response shows `active_stream:"custom"`, `custom_stream_label:"<label>"`, and the correct song coming from the alternative source. `.txt` endpoints return the matching plain-text song title.
+
+
+
 ## 2026-06-05 — Custom Stream Test Button
 
 ### Backend

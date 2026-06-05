@@ -531,7 +531,7 @@ async def get_rds_monitor_data(stations: str = None):
         # Get shoutcast now playing
         shoutcast = await db.shoutcast_cache.find_one(
             {"station": station},
-            {"_id": 0, "song_title": 1, "current_listeners": 1, "stream_online": 1, "is_stale": 1, "song_started_at": 1, "stale_at": 1}
+            {"_id": 0, "song_title": 1, "current_listeners": 1, "stream_online": 1, "is_stale": 1, "song_started_at": 1, "stale_at": 1, "active_stream": 1, "custom_stream_label": 1, "fallback_used": 1}
         )
         
         # Get active scheduled text info from output
@@ -574,6 +574,9 @@ async def get_rds_monitor_data(stations: str = None):
                 "is_stale": shoutcast.get("is_stale", False) if shoutcast else False,
                 "song_started_at": shoutcast.get("song_started_at", "") if shoutcast else "",
                 "stale_at": shoutcast.get("stale_at", "") if shoutcast else "",
+                "active_stream": shoutcast.get("active_stream", "default") if shoutcast else "default",
+                "custom_stream_label": shoutcast.get("custom_stream_label") if shoutcast else None,
+                "fallback_used": shoutcast.get("fallback_used", False) if shoutcast else False,
             }
         }
     
