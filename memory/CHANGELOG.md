@@ -1,6 +1,23 @@
 # Changelog
 
 
+## 2026-06-05 — Inline TinyMCE images now used as article thumbnail
+
+### Why
+Articles where the user only uploaded inline images via TinyMCE (no separate "featured image") had `image_url: null` in the public news API. The grk.fm news widget therefore rendered the article without a thumbnail / Open Graph image.
+
+### Fix — `routers/news_public.py`
+- New helper `_first_inline_body_image(body)` parses the article HTML and returns the first valid `<img src>` URL (skips `data:` base64 inlines and corrupt `/None/` paths).
+- `_build_image_url` now uses that helper as a 4th-tier fallback. Priority remains: featured_image (s3) → legacy explicit fields → external/imported → inline body.
+- Added the same `/None/` rejection to every tier so the public API never returns a corrupt URL — keeping consistency with the recent show-image fixes.
+
+### Verified
+- Article with only inline TinyMCE images → `image_url` resolves to the first valid `<img>`.
+- Featured image still wins when set.
+- `data:`/base64 inlines and `/None/` paths skipped correctly.
+
+
+
 ## 2026-06-05 — Reject corrupt `/None/` paths + dedicated presenter-image endpoint
 
 ### Root cause (continued)

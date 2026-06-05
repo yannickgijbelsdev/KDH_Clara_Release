@@ -69,6 +69,37 @@ async def _resolve_category(main_site_id: str, category_slug: str) -> dict:
     return cat
 
 
+import re
+
+_INLINE_IMG_PATTERN = re.compile(
+    r'<img[^>]+src=["\']([^"\']+)["\']',
+    re.IGNORECASE,
+)
+
+
+def _first_inline_body_image(body: str | None) -> Optional[str]:
+    """Return the first ``<img src>`` URL embedded in the article body.
+
+    Used as a final fallback when no featured image has been uploaded, so
+    articles that contain only TinyMCE-inline images still get a thumbnail
+    and a proper Open Graph image.
+    """
+    if not body:
+        return None
+    for match in _INLINE_IMG_PATTERN.finditer(body):
+        url = (match.group(1) or "").strip()
+        if not url:
+            continue
+        if url.startswith("data:"):
+            # Skip base64 inlines — those bloat the response.
+            continue
+        if "/None/" in url or "/None_" in url:
+            # Skip corrupt legacy paths.
+            continue
+        return url
+    return None
+
+
 def _build_image_url(item: dict) -> Optional[str]:
     """Return the best available image url for a content item.
 
@@ -77,24 +108,35 @@ def _build_image_url(item: dict) -> Optional[str]:
       2. legacy `featured_image_url` / `image_url` / `cover_image_url`
       3. `external_featured_image` / `imported_image_url` (carried over from
          WordPress imports for legacy content).
+      4. First ``<img>`` embedded in the body via TinyMCE (so articles with
+         only inline images still get a thumbnail).
     """
+    def _clean(u: Optional[str]) -> Optional[str]:
+        if not u:
+            return None
+        if "/None/" in u or "/None_" in u:
+            return None
+        return u
+
     fi = item.get("featured_image") or {}
     if isinstance(fi, dict):
-        candidate = (
+        candidate = _clean(
             fi.get("s3_url")
             or fi.get("url")
             or (f"/api/files/{fi['file_storage_key']}" if fi.get("file_storage_key") else None)
         )
         if candidate:
             return candidate
-    return (
+    explicit = _clean(
         item.get("featured_image_url")
         or item.get("image_url")
         or item.get("cover_image_url")
         or item.get("external_featured_image")
         or item.get("imported_image_url")
-        or None
     )
+    if explicit:
+        return explicit
+    return _first_inline_body_image(item.get("body"))
 
 
 def _build_image_attribution(item: dict) -> Optional[dict]:
