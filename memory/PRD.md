@@ -39,6 +39,12 @@ Multi-environment SaaS platform for radio station management built with React fr
 - System Admin: admkoodh@koodh.com / KYLovie13monx
 - Network Admin: yannick.gijbels@koodh.com / test
 
+## RDS Custom Stream Scheduler (Jun 2026)
+- Each `rds_stations` doc may carry a `custom_streams` array. Each entry: `{ id, enabled, label, url, stream_type, days[0..6], start_time HH:MM, end_time HH:MM }`.
+- `resolve_active_stream(station_code)` (in `services/shoutcast.py`) picks the first active window using Brussels-TZ weekday + `is_time_between` (midnight-crossing supported). Legacy hardcoded `SHOUTCAST_SERVERS` is preferred when no custom window is active.
+- On HTTP failure of the custom source, transparently retries the default `stream_url` so MagicRDS never blanks out.
+- UI: `RDSSettingsPage.js` → "Now Playing Stream Schedule" card, per station (`PUT /api/rds-stations/{main_site_id}/{station_id}`).
+
 ## Performance Optimization (Apr 2026)
 - **Health Scan**: Rewritten from sequential blocking calls (60s+ timeout) to 2-phase non-blocking:
   - Phase 1: Instant DB config checks (~0.1s from cache)

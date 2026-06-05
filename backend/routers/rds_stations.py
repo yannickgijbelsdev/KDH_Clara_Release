@@ -16,6 +16,25 @@ rds_stations_router = APIRouter(prefix="/rds-stations", tags=["RDS Stations"])
 
 # ── Pydantic models ──
 
+class CustomStreamSchedule(BaseModel):
+    """A scheduled custom 'now playing' source for a station.
+
+    When the current Brussels time + weekday matches the window, the
+    Shoutcast service will fetch now-playing metadata from `url`
+    instead of the station's default `stream_url`. If the custom
+    source is unreachable, the system transparently falls back to the
+    default `stream_url`.
+    """
+    id: Optional[str] = None
+    enabled: bool = True
+    label: str = ""
+    url: str
+    stream_type: str = "shoutcast_v1"  # shoutcast_v1, shoutcast_v2, icecast
+    days: List[int] = Field(default_factory=list)  # 0=Mon ... 6=Sun
+    start_time: str = "00:00"  # HH:MM Brussels
+    end_time: str = "00:00"    # HH:MM Brussels (supports midnight crossing)
+
+
 class RDSStationCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     code: str = Field(..., min_length=1, max_length=30)
@@ -24,6 +43,7 @@ class RDSStationCreate(BaseModel):
     default_text: str = ""  # fallback text when no show is live
     color: str = "#f97316"
     order: int = 0
+    custom_streams: List[CustomStreamSchedule] = Field(default_factory=list)
 
 
 class RDSStationUpdate(BaseModel):
@@ -34,6 +54,7 @@ class RDSStationUpdate(BaseModel):
     default_text: Optional[str] = None
     color: Optional[str] = None
     order: Optional[int] = None
+    custom_streams: Optional[List[CustomStreamSchedule]] = None
 
 
 class RDSStationBulkSync(BaseModel):
@@ -42,6 +63,30 @@ class RDSStationBulkSync(BaseModel):
 
 
 # ── Helpers ──
+
+def _normalize_custom_stream(s) -> dict:
+    """Coerce a CustomStreamSchedule (model or dict) into a clean db dict.
+
+    Ensures every entry has a stable `id` so the frontend can edit individual
+    rows without losing references.
+    """
+    if hasattr(s, "model_dump"):
+        d = s.model_dump()
+    elif hasattr(s, "dict"):
+        d = s.dict()
+    else:
+        d = dict(s or {})
+    return {
+        "id": d.get("id") or str(uuid.uuid4()),
+        "enabled": bool(d.get("enabled", True)),
+        "label": (d.get("label") or "").strip(),
+        "url": (d.get("url") or "").strip(),
+        "stream_type": d.get("stream_type") or "shoutcast_v1",
+        "days": [int(x) for x in (d.get("days") or []) if 0 <= int(x) <= 6],
+        "start_time": (d.get("start_time") or "00:00").strip(),
+        "end_time": (d.get("end_time") or "00:00").strip(),
+    }
+
 
 async def get_stations_for_site(main_site_id: str) -> list:
     """Return all RDS stations for a main site, sorted by order."""
@@ -124,6 +169,7 @@ async def create_station(
         "default_text": data.default_text.strip(),
         "color": data.color,
         "order": data.order,
+        "custom_streams": [_normalize_custom_stream(s) for s in (data.custom_streams or [])],
         "created_at": now,
         "updated_at": now,
     }
@@ -173,6 +219,7 @@ async def bulk_sync_stations(
             "default_text": station.default_text.strip(),
             "color": station.color,
             "order": i,
+            "custom_streams": [_normalize_custom_stream(s) for s in (station.custom_streams or [])] or (prev.get("custom_streams", []) if prev else []),
             "created_at": prev["created_at"] if prev else now,
             "updated_at": now,
         })
@@ -226,6 +273,8 @@ async def update_station(
         update_fields["color"] = data.color
     if data.order is not None:
         update_fields["order"] = data.order
+    if data.custom_streams is not None:
+        update_fields["custom_streams"] = [_normalize_custom_stream(s) for s in data.custom_streams]
 
     await db.rds_stations.update_one({"id": station_id}, {"$set": update_fields})
     updated = await db.rds_stations.find_one({"id": station_id}, {"_id": 0})

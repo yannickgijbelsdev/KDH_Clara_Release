@@ -1,5 +1,24 @@
 # Changelog
 
+
+## 2026-06-05 — Custom "Now Playing" Stream Scheduler
+
+### Backend
+- **`/app/backend/services/shoutcast.py`** — extracted stream-URL resolution into `resolve_active_stream(station_code)`. Walks the station's `custom_streams` list and, when today's weekday + Brussels-time falls inside a window, returns that custom URL. Legacy hardcoded URL is still preferred for `mfy`/`grk` outside any active window (DB `stream_url` stores the public listener URL, not the `/stats?sid=X` XML endpoint). Falls back transparently to the default URL if the custom source is unreachable.
+- `get_now_playing` now returns `active_stream` (`"custom" | "default"`), `custom_stream_label`, and `fallback_used` so the UI and `shoutcast_logs` can show which source was actually used.
+- **`/app/backend/routers/rds_stations.py`** — new `CustomStreamSchedule` Pydantic model, added `custom_streams: List[...]` to `RDSStationCreate` and `RDSStationUpdate`, and a `_normalize_custom_stream` helper that auto-assigns UUIDs to new entries. `bulk-sync` preserves existing schedules when caller omits the field.
+
+### Frontend (`/app/frontend/src/pages/RDSSettingsPage.js`)
+- New **"Now Playing Stream Schedule"** card. Per-station rows let admins add multiple windows: enable toggle, label, Shoutcast v1 stats URL, day-of-week chips (Ma–Zo), and `<input type="time">` start/end (midnight-crossing supported). All times in Europe/Brussels.
+- Save calls `PUT /api/rds-stations/{main_site_id}/{station_id}` with the new `custom_streams` payload.
+
+### Verified
+- `PUT` persists windows + auto-assigns UUIDs.
+- Scheduler picks up custom URL on the next 10s tick — MFY logs show `active_stream: 'custom', custom_stream_label: 'Nachtstream'`.
+- Outside the window the system reverts to the default Shoutcast source (`active_stream: 'default'`).
+- E2E UI flow (Edit → Add window → fill URL/days/time → Save) confirmed via Playwright.
+
+
 ## 2026-06-04 — Content Library Robustness & Custom-Site Polish
 
 ### Backend (`/app/backend/routers/content.py`)

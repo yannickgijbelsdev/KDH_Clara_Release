@@ -4,15 +4,15 @@ import httpx
 import xml.etree.ElementTree as ET
 import logging
 import uuid
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 from datetime import datetime, timedelta
 
-from services.timezone_utils import now_brussels, BRUSSELS_TZ
+from services.timezone_utils import now_brussels, BRUSSELS_TZ, is_time_between
 from database import db
 
 logger = logging.getLogger(__name__)
 
-# Shoutcast server configurations
+# Shoutcast server configurations (legacy fallback when no rds_stations row exists)
 SHOUTCAST_SERVERS = {
     "mfy": {
         "name": "Radio MFY",
@@ -23,6 +23,62 @@ SHOUTCAST_SERVERS = {
         "url": "http://stream-shout.koodh.be:9010/stats?sid=2",
     }
 }
+
+
+async def _get_station_doc(station_code: str) -> Optional[Dict]:
+    """Look up the first rds_stations doc matching this code (across sites)."""
+    return await db.rds_stations.find_one({"code": station_code}, {"_id": 0})
+
+
+def _custom_stream_active(cs: Dict, now_dt: datetime) -> bool:
+    """Return True when this custom stream is in its scheduled window NOW."""
+    if not cs or not cs.get("enabled") or not cs.get("url"):
+        return False
+    days = cs.get("days") or []
+    if days and now_dt.weekday() not in days:
+        return False
+    start = cs.get("start_time") or "00:00"
+    end = cs.get("end_time") or "00:00"
+    # When start == end we treat it as "all day on the selected days"
+    if start == end:
+        return True
+    check_time = now_dt.strftime("%H:%M")
+    return is_time_between(start, end, check_time)
+
+
+async def resolve_active_stream(
+    station_code: str,
+) -> Tuple[str, str, Optional[Dict]]:
+    """Determine which URL to fetch now-playing data from RIGHT NOW.
+
+    Walks the station's `custom_streams` (Brussels TZ, weekday+window match)
+    and returns the first active custom stream. Otherwise returns the
+    legacy hardcoded URL (preserving working behaviour for mfy/grk), or
+    the station's `stream_url` from the rds_stations doc.
+
+    Returns: (url, name, active_custom_dict_or_None)
+    """
+    station_doc = await _get_station_doc(station_code)
+    now_dt = now_brussels()
+
+    if station_doc:
+        for cs in station_doc.get("custom_streams") or []:
+            if _custom_stream_active(cs, now_dt):
+                return cs["url"], station_doc.get("name", station_code.upper()), cs
+
+    # Legacy hardcoded fallback — kept first because db.rds_stations stores
+    # the public listener URL, while we need the v1 stats XML endpoint.
+    legacy = SHOUTCAST_SERVERS.get(station_code)
+    if legacy:
+        return legacy["url"], legacy["name"], None
+
+    # Dynamic station fallback (for non-mfy/grk codes added at runtime)
+    if station_doc:
+        default_url = (station_doc.get("stream_url") or "").strip()
+        if default_url:
+            return default_url, station_doc.get("name", station_code.upper()), None
+
+    return "", station_code.upper(), None
 
 # Stale now playing settings (defaults — overridden by DB config)
 DEFAULT_STALE_TIMEOUT_MINUTES = 15
@@ -231,87 +287,107 @@ def apply_filters(song_title: str, filters: List[Dict]) -> str:
     return result
 
 
+async def _fetch_shoutcast_v1(url: str) -> Optional[Dict]:
+    """Fetch and parse a Shoutcast v1 stats XML endpoint. Returns parsed dict
+    on success, None on failure (caller handles fallback)."""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            root = ET.fromstring(response.text)
+            return {
+                "raw_song_title": root.findtext("SONGTITLE", ""),
+                "current_listeners": int(root.findtext("CURRENTLISTENERS", "0") or 0),
+                "peak_listeners": int(root.findtext("PEAKLISTENERS", "0") or 0),
+                "stream_status": int(root.findtext("STREAMSTATUS", "0") or 0),
+                "server_title": root.findtext("SERVERTITLE", ""),
+                "bitrate": root.findtext("BITRATE", ""),
+            }
+    except Exception as e:
+        logger.warning(f"Shoutcast fetch failed for {url}: {e}")
+        return None
+
+
 async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> Dict:
-    """Fetch the current now playing info from a Shoutcast server.
-    
-    Args:
-        station: Either "mfy" or "grk"
-        db: Database connection for fetching filters
-        apply_filter: Whether to apply filters to song title
-        
-    Returns:
-        Dict with now playing info including song title, listeners, etc.
+    """Fetch the current now playing info for a station.
+
+    Resolves the active stream URL through `resolve_active_stream` which
+    honours the per-station custom-stream scheduler (weekday + time window
+    in Brussels TZ). If the custom source fails, transparently falls back
+    to the station's default stream_url.
     """
-    if station not in SHOUTCAST_SERVERS:
-        return {
-            "status": "error",
-            "message": f"Unknown station: {station}",
-            "station": station,
-            "song_title": "",
-            "listeners": 0
-        }
-    
-    server = SHOUTCAST_SERVERS[station]
     filters = []
-    
     if apply_filter and db is not None:
         filters = await get_filters_from_db(db, station)
     elif apply_filter:
         filters = DEFAULT_FILTERS
-    
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.get(server["url"])
-            response.raise_for_status()
-            
-            # Parse XML response
-            root = ET.fromstring(response.text)
-            
-            raw_song_title = root.findtext("SONGTITLE", "")
-            filtered_title = apply_filters(raw_song_title, filters) if apply_filter else raw_song_title
-            # Apply formatting: ARTIST - Title Case
-            song_title = format_now_playing(filtered_title) if apply_filter else filtered_title
-            current_listeners = int(root.findtext("CURRENTLISTENERS", "0"))
-            peak_listeners = int(root.findtext("PEAKLISTENERS", "0"))
-            stream_status = int(root.findtext("STREAMSTATUS", "0"))
-            server_title = root.findtext("SERVERTITLE", "")
-            bitrate = root.findtext("BITRATE", "")
-            
-            return {
-                "status": "success",
-                "station": station,
-                "station_name": server["name"],
-                "server_title": server_title,
-                "song_title": song_title,
-                "raw_song_title": raw_song_title,
-                "current_listeners": current_listeners,
-                "peak_listeners": peak_listeners,
-                "stream_online": stream_status == 1,
-                "bitrate": bitrate
-            }
-            
-    except httpx.TimeoutException:
-        logger.warning(f"Timeout fetching now playing from {station}")
+
+    url, station_name, active_custom = await resolve_active_stream(station)
+    used_custom = active_custom is not None
+    fallback_used = False
+
+    if not url:
         return {
             "status": "error",
-            "message": "Connection timeout",
+            "message": f"No stream URL configured for station: {station}",
             "station": station,
-            "station_name": server["name"],
+            "station_name": station_name,
             "song_title": "",
             "current_listeners": 0,
-            "stream_online": False
+            "stream_online": False,
+            "active_stream": "none",
         }
-    except Exception as e:
-        logger.error(f"Error fetching now playing from {station}: {e}")
+
+    parsed = await _fetch_shoutcast_v1(url)
+
+    # On failure with a custom URL, transparently retry default station URL
+    if parsed is None and used_custom:
+        # Prefer the known-good legacy URL for mfy/grk, falling back to the
+        # station doc's stream_url for dynamic stations.
+        legacy = SHOUTCAST_SERVERS.get(station)
+        if legacy and legacy["url"] != url:
+            fallback_url = legacy["url"]
+        else:
+            station_doc = await _get_station_doc(station)
+            fallback_url = (station_doc or {}).get("stream_url")
+        if fallback_url and fallback_url != url:
+            logger.info(f"[{station}] Custom stream unreachable — falling back to default")
+            parsed = await _fetch_shoutcast_v1(fallback_url)
+            if parsed is not None:
+                fallback_used = True
+                used_custom = False
+
+    if parsed is None:
         return {
             "status": "error",
-            "message": str(e),
+            "message": "Connection error",
             "station": station,
-            "station_name": server["name"],
+            "station_name": station_name,
             "song_title": "",
             "current_listeners": 0,
-            "stream_online": False
+            "stream_online": False,
+            "active_stream": "custom" if used_custom else "default",
         }
+
+    raw_song_title = parsed["raw_song_title"]
+    filtered_title = apply_filters(raw_song_title, filters) if apply_filter else raw_song_title
+    song_title = format_now_playing(filtered_title) if apply_filter else filtered_title
+
+    return {
+        "status": "success",
+        "station": station,
+        "station_name": station_name,
+        "server_title": parsed["server_title"],
+        "song_title": song_title,
+        "raw_song_title": raw_song_title,
+        "current_listeners": parsed["current_listeners"],
+        "peak_listeners": parsed["peak_listeners"],
+        "stream_online": parsed["stream_status"] == 1,
+        "bitrate": parsed["bitrate"],
+        "active_stream": "custom" if used_custom else "default",
+        "custom_stream_label": (active_custom or {}).get("label") if used_custom else None,
+        "fallback_used": fallback_used,
+    }
 
 
 async def cache_now_playing(db, station: str) -> Dict:
@@ -443,7 +519,10 @@ async def cache_now_playing(db, station: str) -> Dict:
         "raw_song_title": data.get("raw_song_title", ""),
         "is_stale": is_stale,
         "current_listeners": data.get("current_listeners", 0),
-        "stream_online": data.get("stream_online", False)
+        "stream_online": data.get("stream_online", False),
+        "active_stream": data.get("active_stream", "default"),
+        "custom_stream_label": data.get("custom_stream_label"),
+        "fallback_used": bool(data.get("fallback_used")),
     }
     await db.shoutcast_logs.insert_one(log_entry)
     

@@ -19,6 +19,7 @@ import {
   Trash2,
   Plus,
   Music,
+  Calendar,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -45,6 +46,13 @@ const RDSSettingsPage = () => {
   
   // Dynamic stations
   const [stations, setStations] = useState([]);
+  const [mainSiteId, setMainSiteId] = useState(null);
+
+  // Custom stream schedule editor state per station id
+  // shape: { [stationId]: CustomStream[] }
+  const [customStreams, setCustomStreams] = useState({});
+  const [editingStreamsFor, setEditingStreamsFor] = useState(null);
+  const [savingStreams, setSavingStreams] = useState(false);
 
   // Shoutcast filters state - dynamic per station
   const [stationFilters, setStationFilters] = useState({});
@@ -66,6 +74,7 @@ const RDSSettingsPage = () => {
         const siteRes = await fetch(`${API}/main-sites/by-slug/${mainSiteSlug}`, { headers: authHeaders });
         if (siteRes.ok) {
           const siteData = await siteRes.json();
+          setMainSiteId(siteData.id);
           const stRes = await fetch(`${API}/rds-stations/${siteData.id}`, { headers: authHeaders });
           if (stRes.ok) {
             const stData = await stRes.json();
@@ -74,6 +83,13 @@ const RDSSettingsPage = () => {
         }
       } catch (e) { console.error('Station fetch error:', e); }
       setStations(fetchedStations);
+
+      // Hydrate custom stream schedules from the station docs
+      const streamsMap = {};
+      fetchedStations.forEach(st => {
+        streamsMap[st.id] = (st.custom_streams || []).map(s => ({ ...s }));
+      });
+      setCustomStreams(streamsMap);
 
       // Fetch filter data for each station
       const filterPromises = fetchedStations.map(st =>
@@ -204,6 +220,71 @@ const RDSSettingsPage = () => {
       updated[index] = { ...updated[index], [field]: value };
       return { ...prev, [station]: updated };
     });
+  };
+
+  // ─── Custom Stream Scheduler handlers ───
+  const addCustomStream = (stationId) => {
+    setCustomStreams(prev => ({
+      ...prev,
+      [stationId]: [
+        ...(prev[stationId] || []),
+        {
+          id: `tmp-${Date.now()}`,
+          enabled: true,
+          label: '',
+          url: '',
+          stream_type: 'shoutcast_v1',
+          days: [0, 1, 2, 3, 4, 5, 6],
+          start_time: '22:00',
+          end_time: '06:00',
+        },
+      ],
+    }));
+  };
+
+  const removeCustomStream = (stationId, index) => {
+    setCustomStreams(prev => ({
+      ...prev,
+      [stationId]: (prev[stationId] || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const updateCustomStream = (stationId, index, field, value) => {
+    setCustomStreams(prev => {
+      const updated = [...(prev[stationId] || [])];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, [stationId]: updated };
+    });
+  };
+
+  const toggleCustomStreamDay = (stationId, index, day) => {
+    setCustomStreams(prev => {
+      const updated = [...(prev[stationId] || [])];
+      const current = updated[index]?.days || [];
+      const next = current.includes(day)
+        ? current.filter(d => d !== day)
+        : [...current, day].sort((a, b) => a - b);
+      updated[index] = { ...updated[index], days: next };
+      return { ...prev, [stationId]: updated };
+    });
+  };
+
+  const saveCustomStreams = async (station) => {
+    if (!mainSiteId) {
+      toast.error('Main site not loaded yet');
+      return;
+    }
+    setSavingStreams(true);
+    try {
+      const payload = { custom_streams: customStreams[station.id] || [] };
+      await axios.put(`${API}/rds-stations/${mainSiteId}/${station.id}`, payload);
+      toast.success(`Stream schedule saved for ${station.name}`);
+      setEditingStreamsFor(null);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Could not save stream schedule');
+    } finally {
+      setSavingStreams(false);
+    }
   };
 
   const copyToClipboard = (url, name) => {
@@ -472,6 +553,213 @@ const RDSSettingsPage = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Custom Stream Scheduler Section */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <Calendar className="w-5 h-5 text-violet-500" />
+          <h2 className="text-lg font-semibold text-zinc-900">Now Playing Stream Schedule</h2>
+        </div>
+        <p className="text-zinc-500 text-sm mb-4">
+          Pull <span className="font-medium text-zinc-700">Now Playing</span> from an alternative stream URL during specific weekdays and hours.
+          Outside the window the station's default stream is used. If the alternative stream is unreachable, the system falls back to the default automatically.
+          All times are in <span className="font-medium text-zinc-700">Europe/Brussels</span>.
+        </p>
+
+        {stations.length === 0 && (
+          <p className="text-zinc-500 text-sm italic">No stations configured. Go to site settings to add RDS stations.</p>
+        )}
+
+        {stations.map((st) => {
+          const streams = customStreams[st.id] || [];
+          const isEditing = editingStreamsFor === st.id;
+          const DAY_LABELS = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+
+          return (
+            <div key={st.id} className="mb-6 last:mb-0" data-testid={`custom-streams-station-${st.code}`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: st.color }} />
+                  <h3 className="text-sm font-semibold text-zinc-700">{st.name}</h3>
+                  <span className="text-xs text-zinc-500">
+                    {streams.length === 0 ? 'No schedule' : `${streams.length} window${streams.length === 1 ? '' : 's'}`}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {isEditing ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingStreamsFor(null)}
+                        className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
+                        data-testid={`cancel-streams-${st.code}`}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => saveCustomStreams(st)}
+                        disabled={savingStreams}
+                        className="text-white text-xs"
+                        style={{ backgroundColor: st.color }}
+                        data-testid={`save-streams-${st.code}`}
+                      >
+                        <Save className="w-3 h-3 mr-1" />
+                        {savingStreams ? 'Saving...' : 'Save'}
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingStreamsFor(st.id)}
+                      className="border-zinc-300 text-zinc-600 hover:bg-zinc-100 text-xs"
+                      data-testid={`edit-streams-${st.code}`}
+                    >
+                      <Settings className="w-3 h-3 mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {isEditing ? (
+                <div className="space-y-3">
+                  {streams.map((cs, idx) => (
+                    <div key={cs.id || idx} className="bg-zinc-50 border border-zinc-200 rounded-lg p-3 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <label className="flex items-center gap-2 text-xs text-zinc-600">
+                          <input
+                            type="checkbox"
+                            checked={!!cs.enabled}
+                            onChange={(e) => updateCustomStream(st.id, idx, 'enabled', e.target.checked)}
+                            className="w-3.5 h-3.5"
+                            data-testid={`stream-enabled-${st.code}-${idx}`}
+                          />
+                          <span>Active</span>
+                        </label>
+                        <Input
+                          value={cs.label || ''}
+                          onChange={(e) => updateCustomStream(st.id, idx, 'label', e.target.value)}
+                          placeholder="Label (e.g. Nachtprogramma)"
+                          className="bg-white border-zinc-300 text-zinc-900 text-xs flex-1"
+                          data-testid={`stream-label-${st.code}-${idx}`}
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeCustomStream(st.id, idx)}
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50 p-1 h-7 w-7"
+                          data-testid={`remove-stream-${st.code}-${idx}`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+
+                      <div>
+                        <Label className="text-[11px] text-zinc-500">Stream URL (Shoutcast v1 stats endpoint)</Label>
+                        <Input
+                          value={cs.url || ''}
+                          onChange={(e) => updateCustomStream(st.id, idx, 'url', e.target.value)}
+                          placeholder="http://example.com:8000/stats?sid=1"
+                          className="bg-white border-zinc-300 text-zinc-900 text-xs font-mono mt-1"
+                          data-testid={`stream-url-${st.code}-${idx}`}
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-[11px] text-zinc-500 mb-1 block">Active on days</Label>
+                        <div className="flex gap-1">
+                          {DAY_LABELS.map((lbl, dayIdx) => {
+                            const active = (cs.days || []).includes(dayIdx);
+                            return (
+                              <button
+                                key={dayIdx}
+                                type="button"
+                                onClick={() => toggleCustomStreamDay(st.id, idx, dayIdx)}
+                                className={`w-9 h-8 text-xs rounded border transition-colors ${
+                                  active
+                                    ? 'text-white border-transparent'
+                                    : 'bg-white border-zinc-300 text-zinc-500 hover:bg-zinc-100'
+                                }`}
+                                style={active ? { backgroundColor: st.color } : undefined}
+                                data-testid={`stream-day-${st.code}-${idx}-${dayIdx}`}
+                              >
+                                {lbl}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-[11px] text-zinc-500">Start time</Label>
+                          <Input
+                            type="time"
+                            value={cs.start_time || '00:00'}
+                            onChange={(e) => updateCustomStream(st.id, idx, 'start_time', e.target.value)}
+                            className="bg-white border-zinc-300 text-zinc-900 text-xs mt-1"
+                            data-testid={`stream-start-${st.code}-${idx}`}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[11px] text-zinc-500">End time</Label>
+                          <Input
+                            type="time"
+                            value={cs.end_time || '00:00'}
+                            onChange={(e) => updateCustomStream(st.id, idx, 'end_time', e.target.value)}
+                            className="bg-white border-zinc-300 text-zinc-900 text-xs mt-1"
+                            data-testid={`stream-end-${st.code}-${idx}`}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-zinc-500">
+                        Tip: set end time before start time to cross midnight (e.g. 22:00 → 06:00).
+                      </p>
+                    </div>
+                  ))}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addCustomStream(st.id)}
+                    className="border-dashed border-zinc-300 text-zinc-500 hover:bg-zinc-100 text-xs w-full"
+                    data-testid={`add-stream-${st.code}`}
+                  >
+                    <Plus className="w-3 h-3 mr-1" /> Add stream window
+                  </Button>
+                </div>
+              ) : (
+                <div className="text-sm">
+                  {streams.length === 0 ? (
+                    <p className="text-zinc-500 italic">No custom stream windows — default stream is always used.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {streams.map((cs, i) => (
+                        <div
+                          key={cs.id || i}
+                          className="text-xs bg-zinc-50 border border-zinc-200 rounded px-3 py-2 flex items-center gap-3 flex-wrap"
+                        >
+                          <span className={`w-2 h-2 rounded-full ${cs.enabled ? '' : 'opacity-30'}`} style={{ backgroundColor: st.color }} />
+                          <span className="font-medium text-zinc-700">{cs.label || 'Untitled'}</span>
+                          <span className="text-zinc-500 font-mono truncate max-w-[260px]">{cs.url || '—'}</span>
+                          <span className="text-zinc-600">
+                            {(cs.days || []).length === 7 ? 'Every day' : (cs.days || []).map(d => DAY_LABELS[d]).join(', ') || 'Never'}
+                          </span>
+                          <span className="text-zinc-600">{cs.start_time} → {cs.end_time}</span>
+                          {!cs.enabled && <span className="text-amber-600">(disabled)</span>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Shoutcast Filters Section */}
