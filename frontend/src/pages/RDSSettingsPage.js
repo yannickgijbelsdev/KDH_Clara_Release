@@ -804,6 +804,9 @@ const RDSSettingsPage = () => {
                                 {testRes.server_title && <span className="opacity-70">· {testRes.server_title}</span>}
                                 <span className="opacity-70">· {testRes.current_listeners} listener{testRes.current_listeners === 1 ? '' : 's'}</span>
                                 {!testRes.stream_online && <span className="text-amber-600">· offline</span>}
+                                {testRes.resolved_url && testRes.resolved_url !== testRes.url && (
+                                  <span className="opacity-70 text-[10px] font-mono break-all">→ {testRes.resolved_url}</span>
+                                )}
                               </div>
                             ) : (
                               <div className="flex items-center gap-2">

@@ -128,7 +128,7 @@ async def test_stream(
     """Probe a Shoutcast/Icecast URL once and return the parsed now-playing
     metadata so admins can verify a custom-stream configuration without
     waiting for the scheduler tick."""
-    from services.shoutcast import _fetch_shoutcast_v1
+    from services.shoutcast import fetch_shoutcast_with_autodiscovery
 
     url = (payload.url or "").strip()
     if not url:
@@ -136,12 +136,16 @@ async def test_stream(
     if not url.startswith(("http://", "https://")):
         raise HTTPException(status_code=400, detail="URL must start with http:// or https://")
 
-    parsed = await _fetch_shoutcast_v1(url)
+    parsed = await fetch_shoutcast_with_autodiscovery(url)
     if parsed is None:
         return {
             "status": "error",
             "url": url,
-            "message": "Could not reach stream or response was not valid Shoutcast XML",
+            "message": (
+                "Could not reach stream or response was not valid Shoutcast XML. "
+                "Tip: paste the full stats URL (e.g. https://host/stats?sid=1) — "
+                "we'll auto-discover /stats and /7.html when you give just the host."
+            ),
             "song_title": "",
             "stream_online": False,
         }
@@ -149,6 +153,7 @@ async def test_stream(
     return {
         "status": "success",
         "url": url,
+        "resolved_url": parsed.get("_resolved_url") or url,
         "song_title": parsed.get("raw_song_title") or "",
         "server_title": parsed.get("server_title") or "",
         "current_listeners": parsed.get("current_listeners", 0),

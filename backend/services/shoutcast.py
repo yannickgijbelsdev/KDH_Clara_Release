@@ -1,5 +1,6 @@
 """Shoutcast integration service for fetching now playing data."""
 import asyncio
+import re
 import httpx
 import xml.etree.ElementTree as ET
 import logging
@@ -288,24 +289,112 @@ def apply_filters(song_title: str, filters: List[Dict]) -> str:
 
 
 async def _fetch_shoutcast_v1(url: str) -> Optional[Dict]:
-    """Fetch and parse a Shoutcast v1 stats XML endpoint. Returns parsed dict
-    on success, None on failure (caller handles fallback)."""
+    """Fetch and parse a Shoutcast v1/v2 stats XML endpoint.
+
+    Returns the parsed dict on success, None on failure (caller handles
+    fallback). Works for both Shoutcast v1 and v2 because both expose the
+    same ``<SHOUTCASTSERVER><SONGTITLE>…</SONGTITLE></SHOUTCASTSERVER>``
+    structure at ``/stats?sid=N``.
+
+    Hardening:
+      • Streams the response so we never download an audio body when the
+        caller pointed us at the listener URL by mistake.
+      • Reads at most 64 KiB and only as long as the ``content-type``
+        looks like text/xml/json.
+    """
     try:
         async with httpx.AsyncClient(timeout=3.5, follow_redirects=True) as client:
-            response = await client.get(url)
-            response.raise_for_status()
-            root = ET.fromstring(response.text)
-            return {
-                "raw_song_title": root.findtext("SONGTITLE", ""),
-                "current_listeners": int(root.findtext("CURRENTLISTENERS", "0") or 0),
-                "peak_listeners": int(root.findtext("PEAKLISTENERS", "0") or 0),
-                "stream_status": int(root.findtext("STREAMSTATUS", "0") or 0),
-                "server_title": root.findtext("SERVERTITLE", ""),
-                "bitrate": root.findtext("BITRATE", ""),
-            }
+            async with client.stream("GET", url) as response:
+                response.raise_for_status()
+                ctype = (response.headers.get("content-type") or "").lower()
+                # Audio/video/binary listener stream — definitely not a stats URL.
+                if (
+                    ctype.startswith("audio/")
+                    or ctype.startswith("video/")
+                    or ctype.startswith("application/octet-stream")
+                ):
+                    return None
+                # Read at most 64 KiB. Shoutcast stats XML is well under that.
+                chunks = []
+                read = 0
+                async for chunk in response.aiter_bytes(chunk_size=8192):
+                    chunks.append(chunk)
+                    read += len(chunk)
+                    if read >= 65536:
+                        break
+                body = b"".join(chunks)
+            text = body.decode("utf-8", errors="ignore")
+            # XML path — Shoutcast v1 and v2.
+            if "<SHOUTCASTSERVER" in text:
+                root = ET.fromstring(text)
+                # In Shoutcast v2 "/statistics" the song title lives inside
+                # <STREAM id="N">. Fall back to the deepest match.
+                stream = root.find("STREAM") if root.find("SONGTITLE") is None else None
+                src = stream if stream is not None else root
+                return {
+                    "raw_song_title": src.findtext("SONGTITLE", "") or root.findtext("SONGTITLE", ""),
+                    "current_listeners": int(src.findtext("CURRENTLISTENERS", "0") or 0),
+                    "peak_listeners": int(src.findtext("PEAKLISTENERS", "0") or 0),
+                    "stream_status": int(src.findtext("STREAMSTATUS", "1") or 1),
+                    "server_title": src.findtext("SERVERTITLE", "") or root.findtext("SERVERTITLE", ""),
+                    "bitrate": src.findtext("BITRATE", "") or root.findtext("BITRATE", ""),
+                }
+            # Legacy `/7.html` fallback — comma-separated values.
+            #   `<html><body>currentListeners,streamStatus,peakListeners,maxListeners,uniqueListeners,bitrate,songTitle</body></html>`
+            m = re.search(r"<body[^>]*>([^<]+)</body>", text, re.IGNORECASE)
+            if m:
+                parts = m.group(1).split(",", 6)
+                if len(parts) >= 7:
+                    return {
+                        "raw_song_title": parts[6].strip(),
+                        "current_listeners": int(parts[0] or 0),
+                        "peak_listeners": int(parts[2] or 0),
+                        "stream_status": int(parts[1] or 1),
+                        "server_title": "",
+                        "bitrate": parts[5].strip(),
+                    }
+            return None
     except Exception as e:
         logger.warning(f"Shoutcast fetch failed for {url}: {e}")
         return None
+
+
+_SHOUTCAST_AUTODISCOVERY_PATHS = ("/stats?sid=1", "/stats", "/stats?sid=2", "/7.html")
+
+
+async def fetch_shoutcast_with_autodiscovery(url: str) -> Optional[Dict]:
+    """Fetch now-playing metadata, automatically falling back to common
+    Shoutcast stats endpoints if the caller pointed us at the listener URL.
+
+    The user-facing "Test" button and the scheduler both rely on this so a
+    typed-in ``https://mfy.level27.be/`` still resolves to the actual song.
+    """
+    url = (url or "").strip().rstrip("/")
+    if not url:
+        return None
+
+    parsed = await _fetch_shoutcast_v1(url)
+    if parsed and (parsed.get("raw_song_title") or parsed.get("server_title")):
+        return parsed
+
+    # Only auto-discover when the input looks like a bare host (no stats
+    # path of its own), otherwise we'd thrash on a fully-qualified URL the
+    # user explicitly chose.
+    if "/stats" not in url and "7.html" not in url and "status" not in url:
+        from urllib.parse import urlsplit, urlunsplit
+        parts = urlsplit(url)
+        for suffix in _SHOUTCAST_AUTODISCOVERY_PATHS:
+            if "?" in suffix:
+                path, query = suffix.split("?", 1)
+            else:
+                path, query = suffix, ""
+            candidate = urlunsplit((parts.scheme, parts.netloc, path, query, ""))
+            parsed = await _fetch_shoutcast_v1(candidate)
+            if parsed and (parsed.get("raw_song_title") or parsed.get("server_title")):
+                # Stamp the URL we actually used so the caller can show it.
+                parsed["_resolved_url"] = candidate
+                return parsed
+    return parsed
 
 
 async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> Dict:
@@ -338,7 +427,7 @@ async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> D
             "active_stream": "none",
         }
 
-    parsed = await _fetch_shoutcast_v1(url)
+    parsed = await fetch_shoutcast_with_autodiscovery(url)
 
     # On failure with a custom URL, transparently retry default station URL
     if parsed is None and used_custom:
@@ -352,7 +441,7 @@ async def get_now_playing(station: str, db=None, apply_filter: bool = True) -> D
             fallback_url = (station_doc or {}).get("stream_url")
         if fallback_url and fallback_url != url:
             logger.info(f"[{station}] Custom stream unreachable — falling back to default")
-            parsed = await _fetch_shoutcast_v1(fallback_url)
+            parsed = await fetch_shoutcast_with_autodiscovery(fallback_url)
             if parsed is not None:
                 fallback_used = True
                 used_custom = False

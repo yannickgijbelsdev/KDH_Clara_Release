@@ -1,6 +1,34 @@
 # Changelog
 
 
+## 2026-06-05 — Shoutcast v2 ondersteuning + auto-discovery in Test/scheduler
+
+### Why
+De "Test"-knop op `mfy.level27.be` (en gelijkaardige bare-host inputs) faalde / timde uit: de oude `_fetch_shoutcast_v1` deed een volledige `client.get()`, en wanneer het opgegeven pad de **listener-stream** was (audio/aacp), bleef httpx ~15 s audio downloaden voor we de hint kregen dat dit niet de stats URL was.
+
+### Fix — `services/shoutcast.py`
+- `_fetch_shoutcast_v1` werkt nu via `client.stream()` met **max 64 KiB** body en bricht direct af op `audio/*` / `video/*` / `application/octet-stream` content-type. Werkt voor **Shoutcast v1 én v2** (zelfde `<SHOUTCASTSERVER><SONGTITLE>` XML).
+- Tweede parser-tak: fallback op **`/7.html`** comma-separated legacy format wanneer `<SHOUTCASTSERVER>` ontbreekt — een aantal legacy v1 servers serveren alleen die.
+- Nieuwe `fetch_shoutcast_with_autodiscovery(url)`: probeert eerst de URL zoals opgegeven; werkt die niet en is de input een bare host (geen `/stats`, `/7.html`, `/status`), dan worden `/stats?sid=1`, `/stats`, `/stats?sid=2` en `/7.html` getest. Het *daadwerkelijk werkende* pad wordt teruggegeven als `_resolved_url`.
+- Zowel de `cache_now_playing` flow als het `POST /api/rds-stations/test-stream` endpoint gebruiken dit nu.
+
+### Frontend (`RDSSettingsPage.js`)
+Test-result chip toont voortaan ook het `→ resolved_url` indien dat afwijkt van wat de gebruiker had ingevuld, zodat ze in één oogopslag zien welke stats-URL te gebruiken.
+
+### Verified
+Tegen `mfy.level27.be` (live Shoutcast v2):
+
+| Input | Status | Resolved | Song | Tijd |
+|---|---|---|---|---|
+| `https://mfy.level27.be` | ✅ | `/stats?sid=1` | Black Eyed Peas - Meet Me Halfway | 1.9 s |
+| `https://mfy.level27.be/` | ✅ | `/stats?sid=1` | idem | 1.4 s |
+| `…/stats?sid=1` | ✅ | as-is | idem | 0.7 s |
+| `…/7.html` | ✅ | as-is | idem | 0.7 s |
+| `…/stream/audio.aac` (audio path) | ✅ | `/stats?sid=1` (auto) | idem | 4.9 s |
+| `…/stats?sid=99` (lege stream) | ✅ | as-is | "" / offline | 0.7 s |
+
+
+
 ## 2026-06-05 — Fix: Network/System admins kunnen recurring shows nu bewerken
 
 ### Root cause
