@@ -292,3 +292,93 @@ async def backfill_wp_source(current_user: dict = Depends(require_network_admin)
         details={"updated": updated, "skipped": skipped},
     )
     return {"updated": updated, "skipped": skipped}
+
+
+
+@security_router.get("/maintenance/show-title-image-audit")
+async def audit_show_title_images(current_user: dict = Depends(require_network_admin)):
+    """Diagnose mis-attached presenter photos.
+
+    For each `show_titles` doc that has an image set, returns:
+      - the show title name
+      - the file name of the attached image
+      - the names of the assigned default_presenter_ids
+      - a `likely_mismatch` flag when the file name does NOT contain ANY of
+        the assigned presenter names (case-insensitive).
+
+    Use this to spot productie data corruption like "Dancing GRK" carrying
+    Hadewig's photo. Read-only — no DB writes.
+    """
+    titles = await db.show_titles.find(
+        {"image": {"$exists": True, "$ne": None}},
+        {"_id": 0, "id": 1, "name": 1, "image": 1, "default_presenter_ids": 1, "main_site_id": 1, "team_id": 1},
+    ).to_list(10000)
+
+    # Pre-fetch all presenter names for speed
+    all_ids = list({pid for t in titles for pid in (t.get("default_presenter_ids") or [])})
+    user_by_id = {}
+    if all_ids:
+        async for u in db.users.find({"id": {"$in": all_ids}}, {"_id": 0, "id": 1, "name": 1}):
+            user_by_id[u["id"]] = u.get("name", "")
+
+    report = []
+    for t in titles:
+        img = t.get("image") or {}
+        filename = (img.get("filename") or "").lower()
+        s3 = img.get("s3_url") or ""
+        if not (s3 or filename):
+            continue
+        presenter_names = [user_by_id.get(pid, "") for pid in (t.get("default_presenter_ids") or [])]
+        presenter_names = [n for n in presenter_names if n]
+
+        # Build a lowercase set of name tokens (first + last name parts) we
+        # should expect to find in the filename. "Mike Cnudde" → {"mike", "cnudde"}
+        tokens = set()
+        for n in presenter_names:
+            for part in n.replace("-", " ").replace("_", " ").split():
+                if len(part) >= 3:
+                    tokens.add(part.lower())
+
+        likely_mismatch = bool(tokens) and not any(tok in filename for tok in tokens)
+
+        report.append({
+            "title_id": t.get("id"),
+            "name": t.get("name"),
+            "main_site_id": t.get("main_site_id"),
+            "team_id": t.get("team_id"),
+            "filename": img.get("filename"),
+            "s3_url": s3,
+            "default_presenters": presenter_names,
+            "likely_mismatch": likely_mismatch,
+        })
+
+    mismatches = [r for r in report if r["likely_mismatch"]]
+    return {
+        "total": len(report),
+        "mismatches": len(mismatches),
+        "items": report,
+    }
+
+
+@security_router.post("/maintenance/clear-show-title-image/{title_id}")
+async def clear_show_title_image(
+    title_id: str,
+    current_user: dict = Depends(require_network_admin),
+):
+    """Remove the image off a single show title. Use this to clean up a
+    mis-attached presenter photo without having to navigate the wizard."""
+    res = await db.show_titles.update_one(
+        {"id": title_id},
+        {"$unset": {"image": ""}},
+    )
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Show title not found")
+    await log_action(
+        action=f"Cleared image off show title {title_id}",
+        category="settings",
+        user_id=current_user["id"],
+        user_email=current_user.get("email"),
+        target_type="maintenance",
+        details={"title_id": title_id},
+    )
+    return {"ok": True, "title_id": title_id, "modified": res.modified_count}

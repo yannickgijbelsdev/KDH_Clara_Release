@@ -414,7 +414,6 @@ async def debug_live_shows(request: Request, current_user: dict = Depends(requir
     
     # Check which shows would be considered "live" right now
     current_time_brussels = now_brussels.strftime('%H:%M')
-    current_time_utc = now_utc.strftime('%H:%M')
     
     live_shows_cet = [
         s for s in shows_today_cet 
@@ -995,21 +994,20 @@ async def _resolve_show_image_for_station(station: str) -> tuple[dict | None, st
             "filename": raw.get("filename") or raw.get("file_name"),
         }
 
-    # 1. Show title template — Show Management is source of truth
-    if show_title:
-        title_doc = None
-        if scope_id:
-            title_doc = await db.show_titles.find_one(
-                {
-                    "name": show_title,
-                    "$or": [{"team_id": scope_id}, {"main_site_id": scope_id}],
-                },
-                {"_id": 0, "image": 1},
-            )
-        if not title_doc:
-            title_doc = await db.show_titles.find_one(
-                {"name": show_title}, {"_id": 0, "image": 1}
-            )
+    # 1. Show title template — Show Management is source of truth.
+    # We ONLY accept a title doc that belongs to the same main_site/team as
+    # the cached rundown. The non-scoped fallback that used to live here was
+    # the cause of "wrong presenter on a show without an image" — a sibling
+    # site's show with the same name would steal the image. Better to
+    # return nothing (consumer renders placeholder) than the wrong face.
+    if show_title and scope_id:
+        title_doc = await db.show_titles.find_one(
+            {
+                "name": show_title,
+                "$or": [{"team_id": scope_id}, {"main_site_id": scope_id}],
+            },
+            {"_id": 0, "image": 1},
+        )
         img = s3_only((title_doc or {}).get("image"))
         if img:
             return img, show_title
