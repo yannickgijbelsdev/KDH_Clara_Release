@@ -100,7 +100,7 @@ class TestForgotPasswordAPI:
         data = response.json()
         assert "message" in data
         assert "temporary password" in data["message"].lower() or "if the email exists" in data["message"].lower()
-        print(f"PASS: Forgot password returns success message for valid email")
+        print("PASS: Forgot password returns success message for valid email")
     
     def test_forgot_password_with_nonexistent_email_returns_success_for_security(self, api_client):
         """POST /api/auth/forgot-password with non-existent email still returns success (security)"""
@@ -112,7 +112,7 @@ class TestForgotPasswordAPI:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
         assert "message" in data
-        print(f"PASS: Forgot password returns same success message for non-existent email (security)")
+        print("PASS: Forgot password returns same success message for non-existent email (security)")
     
     def test_forgot_password_no_auth_required(self, api_client):
         """POST /api/auth/forgot-password does not require authentication"""
@@ -122,7 +122,7 @@ class TestForgotPasswordAPI:
         })
         # Should not return 401 or 403
         assert response.status_code not in [401, 403], f"Expected no auth required, got {response.status_code}"
-        print(f"PASS: Forgot password endpoint does not require authentication")
+        print("PASS: Forgot password endpoint does not require authentication")
 
 
 # ============== CHANGE PASSWORD TESTS ==============
@@ -157,7 +157,7 @@ class TestChangePasswordAPI:
         data = response.json()
         assert "detail" in data
         assert "invalid" in data["detail"].lower() or "current password" in data["detail"].lower()
-        print(f"PASS: Change password returns 400 for wrong current password")
+        print("PASS: Change password returns 400 for wrong current password")
     
     def test_change_password_requires_auth(self, api_client):
         """POST /api/auth/change-password requires authentication"""
@@ -168,7 +168,7 @@ class TestChangePasswordAPI:
             }
         )
         assert response.status_code in [401, 403], f"Expected 401/403, got {response.status_code}"
-        print(f"PASS: Change password requires authentication")
+        print("PASS: Change password requires authentication")
     
     def test_change_password_uses_current_password_field(self, api_client, network_admin_auth):
         """POST /api/auth/change-password accepts 'current_password' field (bug fix - was old_password)"""
@@ -182,7 +182,7 @@ class TestChangePasswordAPI:
         )
         # Should fail because of wrong password, but not because of validation error (422)
         assert response.status_code != 422, f"Got 422 validation error - field name mismatch? {response.text}"
-        print(f"PASS: Change password accepts 'current_password' field correctly")
+        print("PASS: Change password accepts 'current_password' field correctly")
 
 
 # ============== LOGIN FORCE PASSWORD CHANGE TESTS ==============
@@ -340,7 +340,7 @@ class TestTicketEndpoints:
         ticket = get_response.json()
         assert ticket["status"] == "in_progress", f"Expected status in_progress, got {ticket['status']}"
         
-        print(f"PASS: Ticket status updated to in_progress")
+        print("PASS: Ticket status updated to in_progress")
         
         # Update status to closed
         close_response = api_client.put(f"{BASE_URL}/api/tickets/{ticket_id}/status",
@@ -349,7 +349,7 @@ class TestTicketEndpoints:
         )
         assert close_response.status_code == 200, f"Close update failed: {close_response.text}"
         
-        print(f"PASS: Ticket status updated to closed (triggers email notification)")
+        print("PASS: Ticket status updated to closed (triggers email notification)")
     
     def test_ticket_list_endpoint(self, api_client, network_admin_auth, main_site_id):
         """GET /api/tickets/ returns list of tickets"""
@@ -440,7 +440,7 @@ class TestSupportEmailConstant:
         from routers.tickets import SUPPORT_EMAIL
         
         assert SUPPORT_EMAIL == "support.ops.clara@koodh.com", f"Expected 'support.ops.clara@koodh.com', got '{SUPPORT_EMAIL}'"
-        print(f"PASS: SUPPORT_EMAIL constant is correctly set to 'support.ops.clara@koodh.com'")
+        print("PASS: SUPPORT_EMAIL constant is correctly set to 'support.ops.clara@koodh.com'")
 
 
 if __name__ == "__main__":

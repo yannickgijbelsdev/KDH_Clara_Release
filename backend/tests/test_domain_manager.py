@@ -115,7 +115,7 @@ class TestDomainConfigs:
                     response = requests.get(f"{BASE_URL}/api/domains/configs/{site_id}", headers=headers)
                     assert response.status_code == 200
                     config = response.json()
-                    assert config.get("configured") == False or config.get("domain_type") == "none"
+                    assert not config.get("configured") or config.get("domain_type") == "none"
                     print(f"Unconfigured site returns: {config}")
     
     def test_create_koodh_domain_config(self, headers):
@@ -150,13 +150,13 @@ class TestDomainConfigs:
             assert data["domain_type"] == "koodh"
             assert data["subdomain"] == test_subdomain
             assert data["verification_status"] == "verified"  # koodh domains auto-verified
-            assert data["ssl_enabled"] == True
+            assert data["ssl_enabled"]
             print(f"Created koodh domain: {data['full_domain']}, verified={data['verification_status']}")
             
             # Cleanup - delete the test config
             delete_response = requests.delete(f"{BASE_URL}/api/domains/configs/{test_site['id']}", headers=headers)
             assert delete_response.status_code in [200, 204]
-            print(f"Cleaned up test domain config")
+            print("Cleaned up test domain config")
         else:
             print("No unconfigured sites available for test - skipping create test")
             pytest.skip("No unconfigured sites available")
@@ -192,7 +192,7 @@ class TestDomainConfigs:
             # Verify deleted
             get_response = requests.get(f"{BASE_URL}/api/domains/configs/{test_site['id']}", headers=headers)
             config = get_response.json()
-            assert config.get("configured") == False or config.get("domain_type") == "none"
+            assert not config.get("configured") or config.get("domain_type") == "none"
             print(f"Successfully deleted domain config for site {test_site['id']}")
         else:
             pytest.skip("No unconfigured sites available")
@@ -294,13 +294,13 @@ class TestSubdomainRoutes:
         
         data = response.json()
         assert data["subdomain"] == test_subdomain
-        assert data["is_system"] == False  # Custom routes are not system routes
+        assert not data["is_system"]  # Custom routes are not system routes
         print(f"Created custom route: {data['subdomain']}.koodh.com -> {data['target_path']}")
         
         # Cleanup - delete the test route
         delete_response = requests.delete(f"{BASE_URL}/api/domains/routes/{data['id']}", headers=headers)
         assert delete_response.status_code in [200, 204]
-        print(f"Cleaned up test route")
+        print("Cleaned up test route")
     
     def test_cannot_delete_system_route(self, headers):
         """DELETE system routes should fail."""
@@ -351,7 +351,7 @@ class TestCloudflareConfig:
         verify_response = requests.get(f"{BASE_URL}/api/domains/cloudflare/config", headers=headers)
         updated = verify_response.json()
         assert updated["zone_id"] == "test-zone-id-12345"
-        print(f"Successfully updated Cloudflare zone_id")
+        print("Successfully updated Cloudflare zone_id")
         
         # Restore original zone_id if it existed
         if current_config.get("zone_id"):

@@ -144,7 +144,7 @@ class TestSiteUploadEndpoints:
         )
         # Should fail because no file provided
         assert response.status_code in [400, 422]
-        print(f"✓ Logo upload endpoint exists and validates input")
+        print("✓ Logo upload endpoint exists and validates input")
     
     def test_header_upload_endpoint_exists(self, authenticated_client):
         """Verify header image upload endpoint exists."""
@@ -163,7 +163,7 @@ class TestSiteUploadEndpoints:
             headers=headers
         )
         assert response.status_code in [400, 422]
-        print(f"✓ Header image upload endpoint exists and validates input")
+        print("✓ Header image upload endpoint exists and validates input")
     
     def test_audio_upload_endpoint_exists(self, authenticated_client):
         """Verify audio upload endpoint exists."""
@@ -182,7 +182,7 @@ class TestSiteUploadEndpoints:
             headers=headers
         )
         assert response.status_code in [400, 422]
-        print(f"✓ Audio upload endpoint exists and validates input")
+        print("✓ Audio upload endpoint exists and validates input")
 
 
 class TestSiteUpdate:
@@ -210,7 +210,7 @@ class TestSiteUpdate:
         
         updated_site = response.json()
         assert updated_site["name"] == original_name
-        print(f"✓ Site update endpoint working")
+        print("✓ Site update endpoint working")
 
 
 class TestSiteSubmissions:

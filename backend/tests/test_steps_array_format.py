@@ -199,6 +199,6 @@ class TestNoSuggestionStringFallback:
             # but steps should be the primary format
             if "suggestion" in data:
                 assert "steps" in data, "If 'suggestion' exists, 'steps' should also exist"
-                print(f"INFO: Cloudflare has both 'suggestion' and 'steps' (backward compat)")
+                print("INFO: Cloudflare has both 'suggestion' and 'steps' (backward compat)")
             else:
-                print(f"PASS: Cloudflare uses 'steps' only (no legacy 'suggestion')")
+                print("PASS: Cloudflare uses 'steps' only (no legacy 'suggestion')")

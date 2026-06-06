@@ -144,7 +144,7 @@ class TestFirewallEnableRack:
         assert "updated" in data, "Response should contain 'updated' count"
         assert "enabled" in data, "Response should contain 'enabled' boolean"
         assert data["updated"] == len(test_site_ids), f"Expected {len(test_site_ids)} updated, got {data['updated']}"
-        assert data["enabled"] == True, "enabled should be True"
+        assert data["enabled"], "enabled should be True"
         
         print(f"PASS: Bulk enabled firewall for {data['updated']} sites")
     
@@ -172,7 +172,7 @@ class TestFirewallEnableRack:
         data = response.json()
         
         assert data["updated"] == 1, f"Expected 1 updated, got {data['updated']}"
-        assert data["enabled"] == False, "enabled should be False"
+        assert not data["enabled"], "enabled should be False"
         
         print(f"PASS: Bulk disabled firewall for {data['updated']} sites")
     
@@ -206,7 +206,7 @@ class TestFirewallEnableRack:
         status_data = status_response.json()
         
         assert test_site_id in status_data.get("status", {}), f"Site {test_site_id} should be in status"
-        assert status_data["status"][test_site_id] == True, f"Site {test_site_id} should have enabled=True"
+        assert status_data["status"][test_site_id], f"Site {test_site_id} should have enabled=True"
         
         print(f"PASS: Bulk status reflects enabled=True for site {test_site_id}")
         
@@ -226,7 +226,7 @@ class TestFirewallEnableRack:
         assert status_response2.status_code == 200
         status_data2 = status_response2.json()
         
-        assert status_data2["status"][test_site_id] == False, f"Site {test_site_id} should have enabled=False after disable"
+        assert not status_data2["status"][test_site_id], f"Site {test_site_id} should have enabled=False after disable"
         
         print(f"PASS: Bulk status reflects enabled=False for site {test_site_id} after disable")
     

@@ -8,7 +8,7 @@ import uuid
 from typing import Optional, Dict, List, Tuple
 from datetime import datetime, timedelta
 
-from services.timezone_utils import now_brussels, BRUSSELS_TZ, is_time_between
+from services.timezone_utils import now_brussels, is_time_between
 from database import db
 
 logger = logging.getLogger(__name__)

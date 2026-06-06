@@ -58,7 +58,7 @@ class TestTaskCountExcludesDone:
         
         # Task count should be 4 (5 total - 1 in Done column)
         assert test_board["task_count"] == 4, f"Expected task_count=4, got {test_board['task_count']}"
-        print(f"✓ Board task_count correctly shows 4 (excludes Done column tasks)")
+        print("✓ Board task_count correctly shows 4 (excludes Done column tasks)")
     
     def test_get_all_tasks_returns_five_tasks(self, headers):
         """API should return all 5 tasks (including Done)."""
@@ -76,7 +76,7 @@ class TestTaskCountExcludesDone:
         done_tasks = [t for t in tasks if t["column_id"] == DONE_COLUMN_ID]
         assert len(done_tasks) == 1, f"Expected 1 Done task, got {len(done_tasks)}"
         assert done_tasks[0]["title"] == "Old completed task"
-        print(f"✓ All 5 tasks returned, 1 in Done column")
+        print("✓ All 5 tasks returned, 1 in Done column")
 
 
 class TestColumnsAPI:
@@ -160,7 +160,7 @@ class TestBrandingProxyEndpoint:
         
         branding = response.json()
         assert "login_images" in branding
-        print(f"✓ Branding endpoint returns data without auth")
+        print("✓ Branding endpoint returns data without auth")
     
     def test_branding_has_proxy_urls(self):
         """Branding images should use proxy URLs, not direct S3."""

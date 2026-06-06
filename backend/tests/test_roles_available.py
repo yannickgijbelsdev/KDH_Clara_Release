@@ -114,7 +114,7 @@ class TestRolesAvailableEndpoint:
         assert expected_defaults.issubset(role_slugs), f"DBNTSTUDIO should have default roles. Got: {role_slugs}"
         
         # Should NOT have news_editor (that's Radiogroep's custom role)
-        assert "news_editor" not in role_slugs, f"DBNTSTUDIO should not have 'news_editor' role"
+        assert "news_editor" not in role_slugs, "DBNTSTUDIO should not have 'news_editor' role"
     
     def test_invalid_main_site_id_returns_empty_or_seeds_defaults(self):
         """Test behavior with invalid/non-existent main site ID"""

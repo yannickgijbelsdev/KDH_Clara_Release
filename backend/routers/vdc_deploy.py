@@ -276,7 +276,7 @@ async def _run_ssh_deploy(user_id: str):
             data = resp.json()
             deployment_id = data.get("deployment_id", data.get("id", ""))
             status_msg = data.get("status", "registered")
-            message = data.get("message", "Deployment registered")
+            data.get("message", "Deployment registered")
 
         _log(user_id, "register", 75, f"Deployment registered: {deployment_id[:16]}...", "success")
         _log(user_id, "register", 80, f"Status: {status_msg}", "success")

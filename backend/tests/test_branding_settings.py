@@ -225,7 +225,7 @@ class TestBrandingIntegration:
             "login_image_type": original.get("login_image_type", "static")
         }
         session.put(f"{API_URL}/branding", json=restore_data)
-        print(f"Restored branding to original values")
+        print("Restored branding to original values")
 
 
 if __name__ == "__main__":

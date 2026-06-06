@@ -171,7 +171,7 @@ class TestViewerOnlyIsBlocked:
         )
         # Should be 403 (permission denied by middleware)
         assert response.status_code == 403, f"Expected 403 Forbidden, got {response.status_code}: {response.text}"
-        print(f"PASS: Viewer POST /api/shows returned 403 (correctly blocked)")
+        print("PASS: Viewer POST /api/shows returned 403 (correctly blocked)")
 
 
 class TestAdminFullAccess:

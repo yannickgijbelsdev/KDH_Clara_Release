@@ -75,7 +75,7 @@ class TestPublicRoutesAPI:
         assert login_route.get("target_path") == "/login", f"Login route target_path should be '/login', got '{login_route.get('target_path')}'"
         assert login_route.get("route_type") == "auth", f"Login route type should be 'auth', got '{login_route.get('route_type')}'"
         
-        print(f"PASS: Login route configured - subdomain=login, target_path=/login, route_type=auth")
+        print("PASS: Login route configured - subdomain=login, target_path=/login, route_type=auth")
     
     def test_clara_route_exists(self):
         """Verify clara (main app) route is configured"""
@@ -89,7 +89,7 @@ class TestPublicRoutesAPI:
         assert clara_route is not None, "Clara route not found in public routes"
         assert clara_route.get("target_path") == "/", f"Clara route target_path should be '/', got '{clara_route.get('target_path')}'"
         
-        print(f"PASS: Clara route configured - subdomain=clara, target_path=/")
+        print("PASS: Clara route configured - subdomain=clara, target_path=/")
     
     def test_base_domain_is_koodh(self):
         """Verify base_domain is koodh.com"""

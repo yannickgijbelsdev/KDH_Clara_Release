@@ -77,7 +77,7 @@ class TestBoardsCRUD:
         assert "In Progress" in column_names
         assert "Review" in column_names
         assert "Done" in column_names
-        print(f"Verified 4 default columns created")
+        print("Verified 4 default columns created")
         
         # Cleanup
         requests.delete(f"{BASE_URL}/api/task-boards/boards/{board_id}", headers=headers)

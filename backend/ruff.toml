@@ -1,0 +1,12 @@
+# Ruff configuration for the backend.
+#
+# Most rules are inherited from the default ruff defaults.  These
+# per-file/per-rule ignores cover pre-existing issues in legacy code that
+# are not worth refactoring in flight (e.g. import ordering inside try/except
+# ImportError blocks, single-letter loop variables `l`, etc.).
+[lint]
+ignore = [
+    "E402",  # module-level imports not at top of file (legacy try/except imports)
+    "E741",  # ambiguous variable names (`l`) — kept for diffability of legacy code
+    "F401",  # unused imports (mostly conditional ImportError probes)
+]

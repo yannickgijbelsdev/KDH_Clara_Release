@@ -77,8 +77,8 @@ class TestCLIAccessStatus:
         
         # Network/system admins should have approved status with override
         assert data["status"] == "approved"
-        assert data.get("is_admin_override") == True
-        print(f"PASSED: Network admin has auto-approved CLI access with is_admin_override=True")
+        assert data.get("is_admin_override")
+        print("PASSED: Network admin has auto-approved CLI access with is_admin_override=True")
 
     def test_access_status_invalid_site_id(self, authenticated_client):
         """Test access status with non-existent site ID"""
@@ -88,7 +88,7 @@ class TestCLIAccessStatus:
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "approved"
-        print(f"PASSED: Access status returns approved for network admin regardless of site")
+        print("PASSED: Access status returns approved for network admin regardless of site")
 
 
 class TestCLICommands:
@@ -124,7 +124,7 @@ class TestCLICommands:
         assert "/site info" in output
         assert "/site features" in output
         assert "/health" in output
-        print(f"PASSED: /commands returns formatted help text with all categories")
+        print("PASSED: /commands returns formatted help text with all categories")
 
     def test_execute_help_command(self, authenticated_client, main_site_id):
         """Test /help returns same output as /commands"""
@@ -136,7 +136,7 @@ class TestCLICommands:
         data = response.json()
         assert data["type"] == "info"
         assert "Clara CLI v1.0" in data["output"]
-        print(f"PASSED: /help command works correctly")
+        print("PASSED: /help command works correctly")
 
     def test_execute_health_check(self, authenticated_client, main_site_id):
         """Test /health returns system health check results"""
@@ -161,7 +161,7 @@ class TestCLICommands:
         
         # Type should be success or warning
         assert data["type"] in ["success", "warning"]
-        print(f"PASSED: /health command returns health check with all components")
+        print("PASSED: /health command returns health check with all components")
 
     def test_execute_roles_list(self, authenticated_client, main_site_id):
         """Test /roles list shows roles for the site"""
@@ -178,7 +178,7 @@ class TestCLICommands:
         
         if data["type"] == "success":
             assert "Roles for site" in data["output"] or "slug=" in data["output"]
-        print(f"PASSED: /roles list returns roles information")
+        print("PASSED: /roles list returns roles information")
 
     def test_execute_roles_repair(self, authenticated_client, main_site_id):
         """Test /roles repair creates or confirms default roles"""
@@ -195,7 +195,7 @@ class TestCLICommands:
         
         # Output should mention repair status
         assert "repair" in data["output"].lower() or "exist" in data["output"].lower() or "default" in data["output"].lower()
-        print(f"PASSED: /roles repair command executes correctly")
+        print("PASSED: /roles repair command executes correctly")
 
     def test_execute_users_list(self, authenticated_client, main_site_id):
         """Test /users list shows users and their roles"""
@@ -211,7 +211,7 @@ class TestCLICommands:
         
         if data["type"] == "success":
             assert "Users in site" in data["output"] or "role=" in data["output"]
-        print(f"PASSED: /users list returns users information")
+        print("PASSED: /users list returns users information")
 
     def test_execute_site_info(self, authenticated_client, main_site_id):
         """Test /site info shows site information"""
@@ -230,7 +230,7 @@ class TestCLICommands:
             assert "Name:" in output
             assert "Slug:" in output
             assert "Type:" in output
-        print(f"PASSED: /site info returns site details")
+        print("PASSED: /site info returns site details")
 
     def test_execute_site_features(self, authenticated_client, main_site_id):
         """Test /site features lists enabled features"""
@@ -243,7 +243,7 @@ class TestCLICommands:
         
         assert data["type"] in ["success", "warning"]
         assert "output" in data
-        print(f"PASSED: /site features command executes correctly")
+        print("PASSED: /site features command executes correctly")
 
     def test_execute_unknown_command(self, authenticated_client, main_site_id):
         """Test that unknown commands return error"""
@@ -257,7 +257,7 @@ class TestCLICommands:
         assert data["type"] == "error"
         assert "Unknown command" in data["output"]
         assert "/commands" in data["output"]
-        print(f"PASSED: Unknown commands return error with help suggestion")
+        print("PASSED: Unknown commands return error with help suggestion")
 
     def test_execute_cache_clear(self, authenticated_client, main_site_id):
         """Test /cache clear command"""
@@ -270,7 +270,7 @@ class TestCLICommands:
         
         assert data["type"] == "success"
         assert "Cache cleared" in data["output"]
-        print(f"PASSED: /cache clear command works")
+        print("PASSED: /cache clear command works")
 
 
 class TestCLIPendingRequests:
@@ -299,7 +299,7 @@ class TestCLIRequestAccess:
         
         # System admins don't need to request access - they get it automatically
         # This test validates the access status endpoint works correctly
-        print(f"PASSED: System admin has auto-approved access, no request needed")
+        print("PASSED: System admin has auto-approved access, no request needed")
 
 
 class TestCLIApprovalFlow:
@@ -313,7 +313,7 @@ class TestCLIApprovalFlow:
             json={"approved": True}
         )
         assert response.status_code == 404
-        print(f"PASSED: Approving non-existent request returns 404")
+        print("PASSED: Approving non-existent request returns 404")
 
 
 if __name__ == "__main__":

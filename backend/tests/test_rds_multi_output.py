@@ -6,7 +6,6 @@ Each output can have configurable items (Now Playing, Show Name, Custom Text) wi
 import pytest
 import requests
 import os
-import time
 import uuid
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
@@ -125,8 +124,8 @@ class TestRDSMultiOutputAPI:
         assert data["slug"] == test_slug, "Slug should match"
         assert data["station"] == "grk", "Station should be grk"
         assert len(data["items"]) == 2, "Should have 2 items"
-        assert data["enabled"] == True, "Should be enabled"
-        assert data["loop"] == True, "Should loop"
+        assert data["enabled"], "Should be enabled"
+        assert data["loop"], "Should loop"
         assert "created_at" in data, "Should have created_at"
         assert "updated_at" in data, "Should have updated_at"
         
@@ -253,8 +252,8 @@ class TestRDSMultiOutputAPI:
         # Verify updates were applied
         assert data["name"] == f"{TEST_PREFIX}Updated Name", "Name should be updated"
         assert len(data["items"]) == 2, "Should now have 2 items"
-        assert data["enabled"] == False, "Should be disabled"
-        assert data["loop"] == False, "Loop should be disabled"
+        assert not data["enabled"], "Should be disabled"
+        assert not data["loop"], "Loop should be disabled"
         print(f"Updated output: {data['name']}")
 
     def test_update_nonexistent_output_returns_404(self, auth_headers):

@@ -14,7 +14,6 @@ Tests:
 import pytest
 import requests
 import os
-import time
 from datetime import datetime, timezone
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
@@ -116,7 +115,7 @@ def presenter_token(admin_headers):
         # Get temp password
         temp_pwd_response = requests.get(f"{BASE_URL}/api/users/invite/{user_id}/password", headers=admin_headers)
         if temp_pwd_response.status_code == 200:
-            temp_password = temp_pwd_response.json()["temp_password"]
+            temp_pwd_response.json()["temp_password"]
             
             # Reset password to our known password
             reset_response = requests.put(
@@ -134,7 +133,7 @@ def presenter_token(admin_headers):
                 if login_response.status_code == 200:
                     return login_response.json()["token"]
     
-    pytest.skip(f"Could not create/login presenter user")
+    pytest.skip("Could not create/login presenter user")
 
 
 @pytest.fixture(scope="class")
@@ -449,7 +448,7 @@ class TestShowPermissions:
         assert delete_response.status_code == 403, \
             f"Presenter should not be able to delete show. Got {delete_response.status_code}: {delete_response.text}"
         
-        print(f"✓ Non-admin correctly denied from deleting show (403)")
+        print("✓ Non-admin correctly denied from deleting show (403)")
     
     def test_admin_can_delete_show(self, admin_headers):
         """Admin should be able to delete a show"""
@@ -461,7 +460,7 @@ class TestShowPermissions:
             assert delete_response.status_code == 204, \
                 f"Admin should be able to delete show. Got {delete_response.status_code}: {delete_response.text}"
             
-            print(f"✓ Admin successfully deleted show")
+            print("✓ Admin successfully deleted show")
 
 
 class TestRundownPermissions:
@@ -510,7 +509,7 @@ class TestRundownPermissions:
         assert delete_response.status_code == 403, \
             f"Presenter should not be able to delete rundown item. Got {delete_response.status_code}: {delete_response.text}"
         
-        print(f"✓ Non-admin correctly denied from deleting rundown item (403)")
+        print("✓ Non-admin correctly denied from deleting rundown item (403)")
     
     def test_admin_can_delete_rundown_item(self, admin_headers):
         """Admin should be able to delete rundown items"""
@@ -522,7 +521,7 @@ class TestRundownPermissions:
             assert delete_response.status_code == 204, \
                 f"Admin should be able to delete rundown item. Got {delete_response.status_code}: {delete_response.text}"
             
-            print(f"✓ Admin successfully deleted rundown item")
+            print("✓ Admin successfully deleted rundown item")
 
 
 class TestBulkAssignment:
@@ -572,7 +571,7 @@ class TestBulkAssignment:
         assert "message" in data, "Response should contain message"
         assert data["occurrences_updated"] == 0, "this_only should not update occurrences"
         
-        print(f"✓ Bulk assigned user with apply_to='this_only'")
+        print("✓ Bulk assigned user with apply_to='this_only'")
     
     def test_bulk_assign_all_future(self, admin_headers):
         """Bulk assign user to series with apply_to='all_future'"""
@@ -692,7 +691,7 @@ class TestBulkAssignment:
         data = response.json()
         assert "message" in data, "Response should contain message"
         
-        print(f"✓ Bulk removed assignment with apply_to='all'")
+        print("✓ Bulk removed assignment with apply_to='all'")
 
 
 class TestCleanup:

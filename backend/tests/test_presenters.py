@@ -60,7 +60,7 @@ class TestPresenterFunctionality:
             assert "name" in title
             # default_presenter_ids and default_presenters are optional but should be supported
             print(f"Sample title structure: {title.keys()}")
-            print(f"TEST PASS: Show titles endpoint returns correct structure")
+            print("TEST PASS: Show titles endpoint returns correct structure")
 
     def test_create_show_title_with_default_presenters(self):
         """Test creating a show title with default presenters"""
@@ -124,7 +124,7 @@ class TestPresenterFunctionality:
             
             updated_data = update_response.json()
             assert updated_data.get("default_presenter_ids") == [self.team_users[0]["id"]]
-            print(f"TEST PASS: Show title updated with default_presenter_ids")
+            print("TEST PASS: Show title updated with default_presenter_ids")
         
         # Cleanup
         requests.delete(f"{BASE_URL}/api/shows/titles/{title_id}", headers=self.headers)
@@ -146,7 +146,7 @@ class TestPresenterFunctionality:
             assert "title" in show
             # presenter_ids and presenters are optional but should be supported
             print(f"Sample show structure keys: {show.keys()}")
-            print(f"TEST PASS: Shows endpoint returns correct structure")
+            print("TEST PASS: Shows endpoint returns correct structure")
 
     def test_create_show_with_presenters(self):
         """Test creating a show with presenter_ids"""
@@ -295,7 +295,7 @@ class TestPresenterFunctionality:
         
         updated_data = update_response.json()
         assert updated_data.get("presenter_ids") == [] or not updated_data.get("presenters")
-        print(f"TEST PASS: Presenters cleared from show")
+        print("TEST PASS: Presenters cleared from show")
         
         # Cleanup
         requests.delete(f"{BASE_URL}/api/shows/{show_id}", headers=self.headers)

@@ -86,10 +86,10 @@ class TestCloudflareWorkerEndpoint:
             for result in data["results"]:
                 assert "test" in result, "Each result must have 'test' field"
                 assert "status" in result, "Each result must have 'status' field"
-                assert result["status"] in ["ok", "warning", "error"], f"Result status must be ok/warning/error"
+                assert result["status"] in ["ok", "warning", "error"], "Result status must be ok/warning/error"
                 print(f"  - {result['test']}: {result['status']}")
         
-        print(f"PASS: test-worker returns results array")
+        print("PASS: test-worker returns results array")
 
     def test_worker_endpoint_returns_test_subdomain(self, auth_headers):
         """Test that endpoint returns test_subdomain when available"""
@@ -184,7 +184,7 @@ class TestCloudflareWorkerEndpoint:
         assert response.status_code == 200
         
         data = response.json()
-        print(f"\nFull test-worker response:")
+        print("\nFull test-worker response:")
         print(f"  status: {data.get('status')}")
         print(f"  message: {data.get('message')}")
         print(f"  test_subdomain: {data.get('test_subdomain', 'N/A')}")

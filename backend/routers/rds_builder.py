@@ -2,17 +2,14 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Optional, Literal
 from datetime import datetime, timezone, timedelta
-from zoneinfo import ZoneInfo
 from pydantic import BaseModel
 from dateutil.relativedelta import relativedelta
 import uuid
-import asyncio
 
 from database import db
 from services.auth import require_admin
 from services.timezone_utils import (
-    BRUSSELS_TZ, now_brussels, today_brussels, current_time_brussels,
-    format_datetime_brussels
+    BRUSSELS_TZ, now_brussels
 )
 
 rds_builder_router = APIRouter(prefix="/rds-builder", tags=["RDS Builder"])
@@ -290,7 +287,7 @@ async def check_live_shows_from_calendar():
             try:
                 end_parts = end.split(":")
                 end_hour, end_min = int(end_parts[0]), int(end_parts[1])
-                now_hour, now_min = check_time.hour, check_time.minute
+                _now_hour, _now_min = check_time.hour, check_time.minute
                 
                 if crosses_midnight and show_date == current_date:
                     # Show crosses midnight, ends tomorrow
@@ -299,7 +296,7 @@ async def check_live_shows_from_calendar():
                     end_datetime = check_time.replace(hour=end_hour, minute=end_min, second=0)
                 
                 seconds_until_end = (end_datetime - check_time).total_seconds()
-            except:
+            except Exception:
                 seconds_until_end = None
             
             show_info = {
@@ -335,7 +332,7 @@ async def force_refresh_rds():
     4. Re-checks calendar for actual live shows
     5. Rebuilds outputs from scratch
     """
-    from services.rds_scheduler import refresh_live_show_cache, run_scheduled_cache_refresh
+    from services.rds_scheduler import run_scheduled_cache_refresh
     from services.rds_builder_scheduler import get_item_text
     
     now_brussels_dt = datetime.now(BRUSSELS_TZ)
@@ -649,7 +646,7 @@ async def get_rds_monitor_data(stations: str = None):
                             "duration_minutes": duration_minutes,
                             "recurrence": recurrence
                         }
-            except Exception as e:
+            except Exception:
                 pass
         
         scheduled_texts_info[station] = {
@@ -793,7 +790,7 @@ async def get_scheduled_texts_status(stations: str = None):
                         "duration_minutes": duration_minutes,
                         "recurrence": recurrence
                     })
-            except Exception as e:
+            except Exception:
                 pass
         
         # Sort by next_start
@@ -1229,7 +1226,7 @@ async def get_scheduled_texts(
                         text["seconds_until_next"] = (current_occurrence - now_bru).total_seconds()
                     else:
                         text["next_activation"] = None
-        except Exception as e:
+        except Exception:
             text["is_active_now"] = False
             text["next_activation"] = None
     

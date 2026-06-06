@@ -8,7 +8,6 @@ Ref: The CLI expanded from 12 to ~45 commands routed through POST /api/cli/execu
 import pytest
 import requests
 import os
-import uuid
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL').rstrip('/')
 
@@ -121,7 +120,7 @@ class TestGeneralCommands:
         assert "[Logs]" in output, "Missing Logs category"
         assert "[System]" in output, "Missing System category"
         
-        print(f"PASSED: /commands shows all 8 categories")
+        print("PASSED: /commands shows all 8 categories")
 
     def test_help_command(self, authenticated_client, main_site_id):
         """/help returns same as /commands"""
@@ -130,7 +129,7 @@ class TestGeneralCommands:
         data = response.json()
         assert data["type"] == "info"
         assert "Clara CLI v1.0" in data["output"]
-        print(f"PASSED: /help command works")
+        print("PASSED: /help command works")
 
 
 class TestRolesCommands:
@@ -150,7 +149,7 @@ class TestRolesCommands:
             assert "perms" in output.lower() or "permission" in output.lower()
             # Should contain role information
             assert "slug=" in output or "SYSTEM" in output or "CUSTOM" in output
-        print(f"PASSED: /roles list shows roles with permission counts")
+        print("PASSED: /roles list shows roles with permission counts")
 
     def test_roles_permissions_matrix(self, authenticated_client, main_site_id):
         """/roles permissions admin shows permission matrix (View/Create/Edit/Delete)"""
@@ -166,7 +165,7 @@ class TestRolesCommands:
             assert "Edit" in output or "edit" in output.lower()
             assert "Delete" in output or "delete" in output.lower()
             assert "Module" in output or "module" in output.lower()
-        print(f"PASSED: /roles permissions admin shows permission matrix")
+        print("PASSED: /roles permissions admin shows permission matrix")
 
     def test_roles_compare(self, authenticated_client, main_site_id):
         """/roles compare admin editor shows differences between roles"""
@@ -179,7 +178,7 @@ class TestRolesCommands:
             assert "Comparing" in output or "compare" in output.lower() or "admin" in output.lower()
             # Should show difference count
             assert "difference" in output.lower() or "diff" in output.lower()
-        print(f"PASSED: /roles compare admin editor shows differences")
+        print("PASSED: /roles compare admin editor shows differences")
 
     def test_roles_repair(self, authenticated_client, main_site_id):
         """/roles repair creates missing default roles"""
@@ -190,7 +189,7 @@ class TestRolesCommands:
         assert data["type"] in ["success", "info"]
         output = data["output"]
         assert "repair" in output.lower() or "default" in output.lower() or "created" in output.lower()
-        print(f"PASSED: /roles repair command works")
+        print("PASSED: /roles repair command works")
 
     def test_roles_reset_all(self, authenticated_client, main_site_id):
         """/roles reset-all resets all roles to defaults"""
@@ -201,7 +200,7 @@ class TestRolesCommands:
         assert data["type"] in ["success", "info"]
         output = data["output"]
         assert "reset" in output.lower() or "default" in output.lower()
-        print(f"PASSED: /roles reset-all command works")
+        print("PASSED: /roles reset-all command works")
 
 
 class TestUsersCommands:
@@ -233,7 +232,7 @@ class TestUsersCommands:
             # Should categorize sessions
             assert "active" in output.lower() or "recent" in output.lower() or "inactive" in output.lower()
             assert "Sessions" in output or "session" in output.lower()
-        print(f"PASSED: /users sessions shows session information")
+        print("PASSED: /users sessions shows session information")
 
     def test_users_search(self, authenticated_client, main_site_id):
         """/users search <query> finds users by name or email"""
@@ -244,7 +243,7 @@ class TestUsersCommands:
         if data["type"] == "success":
             output = data["output"]
             assert "Search results" in output or "found" in output.lower()
-        print(f"PASSED: /users search finds users")
+        print("PASSED: /users search finds users")
 
 
 class TestFirewallCommands:
@@ -261,7 +260,7 @@ class TestFirewallCommands:
         assert "scan" in output.lower() or "Security" in output
         # Should mention 2FA coverage
         assert "2FA" in output or "2fa" in output.lower()
-        print(f"PASSED: /firewall scan shows security scan")
+        print("PASSED: /firewall scan shows security scan")
 
     def test_firewall_status(self, authenticated_client, main_site_id):
         """/firewall status shows blocked IPs, events, failed logins"""
@@ -274,7 +273,7 @@ class TestFirewallCommands:
         # Should show blocked IPs, events, failed logins
         assert "Blocked" in output or "blocked" in output.lower()
         assert "Events" in output or "events" in output.lower()
-        print(f"PASSED: /firewall status shows status info")
+        print("PASSED: /firewall status shows status info")
 
     def test_firewall_block_and_unblock(self, authenticated_client, main_site_id):
         """/firewall block <ip> and /firewall unblock <ip> work correctly"""
@@ -313,12 +312,12 @@ class TestSiteCommands:
         assert "Feature" in output or "feature" in output.lower()
         # Should have [+] or [-] indicators
         assert "[+]" in output or "[-]" in output or "enabled" in output.lower()
-        print(f"PASSED: /site features shows feature list with indicators")
+        print("PASSED: /site features shows feature list with indicators")
 
     def test_site_features_enable_disable(self, authenticated_client, main_site_id):
         """/site features enable/disable rds_builder works correctly"""
         # First check current status
-        status_response = execute_command(authenticated_client, main_site_id, "/site features")
+        execute_command(authenticated_client, main_site_id, "/site features")
         
         # Try enabling
         response = execute_command(authenticated_client, main_site_id, f"/site features enable {TEST_FEATURE}")
@@ -342,7 +341,7 @@ class TestSiteCommands:
         data = response.json()
         assert data["type"] == "success"
         assert "demo" in data["output"].lower()
-        print(f"PASSED: /site demo on")
+        print("PASSED: /site demo on")
         
         # Toggle demo mode off
         response = execute_command(authenticated_client, main_site_id, "/site demo off")
@@ -350,7 +349,7 @@ class TestSiteCommands:
         data = response.json()
         assert data["type"] == "success"
         assert "demo" in data["output"].lower()
-        print(f"PASSED: /site demo off")
+        print("PASSED: /site demo off")
 
     def test_site_stats(self, authenticated_client, main_site_id):
         """/site stats shows document counts"""
@@ -362,7 +361,7 @@ class TestSiteCommands:
         assert "Statistics" in output or "stats" in output.lower()
         # Should show various document counts
         assert "Users:" in output or "users" in output.lower()
-        print(f"PASSED: /site stats shows document counts")
+        print("PASSED: /site stats shows document counts")
 
 
 class TestEnvironmentCommands:
@@ -379,7 +378,7 @@ class TestEnvironmentCommands:
             assert "Environment" in output or "environment" in output.lower()
             # Should show sites and admins counts
             assert "sites" in output.lower() or "admin" in output.lower()
-        print(f"PASSED: /env list shows environments")
+        print("PASSED: /env list shows environments")
 
     def test_env_assign(self, authenticated_client, main_site_id):
         """/env assign <email> adds user as environment admin"""
@@ -403,7 +402,7 @@ class TestEnvironmentCommands:
         if data["type"] == "success":
             output = data["output"]
             assert "Sites" in output or "sites" in output.lower()
-        print(f"PASSED: /env sites shows sites in environment")
+        print("PASSED: /env sites shows sites in environment")
 
 
 class TestLicenseCommands:
@@ -418,7 +417,7 @@ class TestLicenseCommands:
         if data["type"] == "success":
             output = data["output"]
             assert "Package" in output or "package" in output.lower()
-        print(f"PASSED: /license packages lists packages")
+        print("PASSED: /license packages lists packages")
 
     def test_license_info(self, authenticated_client, main_site_id):
         """/license info shows license status"""
@@ -430,7 +429,7 @@ class TestLicenseCommands:
         assert data["type"] in ["success", "warning", "info"]
         output = data["output"]
         assert "License" in output or "license" in output.lower()
-        print(f"PASSED: /license info shows license status")
+        print("PASSED: /license info shows license status")
 
 
 class TestLogsCommands:
@@ -445,7 +444,7 @@ class TestLogsCommands:
         assert data["type"] in ["success", "info"]
         output = data["output"]
         assert "CLI" in output or "cli" in output.lower() or "Command" in output or "command" in output.lower()
-        print(f"PASSED: /logs cli shows CLI command history")
+        print("PASSED: /logs cli shows CLI command history")
 
 
 class TestSystemCommands:
@@ -461,7 +460,7 @@ class TestSystemCommands:
         assert "Database" in output or "database" in output.lower()
         # Should show collection counts
         assert "documents" in output.lower() or "collection" in output.lower()
-        print(f"PASSED: /db stats shows collection counts")
+        print("PASSED: /db stats shows collection counts")
 
     def test_whoami(self, authenticated_client, main_site_id):
         """/whoami shows current user identity"""
@@ -474,7 +473,7 @@ class TestSystemCommands:
         assert "Identity" in output or "identity" in output.lower()
         # Should show user info
         assert "Name:" in output or "Email:" in output
-        print(f"PASSED: /whoami shows current user identity")
+        print("PASSED: /whoami shows current user identity")
 
     def test_health_comprehensive(self, authenticated_client, main_site_id):
         """/health shows comprehensive health check"""
@@ -489,7 +488,7 @@ class TestSystemCommands:
         assert "Roles" in output
         assert "Users" in output
         assert "License" in output
-        print(f"PASSED: /health shows comprehensive health check")
+        print("PASSED: /health shows comprehensive health check")
 
 
 class TestEnvironmentAdminAssignment:
@@ -528,11 +527,11 @@ class TestEnvironmentAdminAssignment:
         if response.status_code == 200:
             data = response.json()
             assert "message" in data or "id" in data
-            print(f"PASSED: Added user as environment admin")
+            print("PASSED: Added user as environment admin")
         else:
             data = response.json()
             assert "already" in data.get("detail", "").lower()
-            print(f"PASSED: User already an environment admin (expected)")
+            print("PASSED: User already an environment admin (expected)")
 
 
 if __name__ == "__main__":

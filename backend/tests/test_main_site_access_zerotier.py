@@ -53,8 +53,8 @@ class TestMainSiteAccess:
         assert "main_sites" in data, "Missing main_sites field"
         
         # System admin should have both flags true
-        assert data["is_network_admin"] == True, "System admin should have is_network_admin=True"
-        assert data["is_system_admin"] == True, "System admin should have is_system_admin=True"
+        assert data["is_network_admin"], "System admin should have is_network_admin=True"
+        assert data["is_system_admin"], "System admin should have is_system_admin=True"
         
         # System admin should see ALL sites (13+ based on bug report)
         site_count = len(data["main_sites"])
@@ -128,7 +128,7 @@ class TestNetworkAdminAccessScoping:
         
         if response.status_code == 200:
             data = response.json()
-            print(f"✓ Debug endpoint accessible")
+            print("✓ Debug endpoint accessible")
             print(f"  Total access records: {data.get('total_access_records', 0)}")
             print(f"  Total users: {data.get('total_users', 0)}")
             print(f"  Total main sites: {data.get('total_main_sites', 0)}")
@@ -209,7 +209,7 @@ class TestZeroTierSendSummary:
             print(f"  - network_id: {data.get('network_id', 'not set')}")
             print(f"  - api_token_masked: {data.get('api_token_masked', 'not set')}")
         elif response.status_code == 403:
-            print(f"✓ ZeroTier config endpoint returns 403 (access denied) - expected if no site access")
+            print("✓ ZeroTier config endpoint returns 403 (access denied) - expected if no site access")
         else:
             print(f"  ZeroTier config returned {response.status_code}: {response.text}")
     
@@ -226,7 +226,7 @@ class TestZeroTierSendSummary:
             stats = data.get("stats", [])
             print(f"✓ ZeroTier alert history: {len(events)} events, {len(stats)} monitored members")
         elif response.status_code == 403:
-            print(f"✓ ZeroTier alert history returns 403 (no access)")
+            print("✓ ZeroTier alert history returns 403 (no access)")
         else:
             print(f"  ZeroTier alert history returned {response.status_code}")
 

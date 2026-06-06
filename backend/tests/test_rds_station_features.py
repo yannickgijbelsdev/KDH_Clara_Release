@@ -212,7 +212,7 @@ class TestShowTitleRDSStation:
         
         updated = update_response.json()
         assert updated["rds_station"] == "both", f"rds_station should be 'both', got '{updated['rds_station']}'"
-        print(f"Updated show title rds_station to 'both'")
+        print("Updated show title rds_station to 'both'")
         
         # Clean up
         requests.delete(f"{BASE_URL}/api/shows/titles/{title_id}", headers=auth_headers)
@@ -271,11 +271,11 @@ class TestRDSEndpointsGroupedByStation:
         
         # Check MFY now-playing
         mfy_np = [ep for ep in now_playing_endpoints if "mfy" in ep["path"]]
-        assert len(mfy_np) >= 2, f"Should have MFY now-playing endpoints (.txt and JSON)"
+        assert len(mfy_np) >= 2, "Should have MFY now-playing endpoints (.txt and JSON)"
         
         # Check GRK now-playing
         grk_np = [ep for ep in now_playing_endpoints if "grk" in ep["path"]]
-        assert len(grk_np) >= 2, f"Should have GRK now-playing endpoints (.txt and JSON)"
+        assert len(grk_np) >= 2, "Should have GRK now-playing endpoints (.txt and JSON)"
         
         print(f"Found {len(now_playing_endpoints)} now-playing endpoints (MFY: {len(mfy_np)}, GRK: {len(grk_np)})")
 

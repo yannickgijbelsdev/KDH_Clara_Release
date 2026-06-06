@@ -66,7 +66,7 @@ class TestLogoScaleFeature:
         """Test updating logo_scale setting."""
         # Get current value
         response = authenticated_client.get(f"{BASE_URL}/api/sites/{EXISTING_SITE_ID}")
-        original_scale = response.json().get("logo_scale", 100)
+        response.json().get("logo_scale", 100)
         
         # Update to a new value
         new_scale = 75
@@ -83,7 +83,7 @@ class TestLogoScaleFeature:
         # Verify change persisted
         response = authenticated_client.get(f"{BASE_URL}/api/sites/{EXISTING_SITE_ID}")
         assert response.json().get("logo_scale") == new_scale
-        print(f"✓ Logo scale change persisted in database")
+        print("✓ Logo scale change persisted in database")
     
     def test_logo_scale_in_public_response(self):
         """Verify logo_scale is returned in public site response."""
@@ -124,7 +124,7 @@ class TestButtonColorFeature:
         # Verify change persisted
         response = authenticated_client.get(f"{BASE_URL}/api/sites/{EXISTING_SITE_ID}")
         assert response.json().get("button_color") == custom_color
-        print(f"✓ Button color change persisted in database")
+        print("✓ Button color change persisted in database")
         
         # Reset to default orange
         response = authenticated_client.put(
@@ -132,7 +132,7 @@ class TestButtonColorFeature:
             json={"button_color": "#f97316"}
         )
         assert response.status_code == 200
-        print(f"✓ Button color reset to default orange")
+        print("✓ Button color reset to default orange")
     
     def test_button_color_in_public_response(self):
         """Verify button_color is returned in public site response."""
@@ -180,7 +180,7 @@ class TestFileUploadToggleFeature:
         # Verify change persisted
         response = authenticated_client.get(f"{BASE_URL}/api/sites/{EXISTING_SITE_ID}")
         assert response.json().get("form_file_upload_enabled") == new_value
-        print(f"✓ Toggle change persisted in database")
+        print("✓ Toggle change persisted in database")
     
     def test_file_upload_enabled_in_public_response(self):
         """Verify form_file_upload_enabled is returned in public site response."""
@@ -249,7 +249,7 @@ class TestPublicFileUploadEndpoint:
         assert "filename" in result, "filename missing from response"
         assert "content_type" in result, "content_type missing from response"
         
-        print(f"✓ File upload successful!")
+        print("✓ File upload successful!")
         print(f"  file_url: {result.get('file_url')}")
         print(f"  filename: {result.get('filename')}")
         print(f"  content_type: {result.get('content_type')}")
@@ -270,7 +270,7 @@ class TestPublicFileUploadEndpoint:
             files=files
         )
         assert response.status_code == 400, f"Expected 400 for invalid file type, got {response.status_code}"
-        print(f"✓ Invalid file type correctly rejected")
+        print("✓ Invalid file type correctly rejected")
     
     def test_upload_nonexistent_site(self):
         """Verify 404 for nonexistent site slug."""
@@ -282,7 +282,7 @@ class TestPublicFileUploadEndpoint:
             files=files
         )
         assert response.status_code == 404
-        print(f"✓ 404 returned for nonexistent site slug")
+        print("✓ 404 returned for nonexistent site slug")
 
 
 class TestDashboardHeaderNoLogo:
@@ -298,8 +298,8 @@ class TestDashboardHeaderNoLogo:
         # Site has logo data, but dashboard header won't display it
         # This is controlled by frontend DashboardLayout.js
         assert "logo_url" in site
-        print(f"✓ Site API returns logo_url (frontend controls display)")
-        print(f"  Note: Dashboard header logo removal is frontend-only change")
+        print("✓ Site API returns logo_url (frontend controls display)")
+        print("  Note: Dashboard header logo removal is frontend-only change")
 
 
 class TestPublicPageCompactHeader:
@@ -330,7 +330,7 @@ class TestPublicPageCompactHeader:
         for field in required_fields:
             assert field in site, f"Missing field: {field}"
         
-        print(f"✓ Public site has all required fields for compact header:")
+        print("✓ Public site has all required fields for compact header:")
         print(f"  name: {site.get('name')}")
         print(f"  logo_url: {site.get('logo_url')}")
         print(f"  logo_scale: {site.get('logo_scale')}%")

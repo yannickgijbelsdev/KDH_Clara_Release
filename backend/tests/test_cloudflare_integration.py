@@ -105,8 +105,8 @@ class TestCloudflareConfigEndpoints:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         data = response.json()
         
-        assert data.get("configured") == True, "Should be configured after saving token"
-        assert data.get("api_token_set") == True, "api_token_set should be True"
+        assert data.get("configured"), "Should be configured after saving token"
+        assert data.get("api_token_set"), "api_token_set should be True"
         assert data.get("api_token_preview") is not None, "Should have masked token preview"
         assert data["api_token_preview"].endswith("12345678"), "Token preview should show last 8 chars"
         assert data.get("zone_id") == "TEST_zone_id_abcdef123456", "Zone ID should match"
@@ -235,7 +235,7 @@ class TestCloudflareNotConfiguredScenarios:
         
         assert response.status_code == 200
         data = response.json()
-        assert data.get("configured") == False, "Should show configured=false after clearing"
+        assert not data.get("configured"), "Should show configured=false after clearing"
         print(f"PASSED: Config shows configured={data.get('configured')}")
 
     def test_verify_token_not_configured(self, system_admin_token):

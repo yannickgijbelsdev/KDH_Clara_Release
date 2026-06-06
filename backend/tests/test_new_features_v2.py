@@ -8,7 +8,6 @@ Test suite for new Clara dashboard features:
 import pytest
 import requests
 import os
-from datetime import datetime, timedelta
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
@@ -55,7 +54,7 @@ class TestRDSBuilderPresenter(TestAuth):
             headers=auth_headers
         )
         assert response.status_code == 200
-        current_sequence = response.json()
+        response.json()
         
         # Create a test sequence with presenter_name type
         test_items = [

@@ -456,7 +456,7 @@ async def upload_avatar(
         if old_key.startswith("avatars/") and is_s3_configured():
             try:
                 await delete_file_from_s3(old_key)
-            except:
+            except Exception:
                 pass
         else:
             old_path = AVATARS_DIR / old_key
@@ -544,7 +544,7 @@ async def delete_avatar(
         if storage_key.startswith("avatars/") and is_s3_configured():
             try:
                 await delete_file_from_s3(storage_key)
-            except:
+            except Exception:
                 pass
         else:
             file_path = AVATARS_DIR / storage_key

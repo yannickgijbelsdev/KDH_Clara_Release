@@ -15,8 +15,6 @@ Test Sites Feature Updates:
 import pytest
 import requests
 import os
-import uuid
-from datetime import datetime, timezone
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 TEST_EMAIL = "test@test.com"

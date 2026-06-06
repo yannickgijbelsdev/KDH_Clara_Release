@@ -70,7 +70,7 @@ class TestFirewallStatusBulk:
         data = response.json()
         
         assert RADIO_BALA_ID in data["status"], f"Radio Bala ({RADIO_BALA_ID}) should be in status"
-        assert data["status"][RADIO_BALA_ID] == True, "Radio Bala firewall should be enabled"
+        assert data["status"][RADIO_BALA_ID], "Radio Bala firewall should be enabled"
     
     def test_mfy_grk_firewall_enabled(self, auth_headers):
         """Test that MFY/GRK has firewall enabled=true."""
@@ -81,7 +81,7 @@ class TestFirewallStatusBulk:
         data = response.json()
         
         assert MFY_GRK_ID in data["status"], f"MFY/GRK ({MFY_GRK_ID}) should be in status"
-        assert data["status"][MFY_GRK_ID] == True, "MFY/GRK firewall should be enabled"
+        assert data["status"][MFY_GRK_ID], "MFY/GRK firewall should be enabled"
     
     def test_dbnt_studio_firewall_disabled(self, auth_headers):
         """Test that DBNT Studio has firewall enabled=false."""
@@ -92,7 +92,7 @@ class TestFirewallStatusBulk:
         data = response.json()
         
         assert DBNT_STUDIO_ID in data["status"], f"DBNT Studio ({DBNT_STUDIO_ID}) should be in status"
-        assert data["status"][DBNT_STUDIO_ID] == False, "DBNT Studio firewall should be disabled"
+        assert not data["status"][DBNT_STUDIO_ID], "DBNT Studio firewall should be disabled"
     
     def test_firewall_status_requires_auth(self):
         """Test that endpoint requires authentication."""

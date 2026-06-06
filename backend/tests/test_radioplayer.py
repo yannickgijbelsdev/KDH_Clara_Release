@@ -104,15 +104,15 @@ class TestRadioplayerConfig:
         
         data = response.json()
         # Verify the config was saved
-        assert data.get("enabled") == True, "enabled should be True"
+        assert data.get("enabled"), "enabled should be True"
         assert data.get("username") == "eddy.thijs@grk.fm", f"username mismatch: {data.get('username')}"
         assert data.get("rpid") == "056028", f"rpid mismatch: {data.get('rpid')}"
         assert data.get("country_code") == "056", f"country_code mismatch: {data.get('country_code')}"
-        assert data.get("auto_np") == True, "auto_np should be True"
-        assert data.get("auto_schedule") == True, "auto_schedule should be True"
+        assert data.get("auto_np"), "auto_np should be True"
+        assert data.get("auto_schedule"), "auto_schedule should be True"
         # Password should be masked
         assert data.get("password") == "***", "Password should be masked as ***"
-        assert data.get("password_set") == True, "password_set should be True"
+        assert data.get("password_set"), "password_set should be True"
     
     def test_update_with_masked_password_preserves_password(self, auth_headers):
         """PUT with password='***' should preserve existing password"""
@@ -131,7 +131,7 @@ class TestRadioplayerConfig:
         # Verify password is still set
         get_response = requests.get(f"{BASE_URL}/api/radioplayer/config", headers=auth_headers)
         data = get_response.json()
-        assert data.get("password_set") == True, "password should still be set after masked update"
+        assert data.get("password_set"), "password should still be set after masked update"
 
 
 class TestRadioplayerPushNowPlaying:

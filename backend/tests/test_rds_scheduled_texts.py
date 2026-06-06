@@ -81,7 +81,7 @@ class TestRDSScheduledTextsCRUD:
         for text_id in self.created_ids:
             try:
                 self.session.delete(f"{BASE_URL}/api/rds-builder/scheduled-texts/mfy/{text_id}")
-            except:
+            except Exception:
                 pass
     
     def test_get_scheduled_texts_mfy(self):
@@ -124,7 +124,7 @@ class TestRDSScheduledTextsCRUD:
         assert data["duration_type"] == "fixed"
         assert data["duration_minutes"] == 15
         assert data["recurrence_type"] == "none"
-        assert data["enabled"] == True
+        assert data["enabled"]
         assert "id" in data
         
         self.created_ids.append(data["id"])
@@ -221,7 +221,7 @@ class TestRDSScheduledTextsCRUD:
         
         data = response.json()
         assert data["recurrence_type"] == "monthly"
-        assert data["enabled"] == False
+        assert not data["enabled"]
         assert data["station"] == "grk"
         
         # Cleanup in grk station
@@ -259,7 +259,7 @@ class TestRDSScheduledTextsCRUD:
         updated_data = update_response.json()
         assert updated_data["text"] == "TEST_Updated text"
         assert updated_data["duration_minutes"] == 20
-        assert updated_data["enabled"] == False
+        assert not updated_data["enabled"]
         
         # Verify by GET
         get_response = self.session.get(f"{BASE_URL}/api/rds-builder/scheduled-texts/mfy")
@@ -417,7 +417,7 @@ class TestRDSScheduledTextsActive:
         response = session.get(f"{BASE_URL}/api/rds-builder/scheduled-texts/invalid/active")
         assert response.status_code == 200
         data = response.json()
-        assert data.get("active") == False
+        assert not data.get("active")
 
 
 if __name__ == "__main__":

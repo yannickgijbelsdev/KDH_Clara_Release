@@ -34,7 +34,7 @@ class TestDragDropMedia:
             for asset in assets:
                 if asset.get("title", "").startswith("TEST_"):
                     self.session.delete(f"{BASE_URL}/api/media/{asset['id']}")
-        except:
+        except Exception:
             pass
     
     def test_get_media_assets(self):

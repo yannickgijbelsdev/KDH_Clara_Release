@@ -33,8 +33,8 @@ class TestAuthLogin2FA:
         
         # Admin has 2FA enabled, so force_2fa should be false
         assert "force_2fa" in data, "Response should contain force_2fa field"
-        assert data["force_2fa"] == False, "Admin with 2FA enabled should have force_2fa=false"
-        assert data.get("requires_2fa") == True or data.get("token") is not None, "Should either require 2FA code or return token"
+        assert not data["force_2fa"], "Admin with 2FA enabled should have force_2fa=false"
+        assert data.get("requires_2fa") or data.get("token") is not None, "Should either require 2FA code or return token"
     
     def test_login_response_contains_totp_skip_count(self):
         """Login response should contain totp_skip_count field"""
@@ -46,7 +46,7 @@ class TestAuthLogin2FA:
         data = response.json()
         
         # Check for totp_skip_count in response
-        assert "totp_skip_count" in data or data.get("requires_2fa") == True, \
+        assert "totp_skip_count" in data or data.get("requires_2fa"), \
             "Response should contain totp_skip_count or require 2FA"
 
 
@@ -341,7 +341,7 @@ class TestCheck2FAEnforcementLogic:
         
         # If user has 2FA enabled, force_2fa should be false
         if user.get("totp_enabled"):
-            assert user.get("force_2fa") == False, \
+            assert not user.get("force_2fa"), \
                 "User with 2FA enabled should have force_2fa=false"
     
     def test_enforcement_status_matches_me_endpoint(self, admin_token):

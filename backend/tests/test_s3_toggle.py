@@ -61,7 +61,7 @@ class TestS3Toggle:
         """Test system admin can login"""
         data = self._login()
         assert self.token is not None, "No token received"
-        assert data.get("user", {}).get("is_system_admin") == True, "User is not system admin"
+        assert data.get("user", {}).get("is_system_admin"), "User is not system admin"
         print(f"✓ System admin login successful, is_system_admin={data.get('user', {}).get('is_system_admin')}")
     
     # ===== TEST 2: Get Environments and verify s3_enabled field =====
@@ -96,7 +96,7 @@ class TestS3Toggle:
         assert response.status_code == 200, f"Failed to disable S3: {response.text}"
         
         updated_env = response.json()
-        assert updated_env.get("s3_enabled") == False, f"s3_enabled not set to False: {updated_env}"
+        assert not updated_env.get("s3_enabled"), f"s3_enabled not set to False: {updated_env}"
         print(f"✓ S3 disabled for staging environment (id={self.staging_env_id})")
     
     # ===== TEST 4: Verify S3 is disabled in environment list =====
@@ -117,8 +117,8 @@ class TestS3Toggle:
         staging_env = next((e for e in envs if e.get("slug") == "staging"), None)
         
         if staging_env:
-            assert staging_env.get("s3_enabled") == False, f"s3_enabled should be False: {staging_env}"
-            print(f"✓ Staging environment shows s3_enabled=False in list")
+            assert not staging_env.get("s3_enabled"), f"s3_enabled should be False: {staging_env}"
+            print("✓ Staging environment shows s3_enabled=False in list")
         else:
             pytest.skip("Staging environment not found")
     
@@ -159,7 +159,7 @@ class TestS3Toggle:
         expected_message = "Cloud Resources are disabled. Please contact Clara Support."
         assert expected_message in error_detail, f"Expected error message not found: {error_detail}"
         
-        print(f"✓ Media upload to disabled environment returns 403 with correct message")
+        print("✓ Media upload to disabled environment returns 403 with correct message")
     
     # ===== TEST 6: Re-enable S3 for staging =====
     def test_06_enable_s3_for_staging(self):
@@ -177,8 +177,8 @@ class TestS3Toggle:
         assert response.status_code == 200, f"Failed to enable S3: {response.text}"
         
         updated_env = response.json()
-        assert updated_env.get("s3_enabled") == True, f"s3_enabled not set to True: {updated_env}"
-        print(f"✓ S3 re-enabled for staging environment")
+        assert updated_env.get("s3_enabled"), f"s3_enabled not set to True: {updated_env}"
+        print("✓ S3 re-enabled for staging environment")
     
     # ===== TEST 7: Media upload with enabled S3 should succeed =====
     def test_07_media_upload_enabled_env_succeeds(self):
@@ -219,7 +219,7 @@ class TestS3Toggle:
         # Accept 201 (success) or other errors that aren't cloud resources related
         print(f"✓ Media upload to enabled environment: status={response.status_code}")
         if response.status_code == 201:
-            print(f"  Upload successful!")
+            print("  Upload successful!")
         else:
             print(f"  Response: {response.text[:200]}")
     
@@ -261,7 +261,7 @@ class TestS3Toggle:
         if response.status_code == 403:
             error_detail = response.json().get("detail", "")
             assert "Cloud Resources are disabled" not in error_detail, \
-                f"Cache not invalidated - still getting cloud resources disabled error"
+                "Cache not invalidated - still getting cloud resources disabled error"
         
         print(f"✓ Cache invalidation working - upload after re-enable: status={response.status_code}")
     
@@ -289,7 +289,7 @@ class TestS3Toggle:
                 json={"s3_enabled": True}
             )
             if response.status_code == 200:
-                print(f"✓ Cleanup: S3 re-enabled for staging environment")
+                print("✓ Cleanup: S3 re-enabled for staging environment")
             else:
                 print(f"⚠ Cleanup warning: Could not re-enable S3: {response.text}")
         else:

@@ -104,8 +104,8 @@ class TestNewsAdminPermissionsEndpoint:
         
         data = response.json()
         permissions = data.get("permissions", {})
-        assert permissions.get("shows", {}).get("view") == True, "news_admin should have shows.view permission"
-        assert permissions.get("shows", {}).get("edit") == True, "news_admin should have shows.edit permission"
+        assert permissions.get("shows", {}).get("view"), "news_admin should have shows.view permission"
+        assert permissions.get("shows", {}).get("edit"), "news_admin should have shows.edit permission"
     
     def test_news_admin_permissions_has_content_library(self, news_admin_token):
         """Test that news_admin has content_library permissions."""
@@ -120,8 +120,8 @@ class TestNewsAdminPermissionsEndpoint:
         
         data = response.json()
         permissions = data.get("permissions", {})
-        assert permissions.get("content_library", {}).get("view") == True, "news_admin should have content_library.view"
-        assert permissions.get("content_library", {}).get("create") == True, "news_admin should have content_library.create"
+        assert permissions.get("content_library", {}).get("view"), "news_admin should have content_library.view"
+        assert permissions.get("content_library", {}).get("create"), "news_admin should have content_library.create"
 
 
 class TestNewsAdminShowsAccess:
@@ -210,7 +210,7 @@ class TestNetworkAdminPermissions:
         
         data = response.json()
         # Network admin should have is_network_admin=True
-        assert data.get("is_network_admin") == True, "Network admin should have is_network_admin=True"
+        assert data.get("is_network_admin"), "Network admin should have is_network_admin=True"
         # Network admin's roleInfo should be null (they bypass role checks)
         # This is expected behavior per the bug report
         print(f"SUCCESS: Network admin has is_network_admin=True, role_slug={data.get('role_slug')}, role_info={data.get('role_info')}")

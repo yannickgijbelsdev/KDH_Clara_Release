@@ -48,7 +48,7 @@ class TestInfiniteScheduledTexts:
         for text_id in self.created_ids:
             try:
                 self.session.delete(f"{BASE_URL}/api/rds-builder/scheduled-texts/mfy/{text_id}")
-            except:
+            except Exception:
                 pass
     
     def test_create_infinite_hourly_scheduled_text(self):
@@ -73,7 +73,7 @@ class TestInfiniteScheduledTexts:
         data = response.json()
         assert data["recurrence_type"] == "hourly"
         assert data["recurrence_end_date"] is None, "Should have no end date (infinite)"
-        assert data["enabled"] == True
+        assert data["enabled"]
         
         self.created_ids.append(data["id"])
         print(f"Created infinite hourly text with ID: {data['id']}")
@@ -200,7 +200,7 @@ class TestScheduledTextEnableDisable:
         for text_id in self.created_ids:
             try:
                 self.session.delete(f"{BASE_URL}/api/rds-builder/scheduled-texts/mfy/{text_id}")
-            except:
+            except Exception:
                 pass
     
     def test_toggle_scheduled_text_enable_disable(self):
@@ -230,7 +230,7 @@ class TestScheduledTextEnableDisable:
             json={"enabled": False}
         )
         assert disable_response.status_code == 200
-        assert disable_response.json()["enabled"] == False
+        assert not disable_response.json()["enabled"]
         print("PASS: Disabled scheduled text successfully")
         
         # Enable the text again
@@ -239,7 +239,7 @@ class TestScheduledTextEnableDisable:
             json={"enabled": True}
         )
         assert enable_response.status_code == 200
-        assert enable_response.json()["enabled"] == True
+        assert enable_response.json()["enabled"]
         print("PASS: Re-enabled scheduled text successfully")
         
         # Verify by GET
@@ -247,7 +247,7 @@ class TestScheduledTextEnableDisable:
         texts = get_response.json()
         text = next((t for t in texts if t["id"] == text_id), None)
         assert text is not None
-        assert text["enabled"] == True
+        assert text["enabled"]
         print("PASS: Verified enabled state via GET")
     
     def test_disabled_scheduled_text_not_active(self):

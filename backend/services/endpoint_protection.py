@@ -1,6 +1,5 @@
 """Endpoint Protection Service — manages public/private API endpoint access per main site."""
 import time
-import uuid
 import logging
 from datetime import datetime, timezone
 from collections import defaultdict

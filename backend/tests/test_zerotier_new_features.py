@@ -60,7 +60,7 @@ class TestDeleteMemberEndpoint:
             data = response.json()
             assert "not configured" in data.get("detail", "").lower() or "zerotier" in data.get("detail", "").lower(), \
                 f"Expected 'not configured' error, got: {data}"
-            print(f"PASS: DELETE member returns 400 'ZeroTier not configured' (expected since no token on preview)")
+            print("PASS: DELETE member returns 400 'ZeroTier not configured' (expected since no token on preview)")
         else:
             print(f"PASS: DELETE member returns {response.status_code} (ZeroTier may be configured)")
     
@@ -125,7 +125,7 @@ class TestSendDailySummaryEndpoint:
             f"{BASE_URL}/api/zerotier/{ZT_MAIN_SITE_ID}/send-daily-summary",
             headers=self.headers
         )
-        assert response.status_code != 403, f"Network admin should have access, got 403"
+        assert response.status_code != 403, "Network admin should have access, got 403"
         print(f"PASS: Network admin has access to send-daily-summary (status {response.status_code})")
 
 
@@ -230,7 +230,7 @@ class TestExistingAlertSettingsCRUDRegression:
                     headers=self.headers,
                     json={"enabled": False, "recipients": []}
                 )
-            except:
+            except Exception:
                 pass
     
     def test_get_alert_settings_still_works(self):
@@ -262,9 +262,9 @@ class TestExistingAlertSettingsCRUDRegression:
         )
         assert get_res.status_code == 200
         data = get_res.json()
-        assert data.get("enabled") == True
+        assert data.get("enabled")
         assert len(data.get("recipients", [])) == 1
-        print(f"PASS: PUT + GET alert still works (regression)")
+        print("PASS: PUT + GET alert still works (regression)")
 
 
 if __name__ == "__main__":

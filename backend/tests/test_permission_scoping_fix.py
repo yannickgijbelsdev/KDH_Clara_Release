@@ -52,9 +52,9 @@ class TestPermissionScopingFix:
         data = self.login_as_system_admin()
         
         user = data.get("user", {})
-        assert user.get("is_system_admin") == True, f"Expected is_system_admin=True, got {user.get('is_system_admin')}"
-        assert user.get("is_primary_network_admin") == True, f"Expected is_primary_network_admin=True, got {user.get('is_primary_network_admin')}"
-        assert user.get("is_network_admin") == True, f"Expected is_network_admin=True, got {user.get('is_network_admin')}"
+        assert user.get("is_system_admin"), f"Expected is_system_admin=True, got {user.get('is_system_admin')}"
+        assert user.get("is_primary_network_admin"), f"Expected is_primary_network_admin=True, got {user.get('is_primary_network_admin')}"
+        assert user.get("is_network_admin"), f"Expected is_network_admin=True, got {user.get('is_network_admin')}"
         print(f"✓ Login response: is_system_admin={user.get('is_system_admin')}, is_primary_network_admin={user.get('is_primary_network_admin')}")
     
     def test_auth_me_returns_is_system_admin_true_for_primary_network_admin(self):
@@ -65,9 +65,9 @@ class TestPermissionScopingFix:
         assert response.status_code == 200, f"GET /api/auth/me failed: {response.text}"
         
         data = response.json()
-        assert data.get("is_system_admin") == True, f"Expected is_system_admin=True in /me, got {data.get('is_system_admin')}"
-        assert data.get("is_primary_network_admin") == True, f"Expected is_primary_network_admin=True in /me"
-        assert data.get("is_network_admin") == True, f"Expected is_network_admin=True in /me"
+        assert data.get("is_system_admin"), f"Expected is_system_admin=True in /me, got {data.get('is_system_admin')}"
+        assert data.get("is_primary_network_admin"), "Expected is_primary_network_admin=True in /me"
+        assert data.get("is_network_admin"), "Expected is_network_admin=True in /me"
         print(f"✓ /api/auth/me: is_system_admin={data.get('is_system_admin')}, is_primary_network_admin={data.get('is_primary_network_admin')}")
     
     # ============== ENVIRONMENTS ENDPOINT TESTS ==============
@@ -202,12 +202,12 @@ class TestPermissionScopingFix:
         headers = response.headers
         cache_control = headers.get("cache-control", "").lower()
         vary = headers.get("vary", "").lower()
-        pragma = headers.get("pragma", "").lower()
+        headers.get("pragma", "").lower()
         
         assert "no-store" in cache_control or "no-cache" in cache_control, f"Missing no-store/no-cache: {cache_control}"
         assert "authorization" in vary, f"Missing authorization in Vary: {vary}"
         
-        print(f"✓ /api/main-sites has anti-cache headers")
+        print("✓ /api/main-sites has anti-cache headers")
     
     def test_environments_has_anti_cache_headers(self):
         """GET /api/environments should have anti-cache headers"""
@@ -221,7 +221,7 @@ class TestPermissionScopingFix:
         
         assert "no-store" in cache_control or "no-cache" in cache_control, f"Missing no-store/no-cache: {cache_control}"
         
-        print(f"✓ /api/environments has anti-cache headers")
+        print("✓ /api/environments has anti-cache headers")
     
     # ============== NETWORK DASHBOARD ACCESS TESTS ==============
     
@@ -237,8 +237,8 @@ class TestPermissionScopingFix:
         assert "is_system_admin" in data, "Missing is_system_admin in my/access response"
         assert "main_sites" in data, "Missing main_sites in my/access response"
         
-        assert data.get("is_system_admin") == True, f"Expected is_system_admin=True, got {data.get('is_system_admin')}"
-        assert data.get("is_network_admin") == True, f"Expected is_network_admin=True, got {data.get('is_network_admin')}"
+        assert data.get("is_system_admin"), f"Expected is_system_admin=True, got {data.get('is_system_admin')}"
+        assert data.get("is_network_admin"), f"Expected is_network_admin=True, got {data.get('is_network_admin')}"
         
         print(f"✓ /api/main-sites/my/access: is_system_admin={data.get('is_system_admin')}, sites={len(data.get('main_sites', []))}")
     
@@ -279,8 +279,8 @@ class TestPermissionScopingFix:
         data = redeem_response.json()
         user = data.get("user", {})
         
-        assert user.get("is_system_admin") == True, f"Expected is_system_admin=True in exchange token redeem, got {user.get('is_system_admin')}"
-        assert user.get("is_primary_network_admin") == True, f"Expected is_primary_network_admin=True"
+        assert user.get("is_system_admin"), f"Expected is_system_admin=True in exchange token redeem, got {user.get('is_system_admin')}"
+        assert user.get("is_primary_network_admin"), "Expected is_primary_network_admin=True"
         
         print(f"✓ Exchange token redeem: is_system_admin={user.get('is_system_admin')}")
 

@@ -5,7 +5,6 @@ Hits the public REACT_APP_BACKEND_URL so we test what users see.
 """
 import os
 import sys
-import time
 import uuid
 import urllib.parse
 import pytest

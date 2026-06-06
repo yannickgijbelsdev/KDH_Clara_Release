@@ -99,7 +99,7 @@ class TestLicensePackages:
         assert created.get('slug') == package_data['slug']
         assert created.get('features') == package_data['features']
         assert created.get('monthly_price') == package_data['monthly_price']
-        assert created.get('is_default') == False, "Custom package should not be default"
+        assert not created.get('is_default'), "Custom package should not be default"
         
         # Cleanup - delete the test package
         pkg_id = created.get('id')
@@ -147,7 +147,7 @@ class TestLicensePackages:
         # Cleanup
         self.session.delete(f"{BASE_URL}/api/licenses/packages/{pkg_id}")
         
-        print(f"PASS: Updated package successfully")
+        print("PASS: Updated package successfully")
     
     def test_delete_custom_package(self):
         """DELETE /api/licenses/packages/{id} should delete custom package."""
@@ -290,12 +290,12 @@ class TestLicenseAssignments:
         assert assignment.get('main_site_id') == TEST_MAIN_SITE_ID
         assert assignment.get('package_id') == standard_pkg['id']
         assert assignment.get('billing_cycle') == 'monthly'
-        assert assignment.get('is_lifetime') == False
+        assert not assignment.get('is_lifetime')
         
         # Store assignment id for cleanup
         self.assignment_id = assignment.get('id')
         
-        print(f"PASS: Assigned license to site")
+        print("PASS: Assigned license to site")
         
         # Cleanup
         self._cleanup_existing_assignment(TEST_MAIN_SITE_ID)
@@ -320,7 +320,7 @@ class TestLicenseAssignments:
         assert response.status_code == 200, f"Failed: {response.text}"
         
         assignment = response.json()
-        assert assignment.get('is_lifetime') == True, "Lifetime license should have is_lifetime=True"
+        assert assignment.get('is_lifetime'), "Lifetime license should have is_lifetime=True"
         assert assignment.get('billing_cycle') == 'lifetime'
         
         print("PASS: Lifetime license assigned with is_lifetime=True")
@@ -385,7 +385,7 @@ class TestLicenseAssignments:
         check_res = self.session.get(f"{BASE_URL}/api/licenses/check/{TEST_MAIN_SITE_ID}")
         assert check_res.status_code == 200
         check_data = check_res.json()
-        assert check_data.get('has_license') == False, "License should be removed"
+        assert not check_data.get('has_license'), "License should be removed"
         
         print("PASS: License assignment removed successfully")
 
@@ -427,7 +427,7 @@ class TestLicenseCheck:
         assert response.status_code == 200, f"Failed: {response.text}"
         
         data = response.json()
-        assert data.get('has_license') == False
+        assert not data.get('has_license')
         assert data.get('package') is None
         assert data.get('assignment') is None
         
@@ -455,7 +455,7 @@ class TestLicenseCheck:
         assert response.status_code == 200, f"Failed: {response.text}"
         
         data = response.json()
-        assert data.get('has_license') == True
+        assert data.get('has_license')
         assert data.get('package') is not None
         assert data.get('assignment') is not None
         assert data['package'].get('id') == pkg['id']

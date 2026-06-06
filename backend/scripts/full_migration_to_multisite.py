@@ -331,10 +331,10 @@ async def run_migration(dry_run: bool, main_site_name: str, main_site_slug: str)
         print("Run without --dry-run to apply the migration.")
     else:
         print("\n✅ Migration complete!")
-        print(f"\nNext steps:")
+        print("\nNext steps:")
         print(f"1. Access your main site at: https://clara.koodh.com/{main_site_slug}")
-        print(f"2. Log in with a network admin account to manage main sites")
-        print(f"3. Check that all your data appears correctly")
+        print("2. Log in with a network admin account to manage main sites")
+        print("3. Check that all your data appears correctly")
     
     print("=" * 70)
 

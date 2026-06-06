@@ -7,7 +7,7 @@ from database import db
 from services.auth import get_current_user
 from models.calls import (
     AudioProfileCreate, AudioProfileUpdate,
-    CallInviteCreate, CallActionRequest,
+    CallInviteCreate,
 )
 
 calls_router = APIRouter(prefix="/calls", tags=["calls"])

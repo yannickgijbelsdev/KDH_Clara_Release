@@ -122,7 +122,7 @@ async def check_migration_status():
             continue
         
         has_main_site = await collection.count_documents({
-            "main_site_id": {"$exists": True, "$ne": None, "$ne": ""}
+            "main_site_id": {"$exists": True, "$nin": [None, ""]}
         })
         
         needs_migration = total - has_main_site
@@ -169,7 +169,7 @@ async def check_migration_status():
     if not main_sites:
         print("⚠️  STATUS: Migration REQUIRED")
         print(f"   - {total_needs_migration} documents need main_site_id")
-        print(f"   - No main sites exist yet")
+        print("   - No main sites exist yet")
         print("\n   Run: python full_migration_to_multisite.py --dry-run")
         print("   Then: python full_migration_to_multisite.py")
     elif total_needs_migration > 0:

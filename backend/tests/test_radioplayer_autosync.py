@@ -81,8 +81,8 @@ class TestRadioplayerAutoSync:
         
         data = response.json()
         # Per the test request, auto_np and auto_schedule should be ON
-        assert data.get("auto_np") == True, f"auto_np should be True, got {data.get('auto_np')}"
-        assert data.get("auto_schedule") == True, f"auto_schedule should be True, got {data.get('auto_schedule')}"
+        assert data.get("auto_np"), f"auto_np should be True, got {data.get('auto_np')}"
+        assert data.get("auto_schedule"), f"auto_schedule should be True, got {data.get('auto_schedule')}"
         
         print("PASSED: Auto-sync settings are enabled (auto_np=True, auto_schedule=True)")
     

@@ -3,7 +3,6 @@ import asyncio
 import logging
 import uuid
 import os
-import io
 import tempfile
 import shutil
 from datetime import datetime, timezone, timedelta

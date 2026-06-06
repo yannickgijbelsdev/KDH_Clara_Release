@@ -97,8 +97,8 @@ class TestPermissionsEndpoint:
         data = response.json()
         assert "permissions" in data
         assert "is_network_admin" in data
-        assert data["is_network_admin"] == True
-        assert data["permissions"].get("_full_access") == True
+        assert data["is_network_admin"]
+        assert data["permissions"].get("_full_access")
         print(f"Network admin permissions: {data}")
     
     def test_presenter_gets_limited_permissions(self, presenter_client):
@@ -109,25 +109,25 @@ class TestPermissionsEndpoint:
         data = response.json()
         assert "permissions" in data
         assert "role_slug" in data
-        assert data["is_network_admin"] == False
+        assert not data["is_network_admin"]
         
         permissions = data["permissions"]
         # Presenter should NOT have _full_access
-        assert permissions.get("_full_access") != True
+        assert not permissions.get("_full_access")
         
         # Presenter SHOULD have shows permissions (view, edit)
         if "shows" in permissions:
             shows_perms = permissions["shows"]
-            assert shows_perms.get("view") == True, "Presenter should have shows view permission"
-            assert shows_perms.get("edit") == True, "Presenter should have shows edit permission"
+            assert shows_perms.get("view"), "Presenter should have shows view permission"
+            assert shows_perms.get("edit"), "Presenter should have shows edit permission"
             # Presenter should NOT have create/delete for shows
-            assert shows_perms.get("create") != True, "Presenter should NOT have shows create permission"
-            assert shows_perms.get("delete") != True, "Presenter should NOT have shows delete permission"
+            assert not shows_perms.get("create"), "Presenter should NOT have shows create permission"
+            assert not shows_perms.get("delete"), "Presenter should NOT have shows delete permission"
         
         # Presenter should NOT have team_settings permission
         if "team_settings" in permissions:
             team_perms = permissions["team_settings"]
-            assert team_perms.get("view") != True, "Presenter should NOT have team_settings view"
+            assert not team_perms.get("view"), "Presenter should NOT have team_settings view"
         
         print(f"Presenter permissions: {data}")
         print(f"Presenter role_slug: {data.get('role_slug')}")
@@ -166,7 +166,7 @@ class TestMiddlewarePermissionChecks:
         if response.status_code == 403:
             print(f"Presenter DELETE /api/shows blocked: {response.status_code}")
         else:
-            print(f"Presenter DELETE /api/shows: got 404 (endpoint check before permission)")
+            print("Presenter DELETE /api/shows: got 404 (endpoint check before permission)")
     
     # ----- Users/Team Settings Endpoint Tests -----
     
@@ -279,7 +279,7 @@ class TestSiteAdminBypass:
         
         data = response.json()
         # Network admin should have full access
-        assert data["permissions"].get("_full_access") == True
+        assert data["permissions"].get("_full_access")
         print(f"Admin role has full access: {data}")
 
 

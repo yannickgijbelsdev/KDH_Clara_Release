@@ -5,8 +5,7 @@ import uuid
 import logging
 import httpx
 import base64
-from datetime import datetime, timezone
-from typing import Optional, List
+from typing import Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
 

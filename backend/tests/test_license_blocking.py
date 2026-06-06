@@ -62,7 +62,7 @@ class TestLicenseCheckEndpoint:
         response = requests.get(f"{BASE_URL}/api/licenses/check/{LICENSED_SITE_ID}", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        assert data["has_license"] == True, f"Expected has_license=True for licensed site, got {data}"
+        assert data["has_license"], f"Expected has_license=True for licensed site, got {data}"
         assert data["package"] is not None, "Expected package info for licensed site"
         assert data["assignment"] is not None, "Expected assignment info for licensed site"
     
@@ -72,8 +72,8 @@ class TestLicenseCheckEndpoint:
         response = requests.get(f"{BASE_URL}/api/licenses/check/{UNLICENSED_SITE_ID}", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        assert data["has_license"] == False, f"Expected has_license=False for unlicensed site, got {data}"
-        assert data["is_demo"] == False, f"Expected is_demo=False for non-demo site, got {data}"
+        assert not data["has_license"], f"Expected has_license=False for unlicensed site, got {data}"
+        assert not data["is_demo"], f"Expected is_demo=False for non-demo site, got {data}"
         assert data["package"] is None, "Expected no package for unlicensed site"
         assert data["assignment"] is None, "Expected no assignment for unlicensed site"
     
@@ -145,7 +145,7 @@ class TestUserAccessToSites:
         response = requests.get(f"{BASE_URL}/api/auth/me", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        assert data.get("is_system_admin") == True, f"Expected is_system_admin=True for system admin, got {data}"
+        assert data.get("is_system_admin"), f"Expected is_system_admin=True for system admin, got {data}"
     
     def test_network_admin_user_has_is_network_admin_flag(self, network_admin_token):
         """Test that network admin user has is_network_admin=true."""
@@ -153,8 +153,8 @@ class TestUserAccessToSites:
         response = requests.get(f"{BASE_URL}/api/auth/me", headers=headers)
         assert response.status_code == 200
         data = response.json()
-        assert data.get("is_network_admin") == True, f"Expected is_network_admin=True for network admin, got {data}"
-        assert data.get("is_system_admin") == False, f"Expected is_system_admin=False for network admin, got {data}"
+        assert data.get("is_network_admin"), f"Expected is_network_admin=True for network admin, got {data}"
+        assert not data.get("is_system_admin"), f"Expected is_system_admin=False for network admin, got {data}"
     
     def test_network_admin_has_access_to_clone_site(self, network_admin_token):
         """Test that network admin has access to the clone site."""
@@ -164,7 +164,7 @@ class TestUserAccessToSites:
         data = response.json()
         
         site_ids = [site["id"] for site in data.get("main_sites", [])]
-        assert UNLICENSED_SITE_ID in site_ids, f"Network admin should have access to clone site"
+        assert UNLICENSED_SITE_ID in site_ids, "Network admin should have access to clone site"
 
 
 class TestLicenseOverviewEndpoint:
@@ -189,7 +189,7 @@ class TestLicenseOverviewEndpoint:
         # Find the unlicensed site in overview
         unlicensed_site = next((s for s in data if s.get("site_id") == UNLICENSED_SITE_ID), None)
         if unlicensed_site:
-            assert unlicensed_site.get("has_license") == False
+            assert not unlicensed_site.get("has_license")
 
 
 if __name__ == "__main__":

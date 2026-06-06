@@ -72,7 +72,7 @@ class TestClaraTestAgent:
         assert data.get("status") == "error", "Expected error status for invalid URL"
         assert "diagnosis" in data, "Response should contain diagnosis"
         assert "raw_result" in data, "Response should contain raw_result"
-        print(f"✓ WordPress test with invalid URL returns error diagnosis")
+        print("✓ WordPress test with invalid URL returns error diagnosis")
         print(f"  Raw result: {data.get('raw_result')}")
         
     def test_test_rds_stream_missing_url(self):
@@ -106,7 +106,7 @@ class TestClaraTestAgent:
         assert data.get("status") == "error", "Expected error status for invalid stream URL"
         assert "diagnosis" in data, "Response should contain diagnosis"
         assert "raw_result" in data, "Response should contain raw_result"
-        print(f"✓ RDS stream test with invalid URL returns error diagnosis")
+        print("✓ RDS stream test with invalid URL returns error diagnosis")
         print(f"  Raw result: {data.get('raw_result')}")
         
     def test_health_scan_requires_admin(self):
@@ -133,7 +133,7 @@ class TestClaraTestAgent:
         assert "checks" in data, "Response should contain checks"
         assert isinstance(data["checks"], list), "checks should be a list"
         
-        print(f"✓ Health scan completed successfully")
+        print("✓ Health scan completed successfully")
         print(f"  Has issues: {data['has_issues']}")
         print(f"  Total checks: {len(data['checks'])}")
         print(f"  Diagnosis preview: {data['diagnosis'][:100]}...")

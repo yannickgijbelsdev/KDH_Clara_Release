@@ -13,7 +13,6 @@ Tests the following features:
 import pytest
 import requests
 import os
-import time
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL')
 TEST_EMAIL = "admkoodh@koodh.com"
@@ -218,7 +217,7 @@ class TestExchangeTokenRedeem:
         error_data = second_redeem.json()
         assert "already used" in error_data.get("detail", "").lower(), f"Expected 'already used' error, got: {error_data}"
         
-        print(f"PASSED: Second redemption correctly rejected with 'already used' error")
+        print("PASSED: Second redemption correctly rejected with 'already used' error")
     
     def test_redeem_invalid_exchange_token(self, api_client):
         """Test that invalid/fake exchange token returns 401."""

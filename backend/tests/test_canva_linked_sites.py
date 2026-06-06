@@ -90,7 +90,7 @@ class TestCanvaLinkedSites:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
         
-        assert data.get("configured") == True, f"Expected configured=True, got {data.get('configured')}"
+        assert data.get("configured"), f"Expected configured=True, got {data.get('configured')}"
         linked_ids = data.get("linked_main_site_ids", [])
         assert RADIOGROEP_SITE_ID in linked_ids, f"Expected {RADIOGROEP_SITE_ID} in linked_main_site_ids, got {linked_ids}"
         print(f"Config has linked_main_site_ids: {linked_ids}")
@@ -121,7 +121,7 @@ class TestCanvaCheckLinked:
         data = response.json()
         
         assert "available" in data, "Response should have 'available' field"
-        assert data.get("available") == False, f"Expected available=False, got {data.get('available')}"
+        assert not data.get("available"), f"Expected available=False, got {data.get('available')}"
         print(f"Check linked (unlinked): available={data.get('available')}")
 
     def test_check_linked_returns_true_for_linked_site(self, auth_headers_only, headers):
@@ -147,7 +147,7 @@ class TestCanvaCheckLinked:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
         
-        assert data.get("available") == True, f"Expected available=True, got {data.get('available')}"
+        assert data.get("available"), f"Expected available=True, got {data.get('available')}"
         assert "canva_server_slug" in data, "Response should have 'canva_server_slug'"
         assert "canva_server_name" in data, "Response should have 'canva_server_name'"
         
@@ -167,7 +167,7 @@ class TestCanvaCheckLinked:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
         
-        assert data.get("available") == False, f"Expected available=False for nonexistent site, got {data.get('available')}"
+        assert not data.get("available"), f"Expected available=False for nonexistent site, got {data.get('available')}"
 
 
 class TestCanvaCheckLinkedRequiresClientId:
@@ -195,7 +195,7 @@ class TestCanvaCheckLinkedRequiresClientId:
         data = response.json()
         
         # Should be false because client_id is empty (not configured)
-        assert data.get("available") == False, f"Expected available=False with empty client_id, got {data.get('available')}"
+        assert not data.get("available"), f"Expected available=False with empty client_id, got {data.get('available')}"
 
 
 # Cleanup after tests
@@ -211,5 +211,5 @@ def cleanup(headers):
             json={"client_id": "", "client_secret": "placeholder", "linked_main_site_ids": []}
         )
         print("Cleaned up test config")
-    except:
+    except Exception:
         pass

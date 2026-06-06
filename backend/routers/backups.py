@@ -2,12 +2,11 @@
 import asyncio
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
-from typing import Optional
 from database import db
 from services.auth import get_current_user
 from services.backup_service import (
     create_backup, restore_backup, clone_main_site,
-    delete_clone, run_daily_backup, cleanup_expired_backups,
+    delete_clone, run_daily_backup,
 )
 from services.audit import log_action
 

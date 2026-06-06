@@ -59,7 +59,7 @@ class TestAuthMe:
         assert isinstance(data["is_system_admin"], bool), "is_system_admin should be boolean"
         
         # Admin user should be system admin per context
-        assert data["is_system_admin"] == True, "Admin user should have is_system_admin=true"
+        assert data["is_system_admin"], "Admin user should have is_system_admin=true"
         print(f"PASS: /api/auth/me returns is_system_admin={data['is_system_admin']}")
 
 
@@ -144,7 +144,7 @@ class TestEnvironmentCRUD:
             
             updated = update_response.json()
             assert updated["description"] == new_desc, "Description not updated"
-            print(f"PASS: Updated staging environment description")
+            print("PASS: Updated staging environment description")
             
             # Restore original
             authenticated_client.put(
@@ -266,7 +266,7 @@ class TestMainSitesMyAccess:
         if staging_site:
             assert staging_site["environment_name"] == "Staging", \
                 f"Staging site should have environment_name='Staging', got '{staging_site.get('environment_name')}'"
-            print(f"PASS: Found staging site with environment_name='Staging'")
+            print("PASS: Found staging site with environment_name='Staging'")
         
         print(f"PASS: /api/main-sites/my/access returns environment fields for {len(sites)} sites")
 

@@ -230,7 +230,7 @@ class TestUserInviteForcePasswordChange:
         assert temp_pass_res.status_code == 200, f"Temp password check failed: {temp_pass_res.text}"
         assert "temp_password" in temp_pass_res.json()
         
-        print(f"User has temp_password set (force_password_change=true)")
+        print("User has temp_password set (force_password_change=true)")
         
         # Cleanup - delete the invited user
         requests.delete(f"{BASE_URL}/api/users/{data['id']}", headers=headers)

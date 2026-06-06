@@ -10,7 +10,6 @@ Scans all files before they reach S3 storage:
 import re
 import uuid
 import logging
-import struct
 from datetime import datetime, timezone
 from typing import Optional
 from database import db

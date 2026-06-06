@@ -139,7 +139,7 @@ class TestMediaUploadAudioVideo:
         assets = list_response.json()
         found = any(a.get("id") == self.uploaded_audio_id for a in assets)
         assert found, "Uploaded audio file should appear in media list"
-        print(f"PASS: Uploaded audio file appears in media list")
+        print("PASS: Uploaded audio file appears in media list")
     
     def test_upload_small_video_mp4(self):
         """Test uploading a small MP4 video file"""
@@ -190,7 +190,7 @@ class TestMediaUploadAudioVideo:
         assets = list_response.json()
         found = any(a.get("id") == self.uploaded_video_id for a in assets)
         assert found, "Uploaded video file should appear in media list"
-        print(f"PASS: Uploaded video file appears in media list")
+        print("PASS: Uploaded video file appears in media list")
     
     def test_upload_video_mov(self):
         """Test uploading a MOV video file (QuickTime)"""

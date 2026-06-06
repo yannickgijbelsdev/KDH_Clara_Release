@@ -1,8 +1,6 @@
 """Statistics router - Content publishing analytics per main site (network admin only)."""
-import uuid
 from datetime import datetime, timedelta
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from database import db
 from services.auth import get_current_user

@@ -202,7 +202,7 @@ async def get_migration_status(current_user: dict = Depends(require_network_admi
             continue
         
         has_main_site = await collection.count_documents({
-            "main_site_id": {"$exists": True, "$ne": None, "$ne": ""}
+            "main_site_id": {"$exists": True, "$nin": [None, ""]}
         })
         
         needs_migration = total - has_main_site

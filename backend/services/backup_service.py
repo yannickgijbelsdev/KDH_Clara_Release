@@ -10,11 +10,10 @@ import gzip
 import json
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 from database import db
 from services.s3_storage import (
-    get_s3_client, S3_BUCKET, is_s3_configured,
+    get_s3_client, S3_BUCKET,
 )
 
 logger = logging.getLogger(__name__)

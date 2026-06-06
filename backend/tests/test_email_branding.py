@@ -73,7 +73,7 @@ class TestBuildInviteEmailNoFooter:
         )
         
         # The invite email should NOT have the footer
-        assert "Clara Global Protect</div>" not in html, f"Invite email should NOT contain 'Clara Global Protect' footer"
+        assert "Clara Global Protect</div>" not in html, "Invite email should NOT contain 'Clara Global Protect' footer"
         print("PASS: build_invite_email_html does NOT contain 'Clara Global Protect' footer")
 
     def test_invite_email_no_footer_with_custom_brand(self):
@@ -111,7 +111,7 @@ class TestOtherEmailsWithFooter:
             user_name="Test User"
         )
         
-        assert "Clara Global Protect</div>" in html, f"Notification HTML missing footer"
+        assert "Clara Global Protect</div>" in html, "Notification HTML missing footer"
         print("PASS: build_notification_html contains 'Clara Global Protect' footer")
 
     def test_ticket_notification_has_footer(self):

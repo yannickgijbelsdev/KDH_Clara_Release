@@ -4,7 +4,6 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from database import db
 from models.auth import TeamCreate, TeamResponse
 from services.auth import get_current_user, require_admin
-from services.main_site_context import get_main_site_id_from_header
 
 teams_router = APIRouter(prefix="/teams", tags=["Teams"])
 

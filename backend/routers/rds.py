@@ -1,12 +1,12 @@
 """RDS Integration routes for MagicRDS and external systems."""
-from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi import APIRouter, Depends, Request
 from typing import List, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel
 import uuid
 
 from database import db
-from services.auth import get_current_user, require_admin
+from services.auth import require_admin
 from services.main_site_context import get_main_site_id_from_header
 
 rds_router = APIRouter(prefix="/rds", tags=["RDS Integration"])
@@ -370,7 +370,6 @@ async def debug_live_shows(request: Request, current_user: dict = Depends(requir
     
     Shows the current time (UTC and Brussels), and any shows that match the current timeframe.
     """
-    from datetime import timedelta
     from zoneinfo import ZoneInfo
     
     now_utc = datetime.now(timezone.utc)

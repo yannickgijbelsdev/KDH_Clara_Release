@@ -158,7 +158,7 @@ class TestLicenseRequests:
         
         approve_data = approve_response.json()
         assert approve_data["status"] == "approved", f"Expected status 'approved', got '{approve_data['status']}'"
-        print(f"✓ License request approved successfully")
+        print("✓ License request approved successfully")
         
         # Verify status persisted via GET
         verify_response = self.session.get(f"{BASE_URL}/api/licenses/requests")
@@ -175,7 +175,7 @@ class TestLicenseRequests:
         # Cleanup
         delete_response = self.session.delete(f"{BASE_URL}/api/main-sites/{site_id}")
         assert delete_response.status_code == 200
-        print(f"✓ Cleanup: Deleted test site")
+        print("✓ Cleanup: Deleted test site")
     
     def test_04_deny_license_request(self):
         """Test PUT /api/licenses/requests/{request_id} with status 'denied'"""
@@ -217,7 +217,7 @@ class TestLicenseRequests:
         
         deny_data = deny_response.json()
         assert deny_data["status"] == "denied", f"Expected status 'denied', got '{deny_data['status']}'"
-        print(f"✓ License request denied successfully")
+        print("✓ License request denied successfully")
         
         # Verify status persisted
         verify_response = self.session.get(f"{BASE_URL}/api/licenses/requests")
@@ -227,12 +227,12 @@ class TestLicenseRequests:
         updated_request = next((r for r in updated_requests if r["id"] == request_id), None)
         assert updated_request is not None, "Request not found after update"
         assert updated_request["status"] == "denied", "Status not persisted"
-        print(f"✓ Denial verified")
+        print("✓ Denial verified")
         
         # Cleanup
         delete_response = self.session.delete(f"{BASE_URL}/api/main-sites/{site_id}")
         assert delete_response.status_code == 200
-        print(f"✓ Cleanup: Deleted test site")
+        print("✓ Cleanup: Deleted test site")
     
     def test_05_invalid_status_rejected(self):
         """Test PUT /api/licenses/requests/{request_id} with invalid status returns 400"""
@@ -269,12 +269,12 @@ class TestLicenseRequests:
             json={"status": "invalid_status"}
         )
         assert invalid_response.status_code == 400, f"Expected 400, got {invalid_response.status_code}"
-        print(f"✓ Invalid status correctly rejected with 400")
+        print("✓ Invalid status correctly rejected with 400")
         
         # Cleanup
         delete_response = self.session.delete(f"{BASE_URL}/api/main-sites/{site_id}")
         assert delete_response.status_code == 200
-        print(f"✓ Cleanup: Deleted test site")
+        print("✓ Cleanup: Deleted test site")
     
     def test_06_nonexistent_request_returns_404(self):
         """Test PUT /api/licenses/requests/{request_id} with non-existent ID returns 404"""
@@ -285,7 +285,7 @@ class TestLicenseRequests:
             json={"status": "approved"}
         )
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
-        print(f"✓ Non-existent request correctly returns 404")
+        print("✓ Non-existent request correctly returns 404")
 
 
 if __name__ == "__main__":

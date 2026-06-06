@@ -1,5 +1,4 @@
 """Zero Trust regression tests."""
-import asyncio
 import os
 import sys
 import pytest

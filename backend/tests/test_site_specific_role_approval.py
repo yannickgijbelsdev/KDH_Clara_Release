@@ -12,7 +12,6 @@ Fix: get_effective_role() now checks both and returns the higher-privilege role.
 import pytest
 import requests
 import os
-import uuid
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 DBNT_MAIN_SITE_ID = "fc37cb22-b93e-4fc8-9d77-818b3af45d35"
@@ -45,7 +44,7 @@ class TestSiteSpecificRoleApproval:
                         "X-Main-Site-ID": DBNT_MAIN_SITE_ID
                     }
                     self.session.delete(f"{BASE_URL}/api/content/{content_id}", headers=headers)
-            except:
+            except Exception:
                 pass
     
     def login_as_eddy(self):

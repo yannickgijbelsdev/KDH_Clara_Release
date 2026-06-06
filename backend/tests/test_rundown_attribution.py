@@ -272,7 +272,7 @@ class TestAttributionFields:
         assert "name" in last_edited_by, "last_edited_by.name missing"
         assert "avatar_url" in last_edited_by, "last_edited_by.avatar_url missing (can be null)"
         
-        print(f"✓ Attribution fields validated:")
+        print("✓ Attribution fields validated:")
         print(f"  - created_by: id={created_by['id']}, name={created_by['name']}, avatar_url={created_by.get('avatar_url', 'None')}")
         print(f"  - last_edited_by: id={last_edited_by['id']}, name={last_edited_by['name']}")
     
@@ -324,7 +324,7 @@ def cleanup_test_items():
             for item in items:
                 if "TEST_" in (item.get("title") or ""):
                     session.delete(f"{BASE_URL}/api/shows/{EXAMPLE_SHOW_ID}/rundown/{item['id']}")
-            print(f"\n✓ Cleanup complete - removed TEST_ prefixed rundown items")
+            print("\n✓ Cleanup complete - removed TEST_ prefixed rundown items")
 
 
 if __name__ == "__main__":

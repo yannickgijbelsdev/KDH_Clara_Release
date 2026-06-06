@@ -114,7 +114,7 @@ class TestNotificationSystem:
         # Password should be masked in response
         assert data.get("password") == "••••••••", "Password not masked in response"
         assert data.get("username") == "test@example.com"
-        assert data.get("configured") == True
+        assert data.get("configured")
         assert data.get("provider") == "microsoft365"
 
     def test_get_smtp_config_returns_stored_with_masked_password(self):

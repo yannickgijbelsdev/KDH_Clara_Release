@@ -1,9 +1,8 @@
 """ZeroTier network monitoring integration."""
-import uuid
 import httpx
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from database import db
 from services.auth import get_current_user

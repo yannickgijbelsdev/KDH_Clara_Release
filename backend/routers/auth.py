@@ -7,7 +7,7 @@ import uuid
 
 from database import db, JWT_EXPIRATION_HOURS
 from models.auth import (
-    UserCreate, UserLogin, TokenResponse, UserWithTeamResponse
+    UserCreate, TokenResponse, UserWithTeamResponse
 )
 from services.auth import (
     hash_password, verify_password, create_token, get_current_user

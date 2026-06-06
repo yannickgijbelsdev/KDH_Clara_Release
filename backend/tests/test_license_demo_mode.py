@@ -48,7 +48,7 @@ class TestDemoModeAPI:
         # First get current state
         get_res = self.session.get(f"{BASE_URL}/api/main-sites/{RADIOGROEP_SITE_ID}")
         assert get_res.status_code == 200, f"Failed to get site: {get_res.text}"
-        original_is_demo = get_res.json().get('is_demo', False)
+        get_res.json().get('is_demo', False)
         
         # Update to is_demo=true
         update_res = self.session.put(
@@ -58,14 +58,14 @@ class TestDemoModeAPI:
         assert update_res.status_code == 200, f"Failed to update: {update_res.text}"
         
         updated = update_res.json()
-        assert updated.get('is_demo') == True, f"Expected is_demo=True, got {updated.get('is_demo')}"
+        assert updated.get('is_demo'), f"Expected is_demo=True, got {updated.get('is_demo')}"
         
         # Verify with GET
         verify_res = self.session.get(f"{BASE_URL}/api/main-sites/{RADIOGROEP_SITE_ID}")
         assert verify_res.status_code == 200
-        assert verify_res.json().get('is_demo') == True, "is_demo not persisted"
+        assert verify_res.json().get('is_demo'), "is_demo not persisted"
         
-        print(f"PASS: Updated site is_demo=True successfully")
+        print("PASS: Updated site is_demo=True successfully")
     
     def test_update_site_is_demo_false(self):
         """PUT /api/main-sites/{id} with is_demo=false should update the site's is_demo field."""
@@ -77,14 +77,14 @@ class TestDemoModeAPI:
         assert update_res.status_code == 200, f"Failed to update: {update_res.text}"
         
         updated = update_res.json()
-        assert updated.get('is_demo') == False, f"Expected is_demo=False, got {updated.get('is_demo')}"
+        assert not updated.get('is_demo'), f"Expected is_demo=False, got {updated.get('is_demo')}"
         
         # Verify with GET
         verify_res = self.session.get(f"{BASE_URL}/api/main-sites/{DBNT_STUDIO_SITE_ID}")
         assert verify_res.status_code == 200
-        assert verify_res.json().get('is_demo') == False, "is_demo not persisted"
+        assert not verify_res.json().get('is_demo'), "is_demo not persisted"
         
-        print(f"PASS: Updated site is_demo=False successfully")
+        print("PASS: Updated site is_demo=False successfully")
     
     def test_toggle_demo_mode(self):
         """PUT /api/main-sites/{id} should be able to toggle is_demo on and off."""
@@ -109,7 +109,7 @@ class TestDemoModeAPI:
         assert restore_res.status_code == 200
         assert restore_res.json().get('is_demo') == current_state
         
-        print(f"PASS: Demo mode toggled successfully")
+        print("PASS: Demo mode toggled successfully")
 
 
 class TestLicenseCheckWithDemo:
@@ -144,9 +144,9 @@ class TestLicenseCheckWithDemo:
         
         data = response.json()
         assert 'is_demo' in data, f"Response should contain is_demo field: {data}"
-        assert data.get('is_demo') == True, f"Expected is_demo=True for demo site, got {data.get('is_demo')}"
+        assert data.get('is_demo'), f"Expected is_demo=True for demo site, got {data.get('is_demo')}"
         
-        print(f"PASS: License check returns is_demo=True for demo site")
+        print("PASS: License check returns is_demo=True for demo site")
     
     def test_license_check_returns_is_demo_false_for_non_demo_site(self):
         """GET /api/licenses/check/{main_site_id} should return is_demo=false for non-demo sites."""
@@ -161,9 +161,9 @@ class TestLicenseCheckWithDemo:
         
         data = response.json()
         assert 'is_demo' in data, f"Response should contain is_demo field: {data}"
-        assert data.get('is_demo') == False, f"Expected is_demo=False for non-demo site, got {data.get('is_demo')}"
+        assert not data.get('is_demo'), f"Expected is_demo=False for non-demo site, got {data.get('is_demo')}"
         
-        print(f"PASS: License check returns is_demo=False for non-demo site")
+        print("PASS: License check returns is_demo=False for non-demo site")
     
     def test_license_check_demo_site_without_license(self):
         """GET /api/licenses/check for demo site without license returns has_license=false, is_demo=true."""
@@ -184,10 +184,10 @@ class TestLicenseCheckWithDemo:
         assert response.status_code == 200, f"Failed: {response.text}"
         
         data = response.json()
-        assert data.get('has_license') == False, f"Expected has_license=False, got {data.get('has_license')}"
-        assert data.get('is_demo') == True, f"Expected is_demo=True, got {data.get('is_demo')}"
+        assert not data.get('has_license'), f"Expected has_license=False, got {data.get('has_license')}"
+        assert data.get('is_demo'), f"Expected is_demo=True, got {data.get('is_demo')}"
         
-        print(f"PASS: Demo site without license returns has_license=false, is_demo=true")
+        print("PASS: Demo site without license returns has_license=false, is_demo=true")
 
 
 class TestLicenseOverviewWithDemo:
@@ -241,10 +241,10 @@ class TestLicenseOverviewWithDemo:
         dbnt = next((s for s in sites if s.get('site_id') == DBNT_STUDIO_SITE_ID), None)
         
         assert radiogroep, "Radiogroep site not found in overview"
-        assert radiogroep.get('is_demo') == True, f"Radiogroep should be demo, got {radiogroep.get('is_demo')}"
+        assert radiogroep.get('is_demo'), f"Radiogroep should be demo, got {radiogroep.get('is_demo')}"
         
         assert dbnt, "DBNT Studio site not found in overview"
-        assert dbnt.get('is_demo') == False, f"DBNT Studio should not be demo, got {dbnt.get('is_demo')}"
+        assert not dbnt.get('is_demo'), f"DBNT Studio should not be demo, got {dbnt.get('is_demo')}"
         
         print(f"PASS: Overview shows correct demo status - Radiogroep: demo={radiogroep.get('is_demo')}, DBNT: demo={dbnt.get('is_demo')}")
 

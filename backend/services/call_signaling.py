@@ -1,8 +1,6 @@
 """WebRTC Signaling Service — manages call rooms and WebSocket connections for peer-to-peer audio."""
-import json
 import logging
 import time
-from collections import defaultdict
 from fastapi import WebSocket
 
 logger = logging.getLogger("call.signaling")

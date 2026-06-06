@@ -5,7 +5,6 @@ all shows with that title should have their presenter_ids updated automatically.
 import pytest
 import requests
 import os
-import time
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
@@ -44,7 +43,7 @@ class TestPresenterSync:
         # Find Backstage Radio title
         backstage_title = next((t for t in titles if t['name'] == 'Backstage Radio'), None)
         if backstage_title:
-            print(f"Backstage Radio title found:")
+            print("Backstage Radio title found:")
             print(f"  - ID: {backstage_title['id']}")
             print(f"  - Default presenter IDs: {backstage_title.get('default_presenter_ids', [])}")
             if backstage_title.get('default_presenters'):

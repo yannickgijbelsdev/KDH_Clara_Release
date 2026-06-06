@@ -76,8 +76,8 @@ class TestMediaShareEndpoints:
         
         data = response.json()
         assert "has_share_link" in data
-        assert data["has_share_link"] == False
-        print(f"PASS: GET share link returns has_share_link=False when no link exists")
+        assert not data["has_share_link"]
+        print("PASS: GET share link returns has_share_link=False when no link exists")
     
     # ============== CREATE SHARE LINK ==============
     
@@ -115,7 +115,7 @@ class TestMediaShareEndpoints:
         token2 = response2.json()["share_token"]
         
         assert token1 == token2, "Creating share link twice should return same token"
-        print(f"PASS: Creating share link twice returns same token")
+        print("PASS: Creating share link twice returns same token")
     
     def test_create_share_link_nonexistent_asset(self, auth_headers):
         """Test POST /api/media/{asset_id}/share with non-existent asset returns 404."""
@@ -124,7 +124,7 @@ class TestMediaShareEndpoints:
             headers=auth_headers
         )
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
-        print(f"PASS: Creating share link for non-existent asset returns 404")
+        print("PASS: Creating share link for non-existent asset returns 404")
     
     # ============== GET SHARE LINK WITH EXISTING LINK ==============
     
@@ -142,11 +142,11 @@ class TestMediaShareEndpoints:
         assert response.status_code == 200, f"Failed to get share status: {response.text}"
         
         data = response.json()
-        assert data["has_share_link"] == True
+        assert data["has_share_link"]
         assert data["share_token"] == created_token
         assert "created_at" in data
         
-        print(f"PASS: GET share link returns correct share info")
+        print("PASS: GET share link returns correct share info")
     
     # ============== PUBLIC SHARE ACCESS ==============
     
@@ -167,13 +167,13 @@ class TestMediaShareEndpoints:
         content_type = public_response.headers.get("content-type", "")
         assert content_type, "Response missing content-type header"
         
-        print(f"PASS: Public share access works without authentication")
+        print("PASS: Public share access works without authentication")
     
     def test_public_share_invalid_token(self):
         """Test GET /api/share/{share_token} with invalid token returns 404."""
         response = requests.get(f"{BASE_URL}/api/share/invalid-token-12345")
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
-        print(f"PASS: Invalid share token returns 404")
+        print("PASS: Invalid share token returns 404")
     
     # ============== REVOKE SHARE LINK ==============
     
@@ -184,7 +184,7 @@ class TestMediaShareEndpoints:
         # Ensure share link exists
         create_response = requests.post(f"{BASE_URL}/api/media/{asset_id}/share", headers=auth_headers)
         assert create_response.status_code == 200
-        share_token = create_response.json()["share_token"]
+        create_response.json()["share_token"]
         
         # Revoke share link
         revoke_response = requests.delete(f"{BASE_URL}/api/media/{asset_id}/share", headers=auth_headers)
@@ -193,7 +193,7 @@ class TestMediaShareEndpoints:
         data = revoke_response.json()
         assert "message" in data
         
-        print(f"PASS: Share link revoked successfully")
+        print("PASS: Share link revoked successfully")
     
     def test_revoke_share_link_makes_public_access_fail(self, auth_headers, test_media_asset):
         """Test that revoking share link makes public access fail."""
@@ -216,7 +216,7 @@ class TestMediaShareEndpoints:
         public_response2 = requests.get(f"{BASE_URL}/api/share/{share_token}")
         assert public_response2.status_code == 404, f"Public access should fail after revoke, got {public_response2.status_code}"
         
-        print(f"PASS: Revoking share link makes public access fail")
+        print("PASS: Revoking share link makes public access fail")
     
     def test_revoke_nonexistent_share_link(self, auth_headers, test_media_asset):
         """Test DELETE /api/media/{asset_id}/share when no share link exists returns 404."""
@@ -229,7 +229,7 @@ class TestMediaShareEndpoints:
         response = requests.delete(f"{BASE_URL}/api/media/{asset_id}/share", headers=auth_headers)
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
         
-        print(f"PASS: Revoking non-existent share link returns 404")
+        print("PASS: Revoking non-existent share link returns 404")
     
     def test_revoke_share_link_nonexistent_asset(self, auth_headers):
         """Test DELETE /api/media/{asset_id}/share with non-existent asset returns 404."""
@@ -238,7 +238,7 @@ class TestMediaShareEndpoints:
             headers=auth_headers
         )
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
-        print(f"PASS: Revoking share link for non-existent asset returns 404")
+        print("PASS: Revoking share link for non-existent asset returns 404")
 
 
 class TestMediaLibraryCRUD:
@@ -264,7 +264,7 @@ class TestMediaLibraryCRUD:
         for asset in data:
             assert asset.get("kind") == "document", f"Asset kind should be document, got {asset.get('kind')}"
         
-        print(f"PASS: GET /api/media with kind=document filter works")
+        print("PASS: GET /api/media with kind=document filter works")
     
     def test_upload_media_asset(self, auth_headers):
         """Test POST /api/media uploads a new asset."""
@@ -284,12 +284,12 @@ class TestMediaLibraryCRUD:
         assert data["kind"] == "document"
         
         # Cleanup - delete the test asset
-        delete_response = requests.delete(
+        requests.delete(
             f"{BASE_URL}/api/media/{data['id']}",
             headers=auth_headers
         )
         
-        print(f"PASS: POST /api/media uploads asset successfully")
+        print("PASS: POST /api/media uploads asset successfully")
     
     def test_get_single_media_asset(self, auth_headers, test_media_asset):
         """Test GET /api/media/{asset_id} returns single asset."""
@@ -364,7 +364,7 @@ class TestMediaShareEdgeCases:
             json={"title": original_title}
         )
         
-        print(f"PASS: Share link persists after asset rename")
+        print("PASS: Share link persists after asset rename")
     
     def test_delete_asset_removes_share_link(self, auth_headers):
         """Test that deleting an asset also removes its share link."""
@@ -397,7 +397,7 @@ class TestMediaShareEdgeCases:
         public_response2 = requests.get(f"{BASE_URL}/api/share/{share_token}")
         assert public_response2.status_code == 404, "Share link should fail after asset deletion"
         
-        print(f"PASS: Deleting asset removes share link")
+        print("PASS: Deleting asset removes share link")
 
 
 if __name__ == "__main__":

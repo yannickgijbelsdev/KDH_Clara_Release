@@ -9,7 +9,6 @@ Tests for the Clara AI Assistant endpoints:
 import pytest
 import requests
 import os
-import time
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
@@ -137,7 +136,7 @@ class TestClaraAssistantChat:
         data = response.json()
         assert "response" in data
         
-        print(f"✓ Chat with content context working")
+        print("✓ Chat with content context working")
     
     def test_chat_requires_auth(self):
         """Test that chat endpoint requires authentication"""
@@ -199,7 +198,7 @@ class TestClaraAssistantSEOGenerate:
         data = response.json()
         assert "body" in data
         
-        print(f"✓ SEO generate with medium length working")
+        print("✓ SEO generate with medium length working")
     
     def test_seo_generate_requires_topic(self, auth_headers):
         """Test that topic is required"""

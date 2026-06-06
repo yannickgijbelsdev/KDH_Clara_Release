@@ -2,7 +2,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 import httpx
-import asyncio
 import logging
 
 logger = logging.getLogger(__name__)

@@ -17,10 +17,10 @@ from models.content import (
     ContentItemCreate, ContentItemUpdate, ContentItemResponse,
     FeaturedImageResponse, CategoryResponse, ContentApprovalUpdate
 )
-from services.auth import get_current_user, require_editor_or_admin, require_admin, require_can_approve_content
+from services.auth import get_current_user, require_editor_or_admin, require_admin
 from services.helpers import get_content_with_publish_statuses
 from services.audit import log_action, get_client_ip
-from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured, check_cloud_resources_enabled
+from services.s3_storage import upload_file_to_s3, delete_file_from_s3, is_s3_configured
 from services.main_site_context import get_main_site_id_from_header, get_effective_role
 
 content_router = APIRouter(prefix="/content", tags=["Content Library"])
@@ -73,6 +73,9 @@ async def create_content_audit_log(
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
     await db.content_audit_logs.insert_one(log_entry)
+    # Strip the Mongo-injected `_id` so callers never accidentally serialize
+    # a raw ObjectId in API responses.
+    log_entry.pop("_id", None)
     return log_entry
 
 
@@ -294,7 +297,7 @@ async def get_content_items(
         
         return items
         
-    except Exception as e:
+    except Exception:
         import traceback
         traceback.print_exc()
         return []
@@ -1157,7 +1160,7 @@ async def upload_content_featured_image(
         if old_key.startswith("content/") and is_s3_configured():
             try:
                 await delete_file_from_s3(old_key)
-            except:
+            except Exception:
                 pass
         else:
             old_file = UPLOADS_DIR / old_key
@@ -1272,7 +1275,7 @@ async def delete_content_featured_image(
         if storage_key.startswith("content/") and is_s3_configured():
             try:
                 await delete_file_from_s3(storage_key)
-            except:
+            except Exception:
                 pass
         else:
             file_path = UPLOADS_DIR / storage_key
@@ -1371,7 +1374,7 @@ async def upload_featured_image(
         if old_key.startswith("featured/") and is_s3_configured():
             try:
                 await delete_file_from_s3(old_key)
-            except:
+            except Exception:
                 pass
         else:
             old_file = UPLOADS_DIR / old_key
@@ -1443,7 +1446,7 @@ async def update_featured_image_attribution_per_site(
       • WordPress: into the WP media caption / alt_text / description.
       • Clara News API: as `image_attribution` in the article payload.
     """
-    main_site_id = await get_main_site_id_from_header(request)
+    await get_main_site_id_from_header(request)
     img = await db.content_item_featured_images.find_one({
         "content_item_id": content_id,
         "wordpress_site_id": site_id,
@@ -1502,7 +1505,7 @@ async def delete_featured_image(
     if storage_key.startswith("featured/") and is_s3_configured():
         try:
             await delete_file_from_s3(storage_key)
-        except:
+        except Exception:
             pass
     else:
         file_path = UPLOADS_DIR / storage_key

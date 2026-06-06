@@ -112,6 +112,9 @@ async def log_action(
     # Trigger notification in background (non-blocking)
     asyncio.create_task(_trigger_notification_from_audit(log_entry))
 
+    # Strip the Mongo-injected `_id` so callers never accidentally serialize
+    # a raw ObjectId in API responses.
+    log_entry.pop("_id", None)
     return log_entry
 
 

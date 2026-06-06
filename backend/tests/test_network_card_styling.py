@@ -83,7 +83,7 @@ class TestNetworkAdminAccess:
         assert "is_network_admin" in data, "Response missing 'is_network_admin' key"
         
         # Verify user is recognized as network admin
-        assert data["is_network_admin"] == True, "User should be recognized as network_admin"
+        assert data["is_network_admin"], "User should be recognized as network_admin"
         
         # Count sites returned
         sites_returned = len(data["main_sites"])

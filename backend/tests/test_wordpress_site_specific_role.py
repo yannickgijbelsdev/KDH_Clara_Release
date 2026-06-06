@@ -9,7 +9,6 @@ User: Deborah Baeten (or test user eddy.thijs@grk.fm)
 """
 import pytest
 import requests
-import os
 import uuid
 
 BASE_URL = "https://api-turbo.preview.emergentagent.com"
@@ -121,7 +120,7 @@ class TestSiteAdminWordPressAccess:
         
         response = api_client.post(f"{BASE_URL}/api/wordpress/sites", json=test_site_data)
         assert response.status_code == 403, f"Expected 403 but got {response.status_code}: {response.text}"
-        print(f"SUCCESS: Site admin POST /api/wordpress/sites WITHOUT header correctly returns 403 (presenter cannot create)")
+        print("SUCCESS: Site admin POST /api/wordpress/sites WITHOUT header correctly returns 403 (presenter cannot create)")
     
     def test_site_admin_post_site_with_header_returns_201(self, api_client, site_admin_token):
         """With X-Main-Site-ID header, site admin (site role=admin) CAN create WordPress sites."""
@@ -176,7 +175,7 @@ class TestCategoriesWithSiteSpecificRole:
         response = api_client.post(f"{BASE_URL}/api/content/categories?name=TEST_Category_NoHeader")
         # Presenter without site admin role should get 403
         assert response.status_code == 403, f"Expected 403 but got {response.status_code}: {response.text}"
-        print(f"SUCCESS: POST /api/content/categories WITHOUT header correctly returns 403 for presenter")
+        print("SUCCESS: POST /api/content/categories WITHOUT header correctly returns 403 for presenter")
     
     def test_create_category_with_header_returns_200(self, api_client, site_admin_token):
         """With X-Main-Site-ID header, site admin can create categories."""
@@ -219,7 +218,7 @@ class TestWordPressEndpointSecurity:
         
         response = api_client.post(f"{BASE_URL}/api/wordpress/sites/{site_id}/sync-categories")
         assert response.status_code == 403, f"Expected 403 but got {response.status_code}: {response.text}"
-        print(f"SUCCESS: sync-categories WITHOUT header correctly returns 403 for presenter")
+        print("SUCCESS: sync-categories WITHOUT header correctly returns 403 for presenter")
     
     def test_sync_categories_with_header_site_admin(self, api_client, site_admin_token):
         """Site admin with header can access sync-categories."""

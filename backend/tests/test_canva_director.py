@@ -82,7 +82,7 @@ class TestCanvaConfig:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         data = response.json()
         
-        assert data.get("configured") == True, f"Expected configured=True, got {data.get('configured')}"
+        assert data.get("configured"), f"Expected configured=True, got {data.get('configured')}"
         assert data.get("client_id") == "OC-TEST-CLIENT-ID-12345", f"Client ID mismatch: {data.get('client_id')}"
         
         # Secret should be masked (first 4 chars + ****)
@@ -103,7 +103,7 @@ class TestCanvaAuthStatus:
         data = response.json()
         
         assert "connected" in data, "Response should have 'connected' field"
-        assert data.get("connected") == False, f"Expected connected=False, got {data.get('connected')}"
+        assert not data.get("connected"), f"Expected connected=False, got {data.get('connected')}"
         print(f"Auth status: connected={data['connected']}")
 
 
@@ -200,5 +200,5 @@ def cleanup(headers):
             json={"client_id": "", "client_secret": "placeholder"}
         )
         print("Cleaned up test config")
-    except:
+    except Exception:
         pass

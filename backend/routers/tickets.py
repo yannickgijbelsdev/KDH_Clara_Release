@@ -3,7 +3,7 @@ import uuid
 import asyncio
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from database import db
 from services.auth import get_current_user

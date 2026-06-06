@@ -4,15 +4,15 @@ Lets system admins register external APIs per main site, run health checks
 (HTTP status + path validation + schema validation), and import specs from
 free-text prompts, OpenAPI/Swagger, or Postman collections.
 """
-from fastapi import APIRouter, HTTPException, Depends, Request, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import List
 import uuid
 import json
 import httpx
 import asyncio
 
-from services.auth import get_current_user, require_network_admin
+from services.auth import require_network_admin
 from database import db
 
 clara_custom_router = APIRouter(prefix="/clara-custom", tags=["clara-custom"])
@@ -57,10 +57,14 @@ def _schema_matches(value, schema) -> bool:
         if items and value:
             return all(_schema_matches(v, items) for v in value[:5])
         return True
-    if t == "string":  return isinstance(value, str)
-    if t == "number":  return isinstance(value, (int, float)) and not isinstance(value, bool)
-    if t == "integer": return isinstance(value, int) and not isinstance(value, bool)
-    if t == "boolean": return isinstance(value, bool)
+    if t == "string":
+        return isinstance(value, str)
+    if t == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if t == "integer":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if t == "boolean":
+        return isinstance(value, bool)
     return True
 
 

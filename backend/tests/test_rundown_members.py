@@ -9,7 +9,6 @@ Tests:
 import pytest
 import requests
 import os
-import json
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 ADMIN_EMAIL = "admkoodh@koodh.com"

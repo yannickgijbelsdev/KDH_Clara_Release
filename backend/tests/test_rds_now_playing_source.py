@@ -124,7 +124,7 @@ class TestRDSNowPlayingSourceWithBothStation:
         assert data.get("song_title") == "TEST_MFY_SONG - Artist MFY", \
             f"Song title should be MFY's song, got '{data.get('song_title')}'"
         
-        print(f"SUCCESS: GRK now-playing returned MFY data:")
+        print("SUCCESS: GRK now-playing returned MFY data:")
         print(f"  - station: {data.get('station')}")
         print(f"  - source_station: {data.get('source_station')}")
         print(f"  - song_title: {data.get('song_title')}")
@@ -260,7 +260,7 @@ class TestRDSNowPlayingSourceWithGRKOnlyStation:
         assert data.get("song_title") == "TEST_GRK_SONG_2 - Artist GRK", \
             f"Song title should be GRK's own song, got '{data.get('song_title')}'"
         
-        print(f"SUCCESS: GRK now-playing returned its own data:")
+        print("SUCCESS: GRK now-playing returned its own data:")
         print(f"  - station: {data.get('station')}")
         print(f"  - source_station: {data.get('source_station')}")
         print(f"  - song_title: {data.get('song_title')}")
@@ -349,7 +349,7 @@ class TestRDSNowPlayingSourceNoActiveShow:
         assert data.get("song_title") == "TEST_GRK_SONG_3 - No Show GRK", \
             f"Song title should be GRK's own song, got '{data.get('song_title')}'"
         
-        print(f"SUCCESS: GRK now-playing returned its own data (no active show):")
+        print("SUCCESS: GRK now-playing returned its own data (no active show):")
         print(f"  - station: {data.get('station')}")
         print(f"  - source_station: {data.get('source_station')}")
         print(f"  - song_title: {data.get('song_title')}")
@@ -361,7 +361,7 @@ class TestRDSBuilderSchedulerSourceLogic:
     @pytest.fixture(autouse=True)
     def setup_test_data(self):
         """Create test show for scheduler testing"""
-        now = datetime.now(timezone.utc).isoformat()
+        datetime.now(timezone.utc).isoformat()
         
         # Deactivate any existing active shows
         db.rds_cached_rundowns.update_many(
@@ -458,7 +458,7 @@ class TestRDSNowPlayingResponseSchema:
         data = response.json()
         
         # MFY should always show its own data
-        assert data.get("station") == "mfy", f"Station should be 'mfy'"
+        assert data.get("station") == "mfy", "Station should be 'mfy'"
         assert "song_title" in data, "Should have song_title"
         
         print(f"SUCCESS: MFY response schema correct: station={data.get('station')}")

@@ -139,7 +139,7 @@ class TestRDSBuilderAPI:
             headers=auth_headers
         )
         assert get_response.status_code == 200
-        current_data = get_response.json()
+        get_response.json()
         
         # Create new sequence with custom text
         test_custom_text = f"TEST_Custom_Text_{int(time.time())}"

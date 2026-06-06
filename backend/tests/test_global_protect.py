@@ -101,7 +101,7 @@ class TestFileUploadAllowed(TestGlobalProtectSetup):
         assert resp.status_code in [200, 201], f"Valid PNG should upload. Got: {resp.status_code} - {resp.text}"
         data = resp.json()
         assert "url" in data, "Response should contain 'url'"
-        print(f"SUCCESS: Valid PNG uploaded")
+        print("SUCCESS: Valid PNG uploaded")
     
     def test_upload_valid_pdf(self, auth_data):
         """Upload valid PDF should succeed"""
@@ -124,7 +124,7 @@ class TestFileUploadAllowed(TestGlobalProtectSetup):
         assert resp.status_code in [200, 201], f"Valid PDF should upload. Got: {resp.status_code} - {resp.text}"
         data = resp.json()
         assert "url" in data, "Response should contain 'url'"
-        print(f"SUCCESS: Valid PDF uploaded")
+        print("SUCCESS: Valid PDF uploaded")
     
     def test_upload_valid_mp3_extension(self, auth_data):
         """Upload MP3 by extension should succeed (extension validation passes before MIME check)"""
@@ -156,7 +156,7 @@ class TestFileUploadAllowed(TestGlobalProtectSetup):
             assert True, "MIME mismatch detection is working as expected"
         else:
             assert resp.status_code in [200, 201], f"Unexpected response: {resp.status_code} - {resp.text}"
-            print(f"SUCCESS: Valid MP3 uploaded")
+            print("SUCCESS: Valid MP3 uploaded")
 
 
 class TestFileUploadBlocked(TestGlobalProtectSetup):

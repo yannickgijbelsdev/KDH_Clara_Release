@@ -2,7 +2,6 @@
 import uuid
 import asyncio
 import pathlib
-import shutil
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request

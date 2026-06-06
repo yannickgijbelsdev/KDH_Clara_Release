@@ -84,7 +84,7 @@ async def check_expiring_licenses():
     """Check for licenses expiring within 30 days and send reminders."""
     logger.info("Checking for expiring licenses...")
     now = datetime.now(timezone.utc)
-    threshold = now + timedelta(days=REMINDER_THRESHOLD_DAYS)
+    now + timedelta(days=REMINDER_THRESHOLD_DAYS)
 
     # Find active, non-lifetime assignments with expires_at within threshold
     assignments = await db.license_assignments.find({

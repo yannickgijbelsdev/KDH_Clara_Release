@@ -77,7 +77,7 @@ class TestClaraHealthModal:
         assert "success" in data, "Missing success field"
         assert "diagnosis" in data, "Missing diagnosis field"
         # Should fail because connection not found
-        assert data["success"] == False, "Expected failure for nonexistent connection"
+        assert not data["success"], "Expected failure for nonexistent connection"
         print(f"WordPress retest diagnosis: {data['diagnosis'][:100]}...")
     
     def test_retest_check_rds_stream_no_url(self):
@@ -92,7 +92,7 @@ class TestClaraHealthModal:
         data = response.json()
         assert "success" in data, "Missing success field"
         assert "diagnosis" in data, "Missing diagnosis field"
-        assert data["success"] == False, "Expected failure for empty stream URL"
+        assert not data["success"], "Expected failure for empty stream URL"
         print(f"RDS retest diagnosis: {data['diagnosis'][:100]}...")
     
     def test_retest_check_rds_stream_with_url(self):
@@ -121,7 +121,7 @@ class TestClaraHealthModal:
         assert response.status_code == 200, f"Retest check failed: {response.text}"
         
         data = response.json()
-        assert data["success"] == False, "Expected failure for unknown type"
+        assert not data["success"], "Expected failure for unknown type"
         assert "Unknown check type" in data["diagnosis"], f"Unexpected diagnosis: {data['diagnosis']}"
     
     def test_retest_check_requires_auth(self):
@@ -148,7 +148,7 @@ class TestClaraHealthModal:
         
         if failed_checks:
             check = failed_checks[0]
-            print(f"Sample failed check structure:")
+            print("Sample failed check structure:")
             print(f"  site: {check.get('site')}")
             print(f"  site_id: {check.get('site_id')}")
             print(f"  site_slug: {check.get('site_slug')}")

@@ -1,6 +1,5 @@
 """Audio Trigger Router - API endpoints for audio trigger management."""
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel, Field
 from typing import Optional, List
 import uuid
@@ -528,7 +527,7 @@ async def get_audio_trigger_system_status(
     try:
         from server import audio_trigger_scheduler
         scheduler_running = audio_trigger_scheduler is not None and audio_trigger_scheduler.running
-    except:
+    except Exception:
         pass
     
     return {

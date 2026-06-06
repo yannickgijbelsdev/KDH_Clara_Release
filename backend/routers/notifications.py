@@ -1,5 +1,5 @@
 """Notification configuration and management endpoints."""
-from fastapi import APIRouter, HTTPException, Depends, Request, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from datetime import datetime, timezone
 import uuid
 from services.auth import get_current_user
@@ -7,8 +7,7 @@ from services.email_service import (
     SMTP_PROVIDERS, NOTIFICATION_CATEGORIES,
     test_smtp_config, send_email_with_config, build_notification_html,
     _get_branding_info,
-    build_broadcast_html, get_site_notification_layout, _get_site_logo,
-    DEFAULT_LAYOUT, SEVERITY_STYLES,
+    build_broadcast_html, get_site_notification_layout, DEFAULT_LAYOUT, SEVERITY_STYLES,
 )
 from database import db
 

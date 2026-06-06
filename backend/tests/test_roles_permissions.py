@@ -161,7 +161,7 @@ class TestRolesPermissions:
         admin_role = next((r for r in data["roles"] if r["name"] == "Admin"), None)
         
         assert admin_role is not None, "Admin role should exist"
-        assert admin_role.get("is_system") == True, "Admin role should have is_system=True"
+        assert admin_role.get("is_system"), "Admin role should have is_system=True"
         print("✓ Admin role is_system=True (protected)")
     
     def test_roles_have_required_fields(self):
@@ -202,7 +202,7 @@ class TestRolesPermissions:
         data = response.json()
         assert data["name"] == new_role_name
         assert data["color"] == "#22c55e"
-        assert data["is_system"] == False, "Custom role should not be system role"
+        assert not data["is_system"], "Custom role should not be system role"
         assert "id" in data, "Response should include role ID"
         assert "permissions" in data, "Response should include permissions"
         
@@ -294,9 +294,9 @@ class TestRolesPermissions:
         assert update_res.status_code == 200
         data = update_res.json()
         
-        assert data["permissions"]["shows"]["view"] == True
-        assert data["permissions"]["shows"]["delete"] == False
-        assert data["permissions"]["calendar"]["create"] == False
+        assert data["permissions"]["shows"]["view"]
+        assert not data["permissions"]["shows"]["delete"]
+        assert not data["permissions"]["calendar"]["create"]
         
         # Clean up
         self.session.delete(f"{BASE_URL}/api/roles/{MAIN_SITE_ID}/{role_id}")
@@ -338,7 +338,7 @@ class TestRolesPermissions:
         assert delete_res.status_code == 200, f"Expected 200, got {delete_res.status_code}: {delete_res.text}"
         
         data = delete_res.json()
-        assert data.get("deleted") == True
+        assert data.get("deleted")
         
         # Verify role is gone
         get_res = self.session.get(f"{BASE_URL}/api/roles/{MAIN_SITE_ID}")
@@ -385,9 +385,9 @@ class TestRolesPermissions:
         permissions = viewer_role.get("permissions", {})
         
         # Viewer should have view-only on shows, calendar, support_tickets
-        assert permissions.get("shows", {}).get("view") == True
-        assert permissions.get("shows", {}).get("create") == False
-        assert permissions.get("calendar", {}).get("view") == True
+        assert permissions.get("shows", {}).get("view")
+        assert not permissions.get("shows", {}).get("create")
+        assert permissions.get("calendar", {}).get("view")
         
         print("✓ Viewer role has limited permissions as expected")
     
@@ -402,12 +402,12 @@ class TestRolesPermissions:
         permissions = editor_role.get("permissions", {})
         
         # Editor should have full access to content-related features
-        assert permissions.get("content_library", {}).get("view") == True
-        assert permissions.get("content_library", {}).get("create") == True
+        assert permissions.get("content_library", {}).get("view")
+        assert permissions.get("content_library", {}).get("create")
         
         # But limited access to admin features
-        assert permissions.get("team_settings", {}).get("view") == False
-        assert permissions.get("firewall", {}).get("edit") == False
+        assert not permissions.get("team_settings", {}).get("view")
+        assert not permissions.get("firewall", {}).get("edit")
         
         print("✓ Editor role has appropriate permissions")
     
@@ -422,12 +422,12 @@ class TestRolesPermissions:
         permissions = presenter_role.get("permissions", {})
         
         # Presenter should be able to view and edit shows
-        assert permissions.get("shows", {}).get("view") == True
-        assert permissions.get("shows", {}).get("edit") == True
+        assert permissions.get("shows", {}).get("view")
+        assert permissions.get("shows", {}).get("edit")
         
         # Can upload to media library but can't delete
-        assert permissions.get("media_library", {}).get("create") == True
-        assert permissions.get("media_library", {}).get("delete") == False
+        assert permissions.get("media_library", {}).get("create")
+        assert not permissions.get("media_library", {}).get("delete")
         
         print("✓ Presenter role has show-focused permissions")
 

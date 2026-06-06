@@ -34,7 +34,7 @@ class TestSystemAdminLogin:
         assert "token" in data, "Token missing from login response"
         assert "user" in data, "User missing from login response"
         assert data["user"]["email"] == SYSTEM_ADMIN_EMAIL
-        assert data["user"]["is_network_admin"] == True or data["user"]["is_system_admin"] == True, \
+        assert data["user"]["is_network_admin"] or data["user"]["is_system_admin"], \
             "User should be network admin or system admin"
         
         print(f"Login SUCCESS: {data['user']['name']} - is_system_admin={data['user'].get('is_system_admin')}, is_network_admin={data['user'].get('is_network_admin')}")

@@ -183,7 +183,7 @@ async def health():
 @api_router.get("/files/{path:path}")
 async def serve_file(path: str, auth: str = None):
     """Serve a file from object storage. Supports ?auth=token for img src usage."""
-    from fastapi import Query, Header, Response
+    from fastapi import Response
     from services.object_storage import get_object
     try:
         data, content_type = get_object(path)
@@ -692,7 +692,7 @@ EDITOR_UPLOADS_DIR = UPLOADS_DIR.parent / 'editor_files'
 EDITOR_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Import S3 storage
-from services.s3_storage import upload_file_to_s3, is_s3_configured, get_s3_url
+from services.s3_storage import upload_file_to_s3, is_s3_configured
 
 @api_router.post("/uploads/editor-files")
 async def upload_editor_file(

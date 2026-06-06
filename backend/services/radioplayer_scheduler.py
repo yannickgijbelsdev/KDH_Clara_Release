@@ -8,7 +8,6 @@ similar to how the RDS scheduler refreshes metadata.
 """
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
 
 from database import db
 

@@ -43,7 +43,7 @@ class TestAuthentication:
         """Verify network admin can log in"""
         assert auth_token is not None
         assert len(auth_token) > 0
-        print(f"Login successful, token received")
+        print("Login successful, token received")
     
     def test_user_is_network_admin(self, auth_token):
         """Verify logged in user is a network admin"""
@@ -52,7 +52,7 @@ class TestAuthentication:
         })
         assert response.status_code == 200
         user = response.json()
-        assert user.get("is_network_admin") == True, f"User is not network admin: {user}"
+        assert user.get("is_network_admin"), f"User is not network admin: {user}"
         print(f"User {user.get('email')} is confirmed as network admin")
 
 
@@ -161,7 +161,7 @@ class TestDataIsolation:
         assert response.status_code == 200
         shows = response.json()
         assert len(shows) == 0, f"DBNT should have 0 shows but has {len(shows)}: {shows}"
-        print(f"DBNT shows count: 0 (correct)")
+        print("DBNT shows count: 0 (correct)")
     
     def test_dbnt_has_zero_media(self, auth_token, dbnt_id):
         """DBNT should have 0 media items"""
@@ -172,7 +172,7 @@ class TestDataIsolation:
         assert response.status_code == 200
         media = response.json()
         assert len(media) == 0, f"DBNT should have 0 media but has {len(media)}"
-        print(f"DBNT media count: 0 (correct)")
+        print("DBNT media count: 0 (correct)")
     
     def test_dbnt_has_zero_content(self, auth_token, dbnt_id):
         """DBNT should have 0 content items"""
@@ -183,7 +183,7 @@ class TestDataIsolation:
         assert response.status_code == 200
         content = response.json()
         assert len(content) == 0, f"DBNT should have 0 content items but has {len(content)}"
-        print(f"DBNT content items count: 0 (correct)")
+        print("DBNT content items count: 0 (correct)")
     
     def test_dbnt_has_zero_series(self, auth_token, dbnt_id):
         """DBNT should have 0 show series"""
@@ -194,7 +194,7 @@ class TestDataIsolation:
         assert response.status_code == 200
         series = response.json()
         assert len(series) == 0, f"DBNT should have 0 series but has {len(series)}"
-        print(f"DBNT series count: 0 (correct)")
+        print("DBNT series count: 0 (correct)")
     
     def test_dbnt_has_zero_show_titles(self, auth_token, dbnt_id):
         """DBNT should have 0 show titles"""
@@ -205,7 +205,7 @@ class TestDataIsolation:
         assert response.status_code == 200
         titles = response.json()
         assert len(titles) == 0, f"DBNT should have 0 show titles but has {len(titles)}"
-        print(f"DBNT show titles count: 0 (correct)")
+        print("DBNT show titles count: 0 (correct)")
     
     def test_dbnt_has_zero_studios(self, auth_token, dbnt_id):
         """DBNT should have 0 studios"""
@@ -216,7 +216,7 @@ class TestDataIsolation:
         assert response.status_code == 200
         studios = response.json()
         assert len(studios) == 0, f"DBNT should have 0 studios but has {len(studios)}"
-        print(f"DBNT studios count: 0 (correct)")
+        print("DBNT studios count: 0 (correct)")
 
 
 class TestContentCreationIsolation:
@@ -277,8 +277,8 @@ class TestContentCreationIsolation:
         assert response.status_code == 200
         dbnt_titles = response.json()
         dbnt_names = [t.get("name") for t in dbnt_titles]
-        assert test_name in dbnt_names, f"Created show title not found in DBNT"
-        print(f"Verified show title exists in DBNT")
+        assert test_name in dbnt_names, "Created show title not found in DBNT"
+        print("Verified show title exists in DBNT")
         
         # Verify it does NOT appear in Radiogroep
         response = requests.get(f"{BASE_URL}/api/shows/titles", headers={
@@ -288,15 +288,15 @@ class TestContentCreationIsolation:
         assert response.status_code == 200
         radiogroep_titles = response.json()
         radiogroep_names = [t.get("name") for t in radiogroep_titles]
-        assert test_name not in radiogroep_names, f"DBNT show title appeared in Radiogroep - isolation broken!"
-        print(f"Verified show title does NOT exist in Radiogroep (isolation working)")
+        assert test_name not in radiogroep_names, "DBNT show title appeared in Radiogroep - isolation broken!"
+        print("Verified show title does NOT exist in Radiogroep (isolation working)")
         
         # Cleanup - delete the test show title
         response = requests.delete(f"{BASE_URL}/api/shows/titles/{created_id}", headers={
             "Authorization": f"Bearer {auth_token}",
             "X-Main-Site-ID": dbnt_id
         })
-        print(f"Cleaned up test show title")
+        print("Cleaned up test show title")
 
 
 class TestXMainSiteIDHeaderBehavior:
@@ -404,7 +404,7 @@ class TestMyAccessEndpoint:
         data = response.json()
         
         # Network admin should see all sites
-        assert data.get("is_network_admin") == True, "User should be network admin"
+        assert data.get("is_network_admin"), "User should be network admin"
         assert "main_sites" in data, "Response should have main_sites"
         
         main_sites = data["main_sites"]

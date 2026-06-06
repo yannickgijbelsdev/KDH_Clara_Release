@@ -71,7 +71,7 @@ class TestAudioProfiles:
                     f"{BASE_URL}/api/calls/profiles/{profile_id}",
                     headers=self.headers
                 )
-            except:
+            except Exception:
                 pass
     
     def test_create_audio_profile(self):
@@ -273,7 +273,7 @@ class TestCallInvites:
                     f"{BASE_URL}/api/calls/invites/{invite_id}",
                     headers=self.headers
                 )
-            except:
+            except Exception:
                 pass
     
     def test_create_invite(self):
@@ -414,7 +414,7 @@ class TestPublicCallJoin:
                     f"{BASE_URL}/api/calls/invites/{invite_id}",
                     headers=self.auth_headers
                 )
-            except:
+            except Exception:
                 pass
     
     def test_get_invite_info_public(self):
@@ -559,7 +559,7 @@ class TestCallLifecycle:
                     f"{BASE_URL}/api/calls/invites/{invite_id}",
                     headers=self.auth_headers
                 )
-            except:
+            except Exception:
                 pass
     
     def test_host_ends_active_call(self):

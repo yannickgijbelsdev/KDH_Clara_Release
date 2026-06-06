@@ -188,7 +188,7 @@ class TestRolesList:
                     f"Output should show permissions: {output}"
                 print(f"Custom role permissions:\n{output}")
             else:
-                print(f"Custom role not found (may not exist in this site)")
+                print("Custom role not found (may not exist in this site)")
         else:
             print(f"Could not get custom role permissions: {response.text}")
 

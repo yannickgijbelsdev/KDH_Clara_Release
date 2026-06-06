@@ -10,7 +10,6 @@ import pytest
 import requests
 import os
 import uuid
-from datetime import datetime, timezone, timedelta
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL').rstrip('/')
 
@@ -212,7 +211,7 @@ class TestZeroTierAlertCRUD:
                     headers=self.headers,
                     json={"enabled": False, "recipients": []}
                 )
-            except:
+            except Exception:
                 pass
     
     def test_create_alert_with_recipients(self):
@@ -240,7 +239,7 @@ class TestZeroTierAlertCRUD:
         )
         assert get_res.status_code == 200
         data = get_res.json()
-        assert data.get("enabled") == True
+        assert data.get("enabled")
         assert len(data.get("recipients", [])) == 1
         print("PASS: Alert verified via GET")
     

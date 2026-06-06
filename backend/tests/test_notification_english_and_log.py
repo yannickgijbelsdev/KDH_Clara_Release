@@ -206,7 +206,7 @@ class TestDailyDigestTrigger:
         logs = response.json()
         
         # Look for daily_digest_sent entry
-        digest_entries = [l for l in logs if l.get("event_type") == "daily_digest_sent"]
+        digest_entries = [entry for entry in logs if entry.get("event_type") == "daily_digest_sent"]
         assert len(digest_entries) > 0, "No daily_digest_sent entry found in recent logs"
 
     def test_daily_digest_requires_auth(self):
@@ -242,9 +242,9 @@ class TestLoginNotificationTrigger:
         
         # Find any login-related entries (Login, successful_login, etc.)
         login_entries = [
-            l for l in logs 
-            if "login" in l.get("event_type", "").lower() or 
-               l.get("category") == "security"
+            entry for entry in logs
+            if "login" in entry.get("event_type", "").lower() or
+               entry.get("category") == "security"
         ]
         assert len(login_entries) > 0, "No login-related entries found in notification log"
 
@@ -268,7 +268,7 @@ class TestLoginNotificationTrigger:
         assert response.status_code == 200
         logs = response.json()
         
-        security_entries = [l for l in logs if l.get("category") == "security"]
+        security_entries = [entry for entry in logs if entry.get("category") == "security"]
         # Should have at least one security event (from our login)
         assert len(security_entries) > 0, "No security category entries in log"
 

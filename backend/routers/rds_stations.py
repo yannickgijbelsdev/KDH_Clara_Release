@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, List
 from pydantic import BaseModel, Field
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException
 
 from database import db
 from services.auth import get_current_user

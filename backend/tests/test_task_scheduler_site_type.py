@@ -69,7 +69,7 @@ class TestTaskSchedulerSiteCreation:
         """POST /api/main-sites - should create task_scheduler with only task_boards (core feature)"""
         unique_slug = f"test-ts-minimal-{uuid.uuid4().hex[:8]}"
         payload = {
-            "name": f"TEST Minimal Task Scheduler",
+            "name": "TEST Minimal Task Scheduler",
             "slug": unique_slug,
             "site_type": "task_scheduler",
             "enabled_features": ["task_boards"]  # Only core feature

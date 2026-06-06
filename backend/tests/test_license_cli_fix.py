@@ -115,7 +115,7 @@ class TestLicenseCLIFix:
         assert site_entry is not None, f"Site {self.test_site_id} not found in overview"
         
         # Verify the license is visible (has_license should be True)
-        assert site_entry.get("has_license") == True, f"License not visible in overview: {site_entry}"
+        assert site_entry.get("has_license"), f"License not visible in overview: {site_entry}"
         assert site_entry.get("billing_cycle") == "monthly", f"Wrong billing_cycle: {site_entry}"
         assert site_entry.get("license_status") == "active", f"Wrong status: {site_entry}"
         print(f"License visible in overview: {site_entry}")
@@ -148,8 +148,8 @@ class TestLicenseCLIFix:
         overview_res = self.session.get(f"{BASE_URL}/api/licenses/overview")
         overview = overview_res.json()
         site_entry = next((s for s in overview if s.get("site_id") == self.test_site_id), None)
-        assert site_entry is not None, f"Site not found in overview"
-        assert site_entry.get("has_license") == True, f"License not visible"
+        assert site_entry is not None, "Site not found in overview"
+        assert site_entry.get("has_license"), "License not visible"
         assert site_entry.get("billing_cycle") == "yearly", f"Wrong billing_cycle: {site_entry.get('billing_cycle')}"
         print(f"Yearly license verified: {site_entry}")
         
@@ -181,9 +181,9 @@ class TestLicenseCLIFix:
         overview_res = self.session.get(f"{BASE_URL}/api/licenses/overview")
         overview = overview_res.json()
         site_entry = next((s for s in overview if s.get("site_id") == self.test_site_id), None)
-        assert site_entry is not None, f"Site not found in overview"
-        assert site_entry.get("has_license") == True, f"License not visible"
-        assert site_entry.get("is_lifetime") == True, f"Not marked as lifetime: {site_entry}"
+        assert site_entry is not None, "Site not found in overview"
+        assert site_entry.get("has_license"), "License not visible"
+        assert site_entry.get("is_lifetime"), f"Not marked as lifetime: {site_entry}"
         print(f"Lifetime license verified: {site_entry}")
         
         # Cleanup
@@ -215,8 +215,8 @@ class TestLicenseCLIFix:
         overview_res = self.session.get(f"{BASE_URL}/api/licenses/overview")
         overview = overview_res.json()
         site_entry = next((s for s in overview if s.get("site_id") == self.test_site_id), None)
-        assert site_entry is not None, f"Site not found in overview"
-        assert site_entry.get("has_license") == False, f"License still visible after remove: {site_entry}"
+        assert site_entry is not None, "Site not found in overview"
+        assert not site_entry.get("has_license"), f"License still visible after remove: {site_entry}"
         print(f"License removed verified: {site_entry}")
     
     # ==================== REST API TESTS ====================
@@ -321,7 +321,7 @@ class TestLicenseCLIFix:
         
         site_entry = next((s for s in overview if s.get("site_id") == self.test_site_id), None)
         assert site_entry is not None, "Site not found in overview"
-        assert site_entry.get("has_license") == True, f"CLI license not visible in REST overview: {site_entry}"
+        assert site_entry.get("has_license"), f"CLI license not visible in REST overview: {site_entry}"
         assert site_entry.get("license_package") == "Standard", f"Wrong package: {site_entry}"
         print(f"CLI->REST cross-compatibility verified: {site_entry}")
         

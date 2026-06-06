@@ -543,9 +543,9 @@ async def _cmd_site_convert(sid, target_input):
 
     lines = [
         f"Site '{site['name']}' converted successfully.",
-        f"",
+        "",
         f"  {old_display}  ->  {new_display}",
-        f"",
+        "",
         f"  Features ({len(new_features)}):",
     ]
     for f in new_features:
@@ -641,7 +641,7 @@ async def _cmd_zt_guard_set(network_id: str, api_token: str):
     except Exception as e:
         return {"output": f"Failed to reach ZeroTier API: {str(e)}", "type": "error"}
 
-    result = await save_zt_guard_config(api_token, network_id, False)
+    await save_zt_guard_config(api_token, network_id, False)
 
     lines = [
         "ZeroTier Guard configured successfully.",
@@ -669,8 +669,8 @@ async def _cmd_zt_guard_test(request):
     if result.get("allowed"):
         member = result.get("member_name", "Unknown")
         lines = [
-            f"ACCESS GRANTED",
-            f"",
+            "ACCESS GRANTED",
+            "",
             f"  Your IP:       {client_ip}",
             f"  ZT Member:     {member}",
             f"  Reason:        {result.get('reason', '')}",
@@ -678,12 +678,12 @@ async def _cmd_zt_guard_test(request):
         return {"output": "\n".join(lines), "type": "success"}
     else:
         lines = [
-            f"ACCESS DENIED",
-            f"",
+            "ACCESS DENIED",
+            "",
             f"  Your IP:       {client_ip}",
             f"  Reason:        {result.get('reason', '')}",
-            f"",
-            f"Make sure your device is connected to the ZeroTier network.",
+            "",
+            "Make sure your device is connected to the ZeroTier network.",
         ]
         return {"output": "\n".join(lines), "type": "error"}
 
@@ -999,7 +999,7 @@ async def _cmd_users_sessions(sid):
             lines.append(f"\n  [{label}]")
             for u, status, diff in group:
                 name = u.get("name", "?")
-                email = u.get("email", "?")
+                u.get("email", "?")
                 role = roles.get(u["id"], "?")
                 if status == "NEVER":
                     ago = "never logged in"
@@ -1105,7 +1105,7 @@ async def _cmd_firewall_scan(sid):
     lines.append(f"  2FA coverage:      {len(users) - len(no_2fa_admins)}/{len(users)}")
 
     if no_2fa_admins:
-        lines.append(f"\n  [WARNING] Admins without 2FA:")
+        lines.append("\n  [WARNING] Admins without 2FA:")
         for u in no_2fa_admins:
             lines.append(f"    - {u['name']} ({u['email']})")
 
@@ -1113,7 +1113,7 @@ async def _cmd_firewall_scan(sid):
         lines.append(f"\n  [ATTENTION] Account issues ({len(issues)}):")
         lines.extend(issues)
     else:
-        lines.append(f"\n  [OK] No account issues detected.")
+        lines.append("\n  [OK] No account issues detected.")
 
     severity = "warning" if issues or no_2fa_admins else "success"
     return {"output": "\n".join(lines), "type": severity}
@@ -1212,9 +1212,8 @@ async def _cmd_site_features(sid):
     lines = [f"Feature Modules ({len(enabled)}/{len(ALL_FEATURES)} enabled)", "=" * 50]
     for f in ALL_FEATURES:
         status = "+" if f in enabled else "-"
-        color_hint = "enabled" if f in enabled else "disabled"
         lines.append(f"  [{status}] {f}")
-    lines.append(f"\nUse /site features enable <name> or /site features disable <name>")
+    lines.append("\nUse /site features enable <name> or /site features disable <name>")
     return {"output": "\n".join(lines), "type": "success"}
 
 
@@ -1387,7 +1386,7 @@ async def _cmd_license_packages():
         lines.append(f"\n  {p['name']}")
         lines.append(f"    Price: {p.get('monthly_price', p.get('price_monthly', 0))}/mo | {p.get('yearly_price', p.get('price_yearly', 0))}/yr")
         lines.append(f"    Features: {', '.join(p.get('features', []))}")
-    lines.append(f"\nUse /license assign <package_name> <monthly|yearly|lifetime>")
+    lines.append("\nUse /license assign <package_name> <monthly|yearly|lifetime>")
     return {"output": "\n".join(lines), "type": "success"}
 
 
@@ -1412,7 +1411,7 @@ async def _cmd_license_assign(sid, pkg_name, lic_type):
         "billing_cycle": lic_type,
         "is_lifetime": lic_type == "lifetime",
         "status": "active",
-        "notes": f"Assigned via CLI",
+        "notes": "Assigned via CLI",
         "payment_provider": None,
         "payment_reference": None,
         "starts_at": now,
@@ -1443,7 +1442,7 @@ async def _cmd_logs_recent(sid, count):
     if not logs:
         return {"output": "No activity logs found.", "type": "info"}
     lines = [f"Recent Activity ({len(logs)} entries)", "-" * 65]
-    for l in logs:
+    for l in logs:  # noqa: E741
         ts = l.get("created_at", "?")[:19]
         action = l.get("action", "?")
         user_name = l.get("user_name", "?")
@@ -1459,7 +1458,7 @@ async def _cmd_logs_cli(sid):
     if not logs:
         return {"output": "No CLI commands executed yet.", "type": "info"}
     lines = [f"CLI Command History ({len(logs)} entries)", "-" * 60]
-    for l in logs:
+    for l in logs:  # noqa: E741
         ts = l.get("executed_at", "?")[:19]
         name = l.get("user_name", "?")
         cmd = l.get("command", "?")
@@ -1474,7 +1473,7 @@ async def _cmd_logs_errors(sid, count):
     if not logs:
         return {"output": "No error logs found. All clear!", "type": "success"}
     lines = [f"Error Logs ({len(logs)} entries)", "-" * 60]
-    for l in logs:
+    for l in logs:  # noqa: E741
         ts = l.get("created_at", "?")[:19]
         detail = l.get("detail", l.get("action", "?"))
         lines.append(f"  {ts}  {detail[:60]}")
@@ -1524,7 +1523,7 @@ async def _cmd_health(sid):
     user_ids = [a["user_id"] for a in accesses]
     existing = await db.users.find({"id": {"$in": user_ids}}, {"_id": 0, "id": 1}).to_list(200)
     orphaned = len(user_ids) - len(existing)
-    checks.append(("User Integrity", f"OK" if orphaned == 0 else f"WARNING ({orphaned} orphaned references)"))
+    checks.append(("User Integrity", "OK" if orphaned == 0 else f"WARNING ({orphaned} orphaned references)"))
 
     # Features check
     site = await db.main_sites.find_one({"id": sid}, {"_id": 0, "enabled_features": 1})
@@ -1622,17 +1621,17 @@ async def _cmd_protect_status(sid):
 
     lines = [
         "Clara Global Protect — Status", "=" * 55,
-        f"\n  [This Site]",
+        "\n  [This Site]",
         f"    Total Scans:     {total}",
         f"    Allowed:         {allowed}",
         f"    Blocked:         {blocked}",
-        f"    Block Rate:      {(blocked/total*100):.1f}%" if total > 0 else f"    Block Rate:      N/A",
-        f"\n  [Global]",
+        f"    Block Rate:      {(blocked/total*100):.1f}%" if total > 0 else "    Block Rate:      N/A",
+        "\n  [Global]",
         f"    Total Scans:     {g_total}",
         f"    Blocked:         {g_blocked}",
-        f"\n  Engine:            Active",
+        "\n  Engine:            Active",
         f"  MIME Detection:    {'python-magic' if True else 'basic'}",
-        f"  Content Scanning:  Enabled",
+        "  Content Scanning:  Enabled",
         f"  Malware Sigs:      {len(MALWARE_SIGS)} patterns",
     ]
     return {"output": "\n".join(lines), "type": "success"}
@@ -1658,13 +1657,13 @@ async def _cmd_protect_logs(sid, count):
     if not logs:
         return {"output": "No scan logs recorded yet.", "type": "info"}
     lines = [f"Global Protect Scan Logs ({len(logs)} entries)", "-" * 70]
-    for l in logs:
+    for l in logs:  # noqa: E741
         ts = l.get("scanned_at", "?")[:19]
         status = "BLOCKED" if not l.get("passed") else "OK"
         fname = l.get("filename", "?")[:25]
         mime = l.get("detected_mime", "?")[:20]
         size_kb = l.get("file_size", 0) / 1024
-        user = l.get("user_name", "?")[:15]
+        l.get("user_name", "?")[:15]
         threats = ", ".join(l.get("threats", []))[:30] if not l.get("passed") else ""
         icon = "X" if not l.get("passed") else "+"
         lines.append(f"  [{icon}] {ts}  {fname:<25} {mime:<20} {size_kb:>7.1f}KB  {status}")
@@ -1684,7 +1683,7 @@ async def _cmd_protect_blocked(sid, count):
     if not logs:
         return {"output": "No blocked files recorded. All clear!", "type": "success"}
     lines = [f"Blocked Files ({len(logs)})", "-" * 70]
-    for l in logs:
+    for l in logs:  # noqa: E741
         ts = l.get("scanned_at", "?")[:19]
         fname = l.get("filename", "?")
         user = l.get("user_name", "?")
@@ -1707,17 +1706,17 @@ def _cmd_protect_rules():
         f"    {', '.join('.' + e for e in allowed)}",
         f"\n  [Blocked Extensions] ({len(blocked)})",
         f"    {', '.join('.' + e for e in blocked)}",
-        f"\n  [File Size Limits]",
+        "\n  [File Size Limits]",
     ]
     for cat, limit in SIZE_LIMITS.items():
         lines.append(f"    {cat:<15} {limit / (1024*1024):.0f} MB")
-    lines.append(f"\n  [Scan Layers]")
-    lines.append(f"    1. Extension validation (whitelist + blacklist)")
-    lines.append(f"    2. MIME type detection (magic bytes)")
-    lines.append(f"    3. MIME type mismatch (spoofing detection)")
-    lines.append(f"    4. Malware signature scan (PE, ELF, Mach-O, scripts)")
-    lines.append(f"    5. Content pattern scan (XSS, eval, encoded payloads)")
-    lines.append(f"    6. Double extension attack detection")
+    lines.append("\n  [Scan Layers]")
+    lines.append("    1. Extension validation (whitelist + blacklist)")
+    lines.append("    2. MIME type detection (magic bytes)")
+    lines.append("    3. MIME type mismatch (spoofing detection)")
+    lines.append("    4. Malware signature scan (PE, ELF, Mach-O, scripts)")
+    lines.append("    5. Content pattern scan (XSS, eval, encoded payloads)")
+    lines.append("    6. Double extension attack detection")
     return {"output": "\n".join(lines), "type": "success"}
 
 

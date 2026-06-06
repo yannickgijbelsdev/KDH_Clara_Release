@@ -58,8 +58,8 @@ class TestCopySiteAndNotifications:
         
         # Verify user is system admin
         user = result.get("user", {})
-        assert user.get("is_system_admin") == True, "User should be system admin"
-        assert user.get("is_network_admin") == True, "User should also be network admin"
+        assert user.get("is_system_admin"), "User should be system admin"
+        assert user.get("is_network_admin"), "User should also be network admin"
         print(f"✓ Logged in as system admin: {user.get('name')} ({user.get('email')})")
     
     def test_02_verify_source_site_exists(self):
@@ -95,7 +95,7 @@ class TestCopySiteAndNotifications:
         assert response.status_code == 200, f"Copy failed: {response.text}"
         
         result = response.json()
-        print(f"✓ Copy result:")
+        print("✓ Copy result:")
         print(f"  - New site ID: {result.get('id')}")
         print(f"  - Name: {result.get('name')}")
         print(f"  - Slug: {result.get('slug')}")
@@ -210,7 +210,7 @@ class TestCopySiteAndNotifications:
         assert response.status_code == 200, f"System admin should have access: {response.text}"
         
         data = response.json()
-        print(f"✓ System admin can access SMTP config")
+        print("✓ System admin can access SMTP config")
         print(f"  - Configured: {data.get('configured', False)}")
     
     def test_10_notifications_role_settings_requires_system_admin(self):
@@ -219,7 +219,7 @@ class TestCopySiteAndNotifications:
         
         response = self.session.get(f"{BASE_URL}/api/notifications/role-settings")
         assert response.status_code == 200, f"System admin should have access: {response.text}"
-        print(f"✓ System admin can access role settings")
+        print("✓ System admin can access role settings")
     
     def test_11_notifications_system_alert_requires_system_admin(self):
         """GET /api/notifications/system-alert should require system admin."""
@@ -227,7 +227,7 @@ class TestCopySiteAndNotifications:
         
         response = self.session.get(f"{BASE_URL}/api/notifications/system-alert")
         assert response.status_code == 200, f"System admin should have access: {response.text}"
-        print(f"✓ System admin can access system alert settings")
+        print("✓ System admin can access system alert settings")
     
     def test_12_notifications_log_requires_system_admin(self):
         """GET /api/notifications/log should require system admin."""
@@ -235,7 +235,7 @@ class TestCopySiteAndNotifications:
         
         response = self.session.get(f"{BASE_URL}/api/notifications/log")
         assert response.status_code == 200, f"System admin should have access: {response.text}"
-        print(f"✓ System admin can access notification log")
+        print("✓ System admin can access notification log")
     
     def test_13_verify_notification_endpoints_use_require_system_admin(self):
         """Verify notification endpoints check is_system_admin, not just is_network_admin."""
@@ -254,7 +254,7 @@ class TestCopySiteAndNotifications:
             assert response.status_code == 200, f"{endpoint} failed: {response.status_code}"
             print(f"✓ {endpoint} - OK")
         
-        print(f"✓ All notification endpoints accessible to system admin")
+        print("✓ All notification endpoints accessible to system admin")
     
     # ═══════════════════════════════════════════════════════════════════════════
     # FRONTEND SIDEBAR VISIBILITY TESTS (via code review)

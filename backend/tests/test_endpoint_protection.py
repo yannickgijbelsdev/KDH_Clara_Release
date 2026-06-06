@@ -105,14 +105,14 @@ class TestGetEndpointGroups(TestEndpointProtectionAuth):
         data = response.json()
         
         for group in data["groups"]:
-            assert "id" in group, f"Group missing 'id' field"
-            assert "label" in group, f"Group missing 'label' field"
-            assert "description" in group, f"Group missing 'description' field"
-            assert "prefixes" in group, f"Group missing 'prefixes' field"
-            assert "is_public" in group, f"Group missing 'is_public' field"
+            assert "id" in group, "Group missing 'id' field"
+            assert "label" in group, "Group missing 'label' field"
+            assert "description" in group, "Group missing 'description' field"
+            assert "prefixes" in group, "Group missing 'prefixes' field"
+            assert "is_public" in group, "Group missing 'is_public' field"
             assert isinstance(group["is_public"], bool), "'is_public' should be boolean"
         
-        print(f"SUCCESS: All groups have required structure")
+        print("SUCCESS: All groups have required structure")
 
     def test_all_expected_groups_present(self, admin_session):
         """All 18 expected endpoint groups should be present"""
@@ -125,7 +125,7 @@ class TestGetEndpointGroups(TestEndpointProtectionAuth):
         for expected_group in EXPECTED_GROUPS:
             assert expected_group in group_ids, f"Missing expected group: {expected_group}"
         
-        print(f"SUCCESS: All 18 expected groups present")
+        print("SUCCESS: All 18 expected groups present")
 
 
 class TestUpdateEndpointProtection(TestEndpointProtectionAuth):
@@ -151,7 +151,7 @@ class TestUpdateEndpointProtection(TestEndpointProtectionAuth):
         assert "public_groups" in data
         assert "statistics" in data["public_groups"], "statistics should be in public_groups"
         
-        print(f"SUCCESS: Made 'statistics' endpoint group public")
+        print("SUCCESS: Made 'statistics' endpoint group public")
 
     def test_update_make_group_private(self, admin_session):
         """PUT /api/firewall/endpoints/{main_site_id} can make a group private"""
@@ -172,7 +172,7 @@ class TestUpdateEndpointProtection(TestEndpointProtectionAuth):
         
         assert "statistics" not in data["public_groups"], "statistics should not be in public_groups"
         
-        print(f"SUCCESS: Made 'statistics' endpoint group private")
+        print("SUCCESS: Made 'statistics' endpoint group private")
 
     def test_update_invalid_group_rejected(self, admin_session):
         """PUT /api/firewall/endpoints/{main_site_id} rejects invalid group IDs"""
@@ -184,7 +184,7 @@ class TestUpdateEndpointProtection(TestEndpointProtectionAuth):
         assert response.status_code == 400, f"Expected 400 for invalid group, got {response.status_code}"
         assert "Unknown group" in response.json().get("detail", "")
         
-        print(f"SUCCESS: Invalid group ID rejected with 400")
+        print("SUCCESS: Invalid group ID rejected with 400")
 
     def test_update_empty_public_groups_allowed(self, admin_session):
         """PUT /api/firewall/endpoints/{main_site_id} allows empty public_groups (all private)"""
@@ -198,7 +198,7 @@ class TestUpdateEndpointProtection(TestEndpointProtectionAuth):
         
         assert data["public_groups"] == [], "All groups should be private"
         
-        print(f"SUCCESS: Empty public_groups (all private) allowed")
+        print("SUCCESS: Empty public_groups (all private) allowed")
 
 
 class TestEndpointConnections(TestEndpointProtectionAuth):
@@ -395,7 +395,7 @@ class TestEndpointTogglePersistence(TestEndpointProtectionAuth):
             assert group is not None
             assert group["is_public"] is True, f"{group_id}.is_public should be True"
         
-        print(f"SUCCESS: Settings persist correctly")
+        print("SUCCESS: Settings persist correctly")
         
         # Clean up
         admin_session.put(

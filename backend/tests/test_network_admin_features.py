@@ -54,8 +54,8 @@ class TestNetworkAdminFeatures:
         assert "is_primary_network_admin" in data, "Missing is_primary_network_admin field"
         
         # Primary admin should have both true
-        assert data["is_network_admin"] == True, "is_network_admin should be True"
-        assert data["is_primary_network_admin"] == True, "is_primary_network_admin should be True"
+        assert data["is_network_admin"], "is_network_admin should be True"
+        assert data["is_primary_network_admin"], "is_primary_network_admin should be True"
     
     # ===== User Preferences tests =====
     
@@ -119,10 +119,10 @@ class TestNetworkAdminFeatures:
             assert "email" in admin
             assert "name" in admin
             assert "is_network_admin" in admin
-            assert admin["is_network_admin"] == True
+            assert admin["is_network_admin"]
         
         # Check that primary admin exists with is_primary_network_admin field
-        primary_admins = [a for a in data if a.get("is_primary_network_admin") == True]
+        primary_admins = [a for a in data if a.get("is_primary_network_admin")]
         assert len(primary_admins) >= 1, "Should have at least 1 primary network admin"
     
     def test_get_network_admins_excludes_sensitive_fields(self):
@@ -226,7 +226,7 @@ class TestNetworkAdminFeatures:
             admins = admins_res.json()
             updated_admin = next((a for a in admins if a["id"] == admin_id), None)
             assert updated_admin is not None
-            assert updated_admin.get("network_permissions", {}).get("manage_sites") == True
+            assert updated_admin.get("network_permissions", {}).get("manage_sites")
         finally:
             # Cleanup
             self.session.delete(f"{BASE_URL}/api/users/network-admins/{admin_id}")
@@ -350,7 +350,7 @@ class TestNetworkAdminPermissionsGranular:
             admins = admins_res.json()
             ro_admin = next((a for a in admins if a["id"] == admin_id), None)
             assert ro_admin is not None
-            assert ro_admin.get("network_permissions", {}).get("read_only") == True
+            assert ro_admin.get("network_permissions", {}).get("read_only")
         finally:
             # Cleanup
             self.session.delete(f"{BASE_URL}/api/users/network-admins/{admin_id}")

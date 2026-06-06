@@ -82,7 +82,7 @@ class TestCloneSiteBasics:
         expected_fields = ["id", "name", "slug", "enabled_features", "cloned_from"]
         for field in expected_fields:
             assert field in site, f"Field '{field}' missing from MainSiteResponse"
-        print(f"✓ MainSiteResponse includes cloned_from field")
+        print("✓ MainSiteResponse includes cloned_from field")
 
     def test_original_site_has_no_cloned_from(self, auth_headers):
         """Original site should have cloned_from as null"""
@@ -94,7 +94,7 @@ class TestCloneSiteBasics:
         
         site = response.json()
         assert site.get("cloned_from") is None, "Original site should not have cloned_from"
-        print(f"✓ Original site has cloned_from=null")
+        print("✓ Original site has cloned_from=null")
 
 
 class TestDevToolsSourceEndpoint:
@@ -126,7 +126,7 @@ class TestDevToolsSourceEndpoint:
         
         data = response.json()
         assert "content" in data
-        print(f"✓ Component file accessible")
+        print("✓ Component file accessible")
 
     def test_valid_context_file(self, auth_headers):
         """Context file paths are allowed"""
@@ -138,7 +138,7 @@ class TestDevToolsSourceEndpoint:
         
         data = response.json()
         assert "content" in data
-        print(f"✓ Context file accessible")
+        print("✓ Context file accessible")
 
     def test_invalid_path_with_directory_traversal(self, auth_headers):
         """Path with '..' should return 400"""
@@ -148,7 +148,7 @@ class TestDevToolsSourceEndpoint:
         )
         assert response.status_code == 400
         assert "Invalid path" in response.json().get("detail", "")
-        print(f"✓ Directory traversal blocked with 400")
+        print("✓ Directory traversal blocked with 400")
 
     def test_path_outside_allowed_prefixes(self, auth_headers):
         """Path not in allowed prefixes should return 403"""
@@ -158,7 +158,7 @@ class TestDevToolsSourceEndpoint:
         )
         assert response.status_code == 403
         assert "not allowed" in response.json().get("detail", "")
-        print(f"✓ Unauthorized path blocked with 403")
+        print("✓ Unauthorized path blocked with 403")
 
     def test_nonexistent_file_returns_404(self, auth_headers):
         """Non-existent file should return 404"""
@@ -168,7 +168,7 @@ class TestDevToolsSourceEndpoint:
         )
         assert response.status_code == 404
         assert "not found" in response.json().get("detail", "").lower()
-        print(f"✓ Non-existent file returns 404")
+        print("✓ Non-existent file returns 404")
 
     def test_unauthenticated_request_returns_401(self):
         """Unauthenticated requests should be rejected"""
@@ -199,7 +199,7 @@ class TestCloneSiteNavigation:
         )
         # Shows endpoint should work
         assert response.status_code == 200
-        print(f"✓ Shows endpoint accessible")
+        print("✓ Shows endpoint accessible")
 
     def test_clone_site_enabled_features(self, auth_headers):
         """Clone site should have same features as original"""

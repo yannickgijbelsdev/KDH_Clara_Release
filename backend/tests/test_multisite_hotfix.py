@@ -47,7 +47,7 @@ def radiogroep_main_site_id(auth_token):
         if site.get("slug") == RADIOGROEP_SLUG:
             return site.get("id")
     
-    pytest.skip(f"Radiogroep main site not found")
+    pytest.skip("Radiogroep main site not found")
 
 
 @pytest.fixture(scope="module")
@@ -62,7 +62,7 @@ def dbntstudio_main_site_id(auth_token):
         if site.get("slug") == DBNTSTUDIO_SLUG:
             return site.get("id")
     
-    pytest.skip(f"DBNT Studio main site not found")
+    pytest.skip("DBNT Studio main site not found")
 
 
 class TestAuthentication:
@@ -78,7 +78,7 @@ class TestAuthentication:
         data = response.json()
         assert "token" in data
         assert "user" in data
-        assert data["user"]["is_network_admin"] == True
+        assert data["user"]["is_network_admin"]
         print(f"✅ Network admin login successful: {data['user']['email']}")
 
 
@@ -293,8 +293,8 @@ class TestDataIsolation:
         print(f"✅ Radiogroep content: {len(radiogroep_content)}, DBNT Studio content: {len(dbnt_content)}")
         
         # Verify isolation - Radiogroep has significantly more content
-        assert len(radiogroep_content) > 100, f"Radiogroep should have 100+ content items"
-        assert len(dbnt_content) < 10, f"DBNT Studio should have <10 content items"
+        assert len(radiogroep_content) > 100, "Radiogroep should have 100+ content items"
+        assert len(dbnt_content) < 10, "DBNT Studio should have <10 content items"
 
 
 if __name__ == "__main__":

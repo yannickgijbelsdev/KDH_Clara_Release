@@ -177,7 +177,7 @@ class TestS3RecordingUpload:
         assert attachment["url"].startswith("/api/support-tickets/files/"), f"url should be proxy path, got: {attachment['url']}"
         
         # Should have is_recording flag
-        assert attachment.get("is_recording") == True, "Recording should have is_recording=True"
+        assert attachment.get("is_recording"), "Recording should have is_recording=True"
         
         # Should NOT have data_url
         assert "data_url" not in attachment, "S3 upload should NOT return data_url"
@@ -337,7 +337,7 @@ class TestCreateTicketWithS3:
             json=message_data
         )
         assert msg_response.status_code == 200, f"Failed to add message: {msg_response.text}"
-        print(f"✓ Added message with attachment")
+        print("✓ Added message with attachment")
         
         # 4. Verify ticket detail contains the attachment with S3 URL
         detail_response = requests.get(
@@ -353,14 +353,14 @@ class TestCreateTicketWithS3:
         
         att = messages_with_attachments[-1]["attachments"][0]
         assert "storage_path" in att or "url" in att, "Attachment should have S3 storage_path or url"
-        print(f"✓ Verified attachment in ticket detail")
+        print("✓ Verified attachment in ticket detail")
         
         # 5. Verify file can be accessed via proxy
         if "url" in att:
             file_url = f"{BASE_URL}{att['url']}?auth={admin_token}"
             file_response = requests.get(file_url)
             assert file_response.status_code == 200, f"Failed to access file: {file_response.status_code}"
-            print(f"✓ File accessible via proxy URL")
+            print("✓ File accessible via proxy URL")
         
         return ticket_id
 

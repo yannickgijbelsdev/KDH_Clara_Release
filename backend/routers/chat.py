@@ -14,7 +14,7 @@ from models.chat import (
 )
 from services.auth import get_current_user
 from services.audit import log_action, get_client_ip
-from services.s3_storage import upload_file_to_s3, is_s3_configured, check_cloud_resources_enabled
+from services.s3_storage import upload_file_to_s3, is_s3_configured
 from services.main_site_context import get_main_site_id_from_header
 
 chat_router = APIRouter(prefix="/chat", tags=["Chat"])

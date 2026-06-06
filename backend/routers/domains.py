@@ -10,13 +10,12 @@ import httpx
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 
 from database import db
 from services.auth import get_current_user
 
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 

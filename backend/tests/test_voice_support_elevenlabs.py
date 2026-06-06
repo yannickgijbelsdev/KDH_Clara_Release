@@ -144,7 +144,7 @@ class TestVoiceSupportElevenLabsAPI:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         
         data = response.json()
-        assert data.get("saved") == True, "Response should indicate saved=True"
+        assert data.get("saved"), "Response should indicate saved=True"
     
     def test_get_sessions_list(self):
         """GET /api/voice-support/sessions returns session history"""

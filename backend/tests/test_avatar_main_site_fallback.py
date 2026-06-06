@@ -148,7 +148,7 @@ class TestAvatarDeleteMainSiteFallback:
         
         # Should succeed - either removes avatar or confirms no avatar exists
         assert response.status_code == 200, f"Avatar delete failed: {response.status_code} - {response.text}"
-        print(f"SUCCESS: Avatar delete worked for DBNT user via main_site fallback")
+        print("SUCCESS: Avatar delete worked for DBNT user via main_site fallback")
     
     def test_avatar_delete_nonexistent_user(self, admin_headers):
         """Test delete avatar for non-existent user returns 404."""

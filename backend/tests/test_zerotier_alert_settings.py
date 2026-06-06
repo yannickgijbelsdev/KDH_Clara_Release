@@ -106,7 +106,7 @@ class TestZeroTierAlertSettingsSiteAccess:
                 )
                 # Presenter has no access to this new site
                 assert response.status_code == 403, f"Expected 403, got {response.status_code}"
-                print(f"PASS: Unauthorized user gets 403 for alert-settings on restricted site")
+                print("PASS: Unauthorized user gets 403 for alert-settings on restricted site")
         finally:
             # Cleanup
             requests.delete(f"{BASE_URL}/api/main-sites/{test_site_id}", headers=self.admin_headers)
@@ -142,7 +142,7 @@ class TestZeroTierAlertSettingsCRUD:
                     headers=self.headers,
                     json={"enabled": False, "recipients": []}
                 )
-            except:
+            except Exception:
                 pass
     
     def test_get_all_alerts_initially_empty_or_returns_list(self):
@@ -167,11 +167,11 @@ class TestZeroTierAlertSettingsCRUD:
         assert response.status_code == 200, f"Failed: {response.text}"
         data = response.json()
         # Should return default disabled state
-        assert data.get("enabled") == False, "Non-existent alert should have enabled=False"
+        assert not data.get("enabled"), "Non-existent alert should have enabled=False"
         assert data.get("member_id") == fake_member, "Should return the requested member_id"
         assert data.get("main_site_id") == MAIN_SITE_ID, "Should return correct main_site_id"
         assert data.get("recipients") == [], "Default recipients should be empty list"
-        print(f"PASS: GET non-existent alert returns default with enabled=False")
+        print("PASS: GET non-existent alert returns default with enabled=False")
     
     def test_create_alert_with_enabled_true(self):
         """PUT /api/zerotier/{site_id}/member/{member_id}/alert creates alert with enabled=true"""
@@ -192,7 +192,7 @@ class TestZeroTierAlertSettingsCRUD:
         assert response.status_code == 200, f"Failed to create alert: {response.text}"
         result = response.json()
         assert result.get("status") == "ok", f"Expected status=ok, got {result}"
-        print(f"PASS: PUT creates alert with status=ok")
+        print("PASS: PUT creates alert with status=ok")
         
         # Verify by GET
         get_res = requests.get(
@@ -201,13 +201,13 @@ class TestZeroTierAlertSettingsCRUD:
         )
         assert get_res.status_code == 200
         saved_data = get_res.json()
-        assert saved_data.get("enabled") == True, "Alert should be enabled"
+        assert saved_data.get("enabled"), "Alert should be enabled"
         assert saved_data.get("member_id") == self.test_member_id
         assert saved_data.get("main_site_id") == MAIN_SITE_ID
         assert len(saved_data.get("recipients", [])) == 2, "Should have 2 recipients"
         assert "updated_at" in saved_data, "Should have updated_at timestamp"
         assert "updated_by" in saved_data, "Should have updated_by field"
-        print(f"PASS: GET confirms alert created with enabled=True and 2 recipients")
+        print("PASS: GET confirms alert created with enabled=True and 2 recipients")
     
     def test_update_alert_disable(self):
         """PUT /api/zerotier/{site_id}/member/{member_id}/alert can disable an alert"""
@@ -233,8 +233,8 @@ class TestZeroTierAlertSettingsCRUD:
             headers=self.headers
         )
         saved_data = get_res.json()
-        assert saved_data.get("enabled") == False, "Alert should be disabled"
-        print(f"PASS: Alert disabled successfully via PUT with enabled=False")
+        assert not saved_data.get("enabled"), "Alert should be disabled"
+        print("PASS: Alert disabled successfully via PUT with enabled=False")
     
     def test_update_alert_recipients(self):
         """PUT /api/zerotier/{site_id}/member/{member_id}/alert updates recipients"""
@@ -265,7 +265,7 @@ class TestZeroTierAlertSettingsCRUD:
         )
         saved_data = get_res.json()
         assert len(saved_data.get("recipients", [])) == 3, "Should have 3 recipients after update"
-        print(f"PASS: Recipients updated from 1 to 3")
+        print("PASS: Recipients updated from 1 to 3")
     
     def test_get_all_alerts_includes_created_alert(self):
         """GET /api/zerotier/{site_id}/alert-settings includes newly created alert"""
@@ -288,8 +288,8 @@ class TestZeroTierAlertSettingsCRUD:
         # Find our test alert
         test_alert = next((s for s in settings if s.get("member_id") == self.test_member_id), None)
         assert test_alert is not None, f"Test alert not found in list. Found: {[s.get('member_id') for s in settings]}"
-        assert test_alert.get("enabled") == True
-        print(f"PASS: GET alert-settings includes the newly created alert")
+        assert test_alert.get("enabled")
+        print("PASS: GET alert-settings includes the newly created alert")
 
 
 class TestZeroTierAlertSettingsDataValidation:
@@ -318,7 +318,7 @@ class TestZeroTierAlertSettingsDataValidation:
             json={"enabled": True, "recipients": []}
         )
         assert response.status_code == 200
-        print(f"PASS: Empty recipients array is allowed")
+        print("PASS: Empty recipients array is allowed")
     
     def test_alert_stores_updated_by(self):
         """Alert should store the email of the user who last updated it"""

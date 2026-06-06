@@ -104,19 +104,19 @@ class TestCLIDisconnectConfiguration:
             expected_features = ["shows", "calendar", "content_library", "team_chat", "rds_settings"]
             for expected in expected_features:
                 assert expected in feature_ids, f"Radio site missing expected feature: {expected}"
-            print(f"SUCCESS: Radio site has expected features")
+            print("SUCCESS: Radio site has expected features")
         
         # Task scheduler sites should have task_boards
         elif site_type == "task_scheduler":
             assert "task_boards" in feature_ids, "Task scheduler site missing task_boards feature"
-            print(f"SUCCESS: Task scheduler site has task_boards feature")
+            print("SUCCESS: Task scheduler site has task_boards feature")
         
         # Server sites should have xml_imports, vmix_director, etc.
         elif site_type == "server":
             expected_features = ["xml_imports", "server_api_keys", "vmix_director"]
             for expected in expected_features:
                 assert expected in feature_ids, f"Server site missing expected feature: {expected}"
-            print(f"SUCCESS: Server site has expected features")
+            print("SUCCESS: Server site has expected features")
 
 
 class TestCLIFeaturesConfigUpdate:
@@ -156,7 +156,7 @@ class TestCLIFeaturesConfigUpdate:
             json={"features": original_features}
         )
         assert restore_response.status_code == 200, f"Restore failed: {restore_response.text}"
-        print(f"SUCCESS: Original features restored")
+        print("SUCCESS: Original features restored")
 
     def test_update_features_config_invalid_site(self, api_client):
         """Test updating features for non-existent site returns 404"""
@@ -165,7 +165,7 @@ class TestCLIFeaturesConfigUpdate:
             json={"features": ["shows"]}
         )
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
-        print(f"SUCCESS: Non-existent site returns 404")
+        print("SUCCESS: Non-existent site returns 404")
 
     def test_update_features_config_filters_invalid_features(self, api_client):
         """Test that invalid features are filtered out based on site type"""
@@ -204,7 +204,7 @@ class TestCLIFeaturesConfigUpdate:
             assert "zerotier" not in enabled_features, "zerotier should not be enabled for radio site"
             assert "task_boards" not in enabled_features, "task_boards should not be enabled for radio site"
             assert "xml_imports" not in enabled_features, "xml_imports should not be enabled for radio site"
-            print(f"SUCCESS: Invalid features were filtered out")
+            print("SUCCESS: Invalid features were filtered out")
         
         # Restore original features
         api_client.put(
@@ -262,7 +262,7 @@ class TestCLIAccessStatus:
         data = response.json()
         assert "status" in data, "Response missing 'status' field"
         # Admin should have approved status or admin override
-        assert data["status"] == "approved" or data.get("is_admin_override") == True, \
+        assert data["status"] == "approved" or data.get("is_admin_override"), \
             f"Expected approved status for admin, got: {data}"
         
         print(f"SUCCESS: CLI access status for admin: {data}")

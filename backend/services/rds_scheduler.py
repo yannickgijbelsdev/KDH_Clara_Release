@@ -1,8 +1,7 @@
 """RDS Cache Scheduler - Refreshes live show cache every minute."""
 import asyncio
 import logging
-from datetime import datetime, timezone, timedelta
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 import uuid
 
 from database import db

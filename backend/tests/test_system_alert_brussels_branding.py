@@ -13,7 +13,7 @@ import pytest
 import requests
 import os
 import re
-from datetime import datetime, timezone
+from datetime import timezone
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
@@ -88,7 +88,7 @@ class TestSystemAlertEndpoints:
         
         saved_data = get_response.json()
         assert saved_data.get("email") == "clara.global@koodh.com", f"Email mismatch: {saved_data}"
-        assert saved_data.get("enabled") == True, f"Enabled mismatch: {saved_data}"
+        assert saved_data.get("enabled"), f"Enabled mismatch: {saved_data}"
         assert saved_data.get("mode") == "both", f"Mode mismatch: {saved_data}"
         print(f"Verified saved settings: {saved_data}")
 
@@ -132,7 +132,7 @@ class TestSystemAlertEndpoints:
         get_response = requests.get(f"{BASE_URL}/api/notifications/system-alert", headers=headers)
         saved_data = get_response.json()
         assert saved_data.get("mode") == "daily", f"Mode not saved: {saved_data}"
-        assert saved_data.get("enabled") == False, f"Enabled not saved: {saved_data}"
+        assert not saved_data.get("enabled"), f"Enabled not saved: {saved_data}"
         print(f"Daily mode saved: {saved_data}")
 
     def test_restore_system_alert_original(self, headers):

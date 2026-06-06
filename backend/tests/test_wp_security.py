@@ -153,7 +153,7 @@ class TestWpSecurityCloudflareConfig:
         # Verify persistence - token should be masked
         get_response = requests.get(f"{BASE_URL}/api/wp-security/config", headers=auth_headers)
         config = get_response.json()
-        assert config.get("cf_api_token_set") == True
+        assert config.get("cf_api_token_set")
         assert config.get("cf_api_token_preview") == "...12345678"  # Last 8 chars
         assert config.get("cf_zone_id") == "test_zone_id_abc123"
     
@@ -368,9 +368,9 @@ class TestWpSecurityLoginProtection:
         config = get_response.json()
         assert "login_protection" in config
         lp = config["login_protection"]
-        assert lp.get("enabled") == True
-        assert lp.get("block_xmlrpc") == True
-        assert lp.get("limit_login_attempts") == True
+        assert lp.get("enabled")
+        assert lp.get("block_xmlrpc")
+        assert lp.get("limit_login_attempts")
         assert lp.get("max_attempts") == 10
 
 
@@ -424,7 +424,7 @@ class TestWpSecurityTestConnection:
         
         # wordpress.org should be detected as WordPress with indicators
         if data["status"] == "ok":
-            assert data.get("is_wordpress") == True
+            assert data.get("is_wordpress")
             assert "indicators" in data
             assert isinstance(data["indicators"], list)
     

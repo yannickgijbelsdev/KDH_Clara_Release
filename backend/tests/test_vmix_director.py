@@ -66,7 +66,7 @@ class TestVmixConfig:
         
         updated = put_resp.json()
         assert updated["ticker_separator"] == "dash", "ticker_separator not updated"
-        assert updated["ticker_scroll"] == False, "ticker_scroll not updated"
+        assert not updated["ticker_scroll"], "ticker_scroll not updated"
         assert updated["clock_format"] == "HH:mm", "clock_format not updated"
         
         # Reset to default for other tests
@@ -147,7 +147,7 @@ class TestTickerMessages:
         for msg_id in self.created_message_ids:
             try:
                 requests.delete(f"{BASE_URL}/api/vmix/ticker-messages/{msg_id}", headers=self.headers)
-            except:
+            except Exception:
                 pass
     
     def test_create_ticker_message(self):
@@ -162,7 +162,7 @@ class TestTickerMessages:
         data = response.json()
         assert "id" in data, "Response missing id"
         assert data["text"] == "TEST_vMix ticker message"
-        assert data["active"] == True
+        assert data["active"]
         
         self.created_message_ids.append(data["id"])
     
@@ -205,7 +205,7 @@ class TestTickerMessages:
         
         updated = update_resp.json()
         assert updated["text"] == "TEST_updated text"
-        assert updated["active"] == False
+        assert not updated["active"]
     
     def test_delete_ticker_message(self):
         """DELETE /api/vmix/ticker-messages/{id} should delete message"""

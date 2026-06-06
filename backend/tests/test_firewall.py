@@ -22,11 +22,11 @@ def get_base_url():
     if not url:
         try:
             with open('/app/frontend/.env', 'r') as f:
-                for line in f:
-                    if line.startswith('REACT_APP_BACKEND_URL='):
-                        url = line.split('=', 1)[1].strip()
+                for entry in f:
+                    if entry.startswith('REACT_APP_BACKEND_URL='):
+                        url = entry.split('=', 1)[1].strip()
                         break
-        except:
+        except Exception:
             pass
     return url.rstrip('/')
 
@@ -189,7 +189,7 @@ class TestFirewallSettings:
         assert resp.status_code == 200, f"Failed to update settings: {resp.text}"
         
         data = resp.json()
-        assert data.get("geo_blocking_enabled") == True
+        assert data.get("geo_blocking_enabled")
         assert "CN" in data.get("blocked_countries", [])
         assert "RU" in data.get("blocked_countries", [])
         print("PASS: Enabled geo-blocking with blocked countries")
@@ -230,7 +230,7 @@ class TestFirewallRules:
                     f"{BASE_URL}/api/firewall/rules/{MAIN_SITE_ID}/{rule_id}",
                     headers=self.headers
                 )
-            except:
+            except Exception:
                 pass
     
     def test_create_blacklist_rule(self):
@@ -253,7 +253,7 @@ class TestFirewallRules:
         assert data.get("name") == "TEST_Block Bad IPs"
         assert data.get("type") == "blacklist"
         assert "192.168.100.0/24" in data.get("ip_patterns", [])
-        assert data.get("active") == True
+        assert data.get("active")
         assert "id" in data
         
         self.created_rule_ids.append(data["id"])
@@ -332,7 +332,7 @@ class TestFirewallRules:
             json={"active": False}
         )
         assert resp.status_code == 200
-        assert resp.json().get("active") == False
+        assert not resp.json().get("active")
         print(f"PASS: Toggled rule {rule_id} to inactive")
         
         # Re-enable
@@ -342,7 +342,7 @@ class TestFirewallRules:
             json={"active": True}
         )
         assert resp.status_code == 200
-        assert resp.json().get("active") == True
+        assert resp.json().get("active")
         print(f"PASS: Toggled rule {rule_id} back to active")
     
     def test_delete_rule(self):
@@ -367,7 +367,7 @@ class TestFirewallRules:
             headers=self.headers
         )
         assert resp.status_code == 200
-        assert resp.json().get("deleted") == True
+        assert resp.json().get("deleted")
         print(f"PASS: Deleted rule {rule_id}")
     
     def test_delete_nonexistent_rule_returns_404(self):
@@ -408,7 +408,7 @@ class TestFirewallBlocks:
                     f"{BASE_URL}/api/firewall/blocks/{ip}",
                     headers=self.headers
                 )
-            except:
+            except Exception:
                 pass
     
     def test_manual_block_ip_permanent(self):
@@ -427,8 +427,8 @@ class TestFirewallBlocks:
         
         data = resp.json()
         assert data.get("ip") == "192.168.200.100"
-        assert data.get("active") == True
-        assert data.get("auto_blocked") == False
+        assert data.get("active")
+        assert not data.get("auto_blocked")
         assert data.get("expires_at") is None  # Permanent
         
         self.blocked_ips.append("192.168.200.100")
@@ -495,7 +495,7 @@ class TestFirewallBlocks:
             headers=self.headers
         )
         assert resp.status_code == 200
-        assert resp.json().get("unblocked") == True
+        assert resp.json().get("unblocked")
         print("PASS: Unblocked IP 192.168.200.103")
     
     def test_unblock_nonexistent_returns_404(self):
@@ -619,7 +619,7 @@ class TestGeoLookup:
         data = resp.json()
         # Private IPs return Unknown/XX
         assert data.get("country_code") in ["XX", None] or "country_code" in data
-        print(f"PASS: Geo lookup for private IP returns graceful fallback")
+        print("PASS: Geo lookup for private IP returns graceful fallback")
 
 
 class TestBruteForceIntegration:
@@ -656,7 +656,7 @@ class TestBruteForceIntegration:
         
         logs = logs_resp.json().get("logs", [])
         # Should have at least one failed login log
-        recent_failed = [l for l in logs if "test_fake_user" in str(l.get("details", {}))]
+        recent_failed = [l for line in logs if "test_fake_user" in str(l.get("details", {}))]
         assert len(recent_failed) > 0 or len(logs) > 0, "Failed login should be logged"
         print("PASS: Failed login attempts are logged as security events")
     
@@ -683,7 +683,7 @@ class TestBruteForceIntegration:
         assert logs_resp.status_code == 200
         
         logs = logs_resp.json().get("logs", [])
-        admin_logins = [l for l in logs if l.get("user_email") == NETWORK_ADMIN_EMAIL]
+        admin_logins = [entry for entry in logs if entry.get("user_email") == NETWORK_ADMIN_EMAIL]
         assert len(admin_logins) > 0, "Successful login should be logged"
         print("PASS: Successful login is logged as security event")
 
@@ -713,3 +713,4 @@ class TestNonAdminAccess:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
+, "--tb=short"])

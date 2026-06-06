@@ -372,7 +372,7 @@ async def evaluate_request(ip: str, main_site_id: str = None, is_network_admin: 
 
 async def handle_failed_login(ip: str, email: str, main_site_id: str = None):
     """Handle a failed login attempt — check for brute force."""
-    count = record_login_attempt(ip)
+    record_login_attempt(ip)
 
     # Get settings (use global default if no site)
     settings = {}

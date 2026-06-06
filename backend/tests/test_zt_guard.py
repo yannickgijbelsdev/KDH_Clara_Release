@@ -82,7 +82,7 @@ class TestZTGuardConfig:
         """Test PUT /api/auth/zt-guard/config updates configuration"""
         # First get current config
         response = self.session.get(f"{BASE_URL}/api/auth/zt-guard/config")
-        original_config = response.json()
+        response.json()
         
         # Update with test values (keep disabled for safety)
         update_data = {
@@ -95,7 +95,7 @@ class TestZTGuardConfig:
         
         data = response.json()
         assert data.get("network_id") == "test-network-id-123", "network_id not updated"
-        assert data.get("enabled") == False, "enabled should be False"
+        assert not data.get("enabled"), "enabled should be False"
         assert "api_token_masked" in data, "Response should include masked token"
         print(f"ZT Guard config updated: network_id={data['network_id']}, enabled={data['enabled']}")
     
@@ -151,7 +151,7 @@ class TestZTGuardLoginFlow:
         
         data = response.json()
         assert data.get("token"), "Login should return token"
-        print(f"Network admin login successful with guard disabled")
+        print("Network admin login successful with guard disabled")
     
     def test_network_admin_login_blocked_with_guard_enabled(self):
         """Test: Network admin is BLOCKED when ZT Guard is enabled with fake network"""
@@ -196,7 +196,7 @@ class TestZTGuardLoginFlow:
         
         data = response.json()
         assert data.get("token"), "System admin login should return token"
-        print(f"System admin correctly bypassed ZT Guard")
+        print("System admin correctly bypassed ZT Guard")
         
         # Cleanup: Disable guard
         new_token = data.get("token")
@@ -276,7 +276,7 @@ class TestZTGuardCLI:
         # Verify guard is actually disabled
         config_response = self.session.get(f"{BASE_URL}/api/auth/zt-guard/config")
         config = config_response.json()
-        assert config.get("enabled") == False, "Guard should be disabled"
+        assert not config.get("enabled"), "Guard should be disabled"
         print(f"CLI /zt-guard disable output:\n{data['output']}")
     
     def test_cli_zt_guard_set_invalid_token(self):
@@ -323,7 +323,7 @@ class TestZTGuardCleanup:
             headers={"Authorization": f"Bearer {token}"}
         )
         data = response.json()
-        assert data.get("enabled") == False, "ZT Guard should be disabled"
+        assert not data.get("enabled"), "ZT Guard should be disabled"
         print("ZT Guard successfully disabled after tests")
 
 

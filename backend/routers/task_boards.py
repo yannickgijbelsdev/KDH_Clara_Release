@@ -515,7 +515,7 @@ async def add_attachment(
     main_site_id: str = Depends(get_main_site_id_from_header),
     current_user: dict = Depends(get_current_user),
 ):
-    from services.s3_storage import upload_file_to_s3, is_s3_configured, get_s3_url
+    from services.s3_storage import upload_file_to_s3, is_s3_configured
 
     content = await file.read()
     

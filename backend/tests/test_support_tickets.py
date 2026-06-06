@@ -250,7 +250,7 @@ class TestSupportTicketsStatusFlow:
         # Verify final status
         get_response = requests.get(f"{BASE_URL}/api/support-tickets/{ticket_id}", headers=admin_headers)
         assert get_response.json()["status"] == "closed"
-        print(f"Status flow completed: open -> searching -> solved -> closed")
+        print("Status flow completed: open -> searching -> solved -> closed")
 
 
 class TestSupportTicketsAttachment:

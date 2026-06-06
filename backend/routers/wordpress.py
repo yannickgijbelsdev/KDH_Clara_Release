@@ -25,9 +25,9 @@ from models.wordpress import (
     PublishToWordPressRequest, PublishResponse, PublishResult,
     WordPressConnectionTestResponse
 )
-from services.auth import get_current_user, require_admin
+from services.auth import get_current_user
 from services.main_site_context import get_main_site_id_from_header, get_effective_role
-from services.audit import log_action, get_client_ip
+from services.audit import log_action
 from services.security.encryption import encrypt as enc_field, decrypt as dec_field
 
 # Security audit logger for WordPress integration

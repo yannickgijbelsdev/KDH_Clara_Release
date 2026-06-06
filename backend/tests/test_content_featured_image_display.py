@@ -130,7 +130,7 @@ class TestContentFeaturedImageDisplay:
             pytest.skip("No content items found")
         
         # All items should have these fields defined (even if null)
-        sample_item = data[0]
+        data[0]
         # Note: featured_image or external_featured_image can be None but the field should exist
         # The response model includes these as Optional fields
         
@@ -139,7 +139,7 @@ class TestContentFeaturedImageDisplay:
         items_with_external = len([x for x in data if x.get('external_featured_image')])
         items_with_neither = len([x for x in data if not x.get('featured_image') and not x.get('external_featured_image')])
         
-        print(f"✓ Content items breakdown:")
+        print("✓ Content items breakdown:")
         print(f"  - With featured_image (uploaded): {items_with_featured}")
         print(f"  - With external_featured_image (WordPress import): {items_with_external}")
         print(f"  - With neither: {items_with_neither}")

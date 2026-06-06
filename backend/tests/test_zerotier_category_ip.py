@@ -65,7 +65,7 @@ class TestMemberCategoryEndpoint:
         data = response.json()
         assert data.get("status") == "ok", f"Expected status=ok, got: {data}"
         assert "server" in data.get("message", "").lower(), f"Expected message about server category, got: {data.get('message')}"
-        print(f"PASS: PUT category to 'server' returns 200 with status=ok")
+        print("PASS: PUT category to 'server' returns 200 with status=ok")
     
     def test_set_category_to_client(self):
         """PUT category to 'client' succeeds"""
@@ -78,7 +78,7 @@ class TestMemberCategoryEndpoint:
         data = response.json()
         assert data.get("status") == "ok", f"Expected status=ok, got: {data}"
         assert "client" in data.get("message", "").lower(), f"Expected message about client category, got: {data.get('message')}"
-        print(f"PASS: PUT category to 'client' returns 200 with status=ok")
+        print("PASS: PUT category to 'client' returns 200 with status=ok")
     
     def test_set_category_invalid_value_rejected(self):
         """PUT category with invalid value is rejected with 400"""
@@ -92,7 +92,7 @@ class TestMemberCategoryEndpoint:
         # Check that error message mentions valid options
         detail = data.get("detail", "").lower()
         assert "client" in detail or "server" in detail, f"Expected error about client/server, got: {data.get('detail')}"
-        print(f"PASS: PUT category with invalid value returns 400 with message about valid options")
+        print("PASS: PUT category with invalid value returns 400 with message about valid options")
     
     def test_set_category_empty_value_rejected(self):
         """PUT category with empty value is rejected"""
@@ -102,7 +102,7 @@ class TestMemberCategoryEndpoint:
             json={"category": ""}
         )
         assert response.status_code == 400, f"Expected 400 for empty category, got {response.status_code}: {response.text}"
-        print(f"PASS: PUT category with empty value returns 400")
+        print("PASS: PUT category with empty value returns 400")
 
 
 class TestMemberIpEndpoint:
@@ -143,7 +143,7 @@ class TestMemberIpEndpoint:
         data = response.json()
         assert "not configured" in data.get("detail", "").lower(), \
             f"Expected 'not configured' error, got: {data.get('detail')}"
-        print(f"PASS: PUT ip returns 400 'ZeroTier not configured' (expected on preview)")
+        print("PASS: PUT ip returns 400 'ZeroTier not configured' (expected on preview)")
     
     def test_update_ip_route_exists(self):
         """PUT ip route exists (not 404)"""
@@ -153,7 +153,7 @@ class TestMemberIpEndpoint:
             json={"ip_assignments": ["10.147.17.100"]}
         )
         # Should not return 404 (route must exist)
-        assert response.status_code != 404, f"Route does not exist (404)"
+        assert response.status_code != 404, "Route does not exist (404)"
         # 400 means route exists but ZT not configured, 200 means it worked
         assert response.status_code in [200, 400], f"Expected 200 or 400, got {response.status_code}"
         print(f"PASS: PUT ip route exists (status {response.status_code})")
@@ -167,7 +167,7 @@ class TestMemberIpEndpoint:
             json={}
         )
         assert response.status_code == 422, f"Expected 422 for missing field, got {response.status_code}"
-        print(f"PASS: PUT ip returns 422 when ip_assignments missing")
+        print("PASS: PUT ip returns 422 when ip_assignments missing")
 
 
 class TestMembersListIncludesCategory:
@@ -198,7 +198,7 @@ class TestMembersListIncludesCategory:
         data = response.json()
         assert "not configured" in data.get("detail", "").lower(), \
             f"Expected 'not configured' error, got: {data.get('detail')}"
-        print(f"PASS: GET members returns 400 'not configured' (expected on preview)")
+        print("PASS: GET members returns 400 'not configured' (expected on preview)")
     
     def test_category_field_in_response_schema_verified_by_code_review(self):
         """Verify category field is included in members list response (code review)"""
@@ -238,7 +238,7 @@ class TestRegressionExistingFeatures:
                     headers=self.headers,
                     json={"enabled": False, "recipients": []}
                 )
-            except:
+            except Exception:
                 pass
     
     def test_delete_member_route_exists(self):
@@ -261,7 +261,7 @@ class TestRegressionExistingFeatures:
         )
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         assert response.json().get("status") == "ok"
-        print(f"PASS: PUT alert settings works (regression)")
+        print("PASS: PUT alert settings works (regression)")
     
     def test_rename_member_route_exists(self):
         """PUT member name route exists"""
@@ -302,7 +302,7 @@ class TestRegressionExistingFeatures:
         )
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
         assert response.json().get("status") == "ok"
-        print(f"PASS: POST send-daily-summary works (regression)")
+        print("PASS: POST send-daily-summary works (regression)")
 
 
 if __name__ == "__main__":

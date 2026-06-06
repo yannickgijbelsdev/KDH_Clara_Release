@@ -1,7 +1,6 @@
 """Clara Enterprise Assistant — Code Assistant (Claude) & Enterprise Support."""
 import os
 import uuid
-import asyncio
 from datetime import datetime, timezone
 from typing import Optional
 from pydantic import BaseModel

@@ -3,18 +3,14 @@ import uuid
 import hashlib
 import os
 from datetime import datetime, timezone
-from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
-from fastapi.responses import JSONResponse
 
 from database import db
 from models.sites import (
-    SiteCreate, SiteUpdate, SiteResponse, SitePublicResponse,
-    SiteSubmissionCreate, SiteSubmissionResponse,
-    SiteUserRole, SitePasswordCheck, FormField
+    SiteCreate, SiteUpdate, SiteSubmissionCreate, SiteUserRole, SitePasswordCheck
 )
 from services.auth import get_current_user, require_admin
-from services.s3_storage import upload_file_to_s3, is_s3_configured, check_cloud_resources_enabled
+from services.s3_storage import upload_file_to_s3, is_s3_configured
 from services.main_site_context import get_main_site_id_from_header
 
 import logging

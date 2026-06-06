@@ -1,11 +1,10 @@
 """Role & Permissions management — custom roles per main site with granular permissions."""
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from database import db
 from services.auth import get_current_user
-from services.main_site_context import get_main_site_id_from_header
 
 roles_router = APIRouter(prefix="/roles", tags=["roles"])
 

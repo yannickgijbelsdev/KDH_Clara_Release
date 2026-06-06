@@ -5,8 +5,6 @@ Tests for: Security Audit, Sessions, User Blocking, Force Password Change
 import pytest
 import requests
 import os
-import time
-from datetime import datetime
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 

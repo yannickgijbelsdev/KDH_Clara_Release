@@ -73,7 +73,7 @@ class TestShowsEndpointsWithMultisite:
         assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
         assert "token" in data, f"No token in response: {data.keys()}"
-        assert data.get("user", {}).get("is_network_admin") == True
+        assert data.get("user", {}).get("is_network_admin")
         print(f"✓ Login successful, is_network_admin: {data['user'].get('is_network_admin')}")
 
     def test_get_shows_with_main_site_header(self, auth_headers):
@@ -148,7 +148,7 @@ class TestShowsEndpointsWithMultisite:
         response = requests.get(f"{BASE_URL}/api/shows/{test_show_id}", headers=wrong_headers)
         # Should return 404 because show doesn't belong to that main site
         assert response.status_code == 404, f"Expected 404, got {response.status_code}"
-        print(f"✓ Wrong main site ID correctly returns 404")
+        print("✓ Wrong main site ID correctly returns 404")
 
 
 class TestRundownEndpointsWithMultisite:

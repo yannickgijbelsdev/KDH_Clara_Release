@@ -3,8 +3,8 @@ import uuid
 import os
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from database import db
 from services.auth import get_current_user

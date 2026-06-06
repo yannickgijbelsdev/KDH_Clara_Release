@@ -89,7 +89,7 @@ class TestAuthFlow:
         # Verify this is the System Administrator user
         assert user.get("email") == "admkoodh@koodh.com", f"Wrong email: {user.get('email')}"
         assert user.get("name") == "System Administrator", f"Wrong name: {user.get('name')}"
-        assert user.get("is_network_admin") == True, f"Expected is_network_admin=True"
+        assert user.get("is_network_admin"), "Expected is_network_admin=True"
         
         print(f"PASSED: Login returns correct user: {user.get('name')} ({user.get('email')})")
     
@@ -312,14 +312,14 @@ class TestLicenseManagerAccessible:
         cache_control = response.headers.get('Cache-Control', '')
         assert 'no-store' in cache_control
         
-        print(f"PASSED: Licenses assignments accessible")
+        print("PASSED: Licenses assignments accessible")
     
     def test_license_packages_accessible(self, admin_session):
         """Verify /api/licenses/packages is accessible"""
         response = admin_session.get(f"{BASE_URL}/api/licenses/packages")
         assert response.status_code == 200, f"License packages error: {response.status_code}"
         
-        print(f"PASSED: License packages accessible")
+        print("PASSED: License packages accessible")
 
 
 if __name__ == "__main__":
