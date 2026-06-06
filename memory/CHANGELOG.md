@@ -1,6 +1,21 @@
 # Changelog
 
 
+## 2026-06-06 — Featured Image preview + altijd wisselbaar in artikel-detail
+
+### Why
+Wanneer admins een featured image hadden geüpload via de News API zagen ze die niet terug in de article detail view, en konden ze hem niet wisselen — enkel uploaden zolang er nog geen image was. Onhandig voor late wijzigingen of vervangen van een WP-import.
+
+### Fix — `pages/ContentDetailPage.js`
+- Nieuwe **Featured Image preview-kaart** boven de Body-sectie.
+- Toont de uploaded `featured_image.s3_url` (of `external_featured_image`/`imported_image_url` met "Imported from source" badge wanneer de bron WordPress is).
+- **"Change image"** knop is altijd zichtbaar — opent meteen de file picker en upload via het bestaande `/content/{id}/featured-image` endpoint.
+- **"Remove"** knop verschijnt enkel wanneer de bron `featured_image` is (niet voor imported WP images, want die kunnen niet beheerd worden).
+- Wanneer er nog geen image is, krijgt de admin een grote dashed dropzone i.p.v. een verstopte tekstlink in de footer.
+- Oude "Add a featured image first →" hint vervangen door een eenvoudige amber tekst die naar de nieuwe sectie verwijst.
+
+
+
 ## 2026-06-06 — Clara Flows MVP-1 (admin workflow builder)
 
 ### What

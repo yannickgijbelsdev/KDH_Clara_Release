@@ -40,6 +40,7 @@ import {
   Undo2,
   Copyright,
   Send,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -502,7 +503,33 @@ const ContentDetailPage = () => {
     if (!image) return null;
     // Use S3 URL if available, otherwise use local API endpoint
     if (image.s3_url) return image.s3_url;
-    return `${API}/uploads/featured_images/${image.file_storage_key}`;
+    if (image.url) return image.url;
+    if (image.file_storage_key) return `${API}/uploads/featured_images/${image.file_storage_key}`;
+    return null;
+  };
+
+  // Resolve the article-level featured image (for the News API preview card)
+  // following the same priority order the backend uses for `_build_image_url`.
+  const getArticleFeaturedImage = () => {
+    const fi = content?.featured_image;
+    const url = getImageUrl(fi);
+    if (url) return { url, source: 'featured' };
+    const ext = content?.external_featured_image || content?.imported_image_url;
+    if (ext) return { url: ext, source: 'imported' };
+    return null;
+  };
+
+  // Delete the article-level featured image (the per-WordPress-site ones
+  // have their own remove button on the WP cards below).
+  const removeArticleFeaturedImage = async () => {
+    if (!window.confirm('Remove the featured image?')) return;
+    try {
+      await axios.delete(`${API}/content/${contentId}/featured-image`);
+      toast.success('Featured image removed');
+      await fetchContent();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not remove image');
+    }
   };
 
   // News API featured image upload — writes to the content item's own
@@ -837,25 +864,9 @@ const ContentDetailPage = () => {
               <span className="text-xs text-amber-500">Requires admin approval</span>
             )}
             {!isPublishBlocked && !hasFeaturedImage && (
-              <>
-                <button
-                  type="button"
-                  data-testid="upload-news-featured-image-btn"
-                  onClick={() => newsFeaturedInputRef.current?.click()}
-                  disabled={newsFeaturedUploading}
-                  className="text-xs font-semibold text-violet-600 hover:text-violet-700 underline decoration-violet-300 hover:decoration-violet-500 disabled:opacity-50"
-                >
-                  {newsFeaturedUploading ? 'Uploading…' : 'Add a featured image first →'}
-                </button>
-                <input
-                  ref={newsFeaturedInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
-                  className="hidden"
-                  onChange={handleNewsFeaturedSelected}
-                  data-testid="news-featured-image-input"
-                />
-              </>
+              <span className="text-xs text-amber-600">
+                Featured image required — see the section above to upload one.
+              </span>
             )}
           </div>
         )}
@@ -1152,6 +1163,78 @@ const ContentDetailPage = () => {
                 </a>
               </div>
             )}
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-zinc-500 text-xs uppercase tracking-wider">Featured Image</Label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    data-testid="change-featured-image-btn"
+                    onClick={() => newsFeaturedInputRef.current?.click()}
+                    disabled={newsFeaturedUploading}
+                    className="text-xs font-medium text-violet-600 hover:text-violet-700 underline decoration-violet-300 hover:decoration-violet-500 disabled:opacity-50"
+                  >
+                    {newsFeaturedUploading
+                      ? 'Uploading…'
+                      : getArticleFeaturedImage()
+                        ? 'Change image'
+                        : 'Upload image'}
+                  </button>
+                  {getArticleFeaturedImage()?.source === 'featured' && (
+                    <button
+                      type="button"
+                      onClick={removeArticleFeaturedImage}
+                      data-testid="remove-featured-image-btn"
+                      className="text-xs font-medium text-rose-500 hover:text-rose-600 underline decoration-rose-300 hover:decoration-rose-500"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+              {(() => {
+                const fi = getArticleFeaturedImage();
+                if (fi) {
+                  return (
+                    <div className="relative rounded-lg overflow-hidden bg-zinc-100 border border-zinc-200" data-testid="featured-image-preview">
+                      <img
+                        src={fi.url}
+                        alt="Featured"
+                        className="w-full max-h-80 object-cover"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                      {fi.source === 'imported' && (
+                        <span className="absolute top-2 left-2 text-[10px] uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5">
+                          Imported from source
+                        </span>
+                      )}
+                    </div>
+                  );
+                }
+                return (
+                  <button
+                    type="button"
+                    onClick={() => newsFeaturedInputRef.current?.click()}
+                    disabled={newsFeaturedUploading}
+                    className="w-full rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 hover:bg-zinc-100 transition-colors py-10 text-zinc-500 text-sm flex flex-col items-center gap-2 disabled:opacity-50"
+                    data-testid="upload-featured-image-empty"
+                  >
+                    <ImageIcon className="w-6 h-6 text-zinc-400" />
+                    {newsFeaturedUploading ? 'Uploading…' : 'No featured image — click to upload'}
+                  </button>
+                );
+              })()}
+              {/* Shared hidden input for both Upload + Change actions. */}
+              <input
+                ref={newsFeaturedInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif"
+                className="hidden"
+                onChange={handleNewsFeaturedSelected}
+                data-testid="news-featured-image-input-inline"
+              />
+            </div>
 
             <div>
               <Label className="text-zinc-500 text-xs uppercase tracking-wider">Body</Label>
