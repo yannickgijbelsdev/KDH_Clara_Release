@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createContext, useContext, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 

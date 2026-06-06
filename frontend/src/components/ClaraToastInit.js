@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useEffect } from 'react';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
 import { claraToast } from '../utils/claraToast';

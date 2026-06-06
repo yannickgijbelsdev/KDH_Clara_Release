@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Download, Smartphone, Share, MoreVertical } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';

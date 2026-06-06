@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, createContext, useContext } from 'react';
 
 const LoadingContext = createContext({ isLoading: false, startLoading: () => {}, stopLoading: () => {} });

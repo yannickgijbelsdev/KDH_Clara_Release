@@ -81,6 +81,7 @@ from routers.clara_custom import clara_custom_router
 from routers.clara_integrations import clara_integrations_router, integrations_health_poller
 from routers.vdc_quick_deploy import vdc_quick_router
 from routers.news_public import news_public_router
+from routers.clara_flows import clara_flows_router
 from routers.security import security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
@@ -1108,6 +1109,7 @@ async def call_signaling_websocket(websocket: WebSocket, room_id: str):
 app.include_router(api_router)
 app.include_router(migration_router)
 app.include_router(news_public_router)
+app.include_router(clara_flows_router)
 
 # CORS Middleware — Zero Trust strict allow-list with regex for *.koodh.com subdomains
 _cors_origins = [o.strip() for o in os.environ.get('CORS_ORIGINS', '').split(',') if o.strip()]

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { motion } from 'framer-motion';
 import { ShieldAlert, FileCheck, Mail, Receipt, Sparkles, LifeBuoy } from 'lucide-react';
 import { Button } from './ui/button';

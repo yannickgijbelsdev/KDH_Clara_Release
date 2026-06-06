@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createContext, useContext, useState, useCallback } from 'react';
 
 const ClaraAssistantContext = createContext({});

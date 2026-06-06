@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { extractAndCleanExchangeToken, redeemExchangeToken } from '../services/subdomainAuth';

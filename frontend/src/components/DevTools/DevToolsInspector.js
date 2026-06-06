@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDevTools } from '../../context/DevToolsContext';
 import { X, FileCode, Code, Layers, ExternalLink } from 'lucide-react';

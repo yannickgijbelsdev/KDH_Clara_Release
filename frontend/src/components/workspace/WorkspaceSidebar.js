@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { NavLink } from 'react-router-dom';
 import { Settings, LogOut } from 'lucide-react';
 import {

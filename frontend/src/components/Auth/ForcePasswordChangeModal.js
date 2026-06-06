@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';

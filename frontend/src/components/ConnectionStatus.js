@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useCallback, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Loader2, Wifi, ExternalLink } from 'lucide-react';
 

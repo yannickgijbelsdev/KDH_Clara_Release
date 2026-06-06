@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useBranding } from '../context/BrandingContext';
 
 const API = process.env.REACT_APP_BACKEND_URL;

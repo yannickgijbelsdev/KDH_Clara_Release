@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';

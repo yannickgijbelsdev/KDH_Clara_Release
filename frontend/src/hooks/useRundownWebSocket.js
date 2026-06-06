@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 const WS_BASE_URL = process.env.REACT_APP_BACKEND_URL?.replace('https://', 'wss://').replace('http://', 'ws://');

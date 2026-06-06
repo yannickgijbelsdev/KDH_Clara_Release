@@ -11,6 +11,7 @@ Multi-environment SaaS platform for radio station management built with React fr
 - WordPress content publishing and security
 - PWA installation support, RDS metadata auto-refresh
 - **Clara System Scan Widget** — Non-blocking floating scan on login
+- **Clara Flows** — Admin-only visual workflow builder for notifications & API flows (triggers: manual/event/schedule/webhook; actions: email/HTTP/in-app/AI/Slack/Telegram; `{{ trigger.x }}` templating; per main site)
 
 ## Architecture
 ```

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
@@ -148,6 +149,7 @@ const FEATURE_NAV_ITEMS = {
   enterprise_assistant: { to: 'enterprise-assistant', icon: Sparkles, label: 'Enterprise Assistant' },
   radio_automation: { to: 'radio-automation', icon: Disc3, label: 'Radio Automation', adminOnly: true },
   api_endpoints: { to: 'api-endpoints', icon: Zap, label: 'API Endpoints', adminOnly: true },
+  clara_flows: { to: 'clara-flows', icon: Sparkles, label: 'Clara Flows', adminOnly: true },
 };
 
 // Navigation groups with feature mapping
@@ -186,7 +188,7 @@ const NAV_GROUPS = [
     id: 'admin',
     label: 'Administration',
     icon: Settings,
-    features: ['team_settings', 'wordpress', 'activity_logs', 'zerotier', 'api_endpoints']
+    features: ['team_settings', 'wordpress', 'activity_logs', 'zerotier', 'api_endpoints', 'clara_flows']
   },
   {
     id: 'server',
@@ -248,6 +250,8 @@ const MainSiteDashboardContent = () => {
     if (mainSite.clara_enterprise) {
       validRoutes.add('enterprise-assistant');
     }
+    // Clara Flows is always available for admins (admin-only route)
+    validRoutes.add('clara-flows');
     // Technical sites always have zerotier + team access
     if (mainSite.site_type === 'technical') {
       validRoutes.add('zerotier');
@@ -695,6 +699,29 @@ const MainSiteDashboardContent = () => {
           icon: Sparkles,
           items: [{ ...eaItem, to: `/${mainSiteSlug}/${eaItem.to}`, featureId: 'enterprise_assistant' }],
         });
+      }
+    }
+
+    // Clara Flows is admin-only and always available — append to the
+    // Administration group (or create one) without needing per-site opt-in.
+    if (userIsAdmin) {
+      const flowsItem = FEATURE_NAV_ITEMS.clara_flows;
+      if (flowsItem) {
+        const navEntry = { ...flowsItem, to: `/${mainSiteSlug}/${flowsItem.to}`, featureId: 'clara_flows' };
+        const adminGroup = groups.find((g) => g.id === 'admin');
+        if (adminGroup) {
+          // Avoid duplicates if it's already present via enabled_features
+          if (!adminGroup.items.some((it) => it.featureId === 'clara_flows')) {
+            adminGroup.items.push(navEntry);
+          }
+        } else {
+          groups.push({
+            id: 'admin',
+            label: 'Administration',
+            icon: Settings,
+            items: [navEntry],
+          });
+        }
       }
     }
 

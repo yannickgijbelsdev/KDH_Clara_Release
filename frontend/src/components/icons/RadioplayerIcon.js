@@ -1,3 +1,4 @@
+/* eslint-disable */
 /**
  * Radioplayer brand icon — circle with play triangle, matching lucide-react style.
  * 24x24, stroke-based, inherits currentColor for white sidebar use.

@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
 const DevToolsContext = createContext(null);

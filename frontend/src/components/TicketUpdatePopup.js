@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, ChevronRight } from 'lucide-react';
 

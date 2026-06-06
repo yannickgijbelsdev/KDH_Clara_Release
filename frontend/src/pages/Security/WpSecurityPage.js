@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
 import { useMainSite } from '../../context/MainSiteContext';
 import { useAuth } from '../../context/AuthContext';

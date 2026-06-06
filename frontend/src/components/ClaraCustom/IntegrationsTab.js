@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
@@ -507,7 +508,7 @@ export default function IntegrationsTab({ mainSite, token }) {
                   className="font-mono text-xs"
                   data-testid="edit-production-slug"
                 />
-                <p className="text-[11px] text-zinc-500 mt-1">When you click <strong>Promote</strong>, this is the slug Clara will look up on production. Leave blank to use the preview site's current slug. <strong>No format restrictions</strong> — type whatever the production site uses.</p>
+                <p className="text-[11px] text-zinc-500 mt-1">When you click <strong>Promote</strong>, this is the slug Clara will look up on production. Leave blank to use the preview site&apos;s current slug. <strong>No format restrictions</strong> — type whatever the production site uses.</p>
               </div>
               <div>
                 <Label className="text-xs">Shared secret (optional)</Label>

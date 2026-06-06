@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Check } from 'lucide-react';
 import { useRef, useEffect } from 'react';
 

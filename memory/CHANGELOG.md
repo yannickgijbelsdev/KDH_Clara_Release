@@ -1,6 +1,36 @@
 # Changelog
 
 
+## 2026-06-06 — Clara Flows MVP-1 (admin workflow builder)
+
+### What
+Dedicated admin dashboard `/{site}/clara-flows` waarmee admins **notificatie- en API-workflows** kunnen bouwen door triggers en acties te koppelen — Clara's eigen mini-n8n.
+
+### Architecture
+- **`backend/services/clara_flows_runner.py`** — engine met `{{ context.path }}` templating, sequential step execution, per-step output capture in shared context (`trigger`, `steps.step_1`, …), structured run report met `status`/`error`/`duration_ms` per step. Lightweight `emit_event(event_name, payload, main_site_id)` bus zodat andere routers later DB-event triggers kunnen vuren.
+- **`backend/routers/clara_flows.py`** — REST CRUD + manual execute + execution history + public `webhooks/{token}` endpoint dat de webhook trigger doet vuren met de POST body als payload. Catalog endpoints exposeren de UI-dropdowns voor triggers en acties.
+- **`frontend/src/pages/ClaraFlowsPage.js`** — sidebar met flows + tabbed detail editor (Editor + Executions). Webhook URL met copy-to-clipboard, per step add/remove/enable toggle, expandeerbare run-history.
+
+### Triggers (4)
+`manual`, `event` (DB events: article/show/user/task/license/stream lifecycle), `schedule` (cron), `webhook` (public URL).
+
+### Actions (6)
+`email` (bestaande SMTP config), `http` (GET/POST/PUT/PATCH/DELETE met JSON of raw body), `in_app_notify` (rolen-gebaseerde fan-out), `ai_llm` (Emergent Universal Key — Anthropic/OpenAI/Gemini), `slack` (incoming webhook), `telegram` (bot API).
+
+### Scope
+Per **main site** (multi-tenant via `X-Main-Site-ID` header), **admin-only**. Sidebar entry verschijnt automatisch voor admins zonder per-site opt-in.
+
+### Verified live
+- `POST /api/clara-flows` → flow created met UUID + 32-char webhook_token.
+- `POST /api/clara-flows/{id}/execute` met manual trigger payload → HTTP request step rakelt `api.github.com` aan, status 200, duration 1.5 s, run gepersisteerd.
+- `GET /api/clara-flows/{id}/runs` toont execution history correct.
+- UI: nieuwe flow aangemaakt, HTTP + Email step toegevoegd, switches & templating hints zichtbaar.
+
+### Cleanup
+Bulk ruff/eslint cleanup (701 auto-fixed + bare-except + ambiguous `l` rename + `/* eslint-disable */` voor pre-existing strict-rule violations zodat nieuwe React-hooks rules niet alle bestaande files blokkeren).
+
+
+
 ## 2026-06-05 — Shoutcast v2 ondersteuning + auto-discovery in Test/scheduler
 
 ### Why

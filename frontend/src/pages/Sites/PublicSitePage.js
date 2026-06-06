@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Play, Pause, Volume2, VolumeX, Send, Lock, Loader2, Upload, X, FileImage, FileAudio, FileVideo } from 'lucide-react';

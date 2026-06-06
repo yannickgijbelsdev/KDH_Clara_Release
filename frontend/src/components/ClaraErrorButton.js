@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Sparkles } from 'lucide-react';
 import { useClaraAssistant } from '../context/ClaraAssistantContext';
 

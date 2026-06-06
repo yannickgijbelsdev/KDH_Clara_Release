@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';

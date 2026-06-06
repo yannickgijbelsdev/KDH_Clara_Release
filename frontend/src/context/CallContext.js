@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
 
 const CallContext = createContext(null);

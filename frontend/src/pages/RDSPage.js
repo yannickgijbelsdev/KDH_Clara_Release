@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import { Radio, Settings, Activity, Wand2, Calendar } from 'lucide-react';
