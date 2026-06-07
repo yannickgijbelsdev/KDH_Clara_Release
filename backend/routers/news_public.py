@@ -262,6 +262,27 @@ def _has_missing_image_attribution(item: dict) -> bool:
     return False
 
 
+def _featured_image_caption_html(item: dict) -> str:
+    """Pre-rendered single-line HTML snippet for the featured image credit,
+    wrapped in a ``<p class='clara-image-credit'>`` so it can sit directly
+    under the consumer's hero image.
+
+    Empty string when the featured image has no attribution.
+    """
+    attr = _build_image_attribution(item)
+    if not attr:
+        return ""
+    line = _format_credit_line({
+        "credit": attr.get("credit") or attr.get("copyright"),
+        "photographer": attr.get("photographer"),
+        "license": attr.get("license"),
+        "source_url": attr.get("source_url"),
+    })
+    if not line:
+        return ""
+    return f'<p class="clara-image-credit">{line}</p>'
+
+
 def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, include_body: bool = False) -> dict:
     out = {
         "id": item["id"],
@@ -270,6 +291,7 @@ def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, inc
         "excerpt": item.get("excerpt", ""),
         "image_url": _build_image_url(item),
         "image_attribution": _build_image_attribution(item),
+        "image_caption_html": _featured_image_caption_html(item),
         "category": (
             {"id": category["id"], "slug": category["slug"], "name": category["name"]}
             if category else None
@@ -289,7 +311,14 @@ def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, inc
         # show the intro twice, so we drop the excerpt on the detail
         # response. The list endpoint still returns excerpt only — body is
         # never included there.
-        out["body"] = _inject_body_attributions(item.get("body", ""), item.get("image_attributions") or {})
+        body_html = _inject_body_attributions(item.get("body", ""), item.get("image_attributions") or {})
+        # Prepend the featured-image caption so it visually sits directly
+        # under the consumer's hero image without requiring frontend code
+        # changes on each consumer (GRK, MFY, DBNT, …).
+        caption = _featured_image_caption_html(item)
+        if caption:
+            body_html = caption + body_html
+        out["body"] = body_html
         out.pop("excerpt", None)
     return out
 
