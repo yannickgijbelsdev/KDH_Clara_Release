@@ -57,6 +57,8 @@ class FeaturedImageResponse(BaseModel):
     photo_credit: Optional[str] = None
     photo_copyright: Optional[str] = None
     photo_source_url: Optional[str] = None
+    photo_photographer: Optional[str] = None
+    photo_license: Optional[str] = None
     created_at: str
     updated_at: str
 
@@ -97,6 +99,8 @@ class ContentFeaturedImage(BaseModel):
     photo_credit: Optional[str] = None
     photo_copyright: Optional[str] = None
     photo_source_url: Optional[str] = None
+    photo_photographer: Optional[str] = None
+    photo_license: Optional[str] = None
 
 
 class ContentItemResponse(BaseModel):
@@ -132,4 +136,6 @@ class ContentItemResponse(BaseModel):
     external_featured_image: Optional[str] = None  # URL from imported WordPress articles
     source: Optional[str] = None  # Source site name (e.g., "MFY", "GRK")
     source_url: Optional[str] = None  # Original article URL
+    image_attributions: Optional[dict] = None  # URL → { credit, photographer, license, source_url }
+    missing_image_attributions: Optional[bool] = None  # set by list / detail endpoints
     publish_statuses: List[ContentPublishStatusWithImage] = []

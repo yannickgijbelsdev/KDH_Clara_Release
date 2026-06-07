@@ -157,4 +157,11 @@ async def get_content_with_publish_statuses(content_id: str, team_id: str = None
             ps["featured_image"] = None
     
     content["publish_statuses"] = publish_statuses
+    # Flag if image rights are missing — drives the rights modal popup and
+    # the Content Library "!" badge. Computed inline to avoid circular import.
+    try:
+        from routers.content import _content_has_missing_image_attribution  # noqa: WPS433
+        content["missing_image_attributions"] = _content_has_missing_image_attribution(content)
+    except Exception:
+        content["missing_image_attributions"] = False
     return content

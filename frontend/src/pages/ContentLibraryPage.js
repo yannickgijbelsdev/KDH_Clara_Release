@@ -22,7 +22,8 @@ import {
   CheckSquare,
   Square,
   Send,
-  Trash2,} from 'lucide-react';
+  Trash2,
+  AlertTriangle,} from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
@@ -824,6 +825,15 @@ const ContentLibraryPage = () => {
                         <h3 className="text-lg font-semibold text-zinc-900 group-hover:text-rose-400 transition-colors">
                           {item.title}
                         </h3>
+                        {item.missing_image_attributions && (
+                          <span
+                            data-testid={`missing-rights-${item.id}`}
+                            title="Eén of meer afbeeldingen missen rechten — open het artikel om in te vullen"
+                            className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 border border-amber-300 text-amber-700"
+                          >
+                            <AlertTriangle className="w-3 h-3" strokeWidth={2.5} />
+                          </span>
+                        )}
                         {item.status === 'ready' ? (
                           <span title="Ready" style={{ color: '#ffffff' }} className="w-5 h-5 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0">
                             <Check className="w-3 h-3" strokeWidth={2.5} />

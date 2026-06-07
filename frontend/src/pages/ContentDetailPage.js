@@ -6,6 +6,7 @@ import { format, parseISO } from 'date-fns';
 import { motion } from 'framer-motion';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import ImageCopyrightDialog from '../components/ImageCopyrightDialog';
+import ImageRightsModal from '../components/ImageRightsModal';
 import MainSiteContext from '../context/MainSiteContext';
 import PublishToButton from '../components/ClaraCustom/PublishToButton';
 import { isImageFile, isOversized } from '../utils/imageResize';
@@ -499,6 +500,36 @@ const ContentDetailPage = () => {
     }
   };
 
+  // ── Image rights / inline attribution ────────────────────────────────
+  const [imageRights, setImageRights] = useState({ images: [], featured: null, missing: 0, total: 0, all_credited: true });
+  const [showRightsModal, setShowRightsModal] = useState(false);
+  const [rightsAutoOpenedFor, setRightsAutoOpenedFor] = useState(null); // contentId where popup already auto-opened
+
+  const fetchImageRights = useCallback(async () => {
+    if (!contentId) return;
+    try {
+      const res = await axios.get(`${API}/content/${contentId}/image-rights`);
+      const data = res.data || { images: [], featured: null, missing: 0, total: 0, all_credited: true };
+      setImageRights(data);
+      // Auto-open the reminder popup once per article load if rights are missing
+      if ((data.missing || 0) > 0 && rightsAutoOpenedFor !== contentId) {
+        setShowRightsModal(true);
+        setRightsAutoOpenedFor(contentId);
+      }
+    } catch (e) {
+      // Silent — endpoint missing on older backends is fine.
+    }
+  }, [contentId, rightsAutoOpenedFor]);
+
+  useEffect(() => { if (content) fetchImageRights(); }, [content, fetchImageRights]);
+
+  const handleRightsSaved = (status) => {
+    if (status) setImageRights(status);
+    // Reload content so any related UI (publish button, library badge) refreshes
+    fetchContent();
+  };
+  // ──────────────────────────────────────────────────────────────────────
+
   const getImageUrl = (image) => {
     if (!image) return null;
     // Use S3 URL if available, otherwise use local API endpoint
@@ -699,7 +730,8 @@ const ContentDetailPage = () => {
     if (Object.values(featuredImages || {}).some((img) => img && (img.s3_url || img.file_storage_key))) return true;
     return false;
   })();
-  const newsApiBlocked = isPublishBlocked || !hasFeaturedImage;
+  const newsApiBlocked = isPublishBlocked || !hasFeaturedImage || (imageRights?.missing || 0) > 0;
+  const rightsMissing = (imageRights?.missing || 0) > 0;
 
   return (
     <div data-testid="content-detail-page">
@@ -800,6 +832,28 @@ const ContentDetailPage = () => {
               </span>
             )}
             <span>{format(parseISO(content.updated_at), 'MMM d, yyyy')}</span>
+            {isEditor && (
+              <button
+                onClick={() => setShowRightsModal(true)}
+                data-testid="open-image-rights-btn"
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition ${
+                  rightsMissing
+                    ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300'
+                    : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
+                }`}
+                title="Beheer afbeeldingsrechten"
+              >
+                {rightsMissing ? (
+                  <AlertCircle className="w-3 h-3" />
+                ) : (
+                  <Copyright className="w-3 h-3" />
+                )}
+                Afbeeldingsrechten
+                {rightsMissing && (
+                  <span className="ml-0.5 text-[10px] font-bold">· {imageRights.missing} ontbreekt</span>
+                )}
+              </button>
+            )}
             {isAdmin && (
               <button
                 onClick={() => { if (auditLogs.length === 0) fetchAuditLogs(); setHistoryDialogOpen(true); }}
@@ -867,6 +921,17 @@ const ContentDetailPage = () => {
               <span className="text-xs text-amber-600">
                 Featured image required — see the section above to upload one.
               </span>
+            )}
+            {!isPublishBlocked && hasFeaturedImage && rightsMissing && (
+              <button
+                type="button"
+                onClick={() => setShowRightsModal(true)}
+                data-testid="rights-blocked-warning"
+                className="text-xs text-amber-700 hover:text-amber-900 underline inline-flex items-center gap-1"
+              >
+                <AlertCircle className="w-3 h-3" />
+                {imageRights.missing} afbeelding{imageRights.missing !== 1 ? 'en' : ''} mist nog rechten — klik om in te vullen
+              </button>
             )}
           </div>
         )}
@@ -1841,6 +1906,19 @@ const ContentDetailPage = () => {
         onOpenChange={setCredDialogOpen}
         initial={credDialogTarget?.image || {}}
         onSave={saveCreditForTarget}
+      />
+
+      {/* Image rights enforcement modal — auto-opens on load if any image
+          (featured or inline) is missing its credit. Publishing to News API
+          is blocked while rights are missing. */}
+      <ImageRightsModal
+        open={showRightsModal}
+        onOpenChange={setShowRightsModal}
+        contentId={contentId}
+        featured={imageRights.featured}
+        images={imageRights.images || []}
+        onSaved={handleRightsSaved}
+        API={API}
       />
     </div>
   );

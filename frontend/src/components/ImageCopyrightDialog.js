@@ -2,15 +2,17 @@
 /**
  * ImageCopyrightDialog
  * --------------------
- * Add or edit photo credit / copyright / source URL for a featured image.
- * Used both for per-site WP featured images and the content-level image.
+ * Add or edit photo credit / copyright / source URL / photographer / license
+ * for a featured image. Used both for per-site WP featured images and the
+ * content-level image.
  *
  * Endpoint:
  *   PUT /api/content/:contentId/featured-images/:siteId/attribution   (per-site)
  *   PUT /api/content/:contentId/featured-image/attribution            (content-level)
  *
  * Props:
- *   open, onOpenChange, initial = { photo_credit, photo_copyright, photo_source_url }
+ *   open, onOpenChange
+ *   initial = { photo_credit, photo_copyright, photo_source_url, photo_photographer, photo_license }
  *   onSave (data) → caller decides which endpoint to call
  */
 import { useEffect, useState } from 'react';
@@ -18,12 +20,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Copyright, User, LinkIcon } from 'lucide-react';
+import { Copyright, User, LinkIcon, Camera, FileText } from 'lucide-react';
 
 export default function ImageCopyrightDialog({ open, onOpenChange, initial = {}, onSave }) {
   const [credit, setCredit] = useState('');
   const [copyright, setCopyright] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
+  const [photographer, setPhotographer] = useState('');
+  const [license, setLicense] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -31,6 +35,8 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
       setCredit(initial.photo_credit || '');
       setCopyright(initial.photo_copyright || '');
       setSourceUrl(initial.photo_source_url || '');
+      setPhotographer(initial.photo_photographer || '');
+      setLicense(initial.photo_license || '');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -42,6 +48,8 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
         photo_credit: credit.trim() || null,
         photo_copyright: copyright.trim() || null,
         photo_source_url: sourceUrl.trim() || null,
+        photo_photographer: photographer.trim() || null,
+        photo_license: license.trim() || null,
       });
       onOpenChange(false);
     } finally {
@@ -52,7 +60,7 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="bg-white text-zinc-800 max-w-md border-zinc-200"
+        className="bg-white text-zinc-800 max-w-md border-zinc-200 max-h-[90vh] overflow-y-auto"
         data-testid="image-copyright-dialog"
       >
         <DialogHeader>
@@ -61,28 +69,55 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
           </DialogTitle>
           <p className="text-xs text-zinc-500 mt-1">
             Travels with the image when it's pushed to WordPress (caption / alt text) and the Clara News API
-            (<code className="bg-zinc-100 px-1 rounded">image_attribution</code> field).
+            (<code className="bg-zinc-100 px-1 rounded">image_attribution</code> field + <code className="bg-zinc-100 px-1 rounded">&lt;figcaption&gt;</code>).
           </p>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
           <div>
             <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
-              <User className="w-3 h-3" /> Photographer / credit
+              <Copyright className="w-3 h-3" /> Bron / agentschap *
             </Label>
             <Input
               value={credit}
               onChange={(e) => setCredit(e.target.value)}
-              placeholder="John Doe"
+              placeholder="Belga, Reuters, Eigen werk…"
               data-testid="copyright-credit-input"
               className="mt-1.5 bg-white border-zinc-300 text-zinc-900"
             />
-            <p className="text-[11px] text-zinc-400 mt-1">Appears as "Photo: …" in the caption.</p>
+            <p className="text-[11px] text-zinc-400 mt-1">Verplicht. Verschijnt als "© …" in de caption.</p>
           </div>
 
           <div>
             <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
-              <Copyright className="w-3 h-3" /> Copyright holder
+              <Camera className="w-3 h-3" /> Fotograaf
+            </Label>
+            <Input
+              value={photographer}
+              onChange={(e) => setPhotographer(e.target.value)}
+              placeholder="Jan Janssens"
+              data-testid="copyright-photographer-input"
+              className="mt-1.5 bg-white border-zinc-300 text-zinc-900"
+            />
+            <p className="text-[11px] text-zinc-400 mt-1">Verschijnt als "Foto: …" in de caption.</p>
+          </div>
+
+          <div>
+            <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
+              <FileText className="w-3 h-3" /> Licentie
+            </Label>
+            <Input
+              value={license}
+              onChange={(e) => setLicense(e.target.value)}
+              placeholder="CC-BY-4.0, Aankoop, Eigen werk…"
+              data-testid="copyright-license-input"
+              className="mt-1.5 bg-white border-zinc-300 text-zinc-900"
+            />
+          </div>
+
+          <div>
+            <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
+              <User className="w-3 h-3" /> Copyright holder (optioneel)
             </Label>
             <Input
               value={copyright}
@@ -91,12 +126,11 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
               data-testid="copyright-holder-input"
               className="mt-1.5 bg-white border-zinc-300 text-zinc-900"
             />
-            <p className="text-[11px] text-zinc-400 mt-1">Appears as "© …" in the caption.</p>
           </div>
 
           <div>
             <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
-              <LinkIcon className="w-3 h-3" /> Source URL (optional)
+              <LinkIcon className="w-3 h-3" /> URL naar origineel (optioneel)
             </Label>
             <Input
               type="url"

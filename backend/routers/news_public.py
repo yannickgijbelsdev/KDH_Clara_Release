@@ -147,13 +147,119 @@ def _build_image_attribution(item: dict) -> Optional[dict]:
     credit = fi.get("photo_credit") or item.get("photo_credit")
     copy = fi.get("photo_copyright") or item.get("photo_copyright")
     src = fi.get("photo_source_url") or item.get("photo_source_url")
-    if not (credit or copy or src):
+    photographer = fi.get("photo_photographer") or item.get("photo_photographer")
+    license_ = fi.get("photo_license") or item.get("photo_license")
+    if not (credit or copy or src or photographer or license_):
         return None
     return {
         "credit": credit,
         "copyright": copy,
         "source_url": src,
+        "photographer": photographer,
+        "license": license_,
     }
+
+
+import html as _html
+import re as _re
+
+_BODY_IMG_TAG_RE = _re.compile(r'(<img[^>]+src=["\']([^"\']+)["\'][^>]*>)', _re.IGNORECASE)
+
+
+def _format_credit_line(entry) -> str:
+    """Render an attribution entry to a human-readable single-line caption.
+
+    Accepts both legacy strings and structured dicts. Returns an empty
+    string when nothing usable is set.
+    """
+    if not entry:
+        return ""
+    if isinstance(entry, str):
+        clean = entry.strip()
+        return f"© {_html.escape(clean)}" if clean else ""
+    if not isinstance(entry, dict):
+        return ""
+    credit = (entry.get("credit") or "").strip()
+    photographer = (entry.get("photographer") or "").strip()
+    license_ = (entry.get("license") or "").strip()
+    source_url = (entry.get("source_url") or "").strip()
+
+    parts = []
+    if photographer and credit and photographer.lower() != credit.lower():
+        parts.append(f"Foto: {_html.escape(photographer)}")
+        parts.append(f"© {_html.escape(credit)}")
+    elif photographer:
+        parts.append(f"Foto: {_html.escape(photographer)}")
+        if credit:
+            parts.append(f"© {_html.escape(credit)}")
+    elif credit:
+        parts.append(f"© {_html.escape(credit)}")
+    if license_:
+        parts.append(_html.escape(license_))
+    line = " · ".join(parts)
+    if source_url:
+        safe_url = _html.escape(source_url, quote=True)
+        line = f'<a href="{safe_url}" rel="nofollow noopener" target="_blank">{line or safe_url}</a>'
+    return line
+
+
+def _inject_body_attributions(body: str, attributions: dict) -> str:
+    """Wrap every ``<img>`` whose ``src`` has an attribution entry inside a
+    ``<figure>…<figcaption>…</figcaption></figure>`` block so consumer
+    websites can render the copyright line below each photo automatically.
+
+    Supports both legacy string entries and structured objects with
+    ``credit / photographer / license / source_url`` fields.
+
+    Images without an attribution are left untouched.
+    """
+    if not body or not isinstance(attributions, dict) or not attributions:
+        return body or ""
+
+    def _wrap(m: _re.Match) -> str:
+        img_tag = m.group(1)
+        src = m.group(2)
+        entry = attributions.get(src)
+        line = _format_credit_line(entry)
+        if not line:
+            return img_tag
+        return (
+            f'<figure class="clara-img-figure">{img_tag}'
+            f'<figcaption class="clara-img-credit">{line}</figcaption>'
+            f'</figure>'
+        )
+
+    return _BODY_IMG_TAG_RE.sub(_wrap, body)
+
+
+def _has_missing_image_attribution(item: dict) -> bool:
+    """Heuristic for the list endpoint / Content Library badges: True iff
+    the featured image lacks a credit OR at least one inline body image
+    lacks an entry in ``image_attributions``."""
+    fi = item.get("featured_image") or {}
+    if isinstance(fi, dict) and (fi.get("s3_url") or fi.get("file_storage_key")):
+        if not (fi.get("photo_credit") or "").strip():
+            return True
+    body = item.get("body") or ""
+    if not body:
+        return False
+    attrs = item.get("image_attributions") or {}
+    if not isinstance(attrs, dict):
+        attrs = {}
+    for m in _INLINE_IMG_PATTERN.finditer(body):
+        url = (m.group(1) or "").strip()
+        if not url or url.startswith("data:") or "/None/" in url or "/None_" in url:
+            continue
+        entry = attrs.get(url)
+        if isinstance(entry, str):
+            if not entry.strip():
+                return True
+        elif isinstance(entry, dict):
+            if not (entry.get("credit") or "").strip():
+                return True
+        else:
+            return True
+    return False
 
 
 def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, include_body: bool = False) -> dict:
@@ -173,6 +279,7 @@ def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, inc
         "tags": item.get("tags") or [],
         "published_at": item.get("published_at") or item.get("created_at"),
         "url": f"/nieuws/{item.get('slug') or item['id']}",
+        "missing_image_attributions": _has_missing_image_attribution(item),
     }
     if include_body:
         # The body already contains the intro paragraph that was reused as
@@ -182,7 +289,7 @@ def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, inc
         # show the intro twice, so we drop the excerpt on the detail
         # response. The list endpoint still returns excerpt only — body is
         # never included there.
-        out["body"] = item.get("body", "")
+        out["body"] = _inject_body_attributions(item.get("body", ""), item.get("image_attributions") or {})
         out.pop("excerpt", None)
     return out
 

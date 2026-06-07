@@ -2,10 +2,11 @@
 from fastapi import APIRouter, HTTPException, Depends, status, UploadFile, File, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime, timezone
 from pathlib import Path
 import uuid
+import re
 import mimetypes
 import aiofiles
 import io
@@ -294,6 +295,9 @@ async def get_content_items(
         
         for item in items:
             item["publish_statuses"] = pub_lookup.get(item["id"], [])
+            # Flag articles whose inline body images miss credit info so the
+            # Content Library can render a warning icon next to them.
+            item["missing_image_attributions"] = _content_has_missing_image_attribution(item)
         
         return items
         
@@ -1223,6 +1227,8 @@ class FeaturedImageAttributionUpdate(BaseModel):
     photo_credit: Optional[str] = None
     photo_copyright: Optional[str] = None
     photo_source_url: Optional[str] = None
+    photo_photographer: Optional[str] = None
+    photo_license: Optional[str] = None
 
 
 @content_router.put("/{content_id}/featured-image/attribution")
@@ -1250,6 +1256,8 @@ async def update_featured_image_attribution(
     fi["photo_credit"] = data.photo_credit
     fi["photo_copyright"] = data.photo_copyright
     fi["photo_source_url"] = data.photo_source_url
+    fi["photo_photographer"] = data.photo_photographer
+    fi["photo_license"] = data.photo_license
 
     now = datetime.now(timezone.utc).isoformat()
     await db.content_items.update_one(
@@ -1257,6 +1265,218 @@ async def update_featured_image_attribution(
         {"$set": {"featured_image": fi, "updated_at": now}},
     )
     return {"success": True, "featured_image": fi}
+
+
+def _normalize_attribution(value) -> dict:
+    """Normalize an attribution entry to the structured shape:
+        { credit, photographer, license, source_url }
+
+    Accepts both legacy strings (treated as ``credit``) and dicts.
+    Returns an empty dict if the entry is unusable.
+    """
+    if not value:
+        return {}
+    if isinstance(value, str):
+        clean = value.strip()
+        return {"credit": clean} if clean else {}
+    if isinstance(value, dict):
+        return {
+            "credit": (value.get("credit") or "").strip() or None,
+            "photographer": (value.get("photographer") or "").strip() or None,
+            "license": (value.get("license") or "").strip() or None,
+            "source_url": (value.get("source_url") or "").strip() or None,
+        }
+    return {}
+
+
+def _attribution_is_filled(entry) -> bool:
+    """Attribution counts as 'filled' when at least the ``credit`` (source)
+    field is present. Other fields (photographer, license, URL) are optional.
+    """
+    norm = _normalize_attribution(entry)
+    return bool((norm.get("credit") or "").strip())
+
+
+def _content_has_missing_image_attribution(item: dict) -> bool:
+    """True iff any inline ``<img>`` in the article body lacks a credit in
+    ``image_attributions``, OR the featured image is missing its credit.
+    Used by the Content Library list & frontend badges to nudge editors
+    before publication."""
+    # 1) Featured image must have a credit
+    fi = item.get("featured_image") or {}
+    if isinstance(fi, dict) and (fi.get("s3_url") or fi.get("file_storage_key")):
+        if not (fi.get("photo_credit") or "").strip():
+            return True
+
+    # 2) Every inline body image must have an entry with at least a credit
+    body = item.get("body") or ""
+    if not body:
+        return False
+    attrs = item.get("image_attributions") or {}
+    if not isinstance(attrs, dict):
+        attrs = {}
+    for m in _INLINE_IMG_SRC_RE.finditer(body):
+        url = (m.group(1) or "").strip()
+        if not url or url.startswith("data:") or "/None/" in url or "/None_" in url:
+            continue
+        if not _attribution_is_filled(attrs.get(url)):
+            return True
+    return False
+
+
+# ── Image rights / inline body image attributions ──
+
+_INLINE_IMG_SRC_RE = re.compile(r'<img[^>]+src=["\']([^"\']+)["\']', re.IGNORECASE)
+
+
+def _detect_body_images(body: str) -> List[str]:
+    """Return every <img src> URL found in the article HTML, in document
+    order, deduplicated. Skips base64 data URIs and corrupt `/None/` paths.
+    """
+    if not body:
+        return []
+    seen = []
+    for m in _INLINE_IMG_SRC_RE.finditer(body):
+        url = (m.group(1) or "").strip()
+        if not url or url.startswith("data:"):
+            continue
+        if "/None/" in url or "/None_" in url:
+            continue
+        if url not in seen:
+            seen.append(url)
+    return seen
+
+
+def _build_image_rights_status(item: dict) -> dict:
+    """Compute an at-a-glance status of image attributions for an article.
+
+    Returns:
+        {
+          images: [{ url, credit, photographer, license, source_url, has_credit }],
+          missing: int,
+          all_credited: bool,
+          total: int,
+          featured: { url, credit, photographer, license, source_url, has_credit } | None,
+          featured_credited: bool | None,
+        }
+    """
+    attrs = (item.get("image_attributions") or {}) if isinstance(item.get("image_attributions"), dict) else {}
+    body_imgs = _detect_body_images(item.get("body") or "")
+    images = []
+    missing = 0
+    for url in body_imgs:
+        norm = _normalize_attribution(attrs.get(url))
+        has = bool((norm.get("credit") or "").strip())
+        if not has:
+            missing += 1
+        images.append({
+            "url": url,
+            "credit": norm.get("credit") or "",
+            "photographer": norm.get("photographer") or "",
+            "license": norm.get("license") or "",
+            "source_url": norm.get("source_url") or "",
+            "has_credit": has,
+        })
+
+    featured_credited = None
+    featured = None
+    fi = item.get("featured_image") or {}
+    if isinstance(fi, dict) and (fi.get("s3_url") or fi.get("file_storage_key")):
+        credit = (fi.get("photo_credit") or "").strip()
+        featured_credited = bool(credit)
+        if not featured_credited:
+            missing += 1
+        featured = {
+            "url": fi.get("s3_url") or fi.get("url") or "",
+            "credit": credit,
+            "photographer": (fi.get("photo_photographer") or "").strip(),
+            "license": (fi.get("photo_license") or "").strip(),
+            "source_url": (fi.get("photo_source_url") or "").strip(),
+            "copyright": (fi.get("photo_copyright") or "").strip(),
+            "has_credit": featured_credited,
+        }
+
+    return {
+        "images": images,
+        "featured": featured,
+        "missing": missing,
+        "total": len(images) + (1 if featured is not None else 0),
+        "all_credited": missing == 0,
+        "featured_credited": featured_credited,
+    }
+
+
+@content_router.get("/{content_id}/image-rights")
+async def get_image_rights(
+    content_id: str,
+    request: Request,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Return every image embedded in the article body together with its
+    current attribution (if any) — drives the "Image rights" panel in
+    the article editor."""
+    main_site_id = await get_main_site_id_from_header(request)
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get("team_id"):
+        query["team_id"] = current_user.get("team_id")
+    content = await db.content_items.find_one(query, {"_id": 0})
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    return _build_image_rights_status(content)
+
+
+class ImageRightsUpdate(BaseModel):
+    """Map of ``<img src>`` URL → structured attribution object.
+
+    Each attribution can include:
+        * ``credit``       — bron / agentschap (e.g. "Belga", "Reuters")
+        * ``photographer`` — fotograaf naam
+        * ``license``      — licentietype ("CC-BY-4.0", "Eigen werk", "Aankoop", …)
+        * ``source_url``   — URL naar het origineel
+
+    For backwards compatibility a plain string is interpreted as ``credit``.
+    Passing an empty object or an empty string clears that entry.
+    """
+    attributions: Dict[str, object]
+
+
+@content_router.put("/{content_id}/image-rights")
+async def update_image_rights(
+    content_id: str,
+    payload: ImageRightsUpdate,
+    request: Request,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    main_site_id = await get_main_site_id_from_header(request)
+    query = {"id": content_id}
+    if main_site_id:
+        query["main_site_id"] = main_site_id
+    elif current_user.get("team_id"):
+        query["team_id"] = current_user.get("team_id")
+    content = await db.content_items.find_one(query)
+    if not content:
+        raise HTTPException(status_code=404, detail="Content item not found")
+
+    current = dict(content.get("image_attributions") or {}) if isinstance(content.get("image_attributions"), dict) else {}
+    for url, entry in (payload.attributions or {}).items():
+        if not url:
+            continue
+        norm = _normalize_attribution(entry)
+        # Cleared entry → drop it. Any filled field keeps the record.
+        if not any(norm.get(k) for k in ("credit", "photographer", "license", "source_url")):
+            current.pop(url, None)
+        else:
+            current[url] = norm
+
+    now = datetime.now(timezone.utc).isoformat()
+    await db.content_items.update_one(
+        {"id": content_id},
+        {"$set": {"image_attributions": current, "updated_at": now}},
+    )
+    refreshed = await db.content_items.find_one({"id": content_id}, {"_id": 0})
+    return _build_image_rights_status(refreshed)
 
 
 @content_router.delete("/{content_id}/featured-image")
@@ -1737,6 +1957,18 @@ async def publish_via_clara_api(
             detail="Add a featured image before publishing to the News API. It becomes the article's main photo.",
         )
 
+    # Image rights: every image (featured + inline body) must carry at least
+    # a credit/source. This enforces the photographer/agency licensing rule.
+    if _content_has_missing_image_attribution(content):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Eén of meer afbeeldingen in dit artikel hebben nog geen rechten "
+                "(bron / fotograaf / licentie). Vul de afbeeldingsrechten in "
+                "voordat je publiceert."
+            ),
+        )
+
     now_iso = datetime.now(timezone.utc).isoformat()
     await db.content_items.update_one(
         {"id": content_id},
@@ -1845,7 +2077,7 @@ async def bulk_publish_via_clara(
 
     items = await db.content_items.find(
         {"id": {"$in": payload.content_ids}, "main_site_id": main_site_id},
-        {"_id": 0, "id": 1, "title": 1, "slug": 1, "approval_status": 1, "featured_image": 1, "external_featured_image": 1, "imported_image_url": 1},
+        {"_id": 0, "id": 1, "title": 1, "slug": 1, "approval_status": 1, "featured_image": 1, "external_featured_image": 1, "imported_image_url": 1, "body": 1, "image_attributions": 1},
     ).to_list(len(payload.content_ids))
     by_id = {i["id"]: i for i in items}
 
@@ -1870,6 +2102,9 @@ async def bulk_publish_via_clara(
             continue
         if not _content_has_image(item) and cid not in has_per_site_image:
             results.append({"content_id": cid, "status": "skipped", "reason": "missing_featured_image"})
+            continue
+        if _content_has_missing_image_attribution(item):
+            results.append({"content_id": cid, "status": "skipped", "reason": "missing_image_rights"})
             continue
         slug_to_use = item.get("slug")
         if not slug_to_use:
