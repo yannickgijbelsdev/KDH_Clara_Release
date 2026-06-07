@@ -336,7 +336,8 @@ async def upload_show_title_image(
     
     # Generate storage key and upload
     file_ext = Path(file.filename).suffix or '.jpg'
-    storage_key = f"show_titles/{current_user.get('team_id')}/{title_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    scope_segment = current_user.get('team_id') or current_user.get('main_site_id') or 'shared'
+    storage_key = f"show_titles/{scope_segment}/{title_id}_{uuid.uuid4().hex[:8]}{file_ext}"
     s3_url = None
     
     if is_s3_configured():
@@ -672,7 +673,8 @@ async def upload_show_image(
     
     # Save to S3 or local
     file_ext = Path(file.filename).suffix or '.jpg'
-    storage_key = f"shows/{current_user.get('team_id')}/{show_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    scope_segment = current_user.get('team_id') or current_user.get('main_site_id') or 'shared'
+    storage_key = f"shows/{scope_segment}/{show_id}_{uuid.uuid4().hex[:8]}{file_ext}"
     s3_url = None
     
     if is_s3_configured():

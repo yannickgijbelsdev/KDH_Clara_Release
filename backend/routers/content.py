@@ -1173,7 +1173,18 @@ async def upload_content_featured_image(
     
     # Save to S3 or local
     file_ext = Path(file.filename).suffix or '.jpg'
-    storage_key = f"content/{current_user.get('team_id')}/{content_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    # Build a scoping segment for the S3 key. We MUST avoid a literal "None"
+    # in the path — when System/Network admins upload (team_id is None) the
+    # old code produced `content/None/…` which our resolver later rejects as
+    # corrupt, making the image invisible.
+    scope_segment = (
+        main_site_id
+        or current_user.get('team_id')
+        or content.get('main_site_id')
+        or content.get('team_id')
+        or 'shared'
+    )
+    storage_key = f"content/{scope_segment}/{content_id}_{uuid.uuid4().hex[:8]}{file_ext}"
     s3_url = None
     
     if is_s3_configured():
@@ -1388,7 +1399,14 @@ async def upload_featured_image(
     
     # Save to S3 or local
     file_ext = Path(file.filename).suffix or '.jpg'
-    storage_key = f"featured/{current_user.get('team_id')}/{content_id}_{site_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    scope_segment = (
+        await get_main_site_id_from_header(request)
+        or current_user.get('team_id')
+        or content.get('main_site_id')
+        or content.get('team_id')
+        or 'shared'
+    )
+    storage_key = f"featured/{scope_segment}/{content_id}_{site_id}_{uuid.uuid4().hex[:8]}{file_ext}"
     s3_url = None
     
     if is_s3_configured():

@@ -139,7 +139,8 @@ async def upload_media_asset(
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 100MB")
     
     # Generate storage key
-    storage_key = f"media/{current_user.get('team_id')}/{uuid.uuid4().hex[:12]}{file_ext}"
+    scope_segment = current_user.get('team_id') or current_user.get('main_site_id') or 'shared'
+    storage_key = f"media/{scope_segment}/{uuid.uuid4().hex[:12]}{file_ext}"
     
     # Upload to S3 if configured, otherwise use local storage
     s3_url = None

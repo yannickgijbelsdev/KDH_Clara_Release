@@ -465,7 +465,8 @@ async def upload_avatar(
     
     # Generate storage key and upload
     file_ext = Path(file.filename).suffix or '.jpg'
-    storage_key = f"avatars/{current_user['team_id']}/{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
+    scope_segment = current_user.get('team_id') or current_user.get('main_site_id') or 'shared'
+    storage_key = f"avatars/{scope_segment}/{user_id}_{uuid.uuid4().hex[:8]}{file_ext}"
     s3_url = None
     
     if is_s3_configured():
