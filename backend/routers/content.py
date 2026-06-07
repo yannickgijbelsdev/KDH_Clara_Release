@@ -1249,22 +1249,36 @@ async def update_featured_image_attribution(
     content = await db.content_items.find_one(query)
     if not content:
         raise HTTPException(status_code=404, detail="Content item not found")
-    if not content.get("featured_image"):
+
+    # The article must have *some* image — uploaded featured, imported from WP,
+    # or external syndication URL. We allow attribution even when there's no
+    # `featured_image` dict yet (typical for imported items).
+    if not _get_featured_image_url(content):
         raise HTTPException(status_code=400, detail="Upload a featured image first.")
 
-    fi = dict(content["featured_image"])
-    fi["photo_credit"] = data.photo_credit
-    fi["photo_copyright"] = data.photo_copyright
-    fi["photo_source_url"] = data.photo_source_url
-    fi["photo_photographer"] = data.photo_photographer
-    fi["photo_license"] = data.photo_license
-
     now = datetime.now(timezone.utc).isoformat()
-    await db.content_items.update_one(
-        {"id": content_id},
-        {"$set": {"featured_image": fi, "updated_at": now}},
-    )
-    return {"success": True, "featured_image": fi}
+    set_fields: dict = {"updated_at": now}
+
+    fi_existing = content.get("featured_image")
+    if isinstance(fi_existing, dict) and (fi_existing.get("s3_url") or fi_existing.get("file_storage_key") or fi_existing.get("url")):
+        fi = dict(fi_existing)
+        fi["photo_credit"] = data.photo_credit
+        fi["photo_copyright"] = data.photo_copyright
+        fi["photo_source_url"] = data.photo_source_url
+        fi["photo_photographer"] = data.photo_photographer
+        fi["photo_license"] = data.photo_license
+        set_fields["featured_image"] = fi
+    else:
+        # Imported / external image: store credits at the content_item level
+        # so `_get_featured_credit_fields` picks them up via fallback.
+        set_fields["photo_credit"] = data.photo_credit
+        set_fields["photo_copyright"] = data.photo_copyright
+        set_fields["photo_source_url"] = data.photo_source_url
+        set_fields["photo_photographer"] = data.photo_photographer
+        set_fields["photo_license"] = data.photo_license
+
+    await db.content_items.update_one({"id": content_id}, {"$set": set_fields})
+    return {"success": True}
 
 
 def _normalize_attribution(value) -> dict:
@@ -1297,15 +1311,53 @@ def _attribution_is_filled(entry) -> bool:
     return bool((norm.get("credit") or "").strip())
 
 
+def _get_featured_image_url(item: dict) -> str:
+    """Return the best available featured image URL for a content item.
+
+    Order: uploaded ``featured_image.s3_url`` → ``featured_image.url`` →
+    ``imported_image_url`` (WordPress import) → ``external_featured_image``
+    (legacy syndication) → ``featured_image_url`` → ``image_url`` →
+    ``cover_image_url``. Returns ``""`` if none are set.
+    """
+    fi = item.get("featured_image") or {}
+    if isinstance(fi, dict):
+        for k in ("s3_url", "url"):
+            v = (fi.get(k) or "").strip()
+            if v and "/None/" not in v and "/None_" not in v:
+                return v
+    for k in ("imported_image_url", "external_featured_image",
+              "featured_image_url", "image_url", "cover_image_url"):
+        v = (item.get(k) or "").strip()
+        if v and "/None/" not in v and "/None_" not in v:
+            return v
+    return ""
+
+
+def _get_featured_credit_fields(item: dict) -> dict:
+    """Return the {credit, copyright, photographer, license, source_url}
+    bundle for an article's featured image. Looks at ``featured_image.*``
+    first, falls back to top-level ``photo_*`` fields (used for imported
+    items that don't have a ``featured_image`` dict)."""
+    fi = item.get("featured_image") or {}
+    if not isinstance(fi, dict):
+        fi = {}
+    return {
+        "credit": (fi.get("photo_credit") or item.get("photo_credit") or "").strip(),
+        "copyright": (fi.get("photo_copyright") or item.get("photo_copyright") or "").strip(),
+        "photographer": (fi.get("photo_photographer") or item.get("photo_photographer") or "").strip(),
+        "license": (fi.get("photo_license") or item.get("photo_license") or "").strip(),
+        "source_url": (fi.get("photo_source_url") or item.get("photo_source_url") or "").strip(),
+    }
+
+
 def _content_has_missing_image_attribution(item: dict) -> bool:
     """True iff any inline ``<img>`` in the article body lacks a credit in
-    ``image_attributions``, OR the featured image is missing its credit.
-    Used by the Content Library list & frontend badges to nudge editors
-    before publication."""
-    # 1) Featured image must have a credit
-    fi = item.get("featured_image") or {}
-    if isinstance(fi, dict) and (fi.get("s3_url") or fi.get("file_storage_key")):
-        if not (fi.get("photo_credit") or "").strip():
+    ``image_attributions``, OR the article has *any* featured image
+    (uploaded, imported, or external) without a credit. Drives the
+    Content Library "!" badge and blocks publish-to-News-API."""
+    # 1) ANY featured image (uploaded / imported / external) must have a credit
+    if _get_featured_image_url(item):
+        if not _get_featured_credit_fields(item)["credit"]:
             return True
 
     # 2) Every inline body image must have an entry with at least a credit
@@ -1380,19 +1432,20 @@ def _build_image_rights_status(item: dict) -> dict:
 
     featured_credited = None
     featured = None
-    fi = item.get("featured_image") or {}
-    if isinstance(fi, dict) and (fi.get("s3_url") or fi.get("file_storage_key")):
-        credit = (fi.get("photo_credit") or "").strip()
+    featured_url = _get_featured_image_url(item)
+    if featured_url:
+        creds = _get_featured_credit_fields(item)
+        credit = creds["credit"]
         featured_credited = bool(credit)
         if not featured_credited:
             missing += 1
         featured = {
-            "url": fi.get("s3_url") or fi.get("url") or "",
+            "url": featured_url,
             "credit": credit,
-            "photographer": (fi.get("photo_photographer") or "").strip(),
-            "license": (fi.get("photo_license") or "").strip(),
-            "source_url": (fi.get("photo_source_url") or "").strip(),
-            "copyright": (fi.get("photo_copyright") or "").strip(),
+            "photographer": creds["photographer"],
+            "license": creds["license"],
+            "source_url": creds["source_url"],
+            "copyright": creds["copyright"],
             "has_credit": featured_credited,
         }
 
@@ -1963,9 +2016,9 @@ async def publish_via_clara_api(
         raise HTTPException(
             status_code=409,
             detail=(
-                "Eén of meer afbeeldingen in dit artikel hebben nog geen rechten "
-                "(bron / fotograaf / licentie). Vul de afbeeldingsrechten in "
-                "voordat je publiceert."
+                "One or more images in this article are missing rights "
+                "(source / photographer / license). Fill in the image rights "
+                "before publishing."
             ),
         )
 

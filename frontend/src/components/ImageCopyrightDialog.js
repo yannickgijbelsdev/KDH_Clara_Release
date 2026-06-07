@@ -76,40 +76,40 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
         <div className="space-y-4 mt-2">
           <div>
             <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
-              <Copyright className="w-3 h-3" /> Bron / agentschap *
+              <Copyright className="w-3 h-3" /> Source / agency *
             </Label>
             <Input
               value={credit}
               onChange={(e) => setCredit(e.target.value)}
-              placeholder="Belga, Reuters, Eigen werk…"
+              placeholder="Belga, Reuters, Own work…"
               data-testid="copyright-credit-input"
               className="mt-1.5 bg-white border-zinc-300 text-zinc-900"
             />
-            <p className="text-[11px] text-zinc-400 mt-1">Verplicht. Verschijnt als "© …" in de caption.</p>
+            <p className="text-[11px] text-zinc-400 mt-1">Required. Appears as "© …" in the caption.</p>
           </div>
 
           <div>
             <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
-              <Camera className="w-3 h-3" /> Fotograaf
+              <Camera className="w-3 h-3" /> Photographer
             </Label>
             <Input
               value={photographer}
               onChange={(e) => setPhotographer(e.target.value)}
-              placeholder="Jan Janssens"
+              placeholder="Jane Doe"
               data-testid="copyright-photographer-input"
               className="mt-1.5 bg-white border-zinc-300 text-zinc-900"
             />
-            <p className="text-[11px] text-zinc-400 mt-1">Verschijnt als "Foto: …" in de caption.</p>
+            <p className="text-[11px] text-zinc-400 mt-1">Appears as "Photo: …" in the caption.</p>
           </div>
 
           <div>
             <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
-              <FileText className="w-3 h-3" /> Licentie
+              <FileText className="w-3 h-3" /> License
             </Label>
             <Input
               value={license}
               onChange={(e) => setLicense(e.target.value)}
-              placeholder="CC-BY-4.0, Aankoop, Eigen werk…"
+              placeholder="CC-BY-4.0, Purchased, Own work…"
               data-testid="copyright-license-input"
               className="mt-1.5 bg-white border-zinc-300 text-zinc-900"
             />
@@ -117,7 +117,7 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
 
           <div>
             <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
-              <User className="w-3 h-3" /> Copyright holder (optioneel)
+              <User className="w-3 h-3" /> Copyright holder (optional)
             </Label>
             <Input
               value={copyright}
@@ -130,7 +130,7 @@ export default function ImageCopyrightDialog({ open, onOpenChange, initial = {},
 
           <div>
             <Label className="text-xs text-zinc-500 flex items-center gap-1.5">
-              <LinkIcon className="w-3 h-3" /> URL naar origineel (optioneel)
+              <LinkIcon className="w-3 h-3" /> Source URL (optional)
             </Label>
             <Input
               type="url"

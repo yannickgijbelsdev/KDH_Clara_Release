@@ -234,11 +234,17 @@ def _inject_body_attributions(body: str, attributions: dict) -> str:
 
 def _has_missing_image_attribution(item: dict) -> bool:
     """Heuristic for the list endpoint / Content Library badges: True iff
-    the featured image lacks a credit OR at least one inline body image
-    lacks an entry in ``image_attributions``."""
-    fi = item.get("featured_image") or {}
-    if isinstance(fi, dict) and (fi.get("s3_url") or fi.get("file_storage_key")):
-        if not (fi.get("photo_credit") or "").strip():
+    the article has any featured image (uploaded / imported / external)
+    without a credit OR at least one inline body image lacks an entry in
+    ``image_attributions``."""
+    if _build_image_url(item):
+        fi = item.get("featured_image") or {}
+        credit = (
+            (fi.get("photo_credit") if isinstance(fi, dict) else None)
+            or item.get("photo_credit")
+            or ""
+        ).strip()
+        if not credit:
             return True
     body = item.get("body") or ""
     if not body:

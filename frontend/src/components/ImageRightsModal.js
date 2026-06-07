@@ -7,17 +7,17 @@
  * TinyMCE body.
  *
  * Per image we collect:
- *   - Bron / agentschap        (credit) — required
- *   - Fotograaf                (photographer)
- *   - Licentie                 (license)
- *   - URL naar origineel       (source_url)
+ *   - Source / agency          (credit) — required
+ *   - Photographer             (photographer)
+ *   - License                  (license)
+ *   - Source URL               (source_url)
  *
  * Behaviour:
  *   - Opens automatically when the article loads and ≥1 image is missing
  *     its credit (controlled by parent via `open` prop).
- *   - "Later invullen" closes the dialog without saving — but the parent
+ *   - "Fill in later" closes the dialog without saving — but the parent
  *     keeps publish disabled until all credits are filled.
- *   - "Opslaan" persists everything via PUT /content/:id/image-rights
+ *   - "Save rights" persists everything via PUT /content/:id/image-rights
  *     (and /content/:id/featured-image/attribution for the featured image).
  *
  * Props:
@@ -66,7 +66,7 @@ export default function ImageRightsModal({
     if (featured) {
       list.push({
         key: '__featured',
-        label: 'Featured image (uitgelichte afbeelding)',
+        label: 'Featured image',
         url: featured.url,
         isFeatured: true,
         initial: {
@@ -80,7 +80,7 @@ export default function ImageRightsModal({
     (images || []).forEach((img, i) => {
       list.push({
         key: img.url,
-        label: `Inline afbeelding ${i + 1}`,
+        label: `Inline image ${i + 1}`,
         url: img.url,
         isFeatured: false,
         initial: {
@@ -149,13 +149,13 @@ export default function ImageRightsModal({
 
       toast.success(
         allFilled
-          ? 'Afbeeldingsrechten opgeslagen — artikel kan gepubliceerd worden.'
-          : 'Afbeeldingsrechten opgeslagen.'
+          ? 'Image rights saved — article can now be published.'
+          : 'Image rights saved.'
       );
       onSaved && onSaved(res.data);
       onOpenChange(false);
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Opslaan van rechten mislukt');
+      toast.error(err.response?.data?.detail || 'Failed to save image rights');
     } finally {
       setSaving(false);
     }
@@ -170,19 +170,19 @@ export default function ImageRightsModal({
         <DialogHeader>
           <DialogTitle className="text-zinc-900 flex items-center gap-2">
             <Copyright className="w-5 h-5 text-amber-500" />
-            Beheer afbeeldingsrechten
+            Manage image rights
           </DialogTitle>
           <DialogDescription className="text-zinc-500 text-sm">
-            Vul voor elke afbeelding minstens een <strong>bron</strong> in. Publiceren naar de News API
-            is uitgeschakeld zolang er rechten ontbreken. De caption wordt automatisch onder elke
-            foto getoond op de publieke website.
+            Fill in at least a <strong>source</strong> for every image. Publishing to the News API
+            is disabled while any image rights are missing. The caption will be shown automatically
+            under each photo on the public website.
           </DialogDescription>
         </DialogHeader>
 
         {rows.length === 0 ? (
           <div className="text-center py-10 text-zinc-500 text-sm">
             <ImageIcon className="w-8 h-8 mx-auto mb-2 text-zinc-300" />
-            Dit artikel bevat nog geen afbeeldingen.
+            This article doesn't contain any images yet.
           </div>
         ) : (
           <div className="space-y-5 mt-2">
@@ -217,11 +217,11 @@ export default function ImageRightsModal({
                         </div>
                         {hasCredit ? (
                           <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                            <CheckCircle2 className="w-3 h-3" /> Bron ingevuld
+                            <CheckCircle2 className="w-3 h-3" /> Source filled in
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
-                            <AlertTriangle className="w-3 h-3" /> Bron ontbreekt
+                            <AlertTriangle className="w-3 h-3" /> Source missing
                           </span>
                         )}
                       </div>
@@ -229,48 +229,48 @@ export default function ImageRightsModal({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <Label className="text-[11px] text-zinc-500 flex items-center gap-1">
-                            <Copyright className="w-3 h-3" /> Bron / agentschap *
+                            <Copyright className="w-3 h-3" /> Source / agency *
                           </Label>
                           <Input
                             value={entry.credit}
                             onChange={(e) => setField(row.key, 'credit', e.target.value)}
-                            placeholder="Belga, Reuters, Eigen werk…"
+                            placeholder="Belga, Reuters, Own work…"
                             data-testid={`rights-credit-${idx}`}
                             className="mt-1 bg-white border-zinc-300 text-sm"
                           />
                         </div>
                         <div>
                           <Label className="text-[11px] text-zinc-500 flex items-center gap-1">
-                            <Camera className="w-3 h-3" /> Fotograaf
+                            <Camera className="w-3 h-3" /> Photographer
                           </Label>
                           <Input
                             value={entry.photographer}
                             onChange={(e) => setField(row.key, 'photographer', e.target.value)}
-                            placeholder="Jan Janssens"
+                            placeholder="Jane Doe"
                             data-testid={`rights-photographer-${idx}`}
                             className="mt-1 bg-white border-zinc-300 text-sm"
                           />
                         </div>
                         <div>
                           <Label className="text-[11px] text-zinc-500 flex items-center gap-1">
-                            <FileText className="w-3 h-3" /> Licentie
+                            <FileText className="w-3 h-3" /> License
                           </Label>
                           <Input
                             value={entry.license}
                             onChange={(e) => setField(row.key, 'license', e.target.value)}
-                            placeholder="CC-BY-4.0, Aankoop, Eigen werk…"
+                            placeholder="CC-BY-4.0, Purchased, Own work…"
                             data-testid={`rights-license-${idx}`}
                             className="mt-1 bg-white border-zinc-300 text-sm"
                           />
                         </div>
                         <div>
                           <Label className="text-[11px] text-zinc-500 flex items-center gap-1">
-                            <LinkIcon className="w-3 h-3" /> URL naar origineel
+                            <LinkIcon className="w-3 h-3" /> Source URL
                           </Label>
                           <Input
                             value={entry.source_url}
                             onChange={(e) => setField(row.key, 'source_url', e.target.value)}
-                            placeholder="https://example.com/foto"
+                            placeholder="https://example.com/photo"
                             data-testid={`rights-source-url-${idx}`}
                             className="mt-1 bg-white border-zinc-300 text-sm"
                           />
@@ -291,9 +291,9 @@ export default function ImageRightsModal({
               data-testid="image-rights-status"
             >
               {allFilled ? (
-                <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Alle afbeeldingen hebben rechten — je kunt publiceren.</span>
+                <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> All images have rights — you can publish.</span>
               ) : (
-                <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> {missingCount} van {rows.length} afbeelding{rows.length !== 1 ? 'en' : ''} mist nog een bron. Publiceren blijft uitgeschakeld.</span>
+                <span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> {missingCount} of {rows.length} image{rows.length !== 1 ? 's' : ''} still need a source. Publishing remains disabled.</span>
               )}
             </div>
           </div>
@@ -307,7 +307,7 @@ export default function ImageRightsModal({
             data-testid="image-rights-later-btn"
             className="text-zinc-500 hover:text-zinc-800"
           >
-            Later invullen
+            Fill in later
           </Button>
           <Button
             onClick={save}
@@ -315,7 +315,7 @@ export default function ImageRightsModal({
             data-testid="image-rights-save-btn"
             className="bg-zinc-900 text-white hover:bg-zinc-800"
           >
-            {saving ? 'Opslaan…' : 'Rechten opslaan'}
+            {saving ? 'Saving…' : 'Save rights'}
           </Button>
         </DialogFooter>
       </DialogContent>

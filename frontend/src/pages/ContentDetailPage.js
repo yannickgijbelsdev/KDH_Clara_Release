@@ -841,16 +841,16 @@ const ContentDetailPage = () => {
                     ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 border border-amber-300'
                     : 'bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
                 }`}
-                title="Beheer afbeeldingsrechten"
+                title="Manage image rights"
               >
                 {rightsMissing ? (
                   <AlertCircle className="w-3 h-3" />
                 ) : (
                   <Copyright className="w-3 h-3" />
                 )}
-                Afbeeldingsrechten
+                Image rights
                 {rightsMissing && (
-                  <span className="ml-0.5 text-[10px] font-bold">· {imageRights.missing} ontbreekt</span>
+                  <span className="ml-0.5 text-[10px] font-bold">· {imageRights.missing} missing</span>
                 )}
               </button>
             )}
@@ -930,7 +930,7 @@ const ContentDetailPage = () => {
                 className="text-xs text-amber-700 hover:text-amber-900 underline inline-flex items-center gap-1"
               >
                 <AlertCircle className="w-3 h-3" />
-                {imageRights.missing} afbeelding{imageRights.missing !== 1 ? 'en' : ''} mist nog rechten — klik om in te vullen
+                {imageRights.missing} image{imageRights.missing !== 1 ? 's' : ''} still missing rights — click to fill in
               </button>
             )}
           </div>
