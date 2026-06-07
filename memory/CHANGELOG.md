@@ -1,6 +1,36 @@
 # Changelog
 
 
+## 2026-06-07 — Image Copyright / Attribution enforcement (P0)
+
+### Why
+Belga/Reuters/eigen werk-foto's moeten wettelijk altijd een bron, fotograaf en licentie meekrijgen. Voorheen werd dit niet afgedwongen: artikelen konden gepubliceerd worden zonder rechten, en de publieke News API toonde nooit een caption onder de foto's.
+
+### Backend
+- **`models/content.py`**: `ContentFeaturedImage` + `FeaturedImageResponse` krijgen extra velden `photo_photographer` en `photo_license`. `ContentItemResponse` heeft nu `image_attributions: Optional[dict]` en `missing_image_attributions: Optional[bool]`.
+- **`routers/content.py`**: `image_attributions` upgrade van `Dict[str, str]` naar `Dict[str, dict]` met `{credit, photographer, license, source_url}`. Legacy strings worden door `_normalize_attribution` automatisch geconverteerd naar `{credit: <str>}` zodat oude artikelen niet breken.
+- `_content_has_missing_image_attribution` checkt nu zowel featured image (vereist `photo_credit`) als elke inline `<img>`.
+- `_build_image_rights_status` levert structured rows per afbeelding (incl. featured) terug.
+- `update_image_rights` en `update_featured_image_attribution` accepteren de nieuwe velden.
+- **Publish-gate**: `POST /api/content/{id}/publish-clara` retourneert nu een 409 met de Nederlandse boodschap "*Eén of meer afbeeldingen in dit artikel hebben nog geen rechten…*" zodra er rechten ontbreken (zowel single als bulk).
+- **`services/helpers.py`**: `get_content_with_publish_statuses` zet `missing_image_attributions` op het item, zodat de detail page de modal kan triggeren.
+- **`routers/news_public.py`**: `_format_credit_line` rendert `Foto: X · © Y · Licentie` (met optionele `<a href>` naar het origineel). `_inject_body_attributions` wrapt elke inline `<img>` met een rechten-entry in `<figure class="clara-img-figure">…<figcaption class="clara-img-credit">…</figcaption></figure>`. Featured image attribution gaat ook mee in het `image_attribution`-JSON-veld met alle 4 sub-keys.
+
+### Frontend
+- **Nieuw component `ImageRightsModal.js`**: opent automatisch op artikel-load als er rechten ontbreken; lijst van álle afbeeldingen (featured + inline) met 4 velden per rij (Bron/agentschap, Fotograaf, Licentie, URL naar origineel). Knop "Later invullen" sluit zonder op te slaan, "Rechten opslaan" PUT't beide endpoints (featured + image-rights).
+- **`ImageCopyrightDialog.js`**: uitgebreid met `photographer` + `license` invulvelden.
+- **`ContentDetailPage.js`**: nieuwe state `imageRights` + `showRightsModal`. Knop "Afbeeldingsrechten" in de toolbar (amber wanneer rechten ontbreken). De Publish-naar-News-API knop is uitgeschakeld zolang `imageRights.missing > 0`; eronder verschijnt een klikbare amber-warning die de modal opnieuw opent.
+- **`ContentLibraryPage.js`**: toont een ⚠️ AlertTriangle-badge (`data-testid=missing-rights-{id}`) naast titels van artikelen waar rechten ontbreken.
+
+### Build fix
+- `/app/frontend/.eslintrc.json` verwijderd — die extend'de `react-app` maar het pakket `eslint-config-react-app` was niet geïnstalleerd, waardoor de dev-server compile faalde. CRA's ingebouwde ESLint blijft draaien.
+
+### Tests
+- `backend/tests/test_image_rights.py` — 8/8 pytest tests (round-trip, legacy-string, publish-block met Dutch error, news API figcaption injectie, list endpoint flag).
+- Frontend e2e via testing agent: modal auto-open, alle 4 velden, "Later invullen", "Opslaan", warning, badge-removal en publish-enabling allemaal verified.
+
+
+
 ## 2026-06-06 — Featured Image preview + altijd wisselbaar in artikel-detail
 
 ### Why

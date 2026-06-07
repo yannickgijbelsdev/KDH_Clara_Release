@@ -12,6 +12,7 @@ Multi-environment SaaS platform for radio station management built with React fr
 - PWA installation support, RDS metadata auto-refresh
 - **Clara System Scan Widget** — Non-blocking floating scan on login
 - **Clara Flows** — Admin-only visual workflow builder for notifications & API flows (triggers: manual/event/schedule/webhook; actions: email/HTTP/in-app/AI/Slack/Telegram; `{{ trigger.x }}` templating; per main site)
+- **Image Copyright Enforcement** — every featured/inline image must carry bron, fotograaf, licentie en URL naar origineel; publish-naar-News-API geblokkeerd zonder rechten; `<figcaption>` auto-injected in News API HTML body; "!" badge in Content Library.
 
 ## Architecture
 ```

@@ -270,8 +270,7 @@ class TestContentListMissingRightsFlag:
             items = items["items"]
         assert isinstance(items, list)
         # At least some items in radiogroep should carry the flag set
-        flagged = [i for i in items if i.get("missing_image_attributions")]
-        # The PRD says 8/37 — we just require >=1 to confirm wiring
+        # The PRD says 8/37 — we just require the key exists on every item.
         assert any("missing_image_attributions" in i for i in items), \
             "missing_image_attributions key not present on any item"
 
