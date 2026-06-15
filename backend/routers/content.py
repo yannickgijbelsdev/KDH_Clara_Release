@@ -2275,3 +2275,99 @@ async def bulk_delete_content_items(
         "skipped": skipped,
         "results": [{"content_id": cid, "status": "deleted"} for cid in found_ids],
     }
+
+
+
+@content_router.post("/admin/mirror-wp-images")
+async def mirror_wp_imported_images(
+    request: Request,
+    limit: int = 100,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """Backfill: mirror every WP-imported article's `external_featured_image`
+    or `imported_image_url` to our S3 bucket, then set `featured_image` to
+    the resulting dict. Idempotent — skips items that already have an
+    `featured_image.s3_url` matching `mirrored_from`.
+
+    Run per main-site context (X-Main-Site-ID header). Returns counts of
+    mirrored / skipped / failed items so the editor can track progress.
+    """
+    from services.url_mirror import mirror_url_to_s3  # local import — avoids
+                                                       # cycles for content.py
+
+    main_site_id = await get_main_site_id_from_header(request)
+    q: dict = {
+        "$or": [
+            {"external_featured_image": {"$ne": None, "$exists": True}},
+            {"imported_image_url": {"$ne": None, "$exists": True}},
+        ],
+        "$and": [
+            {"$or": [
+                {"featured_image": None},
+                {"featured_image": {"$exists": False}},
+                {"featured_image.s3_url": {"$exists": False}},
+                {"featured_image.s3_url": None},
+                {"featured_image.s3_url": ""},
+            ]},
+        ],
+    }
+    if main_site_id:
+        q["main_site_id"] = main_site_id
+    elif current_user.get("team_id"):
+        q["team_id"] = current_user.get("team_id")
+
+    items = await db.content_items.find(
+        q,
+        {"_id": 0, "id": 1, "title": 1, "external_featured_image": 1,
+         "imported_image_url": 1, "source": 1, "source_url": 1,
+         "featured_image": 1, "main_site_id": 1, "team_id": 1},
+    ).to_list(limit)
+
+    mirrored = 0
+    skipped = 0
+    failed = 0
+    for item in items:
+        url = (item.get("external_featured_image") or item.get("imported_image_url") or "").strip()
+        if not url:
+            skipped += 1
+            continue
+        prior = item.get("featured_image") or {}
+        if isinstance(prior, dict) and prior.get("s3_url") and prior.get("mirrored_from") == url:
+            skipped += 1
+            continue
+        res = await mirror_url_to_s3(
+            url,
+            main_site_id=item.get("main_site_id"),
+            team_id=item.get("team_id"),
+            user_id=current_user.get("id"),
+            user_name=current_user.get("name"),
+            folder="imported-wp",
+        )
+        if not res:
+            failed += 1
+            continue
+        site_name = item.get("source") or "WordPress"
+        fi = {
+            **res,
+            "url": res["s3_url"],
+            "alt_text": item.get("title") or "",
+            "photo_credit": (prior.get("photo_credit") if isinstance(prior, dict) else None) or site_name,
+            "photo_copyright": (prior.get("photo_copyright") if isinstance(prior, dict) else None) or site_name,
+            "photo_source_url": (prior.get("photo_source_url") if isinstance(prior, dict) else None) or item.get("source_url"),
+            "photo_photographer": (prior.get("photo_photographer") if isinstance(prior, dict) else None),
+            "photo_license": (prior.get("photo_license") if isinstance(prior, dict) else None),
+        }
+        await db.content_items.update_one(
+            {"id": item["id"]},
+            {"$set": {"featured_image": fi, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        )
+        mirrored += 1
+
+    return {
+        "scanned": len(items),
+        "mirrored": mirrored,
+        "skipped": skipped,
+        "failed": failed,
+        "limit": limit,
+        "has_more": len(items) == limit,
+    }

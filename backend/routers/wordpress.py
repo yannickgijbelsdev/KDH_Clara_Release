@@ -20,6 +20,7 @@ import logging
 
 from database import db, UPLOADS_DIR
 from services.s3_storage import get_file_from_s3, is_s3_configured
+from services.url_mirror import mirror_url_to_s3
 from models.wordpress import (
     WordPressSiteCreate, WordPressSiteUpdate, WordPressSiteResponse,
     PublishToWordPressRequest, PublishResponse, PublishResult,
@@ -632,7 +633,7 @@ async def import_wordpress_posts(
                 if featured_media and len(featured_media) > 0:
                     media_item = featured_media[0]
                     featured_image_url = media_item.get('source_url', '')
-                
+
                 # Get category name
                 category_name = ''
                 if wp_categories_ids:
@@ -643,7 +644,66 @@ async def import_wordpress_posts(
                     "wp_post_id": wp_post_id,
                     "wordpress_site_id": site_id
                 })
-                
+
+                # Mirror the WP featured image to our S3 bucket so Clara owns
+                # the asset. Skips when the URL is empty, already mirrored
+                # (matching `mirrored_from` on an existing content item), or
+                # the download/upload fails — we fall back to the original
+                # external URL in those cases.
+                mirrored_featured = None
+                if featured_image_url:
+                    existing_for_reuse = None
+                    if existing_record and existing_record.get('content_item_id'):
+                        existing_for_reuse = await db.content_items.find_one(
+                            {"id": existing_record['content_item_id']},
+                            {"_id": 0, "featured_image": 1},
+                        )
+                    if not existing_for_reuse:
+                        existing_for_reuse = await db.content_items.find_one(
+                            {
+                                "source_url": wp_link,
+                                "main_site_id": main_site_id or site.get('main_site_id'),
+                            },
+                            {"_id": 0, "featured_image": 1},
+                        )
+                    prior_fi = (existing_for_reuse or {}).get("featured_image") or {}
+                    if (
+                        isinstance(prior_fi, dict)
+                        and prior_fi.get("s3_url")
+                        and prior_fi.get("mirrored_from") == featured_image_url
+                    ):
+                        mirrored_featured = prior_fi
+                    else:
+                        result = await mirror_url_to_s3(
+                            featured_image_url,
+                            main_site_id=main_site_id or site.get('main_site_id'),
+                            team_id=current_user.get('team_id'),
+                            user_id=current_user.get('id'),
+                            user_name=current_user.get('name'),
+                            folder="imported-wp",
+                        )
+                        if result:
+                            site_name = site.get('name') or 'WordPress'
+                            mirrored_featured = {
+                                **result,
+                                "url": result["s3_url"],
+                                "alt_text": title,
+                                "photo_credit": (
+                                    (prior_fi.get("photo_credit") if isinstance(prior_fi, dict) else None)
+                                    or site_name
+                                ),
+                                "photo_copyright": (
+                                    (prior_fi.get("photo_copyright") if isinstance(prior_fi, dict) else None)
+                                    or site_name
+                                ),
+                                "photo_source_url": (
+                                    (prior_fi.get("photo_source_url") if isinstance(prior_fi, dict) else None)
+                                    or wp_link
+                                ),
+                                "photo_photographer": (prior_fi.get("photo_photographer") if isinstance(prior_fi, dict) else None),
+                                "photo_license": (prior_fi.get("photo_license") if isinstance(prior_fi, dict) else None),
+                            }
+
                 if existing_record:
                     # Update existing content item and publish record. If the
                     # content item was hard-deleted from the DB while the
@@ -662,6 +722,7 @@ async def import_wordpress_posts(
                                 "body": body,
                                 "excerpt": excerpt[:500] if excerpt else '',
                                 "external_featured_image": featured_image_url,
+                                **({"featured_image": mirrored_featured} if mirrored_featured else {}),
                                 "updated_at": now,
                                 "source_url": wp_link,
                                 "source": site.get('name', 'WordPress'),
@@ -694,6 +755,7 @@ async def import_wordpress_posts(
                             "source": site.get('name', 'WordPress'),
                             "source_url": wp_link,
                             "external_featured_image": featured_image_url,
+                            **({"featured_image": mirrored_featured} if mirrored_featured else {}),
                             "category_name": category_name,
                             "tags": [],
                             "status": "ready",
@@ -733,6 +795,7 @@ async def import_wordpress_posts(
                             "body": body,
                             "excerpt": excerpt[:500] if excerpt else '',
                             "external_featured_image": featured_image_url,
+                            **({"featured_image": mirrored_featured} if mirrored_featured else {}),
                             "updated_at": now,
                             "category_name": category_name,
                             # Refresh the source tag on every re-import so the
