@@ -36,6 +36,7 @@ import PersonalSettingsPage from './pages/PersonalSettingsPage';
 import { fetchSubdomainConfig, buildLoginRedirectUrl } from './services/subdomainAuth';
 import RDSPage from './pages/RDSPage';
 import ClaraFlowsPage from './pages/ClaraFlowsPage';
+import VideoEndpointsPage from './pages/VideoEndpointsPage';
 import ClaraCustomPage from './pages/ClaraCustomPage';
 import RDSMonitorPage from './pages/RDSMonitorPage';
 import StreamMonitorPage from './pages/StreamMonitorPage';
@@ -287,6 +288,7 @@ const AppRoutes = () => {
         <Route path="radio-automation" element={<RadioAutomationPage />} />
         <Route path="api-endpoints" element={<ApiEndpointsPage />} />
         <Route path="clara-flows" element={<ClaraFlowsPage />} />
+        <Route path="video-endpoints" element={<VideoEndpointsPage />} />
       </Route>
 
       {/* Public Call Page - /call/:callToken (no auth required) */}

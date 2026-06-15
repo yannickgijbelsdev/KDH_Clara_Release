@@ -877,6 +877,9 @@ async def create_show(
             "recurrence_end_date": show_data.recurrence_end_date,
             "parent_show_id": None,  # This is the parent
             "is_recurring": True,
+            "has_video": bool(show_data.has_video),
+            "video_endpoint_id": show_data.video_endpoint_id,
+            "video_embed_override": show_data.video_embed_override,
             "image": show_image  # Include image from show title
         }
         await db.shows.insert_one(parent_doc)
@@ -911,6 +914,9 @@ async def create_show(
                 "recurrence_end_date": show_data.recurrence_end_date,
                 "parent_show_id": parent_id,
                 "is_recurring": True,
+                "has_video": bool(show_data.has_video),
+                "video_endpoint_id": show_data.video_endpoint_id,
+                "video_embed_override": show_data.video_embed_override,
                 "image": show_image  # Include image from show title
             }
             await db.shows.insert_one(occ_doc)
@@ -960,7 +966,10 @@ async def create_show(
             "recurrence_interval": 1,
             "recurrence_end_date": None,
             "parent_show_id": None,
-            "is_recurring": False
+            "is_recurring": False,
+            "has_video": bool(show_data.has_video),
+            "video_endpoint_id": show_data.video_endpoint_id,
+            "video_embed_override": show_data.video_embed_override,
         }
         
         await db.shows.insert_one(show_doc)

@@ -149,6 +149,7 @@ const FEATURE_NAV_ITEMS = {
   enterprise_assistant: { to: 'enterprise-assistant', icon: Sparkles, label: 'Enterprise Assistant' },
   radio_automation: { to: 'radio-automation', icon: Disc3, label: 'Radio Automation', adminOnly: true },
   api_endpoints: { to: 'api-endpoints', icon: Zap, label: 'API Endpoints', adminOnly: true },
+  video_endpoints: { to: 'video-endpoints', icon: Video, label: 'Video Endpoints' },
   clara_flows: { to: 'clara-flows', icon: Sparkles, label: 'Clara Flows', adminOnly: true },
 };
 
@@ -252,6 +253,8 @@ const MainSiteDashboardContent = () => {
     }
     // Clara Flows is always available for admins (admin-only route)
     validRoutes.add('clara-flows');
+    // Video Endpoints is always available for editors and admins
+    validRoutes.add('video-endpoints');
     // Technical sites always have zerotier + team access
     if (mainSite.site_type === 'technical') {
       validRoutes.add('zerotier');
@@ -722,6 +725,28 @@ const MainSiteDashboardContent = () => {
             items: [navEntry],
           });
         }
+      }
+    }
+
+    // Video Endpoints — own top-level group, visible for editors + admins
+    // (matches the "all editors/admins can manage" UX choice).
+    const videoItem = FEATURE_NAV_ITEMS.video_endpoints;
+    if (videoItem) {
+      const videoEntry = {
+        ...videoItem,
+        to: `/${mainSiteSlug}/${videoItem.to}`,
+        featureId: 'video_endpoints',
+      };
+      const existing = groups.find((g) => g.id === 'video');
+      if (!existing) {
+        groups.push({
+          id: 'video',
+          label: 'Video',
+          icon: Video,
+          items: [videoEntry],
+        });
+      } else if (!existing.items.some((it) => it.featureId === 'video_endpoints')) {
+        existing.items.push(videoEntry);
       }
     }
 

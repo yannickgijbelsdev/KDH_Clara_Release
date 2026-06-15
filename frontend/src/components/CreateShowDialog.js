@@ -5,13 +5,14 @@ import { format } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   CalendarIcon, Repeat, Plus, Loader2, Users, User, Check,
-  ChevronLeft, ChevronRight, X, Zap
+  ChevronLeft, ChevronRight, X, Zap, Video as VideoCam
 } from 'lucide-react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
+import { Switch } from './ui/switch';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from './ui/select';
@@ -60,13 +61,32 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
     recurrence: 'none',
     studio_id: '',
     presenter_ids: [],
+    has_video: false,
+    video_endpoint_id: '',
+    video_embed_override: '',
   });
+
+  const [videoEndpoints, setVideoEndpoints] = useState([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
+
+  const fetchVideoEndpoints = async () => {
+    setLoadingVideos(true);
+    try {
+      const res = await axios.get(`${API}/videos`);
+      setVideoEndpoints(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      // Soft-fail: editor can still type a manual override
+    } finally {
+      setLoadingVideos(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
       fetchShowTitles();
       fetchStudios();
       fetchTeamUsers();
+      fetchVideoEndpoints();
     }
   }, [open]);
 
@@ -205,6 +225,9 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
         recurrence_type: isRecurring ? 'weekly' : 'none',
         recurrence_interval: recurrenceOption?.interval || 1,
         recurrence_end_date: isRecurring && endDate ? format(endDate, 'yyyy-MM-dd') : null,
+        has_video: !!formData.has_video,
+        video_endpoint_id: formData.has_video ? (formData.video_endpoint_id || null) : null,
+        video_embed_override: formData.has_video ? (formData.video_embed_override || null) : null,
       };
       const response = await axios.post(`${API}/shows`, payload);
       if (isRecurring) {
@@ -522,6 +545,65 @@ const CreateShowDialog = ({ open, onOpenChange, onShowCreated, defaultDate }) =>
                           </button>
                         ))}
                       </div>
+                    </div>
+
+                    {/* Video — toggle + endpoint dropdown + manual override */}
+                    <div className="space-y-3 border-t border-zinc-100 pt-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label className="text-zinc-700 font-medium flex items-center gap-2">
+                            <VideoCam className="w-4 h-4" /> This show contains video
+                          </Label>
+                          <p className="text-xs text-zinc-400 mt-0.5">
+                            Surfaced via the public <code className="bg-zinc-100 px-1 rounded">/api/videos</code> endpoint and the schedule API.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={!!formData.has_video}
+                          onCheckedChange={(v) => setFormData({ ...formData, has_video: v })}
+                          data-testid="show-has-video-toggle"
+                        />
+                      </div>
+
+                      {formData.has_video && (
+                        <div className="space-y-3 pl-1">
+                          <div>
+                            <Label className="text-xs text-zinc-500">Video endpoint (from library)</Label>
+                            <Select
+                              value={formData.video_endpoint_id || '__none__'}
+                              onValueChange={(v) => setFormData({ ...formData, video_endpoint_id: v === '__none__' ? '' : v })}
+                            >
+                              <SelectTrigger
+                                className="mt-1.5 bg-zinc-50 border-zinc-200 h-11 rounded-xl"
+                                data-testid="show-video-endpoint-select"
+                              >
+                                <SelectValue placeholder={loadingVideos ? 'Loading…' : 'Pick from Video Endpoints library'} />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white">
+                                <SelectItem value="__none__">No library link — use override below</SelectItem>
+                                {videoEndpoints.map((v) => (
+                                  <SelectItem key={v.id} value={v.id}>
+                                    {v.name} <span className="text-zinc-400 text-xs ml-1">({v.platform || 'iframe'} · {v.type})</span>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-zinc-500">
+                              Inline embed override (optional)
+                            </Label>
+                            <Textarea
+                              value={formData.video_embed_override || ''}
+                              onChange={(e) => setFormData({ ...formData, video_embed_override: e.target.value })}
+                              placeholder="YouTube/Vimeo URL, or paste an <iframe> snippet — overrides the library link for this show"
+                              rows={2}
+                              data-testid="show-video-embed-override"
+                              className="mt-1.5 font-mono text-xs bg-zinc-50 border-zinc-200 rounded-xl"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

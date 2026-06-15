@@ -224,6 +224,40 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
 
         presenter_image_url = await _resolve_presenter_image_url(presenter_ids, title_image_url=image_url)
 
+        # Video payload — when the editor flagged the show as having video,
+        # resolve either an inline override or the linked Video Endpoint
+        # (whichever is set). Frontends can render `video.embed_html` directly.
+        video_payload = None
+        if show.get("has_video"):
+            override = (show.get("video_embed_override") or "").strip()
+            endpoint_id = show.get("video_endpoint_id")
+            if override:
+                from services.video_embed import detect_platform, build_embed_html
+                det = detect_platform(override)
+                video_payload = {
+                    "endpoint_id": None,
+                    "platform": det.get("platform"),
+                    "embed_url": det.get("embed_url"),
+                    "embed_html": build_embed_html(det),
+                    "thumbnail_url": det.get("thumbnail_url"),
+                    "source": "inline",
+                }
+            elif endpoint_id:
+                ve = await db.video_endpoints.find_one({"id": endpoint_id}, {"_id": 0})
+                if ve:
+                    from services.video_embed import serialize_video
+                    s = serialize_video(ve)
+                    video_payload = {
+                        "endpoint_id": s.get("id"),
+                        "name": s.get("name"),
+                        "type": s.get("type"),
+                        "platform": s.get("platform"),
+                        "embed_html": s.get("embed_html"),
+                        "thumbnail_url": s.get("thumbnail_url"),
+                        "uploaded_url": s.get("uploaded_url"),
+                        "source": "library",
+                    }
+
         result[weekday].append({
             "id": show.get("id"),
             "title": title_name,
@@ -237,6 +271,8 @@ async def get_shows_for_week(main_site_id: str, station: str) -> dict:
             "presenter_image_url": presenter_image_url,
             "image": image_url,
             "rds_station": rds_station,
+            "has_video": bool(show.get("has_video")),
+            "video": video_payload,
         })
 
     for day in result:

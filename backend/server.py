@@ -82,6 +82,7 @@ from routers.clara_integrations import clara_integrations_router, integrations_h
 from routers.vdc_quick_deploy import vdc_quick_router
 from routers.news_public import news_public_router
 from routers.clara_flows import clara_flows_router
+from routers.video_endpoints import video_router, public_video_router
 from routers.security import security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
@@ -167,6 +168,8 @@ api_router.include_router(data_transfer_router)
 api_router.include_router(clara_custom_router)
 api_router.include_router(clara_integrations_router)
 api_router.include_router(vdc_quick_router)
+api_router.include_router(video_router)
+api_router.include_router(public_video_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============

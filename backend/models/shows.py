@@ -106,6 +106,10 @@ class ShowCreate(BaseModel):
     status: str = "draft"
     studio_id: Optional[str] = None
     presenter_ids: Optional[List[str]] = None
+    # Video reference — editor toggles "this show contains video"
+    has_video: Optional[bool] = False
+    video_endpoint_id: Optional[str] = None  # FK → video_endpoints.id
+    video_embed_override: Optional[str] = None  # Inline embed code if no endpoint chosen
     # Recurrence fields
     recurrence_type: Literal["none", "weekly"] = "none"
     recurrence_interval: int = Field(default=1, ge=1, le=4, description="Repeat every N weeks (1-4)")
@@ -121,6 +125,9 @@ class ShowUpdate(BaseModel):
     status: Optional[str] = None
     studio_id: Optional[str] = None
     presenter_ids: Optional[List[str]] = None
+    has_video: Optional[bool] = None
+    video_endpoint_id: Optional[str] = None
+    video_embed_override: Optional[str] = None
     # For updating single occurrence vs all
     update_all_occurrences: Optional[bool] = False
 
@@ -150,6 +157,10 @@ class ShowResponse(BaseModel):
     parent_show_id: Optional[str] = None  # If this is an occurrence of a recurring show
     is_recurring: Optional[bool] = False
     rds_station: Optional[str] = "none"
+    # Video reference (added 2026-06)
+    has_video: Optional[bool] = False
+    video_endpoint_id: Optional[str] = None
+    video_embed_override: Optional[str] = None
 
 
 class RundownItemCreate(BaseModel):
