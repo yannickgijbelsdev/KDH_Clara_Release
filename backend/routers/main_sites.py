@@ -1685,6 +1685,82 @@ async def get_main_site_api_endpoints(
                 "endpoints": clara_endpoints,
             })
 
+    # ─── Video Endpoints (shown when the site has any video endpoints) ────
+    has_video_endpoints = False
+    try:
+        has_video_endpoints = bool(await db.video_endpoints.find_one(
+            {"main_site_id": main_site_id}, {"_id": 1}
+        ))
+    except Exception:
+        has_video_endpoints = False
+    if has_video_endpoints:
+        # Sample a few endpoints + shows so the editor has copy-pasteable URLs
+        sample_ve = [d async for d in db.video_endpoints.find(
+            {"main_site_id": main_site_id}, {"_id": 0, "id": 1, "name": 1}
+        ).limit(3)]
+        sample_show = await db.shows.find_one(
+            {"main_site_id": main_site_id, "has_video": True},
+            {"_id": 0, "id": 1, "title": 1},
+        )
+        video_endpoints_list = [
+            {
+                "name": "Currently live show — video",
+                "description": "Auto-resolves the currently airing show (today, in the start/end window) and returns its linked video endpoint. Empty body when nothing is live or the live show doesn't have video enabled.",
+                "method": "GET",
+                "response_type": "application/json",
+                "path": "/api/videos/public/live",
+                "full_url": f"{base_url}/api/videos/public/live",
+                "tag": "Video", "tag_color": "#e11d48",
+            },
+        ]
+        if sample_show:
+            video_endpoints_list.append({
+                "name": f"Show video — {sample_show.get('title','')[:40]}",
+                "description": "Returns the linked Video Endpoint of a specific show. Empty body when 'Send to Video Endpoint' is off in the rundown.",
+                "method": "GET",
+                "response_type": "application/json",
+                "path": f"/api/videos/public/show/{sample_show['id']}",
+                "full_url": f"{base_url}/api/videos/public/show/{sample_show['id']}",
+                "tag": "Video", "tag_color": "#e11d48",
+            })
+        else:
+            video_endpoints_list.append({
+                "name": "Show video — {show_id}",
+                "description": "Returns the linked Video Endpoint of a specific show. Empty body when 'Send to Video Endpoint' is off in the rundown. Replace {show_id} with the show's UUID.",
+                "method": "GET",
+                "response_type": "application/json",
+                "path": "/api/videos/public/show/{show_id}",
+                "full_url": f"{base_url}/api/videos/public/show/{{show_id}}",
+                "tag": "Video", "tag_color": "#e11d48",
+            })
+        for ve in sample_ve:
+            video_endpoints_list.append({
+                "name": f"Direct endpoint — {ve.get('name','')[:40]}",
+                "description": "Anonymous read of a single Video Endpoint by its id. Returns embed_html, platform, thumbnail.",
+                "method": "GET",
+                "response_type": "application/json",
+                "path": f"/api/videos/public/{ve['id']}",
+                "full_url": f"{base_url}/api/videos/public/{ve['id']}",
+                "tag": "Video", "tag_color": "#e11d48",
+            })
+        if not sample_ve:
+            video_endpoints_list.append({
+                "name": "Direct endpoint — {video_id}",
+                "description": "Anonymous read of a single Video Endpoint by its id.",
+                "method": "GET",
+                "response_type": "application/json",
+                "path": "/api/videos/public/{video_id}",
+                "full_url": f"{base_url}/api/videos/public/{{video_id}}",
+                "tag": "Video", "tag_color": "#e11d48",
+            })
+        groups.append({
+            "id": "video_endpoints",
+            "name": "Video Endpoints",
+            "icon": "video",
+            "description": "Public video URLs. Editors toggle 'Send to Video Endpoint' in a show's rundown to expose it via the API. Empty body when the toggle is off.",
+            "endpoints": video_endpoints_list,
+        })
+
     # ─── Authentication & Public (always present) ──────────────────────────
     groups.append({
         "id": "auth_public",

@@ -79,6 +79,54 @@ async def list_video_endpoints(
     return items
 
 
+@video_router.get("/schedule/overview")
+async def video_endpoint_schedule_overview(
+    request: Request,
+    current_user: dict = Depends(require_editor_or_admin),
+):
+    """For every video endpoint visible to the caller, list the shows that
+    currently link to it. Includes upcoming + past linked shows so editors
+    get a glance at which endpoint is/was scheduled where.
+
+    Returns a list of ``{ endpoint: {...summary...}, shows: [...] }``.
+    """
+    main_site_id = await get_main_site_id_from_header(request)
+    q = _build_scope_query(current_user, main_site_id)
+    endpoints = [d async for d in db.video_endpoints.find(q).sort("name", 1)]
+    if not endpoints:
+        return []
+
+    endpoint_ids = [e["id"] for e in endpoints]
+    show_query = {"video_endpoint_id": {"$in": endpoint_ids}, "has_video": True}
+    if main_site_id:
+        show_query["main_site_id"] = main_site_id
+    by_endpoint: dict[str, list[dict]] = {eid: [] for eid in endpoint_ids}
+    cursor = db.shows.find(
+        show_query,
+        {"_id": 0, "id": 1, "title": 1, "date": 1, "start_time": 1, "end_time": 1,
+         "video_endpoint_id": 1, "is_recurring": 1, "rds_station": 1},
+    ).sort([("date", 1), ("start_time", 1)])
+    async for show in cursor:
+        eid = show.get("video_endpoint_id")
+        if eid in by_endpoint:
+            by_endpoint[eid].append(show)
+
+    return [
+        {
+            "endpoint": {
+                "id": e["id"],
+                "name": e.get("name"),
+                "type": e.get("type"),
+                "platform": serialize_video(e).get("platform"),
+                "thumbnail_url": serialize_video(e).get("thumbnail_url"),
+            },
+            "shows": by_endpoint.get(e["id"], []),
+            "show_count": len(by_endpoint.get(e["id"], [])),
+        }
+        for e in endpoints
+    ]
+
+
 @video_router.get("/{video_id}", response_model=VideoEndpointResponse)
 async def get_video_endpoint(
     video_id: str,
@@ -240,14 +288,102 @@ async def upload_video_file(
 public_video_router = APIRouter(prefix="/videos/public", tags=["Video Endpoints (public)"])
 
 
+@public_video_router.get("/show/{show_id}")
+async def public_show_video(show_id: str):
+    """Return the linked video endpoint for a specific show, but only when
+    the editor enabled "Send to Video Endpoint" in the rundown.
+
+    Returns ``{}`` when the show doesn't exist, isn't flagged, or has no
+    endpoint linked — consumers can treat empty body as "no video".
+    """
+    show = await db.shows.find_one({"id": show_id}, {"_id": 0})
+    if not show or not show.get("has_video"):
+        return {}
+    endpoint_id = show.get("video_endpoint_id")
+    if not endpoint_id:
+        # Inline override only — surface that on a best-effort basis
+        override = (show.get("video_embed_override") or "").strip()
+        if not override:
+            return {}
+        from services.video_embed import detect_platform, build_embed_html
+        det = detect_platform(override)
+        return {
+            "show_id": show_id,
+            "show_title": show.get("title"),
+            "start_time": show.get("start_time"),
+            "end_time": show.get("end_time"),
+            "date": show.get("date"),
+            "endpoint": None,
+            "platform": det.get("platform"),
+            "embed_html": build_embed_html(det),
+            "thumbnail_url": det.get("thumbnail_url"),
+            "source": "inline",
+        }
+
+    ve = await db.video_endpoints.find_one({"id": endpoint_id}, {"_id": 0})
+    if not ve:
+        return {}
+    payload = serialize_video(ve)
+    for k in ("team_id", "main_site_id", "created_by", "uploaded_key"):
+        payload.pop(k, None)
+    return {
+        "show_id": show_id,
+        "show_title": show.get("title"),
+        "start_time": show.get("start_time"),
+        "end_time": show.get("end_time"),
+        "date": show.get("date"),
+        "endpoint": payload,
+        "platform": payload.get("platform"),
+        "embed_html": payload.get("embed_html"),
+        "thumbnail_url": payload.get("thumbnail_url"),
+        "source": "library",
+    }
+
+
+@public_video_router.get("/live")
+async def public_live_video():
+    """Return the *currently airing* show (matched on local time vs.
+    ``date`` + ``start_time``/``end_time``) when it has video enabled.
+
+    Empty body when no live show or the live show isn't flagged.
+    """
+    from datetime import datetime as _dt
+    now = _dt.now()
+    today = now.strftime("%Y-%m-%d")
+    hhmm = now.strftime("%H:%M")
+
+    # Pull today's shows; HH:MM string comparison stays correct as long as
+    # both sides are zero-padded which they always are in our model.
+    cursor = db.shows.find(
+        {"date": today, "has_video": True},
+        {"_id": 0},
+    ).sort("start_time", 1)
+    async for show in cursor:
+        start = (show.get("start_time") or "").strip()
+        end = (show.get("end_time") or "").strip()
+        if not start or not end:
+            continue
+        # Same wraparound handling as the dashboard "On Air" panel
+        in_window = (
+            (end < start and (hhmm >= start or hhmm < end))
+            or (end >= start and start <= hhmm < end)
+        )
+        if not in_window:
+            continue
+        return await public_show_video(show["id"])
+    return {}
+
+
+
 @public_video_router.get("/{video_id}")
 async def public_video_endpoint(video_id: str):
-    """Anonymous read — used by the public consumer sites to embed a video."""
+    """Anonymous read of a single video endpoint by its id — used by public
+    consumer sites that already know the endpoint id (vs. discovering it
+    via ``/show/{show_id}`` or ``/live``)."""
     item = await db.video_endpoints.find_one({"id": video_id})
     if not item:
         raise HTTPException(status_code=404, detail="Video endpoint not found")
     out = serialize_video(item)
-    # Strip internal scoping fields
     for k in ("team_id", "main_site_id", "created_by", "uploaded_key"):
         out.pop(k, None)
     return out

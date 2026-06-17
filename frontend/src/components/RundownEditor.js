@@ -15,7 +15,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Plus, Music, Mic, FileText, Radio, ListOrdered, Play, Pause, Users, User, Eye, UserPlus, X } from 'lucide-react';
+import { Plus, Music, Mic, FileText, Radio, ListOrdered, Play, Pause, Users, User, Eye, UserPlus, X, Video } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Label } from './ui/label';
@@ -117,6 +117,14 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
   const [members, setMembers] = useState([]);
   const [memberSearch, setMemberSearch] = useState('');
 
+  // ── Video endpoint per show — "Send to video endpoint" ───────────────
+  // Toggling the checkbox auto-saves to the show document (no manual save).
+  const [hasVideo, setHasVideo] = useState(false);
+  const [videoEndpointId, setVideoEndpointId] = useState('');
+  const [videoEndpoints, setVideoEndpoints] = useState([]);
+  const [videoSaving, setVideoSaving] = useState(false);
+  const videoInitializedRef = useRef(false);
+
   // Get mainSiteId from context
   const { mainSite } = useMainSite();
   const mainSiteId = mainSite?.id || '';
@@ -157,7 +165,50 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
   useEffect(() => {
     fetchRundown();
     fetchMembers();
+    fetchVideoState();
   }, [showId]);
+
+  const fetchVideoState = async () => {
+    try {
+      const [showRes, listRes] = await Promise.all([
+        axios.get(`${API}/shows/${showId}`, {
+          headers: { Authorization: `Bearer ${token}`, 'X-Main-Site-ID': mainSiteId },
+        }),
+        axios.get(`${API}/videos`, {
+          headers: { Authorization: `Bearer ${token}`, 'X-Main-Site-ID': mainSiteId },
+        }).catch(() => ({ data: [] })),
+      ]);
+      setHasVideo(!!showRes.data?.has_video);
+      setVideoEndpointId(showRes.data?.video_endpoint_id || '');
+      setVideoEndpoints(Array.isArray(listRes.data) ? listRes.data : []);
+      videoInitializedRef.current = true;
+    } catch (e) {
+      videoInitializedRef.current = true;
+    }
+  };
+
+  // Auto-save: whenever the user toggles the checkbox or picks an endpoint,
+  // immediately persist to the show document. No manual "Save" button.
+  useEffect(() => {
+    if (!videoInitializedRef.current || !showId) return;
+    const save = async () => {
+      setVideoSaving(true);
+      try {
+        await axios.put(`${API}/shows/${showId}`, {
+          has_video: hasVideo,
+          video_endpoint_id: hasVideo ? (videoEndpointId || null) : null,
+        }, {
+          headers: { Authorization: `Bearer ${token}`, 'X-Main-Site-ID': mainSiteId },
+        });
+      } catch (err) {
+        toast.error('Could not save video setting');
+      } finally {
+        setVideoSaving(false);
+      }
+    };
+    save();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasVideo, videoEndpointId]);
 
   const fetchMembers = async () => {
     try {
@@ -468,6 +519,53 @@ const RundownEditor = ({ showId, canEdit = true, showStartTime = null, presenter
           </div>
         </div>
       )}
+
+      {/* Send to Video Endpoint — auto-saves on change */}
+      <div className="flex items-center gap-3 mb-4 pb-4 border-b border-zinc-200/50 flex-wrap" data-testid="rundown-video-endpoint-block">
+        <Video className="w-4 h-4 text-rose-400" />
+        <label className="flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={hasVideo}
+            disabled={!canEdit}
+            onChange={(e) => setHasVideo(e.target.checked)}
+            className="w-4 h-4 rounded border-zinc-300 text-rose-500 focus:ring-rose-500"
+            data-testid="send-to-video-endpoint-checkbox"
+          />
+          <span className="text-sm text-zinc-700 font-medium">Send to Video Endpoint</span>
+        </label>
+        {hasVideo && (
+          <>
+            <select
+              value={videoEndpointId || ''}
+              disabled={!canEdit}
+              onChange={(e) => setVideoEndpointId(e.target.value)}
+              className="text-sm border border-zinc-300 rounded-md px-2 py-1 bg-white text-zinc-800 focus:outline-none focus:ring-2 focus:ring-rose-400 disabled:opacity-50"
+              data-testid="rundown-video-endpoint-select"
+            >
+              <option value="">— Pick endpoint —</option>
+              {videoEndpoints.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name} ({v.platform || 'iframe'} · {v.type})
+                </option>
+              ))}
+            </select>
+            {videoEndpoints.length === 0 && (
+              <span className="text-xs text-amber-600">
+                No endpoints yet — create one under <em>Video Endpoints</em>.
+              </span>
+            )}
+          </>
+        )}
+        {videoSaving && (
+          <span className="text-[11px] text-zinc-400 ml-auto">Saving…</span>
+        )}
+        {!videoSaving && hasVideo && videoEndpointId && (
+          <span className="text-[11px] text-emerald-600 ml-auto" data-testid="rundown-video-saved">
+            Auto-saved · public API live
+          </span>
+        )}
+      </div>
 
       {loading ? (
         <div className="space-y-3">

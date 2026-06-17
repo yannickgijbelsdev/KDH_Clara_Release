@@ -1014,6 +1014,13 @@ async def get_show(
             {"id": show_id, "main_site_id": main_site_id},
             {"_id": 0}
         )
+        # Legacy shows (pre-multisite) may have only ``team_id`` set. The
+        # editor is still allowed to read/edit them when their team matches.
+        if not show and current_user.get('team_id'):
+            show = await db.shows.find_one(
+                {"id": show_id, "team_id": current_user.get('team_id')},
+                {"_id": 0}
+            )
     else:
         show = await db.shows.find_one(
             {"id": show_id, "team_id": current_user.get('team_id')},
@@ -1055,6 +1062,9 @@ async def update_show(
     
     if main_site_id:
         show = await db.shows.find_one({"id": show_id, "main_site_id": main_site_id})
+        if not show and current_user.get('team_id'):
+            # Legacy shows that pre-date main_site_id — fall back to team scope.
+            show = await db.shows.find_one({"id": show_id, "team_id": current_user.get('team_id')})
     else:
         show = await db.shows.find_one({"id": show_id, "team_id": current_user.get('team_id')})
     
@@ -1062,6 +1072,13 @@ async def update_show(
         raise HTTPException(status_code=404, detail="Show not found")
     
     update_dict = {k: v for k, v in show_data.model_dump().items() if v is not None and k != 'update_all_occurrences'}
+    # Allow explicitly clearing video_endpoint_id / video_embed_override when
+    # the editor unchecks "Send to Video Endpoint" or picks "— Pick endpoint —".
+    raw = show_data.model_dump(exclude_unset=True)
+    if 'video_endpoint_id' in raw and raw['video_endpoint_id'] in (None, ''):
+        update_dict['video_endpoint_id'] = None
+    if 'video_embed_override' in raw and raw['video_embed_override'] in (None, ''):
+        update_dict['video_embed_override'] = None
     update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
     
     # Handle presenter_ids - allow setting to empty list

@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   Plus, Search, Trash2, Edit3, ExternalLink, Copy, Upload, Video as VideoIcon,
   Youtube, Film, Megaphone, Image as ImageIcon, Loader2, X, Play, Code as CodeIcon,
+  Calendar as CalendarIcon, ChevronDown,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -65,6 +66,8 @@ export default function VideoEndpointsPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewItem, setPreviewItem] = useState(null);
+  const [schedule, setSchedule] = useState([]);
+  const [scheduleOpen, setScheduleOpen] = useState(true);
 
   const headers = useMemo(() => {
     const h = {};
@@ -75,8 +78,12 @@ export default function VideoEndpointsPage() {
   const fetchAll = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/videos`, { headers });
-      setItems(Array.isArray(res.data) ? res.data : []);
+      const [list, sched] = await Promise.all([
+        axios.get(`${API}/videos`, { headers }),
+        axios.get(`${API}/videos/schedule/overview`, { headers }).catch(() => ({ data: [] })),
+      ]);
+      setItems(Array.isArray(list.data) ? list.data : []);
+      setSchedule(Array.isArray(sched.data) ? sched.data : []);
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to load video endpoints');
     } finally {
@@ -222,6 +229,66 @@ export default function VideoEndpointsPage() {
           </SelectContent>
         </Select>
       </div>
+
+      {/* Schedule overview — which endpoint is used by which shows */}
+      {schedule.length > 0 && (
+        <div className="mb-8 bg-white border border-zinc-200 rounded-xl overflow-hidden">
+          <button
+            onClick={() => setScheduleOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-5 py-3 border-b border-zinc-100 hover:bg-zinc-50 transition"
+            data-testid="schedule-overview-toggle"
+          >
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="w-4 h-4 text-rose-500" />
+              <span className="font-semibold text-zinc-900">Scheduling overview</span>
+              <span className="text-xs text-zinc-400">
+                ({schedule.reduce((n, s) => n + s.show_count, 0)} show{schedule.reduce((n, s) => n + s.show_count, 0) === 1 ? '' : 's'} across {schedule.filter(s => s.show_count > 0).length} endpoint{schedule.filter(s => s.show_count > 0).length === 1 ? '' : 's'})
+              </span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-zinc-400 transition ${scheduleOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {scheduleOpen && (
+            <div className="divide-y divide-zinc-100" data-testid="schedule-overview-body">
+              {schedule.filter((s) => s.show_count > 0).length === 0 ? (
+                <div className="px-5 py-6 text-center text-sm text-zinc-400">
+                  No shows are linked to a video endpoint yet. Open a show's rundown and tick
+                  <em className="mx-1">Send to Video Endpoint</em>.
+                </div>
+              ) : (
+                schedule.filter((s) => s.show_count > 0).map(({ endpoint, shows }) => (
+                  <div key={endpoint.id} className="px-5 py-3" data-testid={`schedule-endpoint-${endpoint.id}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="font-medium text-zinc-900">{endpoint.name}</span>
+                      <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">
+                        {endpoint.platform || 'iframe'}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-rose-50 text-rose-700">
+                        {endpoint.type}
+                      </span>
+                      <span className="ml-auto text-xs text-zinc-400">{shows.length} show{shows.length === 1 ? '' : 's'}</span>
+                    </div>
+                    <ul className="space-y-1 pl-1">
+                      {shows.slice(0, 8).map((sh) => (
+                        <li key={sh.id} className="flex items-center gap-2 text-xs text-zinc-600">
+                          <span className="font-mono text-zinc-400 tabular-nums w-24">{sh.date || '—'}</span>
+                          <span className="font-mono text-zinc-400 tabular-nums w-20">{sh.start_time}–{sh.end_time}</span>
+                          <span className="text-zinc-800">{sh.title}</span>
+                          {sh.is_recurring && (
+                            <span className="text-[9px] uppercase tracking-wider px-1 py-0.5 rounded bg-violet-50 text-violet-600">recurring</span>
+                          )}
+                        </li>
+                      ))}
+                      {shows.length > 8 && (
+                        <li className="text-[11px] text-zinc-400 pl-1">+{shows.length - 8} more…</li>
+                      )}
+                    </ul>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-zinc-400">
