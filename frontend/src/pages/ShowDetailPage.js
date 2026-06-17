@@ -27,6 +27,7 @@ import {
   ExternalLink,
   Users,
   User,
+  Video,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -59,6 +60,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { Calendar as CalendarPicker } from '../components/ui/calendar';
 import { toast } from 'sonner';
+import { useMainSite } from '../context/MainSiteContext';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../context/PermissionsContext';
 import RundownEditor from '../components/RundownEditor';
@@ -529,6 +531,7 @@ const ShowDetailPage = () => {
             <Printer className="w-4 h-4" />
             Export / Print
           </Button>
+          <VideoEndpointInline show={show} setShow={setShow} isEditor={isEditor} />
           <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${statusColors[show.status]}`}>
             {statusLabels[show.status]}
           </span>
@@ -1306,5 +1309,172 @@ const ShowDetailPage = () => {
     </div>
   );
 };
+
+
+/**
+ * VideoEndpointInline
+ * -------------------
+ * Compact "Send to Video Endpoint" control rendered next to the Scheduled
+ * status badge in the show header. Auto-saves on toggle / dropdown change.
+ *
+ * Visual states:
+ *   - Idle off          : tiny outlined chip with camera icon + label
+ *   - Toggled on        : rose pill with inline endpoint name + dropdown affordance
+ *   - Endpoint picker   : popover with all endpoints + "no endpoint" option
+ *   - Saving            : spinner replaces caret while PUT is in-flight
+ */
+const VideoEndpointInline = ({ show, setShow, isEditor }) => {
+  const showId = show?.id;
+  const { mainSite } = useMainSite();
+  const mainSiteId = mainSite?.id || '';
+  const [open, setOpen] = useState(false);
+  const [endpoints, setEndpoints] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const popoverRef = useRef(null);
+
+  const hasVideo = !!show?.has_video;
+  const veId = show?.video_endpoint_id || '';
+  const currentEndpoint = endpoints.find((e) => e.id === veId);
+
+  // Fetch endpoint library lazily — only when the popover is opened the
+  // first time. Cached afterwards.
+  const fetchedRef = useRef(false);
+  useEffect(() => {
+    if (!open || fetchedRef.current || !mainSiteId) return;
+    fetchedRef.current = true;
+    axios
+      .get(`${API}/videos`, { headers: { 'X-Main-Site-ID': mainSiteId } })
+      .then((r) => setEndpoints(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setEndpoints([]));
+  }, [open, mainSiteId]);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const save = async (next) => {
+    setSaving(true);
+    try {
+      const res = await axios.put(`${API}/shows/${showId}`, next, {
+        headers: { 'X-Main-Site-ID': mainSiteId },
+      });
+      setShow((prev) => ({ ...prev, ...res.data }));
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Could not save video setting');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggle = (checked) => {
+    save({ has_video: checked, video_endpoint_id: checked ? veId || null : null });
+  };
+  const pick = (endpointId) => {
+    save({ has_video: true, video_endpoint_id: endpointId || null });
+  };
+
+  return (
+    <div className="relative" ref={popoverRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        disabled={!isEditor}
+        data-testid="send-to-video-endpoint-btn"
+        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium uppercase tracking-wider transition ${
+          hasVideo
+            ? 'bg-rose-100 text-rose-700 border border-rose-200 hover:bg-rose-200'
+            : 'bg-white text-zinc-500 border border-zinc-300 hover:bg-zinc-50'
+        } disabled:opacity-60 disabled:cursor-not-allowed`}
+        title="Send to Video Endpoint"
+      >
+        <Video className="w-3.5 h-3.5" />
+        {hasVideo ? (currentEndpoint?.name || 'Send to Video Endpoint') : 'Send to Video Endpoint'}
+        {saving ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : (
+          <ChevronRight className={`w-3 h-3 transition ${open ? 'rotate-90' : ''}`} />
+        )}
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 mt-2 w-80 bg-white border border-zinc-200 rounded-xl shadow-lg p-3 z-50"
+          data-testid="video-endpoint-popover"
+        >
+          <label className="flex items-center gap-2 cursor-pointer select-none mb-3 pb-3 border-b border-zinc-100">
+            <input
+              type="checkbox"
+              checked={hasVideo}
+              disabled={!isEditor}
+              onChange={(e) => toggle(e.target.checked)}
+              className="w-4 h-4 rounded border-zinc-300 text-rose-500 focus:ring-rose-500"
+              data-testid="send-to-video-endpoint-checkbox"
+            />
+            <span className="text-sm font-medium text-zinc-800">Send to Video Endpoint</span>
+          </label>
+
+          {hasVideo ? (
+            <>
+              <div className="text-[11px] uppercase tracking-wider text-zinc-400 mb-2">Pick endpoint</div>
+              <div className="max-h-64 overflow-y-auto -mx-1 px-1 space-y-1" data-testid="video-endpoint-list">
+                <button
+                  onClick={() => pick('')}
+                  className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition ${
+                    !veId ? 'bg-rose-50 text-rose-700' : 'hover:bg-zinc-50 text-zinc-600'
+                  }`}
+                >
+                  — No endpoint linked —
+                </button>
+                {endpoints.length === 0 && (
+                  <p className="text-xs text-amber-600 px-2 py-1">
+                    No endpoints yet. Create one under <em>Video Endpoints</em>.
+                  </p>
+                )}
+                {endpoints.map((v) => (
+                  <button
+                    key={v.id}
+                    onClick={() => pick(v.id)}
+                    data-testid={`pick-endpoint-${v.id}`}
+                    className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition flex items-center gap-2 ${
+                      veId === v.id ? 'bg-rose-50 text-rose-700' : 'hover:bg-zinc-50 text-zinc-700'
+                    }`}
+                  >
+                    {v.thumbnail_url ? (
+                      <img src={v.thumbnail_url} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                        <Video className="w-4 h-4 text-zinc-300" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{v.name}</div>
+                      <div className="text-[10px] uppercase tracking-wider text-zinc-400">
+                        {v.platform || 'iframe'} · {v.type}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-zinc-400">
+              Toggle this on to expose the show via the public Video API
+              (<code className="text-[10px] bg-zinc-100 px-1 rounded">/api/videos/public/show/{showId}</code>).
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 export default ShowDetailPage;
