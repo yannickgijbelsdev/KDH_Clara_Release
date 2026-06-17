@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Radio, Users, FileText, Calendar, ArrowRight, Search, Mic,
@@ -98,10 +98,29 @@ export default function DashboardHome() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const firstName = user?.name?.split(' ')[0] || 'User';
-  const activeShows = shows.filter(s => s.status === 'active' || !s.status);
 
   // Live clock that ticks every second
   const [now, setNow] = useState(new Date());
+
+  // A show is live when its date matches today AND the current local time
+  // falls in [start_time, end_time). We compare HH:MM strings — same shape
+  // the backend stores them in, no timezone math required.
+  const liveShow = useMemo(() => {
+    const pad = (n) => String(n).padStart(2, '0');
+    const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const hhmm = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    return shows.find((s) => {
+      if (s.date !== today) return false;
+      const start = s.start_time || '';
+      const end = s.end_time || '';
+      // Handle shows that wrap past midnight (e.g. 22:00–01:00)
+      if (start && end && end < start) {
+        return hhmm >= start || hhmm < end;
+      }
+      return start && end && hhmm >= start && hhmm < end;
+    }) || null;
+  }, [shows, now]);
+  const activeShows = liveShow ? [liveShow] : [];
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
@@ -250,11 +269,21 @@ function TimePanel({ now }) {
 }
 
 function OnAirPanel({ activeShows, shows, navigate, mainSiteSlug }) {
+  const live = activeShows[0];
+  const presenter = live?.presenters?.[0]?.name || (Array.isArray(live?.presenters) && live.presenters.length ? live.presenters.map(p => p?.name).filter(Boolean).join(' & ') : '');
   return (
     <Panel testId="panel-live-show" className="overflow-hidden" delay={0.12}>
       <div className="bg-gradient-to-br from-orange-500 to-amber-500 px-5 py-4 text-white">
         <div className="flex items-center gap-2 mb-1"><Mic className="w-4 h-4" /><span className="text-xs font-semibold uppercase tracking-wide">On Air</span></div>
-        <p className="text-base font-bold leading-tight">{activeShows.length > 0 ? activeShows[0].name : 'No live show'}</p>
+        <p className="text-base font-bold leading-tight" data-testid="on-air-show-title">
+          {live ? (live.title || live.name) : 'No live show'}
+        </p>
+        {live && presenter && (
+          <p className="text-xs text-white/85 mt-0.5" data-testid="on-air-presenter">{presenter}</p>
+        )}
+        {live && (live.start_time || live.end_time) && (
+          <p className="text-[11px] text-white/70 mt-0.5">{live.start_time}–{live.end_time}</p>
+        )}
       </div>
       <div className="px-5 py-3 flex items-center justify-between">
         <div><span className="text-xl font-bold text-zinc-900">{shows.length}</span><span className="text-xs text-zinc-400 ml-1">shows</span></div>
