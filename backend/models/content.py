@@ -21,6 +21,7 @@ class ContentItemUpdate(BaseModel):
     external_url: Optional[str] = None
     category_id: Optional[str] = None
     status: Optional[Literal["draft", "ready", "published"]] = None
+    is_liveblog: Optional[bool] = None
 
 
 class ContentApprovalUpdate(BaseModel):
@@ -138,4 +139,5 @@ class ContentItemResponse(BaseModel):
     source_url: Optional[str] = None  # Original article URL
     image_attributions: Optional[dict] = None  # URL → { credit, photographer, license, source_url }
     missing_image_attributions: Optional[bool] = None  # set by list / detail endpoints
+    is_liveblog: Optional[bool] = False
     publish_statuses: List[ContentPublishStatusWithImage] = []

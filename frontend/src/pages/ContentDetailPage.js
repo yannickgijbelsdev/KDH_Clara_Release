@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import ImageResizeDialog from '../components/ImageResizeDialog';
 import ImageCopyrightDialog from '../components/ImageCopyrightDialog';
 import ImageRightsModal from '../components/ImageRightsModal';
+import LiveblogPanel from '../components/LiveblogPanel';
 import MainSiteContext from '../context/MainSiteContext';
 import PublishToButton from '../components/ClaraCustom/PublishToButton';
 import { isImageFile, isOversized } from '../utils/imageResize';
@@ -749,6 +750,39 @@ const ContentDetailPage = () => {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900">{content.title}</h1>
+            {/* Liveblog toggle — auto-save on change */}
+            {isEditor && (
+              <label
+                className={`inline-flex items-center gap-1.5 cursor-pointer select-none px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider transition border ${
+                  content.is_liveblog
+                    ? 'bg-red-100 text-red-700 border-red-200'
+                    : 'bg-white text-zinc-500 border-zinc-300 hover:bg-zinc-50'
+                }`}
+                data-testid="liveblog-toggle"
+                title="Mark this article as a liveblog"
+              >
+                <input
+                  type="checkbox"
+                  checked={!!content.is_liveblog}
+                  onChange={async (e) => {
+                    const checked = e.target.checked;
+                    setContent((prev) => ({ ...prev, is_liveblog: checked }));
+                    try {
+                      const res = await axios.put(`${API}/content/${contentId}`, { is_liveblog: checked });
+                      setContent(res.data);
+                      toast.success(checked ? 'Liveblog mode enabled' : 'Liveblog mode disabled');
+                    } catch (err) {
+                      toast.error(err.response?.data?.detail || 'Could not save liveblog setting');
+                      setContent((prev) => ({ ...prev, is_liveblog: !checked }));
+                    }
+                  }}
+                  className="w-3 h-3 rounded border-zinc-300 text-red-500 focus:ring-red-500"
+                  data-testid="liveblog-toggle-checkbox"
+                />
+                {content.is_liveblog && <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />}
+                Liveblog
+              </label>
+            )}
             {/* Ready check (purple) */}
             {content.status === 'ready' && (
               <span title="Ready" data-testid="ready-check" style={{ color: '#ffffff' }} className="w-6 h-6 rounded-full bg-[#7c1ac8] flex items-center justify-center flex-shrink-0">
@@ -1370,6 +1404,18 @@ const ContentDetailPage = () => {
                 .content-body-display em, .content-body-display i { font-style: italic; }
               `}</style>
             </div>
+
+            {/* Liveblog timeline — visible only when this article is flagged as a liveblog */}
+            {content.is_liveblog && (
+              <div className="mt-6">
+                <LiveblogPanel
+                  contentId={contentId}
+                  mainSiteId={parentMainSite?.id || ''}
+                  token={token}
+                  canEdit={isEditor}
+                />
+              </div>
+            )}
 
             {/* Source only — Category & Created By now live in the header */}
             {content.source && (

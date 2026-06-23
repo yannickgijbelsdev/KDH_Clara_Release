@@ -396,7 +396,47 @@ async def get_article_detail(article_id: str):
     if item.get("main_site_id"):
         site = await db.main_sites.find_one({"id": item["main_site_id"]}, {"_id": 0, "slug": 1})
         site_slug = (site or {}).get("slug", "")
-    return _serialize_item(item, category, site_slug, include_body=True)
+    out = _serialize_item(item, category, site_slug, include_body=True)
+    out["is_liveblog"] = bool(item.get("is_liveblog"))
+    # Attach published liveblog entries (reverse-chrono so consumers can
+    # render the newest at the top, VRT NWS-style).
+    if out["is_liveblog"]:
+        from models.liveblog import serialize_entry as _ser_entry  # noqa: WPS433
+        cur = db.liveblog_entries.find(
+            {"content_id": item["id"], "published": True}
+        ).sort("timestamp", -1)
+        out["liveblog_entries"] = [_ser_entry(e) async for e in cur]
+    else:
+        out["liveblog_entries"] = []
+    return out
+
+
+@news_public_router.get("/articles/{article_id}/liveblog")
+async def public_liveblog_entries(
+    article_id: str,
+    since: Optional[str] = Query(None, description="ISO timestamp — only entries updated after this"),
+    limit: int = Query(100, ge=1, le=500),
+):
+    """Polling endpoint for consumer sites without WebSocket: returns the
+    published entries (optionally filtered by ``updated_at > since``).
+    Newest first.
+    """
+    item = await db.content_items.find_one(
+        {"$or": [{"id": article_id}, {"slug": article_id}], **PUBLIC_BASE_QUERY},
+        {"_id": 0, "id": 1, "is_liveblog": 1},
+    )
+    if not item:
+        raise HTTPException(status_code=404, detail="Article not found")
+    if not item.get("is_liveblog"):
+        return {"entries": [], "count": 0}
+
+    from models.liveblog import serialize_entry as _ser_entry  # noqa: WPS433
+    q: dict = {"content_id": item["id"], "published": True}
+    if since:
+        q["updated_at"] = {"$gt": since}
+    cur = db.liveblog_entries.find(q).sort("timestamp", -1).limit(limit)
+    entries = [_ser_entry(e) async for e in cur]
+    return {"entries": entries, "count": len(entries)}
 
 
 @news_public_router.get("/{site_slug}/{category_slug}")

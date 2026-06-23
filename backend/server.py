@@ -83,6 +83,7 @@ from routers.vdc_quick_deploy import vdc_quick_router
 from routers.news_public import news_public_router
 from routers.clara_flows import clara_flows_router
 from routers.video_endpoints import video_router, public_video_router
+from routers.liveblog import liveblog_router
 from routers.security import security_router
 from models.wordpress import PublishToWordPressRequest, PublishResponse
 from services.auth import get_current_user, require_editor_or_admin, require_admin
@@ -170,6 +171,7 @@ api_router.include_router(clara_integrations_router)
 api_router.include_router(vdc_quick_router)
 api_router.include_router(video_router)
 api_router.include_router(public_video_router)
+api_router.include_router(liveblog_router)
 
 
 # ============== ADDITIONAL API ROUTES ==============
@@ -1044,6 +1046,54 @@ async def show_rundown_websocket(
         await ws_manager.disconnect(websocket, room_id)
     except Exception:
         await ws_manager.disconnect(websocket, room_id)
+
+
+
+@app.websocket("/ws/liveblog/{content_id}")
+async def liveblog_websocket(websocket: WebSocket, content_id: str):
+    """Real-time fan-out for liveblog entries on an article. Editors subscribe
+    while editing; the ``liveblog`` router broadcasts entry_created /
+    entry_updated / entry_deleted / entry_published / entry_unpublished
+    events to every subscriber via this socket."""
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=4001, reason="Missing authentication token")
+        return
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = payload.get("user_id")
+        user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+        if not user:
+            await websocket.close(code=4001, reason="Invalid token")
+            return
+    except jwt.ExpiredSignatureError:
+        await websocket.close(code=4001, reason="Token expired")
+        return
+    except Exception:
+        await websocket.close(code=4001, reason="Invalid token")
+        return
+
+    room_id = f"liveblog:{content_id}"
+    user_info = {
+        "id": user.get("id"),
+        "name": user.get("name", "Editor"),
+        "avatar_url": user.get("avatar_url"),
+    }
+    await ws_manager.connect(websocket, room_id, user_info)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            try:
+                msg = json.loads(data)
+            except Exception:
+                continue
+            if msg.get("type") == "ping":
+                await websocket.send_json({"type": "pong"})
+    except WebSocketDisconnect:
+        await ws_manager.disconnect(websocket, room_id)
+    except Exception:
+        await ws_manager.disconnect(websocket, room_id)
+
 
 
 # ============== CALL SIGNALING WEBSOCKET ==============
