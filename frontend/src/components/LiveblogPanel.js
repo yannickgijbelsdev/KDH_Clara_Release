@@ -41,6 +41,7 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null); // entry being edited (or 'new')
   const [wsConnected, setWsConnected] = useState(false);
+  const [wsFailed, setWsFailed] = useState(false);
   const [presence, setPresence] = useState([]);
   const wsRef = useRef(null);
 
@@ -52,16 +53,24 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit }) => {
   // Initial load
   const fetchEntries = useCallback(async () => {
     try {
-      setLoading(true);
       const r = await axios.get(`${API}/content/${contentId}/liveblog/entries`, { headers });
       setEntries(Array.isArray(r.data) ? r.data : []);
     } catch (e) {
-      toast.error(e.response?.data?.detail || 'Failed to load liveblog');
+      // Silent on background polls
     } finally {
       setLoading(false);
     }
   }, [contentId, headers]);
   useEffect(() => { if (contentId) fetchEntries(); }, [contentId, fetchEntries]);
+
+  // Polling fallback (15s) — keeps the panel fresh even when the WebSocket
+  // upgrade is blocked by the production reverse proxy. WS still upgrades
+  // the UX to real-time when available, but we no longer depend on it.
+  useEffect(() => {
+    if (!contentId) return;
+    const t = setInterval(fetchEntries, 15000);
+    return () => clearInterval(t);
+  }, [contentId, fetchEntries]);
 
   // ── WebSocket: real-time fan-out across editors ──────────────────────
   useEffect(() => {
@@ -70,11 +79,14 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit }) => {
     let ws;
     let pingTimer;
     let reconnectTimer;
+    let attempts = 0;
     const open = () => {
       ws = new WebSocket(url);
       wsRef.current = ws;
       ws.onopen = () => {
         setWsConnected(true);
+        setWsFailed(false);
+        attempts = 0;
         pingTimer = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' }));
         }, 30000);
@@ -91,6 +103,13 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit }) => {
       ws.onclose = () => {
         setWsConnected(false);
         clearInterval(pingTimer);
+        attempts += 1;
+        // Stop trying after 3 attempts — production proxy probably blocks
+        // WebSocket upgrades. The polling fallback keeps the panel fresh.
+        if (attempts >= 3) {
+          setWsFailed(true);
+          return;
+        }
         reconnectTimer = setTimeout(open, 3000);
       };
       ws.onerror = () => { try { ws.close(); } catch { /* ignore */ } };
@@ -172,8 +191,10 @@ const LiveblogPanel = ({ contentId, mainSiteId, token, canEdit }) => {
           <div className="text-xs text-zinc-400 flex items-center gap-2 mt-0.5">
             {wsConnected ? (
               <><Wifi className="w-3 h-3 text-emerald-500" /> Real-time collaboration on</>
+            ) : wsFailed ? (
+              <><RefreshCcw className="w-3 h-3 text-zinc-400" /> Live polling (every 15s)</>
             ) : (
-              <><WifiOff className="w-3 h-3 text-amber-500" /> Reconnecting…</>
+              <><WifiOff className="w-3 h-3 text-amber-500" /> Connecting…</>
             )}
             {presence.length > 0 && <span>· {presence.length} editor{presence.length === 1 ? '' : 's'} viewing</span>}
           </div>
