@@ -203,6 +203,50 @@ def _format_credit_line(entry) -> str:
     return line
 
 
+def _collect_body_images(item: dict) -> list[dict]:
+    """Extract every inline ``<img>`` from the article body and pair each
+    with its stored attribution (if any). Returned as a list of dicts so
+    consumers can render thumbnails / credits without parsing the body HTML
+    themselves.
+
+    Order matches their appearance in the body, duplicates preserved.
+    """
+    body = item.get("body") or ""
+    if not body:
+        return []
+    attrs = item.get("image_attributions") or {}
+    if not isinstance(attrs, dict):
+        attrs = {}
+    out: list[dict] = []
+    for m in _INLINE_IMG_PATTERN.finditer(body):
+        src = (m.group(1) or "").strip()
+        if not src or src.startswith("data:"):
+            continue
+        if "/None/" in src or "/None_" in src:
+            continue
+        entry = attrs.get(src) or {}
+        if isinstance(entry, str):
+            entry = {"credit": entry}
+        credit = (entry.get("credit") or "").strip() or None
+        photographer = (entry.get("photographer") or "").strip() or None
+        license_ = (entry.get("license") or "").strip() or None
+        source_url = (entry.get("source_url") or "").strip() or None
+        caption_html = _format_credit_line({
+            "credit": credit, "photographer": photographer,
+            "license": license_, "source_url": source_url,
+        })
+        out.append({
+            "src": src,
+            "credit": credit,
+            "photographer": photographer,
+            "license": license_,
+            "source_url": source_url,
+            "caption_html": caption_html or None,
+            "has_credit": bool(credit),
+        })
+    return out
+
+
 def _inject_body_attributions(body: str, attributions: dict) -> str:
     """Wrap every ``<img>`` whose ``src`` has an attribution entry inside a
     ``<figure>…<figcaption>…</figcaption></figure>`` block so consumer
@@ -308,6 +352,7 @@ def _serialize_item(item: dict, category: Optional[dict], site_slug: str, *, inc
         "published_at": item.get("published_at") or item.get("created_at"),
         "url": f"/nieuws/{item.get('slug') or item['id']}",
         "missing_image_attributions": _has_missing_image_attribution(item),
+        "body_images": _collect_body_images(item),
     }
     if include_body:
         # The body already contains the intro paragraph that was reused as
