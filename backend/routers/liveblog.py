@@ -58,6 +58,19 @@ def _entry_image_missing(entry: dict) -> bool:
     return False
 
 
+async def _touch_article_activity(content_id: str):
+    """Mark the article as having recent liveblog activity so the
+    12-hour auto-archive job (in ``news_public``) doesn't flip
+    ``is_liveblog`` to false while editors are still posting."""
+    try:
+        await db.content_items.update_one(
+            {"id": content_id},
+            {"$set": {"liveblog_last_activity_at": datetime.now(timezone.utc).isoformat()}},
+        )
+    except Exception:
+        pass
+
+
 async def _broadcast(content_id: str, event: str, payload: dict):
     """Fan out an entry event to every editor connected to this article."""
     try:
@@ -107,6 +120,7 @@ async def create_entry(
         "created_by_name": current_user.get("name"),
     }
     await db.liveblog_entries.insert_one(doc)
+    await _touch_article_activity(content_id)
     out = serialize_entry(doc)
     await _broadcast(content_id, "entry_created", {"entry": out})
     return out
@@ -136,6 +150,7 @@ async def update_entry(
     await db.liveblog_entries.update_one({"id": entry_id}, {"$set": updates})
 
     refreshed = await db.liveblog_entries.find_one({"id": entry_id})
+    await _touch_article_activity(content_id)
     out = serialize_entry(refreshed)
     await _broadcast(content_id, "entry_updated", {"entry": out})
     return out
@@ -181,6 +196,7 @@ async def publish_entry(
         {"$set": {"published": True, "published_at": now, "updated_at": now}},
     )
     refreshed = await db.liveblog_entries.find_one({"id": entry_id})
+    await _touch_article_activity(content_id)
     out = serialize_entry(refreshed)
     await _broadcast(content_id, "entry_published", {"entry": out})
     return out

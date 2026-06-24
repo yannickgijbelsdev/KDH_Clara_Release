@@ -45,6 +45,65 @@ PUBLIC_STATUSES = ["published"]
 #   • approval_status == 'approved'
 #   • not soft-deleted
 # Items in draft / ready / trashed never reach the public API.
+def _strip_entry_author(entry: dict) -> dict:
+    """Remove editor identity from the public payload — readers should not
+    see who wrote which timeline update."""
+    out = dict(entry)
+    out.pop("created_by", None)
+    out.pop("created_by_name", None)
+    return out
+
+
+async def _maybe_archive_liveblog(item: dict) -> bool:
+    """If the article is flagged as a liveblog but no entry has been
+    created/updated in the last 12 hours, automatically un-flag it. The
+    entries themselves stay in the DB so they remain visible as a static
+    timeline — only the LIVE badge / auto-update behaviour disappears.
+
+    Returns True if the article was just archived (caller should refresh
+    ``item['is_liveblog']``).
+    """
+    from datetime import datetime as _dt, timezone as _tz, timedelta
+    if not item.get("is_liveblog"):
+        return False
+    last = item.get("liveblog_last_activity_at")
+    last_dt = None
+    if last:
+        try:
+            last_dt = _dt.fromisoformat(str(last).replace("Z", "+00:00"))
+        except Exception:
+            last_dt = None
+    if not last_dt:
+        # No activity stamp — fall back to the newest entry's updated_at.
+        newest = await db.liveblog_entries.find_one(
+            {"content_id": item["id"]},
+            {"_id": 0, "updated_at": 1},
+            sort=[("updated_at", -1)],
+        )
+        if not newest:
+            return False
+        try:
+            last_dt = _dt.fromisoformat(str(newest.get("updated_at") or "").replace("Z", "+00:00"))
+        except Exception:
+            return False
+    now = _dt.now(_tz.utc)
+    if last_dt.tzinfo is None:
+        last_dt = last_dt.replace(tzinfo=_tz.utc)
+    if now - last_dt < timedelta(hours=12):
+        return False
+    await db.content_items.update_one(
+        {"id": item["id"]},
+        {"$set": {
+            "is_liveblog": False,
+            "liveblog_ended_at": now.isoformat(),
+        }},
+    )
+    item["is_liveblog"] = False
+    item["liveblog_ended_at"] = now.isoformat()
+    return True
+
+
+
 PUBLIC_BASE_QUERY = {
     "status": {"$in": PUBLIC_STATUSES},
     "approval_status": "approved",
@@ -397,17 +456,20 @@ async def get_article_detail(article_id: str):
         site = await db.main_sites.find_one({"id": item["main_site_id"]}, {"_id": 0, "slug": 1})
         site_slug = (site or {}).get("slug", "")
     out = _serialize_item(item, category, site_slug, include_body=True)
+    # Auto-archive if no activity in the last 12 hours — the live badge
+    # then disappears, but the entries stay so the article reads as a
+    # static timeline ("ended liveblog").
+    await _maybe_archive_liveblog(item)
     out["is_liveblog"] = bool(item.get("is_liveblog"))
-    # Attach published liveblog entries (reverse-chrono so consumers can
-    # render the newest at the top, VRT NWS-style).
-    if out["is_liveblog"]:
-        from models.liveblog import serialize_entry as _ser_entry  # noqa: WPS433
-        cur = db.liveblog_entries.find(
-            {"content_id": item["id"], "published": True}
-        ).sort("timestamp", -1)
-        out["liveblog_entries"] = [_ser_entry(e) async for e in cur]
-    else:
-        out["liveblog_entries"] = []
+    out["liveblog_ended_at"] = item.get("liveblog_ended_at")
+    # Always surface published entries (even after archive) so consumers
+    # can render them as a static timeline. Strip editor identity per
+    # privacy spec.
+    from models.liveblog import serialize_entry as _ser_entry  # noqa: WPS433
+    cur = db.liveblog_entries.find(
+        {"content_id": item["id"], "published": True}
+    ).sort("timestamp", -1)
+    out["liveblog_entries"] = [_strip_entry_author(_ser_entry(e)) async for e in cur]
     return out
 
 
@@ -423,20 +485,24 @@ async def public_liveblog_entries(
     """
     item = await db.content_items.find_one(
         {"$or": [{"id": article_id}, {"slug": article_id}], **PUBLIC_BASE_QUERY},
-        {"_id": 0, "id": 1, "is_liveblog": 1},
+        {"_id": 0, "id": 1, "is_liveblog": 1, "liveblog_last_activity_at": 1, "liveblog_ended_at": 1},
     )
     if not item:
         raise HTTPException(status_code=404, detail="Article not found")
-    if not item.get("is_liveblog"):
-        return {"entries": [], "count": 0}
+    await _maybe_archive_liveblog(item)
 
     from models.liveblog import serialize_entry as _ser_entry  # noqa: WPS433
     q: dict = {"content_id": item["id"], "published": True}
     if since:
         q["updated_at"] = {"$gt": since}
     cur = db.liveblog_entries.find(q).sort("timestamp", -1).limit(limit)
-    entries = [_ser_entry(e) async for e in cur]
-    return {"entries": entries, "count": len(entries)}
+    entries = [_strip_entry_author(_ser_entry(e)) async for e in cur]
+    return {
+        "entries": entries,
+        "count": len(entries),
+        "is_liveblog": bool(item.get("is_liveblog")),
+        "liveblog_ended_at": item.get("liveblog_ended_at"),
+    }
 
 
 @news_public_router.get("/{site_slug}/{category_slug}")
