@@ -56,7 +56,7 @@ def _strip_entry_author(entry: dict) -> dict:
 
 async def _maybe_archive_liveblog(item: dict) -> bool:
     """If the article is flagged as a liveblog but no entry has been
-    created/updated in the last 12 hours, automatically un-flag it. The
+    created/updated in the last 6 hours, automatically un-flag it. The
     entries themselves stay in the DB so they remain visible as a static
     timeline — only the LIVE badge / auto-update behaviour disappears.
 
@@ -89,7 +89,7 @@ async def _maybe_archive_liveblog(item: dict) -> bool:
     now = _dt.now(_tz.utc)
     if last_dt.tzinfo is None:
         last_dt = last_dt.replace(tzinfo=_tz.utc)
-    if now - last_dt < timedelta(hours=12):
+    if now - last_dt < timedelta(hours=6):
         return False
     await db.content_items.update_one(
         {"id": item["id"]},
